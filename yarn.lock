@@ -34,7 +34,7 @@ __metadata:
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
-    typescript: 5.9.3
+    typescript: 6.0.3
   languageName: unknown
   linkType: soft
 
@@ -50,7 +50,7 @@ __metadata:
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
-    typescript: 5.9.3
+    typescript: 6.0.3
   languageName: unknown
   linkType: soft
 
@@ -61,7 +61,7 @@ __metadata:
     "@studio/ui-test": "workspace:^"
     jest: "npm:29.7.0"
   peerDependencies:
-    axios: 1.15.2
+    axios: 1.16.0
     classnames: 2.5.1
     react: 18.3.1
     react-dom: 18.3.1
@@ -86,7 +86,7 @@ __metadata:
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
-    typescript: 5.9.3
+    typescript: 6.0.3
   languageName: unknown
   linkType: soft
 
@@ -104,7 +104,7 @@ __metadata:
     react-redux: "npm:9.2.0"
     redux: "npm:5.0.1"
     redux-mock-store: "npm:1.5.5"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.2"
   languageName: unknown
   linkType: soft
@@ -119,7 +119,7 @@ __metadata:
     jest: "npm:29.7.0"
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.2"
   languageName: unknown
   linkType: soft
@@ -174,7 +174,7 @@ __metadata:
     react-dropzone: "npm:15.0.0"
     react-number-format: "npm:5.4.5"
     storybook: "npm:10.4.4"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     typescript-plugin-css-modules: "npm:5.2.0"
     vite: "npm:8.0.16"
     vite-tsconfig-paths: "npm:6.1.1"
@@ -203,7 +203,7 @@ __metadata:
     eslint: "npm:10.5.0"
     globals: "npm:17.6.0"
     jsdom: "npm:^26.1.0"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vitest: "npm:^4.1.5"
   peerDependencies:
     react: ^19.0.0
@@ -215,7 +215,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@app/language@workspace:app-libs/language"
   dependencies:
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vitest: "npm:4.1.8"
   languageName: unknown
   linkType: soft
@@ -1925,6 +1925,23 @@ __metadata:
     tough-cookie: "npm:^5.0.0"
     tunnel-agent: "npm:^0.6.0"
   checksum: 10/7facc78b2940f5f7d12bc1f31c07fbf78bb71ce32c304551fccd265c77f564f093c3a1dd871048d744525f84013ae291de7654c93ffcbec54cab2a0b15e0d20f
+  languageName: node
+  linkType: hard
+
+"@cypress/webpack-preprocessor@npm:7.1.1":
+  version: 7.1.1
+  resolution: "@cypress/webpack-preprocessor@npm:7.1.1"
+  dependencies:
+    bluebird: "npm:3.7.1"
+    debug: "npm:^4.3.4"
+    lodash: "npm:^4.17.20"
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    "@babel/core": ^7.28.0
+    "@babel/preset-env": ^7.26.0
+    babel-loader: ^9 || ^10
+    webpack: ^5
+  checksum: 10/9860e5c1142702532156747c6ef6d5aa6cea9a383accb973c313b93df55a9e17dbe46b8b939c5a1c66e124609430977b883e81c690a132409e8b5c9330fe1aed
   languageName: node
   linkType: hard
 
@@ -6408,7 +6425,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:29.4.11"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6437,7 +6454,7 @@ __metadata:
     react-dom: "npm:19.2.7"
     storybook: "npm:10.4.4"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.2"
   languageName: unknown
   linkType: soft
@@ -6468,7 +6485,7 @@ __metadata:
     react-dnd-html5-backend: "npm:16.0.1"
     storybook: "npm:10.4.4"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   peerDependencies:
     react: 18.2.0 || 19.0.0 || 19.1 || 19.2
     react-dom: 18.2.0 || 19.0.0 || 19.1 || 19.2
@@ -6489,7 +6506,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:29.4.11"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6505,7 +6522,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -6529,7 +6546,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6547,7 +6564,7 @@ __metadata:
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.2"
   peerDependencies:
     react-router-dom: ">=6.0.0"
@@ -6567,7 +6584,7 @@ __metadata:
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6580,7 +6597,7 @@ __metadata:
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6596,7 +6613,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -7630,12 +7647,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.0.0":
-  version: 22.19.21
-  resolution: "@types/node@npm:22.19.21"
+"@types/node@npm:^24.0.0":
+  version: 24.13.2
+  resolution: "@types/node@npm:24.13.2"
   dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10/3767b914ea4ec2f05dfa541b90e20bf580ab671feae8459c49f67eddd6c18f1d178d054a0836d3928f53e3049e84c0c7ee64630c20980941202ba5ecfd731e56
+    undici-types: "npm:~7.18.0"
+  checksum: 10/2b8cb95ada191ecc788fef91d7cdb86dff24f6895b510e1fb495cc001832709fa8fc3e1eeb27d64bda52b3f74f9e91acf42431e98e3e6876de1e53acce7f7602
   languageName: node
   linkType: hard
 
@@ -8794,7 +8811,7 @@ __metadata:
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
-    axios: "npm:1.15.2"
+    axios: "npm:1.16.0"
     classnames: "npm:2.5.1"
     i18next: "npm:25.8.20"
     jest: "npm:29.7.0"
@@ -8803,7 +8820,7 @@ __metadata:
     react-dom: "npm:19.2.7"
     react-i18next: "npm:17.0.8"
     react-router-dom: "npm:7.17.0"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -9082,7 +9099,7 @@ __metadata:
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     "@studio/ui-test": "workspace:^"
-    axios: "npm:1.15.2"
+    axios: "npm:1.16.0"
     classnames: "npm:2.5.1"
     i18next: "npm:25.8.20"
     jest: "npm:29.7.0"
@@ -9091,7 +9108,7 @@ __metadata:
     react-dom: "npm:19.2.7"
     react-i18next: "npm:17.0.8"
     react-router-dom: "npm:7.17.0"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -9109,6 +9126,7 @@ __metadata:
     "@babel/preset-react": "npm:7.28.5"
     "@babel/runtime": "npm:7.29.7"
     "@babel/runtime-corejs3": "npm:7.29.7"
+    "@cypress/webpack-preprocessor": "npm:7.1.1"
     "@date-fns/tz": "npm:1.4.1"
     "@digdir/designsystemet-css": "npm:1.11.1"
     "@digdir/designsystemet-react": "npm:1.11.1"
@@ -9214,13 +9232,13 @@ __metadata:
     react-leaflet-draw: "npm:0.21.0"
     react-number-format: "npm:5.4.5"
     react-refresh: "npm:0.18.0"
-    react-router: "npm:7.13.2"
+    react-router: "npm:7.15.0"
     react-toastify: "npm:11.1.0"
     resize-observer-polyfill: "npm:1.5.1"
     tinybench: "npm:6.0.2"
     ts-jest: "npm:29.4.11"
     tsx: "npm:4.22.4"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     typescript-eslint: "npm:8.59.4"
     typescript-plugin-css-modules: "npm:5.2.0"
     utility-types: "npm:3.11.0"
@@ -9241,7 +9259,7 @@ __metadata:
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
     react-router-dom: "npm:7.17.0"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -9260,7 +9278,7 @@ __metadata:
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
     react-router-dom: "npm:7.17.0"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -9572,14 +9590,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.15.2":
-  version: 1.15.2
-  resolution: "axios@npm:1.15.2"
+"axios@npm:1.16.0":
+  version: 1.16.0
+  resolution: "axios@npm:1.16.0"
   dependencies:
-    follow-redirects: "npm:^1.15.11"
+    follow-redirects: "npm:^1.16.0"
     form-data: "npm:^4.0.5"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10/eebbd8cb777316d4252cd994a06ec9fb956ef519214a62dab6c5443ae8b753b5116e9a770502316789e6cdef1101e6aae53b6936d6a3791b2d66d75f4d7d2462
+  checksum: 10/cf8b521ff732c21550b38c8739aef556ea5e14b268468bb89e4307416ab262b462e582474e810963a3d61c2392ab47ad35c11d05eff027de7c97113bc7411623
   languageName: node
   linkType: hard
 
@@ -9606,7 +9624,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "azure-devops-mock@workspace:src/Designer/development/azure-devops-mock"
   dependencies:
-    axios: "npm:1.15.2"
+    axios: "npm:1.16.0"
     cors: "npm:2.8.6"
     express: "npm:5.2.1"
     morgan: "npm:1.10.1"
@@ -10008,6 +10026,13 @@ __metadata:
   version: 2.0.2
   resolution: "blob-util@npm:2.0.2"
   checksum: 10/b2c5a20c677f2a6c3821cf13c5522d64af96e666bc40cce6b43f87d16e89a55e2eab2f6264ec3f36d7f810eba848aa7e2bc611e47c14eb6395136c0b0a8b29ea
+  languageName: node
+  linkType: hard
+
+"bluebird@npm:3.7.1":
+  version: 3.7.1
+  resolution: "bluebird@npm:3.7.1"
+  checksum: 10/2af420fcd493dea6aa2f53007bc511d44cd1da90e31810b405366956e4d9ca1c56f0c6d725e3444d9c59df7cacc9e3390ab52bd7d86c09852464d8a247f59841
   languageName: node
   linkType: hard
 
@@ -11506,7 +11531,7 @@ __metadata:
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
     react-router-dom: "npm:7.17.0"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -13965,7 +13990,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.15.11, follow-redirects@npm:^1.16.0":
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.16.0":
   version: 1.16.0
   resolution: "follow-redirects@npm:1.16.0"
   peerDependenciesMeta:
@@ -18224,6 +18249,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash@npm:^4.17.20":
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
+  languageName: node
+  linkType: hard
+
 "log-symbols@npm:^4.0.0, log-symbols@npm:^4.1.0":
   version: 4.1.0
   resolution: "log-symbols@npm:4.1.0"
@@ -19963,7 +19995,7 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.41.1"
     "@types/dotenv": "npm:^8.2.0"
-    "@types/node": "npm:^22.0.0"
+    "@types/node": "npm:^24.0.0"
     dotenv: "npm:^17.0.0"
     ts-node: "npm:^10.9.2"
   languageName: unknown
@@ -19975,7 +20007,7 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.41.1"
     "@types/dotenv": "npm:^8.2.0"
-    "@types/node": "npm:^22.0.0"
+    "@types/node": "npm:^24.0.0"
     dotenv: "npm:^17.0.0"
     ts-node: "npm:^10.9.2"
   languageName: unknown
@@ -20906,9 +20938,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:7.13.2":
-  version: 7.13.2
-  resolution: "react-router@npm:7.13.2"
+"react-router@npm:7.15.0":
+  version: 7.15.0
+  resolution: "react-router@npm:7.15.0"
   dependencies:
     cookie: "npm:^1.0.1"
     set-cookie-parser: "npm:^2.6.0"
@@ -20918,7 +20950,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10/86e3538e4b50402bb15ac7b0938fdace5947a45d418bd1713b15288a208a5b102dfa599a3e5c4a86e136331b5dafaacfe57d93d2cc48241cf48fe770190cfbda
+  checksum: 10/98681e75fab2eddc2b18bd478840341a85b5eab796ed29c638be986faab0c63ff16ad72c9889192a4f5c6f559f20aad3273fdffbeb1edf104d2cf2381373c9ca
   languageName: node
   linkType: hard
 
@@ -21384,7 +21416,7 @@ __metadata:
     markdown-to-jsx: "npm:7.7.17"
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -22842,7 +22874,7 @@ __metadata:
     react-toastify: "npm:11.0.5"
     source-map-loader: "npm:5.0.0"
     swc-loader: "npm:0.2.7"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     typescript-plugin-css-modules: "npm:5.2.0"
     vite: "npm:^6.3.2"
     whatwg-fetch: "npm:3.6.20"
@@ -23777,6 +23809,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:6.0.3":
+  version: 6.0.3
+  resolution: "typescript@npm:6.0.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10/0ef2357a4cffd916b52b683a021cdab0f81eea4e9aa35f2d254581c9a5106da02224e3392e1b0ed42b7a48f80c966e5f52b8e1a27941fa0523c1705a9c2e0330
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A>=5#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
@@ -23784,6 +23826,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/696e1b017bc2635f4e0c94eb4435357701008e2f272f553d06e35b494b8ddc60aa221145e286c28ace0c89ee32827a28c2040e3a69bdc108b1a5dc8fb40b72e3
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>":
+  version: 6.0.3
+  resolution: "typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>::version=6.0.3&hash=5786d5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10/22b67a18dafedf9b1468b64ca20d9aa02ea61d449b65413d8aa6552aeb63f52ef369e86beb25b6b4c91a803d9726ee5c196f391a9b64201263263410a4223ee6
   languageName: node
   linkType: hard
 
@@ -23822,17 +23874,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~7.16.0":
   version: 7.16.0
   resolution: "undici-types@npm:7.16.0"
   checksum: 10/db43439f69c2d94cc29f75cbfe9de86df87061d6b0c577ebe9bb3255f49b22c50162a7d7eb413b0458b6510b8ca299ac7cff38c3a29fbd31af9f504bcf7fbc0d
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.18.0":
+  version: 7.18.2
+  resolution: "undici-types@npm:7.18.2"
+  checksum: 10/e61a5918f624d68420c3ca9d301e9f15b61cba6e97be39fe2ce266dd6151e4afe424d679372638826cb506be33952774e0424141200111a9857e464216c009af
   languageName: node
   linkType: hard
 
