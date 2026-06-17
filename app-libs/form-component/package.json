@@ -32,7 +32,7 @@
     "react-number-format": "5.4.5"
   },
   "peerDependencies": {
-    "@digdir/designsystemet-react": "1.15.0",
+    "@digdir/designsystemet-react": "1.11.1",
     "@navikt/aksel-icons": "8.12.1",
     "react": "19.2.7",
     "react-dom": "19.2.7"
@@ -40,8 +40,8 @@
   "devDependencies": {
     "@app/language": "workspace:0.1.0",
     "@chromatic-com/storybook": "5.2.1",
-    "@digdir/designsystemet-css": "1.15.0",
-    "@digdir/designsystemet-react": "1.15.0",
+    "@digdir/designsystemet-css": "1.11.1",
+    "@digdir/designsystemet-react": "1.11.1",
     "@eslint/compat": "2.1.0",
     "@eslint/js": "10.0.1",
     "@navikt/aksel-icons": "8.12.1",
