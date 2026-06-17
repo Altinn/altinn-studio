@@ -11,6 +11,7 @@ import type { User } from '../../types/User';
 export type CompactInterfaceProps = {
   texts: AssistantTexts;
   onSubmitMessage: AssistantProps['onSubmitMessage'];
+  onCreateThread?: AssistantProps['onCreateThread'];
   currentUser?: User;
 };
 
@@ -21,6 +22,7 @@ export type CompactInterfaceProps = {
 export function CompactInterface({
   texts,
   onSubmitMessage,
+  onCreateThread,
   currentUser,
 }: CompactInterfaceProps): ReactElement {
   const greetingMessage: Message = createAssistantMessage(texts.assistantFirstMessage);
@@ -32,6 +34,7 @@ export function CompactInterface({
         texts={texts}
         messages={[greetingMessage]}
         onSubmitMessage={onSubmitMessage}
+        onCreateThread={onCreateThread}
         enableCompactInterface={true}
         currentUser={currentUser}
       />
