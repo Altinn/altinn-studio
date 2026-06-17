@@ -53,7 +53,13 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(5);
+          expect(intercepts.length).to.be.greaterThan(4);
+
+          // We explicitly do not want keepAlive requests, since those should be disabled in PDF mode
+          expect(
+            intercepts.map((intercept) => intercept.request.url),
+            'PDF mode requests',
+          ).not.to.satisfy((urls: string[]) => urls.some((url) => url.includes('/api/authentication/keepAlive')));
           for (const intercept of intercepts) {
             const { request } = intercept;
             const reqInfo = `${intercept.browserRequestId} ${intercept.routeId} ${request.method} ${request.url.split(domain)[1]}`;

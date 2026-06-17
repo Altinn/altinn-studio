@@ -146,6 +146,9 @@ export const queriesMock: ServicesContextProps = {
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  getLayoutSetsExtendedV4: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
   getLayoutSetsExtended: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),

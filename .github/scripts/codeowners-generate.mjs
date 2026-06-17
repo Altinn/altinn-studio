@@ -104,6 +104,7 @@ const GROUPS = [
       '.github/workflows/cli-build-test.yaml',
       '.github/workflows/construct-environments-script-test.yaml',
       '.github/workflows/deploy-gitea-runners.yaml',
+      '.github/workflows/deploy-github-runners.yaml',
       '.github/workflows/deploy-lhci-server.yaml',
       '.github/workflows/deploy-loadbalancer.yaml',
       '.github/workflows/deploy-repositories.yaml',

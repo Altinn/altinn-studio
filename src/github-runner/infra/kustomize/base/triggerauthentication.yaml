@@ -1,0 +1,12 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: github-runner-auth
+  labels:
+    app.kubernetes.io/name: github-runner
+    app.kubernetes.io/component: runner
+spec:
+  secretTargetRef:
+    - parameter: appKey
+      name: github-runner-auth
+      key: appPrivateKey

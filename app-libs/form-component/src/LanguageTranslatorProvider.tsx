@@ -10,11 +10,16 @@ type LangAsStringFn = (key: LanguageKey | undefined, params?: LangParams) => str
 type LanguageTranslatorContextProps = {
   lang: LangFn;
   langAsString: LangAsStringFn;
+  /**
+   * The currently active language code (e.g. `nb`, `nn`, `en`)
+   */
+  currentLanguage: string;
 };
 
 const contextNoTranslate: LanguageTranslatorContextProps = {
   lang: (key) => key ?? null,
   langAsString: (key) => key ?? '',
+  currentLanguage: 'nb',
 };
 
 const LanguageTranslatorContext = createContext<LanguageTranslatorContextProps>(contextNoTranslate);
@@ -22,10 +27,11 @@ const LanguageTranslatorContext = createContext<LanguageTranslatorContextProps>(
 export function LanguageTranslatorProvider({
   lang,
   langAsString,
+  currentLanguage,
   children,
 }: PropsWithChildren<LanguageTranslatorContextProps>) {
   return (
-    <LanguageTranslatorContext.Provider value={{ lang, langAsString }}>
+    <LanguageTranslatorContext.Provider value={{ lang, langAsString, currentLanguage }}>
       {children}
     </LanguageTranslatorContext.Provider>
   );
@@ -33,4 +39,8 @@ export function LanguageTranslatorProvider({
 
 export function useTranslation(): LanguageTranslatorContextProps {
   return useContext(LanguageTranslatorContext);
+}
+
+export function useCurrentLanguage(): string {
+  return useContext(LanguageTranslatorContext).currentLanguage;
 }

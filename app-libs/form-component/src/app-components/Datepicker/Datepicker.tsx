@@ -11,6 +11,8 @@ import { DatePickerDialog } from './DatepickerDialog';
 import { DatePickerInput } from './DatePickerInput';
 import { getSaveFormattedDateString } from './utils/dateHelpers';
 
+import 'react-day-picker/style.css';
+
 export type DatePickerControlProps = {
   id: string;
   value: string;
