@@ -9214,7 +9214,7 @@ __metadata:
     react-leaflet-draw: "npm:0.21.0"
     react-number-format: "npm:5.4.5"
     react-refresh: "npm:0.18.0"
-    react-router: "npm:7.13.2"
+    react-router: "npm:7.14.2"
     react-toastify: "npm:11.1.0"
     resize-observer-polyfill: "npm:1.5.1"
     tinybench: "npm:6.0.2"
@@ -20906,9 +20906,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:7.13.2":
-  version: 7.13.2
-  resolution: "react-router@npm:7.13.2"
+"react-router@npm:7.14.2":
+  version: 7.14.2
+  resolution: "react-router@npm:7.14.2"
   dependencies:
     cookie: "npm:^1.0.1"
     set-cookie-parser: "npm:^2.6.0"
@@ -20918,7 +20918,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10/86e3538e4b50402bb15ac7b0938fdace5947a45d418bd1713b15288a208a5b102dfa599a3e5c4a86e136331b5dafaacfe57d93d2cc48241cf48fe770190cfbda
+  checksum: 10/6a12db0f6c8fd9b08631da98ba5e8c63675f4830cb7dccf1d70f3da23acbbc39079f48479b7c2c94b4ecd138fb1e0d4d8efd60914c48b224bfd8f1fd87b3b8cd
   languageName: node
   linkType: hard
 
