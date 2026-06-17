@@ -1,6 +1,26 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { DemoLayoutComponent } from './DemoLayoutComponent';
+import type { DemoLayoutComponentProps } from './DemoLayoutComponent';
+
+import type { PropCategories } from 'src/layout-components/common/storybook';
+
+/**
+ * Sorts each prop into a Storybook docs group, consumed by DemoLayoutComponent.mdx. This is docs-only
+ * metadata, so it lives with the stories rather than in the component. `satisfies
+ * PropCategories<DemoLayoutComponentProps>` makes it exhaustive — a new prop must be classified here.
+ */
+export const DEMO_PROP_CATEGORIES = {
+  id: 'config',
+  title: 'config',
+  content: 'config',
+  variant: 'config',
+  showLanguageInfo: 'config',
+  renderedInTable: 'runtime',
+  dataValue: 'runtime',
+  hidden: 'runtime',
+  onRendered: 'runtime',
+} satisfies PropCategories<DemoLayoutComponentProps>;
 
 // Every prop is editable and left ungrouped (no `table.category`), so the Controls panel stays flat.
 // The DemoLayoutComponent.mdx docs page separates the Studio-configurable and runtime props under
@@ -8,6 +28,8 @@ import { DemoLayoutComponent } from './DemoLayoutComponent';
 const meta = {
   title: 'LayoutComponents/DemoLayoutComponent',
   component: DemoLayoutComponent,
+  // DEMO_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
+  excludeStories: ['DEMO_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',
   },

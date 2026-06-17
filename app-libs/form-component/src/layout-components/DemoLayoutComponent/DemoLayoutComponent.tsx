@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 
 import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 
 export type DemoVariant = 'info' | 'warning' | 'success';
 
@@ -19,22 +18,6 @@ export interface DemoLayoutComponentProps {
   hidden?: boolean;
   onRendered?: () => void;
 }
-
-/**
- * Sorts each prop into a Storybook docs group. `satisfies PropCategories<DemoLayoutComponentProps>`
- * makes it exhaustive, so a new prop must be classified here.
- */
-export const DEMO_PROP_CATEGORIES = {
-  id: 'config',
-  title: 'config',
-  content: 'config',
-  variant: 'config',
-  showLanguageInfo: 'config',
-  renderedInTable: 'runtime',
-  dataValue: 'runtime',
-  hidden: 'runtime',
-  onRendered: 'runtime',
-} satisfies PropCategories<DemoLayoutComponentProps>;
 
 const variantColor: Record<DemoVariant, string> = {
   info: '#0062BA',
