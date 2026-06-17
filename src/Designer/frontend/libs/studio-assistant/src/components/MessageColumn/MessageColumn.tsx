@@ -16,6 +16,7 @@ export type MessageColumnProps = {
   messages: Message[];
   onSubmitMessage: (message: Message) => void;
   onCancelWorkflow?: () => void;
+  onCreateThread?: () => void;
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
   onMessageFeedback?: (feedback: UserFeedback) => void;
@@ -29,6 +30,7 @@ export function MessageColumn({
   messages,
   onSubmitMessage,
   onCancelWorkflow,
+  onCreateThread,
   cancelledMessageContent,
   onCancelledMessageConsumed,
   onMessageFeedback,
@@ -63,6 +65,7 @@ export function MessageColumn({
           texts={texts}
           onSubmitMessage={onSubmitMessage}
           onCancelWorkflow={onCancelWorkflow}
+          onCreateThread={onCreateThread}
           cancelledMessageContent={cancelledMessageContent}
           onCancelledMessageConsumed={onCancelledMessageConsumed}
           workflowIsActive={workflowIsActive}

@@ -1,16 +1,21 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
+import { StudioButton, StudioSelect, StudioSwitch, StudioTextarea } from '@studio/components';
 import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
 import type { UserAttachment, UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { createUserMessage } from '../../../utils/messageUtils';
 import type { AssistantTexts } from '../../../types/AssistantTexts';
 
+const CONCURRENCY_OPTIONS = [1, 2, 3, 5, 10, 25, 50] as const;
+const DEFAULT_CONCURRENCY = 1;
+const DELAY_BETWEEN_SESSIONS_MS = 100;
+
 export type UserInputProps = {
   texts: AssistantTexts;
   onSubmitMessage: (message: UserMessage) => void;
   onCancelWorkflow?: () => void;
+  onCreateThread?: () => void;
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
   workflowIsActive?: boolean;
@@ -21,6 +26,7 @@ export function UserInput({
   texts,
   onSubmitMessage,
   onCancelWorkflow,
+  onCreateThread,
   cancelledMessageContent,
   onCancelledMessageConsumed,
   workflowIsActive = false,
@@ -29,6 +35,7 @@ export function UserInput({
   const [messageContent, setMessageContent] = useState<string>('');
   const [allowAppChanges, setAllowAppChanges] = useState<boolean>(false);
   const [attachments, setAttachments] = useState<UserAttachment[]>([]);
+  const [concurrency, setConcurrency] = useState<number>(DEFAULT_CONCURRENCY);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -39,6 +46,8 @@ export function UserInput({
   }, [cancelledMessageContent, onCancelledMessageConsumed]);
 
   const hasTextContent = messageContent.trim().length > 0;
+  const isLoadTest = concurrency > 1;
+  const canSubmit = isLoadTest || hasTextContent;
 
   const resetInputs = useCallback((): void => {
     setMessageContent('');
@@ -87,10 +96,27 @@ export function UserInput({
     setAttachments((prev) => prev.filter((_, index) => index !== indexToRemove));
   }, []);
 
+  // Relies on the host's onCreateThread synchronously activating a new session,
+  // so the immediately-following onSubmitMessage routes to it.
+  const scheduleLoadTest = (): void => {
+    for (let iteration = 1; iteration <= concurrency; iteration++) {
+      const delayMs = (iteration - 1) * DELAY_BETWEEN_SESSIONS_MS;
+      setTimeout(() => {
+        onCreateThread?.();
+        onSubmitMessage(
+          createUserMessage(`Concurrency testing #${iteration}`, allowAppChanges, attachments),
+        );
+      }, delayMs);
+    }
+  };
+
   const handleSubmit = (): void => {
-    if (!hasTextContent) return;
-    const message: UserMessage = createUserMessage(messageContent, allowAppChanges, attachments);
-    onSubmitMessage(message);
+    if (!canSubmit) return;
+    if (isLoadTest) {
+      scheduleLoadTest();
+    } else {
+      onSubmitMessage(createUserMessage(messageContent, allowAppChanges, attachments));
+    }
     resetInputs();
   };
 
@@ -142,15 +168,30 @@ export function UserInput({
             />
           )}
         </div>
-        {workflowIsActive && onCancelWorkflow ? (
-          <StudioButton onClick={onCancelWorkflow} variant='secondary'>
-            {texts.cancel} <XMarkIcon />
-          </StudioButton>
-        ) : (
-          <StudioButton onClick={handleSubmit} disabled={!hasTextContent}>
-            {texts.send} <PaperplaneFillIcon />
-          </StudioButton>
-        )}
+        <div className={classes.actionsRowRight}>
+          <StudioSelect
+            className={classes.concurrencySelect}
+            label={texts.concurrencyLabel}
+            aria-label={texts.concurrencyLabel}
+            value={String(concurrency)}
+            onChange={(event) => setConcurrency(Number(event.target.value))}
+          >
+            {CONCURRENCY_OPTIONS.map((option) => (
+              <StudioSelect.Option key={option} value={String(option)}>
+                {option}
+              </StudioSelect.Option>
+            ))}
+          </StudioSelect>
+          {workflowIsActive && onCancelWorkflow ? (
+            <StudioButton onClick={onCancelWorkflow} variant='secondary'>
+              {texts.cancel} <XMarkIcon />
+            </StudioButton>
+          ) : (
+            <StudioButton onClick={handleSubmit} disabled={!canSubmit}>
+              {texts.send} <PaperplaneFillIcon />
+            </StudioButton>
+          )}
+        </div>
       </div>
       {attachments.length > 0 && (
         <ul className={classes.attachmentList}>

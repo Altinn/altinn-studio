@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 
 // Test data
 const onSubmitMessage = jest.fn();
+const onCreateThread = jest.fn();
 
 describe('UserInput', () => {
   beforeEach(() => {
@@ -161,6 +162,64 @@ describe('UserInput', () => {
 
     expect(onSubmitMessage).not.toHaveBeenCalled();
   });
+
+  it('should not call onCreateThread when concurrency is 1', async () => {
+    const user = userEvent.setup();
+    renderUserInput({ onCreateThread });
+
+    await user.type(getTextarea(), 'Test message');
+    await user.click(getSendButton());
+
+    expect(onCreateThread).not.toHaveBeenCalled();
+    expect(onSubmitMessage).toHaveBeenCalledTimes(1);
+    expect(onSubmitMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'Test message' }),
+    );
+  });
+
+  it('should fire N load-test sessions when concurrency > 1', async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    renderUserInput({ onCreateThread });
+
+    await user.selectOptions(getConcurrencySelect(), '5');
+    await user.click(getSendButton());
+    jest.runAllTimers();
+
+    expect(onCreateThread).toHaveBeenCalledTimes(5);
+    expect(onSubmitMessage).toHaveBeenCalledTimes(5);
+    for (let iteration = 1; iteration <= 5; iteration++) {
+      expect(onSubmitMessage).toHaveBeenNthCalledWith(
+        iteration,
+        expect.objectContaining({ content: `Concurrency testing #${iteration}` }),
+      );
+    }
+    jest.useRealTimers();
+  });
+
+  it('should enable send button with empty textarea when concurrency > 1', async () => {
+    const user = userEvent.setup();
+    renderUserInput();
+
+    await user.selectOptions(getConcurrencySelect(), '5');
+
+    expect(getSendButton()).toBeEnabled();
+  });
+
+  it('should clear textarea after a load-test send', async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    renderUserInput({ onCreateThread });
+    const textarea = getTextarea();
+
+    await user.type(textarea, 'Ignored content');
+    await user.selectOptions(getConcurrencySelect(), '5');
+    await user.click(getSendButton());
+
+    expect(textarea).toHaveValue('');
+    jest.runAllTimers();
+    jest.useRealTimers();
+  });
 });
 
 const defaultProps: UserInputProps = {
@@ -176,3 +235,6 @@ const renderUserInput = (props?: Partial<UserInputProps>): void => {
 const getSendButton = (): HTMLElement => screen.getByRole('button', { name: mockTexts.send });
 
 const getTextarea = (): HTMLElement => screen.getByPlaceholderText(mockTexts.textarea.placeholder);
+
+const getConcurrencySelect = (): HTMLSelectElement =>
+  screen.getByRole('combobox', { name: mockTexts.concurrencyLabel }) as HTMLSelectElement;
