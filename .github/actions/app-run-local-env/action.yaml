@@ -95,7 +95,7 @@ runs:
           }
 
           function targetRunArgs(path) {
-            const args = ['run', '--mode', 'process', '--detach', '--random-host-port', '--dev-frontend', '--path', path];
+            const args = ['run', '--mode', 'process', '--detach', '--random-host-port', '--dev-frontend', '--startup-timeout', '60s', '--path', path];
             if (skipAppBuild) {
               args.push('--skip-build');
             }

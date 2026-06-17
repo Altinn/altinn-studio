@@ -153,6 +153,32 @@ func TestParseRunFlagsReadsDevFrontend(t *testing.T) {
 	}
 }
 
+func TestParseRunFlagsReadsStartupTimeout(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--startup-timeout", "60s"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if flags.startupTimeout != 60*time.Second {
+		t.Fatalf("startupTimeout = %s, want 1m0s", flags.startupTimeout)
+	}
+}
+
+func TestParseRunFlagsRejectsNonPositiveStartupTimeout(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	_, _, _, err := cmd.parseRunFlags([]string{"--startup-timeout", "0s"}, "run")
+	if err == nil {
+		t.Fatal("parseRunFlags() error = nil, want error")
+	}
+	if !strings.Contains(err.Error(), "--startup-timeout must be at least 1s") {
+		t.Fatalf("parseRunFlags() error = %v, want startup-timeout error", err)
+	}
+}
+
 func TestBuildDotnetAppIfNeededSkipsBuildWhenRequested(t *testing.T) {
 	t.Parallel()
 

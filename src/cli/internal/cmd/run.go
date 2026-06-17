@@ -38,7 +38,7 @@ const (
 	foregroundContainerCleanupTimeout = 15 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
 	studioctlServerCleanupTimeout     = 2 * time.Second
-	appStartupTimeout                 = 15 * time.Second
+	defaultAppStartupTimeout          = 15 * time.Second
 	appStartupPollInterval            = 500 * time.Millisecond
 	maxAppLogCreateAttempts           = 3
 )
@@ -105,6 +105,8 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
 		"  --pull                Pull app container image before start (container mode)",
 		"  --skip-build          Skip building the app before start",
+		"  --startup-timeout DURATION",
+		fmt.Sprintf("                       Wait duration for app startup (default %s)", defaultAppStartupTimeout),
 		"  --json                Output as JSON (requires --detach)",
 		"  -h, --help            Show this help",
 	)
@@ -119,6 +121,7 @@ type runFlags struct {
 	randomHostPort bool
 	devFrontend    bool
 	skipBuild      bool
+	startupTimeout time.Duration
 	jsonOutput     bool
 }
 
@@ -203,6 +206,7 @@ func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags,
 	fs.BoolVar(&flags.randomHostPort, "random-host-port", true, "Use a random host port")
 	fs.BoolVar(&flags.devFrontend, "dev-frontend", false, "Use frontend dev server assets")
 	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app before start")
+	fs.DurationVar(&flags.startupTimeout, "startup-timeout", defaultAppStartupTimeout, "Wait duration for app startup")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
 	var cmdArgs, dotnetArgs []string
@@ -235,6 +239,9 @@ func validateRunFlags(flags runFlags) error {
 	}
 	if flags.jsonOutput && !flags.detach {
 		return fmt.Errorf("%w: --json requires --detach", ErrInvalidFlagValue)
+	}
+	if flags.startupTimeout < time.Second {
+		return fmt.Errorf("%w: --startup-timeout must be at least 1s", ErrInvalidFlagValue)
 	}
 	return nil
 }
@@ -518,6 +525,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 			topology,
 			runInfo,
 			monitor,
+			flags.startupTimeout,
 			flags.jsonOutput,
 		)
 	} else {
@@ -528,6 +536,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 			topology,
 			runInfo,
 			monitor,
+			flags.startupTimeout,
 			flags.jsonOutput,
 		)
 	}
@@ -755,6 +764,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	topology envtopology.Local,
 	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
+	startupTimeout time.Duration,
 	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
@@ -765,7 +775,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	}
 
 	client := studioctlserver.NewClient(c.cfg)
-	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, port, runInfo, monitor)
+	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, port, runInfo, monitor, startupTimeout)
 	if err != nil {
 		return "", err
 	}
@@ -783,13 +793,14 @@ func registerPortAppWithStartupMonitor(
 	port int,
 	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
+	startupTimeout time.Duration,
 ) (string, error) {
 	registration := studioctlserver.AppRegistration{
 		AppID:          appID,
 		ContainerID:    "",
 		HostPort:       port,
 		ProcessID:      0,
-		TimeoutSeconds: int(appStartupTimeout.Seconds()),
+		TimeoutSeconds: int(startupTimeout.Seconds()),
 	}
 	applyAppRunInfo(&registration, runInfo)
 	return registerAppWithStartupMonitor(
@@ -797,17 +808,18 @@ func registerPortAppWithStartupMonitor(
 		client,
 		registration,
 		monitor,
-		portAppRegistrationTimeoutError(appID, port),
+		startupTimeout,
+		portAppRegistrationTimeoutError(appID, port, startupTimeout),
 	)
 }
 
-func portAppRegistrationTimeoutError(appID string, port int) error {
+func portAppRegistrationTimeoutError(appID string, port int, startupTimeout time.Duration) error {
 	return fmt.Errorf(
 		"%w: app %s was not discovered on port %d within %s",
 		errAppStartupTimedOut,
 		appID,
 		port,
-		appStartupTimeout,
+		startupTimeout,
 	)
 }
 
@@ -819,6 +831,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	topology envtopology.Local,
 	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
+	startupTimeout time.Duration,
 	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
@@ -829,7 +842,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	}
 
 	client := studioctlserver.NewClient(c.cfg)
-	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, hostPort, runInfo, monitor)
+	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, hostPort, runInfo, monitor, startupTimeout)
 	if err != nil {
 		return "", err
 	}
@@ -847,6 +860,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	topology envtopology.Local,
 	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
+	startupTimeout time.Duration,
 	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
@@ -857,7 +871,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	}
 
 	client := studioctlserver.NewClient(c.cfg)
-	baseURL, err := registerProcessAppWithStartupMonitor(ctx, client, appID, processID, runInfo, monitor)
+	baseURL, err := registerProcessAppWithStartupMonitor(ctx, client, appID, processID, runInfo, monitor, startupTimeout)
 	if err != nil {
 		return "", err
 	}
@@ -875,13 +889,14 @@ func registerProcessAppWithStartupMonitor(
 	processID int,
 	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
+	startupTimeout time.Duration,
 ) (string, error) {
 	registration := studioctlserver.AppRegistration{
 		AppID:          appID,
 		ContainerID:    "",
 		HostPort:       0,
 		ProcessID:      processID,
-		TimeoutSeconds: int(appStartupTimeout.Seconds()),
+		TimeoutSeconds: int(startupTimeout.Seconds()),
 	}
 	applyAppRunInfo(&registration, runInfo)
 	return registerAppWithStartupMonitor(
@@ -889,7 +904,8 @@ func registerProcessAppWithStartupMonitor(
 		client,
 		registration,
 		monitor,
-		processAppRegistrationTimeoutError(appID, processID),
+		startupTimeout,
+		processAppRegistrationTimeoutError(appID, processID, startupTimeout),
 	)
 }
 
@@ -908,9 +924,10 @@ func registerAppWithStartupMonitor(
 	client *studioctlserver.Client,
 	registration studioctlserver.AppRegistration,
 	monitor readinessMonitor,
+	startupTimeout time.Duration,
 	timeoutErr error,
 ) (string, error) {
-	waitCtx, cancel := context.WithTimeout(ctx, appStartupTimeout)
+	waitCtx, cancel := context.WithTimeout(ctx, startupTimeout)
 	defer cancel()
 
 	if err := monitor(waitCtx); err != nil {
@@ -982,13 +999,13 @@ func startupContextError(ctx, waitCtx context.Context, timeoutErr error) error {
 	return nil
 }
 
-func processAppRegistrationTimeoutError(appID string, processID int) error {
+func processAppRegistrationTimeoutError(appID string, processID int, startupTimeout time.Duration) error {
 	return fmt.Errorf(
 		"%w: app %s was not discovered in process %d within %s",
 		errAppStartupTimedOut,
 		appID,
 		processID,
-		appStartupTimeout,
+		startupTimeout,
 	)
 }
 
@@ -1249,6 +1266,7 @@ func (c *RunCommand) runDocker(
 		target.AppID,
 		topology,
 		runInfo,
+		flags.startupTimeout,
 		quietLifecycleOutput,
 	)
 	if err != nil {
@@ -1358,6 +1376,7 @@ func (c *RunCommand) waitForDockerAppReady(
 	appID string,
 	topology envtopology.Local,
 	runInfo studioctlserver.AppRegistration,
+	startupTimeout time.Duration,
 	jsonOutput bool,
 ) (string, error) {
 	candidate, ok := appcontainers.CandidateFromContainer(info)
@@ -1373,6 +1392,7 @@ func (c *RunCommand) waitForDockerAppReady(
 		topology,
 		runInfo,
 		containerReadinessMonitor(client, containerID),
+		startupTimeout,
 		jsonOutput,
 	)
 	if err != nil {
