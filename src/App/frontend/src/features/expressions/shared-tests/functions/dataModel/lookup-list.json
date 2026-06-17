@@ -1,0 +1,63 @@
+{
+  "name": "Lookup a list value",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
+      },
+      "data": {
+        "numberList": [1, 2],
+        "stringList": ["Lorem", "ipsum"],
+        "booleanList": [true, false],
+        "nullList": [null, null],
+        "multidimensionalList": [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        "emptyList": [],
+        "differentTypesList": [1, "string", true, null, [null]],
+        "listThatLooksLikeAnExpression": ["equals", 1, 1]
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "name": "Number list lookup",
+      "expression": ["dataModel", "numberList"],
+      "expects": [1, 2]
+    },
+    {
+      "name": "String list lookup",
+      "expression": ["dataModel", "stringList"],
+      "expects": ["Lorem", "ipsum"]
+    },
+    {
+      "name": "Boolean list lookup",
+      "expression": ["dataModel", "booleanList"],
+      "expects": [true, false]
+    },
+    {
+      "name": "Null list lookup",
+      "expression": ["dataModel", "nullList"],
+      "expects": [null, null]
+    },
+    {
+      "name": "Multi-dimensional list lookup",
+      "expression": ["dataModel", "multidimensionalList"],
+      "expects": [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+    },
+    {
+      "name": "Empty list lookup",
+      "expression": ["dataModel", "emptyList"],
+      "expects": []
+    },
+    {
+      "name": "Lookup of list with different types",
+      "expression": ["dataModel", "differentTypesList"],
+      "expects": [1, "string", true, null, [null]]
+    },
+    {
+      "name": "Lookup of list that looks like an expression",
+      "expression": ["dataModel", "listThatLooksLikeAnExpression"],
+      "expects": ["equals", 1, 1]
+    }
+  ]
+}
