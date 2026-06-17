@@ -46,8 +46,9 @@ public sealed class ProcessEngineTest
 {
     private readonly ITestOutputHelper _output;
     private static readonly int _instanceOwnerPartyId = 1337;
-    private static readonly Guid _instanceGuid = new("00000000-DEAD-BABE-0000-001230000000");
+    private static readonly Guid _instanceGuid = new("00000000-ABCD-EFGH-0000-001230000000");
     private static readonly string _instanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}";
+    private static readonly string _collectionKey = _instanceGuid.ToString();
 
     public ProcessEngineTest(ITestOutputHelper output)
     {
@@ -351,7 +352,7 @@ public sealed class ProcessEngineTest
             .ContainKey(ProcessNextRequestFactory.ProcessNextIdLabel)
             .WhoseValue.Should()
             .Be("Task_2:3");
-        capturedCollectionKey.Should().Be($"process-next:{_instanceGuid:N}:Task_1:2");
+        capturedCollectionKey.Should().Be(_collectionKey);
     }
 
     [Fact]
@@ -1101,7 +1102,7 @@ public sealed class ProcessEngineTest
     public async Task Next_ReportsFinalRefetchedProcessState_WhenWorkflowAutoAdvances()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var workflowEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         workflowEngineClientMock
             .Setup(c =>
@@ -1521,7 +1522,7 @@ public sealed class ProcessEngineTest
     public async Task Next_blocks_when_current_task_workflow_is_retrying()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         processEngineClientMock
             .Setup(c =>
@@ -1582,7 +1583,7 @@ public sealed class ProcessEngineTest
     public async Task Next_blocks_when_current_task_workflow_requires_resume()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         processEngineClientMock
             .Setup(c =>
@@ -1661,7 +1662,7 @@ public sealed class ProcessEngineTest
     public async Task Next_blocks_when_source_task_workflow_requires_resume()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         processEngineClientMock
             .Setup(c =>
@@ -1767,7 +1768,7 @@ public sealed class ProcessEngineTest
     public async Task GetCurrentTaskWorkflowState_returns_head_workflow_id_from_collection()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         processEngineClientMock
             .Setup(c =>
@@ -1820,7 +1821,7 @@ public sealed class ProcessEngineTest
     public async Task EnqueueAndWaitForProcessNext_completes_when_collection_heads_complete()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         processEngineClientMock
             .Setup(c =>
@@ -1913,7 +1914,7 @@ public sealed class ProcessEngineTest
     public async Task EnqueueAndWaitForProcessNext_waits_when_enqueue_response_is_lost_but_collection_exists()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         processEngineClientMock
             .Setup(c =>
@@ -2057,7 +2058,7 @@ public sealed class ProcessEngineTest
     public async Task ResumeCurrentTask_resumes_failed_workflow_and_returns_updated_instance()
     {
         Guid workflowId = Guid.NewGuid();
-        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        string collectionKey = _collectionKey;
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         processEngineClientMock
             .Setup(c =>
@@ -2206,7 +2207,7 @@ public sealed class ProcessEngineTest
             actor,
             "test-lock-token",
             Guid.NewGuid(),
-            CreateTaskCollectionKey("Task_1", 2),
+            _collectionKey,
             "state"
         );
 
@@ -2266,7 +2267,7 @@ public sealed class ProcessEngineTest
             actor,
             "test-lock-token",
             Guid.NewGuid(),
-            CreateTaskCollectionKey("Task_1", 2),
+            _collectionKey,
             "state"
         );
 
@@ -2301,9 +2302,6 @@ public sealed class ProcessEngineTest
 
     private static WorkflowStatusResponse CreateCompletedWorkflowStatusResponse(Guid workflowId, string operationId) =>
         CreateWorkflowStatusResponse(workflowId, operationId, PersistentItemStatus.Completed);
-
-    private static string CreateTaskCollectionKey(string taskId, int flow) =>
-        $"process-next:{_instanceGuid:N}:{taskId}:{flow}";
 
     private static bool MatchesCurrentTaskLookupLabel(Dictionary<string, string> labels, string processNextId) =>
         HasInstanceGuidLabel(labels)

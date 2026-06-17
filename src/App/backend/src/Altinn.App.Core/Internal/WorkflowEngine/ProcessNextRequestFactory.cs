@@ -114,7 +114,7 @@ internal sealed class ProcessNextRequestFactory
         };
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
-        string? collectionKey = CreateProcessNextCollectionKey(instance, processStateChange);
+        string? collectionKey = $"{instanceId.InstanceGuid}";
         Dictionary<string, string> labels =
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
@@ -162,22 +162,6 @@ internal sealed class ProcessNextRequestFactory
 
         return labels.Count > 0 ? labels : null;
     }
-
-    internal static string? CreateProcessNextCollectionKey(Instance instance, ProcessStateChange processStateChange)
-    {
-        ProcessElementInfo? scopeTask =
-            processStateChange.OldProcessState?.CurrentTask ?? processStateChange.NewProcessState?.CurrentTask;
-        if (scopeTask?.ElementId is not { Length: > 0 } taskId)
-        {
-            return null;
-        }
-
-        InstanceIdentifier instanceId = new(instance);
-        return CreateProcessNextCollectionKey(instanceId.InstanceGuid, taskId, scopeTask.Flow ?? 0);
-    }
-
-    internal static string CreateProcessNextCollectionKey(Guid instanceGuid, string taskId, int flow) =>
-        $"process-next:{instanceGuid:N}:{taskId}:{flow}";
 
     private async Task<List<StepRequest>> AssembleCommandSequence(
         ProcessStateChange processStateChange,
