@@ -1,6 +1,6 @@
 {
   "name": "@app/form-engine",
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.16.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "private": true,
@@ -24,8 +24,8 @@
     "@testing-library/user-event": "14.6.1",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "@typescript-eslint/eslint-plugin": "8.59.4",
-    "@typescript-eslint/parser": "8.59.4",
+    "@typescript-eslint/eslint-plugin": "8.61.0",
+    "@typescript-eslint/parser": "8.61.0",
     "@vitejs/plugin-react": "6.0.2",
     "eslint": "10.5.0",
     "globals": "17.6.0",
