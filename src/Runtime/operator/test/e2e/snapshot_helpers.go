@@ -24,6 +24,7 @@ import (
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/fakes"
+	mpmaskinporten "altinn.studio/operator/internal/maskinporten"
 	"altinn.studio/operator/test/utils"
 )
 
@@ -234,6 +235,7 @@ func SanitizeMetadata(meta map[string]any) {
 
 const sanitizedClientId = "<sanitized-client-id>"
 const sanitizedTraceId = "<sanitized-trace-id>"
+const sanitizedRotationFingerprint = "<sanitized-rotation-fingerprint>"
 
 // SanitizeMaskinportenClientStatus sanitizes status timestamps and dynamic fields.
 func SanitizeMaskinportenClientStatus(status map[string]any) {
@@ -243,9 +245,25 @@ func SanitizeMaskinportenClientStatus(status map[string]any) {
 	if status["clientId"] != nil {
 		status["clientId"] = sanitizedClientId
 	}
+	sanitizeRotationRestartStatus(status)
 	sanitizeKeyIDs(status)
 	sanitizeActionHistory(status)
 	sanitizeConditions(status)
+}
+
+func sanitizeRotationRestartStatus(status map[string]any) {
+	if status["pendingSecretRotationDetectedAt"] != nil {
+		status["pendingSecretRotationDetectedAt"] = sanitizedTimestamp
+	}
+	if status["lastSecretRotationRestartedAt"] != nil {
+		status["lastSecretRotationRestartedAt"] = sanitizedTimestamp
+	}
+	if status["pendingSecretRotationFingerprint"] != nil {
+		status["pendingSecretRotationFingerprint"] = sanitizedRotationFingerprint
+	}
+	if status["lastSecretRotationRestartedFingerprint"] != nil {
+		status["lastSecretRotationRestartedFingerprint"] = sanitizedRotationFingerprint
+	}
 }
 
 func sanitizeKeyIDs(status map[string]any) {
@@ -479,6 +497,7 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 
 	if meta, ok := obj["metadata"].(map[string]any); ok {
 		SanitizeMetadata(meta)
+		sanitizeSecretRotationAnnotations(meta)
 	}
 
 	sanitizeSecretSnapshotData(obj)
@@ -487,6 +506,20 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal sanitized Secret")
 
 	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), sanitized)
+}
+
+func sanitizeSecretRotationAnnotations(meta map[string]any) {
+	annotations, ok := meta["annotations"].(map[string]any)
+	if !ok {
+		return
+	}
+
+	if annotations[mpmaskinporten.AnnotationSecretRotatedAt] != nil {
+		annotations[mpmaskinporten.AnnotationSecretRotatedAt] = sanitizedTimestamp
+	}
+	if annotations[mpmaskinporten.AnnotationSecretVersion] != nil {
+		annotations[mpmaskinporten.AnnotationSecretVersion] = sanitizedRotationFingerprint
+	}
 }
 
 func sanitizeSecretSnapshotData(obj map[string]any) {

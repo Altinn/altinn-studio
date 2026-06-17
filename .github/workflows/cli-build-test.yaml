@@ -17,12 +17,12 @@ jobs:
   detect-changelog-change:
     name: Detect changelog changes
     if: github.event_name == 'pull_request' && github.event.action != 'closed' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     outputs:
       changed: ${{ steps.changes.outputs.changed }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -39,11 +39,11 @@ jobs:
     name: Validate changelog
     if: (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) && needs.detect-changelog-change.outputs.changed == 'true'
     needs: detect-changelog-change
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -61,11 +61,11 @@ jobs:
   verify-release-artifacts:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Verify studioctl release artifacts
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -99,9 +99,15 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
       matrix:
-        os: [macos-latest,windows-latest,ubuntu-latest]
+        include:
+          - os: macos-latest
+            runner: macos-latest
+          - os: windows-latest
+            runner: windows-latest
+          - os: ubuntu-latest
+            runner: self-hosted-single
     name: Build and test
-    runs-on: ${{ matrix.os}}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -110,7 +116,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: git config --system core.longpaths true
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
