@@ -553,9 +553,12 @@ public class UiFoldersService : IUiFoldersService
         UiSettings globalSettingsFile =
             await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
 
-        globalSettingsFile.ValidationOnNavigation = config;
+        globalSettingsFile.ValidationOnNavigation = IsEmpty(config) ? null : config;
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
+
+    private static bool IsEmpty(ValidationOnNavigation? config) =>
+        config == null || (string.IsNullOrEmpty(config.Page) && (config.Show == null || config.Show.Count == 0));
 
     public async Task<IEnumerable<ValidationOnNavigationDto>> GetLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
