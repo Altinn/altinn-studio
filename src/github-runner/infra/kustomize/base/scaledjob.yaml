@@ -12,6 +12,11 @@ spec:
   maxReplicaCount: 16
   minReplicaCount: 0
   pollingInterval: 30
+  # Keep in-flight CI jobs running when the runner image/spec changes
+  # default strategy cancels running job on updates
+  # (this lets us deploy runner changes without interrupting active workflows)
+  rollout:
+    strategy: gradual
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5
   jobTargetRef:
@@ -20,6 +25,10 @@ spec:
     activeDeadlineSeconds: 7200
     template:
       metadata:
+        annotations:
+          # Same as above, we want to leave time for nodes to complete all jobs
+          # before letting the cluster-autoscaler shutdown/drain nodes for scaledown
+          cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         labels:
           app.kubernetes.io/name: github-runner
           app.kubernetes.io/component: runner

@@ -87,7 +87,6 @@ internal static class HandleAlerts
                         Status = a.Status,
                         InstanceId = a.Labels.GetValueOrDefault("instanceId", string.Empty),
                     })
-                    .Where(i => !string.IsNullOrEmpty(i.InstanceId))
                     .ToList(),
             })
             .ToList();
@@ -97,14 +96,8 @@ internal static class HandleAlerts
             return Results.BadRequest();
         }
 
-        int? intervalInMinutes = int.TryParse(
-            alertPayload.CommonAnnotations.GetValueOrDefault("intervalInMinutes"),
-            out var interval
-        )
-            ? interval
-            : null;
         var to = DateTimeOffset.UtcNow;
-        var from = intervalInMinutes.HasValue ? to.AddMinutes(-intervalInMinutes.Value) : to.AddMinutes(-5);
+        var from = alertPayload.Alerts.Min(a => a.StartsAt);
         var appNames = apps.Select(a => a.App).ToList();
 
         var logsUrl = metricsClient.GetLogsUrl(

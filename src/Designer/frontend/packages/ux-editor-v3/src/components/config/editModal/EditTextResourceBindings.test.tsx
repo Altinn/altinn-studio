@@ -72,12 +72,12 @@ describe('EditTextResourceBindings component', () => {
       name: textMock('ux_editor.text_resource_bindings.add_label'),
     });
 
-    await userEvent.click(selectTextResourcesCombobox); // eslint-disable-line testing-library/no-unnecessary-act
+    await userEvent.click(selectTextResourcesCombobox);
     let options = screen.getAllByRole('option');
     expect(options.length).toBe(3);
 
     await userEvent.selectOptions(selectTextResourcesCombobox, options[0]);
-    await userEvent.click(selectTextResourcesCombobox); // eslint-disable-line testing-library/no-unnecessary-act
+    await userEvent.click(selectTextResourcesCombobox);
     options = screen.getAllByRole('option');
     expect(options.length).toBe(2);
   });

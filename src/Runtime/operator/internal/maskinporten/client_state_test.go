@@ -770,6 +770,68 @@ func TestJwkRotation_TriggeredAtThreshold(t *testing.T) {
 	)
 }
 
+func TestJwkRotation_AddsSecretRotationFingerprint(t *testing.T) {
+	g := NewWithT(t)
+	deps := newFixture()
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
+	g.Expect(err).NotTo(HaveOccurred())
+	publicJwks, err := jwks.ToPublic()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	state, err := NewClientState(
+		createCrd(WithFinalizer()),
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		createSecret("ttd-"+testAppId),
+		&SecretStateContent{
+			ClientId:  testClientId,
+			Authority: testSecretStateContentAuthority,
+			Jwks:      jwks,
+			Jwk:       jwks.Keys[0],
+		},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	deps.clock.Advance(time.Hour * 24 * 24)
+	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	command := findUpdateSecretContentCommand(commands)
+	g.Expect(command).NotTo(BeNil())
+	g.Expect(command.RotationFingerprint).NotTo(BeEmpty())
+	g.Expect(command.RotationFingerprint).To(Equal(command.SecretContent.RotationFingerprint()))
+}
+
+func TestAuthorityOnlySecretUpdateDoesNotAddRotationFingerprint(t *testing.T) {
+	g := NewWithT(t)
+	deps := newFixture()
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
+	g.Expect(err).NotTo(HaveOccurred())
+	publicJwks, err := jwks.ToPublic()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	state, err := NewClientState(
+		createCrd(WithFinalizer()),
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		createSecret("ttd-"+testAppId),
+		&SecretStateContent{
+			ClientId:  testClientId,
+			Authority: "https://old.authority.no/",
+			Jwks:      jwks,
+			Jwk:       jwks.Keys[0],
+		},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	command := findUpdateSecretContentCommand(commands)
+	g.Expect(command).NotTo(BeNil())
+	g.Expect(command.RotationFingerprint).To(BeEmpty())
+}
+
 func TestJwkRotation_SecondRotation(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
@@ -831,6 +893,15 @@ func TestForcedRotation_ViaAnnotation(t *testing.T) {
 		},
 		func(*fixture) {},
 	)
+}
+
+func findUpdateSecretContentCommand(commands CommandList) *UpdateSecretContentCommand {
+	for _, command := range commands {
+		if updateSecretCommand, ok := command.Data.(*UpdateSecretContentCommand); ok {
+			return updateSecretCommand
+		}
+	}
+	return nil
 }
 
 func TestForcedRotation_AnnotationValueNotTrue(t *testing.T) {

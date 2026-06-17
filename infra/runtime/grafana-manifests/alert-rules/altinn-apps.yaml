@@ -102,7 +102,6 @@ spec:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
         ruleId: failed_process_next_requests
-        intervalInMinutes: "5"
       labels:
         Type: Altinn
         # Org and Env are included to ensure each deployment generates a unique fingerprint,
@@ -132,8 +131,7 @@ spec:
                         or operation_Name == 'POST Instances/PostSimplified [app/org]'
                         or operation_Name == 'POST {org}/{app}/instances'
                         or operation_Name == 'POST {org}/{app}/instances/create'
-                    | extend instanceId = extract(@'/instances/\d+/([^/]+)', 1, url)
-                    | summarize count() by cloud_RoleName, instanceId
+                    | summarize count() by cloud_RoleName
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
@@ -204,7 +202,6 @@ spec:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
         ruleId: failed_instance_creation_requests
-        intervalInMinutes: "5"
       labels:
         Type: Altinn
         # Org and Env are included to ensure each deployment generates a unique fingerprint,
