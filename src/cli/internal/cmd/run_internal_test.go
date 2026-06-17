@@ -170,9 +170,14 @@ func TestParseRunFlagsRejectsNonPositiveStartupTimeout(t *testing.T) {
 	t.Parallel()
 
 	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
-	_, _, _, err := cmd.parseRunFlags([]string{"--startup-timeout", "0s"}, "run")
+	flags, dotnetArgs, help, err := cmd.parseRunFlags([]string{"--startup-timeout", "0s"}, "run")
 	if err == nil {
-		t.Fatal("parseRunFlags() error = nil, want error")
+		t.Fatalf(
+			"parseRunFlags() = flags %#v, dotnetArgs %v, help %v, error nil; want error",
+			flags,
+			dotnetArgs,
+			help,
+		)
 	}
 	if !strings.Contains(err.Error(), "--startup-timeout must be at least 1s") {
 		t.Fatalf("parseRunFlags() error = %v, want startup-timeout error", err)

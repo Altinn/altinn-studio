@@ -116,12 +116,12 @@ type runFlags struct {
 	appPath        string
 	mode           string
 	imageTag       string
+	startupTimeout time.Duration
 	detach         bool
 	pullImage      bool
 	randomHostPort bool
 	devFrontend    bool
 	skipBuild      bool
-	startupTimeout time.Duration
 	jsonOutput     bool
 }
 
@@ -871,7 +871,15 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	}
 
 	client := studioctlserver.NewClient(c.cfg)
-	baseURL, err := registerProcessAppWithStartupMonitor(ctx, client, appID, processID, runInfo, monitor, startupTimeout)
+	baseURL, err := registerProcessAppWithStartupMonitor(
+		ctx,
+		client,
+		appID,
+		processID,
+		runInfo,
+		monitor,
+		startupTimeout,
+	)
 	if err != nil {
 		return "", err
 	}
