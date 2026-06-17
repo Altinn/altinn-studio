@@ -75,7 +75,6 @@ class ConditionalRendering extends React.Component<
   public componentDidMount() {
     if (this.props.connectionId) {
       for (let i = 0; this.props.ruleModelElements.length - 1; i++) {
-        // eslint-disable-next-line max-len
         if (
           this.props.ruleModelElements[i].name ===
           this.props.conditionalRendering[this.props.connectionId].selectedFunction

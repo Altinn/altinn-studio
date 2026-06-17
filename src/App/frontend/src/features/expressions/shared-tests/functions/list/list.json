@@ -1,0 +1,35 @@
+{
+  "name": "List tests",
+  "testCases": [
+    {
+      "name": "Returns the list",
+      "expression": ["list", 1, 2],
+      "expects": [1, 2]
+    },
+    {
+      "name": "Supports empty lists",
+      "expression": ["list"],
+      "expects": []
+    },
+    {
+      "name": "Supports lists with different types",
+      "expression": ["list", 1, "string", true, null],
+      "expects": [1, "string", true, null]
+    },
+    {
+      "name": "Supports nested lists",
+      "expression": ["list", ["list", 1, 2], ["list", 3, 4]],
+      "expects": [[1, 2], [3, 4]]
+    },
+    {
+      "name": "Does not evaluate the final expression when the result happens to be a valid expression",
+      "expression": ["list", "equals", 1, 1],
+      "expects": ["equals", 1, 1]
+    },
+    {
+      "name": "Evaluates expressions inside arguments",
+      "expression": ["list", ["equals", 1, 1]],
+      "expects": [true]
+    }
+  ]
+}

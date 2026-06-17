@@ -6,10 +6,10 @@
   "dependencies": {
     "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
-    "react": "19.2.5",
-    "react-dom": "19.2.5",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "typescript": "5.9.3",
-    "uuid": "13.0.1"
+    "uuid": "13.0.2"
   },
   "devDependencies": {
     "@studio/ui-test": "workspace:^",
