@@ -34,7 +34,7 @@ export function getCodeListNameFromFile(file: CodeListFile): string {
 export const hasContent = (file: CodeListFile): file is OrdinaryCodeListFile =>
   file.hasOwnProperty('content');
 
-export function codeListFileContentToData(fileContent: string): CodeList {
+function codeListFileContentToData(fileContent: string): CodeList {
   let data: unknown;
   try {
     data = JSON.parse(fileContent);

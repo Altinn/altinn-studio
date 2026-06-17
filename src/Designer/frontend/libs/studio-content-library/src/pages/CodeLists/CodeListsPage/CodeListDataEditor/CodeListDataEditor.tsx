@@ -126,6 +126,7 @@ function OrdinaryFileEditorContent({
 
 function ParseErrorFallback({ error }: FallbackProps): React.ReactElement {
   const parseErrorMessage = useParseErrorMessage();
+  /* istanbul ignore else */
   if (error instanceof CodeListParseError) {
     return (
       <StudioAlert data-color='danger' className={classes.error}>
