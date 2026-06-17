@@ -347,5 +347,16 @@ export function isValidArray(value: unknown): value is ValidArray {
 }
 
 export function isValidObject(value: unknown): value is ValidObject {
-  return typeof value === 'object' && value !== null && Object.values(value).every(isValidValue);
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    !isClassInstance(value) &&
+    Object.values(value).every(isValidValue)
+  );
+}
+
+function isClassInstance(value: unknown): boolean {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype !== Object.prototype && prototype !== null;
 }
