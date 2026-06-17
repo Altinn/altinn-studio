@@ -27,13 +27,12 @@ concurrency:
 
 env:
   CYPRESS_BROWSER_IMAGE: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
-  APP_TEST_IMAGE_REPOSITORY: ghcr.io/altinn/altinn-studio/localtest-app
 
 jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Frontend
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -41,75 +40,35 @@ jobs:
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
-  build-app-images:
-    name: Build App Images
-    if: |
-      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
-      github.repository_owner == 'Altinn' &&
-      (
-        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
-        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
-      )
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+  build-app-run-targets:
+    name: Build App Run Targets
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    runs-on: self-hosted-single
+    timeout-minutes: 10
     outputs:
-      app-run-targets-json: ${{ steps.build-app-images.outputs.app-run-targets-json }}
+      app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - name: Setup studioctl
-        uses: ./.github/actions/setup-studioctl
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      - name: Build and push app images
-        id: build-app-images
+      - name: Build app run targets
+        id: app-run-targets
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        env:
-          APP_TEST_IMAGE_REPOSITORY: ${{ env.APP_TEST_IMAGE_REPOSITORY }}
-          STUDIOCTL_REGISTRY_CACHE_WRITE: 'true'
         with:
           script: |
             const fs = require('fs/promises');
             const nodePath = require('path');
 
-            const maxParallelBuilds = 4;
             const appRoot = 'src/test/apps';
-            const repository = process.env.APP_TEST_IMAGE_REPOSITORY;
-            const tagSuffix = `${process.env.GITHUB_SHA.slice(0, 12)}-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}`;
             const entries = await fs.readdir(appRoot, { withFileTypes: true });
             const targets = entries
               .filter(entry => entry.isDirectory())
               .sort((a, b) => a.name.localeCompare(b.name))
-              .map(entry => {
-                const appPath = nodePath.posix.join(appRoot, entry.name);
-                return { path: appPath, image: `${repository}:${entry.name}-${tagSuffix}` };
-              });
+              .map(entry => ({ path: nodePath.posix.join(appRoot, entry.name) }));
 
             if (targets.length === 0) {
-              throw new Error('No app images were built.');
+              throw new Error('No app run targets were found.');
             }
-
-            let nextTarget = 0;
-            async function buildNext(workerId) {
-              while (nextTarget < targets.length) {
-                const target = targets[nextTarget++];
-                core.info(`Worker ${workerId}: building ${target.path}`);
-                await exec.exec('studioctl', ['app', 'build', '--path', target.path, '--image-tag', target.image, '--push']);
-              }
-            }
-
-            const workerCount = Math.min(maxParallelBuilds, targets.length);
-            await Promise.all(Array.from({ length: workerCount }, (_, index) => buildNext(index + 1)));
             core.setOutput('app-run-targets-json', JSON.stringify(targets));
 
   cypress-run-internal:
@@ -121,9 +80,9 @@ jobs:
         (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
         (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
       )
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 120
-    needs: [build-frontend, build-app-images]
+    needs: [build-frontend, build-app-run-targets]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -139,7 +98,7 @@ jobs:
         uses: ./.github/actions/app-run-local-env
         with:
           run-localtest: true
-          app-run-targets-json: ${{ needs.build-app-images.outputs.app-run-targets-json }}
+          app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -213,7 +172,7 @@ jobs:
       github.repository_owner == 'Altinn' &&
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 120
     needs: [build-frontend]
     defaults:

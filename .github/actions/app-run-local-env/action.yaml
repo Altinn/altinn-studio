@@ -5,7 +5,7 @@ inputs:
     description: "Whether to start localtest with studioctl"
     required: true
   app-run-targets-json:
-    description: "JSON array of app run targets. Each target requires path and can include image for prebuilt app images."
+    description: "JSON array of app run targets. Each target requires path."
     required: false
 runs:
   using: "composite"
@@ -22,24 +22,10 @@ runs:
       if: ${{ inputs.run-localtest == 'true' }}
       uses: ./.github/actions/setup-studioctl
 
-    - name: Set up Docker Buildx
-      if: ${{ inputs.run-localtest == 'true' }}
-      uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
-
-    - name: Login to GitHub Container Registry
-      if: ${{ inputs.run-localtest == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ github.token }}
-
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: ${{ github.workspace }}
       shell: bash
-      env:
-        STUDIOCTL_REGISTRY_CACHE_WRITE: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       run: |
         studioctl env up --detach
 
@@ -77,12 +63,11 @@ runs:
         echo "Frontend server is ready on http://localhost:8080"
       shell: bash
 
-    - name: Start app containers
+    - name: Start app processes
       if: ${{ inputs.run-localtest == 'true' && inputs.app-run-targets-json != '' }}
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
       env:
         APP_RUN_TARGETS_JSON: ${{ inputs.app-run-targets-json }}
-        STUDIOCTL_REGISTRY_CACHE_WRITE: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       with:
         script: |
           const workspace = process.env.GITHUB_WORKSPACE;
@@ -99,12 +84,8 @@ runs:
             throw new Error('app-run-targets-json must be a JSON array.');
           }
 
-          function targetRunArgs(path, image) {
-            const args = ['run', '--mode', 'container', '--detach', '--random-host-port', '--dev-frontend', '--path', path];
-            if (image) {
-              args.push('--image-tag', image, '--pull', '--skip-build');
-            }
-            return args;
+          function targetRunArgs(path) {
+            return ['run', '--mode', 'process', '--detach', '--random-host-port', '--dev-frontend', '--path', path];
           }
 
           function validateTarget(target) {
@@ -114,15 +95,12 @@ runs:
             if (typeof target.path !== 'string' || target.path === '') {
               throw new Error('Each app run target requires a non-empty path.');
             }
-            if (target.image !== undefined && (typeof target.image !== 'string' || target.image === '')) {
-              throw new Error('App run target image must be a non-empty string when set.');
-            }
             return target;
           }
 
           const validTargets = targets.map(validateTarget);
           if (validTargets.length === 0) {
-            throw new Error('No app containers were started.');
+            throw new Error('No app processes were started.');
           }
 
           let nextTarget = 0;
@@ -130,7 +108,7 @@ runs:
             while (nextTarget < validTargets.length) {
               const target = validTargets[nextTarget++];
               core.info(`Worker ${workerId}: starting ${target.path}`);
-              await exec.exec('studioctl', targetRunArgs(target.path, target.image), { cwd: workspace });
+              await exec.exec('studioctl', targetRunArgs(target.path), { cwd: workspace });
             }
           }
 
