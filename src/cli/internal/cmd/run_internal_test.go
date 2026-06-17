@@ -153,6 +153,20 @@ func TestParseRunFlagsReadsDevFrontend(t *testing.T) {
 	}
 }
 
+func TestBuildDotnetAppIfNeededSkipsBuildWhenRequested(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	spec := appsvc.DotnetRunSpec{
+		Dir:       filepath.Join(t.TempDir(), "does-not-exist"),
+		BuildArgs: []string{"build", "does-not-exist.csproj"},
+	}
+
+	if err := cmd.buildDotnetAppIfNeeded(t.Context(), spec, runFlags{skipBuild: true}); err != nil {
+		t.Fatalf("buildDotnetAppIfNeeded() error = %v, want nil when skip-build is set", err)
+	}
+}
+
 func TestRunAppFrontendAssetBaseUrlUsesTopologyFrontendDevServer(t *testing.T) {
 	t.Parallel()
 

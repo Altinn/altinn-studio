@@ -7,6 +7,10 @@ inputs:
   app-run-targets-json:
     description: "JSON array of app run targets. Each target requires path."
     required: false
+  skip-app-build:
+    description: "Whether to pass --skip-build when starting app processes"
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -14,6 +18,10 @@ runs:
       run: |
         if [[ "${{ inputs.run-localtest }}" != "true" && "${{ inputs.run-localtest }}" != "false" ]]; then
           echo "Error: run-localtest must be 'true' or 'false', got: ${{ inputs.run-localtest }}"
+          exit 1
+        fi
+        if [[ "${{ inputs.skip-app-build }}" != "true" && "${{ inputs.skip-app-build }}" != "false" ]]; then
+          echo "Error: skip-app-build must be 'true' or 'false', got: ${{ inputs.skip-app-build }}"
           exit 1
         fi
       shell: bash
@@ -68,10 +76,12 @@ runs:
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
       env:
         APP_RUN_TARGETS_JSON: ${{ inputs.app-run-targets-json }}
+        SKIP_APP_BUILD: ${{ inputs.skip-app-build }}
       with:
         script: |
           const workspace = process.env.GITHUB_WORKSPACE;
           const maxParallelStarts = 4;
+          const skipAppBuild = process.env.SKIP_APP_BUILD === 'true';
 
           const targetsJson = process.env.APP_RUN_TARGETS_JSON;
           let targets;
@@ -85,7 +95,11 @@ runs:
           }
 
           function targetRunArgs(path) {
-            return ['run', '--mode', 'process', '--detach', '--random-host-port', '--dev-frontend', '--path', path];
+            const args = ['run', '--mode', 'process', '--detach', '--random-host-port', '--dev-frontend', '--path', path];
+            if (skipAppBuild) {
+              args.push('--skip-build');
+            }
+            return args;
           }
 
           function validateTarget(target) {

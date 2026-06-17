@@ -104,7 +104,7 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"  --dev-frontend        Use frontend dev server assets",
 		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
 		"  --pull                Pull app container image before start (container mode)",
-		"  --skip-build          Skip building the app container image (container mode)",
+		"  --skip-build          Skip building the app before start",
 		"  --json                Output as JSON (requires --detach)",
 		"  -h, --help            Show this help",
 	)
@@ -202,7 +202,7 @@ func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags,
 	fs.BoolVar(&flags.pullImage, "pull", false, "Pull app container image before start")
 	fs.BoolVar(&flags.randomHostPort, "random-host-port", true, "Use a random host port")
 	fs.BoolVar(&flags.devFrontend, "dev-frontend", false, "Use frontend dev server assets")
-	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app container image")
+	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app before start")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
 	var cmdArgs, dotnetArgs []string
@@ -368,7 +368,7 @@ func (c *RunCommand) runDotnet(
 		return fmt.Errorf("build process run spec: %w", specErr)
 	}
 
-	if err := c.buildDotnetApp(ctx, spec, flags.jsonOutput); err != nil {
+	if err := c.buildDotnetAppIfNeeded(ctx, spec, flags); err != nil {
 		return err
 	}
 
@@ -560,6 +560,13 @@ func (c *RunCommand) buildDotnetApp(ctx context.Context, spec appsvc.DotnetRunSp
 		return fmt.Errorf("build dotnet app: %w", err)
 	}
 	return nil
+}
+
+func (c *RunCommand) buildDotnetAppIfNeeded(ctx context.Context, spec appsvc.DotnetRunSpec, flags runFlags) error {
+	if flags.skipBuild {
+		return nil
+	}
+	return c.buildDotnetApp(ctx, spec, flags.jsonOutput)
 }
 
 func (c *RunCommand) resolveDotnetTargetPath(ctx context.Context, spec appsvc.DotnetRunSpec) (string, error) {

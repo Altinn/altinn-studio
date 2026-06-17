@@ -30,7 +30,13 @@ env:
 
 jobs:
   build-frontend:
-    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    if: |
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      github.repository_owner == 'Altinn' &&
+      (
+        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+      )
     name: Build Frontend
     runs-on: self-hosted-single
     timeout-minutes: 30
@@ -40,11 +46,31 @@ jobs:
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
+  build-frontend-external:
+    if: |
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      github.repository_owner == 'Altinn' &&
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Build frontend
+        uses: ./.github/actions/app-build-frontend
+
   build-app-run-targets:
     name: Build App Run Targets
-    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    if: |
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      github.repository_owner == 'Altinn' &&
+      (
+        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+      )
     runs-on: self-hosted-single
-    timeout-minutes: 10
+    timeout-minutes: 45
     outputs:
       app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
     steps:
@@ -71,6 +97,45 @@ jobs:
             }
             core.setOutput('app-run-targets-json', JSON.stringify(targets));
 
+      - name: Build app process outputs
+        shell: bash
+        run: |
+          mapfile -t app_projects < <(find src/test/apps -path '*/App/*.csproj' -type f | sort)
+          if [ "${#app_projects[@]}" -eq 0 ]; then
+            echo "No app projects were found."
+            exit 1
+          fi
+
+          for project in "${app_projects[@]}"; do
+            echo "Building ${project}"
+            dotnet build "${project}"
+          done
+
+      - name: Package app process outputs
+        shell: bash
+        run: |
+          mapfile -t build_dirs < <(find \
+            src/test/apps \
+            src/App/backend/src \
+            src/App/codelists/src \
+            src/App/fileanalyzers/src \
+            -type d \( -name bin -o -name obj \) -prune -print | sort)
+
+          if [ "${#build_dirs[@]}" -eq 0 ]; then
+            echo "No app build output directories were found."
+            exit 1
+          fi
+
+          tar -czf app-process-build.tar.gz "${build_dirs[@]}"
+
+      - name: Upload app process outputs
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: app-process-build
+          path: app-process-build.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
@@ -94,11 +159,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
+      - name: Download app process outputs
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: app-process-build
+          path: /tmp/app-process-build
+
+      - name: Extract app process outputs
+        shell: bash
+        run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
+
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
+          skip-app-build: true
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -172,9 +248,9 @@ jobs:
       github.repository_owner == 'Altinn' &&
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
-    runs-on: self-hosted-single
+    runs-on: ubuntu-latest
     timeout-minutes: 120
-    needs: [build-frontend]
+    needs: [build-frontend-external]
     defaults:
       run:
         working-directory: src/App/frontend/
