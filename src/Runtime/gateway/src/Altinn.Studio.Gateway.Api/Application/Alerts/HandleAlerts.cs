@@ -87,7 +87,6 @@ internal static class HandleAlerts
                         Status = a.Status,
                         InstanceId = a.Labels.GetValueOrDefault("instanceId", string.Empty),
                     })
-                    .Where(i => !string.IsNullOrEmpty(i.InstanceId))
                     .ToList(),
             })
             .ToList();
