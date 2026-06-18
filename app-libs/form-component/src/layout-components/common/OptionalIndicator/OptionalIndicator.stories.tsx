@@ -5,9 +5,6 @@ import { OptionalIndicator } from './OptionalIndicator';
 const meta = {
   title: 'LayoutComponents/Common/OptionalIndicator',
   component: OptionalIndicator,
-  parameters: {
-    layout: 'centered',
-  },
   args: {
     showOptionalMarking: true,
   },
@@ -17,16 +14,4 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Optional: Story = {};
-
-export const Required: Story = {
-  args: {
-    required: true,
-  },
-};
-
-export const ReadOnly: Story = {
-  args: {
-    readOnly: true,
-  },
-};
+export const Preview: Story = {};

@@ -5,9 +5,6 @@ import { Description } from './Description';
 const meta = {
   title: 'LayoutComponents/Common/Description',
   component: Description,
-  parameters: {
-    layout: 'centered',
-  },
   args: {
     description: 'A short description that explains the field.',
     componentId: 'example',
