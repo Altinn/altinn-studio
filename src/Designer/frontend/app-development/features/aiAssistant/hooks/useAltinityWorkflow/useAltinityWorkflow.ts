@@ -32,9 +32,9 @@ const WORKFLOW_ERROR_MESSAGE =
 
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
-  workflowStatus: WorkflowStatus;
+  workflowStatusByThread: Record<string, WorkflowStatus>;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
-  clearCurrentSession: () => void;
+  deselectCurrentThread: () => void;
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
@@ -42,7 +42,9 @@ export interface UseAltinityWorkflowResult {
 }
 
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
+  const [workflowStatusByThread, setWorkflowStatusByThread] = useState<
+    Record<string, WorkflowStatus>
+  >({});
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
   const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
   const { connectionStatus, startWorkflow, cancelWorkflow, registerSession, onAgentMessage } =
@@ -55,14 +57,29 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const registeredThreadIds = useRef<Set<string>>(new Set());
 
   const {
-    currentSessionId,
-    currentSessionIdRef,
-    setCurrentSession,
+    selectedThreadId,
+    selectedThreadIdRef,
+    setSelectedThread,
     createThread,
     deleteMessage,
     createMessage,
     chatMessages,
   } = threads;
+
+  const setWorkflowStatus = useCallback((threadId: string, status: WorkflowStatus) => {
+    setWorkflowStatusByThread((prev) => ({ ...prev, [threadId]: status }));
+  }, []);
+
+  const setWorkflowStatusMessage = useCallback((threadId: string, statusMessage: string) => {
+    setWorkflowStatusByThread((prev) => {
+      const prevWorkflowStatus = prev[threadId];
+      return { ...prev, [threadId]: { ...prevWorkflowStatus, message: statusMessage } };
+    });
+  }, []);
+
+  const deselectCurrentThread = useCallback(() => {
+    setSelectedThread(null);
+  }, [setSelectedThread]);
 
   const ensureSessionRegistered = useCallback(
     async (threadId: string): Promise<void> => {
@@ -73,28 +90,19 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [registerSession, org, app],
   );
 
-  const clearCurrentSession = useCallback(() => {
-    setCurrentSession(null);
-    setWorkflowStatus({ isActive: false });
-  }, [setCurrentSession]);
-
   const markWorkflowCompleted = useCallback(
-    (assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
-      setWorkflowStatus((prev) => ({
-        ...prev,
+    (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
+      setWorkflowStatus(threadId, {
+        isActive: false,
+        sessionId: threadId,
         currentStep: 'Completed',
         message: 'AI agent workflow completed successfully',
-        isActive: false,
         lastCompletedAt: messageTimestamp,
         filesChanged: assistantMessage.filesChanged || [],
-      }));
+      });
     },
-    [],
+    [setWorkflowStatus],
   );
-
-  const applyStatusMessage = useCallback((statusMessage: string) => {
-    setWorkflowStatus((prev) => ({ ...prev, message: statusMessage }));
-  }, []);
 
   const resetRepoForSession = useCallback(
     (sessionId: string) => {
@@ -110,13 +118,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   const handleAssistantMessage = useCallback(
     async (event: WorkflowEvent & { type: 'assistant_message' }) => {
+      const threadId = event.session_id;
+      if (!threadId) return;
+
       const assistantMessage = event.data;
       const messageContent = getAssistantMessageContent(assistantMessage);
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
-      markWorkflowCompleted(assistantMessage, messageTimestamp);
-
-      const threadId = event.session_id;
-      if (!threadId) return;
+      markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
 
       const finalAssistantMessage: AssistantMessage = {
         role: MessageAuthor.Assistant,
@@ -134,8 +142,8 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         }));
       }
 
-      if (event.session_id && !shouldSkipBranchOps(assistantMessage)) {
-        resetRepoForSession(event.session_id);
+      if (!shouldSkipBranchOps(assistantMessage)) {
+        resetRepoForSession(threadId);
       }
     },
     [resetRepoForSession, markWorkflowCompleted, createMessage],
@@ -145,22 +153,26 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
         handleAssistantMessage(event);
-      } else if (event.type === 'status') {
+        return;
+      }
+
+      const threadId = event.session_id;
+      if (!threadId) return;
+
+      if (event.type === 'status') {
         const isTerminal =
           event.data?.status === 'completed' ||
           event.data?.status === 'failed' ||
           event.data?.done === true;
         if (isTerminal) {
-          setWorkflowStatus({ isActive: false });
+          setWorkflowStatus(threadId, { isActive: false });
         } else {
-          applyStatusMessage(event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+          setWorkflowStatusMessage(threadId, event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
         }
       } else if (event.type === 'workflow_status') {
-        applyStatusMessage(event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+        setWorkflowStatusMessage(threadId, event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
       } else if (event.type === 'error') {
-        setWorkflowStatus({ isActive: false });
-        const threadId = event.session_id;
-        if (!threadId) return;
+        setWorkflowStatus(threadId, { isActive: false });
         if (event.data?.status === 'cancelled') return;
         createMessage(threadId, {
           role: MessageAuthor.Assistant,
@@ -170,7 +182,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [applyStatusMessage, handleAssistantMessage, createMessage],
+    [setWorkflowStatusMessage, handleAssistantMessage, createMessage, setWorkflowStatus],
   );
 
   useEffect(() => {
@@ -188,7 +200,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     ): Promise<AgentResponse> => {
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
-      setWorkflowStatus({
+      setWorkflowStatus(threadId, {
         isActive: true,
         sessionId: threadId,
         currentStep: 'Initializing',
@@ -204,14 +216,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           allow_app_changes: allowAppChanges,
           attachments,
         });
-        if (!result.accepted) setWorkflowStatus({ isActive: false });
+        if (!result.accepted) setWorkflowStatus(threadId, { isActive: false });
         return result;
       } catch (error) {
-        setWorkflowStatus({ isActive: false });
+        setWorkflowStatus(threadId, { isActive: false });
         throw error;
       }
     },
-    [app, currentBranch, org, startWorkflow],
+    [app, currentBranch, org, startWorkflow, setWorkflowStatus],
   );
 
   const runWorkflowForSession = useCallback(
@@ -249,14 +261,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     async (message: UserMessage): Promise<void> => {
       if (!message.content) return;
 
-      let threadId = currentSessionId;
+      let threadId = selectedThreadId;
       if (!threadId) {
         try {
           threadId = await createThread(createThreadTitle(message.content));
-          setCurrentSession(threadId);
+          setSelectedThread(threadId);
         } catch (error) {
           console.error('Failed to create thread:', error);
-          setWorkflowStatus({ isActive: false });
           return;
         }
       }
@@ -265,26 +276,27 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         await ensureSessionRegistered(threadId);
       } catch (error) {
         console.error('Failed to register session for thread:', error);
-        setWorkflowStatus({ isActive: false });
+        setWorkflowStatus(threadId, { isActive: false });
         return;
       }
 
       await runWorkflowForSession(threadId, message);
     },
     [
-      currentSessionId,
+      selectedThreadId,
       createThread,
       ensureSessionRegistered,
       runWorkflowForSession,
-      setCurrentSession,
+      setSelectedThread,
+      setWorkflowStatus,
     ],
   );
 
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
-    const threadId = currentSessionIdRef.current;
+    const threadId = selectedThreadIdRef.current;
     if (!threadId) return;
 
-    setWorkflowStatus({ isActive: false });
+    setWorkflowStatus(threadId, { isActive: false });
 
     const latestPersistedMessage = chatMessages.at(-1);
     const noAssistantResponseReceived = latestPersistedMessage?.role === MessageAuthor.User;
@@ -298,7 +310,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, currentSessionIdRef, deleteMessage, chatMessages]);
+  }, [cancelWorkflow, selectedThreadIdRef, deleteMessage, chatMessages, setWorkflowStatus]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
@@ -311,9 +323,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   return {
     connectionStatus,
-    workflowStatus,
+    workflowStatusByThread,
     onSubmitMessage,
-    clearCurrentSession,
+    deselectCurrentThread,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,

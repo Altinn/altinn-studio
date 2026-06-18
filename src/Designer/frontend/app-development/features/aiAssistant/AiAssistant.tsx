@@ -20,16 +20,16 @@ function AiAssistant(): ReactElement {
 
   const {
     connectionStatus,
-    workflowStatus,
+    workflowStatusByThread,
     chatThreads,
     messages,
-    currentSessionId,
+    selectedThreadId,
     onSubmitMessage,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread,
-    clearCurrentSession,
+    deselectCurrentThread,
     deleteThread,
   } = useAltinityAssistant();
 
@@ -102,17 +102,17 @@ function AiAssistant(): ReactElement {
         enableCompactInterface={false}
         chatThreads={chatThreads}
         messages={messages}
-        activeThreadId={currentSessionId}
+        activeThreadId={selectedThreadId}
         onSubmitMessage={onSubmitMessage}
         onCancelWorkflow={cancelCurrentWorkflow}
         cancelledMessageContent={cancelledMessageContent}
         onCancelledMessageConsumed={clearCancelledMessageContent}
         onSelectThread={selectThread}
-        onCreateThread={clearCurrentSession}
+        onCreateThread={deselectCurrentThread}
         onDeleteThread={deleteThread}
         onMessageFeedback={sendChatFeedback}
         connectionStatus={connectionStatus}
-        workflowStatus={workflowStatus}
+        workflowStatusByThread={workflowStatusByThread}
         previewContent={<Preview />}
         fileBrowserContent={<FileBrowser />}
         currentUser={currentUser}

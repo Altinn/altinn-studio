@@ -64,7 +64,7 @@ describe('useAltinityWorkflow', () => {
 
   it('persists assistant message using thread ID, not backend session ID', async () => {
     const threads = createThreadState();
-    threads.currentSessionIdRef.current = 'database-thread-id';
+    threads.selectedThreadIdRef.current = 'database-thread-id';
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
@@ -99,8 +99,8 @@ describe('useAltinityWorkflow', () => {
   });
 
   it('persists assistant message to the submission thread even when the user has switched to another thread', async () => {
-    const threads = createThreadState({ currentSessionId: 'thread-a' });
-    threads.currentSessionIdRef.current = 'thread-a';
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    threads.selectedThreadIdRef.current = 'thread-a';
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
@@ -130,7 +130,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     // Simulate the user switching threads before the assistant responds
-    threads.currentSessionIdRef.current = 'thread-b';
+    threads.selectedThreadIdRef.current = 'thread-b';
 
     const assistantMessageEvent: AssistantMessageEvent = {
       type: 'assistant_message',
@@ -150,6 +150,96 @@ describe('useAltinityWorkflow', () => {
       }),
     );
     expect(threads.createMessage).not.toHaveBeenCalledWith('thread-b', expect.anything());
+  });
+
+  it('routes workflow status updates by event session_id, leaving other threads untouched', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    threads.selectedThreadIdRef.current = 'thread-a';
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    const userMessage: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    await act(async () => {
+      await result.current.onSubmitMessage(userMessage);
+    });
+
+    // Simulate user switching threads while the agent is still working on thread-a
+    threads.selectedThreadIdRef.current = 'thread-b';
+
+    const statusMessageForThreadA = 'Halfway done with thread A';
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: statusMessageForThreadA },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.message).toBe(
+      statusMessageForThreadA,
+    );
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
+    expect(result.current.workflowStatusByThread['thread-b']).toBeUndefined();
+  });
+
+  it('drops workflow events that have no session_id', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Hello',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    const messageBefore = result.current.workflowStatusByThread['thread-a']?.message;
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        data: { message: 'Stray update without session_id' },
+      } as WorkflowEvent);
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.message).toBe(messageBefore);
   });
 
   it('creates thread and starts workflow for new session', async () => {
@@ -185,7 +275,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.createThread).toHaveBeenCalledWith('Hello');
-    expect(threads.setCurrentSession).toHaveBeenCalledWith('new-thread-id');
+    expect(threads.setSelectedThread).toHaveBeenCalledWith('new-thread-id');
     expect(threads.createMessage).toHaveBeenCalledWith(
       'new-thread-id',
       expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
@@ -204,7 +294,7 @@ describe('useAltinityWorkflow', () => {
 
   it('deletes latest user message on abort when no assistant response has been received', async () => {
     const threads = createThreadState({
-      currentSessionId: 'thread-1',
+      selectedThreadId: 'thread-1',
       chatMessages: [
         {
           id: 'message-1',
@@ -240,7 +330,7 @@ describe('useAltinityWorkflow', () => {
 
   it('does not delete message on abort when assistant has already responded', async () => {
     const threads = createThreadState({
-      currentSessionId: 'thread-1',
+      selectedThreadId: 'thread-1',
       chatMessages: [
         {
           id: 'message-1',
@@ -283,14 +373,14 @@ describe('useAltinityWorkflow', () => {
 });
 
 const createThreadState = (overrides: Partial<AltinityThreadState> = {}): AltinityThreadState => {
-  const currentSessionId = overrides.currentSessionId ?? null;
+  const selectedThreadId = overrides.selectedThreadId ?? null;
 
   return {
     chatThreads: [],
-    currentSessionId,
-    currentSessionIdRef: { current: currentSessionId },
+    selectedThreadId,
+    selectedThreadIdRef: { current: selectedThreadId },
     chatMessages: [],
-    setCurrentSession: jest.fn(),
+    setSelectedThread: jest.fn(),
     selectThread: jest.fn(),
     createThread: jest.fn().mockResolvedValue('new-thread-id'),
     deleteThread: jest.fn(),
