@@ -284,7 +284,7 @@ jobs:
         shell: bash
         env:
           CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
-        run: npx cypress run --browser chrome --spec test/e2e/integration --env environment=localtest
+        run: npx cypress run --browser "${CHROME_PATH:-chrome}" --spec test/e2e/integration --env environment=localtest
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()
