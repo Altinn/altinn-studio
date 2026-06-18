@@ -713,7 +713,23 @@ public class UiFoldersService : IUiFoldersService
 
             foreach (string pageId in repository.GetLayoutNames(layoutSetInfo.LayoutSetName))
             {
-                JsonNode layout = await repository.GetLayout(layoutSetInfo.LayoutSetName, pageId, cancellationToken);
+                JsonNode layout;
+                try
+                {
+                    layout = await repository.GetLayout(layoutSetInfo.LayoutSetName, pageId, cancellationToken);
+                }
+                catch (Exception e) when (e is FileNotFoundException or JsonException)
+                {
+                    // Skip a single unreadable layout file rather than aborting the whole save operation.
+                    _logger.LogWarning(
+                        e,
+                        "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                        SanitizeForLog(pageId),
+                        SanitizeForLog(layoutSetInfo.LayoutSetName)
+                    );
+                    continue;
+                }
+
                 JsonObject? data = layout["data"]?.AsObject();
                 if (data == null)
                 {
