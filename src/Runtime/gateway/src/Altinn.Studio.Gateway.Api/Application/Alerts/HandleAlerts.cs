@@ -102,7 +102,7 @@ internal static class HandleAlerts
         )
             ? interval
             : null;
-        var to = alertPayload.Alerts.Min(a => a.StartsAt);
+        var to = alertPayload.Alerts.Max(a => a.StartsAt);
         var from = intervalInMinutes.HasValue ? to.AddMinutes(-intervalInMinutes.Value) : to.AddMinutes(-5);
         var appNames = apps.Select(a => a.App).ToList();
 
