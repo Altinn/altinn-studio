@@ -1,4 +1,5 @@
 name: App Frontend - Lighthouse CI
+
 on:
   push:
     branches:
