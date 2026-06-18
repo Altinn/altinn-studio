@@ -36,9 +36,9 @@ describe('useAltinityWorkflow', () => {
 
     mockUseAltinityWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      sessionId: 'backend-session',
       startWorkflow,
       cancelWorkflow: jest.fn(),
+      registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -69,9 +69,9 @@ describe('useAltinityWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      sessionId: 'backend-session',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
+      registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -84,7 +84,7 @@ describe('useAltinityWorkflow', () => {
 
     const assistantMessageEvent: AssistantMessageEvent = {
       type: 'assistant_message',
-      session_id: 'backend-session',
+      session_id: 'database-thread-id',
       data: { content: 'Assistant reply' },
     };
 
@@ -96,7 +96,6 @@ describe('useAltinityWorkflow', () => {
       'database-thread-id',
       expect.objectContaining({ role: MessageAuthor.Assistant, content: 'Assistant reply' }),
     );
-    expect(threads.createMessage).not.toHaveBeenCalledWith('backend-session', expect.anything());
   });
 
   it('persists assistant message to the submission thread even when the user has switched to another thread', async () => {
@@ -106,9 +105,9 @@ describe('useAltinityWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      sessionId: 'backend-session',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'backend-session' }),
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -135,7 +134,7 @@ describe('useAltinityWorkflow', () => {
 
     const assistantMessageEvent: AssistantMessageEvent = {
       type: 'assistant_message',
-      session_id: 'backend-session',
+      session_id: 'thread-a',
       data: { content: 'Assistant reply for thread A' },
     };
 
@@ -163,9 +162,9 @@ describe('useAltinityWorkflow', () => {
 
     mockUseAltinityWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      sessionId: 'backend-session',
       startWorkflow,
       cancelWorkflow: jest.fn(),
+      registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -193,7 +192,7 @@ describe('useAltinityWorkflow', () => {
     );
     expect(startWorkflow).toHaveBeenCalledWith(
       expect.objectContaining({
-        session_id: 'backend-session',
+        session_id: 'new-thread-id',
         goal: 'Hello',
         org: 'testOrg',
         app: 'testApp',
@@ -220,9 +219,9 @@ describe('useAltinityWorkflow', () => {
 
     mockUseAltinityWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      sessionId: 'backend-session',
       startWorkflow: jest.fn(),
       cancelWorkflow,
+      registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -236,7 +235,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.deleteMessage).toHaveBeenCalledWith('thread-1', 'message-1');
-    expect(cancelWorkflow).toHaveBeenCalledWith('backend-session');
+    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
   });
 
   it('does not delete message on abort when assistant has already responded', async () => {
@@ -263,9 +262,9 @@ describe('useAltinityWorkflow', () => {
 
     mockUseAltinityWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      sessionId: 'backend-session',
       startWorkflow: jest.fn(),
       cancelWorkflow,
+      registerSession: jest.fn().mockResolvedValue(undefined),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -279,7 +278,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.deleteMessage).not.toHaveBeenCalled();
-    expect(cancelWorkflow).toHaveBeenCalledWith('backend-session');
+    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
   });
 });
 
