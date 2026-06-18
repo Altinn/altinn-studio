@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './ScopeList.module.css';
 import {
   StudioAlert,
   StudioButton,
-  StudioCheckboxTable,
+  StudioCheckbox,
   StudioDeleteButton,
   StudioDialog,
   StudioFormActions,
@@ -13,7 +13,6 @@ import {
   StudioParagraph,
   StudioSearch,
   StudioTable,
-  useStudioCheckboxTable,
 } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { LoggedInTitle } from '../LoggedInTitle';
@@ -279,20 +278,13 @@ function AddScopesDialog({
   const { t } = useTranslation();
   const title: string = t('app_settings.maskinporten_select_all_scopes');
   const keepSelectionOnCloseRef = useRef<boolean>(false);
+  const [selectedScopeNames, setSelectedScopeNames] = useState<string[]>(initialValues);
   const { saveScopes, isSaving } = useSaveScopes(allAvailableScopes);
 
-  const { getCheckboxProps, selectedValues, setSelectedValues } = useStudioCheckboxTable(
-    initialValues,
-    title,
-  );
   const selectedDefaultScopeNames = useMemo(
     () => initialValues.filter(isDefaultMaskinportenScope),
     [initialValues],
   );
-
-  useEffect(() => {
-    setSelectedValues(initialValues);
-  }, [initialValues, setSelectedValues]);
 
   const filteredScopes = useMemo(() => {
     const searchTerm = searchValue.trim().toLowerCase();
@@ -304,6 +296,23 @@ function AddScopesDialog({
       );
     });
   }, [allAvailableScopes, searchValue]);
+  const filteredScopeNames = useMemo(
+    () => filteredScopes.map((scope: MaskinportenScope) => scope.scope),
+    [filteredScopes],
+  );
+  const selectableFilteredScopeNames = useMemo(
+    () =>
+      filteredScopeNames.filter(
+        (scopeName: string) => !selectedDefaultScopeNames.includes(scopeName),
+      ),
+    [filteredScopeNames, selectedDefaultScopeNames],
+  );
+  const allFilteredScopesSelected: boolean =
+    filteredScopeNames.length > 0 &&
+    filteredScopeNames.every((scopeName: string) => selectedScopeNames.includes(scopeName));
+  const someFilteredScopesSelected: boolean = filteredScopeNames.some((scopeName: string) =>
+    selectedScopeNames.includes(scopeName),
+  );
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setSearchValue(event.target.value);
@@ -311,7 +320,7 @@ function AddScopesDialog({
 
   const handleDialogClose = (): void => {
     if (!keepSelectionOnCloseRef.current) {
-      setSelectedValues(initialValues);
+      setSelectedScopeNames(initialValues);
     }
 
     keepSelectionOnCloseRef.current = false;
@@ -323,12 +332,42 @@ function AddScopesDialog({
   };
 
   const saveSelectedScopes = (): void => {
-    const valuesToSave = Array.from(new Set([...selectedValues, ...selectedDefaultScopeNames]));
+    const valuesToSave = Array.from(new Set([...selectedScopeNames, ...selectedDefaultScopeNames]));
 
     saveScopes(valuesToSave, () => {
       keepSelectionOnCloseRef.current = true;
       closeDialog();
     });
+  };
+
+  const setScopeSelected = (scopeName: string, checked: boolean): void => {
+    setSelectedScopeNames((currentSelectedScopeNames: string[]) => {
+      if (checked) {
+        return Array.from(new Set([...currentSelectedScopeNames, scopeName]));
+      }
+
+      return currentSelectedScopeNames.filter(
+        (currentScopeName: string) => currentScopeName !== scopeName,
+      );
+    });
+  };
+
+  const setFilteredScopesSelected = (checked: boolean): void => {
+    setSelectedScopeNames((currentSelectedScopeNames: string[]) => {
+      if (checked) {
+        return Array.from(new Set([...currentSelectedScopeNames, ...selectableFilteredScopeNames]));
+      }
+
+      return currentSelectedScopeNames.filter(
+        (currentScopeName: string) => !selectableFilteredScopeNames.includes(currentScopeName),
+      );
+    });
+  };
+
+  const setSelectAllCheckboxRef = (checkbox: HTMLInputElement | null): void => {
+    if (checkbox) {
+      checkbox.indeterminate = !allFilteredScopesSelected && someFilteredScopesSelected;
+    }
   };
 
   return (
@@ -355,37 +394,52 @@ function AddScopesDialog({
           clearButtonLabel={t('general.search_clear_button_title')}
         />
         <div className={classes.dialogTableWrapper}>
-          <StudioCheckboxTable data-size='sm'>
-            <StudioCheckboxTable.Head
-              title={title}
-              descriptionCellTitle={t('app_settings.maskinporten_select_all_scopes_description')}
-              getCheckboxProps={{
-                ...getCheckboxProps({
-                  allowIndeterminate: true,
-                  value: 'all',
-                }),
-              }}
-            />
-            <StudioCheckboxTable.Body>
+          <StudioTable data-size='sm'>
+            <StudioTable.Head>
+              <StudioTable.Row>
+                <StudioTable.HeaderCell>
+                  <StudioCheckbox
+                    ref={setSelectAllCheckboxRef}
+                    aria-label={title}
+                    name={title}
+                    value='all'
+                    checked={allFilteredScopesSelected}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                      setFilteredScopesSelected(event.currentTarget.checked);
+                    }}
+                  />
+                </StudioTable.HeaderCell>
+                <StudioTable.HeaderCell aria-hidden>{title}</StudioTable.HeaderCell>
+                <StudioTable.HeaderCell>
+                  {t('app_settings.maskinporten_select_all_scopes_description')}
+                </StudioTable.HeaderCell>
+              </StudioTable.Row>
+            </StudioTable.Head>
+            <StudioTable.Body>
               {filteredScopes.map((scope: MaskinportenScope) => {
                 const isSelectedDefaultScope = selectedDefaultScopeNames.includes(scope.scope);
 
                 return (
-                  <StudioCheckboxTable.Row
-                    key={scope.scope}
-                    label={scope.scope}
-                    description={scope.description}
-                    getCheckboxProps={{
-                      ...getCheckboxProps({
-                        value: scope.scope,
-                      }),
-                      disabled: isSelectedDefaultScope,
-                    }}
-                  />
+                  <StudioTable.Row key={scope.scope}>
+                    <StudioTable.Cell>
+                      <StudioCheckbox
+                        aria-label={scope.scope}
+                        name={title}
+                        value={scope.scope}
+                        checked={selectedScopeNames.includes(scope.scope)}
+                        disabled={isSelectedDefaultScope}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          setScopeSelected(scope.scope, event.currentTarget.checked);
+                        }}
+                      />
+                    </StudioTable.Cell>
+                    <StudioTable.Cell aria-hidden>{scope.scope}</StudioTable.Cell>
+                    <StudioTable.Cell>{scope.description}</StudioTable.Cell>
+                  </StudioTable.Row>
                 );
               })}
-            </StudioCheckboxTable.Body>
-          </StudioCheckboxTable>
+            </StudioTable.Body>
+          </StudioTable>
           {filteredScopes.length === 0 && (
             <StudioParagraph className={classes.emptyState}>
               {t('app_settings.maskinporten_no_scopes_search_match')}

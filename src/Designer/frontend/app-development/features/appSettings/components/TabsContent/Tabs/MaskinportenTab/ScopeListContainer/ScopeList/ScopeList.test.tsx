@@ -32,9 +32,18 @@ const scopeMock5: MaskinportenScope = {
   scope: 'altinn:serviceowner',
   description: 'description5',
 };
+const dataAltinnNoScope: MaskinportenScope = {
+  scope: 'altinn:dataaltinnno',
+  description: 'Data Altinn scope',
+};
+const correspondenceWriteScope: MaskinportenScope = {
+  scope: 'altinn:correspondence.write',
+  description: 'Correspondence write scope',
+};
 
 const maskinportenScopesMock: MaskinportenScope[] = [scopeMock1, scopeMock2];
 const selectedScopesMock: MaskinportenScope[] = [scopeMock3, scopeMock4];
+const selectedDefaultScopesMock: MaskinportenScope[] = [scopeMock5, scopeMock4, scopeMock2];
 
 describe('ScopeList', () => {
   afterEach(jest.clearAllMocks);
@@ -318,6 +327,46 @@ describe('ScopeList', () => {
 
     const updatedScopes: MaskinportenScopes = {
       scopes: [scopeMock4, scopeMock3, scopeMock1],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should preserve previously selected scopes when adding scopes through filtered search results', async () => {
+    const user = userEvent.setup();
+    renderScopeList({
+      componentProps: {
+        maskinPortenScopes: [dataAltinnNoScope, correspondenceWriteScope],
+        selectedScopes: selectedDefaultScopesMock,
+      },
+    });
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    const searchField = within(dialog).getByRole('searchbox', {
+      name: textMock('app_settings.maskinporten_scope_search_label'),
+    });
+
+    await user.type(searchField, dataAltinnNoScope.scope);
+    await user.click(within(dialog).getByRole('checkbox', { name: dataAltinnNoScope.scope }));
+    await user.clear(searchField);
+    await user.type(searchField, correspondenceWriteScope.scope);
+    await user.click(
+      within(dialog).getByRole('checkbox', { name: correspondenceWriteScope.scope }),
+    );
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: textMock('app_settings.maskinporten_add_scope_dialog_done'),
+      }),
+    );
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [scopeMock5, scopeMock4, scopeMock2, correspondenceWriteScope, dataAltinnNoScope],
     };
 
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
