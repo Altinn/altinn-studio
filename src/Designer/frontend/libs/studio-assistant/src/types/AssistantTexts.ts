@@ -16,7 +16,6 @@ export type AssistantTexts = {
   allowAppChangesSwitch: string;
   send: string;
   cancel: string;
-  concurrencyLabel: string;
   assistantFirstMessage: string;
   feedback: MessageFeedbackTexts;
 };

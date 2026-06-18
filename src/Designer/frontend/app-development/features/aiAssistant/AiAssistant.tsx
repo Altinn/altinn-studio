@@ -71,7 +71,6 @@ function AiAssistant(): ReactElement {
     allowAppChangesSwitch: t('ai_assistant.allow_app_changes'),
     send: t('ai_assistant.send'),
     cancel: 'Avbryt',
-    concurrencyLabel: t('ai_assistant.concurrency_label'),
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),
     feedback: {
       thumbsUp: t('ai_assistant.feedback_thumbs_up'),

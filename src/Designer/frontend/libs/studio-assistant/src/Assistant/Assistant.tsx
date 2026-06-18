@@ -51,12 +51,7 @@ export function Assistant({
   currentUser,
 }: AssistantProps): React.ReactElement {
   return enableCompactInterface ? (
-    <CompactInterface
-      texts={texts}
-      onSubmitMessage={onSubmitMessage}
-      onCreateThread={onCreateThread}
-      currentUser={currentUser}
-    />
+    <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} currentUser={currentUser} />
   ) : (
     <CompleteInterface
       texts={texts}

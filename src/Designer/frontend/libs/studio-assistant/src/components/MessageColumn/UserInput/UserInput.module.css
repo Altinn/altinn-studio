@@ -30,16 +30,6 @@
   gap: var(--ds-size-4);
 }
 
-.actionsRowRight {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-size-2);
-}
-
-.concurrencySelect {
-  width: auto;
-}
-
 .hiddenFileInput {
   display: none;
 }

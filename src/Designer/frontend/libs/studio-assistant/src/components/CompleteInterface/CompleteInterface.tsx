@@ -91,7 +91,6 @@ export function CompleteInterface({
             messages={messages}
             onSubmitMessage={onSubmitMessage}
             onCancelWorkflow={onCancelWorkflow}
-            onCreateThread={handleCreateThread}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
             onMessageFeedback={onMessageFeedback}

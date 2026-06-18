@@ -51,7 +51,6 @@ export const mockTexts: AssistantTexts = {
   allowAppChangesSwitch: 'allowAppChangesSwitch',
   send: 'send',
   cancel: 'cancel',
-  concurrencyLabel: 'concurrencyLabel',
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
   feedback: messageFeedbackTexts,
 };
