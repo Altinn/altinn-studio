@@ -249,7 +249,7 @@ func TestProcessPendingMaskinportenRotationRollouts_PatchesDeploymentTemplateAnd
 	now := time.Date(2026, 6, 15, 2, 0, 0, 0, time.UTC)
 	fingerprint := testRotationFingerprint
 	instance := rotationRolloutClient("ttd-testapp", fingerprint)
-	deployment := rotationRolloutDeployment("ttd-testapp-deployment")
+	deployment := rotationRolloutDeployment("ttd-testapp-deployment", "ttd-testapp")
 	reconciler := newFakeReconcilerForRotationRollout(t, instance, deployment)
 
 	err := reconciler.processPendingMaskinportenRotationRollouts(ctx, now)
@@ -274,6 +274,27 @@ func TestProcessPendingMaskinportenRotationRollouts_PatchesDeploymentTemplateAnd
 	g.Expect(updatedClient.Status.LastSecretRotationRestartedAt.Time).To(BeTemporally("==", now))
 }
 
+func TestProcessPendingMaskinportenRotationRollouts_FindsV2DeploymentByReleaseLabel(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	now := time.Date(2026, 6, 15, 2, 0, 0, 0, time.UTC)
+	fingerprint := testRotationFingerprint
+	instance := rotationRolloutClient("ttd-testapp", fingerprint)
+	deployment := rotationRolloutDeployment("ttd-testapp-deployment-v2", "ttd-testapp")
+	reconciler := newFakeReconcilerForRotationRollout(t, instance, deployment)
+
+	err := reconciler.processPendingMaskinportenRotationRollouts(ctx, now)
+
+	g.Expect(err).NotTo(HaveOccurred())
+
+	updatedDeployment := &appsv1.Deployment{}
+	g.Expect(reconciler.Get(ctx, client.ObjectKeyFromObject(deployment), updatedDeployment)).To(Succeed())
+	g.Expect(updatedDeployment.Spec.Template.Annotations).To(HaveKeyWithValue(
+		mpdomain.AnnotationSecretVersion,
+		fingerprint,
+	))
+}
+
 func TestProcessPendingMaskinportenRotationRollouts_IsIdempotentForSameRotation(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -281,7 +302,7 @@ func TestProcessPendingMaskinportenRotationRollouts_IsIdempotentForSameRotation(
 	secondRun := firstRun.Add(24 * time.Hour)
 	fingerprint := testRotationFingerprint
 	instance := rotationRolloutClient("ttd-testapp", fingerprint)
-	deployment := rotationRolloutDeployment("ttd-testapp-deployment")
+	deployment := rotationRolloutDeployment("ttd-testapp-deployment", "ttd-testapp")
 	reconciler := newFakeReconcilerForRotationRollout(t, instance, deployment)
 
 	g.Expect(reconciler.processPendingMaskinportenRotationRollouts(ctx, firstRun)).To(Succeed())
@@ -302,8 +323,8 @@ func TestProcessPendingMaskinportenRotationRollouts_OnlyPatchesPendingRotations(
 	pendingFingerprint := testRotationFingerprint
 	pendingClient := rotationRolloutClient("ttd-testapp", pendingFingerprint)
 	nonPendingClient := rotationRolloutClient("ttd-otherapp", "")
-	pendingDeployment := rotationRolloutDeployment("ttd-testapp-deployment")
-	nonPendingDeployment := rotationRolloutDeployment("ttd-otherapp-deployment")
+	pendingDeployment := rotationRolloutDeployment("ttd-testapp-deployment", "ttd-testapp")
+	nonPendingDeployment := rotationRolloutDeployment("ttd-otherapp-deployment", "ttd-otherapp")
 	reconciler := newFakeReconcilerForRotationRollout(
 		t,
 		pendingClient,
@@ -334,7 +355,7 @@ func TestProcessPendingMaskinportenRotationRollouts_RecoversPendingRotationFromS
 	ctx := context.Background()
 	now := time.Date(2026, 6, 15, 2, 0, 0, 0, time.UTC)
 	instance := rotationRolloutClient("ttd-testapp", "")
-	deployment := rotationRolloutDeployment("ttd-testapp-deployment")
+	deployment := rotationRolloutDeployment("ttd-testapp-deployment", "ttd-testapp")
 	secret := rotationRolloutSecret("ttd-testapp-deployment", testRotationFingerprint)
 	reconciler := newFakeReconcilerForRotationRollout(t, instance, deployment, secret)
 
@@ -360,7 +381,7 @@ func TestProcessPendingMaskinportenRotationRollouts_SkipsOtherServiceOwner(t *te
 	ctx := context.Background()
 	now := time.Date(2026, 6, 15, 2, 0, 0, 0, time.UTC)
 	instance := rotationRolloutClient("other-testapp", testRotationFingerprint)
-	deployment := rotationRolloutDeployment("other-testapp-deployment")
+	deployment := rotationRolloutDeployment("other-testapp-deployment", "other-testapp")
 	reconciler := newFakeReconcilerForRotationRollout(t, instance, deployment)
 	reconciler.runtime = rotationRolloutTestRuntime{serviceOwnerID: "ttd"}
 
@@ -385,7 +406,7 @@ func TestProcessPendingMaskinportenRotationRollouts_MarksAlreadyAnnotatedDeploym
 	restartedAt := time.Date(2026, 6, 15, 2, 0, 0, 0, time.UTC)
 	fingerprint := testRotationFingerprint
 	instance := rotationRolloutClient("ttd-testapp", fingerprint)
-	deployment := rotationRolloutDeployment("ttd-testapp-deployment")
+	deployment := rotationRolloutDeployment("ttd-testapp-deployment", "ttd-testapp")
 	deployment.Spec.Template.Annotations = map[string]string{
 		mpdomain.AnnotationSecretVersion:             fingerprint,
 		mpdomain.AnnotationSecretRotationRestartedAt: restartedAt.Format(time.RFC3339),
@@ -427,11 +448,14 @@ func rotationRolloutClient(name string, pendingFingerprint string) *resourcesv1a
 	return instance
 }
 
-func rotationRolloutDeployment(name string) *appsv1.Deployment {
+func rotationRolloutDeployment(name string, releaseName string) *appsv1.Deployment {
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: "default",
+			Labels: map[string]string{
+				appReleaseLabelKey: releaseName,
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Template: corev1.PodTemplateSpec{

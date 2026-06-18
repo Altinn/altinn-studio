@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { DisplayNumber } from '@app/form-component';
+import { DisplayNumber, getLabelId } from '@app/form-component';
 import cn from 'classnames';
 
-import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
