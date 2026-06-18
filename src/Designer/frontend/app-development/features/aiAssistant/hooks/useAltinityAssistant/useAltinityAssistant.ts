@@ -19,7 +19,6 @@ export interface UseAltinityAssistantResult {
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
   selectThread: (threadId: string | null) => void;
-  deselectCurrentThread: () => void;
   deleteThread: (threadId: string) => void;
 }
 
@@ -33,7 +32,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     connectionStatus,
     workflowStatusByThread,
     onSubmitMessage,
-    deselectCurrentThread,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
@@ -51,7 +49,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread: threads.selectThread,
-    deselectCurrentThread,
     deleteThread: threads.deleteThread,
   };
 };

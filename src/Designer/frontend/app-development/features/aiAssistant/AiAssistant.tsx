@@ -29,7 +29,6 @@ function AiAssistant(): ReactElement {
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread,
-    deselectCurrentThread,
     deleteThread,
   } = useAltinityAssistant();
 
@@ -108,7 +107,7 @@ function AiAssistant(): ReactElement {
         cancelledMessageContent={cancelledMessageContent}
         onCancelledMessageConsumed={clearCancelledMessageContent}
         onSelectThread={selectThread}
-        onCreateThread={deselectCurrentThread}
+        onCreateThread={() => selectThread(null)}
         onDeleteThread={deleteThread}
         onMessageFeedback={sendChatFeedback}
         connectionStatus={connectionStatus}

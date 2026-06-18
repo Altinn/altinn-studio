@@ -34,7 +34,6 @@ export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
   workflowStatusByThread: Record<string, WorkflowStatus>;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
-  deselectCurrentThread: () => void;
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
@@ -58,8 +57,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   const {
     selectedThreadId,
-    selectedThreadIdRef,
-    setSelectedThread,
+    selectThread,
     createThread,
     deleteMessage,
     createMessage,
@@ -76,10 +74,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       return { ...prev, [threadId]: { ...prevWorkflowStatus, message: statusMessage } };
     });
   }, []);
-
-  const deselectCurrentThread = useCallback(() => {
-    setSelectedThread(null);
-  }, [setSelectedThread]);
 
   const ensureSessionRegistered = useCallback(
     async (threadId: string): Promise<void> => {
@@ -265,7 +259,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       if (!threadId) {
         try {
           threadId = await createThread(createThreadTitle(message.content));
-          setSelectedThread(threadId);
+          selectThread(threadId);
         } catch (error) {
           console.error('Failed to create thread:', error);
           return;
@@ -287,14 +281,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       createThread,
       ensureSessionRegistered,
       runWorkflowForSession,
-      setSelectedThread,
+      selectThread,
       setWorkflowStatus,
     ],
   );
 
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
-    const threadId = selectedThreadIdRef.current;
-    if (!threadId) return;
+    const threadId = selectedThreadId;
+    if (!selectedThreadId) return;
 
     setWorkflowStatus(threadId, { isActive: false });
 
@@ -310,7 +304,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, selectedThreadIdRef, deleteMessage, chatMessages, setWorkflowStatus]);
+  }, [cancelWorkflow, selectedThreadId, deleteMessage, chatMessages, setWorkflowStatus]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
@@ -325,7 +319,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     connectionStatus,
     workflowStatusByThread,
     onSubmitMessage,
-    deselectCurrentThread,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,

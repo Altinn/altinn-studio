@@ -1,5 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
-import type { MutableRefObject } from 'react';
+import { useCallback, useState } from 'react';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
@@ -13,9 +12,7 @@ import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDele
 export interface AltinityThreadState {
   chatThreads: ChatThread[];
   selectedThreadId: string | null;
-  selectedThreadIdRef: MutableRefObject<string | null>;
   chatMessages: Message[];
-  setSelectedThread: (threadId: string | null) => void;
   selectThread: (threadId: string | null) => void;
   createThread: (title: string) => Promise<string>;
   deleteThread: (threadId: string) => void;
@@ -28,7 +25,6 @@ export interface AltinityThreadState {
 
 export const useAltinityThreads = (): AltinityThreadState => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-  const selectedThreadIdRef = useRef<string | null>(null);
 
   const { data: chatThreads } = useChatThreadsQuery();
   const { mutateAsync: createChatThread } = useCreateChatThreadMutation();
@@ -37,18 +33,6 @@ export const useAltinityThreads = (): AltinityThreadState => {
   const { data: chatMessages } = useChatMessagesQuery(selectedThreadId);
   const { mutateAsync: createChatMessage } = useCreateChatMessageMutation();
   const { mutate: deleteChatMessage } = useDeleteChatMessageMutation();
-
-  const setSelectedThread = useCallback((threadId: string | null) => {
-    setSelectedThreadId(threadId);
-    selectedThreadIdRef.current = threadId;
-  }, []);
-
-  const selectThread = useCallback(
-    (threadId: string | null) => {
-      setSelectedThread(threadId);
-    },
-    [setSelectedThread],
-  );
 
   const createThread = useCallback(
     async (title: string): Promise<string> => {
@@ -62,13 +46,13 @@ export const useAltinityThreads = (): AltinityThreadState => {
     (threadId: string) => {
       deleteChatThread(threadId, {
         onSuccess: () => {
-          if (selectedThreadIdRef.current === threadId) {
-            setSelectedThread(null);
+          if (selectedThreadId === threadId) {
+            setSelectedThreadId(null);
           }
         },
       });
     },
-    [deleteChatThread, setSelectedThread],
+    [deleteChatThread, selectedThreadId],
   );
 
   const createMessage = useCallback(
@@ -100,9 +84,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
     chatThreads: chatThreads ?? [],
     chatMessages: chatMessages ?? [],
     selectedThreadId,
-    selectedThreadIdRef,
-    setSelectedThread,
-    selectThread,
+    selectThread: setSelectedThreadId,
     createThread,
     deleteThread,
     deleteMessage,

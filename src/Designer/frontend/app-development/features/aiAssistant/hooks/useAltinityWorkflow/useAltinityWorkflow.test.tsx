@@ -63,8 +63,7 @@ describe('useAltinityWorkflow', () => {
   });
 
   it('persists assistant message using thread ID, not backend session ID', async () => {
-    const threads = createThreadState();
-    threads.selectedThreadIdRef.current = 'database-thread-id';
+    const threads = createThreadState({ selectedThreadId: 'database-thread-id' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
@@ -100,7 +99,6 @@ describe('useAltinityWorkflow', () => {
 
   it('persists assistant message to the submission thread even when the user has switched to another thread', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
-    threads.selectedThreadIdRef.current = 'thread-a';
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
@@ -116,7 +114,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result, rerender } = renderUseAltinityWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -129,8 +127,8 @@ describe('useAltinityWorkflow', () => {
       await result.current.onSubmitMessage(userMessage);
     });
 
-    // Simulate the user switching threads before the assistant responds
-    threads.selectedThreadIdRef.current = 'thread-b';
+    threads.selectedThreadId = 'thread-b';
+    rerender();
 
     const assistantMessageEvent: AssistantMessageEvent = {
       type: 'assistant_message',
@@ -154,7 +152,6 @@ describe('useAltinityWorkflow', () => {
 
   it('routes workflow status updates by event session_id, leaving other threads untouched', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
-    threads.selectedThreadIdRef.current = 'thread-a';
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
@@ -170,7 +167,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result, rerender } = renderUseAltinityWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -183,8 +180,8 @@ describe('useAltinityWorkflow', () => {
       await result.current.onSubmitMessage(userMessage);
     });
 
-    // Simulate user switching threads while the agent is still working on thread-a
-    threads.selectedThreadIdRef.current = 'thread-b';
+    threads.selectedThreadId = 'thread-b';
+    rerender();
 
     const statusMessageForThreadA = 'Halfway done with thread A';
     await act(async () => {
@@ -275,7 +272,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.createThread).toHaveBeenCalledWith('Hello');
-    expect(threads.setSelectedThread).toHaveBeenCalledWith('new-thread-id');
+    expect(threads.selectThread).toHaveBeenCalledWith('new-thread-id');
     expect(threads.createMessage).toHaveBeenCalledWith(
       'new-thread-id',
       expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
@@ -372,23 +369,17 @@ describe('useAltinityWorkflow', () => {
   });
 });
 
-const createThreadState = (overrides: Partial<AltinityThreadState> = {}): AltinityThreadState => {
-  const selectedThreadId = overrides.selectedThreadId ?? null;
-
-  return {
-    chatThreads: [],
-    selectedThreadId,
-    selectedThreadIdRef: { current: selectedThreadId },
-    chatMessages: [],
-    setSelectedThread: jest.fn(),
-    selectThread: jest.fn(),
-    createThread: jest.fn().mockResolvedValue('new-thread-id'),
-    deleteThread: jest.fn(),
-    deleteMessage: jest.fn(),
-    createMessage: jest.fn(),
-    ...overrides,
-  };
-};
+const createThreadState = (overrides: Partial<AltinityThreadState> = {}): AltinityThreadState => ({
+  chatThreads: [],
+  selectedThreadId: null,
+  chatMessages: [],
+  selectThread: jest.fn(),
+  createThread: jest.fn().mockResolvedValue('new-thread-id'),
+  deleteThread: jest.fn(),
+  deleteMessage: jest.fn(),
+  createMessage: jest.fn(),
+  ...overrides,
+});
 
 const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {
   const queryClient = new QueryClient();

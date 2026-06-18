@@ -63,7 +63,6 @@ describe('useAltinityThreads', () => {
     });
 
     expect(result.current.selectedThreadId).toBe(threadId);
-    expect(result.current.selectedThreadIdRef.current).toBe(threadId);
   });
 
   it('returns the new thread id from createThread', async () => {
