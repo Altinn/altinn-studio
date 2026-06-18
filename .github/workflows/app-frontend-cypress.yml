@@ -25,9 +25,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
-env:
-  CYPRESS_BROWSER_IMAGE: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
-
 jobs:
   build-frontend:
     if: |
@@ -203,31 +200,23 @@ jobs:
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
         run: |
-          base_command='npx cypress run --record --parallel --group altinn-app-frontend --tag altinn-app-frontend --browser chrome --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}" --spec test/e2e/integration --env environment=localtest'
+          cypress_args=(
+            run
+            --record
+            --parallel
+            --group altinn-app-frontend
+            --tag altinn-app-frontend
+            --browser "${CHROME_PATH:-chrome}"
+            --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}"
+            --spec test/e2e/integration
+            --env environment=localtest
+          )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            container_command="npx percy exec --parallel -- ${base_command}"
+            npx percy exec --parallel -- npx cypress "${cypress_args[@]}"
           else
-            container_command="${base_command}"
+            npx cypress "${cypress_args[@]}"
           fi
-
-          docker run --rm --network host \
-            --user "$(id -u):$(id -g)" \
-            -e HOME=/tmp \
-            -e CI=1 \
-            -e CYPRESS_CACHE_FOLDER \
-            -e CYPRESS_PROJECT_ID \
-            -e CYPRESS_RECORD_KEY \
-            -e GITHUB_TOKEN \
-            -e PERCY_TOKEN \
-            -e PERCY_PARALLEL_TOTAL \
-            -e PERCY_PARALLEL_NONCE \
-            -e PERCY_BRANCH \
-            -e PERCY_TARGET_BRANCH \
-            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
-            -w "${GITHUB_WORKSPACE}/src/App/frontend" \
-            "${CYPRESS_BROWSER_IMAGE}" \
-            bash -lc "${container_command}"
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()
@@ -295,16 +284,7 @@ jobs:
         shell: bash
         env:
           CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
-        run: |
-          docker run --rm --network host \
-            --user "$(id -u):$(id -g)" \
-            -e HOME=/tmp \
-            -e CI=1 \
-            -e CYPRESS_CACHE_FOLDER \
-            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
-            -w "${GITHUB_WORKSPACE}/src/App/frontend" \
-            "${CYPRESS_BROWSER_IMAGE}" \
-            bash -lc 'npx cypress run --browser chrome --spec test/e2e/integration --env environment=localtest'
+        run: npx cypress run --browser chrome --spec test/e2e/integration --env environment=localtest
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()
