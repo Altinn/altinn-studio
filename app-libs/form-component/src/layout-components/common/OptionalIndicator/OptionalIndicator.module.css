@@ -1,5 +1,5 @@
 .optionalIndicator {
   font-size: 0.875rem;
   font-weight: 400;
-  color: #6a6a6a;
+  color: var(--colors-primary-grey);
 }

@@ -5,17 +5,12 @@ import { screen } from '@testing-library/react';
 import { Description } from './Description';
 
 describe('Description', () => {
-  it('renders the description content', () => {
-    renderWithTranslations(<Description description='Some description' />);
-
-    expect(screen.getByText('Some description')).toBeInTheDocument();
-  });
-
-  it('uses the description id derived from componentId', () => {
+  it('renders the description content with the id derived from componentId', () => {
     renderWithTranslations(
       <Description description='Some description' componentId='my-component' />,
     );
 
+    expect(screen.getByText('Some description')).toBeInTheDocument();
     expect(screen.getByTestId(getDescriptionId('my-component')!)).toBeInTheDocument();
   });
 
