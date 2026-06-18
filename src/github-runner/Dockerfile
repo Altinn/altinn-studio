@@ -32,10 +32,12 @@ RUN apt-get update \
       libdbus-1-3 \
       libexpat1 \
       libfontconfig1 \
+      libgbm-dev \
       libgbm1 \
       libglib2.0-0 \
       libgtk-3-0 \
       libicu74 \
+      libnotify-dev \
       libnspr4 \
       libnss3 \
       libpango-1.0-0 \
@@ -60,8 +62,10 @@ RUN apt-get update \
       unzip \
       util-linux \
       wget \
+      xauth \
       xdg-utils \
       xz-utils \
+      xvfb \
       zstd \
     && CHROME_FOR_TESTING_URL="$(curl -fsSL "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json" \
       | jq -r --arg channel "${CHROME_FOR_TESTING_CHANNEL}" '.channels[$channel].downloads.chrome[] | select(.platform == "linux64") | .url')" \
