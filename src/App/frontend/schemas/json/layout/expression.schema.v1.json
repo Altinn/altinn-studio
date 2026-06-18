@@ -50,7 +50,8 @@
         { "$ref": "#/definitions/strict-object" },
         { "$ref": "#/definitions/func-if" },
         { "$ref": "#/definitions/func-component" },
-        { "$ref": "#/definitions/func-dataModel" }
+        { "$ref": "#/definitions/func-dataModel" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "string": {
@@ -89,7 +90,8 @@
         { "$ref": "#/definitions/func-stringSlice" },
         { "$ref": "#/definitions/func-upperCaseFirst" },
         { "$ref": "#/definitions/func-lowerCaseFirst" },
-        { "$ref": "#/definitions/func-optionLabel" }
+        { "$ref": "#/definitions/func-optionLabel" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "boolean": {
@@ -122,7 +124,8 @@
         { "$ref": "#/definitions/func-startsWith" },
         { "$ref": "#/definitions/func-commaContains" },
         { "$ref": "#/definitions/func-compare" },
-        { "$ref": "#/definitions/func-compare-inverse" }
+        { "$ref": "#/definitions/func-compare-inverse" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "number": {
@@ -144,7 +147,8 @@
         { "$ref": "#/definitions/func-multiply" },
         { "$ref": "#/definitions/func-stringLength" },
         { "$ref": "#/definitions/func-stringIndexOf" },
-        { "$ref": "#/definitions/func-countDataElements" }
+        { "$ref": "#/definitions/func-countDataElements" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "list": {
@@ -154,7 +158,19 @@
     "strict-list": {
       "title": "Any expression returning a list (strict)",
       "anyOf": [
-        { "$ref": "#/definitions/func-list" }
+        { "$ref": "#/definitions/func-list" },
+        { "$ref": "#/definitions/func-jmespath" }
+      ]
+    },
+    "object": {
+      "title": "Any expression returning an object",
+      "$ref": "#/definitions/strict-object"
+    },
+    "strict-object": {
+      "title": "Any expression returning an object (strict)",
+      "anyOf": [
+        { "$ref": "#/definitions/func-object" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "object": {
@@ -720,6 +736,17 @@
         { "const": "object" }
       ],
       "additionalItems": { "$ref": "#/definitions/any" }
+    },
+    "func-jmespath": {
+      "title": "Run a Jmespath query",
+      "description": "This function runs a Jmespath query and returns the result. The first argument is the data to query, and the second is the Jmespath query string.",
+      "type": "array",
+      "items": [
+        { "const": "jmespath" },
+        { "$ref": "#/definitions/any" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
     },
     "compare-operator": {
       "title": "Comparison operator",
