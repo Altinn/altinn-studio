@@ -148,6 +148,7 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
+  const stableOptions = useShallowMemo(options);
   const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
   const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
@@ -156,14 +157,20 @@ export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> =
     const pages = Object.keys(layoutCollection || {});
     const out = new Set<string>();
     for (const pageKey of pages) {
-      const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, layoutCollection: layoutCollection!, ...options });
+      const hidden = isHiddenPage({
+        pageKey,
+        dataSources,
+        pageOrder,
+        layoutCollection: layoutCollection!,
+        ...stableOptions,
+      });
       if (hidden) {
         out.add(pageKey);
       }
     }
 
     return out;
-  }, [dataSources, layoutCollection, options, pageOrder]);
+  }, [dataSources, layoutCollection, stableOptions, pageOrder]);
 }
 
 interface IsHiddenProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {

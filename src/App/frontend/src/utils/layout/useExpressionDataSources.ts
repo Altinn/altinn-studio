@@ -141,9 +141,14 @@ type SnapshotInputs = {
  * subscribe later only to the dependencies that were actually touched.
  */
 export function useExpressionDataSourcesBase(overrides?: ExpressionRuntimeOverrides): ExpressionDataSources {
+  const unsupportedDataSources = useMemo(
+    () => new Set([...(overrides?.unsupportedDataSources ?? []), 'displayValue' as const]),
+    [overrides?.unsupportedDataSources],
+  );
+
   return useExpressionDataSourcesRuntime({
     ...overrides,
-    unsupportedDataSources: new Set([...(overrides?.unsupportedDataSources ?? []), 'displayValue']),
+    unsupportedDataSources,
   });
 }
 
