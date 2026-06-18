@@ -82,6 +82,7 @@ export function ScopeList({
     () => mapMaskinPortenScopesToScopeList(sortedSelectedScopes),
     [sortedSelectedScopes],
   );
+  const addScopesDialogKey = initialValues.join('\u001f');
   const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   const openDialog = (): void => {
@@ -128,6 +129,7 @@ export function ScopeList({
       />
       {canManageScopes && (
         <AddScopesDialog
+          key={addScopesDialogKey}
           dialogRef={dialogRef}
           searchValue={searchValue}
           setSearchValue={setSearchValue}
@@ -401,6 +403,9 @@ function AddScopesDialog({
                   <StudioCheckbox
                     ref={setSelectAllCheckboxRef}
                     aria-label={title}
+                    aria-checked={
+                      !allFilteredScopesSelected && someFilteredScopesSelected ? 'mixed' : undefined
+                    }
                     name={title}
                     value='all'
                     checked={allFilteredScopesSelected}

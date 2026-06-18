@@ -247,6 +247,20 @@ describe('ScopeList', () => {
     expect(selectedDefaultScopeCheckbox).toBeChecked();
   });
 
+  it('should show the select all checkbox as partially checked when some scopes are selected', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+
+    expect(
+      within(dialog).getByRole('checkbox', {
+        name: textMock('app_settings.maskinporten_select_all_scopes'),
+      }),
+    ).toBePartiallyChecked();
+  });
+
   it('should sort serviceowner scopes first in selected scopes and dialog scopes', async () => {
     const user = userEvent.setup();
     renderScopeList();
@@ -327,6 +341,43 @@ describe('ScopeList', () => {
 
     const updatedScopes: MaskinportenScopes = {
       scopes: [scopeMock4, scopeMock3, scopeMock1],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should use updated selected scopes when completing the dialog after selected scopes change', async () => {
+    const user = userEvent.setup();
+    const { renderResult } = renderScopeList({
+      componentProps: {
+        maskinPortenScopes: [scopeMock1, scopeMock2, scopeMock3],
+        selectedScopes: [scopeMock3, scopeMock4],
+      },
+    });
+
+    renderResult.rerender(
+      <ScopeList
+        {...defaultProps}
+        maskinPortenScopes={[scopeMock1, scopeMock2, scopeMock3]}
+        selectedScopes={[scopeMock4]}
+      />,
+    );
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: textMock('app_settings.maskinporten_add_scope_dialog_done'),
+      }),
+    );
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [scopeMock4],
     };
 
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
