@@ -46,6 +46,19 @@ spec:
               privileged: true
               runAsUser: 0
               runAsGroup: 0
+            # Kata reports runtime SIGKILL as raw exit code 9. This runner
+            # starts dockerd inside the main container, so trigger the existing
+            # shell cleanup trap from inside the guest before the runtime stop
+            # path can force-kill the process.
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - |
+                      kill -TERM 1 2>/dev/null || true
+                      sleep 5
             env:
               - name: DOCKER_HOST
                 value: unix:///var/run/docker.sock

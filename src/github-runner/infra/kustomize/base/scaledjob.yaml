@@ -59,6 +59,19 @@ spec:
                   mount /tmp/docker-disk.img /var/lib/docker
                 fi
                 exec dockerd-entrypoint.sh --host=tcp://0.0.0.0:2376 --registry-mirror="${DOCKER_REGISTRY_MIRROR}"
+            # Kata reports runtime SIGKILL as raw exit code 9, which makes a
+            # successful Job look like Init:Error after Kubernetes stops this
+            # restartable init sidecar. Start dockerd shutdown from inside the
+            # guest so it can exit cleanly before the runtime stop path runs.
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - |
+                      kill -TERM 1 2>/dev/null || true
+                      sleep 5
             startupProbe:
               exec:
                 command:
