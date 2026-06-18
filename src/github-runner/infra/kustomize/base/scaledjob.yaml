@@ -47,6 +47,8 @@ spec:
             env:
               - name: DOCKER_TLS_CERTDIR
                 value: /certs
+              - name: DOCKER_REGISTRY_MIRROR
+                value: https://mirror.gcr.io
             command: ["sh", "-c"]
             args:
               - |
@@ -56,7 +58,7 @@ spec:
                   mkfs.ext4 -F /tmp/docker-disk.img &&
                   mount /tmp/docker-disk.img /var/lib/docker
                 fi
-                exec dockerd-entrypoint.sh --host=tcp://0.0.0.0:2376
+                exec dockerd-entrypoint.sh --host=tcp://0.0.0.0:2376 --registry-mirror="${DOCKER_REGISTRY_MIRROR}"
             startupProbe:
               exec:
                 command:

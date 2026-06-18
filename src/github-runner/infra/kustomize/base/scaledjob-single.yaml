@@ -71,6 +71,8 @@ spec:
                 value: 40G
               - name: DOCKER_DISK_SIZE
                 value: 30G
+              - name: DOCKER_REGISTRY_MIRROR
+                value: https://mirror.gcr.io
               - name: APP_ID
                 valueFrom:
                   secretKeyRef:
