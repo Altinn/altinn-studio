@@ -173,6 +173,16 @@
         { "$ref": "#/definitions/func-jmespath" }
       ]
     },
+    "object": {
+      "title": "Any expression returning an object",
+      "$ref": "#/definitions/strict-object"
+    },
+    "strict-object": {
+      "title": "Any expression returning an object (strict)",
+      "anyOf": [
+        { "$ref": "#/definitions/func-object" }
+      ]
+    },
     "func-if": {
       "title": "If/else conditional expression",
       "description": "This function will evaluate and return the result of either branch. If else is not given, null will be returned instead.",
