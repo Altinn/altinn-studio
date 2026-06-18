@@ -5,7 +5,6 @@ import { RequiredIndicator } from './RequiredIndicator';
 
 describe('RequiredIndicator', () => {
   it('renders the required marker when required', () => {
-    // 'form_filler.required_label' translates to '*'
     renderWithTranslations(<RequiredIndicator required />);
 
     expect(screen.getByText('*')).toBeInTheDocument();

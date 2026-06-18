@@ -4,8 +4,7 @@ import { screen } from '@testing-library/react';
 import { OptionalIndicator } from './OptionalIndicator';
 
 describe('OptionalIndicator', () => {
-  it('renders the optional marking when not required and marking is enabled', () => {
-    // 'general.optional' translates to 'Optional' in en.ts
+  it('renders the optional marking when marking is enabled', () => {
     renderWithTranslations(<OptionalIndicator showOptionalMarking />);
 
     expect(screen.getByText(/\(Optional\)/)).toBeInTheDocument();
