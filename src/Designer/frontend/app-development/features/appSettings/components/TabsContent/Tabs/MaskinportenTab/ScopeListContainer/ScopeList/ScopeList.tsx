@@ -310,10 +310,12 @@ function AddScopesDialog({
     [filteredScopeNames, selectedDefaultScopeNames],
   );
   const allFilteredScopesSelected: boolean =
-    filteredScopeNames.length > 0 &&
-    filteredScopeNames.every((scopeName: string) => selectedScopeNames.includes(scopeName));
-  const someFilteredScopesSelected: boolean = filteredScopeNames.some((scopeName: string) =>
-    selectedScopeNames.includes(scopeName),
+    selectableFilteredScopeNames.length > 0 &&
+    selectableFilteredScopeNames.every((scopeName: string) =>
+      selectedScopeNames.includes(scopeName),
+    );
+  const someFilteredScopesSelected: boolean = selectableFilteredScopeNames.some(
+    (scopeName: string) => selectedScopeNames.includes(scopeName),
   );
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {

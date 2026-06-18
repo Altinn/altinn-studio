@@ -261,6 +261,25 @@ describe('ScopeList', () => {
     ).toBePartiallyChecked();
   });
 
+  it('should not check select all when filtered scopes only contain selected default scopes', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    const searchField = within(dialog).getByRole('searchbox', {
+      name: textMock('app_settings.maskinporten_scope_search_label'),
+    });
+
+    await user.type(searchField, scopeMock4.scope);
+
+    const selectAllCheckbox = within(dialog).getByRole('checkbox', {
+      name: textMock('app_settings.maskinporten_select_all_scopes'),
+    });
+    expect(selectAllCheckbox).not.toBeChecked();
+    expect(selectAllCheckbox).not.toBePartiallyChecked();
+  });
+
   it('should sort serviceowner scopes first in selected scopes and dialog scopes', async () => {
     const user = userEvent.setup();
     renderScopeList();
