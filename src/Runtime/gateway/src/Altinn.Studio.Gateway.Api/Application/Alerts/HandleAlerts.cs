@@ -96,8 +96,14 @@ internal static class HandleAlerts
             return Results.BadRequest();
         }
 
-        var to = DateTimeOffset.UtcNow;
-        var from = alertPayload.Alerts.Min(a => a.StartsAt);
+        int? intervalInMinutes = int.TryParse(
+            alertPayload.CommonAnnotations.GetValueOrDefault("intervalInMinutes"),
+            out var interval
+        )
+            ? interval
+            : null;
+        var to = alertPayload.Alerts.Min(a => a.StartsAt);
+        var from = intervalInMinutes.HasValue ? to.AddMinutes(-intervalInMinutes.Value) : to.AddMinutes(-5);
         var appNames = apps.Select(a => a.App).ToList();
 
         var logsUrl = metricsClient.GetLogsUrl(
