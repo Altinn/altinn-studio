@@ -35,6 +35,10 @@ spec:
       spec:
         runtimeClassName: kata-vm-isolation
         restartPolicy: Never
+        hostAliases:
+          - ip: "127.0.0.1"
+            hostnames:
+              - studio.localhost
         securityContext:
           fsGroup: 1001
         containers:
