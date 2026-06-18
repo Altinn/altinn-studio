@@ -18,6 +18,7 @@ RUN apt-get update \
       ca-certificates \
       curl \
       docker.io \
+      docker-compose-v2 \
       e2fsprogs \
       fonts-liberation \
       git \
