@@ -37,12 +37,13 @@ import type {
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type {
-  IFrontEndSettings,
-  ILayoutSettings,
-  IValidationOnNavigationLayoutSettings,
-  IValidationOnNavigationPageSettings,
-  ITextResourcesWithLanguage,
+import {
+  type IFrontEndSettings,
+  type ILayoutSettings,
+  type IValidationOnNavigationLayoutSettings,
+  type IValidationOnNavigationPageSettings,
+  type ITextResourcesWithLanguage,
+  ValidationOnNavigationLevel,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
@@ -155,6 +156,18 @@ export const queriesMock: ServicesContextProps = {
   getValidationOnNavigationLayoutSets: jest
     .fn()
     .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
+  getValidationOnNavigation: jest
+    .fn()
+    .mockImplementation((_org, _app, level = ValidationOnNavigationLevel.Global) => {
+      switch (level) {
+        case ValidationOnNavigationLevel.LayoutSets:
+        case ValidationOnNavigationLevel.Pages:
+          return Promise.resolve([]);
+        case ValidationOnNavigationLevel.Global:
+        default:
+          return Promise.resolve({ show: [], page: '' });
+      }
+    }),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
@@ -359,6 +372,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigation: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),

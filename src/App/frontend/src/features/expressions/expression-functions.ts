@@ -5,8 +5,9 @@ import { SearchParams } from 'src/core/routing/types';
 import { evalExpr, exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
+import { ObjectFunctionEvaluator } from 'src/features/expressions/ObjectFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
-import { addError, ExprValidation } from 'src/features/expressions/validation';
+import { addError, ExprValidation, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
@@ -21,6 +22,8 @@ import type {
   ExprFunctions,
   ExprValToActual,
   ExprValToActualOrExpr,
+  ValidObject,
+  ValidValue,
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -258,6 +261,14 @@ export const ExprFunctionDefinitions = {
   lowerCaseFirst: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+  },
+  list: {
+    args: args(rest(ExprVal.Any)),
+    returns: ExprVal.List,
+  },
+  object: {
+    args: args(rest(ExprVal.Any)),
+    returns: ExprVal.Object,
   },
   _experimentalSelectAndMap: {
     args: args(
@@ -728,6 +739,12 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     }
     return string.charAt(0).toLowerCase() + string.slice(1);
   },
+  list(...items): ValidValue[] {
+    return items;
+  },
+  object(...argumentList): ValidObject {
+    return new ObjectFunctionEvaluator(this, argumentList).evaluate();
+  },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
@@ -819,6 +836,13 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
       }
     },
   },
+  object: {
+    validator({ rawArgs, ctx, path }) {
+      if (rawArgs.length % 2 === 1) {
+        addError(ctx, path, 'The object function must have an even number of arguments');
+      }
+    },
+  },
 };
 
 function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionParams) {
@@ -828,7 +852,7 @@ function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionPa
   }
 
   const value = params.dataSources.formData.read(path);
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (isValidValue(value)) {
     return value;
   }
   return null;
