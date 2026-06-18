@@ -1,9 +1,8 @@
+import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { DemoLayoutComponent } from './DemoLayoutComponent';
 import type { DemoLayoutComponentProps } from './DemoLayoutComponent';
-
-import type { PropCategories } from 'src/layout-components/common/storybook';
 
 /**
  * Sorts each prop into a Storybook docs group, consumed by DemoLayoutComponent.mdx. This is docs-only
