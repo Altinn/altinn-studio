@@ -109,6 +109,7 @@
   "api_errors.DM_05": "Kunne ikke lese ugyldig XML.",
   "api_errors.DM_CsharpCompiler_NameCollision": "Navnet <bold>{{nodeName}}</bold> er det samme som på et overordnet element. Gi ett av elementene et annet navn.",
   "api_errors.GT_01": "Det er en konflikt i appen",
+  "api_errors.NonExistingBranch": "Grenen <b>{{branchName}}</b> finnes ikke. Kontroller at den eksisterer i Gitea.",
   "api_errors.InvalidOptionsFormat": "Kodelisten har ugyldig format.",
   "api_errors.ModelWithTheSameTypeNameExists": "Det er allerede et skjema som produserer modellen med navnet du har oppgitt",
   "api_errors.ResourceNotFound": "Studio prøver å finne en fil som ikke finnes.",

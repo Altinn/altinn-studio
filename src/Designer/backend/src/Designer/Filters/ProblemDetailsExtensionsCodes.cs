@@ -5,4 +5,5 @@ public static class ProblemDetailsExtensionsCodes
 {
     public const string ErrorCode = "errorCode";
     public const string Detail = "detail";
+    public const string AdditionalData = "additionalData";
 }

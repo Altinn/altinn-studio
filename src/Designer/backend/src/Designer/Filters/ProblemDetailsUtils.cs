@@ -19,7 +19,8 @@ public static class ProblemDetailsUtils
         Exception ex,
         string customErrorCode,
         HttpStatusCode statusCode,
-        List<string> customErrorMessages = null
+        List<string> customErrorMessages = null,
+        IReadOnlyDictionary<string, object> additionalData = null
     )
     {
         string exceptionType = ex.GetType().Name;
@@ -32,6 +33,12 @@ public static class ProblemDetailsUtils
         {
             details.Extensions.Add("customErrorMessages", customErrorMessages);
         }
+
+        if (additionalData is not null)
+        {
+            details.Extensions.Add(ProblemDetailsExtensionsCodes.AdditionalData, additionalData);
+        }
+
         return details;
     }
 }
