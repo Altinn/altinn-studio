@@ -14,8 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSearchParams } from 'react-router-dom';
-import { FeatureFlag, useFeatureFlagsContext } from '@studio/feature-flags';
-import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type PageHeaderContextProps = {
@@ -46,8 +45,6 @@ export const PageHeaderContextProvider = ({
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
 
-  const { environment } = useEnvironmentConfig();
-
   const repoType = getRepositoryType(org, app);
   const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg, flags);
 
@@ -70,17 +67,13 @@ export const PageHeaderContextProvider = ({
     itemName: t('shared.header_logout'),
   };
 
-  const studioOidc = environment?.featureFlags?.studioOidc;
-  const isAdminEnabled = flags.includes(FeatureFlag.Admin);
-  const showSettingsLink = studioOidc || isAdminEnabled;
-
   const profileMenuItems: StudioProfileMenuItem[] = [
-    ...(showSettingsLink ? [settingsMenuItem] : []),
+    settingsMenuItem,
     docsMenuItem,
     logOutMenuItem,
   ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
+    { items: [settingsMenuItem] },
     { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];

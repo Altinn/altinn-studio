@@ -4,8 +4,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageHeader } from './PageHeader';
 import { useMediaQuery } from '@studio/hooks';
-import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-import { FeatureFlag, FeatureFlagsProvider } from '@studio/feature-flags';
 import {
   ADMIN_BASENAME,
   APP_DASHBOARD_BASENAME,
@@ -14,11 +12,6 @@ import {
   ORG_LIBRARY_BASENAME,
 } from 'app-shared/constants';
 
-const mockEnvironment: {
-  environment: AltinnStudioEnvironment | null;
-  isLoading: boolean;
-  error: null;
-} = { environment: null, isLoading: false, error: null };
 const mockLogout = jest.fn();
 const mockOrgSelect = jest.fn();
 const mockUserSelect = jest.fn();
@@ -42,16 +35,6 @@ jest.mock('@studio/hooks', () => ({
   useMediaQuery: jest.fn(),
 }));
 
-const mockUseFeatureFlag = jest.fn();
-jest.mock('@studio/feature-flags', () => ({
-  ...jest.requireActual('@studio/feature-flags'),
-  useFeatureFlag: (...args: unknown[]) => mockUseFeatureFlag(...args),
-}));
-
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => mockEnvironment,
-}));
-
 jest.mock('app-shared/hooks/mutations/useLogoutMutation', () => ({
   useLogoutMutation: () => ({ mutate: mockLogout }),
 }));
@@ -70,7 +53,6 @@ const triggerButtonName = textMock('shared.header_user_for_org', {
 describe('PageHeader', () => {
   beforeEach(() => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
-    mockEnvironment.environment = null;
   });
 
   afterEach(() => {
@@ -82,9 +64,8 @@ describe('PageHeader', () => {
     expect(screen.getByText(DISPLAY_NAME)).toBeInTheDocument();
   });
 
-  it('includes the user settings link in the profile menu when studioOidc is enabled', async () => {
+  it('includes the user settings link in the profile menu', async () => {
     const user = userEvent.setup();
-    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
 
     renderPageHeader();
 
@@ -96,17 +77,6 @@ describe('PageHeader', () => {
     expect(
       screen.getByRole('menuitemradio', { name: textMock('shared.header_logout') }),
     ).toBeInTheDocument();
-  });
-
-  it('does not include the user settings link in the profile menu when studioOidc is disabled', async () => {
-    const user = userEvent.setup();
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-
-    renderPageHeader();
-
-    await user.click(screen.getByRole('button', { name: triggerButtonName }));
-
-    expect(screen.queryByRole('menuitem', { name: textMock('settings') })).not.toBeInTheDocument();
   });
 
   it('renders org menu items in the profile menu', async () => {
@@ -160,10 +130,30 @@ describe('PageHeader', () => {
     ).toHaveAttribute('href', '/dashboard/org-library/ttd');
   });
 
-  it('does not render the admin link when the admin feature flag is disabled', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+  it('renders the admin nav link with correct href', () => {
     renderPageHeader();
-    expect(screen.queryByText(textMock('admin.apps.title'))).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('admin.apps.title') })).toHaveAttribute(
+      'href',
+      '/admin/ttd',
+    );
+  });
+
+  it('renders nav links without owner segment when owner is undefined', () => {
+    render(
+      <MemoryRouter>
+        <PageHeader owner={undefined} onOrgSelect={mockOrgSelect} onUserSelect={mockUserSelect} />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
+    ).toHaveAttribute('href', `/dashboard/app-dashboard/`);
+    expect(
+      screen.getByRole('link', { name: textMock('dashboard.header_item_library') }),
+    ).toHaveAttribute('href', `/dashboard/org-library/`);
+    expect(screen.getByRole('link', { name: textMock('admin.apps.title') })).toHaveAttribute(
+      'href',
+      '/admin/',
+    );
   });
 
   describe('dashboard link active state', () => {
@@ -207,10 +197,6 @@ describe('PageHeader', () => {
   });
 
   describe('admin link active state', () => {
-    beforeEach(() => {
-      mockUseFeatureFlag.mockImplementation((flag: FeatureFlag) => flag === FeatureFlag.Admin);
-    });
-
     it.each([
       [ADMIN_BASENAME, true],
       [`${ADMIN_BASENAME}/ttd`, true],
@@ -240,9 +226,7 @@ const renderPageHeader = (initialEntries?: string[]) => {
   }
   return render(
     <MemoryRouter initialEntries={initialEntries}>
-      <FeatureFlagsProvider>
-        <PageHeader owner='ttd' onOrgSelect={mockOrgSelect} onUserSelect={mockUserSelect} />
-      </FeatureFlagsProvider>
+      <PageHeader owner='ttd' onOrgSelect={mockOrgSelect} onUserSelect={mockUserSelect} />
     </MemoryRouter>,
   );
 };
