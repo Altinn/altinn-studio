@@ -51,6 +51,7 @@ export const appRelease: AppRelease = {
   app: '',
   org: '',
   targetCommitish: '',
+  buildInputs: { maskinportenScopes: [] },
   createdBy: '',
   created: '',
   build,

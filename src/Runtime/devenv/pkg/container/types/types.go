@@ -183,9 +183,14 @@ func (s DetectionSource) String() string {
 // ContainerToolchain describes the selected platform and how this package talks to it.
 type ContainerToolchain struct {
 	SocketPath string
-	Platform   ContainerPlatform
-	AccessMode ContainerAccessMode
-	Source     DetectionSource
+	// ClientVersion is the local CLI version or negotiated API client version when available.
+	ClientVersion string
+	// ServerVersion is the remote daemon/runtime version when available.
+	ServerVersion string
+	Platform      ContainerPlatform
+	AccessMode    ContainerAccessMode
+	Source        DetectionSource
+	SELinux       bool
 }
 
 // PortMapping defines a container port binding.
@@ -224,12 +229,23 @@ const (
 	VolumeMountTypeVolume VolumeMountType = "volume"
 )
 
+// SELinuxRelabel controls SELinux relabeling for bind mounts on runtimes that support it.
+type SELinuxRelabel string
+
+// Supported SELinux relabel modes.
+const (
+	SELinuxRelabelNone    SELinuxRelabel = ""
+	SELinuxRelabelShared  SELinuxRelabel = "z"
+	SELinuxRelabelPrivate SELinuxRelabel = "Z"
+)
+
 // VolumeMount defines a bind mount or named volume mount.
 type VolumeMount struct {
-	HostPath      string
-	ContainerPath string
-	Type          VolumeMountType
-	ReadOnly      bool
+	HostPath       string
+	ContainerPath  string
+	Type           VolumeMountType
+	SELinuxRelabel SELinuxRelabel
+	ReadOnly       bool
 }
 
 // HealthCheck defines a container health check configuration.
@@ -248,6 +264,7 @@ type ContainerConfig struct {
 	Name           string
 	Image          string
 	User           string
+	UsernsMode     string
 	RestartPolicy  string
 	ExtraHosts     []string
 	NetworkAliases []string

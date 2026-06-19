@@ -1,4 +1,3 @@
-﻿#nullable enable
 using Altinn.ResourceRegistry.Core.Enums;
 
 namespace Altinn.ResourceRegistry.Core.Models

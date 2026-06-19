@@ -1,13 +1,12 @@
 import React from 'react';
 
+import { Dropzone, getDescriptionId } from '@app/form-component';
 import cn from 'classnames';
+import type { IDropzoneProps } from '@app/form-component';
 
-import { Dropzone } from 'src/app-components/Dropzone/Dropzone';
-import { getDescriptionId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import classes from 'src/layout/ImageUpload/ImageDropzone.module.css';
-import type { IDropzoneProps } from 'src/app-components/Dropzone/Dropzone';
 
 type ImageDropzoneProps = {
   baseComponentId: string;

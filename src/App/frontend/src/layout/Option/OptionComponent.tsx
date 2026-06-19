@@ -1,11 +1,8 @@
 import React from 'react';
 
+import { getLabelId, HelpText, LoadingEmpty } from '@app/form-component';
 import cn from 'classnames';
 
-import { HelpText } from 'src/app-components/HelpText/HelpText';
-import { LoadingEmpty } from 'src/app-components/loading/LoadingEmpty/LoadingEmpty';
-import { translationKey } from 'src/AppComponentsBridge';
-import { getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
@@ -79,7 +76,7 @@ function Text({ baseComponentId, usingLabel }: TextProps) {
       >
         <Lang id={selectedOption?.label} />
         {selectedOption?.helpText && (
-          <HelpText title={translationKey(selectedOption.helpText)}>
+          <HelpText title={langAsString(selectedOption.helpText)}>
             <Lang id={selectedOption.helpText} />
           </HelpText>
         )}

@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 
-import { Button } from '@app/form-component';
+import {
+  Button,
+  Description,
+  Fieldset,
+  getDescriptionId,
+  Label,
+  NumericInput,
+  RequiredIndicator,
+} from '@app/form-component';
 import { Field, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { NumericInput } from 'src/app-components/Input/NumericInput';
-import { Fieldset } from 'src/app-components/Label/Fieldset';
-import { Label } from 'src/app-components/Label/Label';
-import { translationKey } from 'src/AppComponentsBridge';
-import { Description } from 'src/components/form/Description';
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { getDescriptionId } from 'src/components/label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -69,7 +70,7 @@ export function OrganisationLookupComponent({
   baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'OrganisationLookup'>) {
-  const { id, dataModelBindings, required } = useItemWhenType(baseComponentId, 'OrganisationLookup');
+  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'OrganisationLookup');
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
@@ -154,17 +155,17 @@ export function OrganisationLookupComponent({
             <NumericInput
               id={`${id}_orgnr`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_orgnr`) : undefined}
-              aria-label={translationKey('organisation_lookup.orgnr_label')}
+              aria-label={langAsString('organisation_lookup.orgnr_label')}
               value={hasSuccessfullyFetched ? organisation_lookup_orgnr : tempOrgNr}
               required={required}
-              readOnly={hasSuccessfullyFetched || isFetching}
+              readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={isValid}
               onValueChange={(e) => {
                 setTempOrgNr(e.value);
                 setOrgNrErrors(undefined);
               }}
               onKeyDown={async (ev) => {
-                if (ev.key === 'Enter') {
+                if (ev.key === 'Enter' && !readOnly) {
                   await handleSubmit();
                 }
               }}
@@ -178,26 +179,28 @@ export function OrganisationLookupComponent({
               </ValidationMessage>
             )}
           </Field>
-          <div className={classes.submit}>
-            {!hasSuccessfullyFetched ? (
-              <Button
-                onClick={handleSubmit}
-                variant='secondary'
-                isLoading={isFetching}
-                loadingLabel={langAsString('general.loading')}
-              >
-                <Lang id='organisation_lookup.submit_button' />
-              </Button>
-            ) : (
-              <Button
-                variant='secondary'
-                color='danger'
-                onClick={handleClear}
-              >
-                <Lang id='organisation_lookup.clear_button' />
-              </Button>
-            )}
-          </div>
+          {!readOnly && (
+            <div className={classes.submit}>
+              {!hasSuccessfullyFetched ? (
+                <Button
+                  onClick={handleSubmit}
+                  variant='secondary'
+                  isLoading={isFetching}
+                  loadingLabel={langAsString('general.loading')}
+                >
+                  <Lang id='organisation_lookup.submit_button' />
+                </Button>
+              ) : (
+                <Button
+                  variant='secondary'
+                  color='danger'
+                  onClick={handleClear}
+                >
+                  <Lang id='organisation_lookup.clear_button' />
+                </Button>
+              )}
+            </div>
+          )}
           {data?.error && (
             <ValidationMessage
               data-size='sm'

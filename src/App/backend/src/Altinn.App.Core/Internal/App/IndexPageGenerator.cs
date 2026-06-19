@@ -39,10 +39,10 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
-        string? frontendVersionOverride = null
+        string? appFrontendAssetBaseUrl = null
     )
     {
-        var frontendUrl = frontendVersionOverride ?? "https://altinncdn.no/toolkits/altinn-app-frontend/4";
+        appFrontendAssetBaseUrl ??= $"/{org}/{app}/altinn-app-frontend";
 
         var featureToggles = await _frontendFeatures.GetFrontendFeatures();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
@@ -71,7 +71,7 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
               <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
               <title>{{org}} - {{app}}</title>
               <link rel="icon" href="https://altinncdn.no/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{frontendUrl}}/altinn-app-frontend.css">
+              <link rel="stylesheet" type="text/css" href="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.css">
             {{externalStylesheets}}{{customCssLinks}}</head>
             <body>
               <div id="root"></div>
@@ -81,7 +81,7 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
                 window.featureToggles = {{featureTogglesJson}};
                 window.altinnAppGlobalData = {{globalDataJson}};
               </script>
-              <script src="{{frontendUrl}}/altinn-app-frontend.js" crossorigin></script>
+              <script src="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.js" crossorigin></script>
             {{externalScripts}}{{customJsScripts}}</body>
             </html>
             """;

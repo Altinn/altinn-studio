@@ -1,35 +1,27 @@
 name: "App Run Local Environment"
-description: "Starts the frontend server and/or localtest"
+description: "Starts the frontend server and optional localtest"
 inputs:
-  run-frontend:
-    description: "Whether to serve frontend with http-server"
-    required: true
   run-localtest:
     description: "Whether to start localtest with studioctl"
     required: true
-  frontend-port:
-    description: "Port for frontend server"
-    required: false
-    default: "8080"
   app-run-targets-json:
-    description: "JSON array of app run targets. Each target requires path and can include image for prebuilt app images."
+    description: "JSON array of app run targets. Each target requires path."
     required: false
+  skip-app-build:
+    description: "Whether to pass --skip-build when starting app processes"
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
     - name: Validate inputs
       run: |
-        if [[ "${{ inputs.run-frontend }}" != "true" && "${{ inputs.run-frontend }}" != "false" ]]; then
-          echo "Error: run-frontend must be 'true' or 'false', got: ${{ inputs.run-frontend }}"
-          exit 1
-        fi
         if [[ "${{ inputs.run-localtest }}" != "true" && "${{ inputs.run-localtest }}" != "false" ]]; then
           echo "Error: run-localtest must be 'true' or 'false', got: ${{ inputs.run-localtest }}"
           exit 1
         fi
-        # Validate frontend-port is a valid port number (1-65535)
-        if [[ ! "${{ inputs.frontend-port }}" =~ ^[0-9]+$ ]] || [[ "${{ inputs.frontend-port }}" -lt 1 ]] || [[ "${{ inputs.frontend-port }}" -gt 65535 ]]; then
-          echo "Error: frontend-port must be a valid port number (1-65535), got: ${{ inputs.frontend-port }}"
+        if [[ "${{ inputs.skip-app-build }}" != "true" && "${{ inputs.skip-app-build }}" != "false" ]]; then
+          echo "Error: skip-app-build must be 'true' or 'false', got: ${{ inputs.skip-app-build }}"
           exit 1
         fi
       shell: bash
@@ -38,76 +30,58 @@ runs:
       if: ${{ inputs.run-localtest == 'true' }}
       uses: ./.github/actions/setup-studioctl
 
-    - name: Set up Docker Buildx
-      if: ${{ inputs.run-localtest == 'true' }}
-      uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
-
-    - name: Login to GitHub Container Registry
-      if: ${{ inputs.run-localtest == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ github.token }}
-
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: ${{ github.workspace }}
       shell: bash
-      env:
-        STUDIOCTL_REGISTRY_CACHE_WRITE: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       run: |
         studioctl env up --detach
 
     - name: Download the built frontend
-      if: ${{ inputs.run-frontend == 'true' }}
       uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
       with:
         name: app-frontend-dist
         path: src/App/frontend/dist
 
     - name: Setup Node.js
-      if: ${{ inputs.run-frontend == 'true' }}
-      uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       with:
         node-version: '22'
         cache: 'yarn'
         cache-dependency-path: yarn.lock
 
     - name: Install dependencies
-      if: ${{ inputs.run-frontend == 'true' }}
       working-directory: src/App/frontend
       run: yarn install --immutable
       shell: bash
 
     - name: Start frontend server
-      if: ${{ inputs.run-frontend == 'true' }}
       working-directory: src/App/frontend
       run: |
-        echo "Starting frontend server on port ${{ inputs.frontend-port }}..."
-        yarn run serve -p ${{ inputs.frontend-port }} > frontend-server.log 2>&1 &
+        echo "Starting frontend server on port 8080..."
+        yarn run serve -p 8080 > frontend-server.log 2>&1 &
         echo $! > frontend-server.pid
         echo "Frontend server started with PID $(cat frontend-server.pid)"
       shell: bash
 
     - name: Wait for frontend server to be ready
-      if: ${{ inputs.run-frontend == 'true' }}
       run: |
         echo "Waiting for frontend server to be ready..."
-        timeout 60 bash -c 'until curl -f http://localhost:${{ inputs.frontend-port }} > /dev/null 2>&1; do sleep 2; done'
-        echo "Frontend server is ready on http://localhost:${{ inputs.frontend-port }}"
+        timeout 60 bash -c 'until curl -f http://localhost:8080 > /dev/null 2>&1; do sleep 2; done'
+        echo "Frontend server is ready on http://localhost:8080"
       shell: bash
 
-    - name: Start app containers
+    - name: Start app processes
       if: ${{ inputs.run-localtest == 'true' && inputs.app-run-targets-json != '' }}
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
       env:
         APP_RUN_TARGETS_JSON: ${{ inputs.app-run-targets-json }}
-        STUDIOCTL_REGISTRY_CACHE_WRITE: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+        SKIP_APP_BUILD: ${{ inputs.skip-app-build }}
       with:
         script: |
           const workspace = process.env.GITHUB_WORKSPACE;
           const maxParallelStarts = 4;
+          const skipAppBuild = process.env.SKIP_APP_BUILD === 'true';
 
           const targetsJson = process.env.APP_RUN_TARGETS_JSON;
           let targets;
@@ -120,10 +94,10 @@ runs:
             throw new Error('app-run-targets-json must be a JSON array.');
           }
 
-          function targetRunArgs(path, image) {
-            const args = ['run', '--mode', 'container', '--detach', '--random-host-port', '--path', path];
-            if (image) {
-              args.push('--image-tag', image, '--pull', '--skip-build');
+          function targetRunArgs(path) {
+            const args = ['run', '--mode', 'process', '--detach', '--random-host-port', '--dev-frontend', '--startup-timeout', '60s', '--path', path];
+            if (skipAppBuild) {
+              args.push('--skip-build');
             }
             return args;
           }
@@ -135,15 +109,12 @@ runs:
             if (typeof target.path !== 'string' || target.path === '') {
               throw new Error('Each app run target requires a non-empty path.');
             }
-            if (target.image !== undefined && (typeof target.image !== 'string' || target.image === '')) {
-              throw new Error('App run target image must be a non-empty string when set.');
-            }
             return target;
           }
 
           const validTargets = targets.map(validateTarget);
           if (validTargets.length === 0) {
-            throw new Error('No app containers were started.');
+            throw new Error('No app processes were started.');
           }
 
           let nextTarget = 0;
@@ -151,7 +122,7 @@ runs:
             while (nextTarget < validTargets.length) {
               const target = validTargets[nextTarget++];
               core.info(`Worker ${workerId}: starting ${target.path}`);
-              await exec.exec('studioctl', targetRunArgs(target.path, target.image), { cwd: workspace });
+              await exec.exec('studioctl', targetRunArgs(target.path), { cwd: workspace });
             }
           }
 

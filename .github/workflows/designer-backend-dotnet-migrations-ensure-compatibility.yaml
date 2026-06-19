@@ -24,22 +24,28 @@ jobs:
       OidcLoginSettings__ClientSecret: 'dummyRequired'
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5
         with:
           dotnet-version: |
             9.0.x
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Install dotnet ef # Version should be the same as Migrations docker file and project
         run: dotnet tool install --version 9.0.0 --global dotnet-ef
 
+      - name: Build Designer backend
+        run: |
+            dotnet restore backend/src/Designer/Designer.csproj
+            dotnet build backend/src/Designer/Designer.csproj --no-restore
+        working-directory: src/Designer
+
       - name: Check if migrations script can be generated
         run: |
-            dotnet ef migrations script --project backend/src/Designer
+            dotnet ef migrations script --project backend/src/Designer --no-build
         working-directory: src/Designer
 
       - name: Check if it's possible to add a new migration
         run: |
-            dotnet ef migrations add Test --project backend/src/Designer
+            dotnet ef migrations add Test --project backend/src/Designer --no-build
         working-directory: src/Designer

@@ -1,19 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { MonthCaption } from 'react-day-picker';
 
+import {
+  type DatePickerControlProps,
+  DatePickerDropdownCaption,
+  DynamicForm,
+  type FormDataObject,
+} from '@app/form-component';
 import { Button, Dialog } from '@digdir/designsystemet-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { JSONSchema7 } from 'json-schema';
 
-import { DynamicForm } from 'src/app-components/DynamicForm/DynamicForm';
-import { translationKey } from 'src/AppComponentsBridge';
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
@@ -42,7 +44,7 @@ interface ModalDynamicFormProps {
   backdropClose?: boolean;
   onClose?: () => void;
   modalRef?: React.RefObject<HTMLDialogElement | null>;
-  DropdownCaption: typeof MonthCaption;
+  DropdownCaption: DatePickerControlProps['DropdownCaption'];
 }
 
 export function AddToListModal({
@@ -54,6 +56,7 @@ export function AddToListModal({
   DropdownCaption,
 }: ModalDynamicFormProps) {
   const appendToList = FormStore.data.useAppendToList();
+  const { langAsString } = useLanguage();
   let addToListModalRef = useRef<HTMLDialogElement | null>(null);
   addToListModalRef = modalRef ?? addToListModalRef;
 
@@ -98,8 +101,8 @@ export function AddToListModal({
           getDatepickerFormat={getDatepickerFormat}
           initialData={tempFormData}
           DropdownCaption={DropdownCaption}
-          buttonAriaLabel={translationKey('date_picker.aria_label_icon')}
-          calendarIconTitle={translationKey('date_picker.aria_label_icon')}
+          buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
+          calendarIconTitle={langAsString('date_picker.aria_label_icon')}
         />
       </Dialog.Block>
       <Dialog.Block>
@@ -145,7 +148,7 @@ export function AddToListComponent({ baseComponentId }: PropsFromGenericComponen
             setShowForm(false);
           }}
           backdropClose={true}
-          DropdownCaption={DropdownCaption}
+          DropdownCaption={DatePickerDropdownCaption}
         />
       )}
 

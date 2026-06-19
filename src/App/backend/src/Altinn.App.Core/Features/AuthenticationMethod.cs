@@ -15,12 +15,12 @@ internal abstract record AuthenticationMethod
     internal static UserToken CurrentUser() => new();
 
     /// <summary>
-    /// Indicates that an operation should be authenticated using service owner `read` and `write` scopes.
+    /// Indicates that an operation should be authenticated using default service owner scopes.
     /// </summary>
     internal static AltinnToken ServiceOwner() => new(_serviceOwnerScopes);
 
     /// <summary>
-    /// Indicates that an operation should be authenticated using service owner `read` and `write` scopes, with additional scopes if provided.
+    /// Indicates that an operation should be authenticated using default service owner scopes, with additional scopes if provided.
     /// </summary>
     internal static AltinnToken ServiceOwner(params string[] additionalScopes) =>
         new([.. _serviceOwnerScopes, .. additionalScopes]);
@@ -37,6 +37,7 @@ internal abstract record AuthenticationMethod
 
     private static readonly string[] _serviceOwnerScopes =
     [
+        "altinn:serviceowner",
         "altinn:serviceowner/instances.read",
         "altinn:serviceowner/instances.write",
     ];

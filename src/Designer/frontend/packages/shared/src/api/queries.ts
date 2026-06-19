@@ -74,6 +74,7 @@ import {
   orgCodeListsPath,
   layoutPagesPath,
   taskNavigationGroupPath,
+  validationOnNavigationPath,
   availableResourcesInOrgLibraryPath,
   consentTemplatesPath,
   allAccessListsPath,
@@ -87,6 +88,7 @@ import {
   contactPointsPath,
   botAccountsPath,
   botAccountApiKeysPath,
+  uiFoldersPath,
 } from './paths';
 
 import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -97,7 +99,8 @@ import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/typ
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
+import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets, ValidationOnNavigationByLevel } from 'app-shared/types/global';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -171,7 +174,8 @@ export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEnd
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(`${uiFoldersPath(owner, app)}/layout-sets/extended`);
 export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(owner, app)}/validation-on-navigation`);
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
@@ -197,6 +201,8 @@ export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
 export const canUseFeature = (featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(featureName));
+export const getValidationOnNavigation = <T extends ValidationOnNavigationLevel = ValidationOnNavigationLevel.Global>(org: string, app: string, level?: T) =>
+  get<ValidationOnNavigationByLevel[T]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level: level ?? ValidationOnNavigationLevel.Global })}`);
 
 // Layout
 export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));

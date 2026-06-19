@@ -47,7 +47,7 @@ npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 - [ttd/signering-brukerstyrt](https://altinn.studio/repos/ttd/signering-brukerstyrt)
 - [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
 - [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app)
-- [ttd/subform-test](https://dev.altinn.studio/repos/ttd/subform-test)
+- [ttd/subform-test](https://altinn.studio/repos/ttd/subform-test)
 
 3. Start the app you want to test:
 

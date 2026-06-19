@@ -1,10 +1,10 @@
 {
   "name": "altinn-studio",
   "devDependencies": {
-    "eslint": "8.57.1",
+    "eslint": "10.5.0",
     "husky": "9.1.7",
-    "lint-staged": "16.3.2",
-    "prettier": "3.8.1"
+    "lint-staged": "16.3.4",
+    "prettier": "3.8.4"
   },
   "lint-staged": {
     "./src/App/frontend/**/*.{js,jsx,ts,tsx}": [
@@ -13,6 +13,7 @@
     ],
     "./src/App/frontend/**/*.json": "yarn --cwd src/App/frontend eslint --cache --fix",
     "./src/App/frontend/**/*.{css,md}": "prettier -w",
+    "./app-libs/form-component/**/*.{js,jsx,ts,tsx}": "yarn --cwd app-libs/form-component eslint --cache --fix",
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
   },
@@ -64,7 +65,7 @@
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
-    "libs/**"
+    "app-libs/**"
   ],
   "resolutions": {
     "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"

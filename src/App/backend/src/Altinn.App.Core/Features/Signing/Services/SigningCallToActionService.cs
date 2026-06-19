@@ -102,7 +102,6 @@ internal sealed class SigningCallToActionService(
             CorrespondenceRequestBuilder
                 .Create()
                 .WithResourceId(resource)
-                .WithSender(serviceOwnerParty.OrgNumber)
                 .WithSendersReference(instanceIdentifier.ToString())
                 .WithRecipient(recipient)
                 .WithContent(correspondenceContent)

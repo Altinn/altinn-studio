@@ -48,25 +48,42 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     {
         private readonly DataElement _dataElement;
         private readonly ApplicationMetadata _applicationMetadata;
+        private readonly LayoutModel _layouts;
+        private readonly FrontEndSettings _frontEndSettings;
+        private readonly ITranslationService _translationService;
+        private readonly string? _gatewayAction;
         private readonly IFormDataWrapper _data;
 
         public SingleDataElementAccessor(
             Instance instance,
             DataElement dataElement,
             ApplicationMetadata applicationMetadata,
-            object data
+            IFormDataWrapper data,
+            LayoutModel layouts,
+            FrontEndSettings frontEndSettings,
+            ITranslationService translationService,
+            string? gatewayAction,
+            string? taskId,
+            string? language
         )
         {
             Instance = instance;
             _dataElement = dataElement;
             _applicationMetadata = applicationMetadata;
-            _data = FormDataWrapperFactory.Create(data);
+            _layouts = layouts;
+            _frontEndSettings = frontEndSettings;
+            _translationService = translationService;
+            _gatewayAction = gatewayAction;
+            TaskId = taskId;
+            Language = language;
+            _data = data;
         }
 
         public Instance Instance { get; }
 
-        public string? TaskId => null;
-        public string? Language => null;
+        public string? TaskId { get; }
+
+        public string? Language { get; }
 
         public IReadOnlyCollection<DataType> DataTypes => _applicationMetadata.DataTypes;
 
@@ -98,9 +115,16 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             throw new NotSupportedException("Legacy single data accessor does not implement GetPreviousDataAccessor");
         }
 
-        public LayoutEvaluatorState? GetLayoutEvaluatorState()
+        public LayoutEvaluatorState GetLayoutEvaluatorState()
         {
-            throw new NotImplementedException("Legacy single data accessor does not implement GetLayoutEvaluatorState");
+            return new LayoutEvaluatorState(
+                this,
+                _layouts,
+                _translationService,
+                _frontEndSettings,
+                _gatewayAction,
+                Language
+            );
         }
 
         public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
@@ -142,7 +166,22 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var dataAccessor = new SingleDataElementAccessor(instance, dataElement, appMetadata, data);
+        var dataAccessor = new SingleDataElementAccessor(
+            instance,
+            dataElement,
+            appMetadata,
+            FormDataWrapperFactory.Create(
+                data,
+                appMetadata.DataTypes.Single(dt => dt.Id == dataElement.DataType),
+                dataElement
+            ),
+            layouts,
+            _frontEndSettings,
+            _translationService,
+            gatewayAction,
+            taskId: null,
+            language: null
+        );
         return new LayoutEvaluatorState(dataAccessor, layouts, _translationService, _frontEndSettings, gatewayAction);
     }
 

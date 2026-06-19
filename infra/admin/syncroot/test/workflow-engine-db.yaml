@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: studio-admin
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: workflow-engine-db-repo
+  namespace: studio-admin
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: test
+  timeout: 5m
+  url: oci://altinncr.azurecr.io/studio/workflow-engine-db
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: workflow-engine-db
+  namespace: studio-admin
+spec:
+  targetNamespace: studio-admin
+  interval: 5m
+  retryInterval: 5m
+  timeout: 5m
+  prune: true
+  force: false
+  wait: true
+  path: ./test
+  sourceRef:
+    kind: OCIRepository
+    name: workflow-engine-db-repo
+    namespace: studio-admin

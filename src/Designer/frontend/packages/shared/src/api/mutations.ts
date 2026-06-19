@@ -63,6 +63,7 @@ import {
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
+  validationOnNavigationPath,
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
@@ -85,15 +86,20 @@ import {
   chatThreadPath,
   chatMessagesPath,
   chatMessagePath,
+  chatFeedbackPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
-import type { AddRepoParams, ChatThread, CreateChatMessagePayload, CreateChatThreadPayload } from 'app-shared/types/api';
+import type { AddRepoParams } from 'app-shared/types/api';
+import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
+import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
+import type { ChatThread, CreateChatThreadPayload } from 'app-shared/types/api/ChatThread';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ValidationOnNavigationByLevel, ValidationOnNavigationLevel } from 'app-shared/types/global';
+import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -194,6 +200,9 @@ export const changePageOrder = (org: string, app: string, layoutSetName: string,
 export const changePageGroups = (org: string, app: string, layoutSetName: string, pageGroups: PagesModel) => put(layoutPageGroupsPath(org, app, layoutSetName), pageGroups);
 export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
+export const updateValidationOnNavigation = <TLevel extends ValidationOnNavigationLevel>(org: string, app: string, level: TLevel, config: ValidationOnNavigationByLevel[TLevel]) =>
+  post<void, ValidationOnNavigationByLevel[TLevel]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level })}`, config);
+
 export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
 export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
 
@@ -277,5 +286,6 @@ export const updateBotAccount = (org: string, botAccountId: string, deployEnviro
 export const createChatThread = (org: string, app: string, payload: CreateChatThreadPayload) => post<ChatThread>(chatThreadsPath(org, app), payload);
 export const updateChatThread = (org: string, app: string, threadId: string, payload: { title: string }) => put(chatThreadPath(org, app, threadId), payload);
 export const deleteChatThread = (org: string, app: string, threadId: string) => del(chatThreadPath(org, app, threadId));
-export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post(chatMessagesPath(org, app, threadId), payload);
+export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post<ChatMessage, CreateChatMessagePayload>(chatMessagesPath(org, app, threadId), payload);
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));
+export const sendChatFeedback = (org: string, app: string, traceId: string, payload: ChatFeedbackPayload) => put(chatFeedbackPath(org, app, traceId), payload);

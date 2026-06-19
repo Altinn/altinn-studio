@@ -46,7 +46,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // Cache for the most up-to-date form data (can be mutated or replaced with SetFormData(dataElementId, data))
     private readonly DataElementCache<IFormDataWrapper> _formDataCache = new();
 
-    // Cache for the binary content of the file as currently in storage (updated on save)
+    // Cache for the binary content of the file as currently in storage before changes in this unit of work.
     private readonly DataElementCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
@@ -54,6 +54,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     // Form data not yet saved to storage (thus no dataElementId)
     private readonly ConcurrentBag<DataElementChange> _changesForCreation = [];
+
+    // Existing binary data elements with updated content that is not yet saved to storage.
+    private readonly ConcurrentDictionary<DataElementIdentifier, BinaryDataChange> _changesForBinaryUpdate = [];
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
@@ -134,7 +137,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 var dataElement = GetDataElement(dataElementIdentifier);
 
                 return FormDataWrapperFactory.Create(
-                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
+                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement),
+                    dataType,
+                    dataElement
                 );
             }
         );
@@ -176,19 +181,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     private LayoutEvaluatorState? _layoutEvaluatorStateCache;
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
-        if (TaskId is null)
-        {
-            return null;
-        }
         if (_layoutEvaluatorStateCache is not null)
         {
             return _layoutEvaluatorStateCache;
         }
 
         // Could use a double lock here, but a deadlock is more problematic than creating the state twice
-        var layouts = _appResources.GetLayoutModelForFolder(TaskId);
+        var layouts = TaskId is null ? null : _appResources.GetLayoutModelForFolder(TaskId);
 
         _layoutEvaluatorStateCache = new LayoutEvaluatorState(
             this,
@@ -207,16 +208,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         // Verify that the data element exists on the instance
         GetDataElement(dataElementIdentifier);
 
-        return await _binaryCache.GetOrCreate(
-            dataElementIdentifier,
-            async () =>
-                await _dataClient.GetDataBytes(
-                    _instanceOwnerPartyId,
-                    _instanceGuid,
-                    dataElementIdentifier.Guid,
-                    authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
-                )
-        );
+        if (_changesForBinaryUpdate.TryGetValue(dataElementIdentifier, out var updatedBinary))
+        {
+            return updatedBinary.CurrentBinaryData;
+        }
+
+        return await GetPersistedBinaryData(dataElementIdentifier);
     }
 
     /// <inheritdoc />
@@ -261,8 +258,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             dataElement: null,
             dataType: dataType,
             contentType: contentType,
-            currentFormDataWrapper: FormDataWrapperFactory.Create(model),
-            previousFormDataWrapper: FormDataWrapperFactory.Create(_modelSerializationService.GetEmpty(dataType)),
+            currentFormDataWrapper: FormDataWrapperFactory.Create(model, dataType, null),
+            previousFormDataWrapper: FormDataWrapperFactory.Create(
+                _modelSerializationService.GetEmpty(dataType),
+                dataType,
+                null
+            ),
             currentBinaryData: bytes,
             previousBinaryData: default // empty memory reference
         );
@@ -286,19 +287,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        if (dataType.MaxSize.HasValue && bytes.Length > dataType.MaxSize.Value * 1024 * 1024)
-        {
-            throw new InvalidOperationException(
-                $"Data element of type {dataTypeId} exceeds the size limit of {dataType.MaxSize} MB"
-            );
-        }
-
-        if (dataType.AllowedContentTypes is { Count: > 0 } && !dataType.AllowedContentTypes.Contains(contentType))
-        {
-            throw new InvalidOperationException(
-                $"Data element of type {dataTypeId} has a Content-Type '{contentType}' which is invalid for element type '{dataTypeId}'"
-            );
-        }
+        ValidateBinaryData(dataType, contentType, bytes);
 
         BinaryDataChange change = new BinaryDataChange(
             type: ChangeType.Created,
@@ -309,6 +298,48 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             currentBinaryData: bytes
         );
         _changesForCreation.Add(change);
+        return change;
+    }
+
+    /// <inheritdoc />
+    public BinaryDataChange UpdateBinaryDataElement(
+        DataElementIdentifier dataElementIdentifier,
+        string contentType,
+        ReadOnlyMemory<byte> bytes
+    )
+    {
+        var dataElement = GetDataElement(dataElementIdentifier);
+        var dataType = this.GetDataType(dataElementIdentifier);
+        if (dataType.AppLogic?.ClassRef is not null)
+        {
+            throw new InvalidOperationException(
+                $"Data element {dataElementIdentifier.Id} of type {dataType.Id} is not a binary data element"
+            );
+        }
+        if (_changesForDeletion.Any(c => c.DataElementIdentifier == dataElementIdentifier))
+        {
+            throw new InvalidOperationException(
+                $"Data element with id {dataElementIdentifier.Id} is marked for deletion and cannot be updated"
+            );
+        }
+        if (dataElement.ContentType != contentType)
+        {
+            throw new InvalidOperationException(
+                $"Data element {dataElementIdentifier.Id} has Content-Type '{dataElement.ContentType}' and cannot be updated with '{contentType}'"
+            );
+        }
+
+        ValidateBinaryData(dataType, contentType, bytes);
+
+        BinaryDataChange change = new BinaryDataChange(
+            type: ChangeType.Updated,
+            dataElement: dataElement,
+            dataType: dataType,
+            fileName: dataElement.Filename,
+            contentType: contentType,
+            currentBinaryData: bytes
+        );
+        _changesForBinaryUpdate[dataElementIdentifier] = change;
         return change;
     }
 
@@ -326,6 +357,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
         if (dataType.AppLogic?.ClassRef is null)
         {
+            _changesForBinaryUpdate.TryRemove(dataElementIdentifier, out _);
             _changesForDeletion.Add(
                 new BinaryDataChange(
                     type: ChangeType.Deleted,
@@ -347,9 +379,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     contentType: dataElement.ContentType,
                     currentFormDataWrapper: _formDataCache.TryGetCachedValue(dataElementIdentifier, out var cfd)
                         ? cfd
-                        : FormDataWrapperFactory.Create(_modelSerializationService.GetEmpty(dataType)),
+                        : FormDataWrapperFactory.Create(
+                            _modelSerializationService.GetEmpty(dataType),
+                            dataType,
+                            dataElement
+                        ),
                     previousFormDataWrapper: FormDataWrapperFactory.Create(
-                        _modelSerializationService.GetEmpty(dataType)
+                        _modelSerializationService.GetEmpty(dataType),
+                        dataType,
+                        dataElement
                     ),
                     currentBinaryData: ReadOnlyMemory<byte>.Empty,
                     previousBinaryData: _binaryCache.TryGetCachedValue(dataElementIdentifier, out var value)
@@ -392,9 +430,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
             var dataType = this.GetDataType(dataElementIdentifier);
 
+            if (_changesForBinaryUpdate.TryGetValue(dataElementIdentifier, out var binaryChange))
+            {
+                changes.Add(binaryChange);
+                continue;
+            }
+
             if (!_formDataCache.TryGetCachedValue(dataElementIdentifier, out IFormDataWrapper? dataWrapper))
             {
-                // We don't support making updates to binary data elements (attachments) in IInstanceDataMutator
                 continue;
             }
 
@@ -437,7 +480,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         // For patch requests we could get the previous data from the patch, but it's not available here
                         // and deserializing twice is not a big deal
                         previousFormDataWrapper: FormDataWrapperFactory.Create(
-                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType, dataElement)
+                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType, dataElement),
+                            dataType,
+                            dataElement
                         ),
                         currentBinaryData: currentBinary,
                         previousBinaryData: cachedBinary
@@ -470,6 +515,23 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         changes.AddRange(_changesForDeletion);
 
         return new DataElementChanges(changes);
+    }
+
+    private static void ValidateBinaryData(DataType dataType, string contentType, ReadOnlyMemory<byte> bytes)
+    {
+        if (dataType.MaxSize.HasValue && bytes.Length > dataType.MaxSize.Value * 1024 * 1024)
+        {
+            throw new InvalidOperationException(
+                $"Data element of type {dataType.Id} exceeds the size limit of {dataType.MaxSize} MB"
+            );
+        }
+
+        if (dataType.AllowedContentTypes is { Count: > 0 } && !dataType.AllowedContentTypes.Contains(contentType))
+        {
+            throw new InvalidOperationException(
+                $"Data element of type {dataType.Id} has a Content-Type '{contentType}' which is invalid for element type '{dataType.Id}'"
+            );
+        }
     }
 
     private async Task CreateDataElement(
@@ -524,8 +586,24 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         );
     }
 
+    private async Task UpdateDataElement(BinaryDataChange change)
+    {
+        if (change.DataElement is null)
+            throw new InvalidOperationException("ChangeType.Updated sent to SaveChanges must have a DataElement value");
+
+        await _dataClient.UpdateBinaryData(
+            new InstanceIdentifier(Instance),
+            change.ContentType,
+            change.FileName,
+            change.DataElementIdentifier.Guid,
+            new MemoryAsStream(change.CurrentBinaryData),
+            authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
+        );
+    }
+
     internal async Task UpdateInstanceData(DataElementChanges changes)
     {
+        using var activity = _telemetry?.StartUpdateInstanceData(changes);
         if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
@@ -593,17 +671,45 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
         }
+
+        await Task.WhenAll(
+            changes
+                .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
+                .Select(change => GetPersistedBinaryData(change.DataElementIdentifier))
+        );
+
         var tasks = new List<Task>();
 
-        foreach (var change in changes.FormDataChanges)
+        foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Updated))
         {
-            if (change.Type != ChangeType.Updated)
-                continue; // New and deleted form data is handled separately
-
-            tasks.Add(UpdateDataElement(change));
+            tasks.Add(
+                change switch
+                {
+                    FormDataChange formDataChange => UpdateDataElement(formDataChange),
+                    BinaryDataChange binaryDataChange => UpdateDataElement(binaryDataChange),
+                    _ => throw new UnreachableException("ChangeType.Updated must be a form or binary data change"),
+                }
+            );
         }
 
         await Task.WhenAll(tasks);
+    }
+
+    internal async Task<ReadOnlyMemory<byte>> GetPersistedBinaryData(DataElementIdentifier dataElementIdentifier)
+    {
+        // Verify that the data element exists on the instance
+        GetDataElement(dataElementIdentifier);
+
+        return await _binaryCache.GetOrCreate(
+            dataElementIdentifier,
+            async () =>
+                await _dataClient.GetDataBytes(
+                    _instanceOwnerPartyId,
+                    _instanceGuid,
+                    dataElementIdentifier.Guid,
+                    authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
+                )
+        );
     }
 
     /// <summary>

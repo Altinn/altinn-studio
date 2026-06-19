@@ -6,6 +6,7 @@ using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
@@ -14,7 +15,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -90,7 +90,8 @@ public class PdfControllerTests
             generalSettingsOptions,
             _logger.Object,
             _authenticationContext.Object,
-            _translationService.Object
+            _translationService.Object,
+            _appResources.Object
         );
         return pdfService;
     }
@@ -104,26 +105,18 @@ public class PdfControllerTests
 
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
         httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
-        string? frontendVersion = null;
-        httpContextAccessor
-            .Setup(x => x.HttpContext!.Request!.Cookies.TryGetValue("frontendVersion", out frontendVersion))
-            .Returns(false);
 
         var handler = new Mock<HttpMessageHandler>();
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
-        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object,
-            httpContextAccessor.Object,
-            hostEnvironment.Object
+            _userTokenProvider.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -168,89 +161,10 @@ public class PdfControllerTests
             .Contain(
                 @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
-        requestBody.Should().NotContain(@"name"":""frontendVersion");
     }
 
     [Fact]
-    public async Task Request_In_Dev_Should_Include_Frontend_Version()
-    {
-        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
-            new() { HostName = "local.altinn.cloud" }
-        );
-
-        var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
-        string? frontendVersion = "https://altinncdn.no/toolkits/altinn-app-frontend/3/";
-        httpContextAccessor
-            .Setup(x => x.HttpContext!.Request!.Cookies.TryGetValue("frontendVersion", out frontendVersion))
-            .Returns(true);
-
-        var handler = new Mock<HttpMessageHandler>();
-        var httpClient = new HttpClient(handler.Object);
-
-        var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
-        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
-
-        var pdfGeneratorClient = new PdfGeneratorClient(
-            logger.Object,
-            httpClient,
-            _pdfGeneratorSettingsOptions,
-            _platformSettingsOptions,
-            _userTokenProvider.Object,
-            httpContextAccessor.Object,
-            hostEnvironment.Object
-        );
-        var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService
-        );
-
-        string? requestBody = null;
-        using (
-            var mockResponse = new HttpResponseMessage()
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("PDF"),
-            }
-        )
-        {
-            handler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>()
-                )
-                .Returns<HttpRequestMessage, CancellationToken>(
-                    async (m, c) =>
-                    {
-                        requestBody = await m.Content!.ReadAsStringAsync();
-                        return mockResponse;
-                    }
-                );
-
-            var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
-            result.Should().BeOfType(typeof(FileStreamResult));
-        }
-
-        requestBody
-            .Should()
-            .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
-            );
-        requestBody
-            .Should()
-            .Contain(@"name"":""frontendVersion"",""value"":""https://altinncdn.no/toolkits/altinn-app-frontend/3/""");
-    }
-
-    [Fact]
-    public async Task Request_In_TT02_Should_Ignore_Frontend_Version()
+    public async Task Request_In_TT02_Should_Generate()
     {
         IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
             new() { HostName = "org.apps.tt02.altinn.no" }
@@ -258,26 +172,18 @@ public class PdfControllerTests
 
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
         httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
-        string? frontendVersion = "https://altinncdn.no/toolkits/altinn-app-frontend/3/";
-        httpContextAccessor
-            .Setup(x => x.HttpContext!.Request!.Cookies.TryGetValue("frontendVersion", out frontendVersion))
-            .Returns(true);
 
         var handler = new Mock<HttpMessageHandler>();
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
-        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Production);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object,
-            httpContextAccessor.Object,
-            hostEnvironment.Object
+            _userTokenProvider.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -322,6 +228,5 @@ public class PdfControllerTests
             .Contain(
                 @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
-        requestBody.Should().NotContain(@"name"":""frontendVersion");
     }
 }
