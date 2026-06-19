@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { DisplayText } from '@app/form-component';
+import { DisplayText, getLabelId } from '@app/form-component';
 import cn from 'classnames';
 
-import { getLabelId } from 'src/components/label/Label';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Text/Text.module.css';

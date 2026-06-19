@@ -2,9 +2,7 @@ import type { ReactElement } from 'react';
 import type { StudioProfileMenuGroup } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { repositoryOwnerPath } from 'app-shared/api/paths';
-import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { useOrganizationsQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import type { Organization } from 'app-shared/types/Organization';
@@ -32,10 +30,6 @@ export const ProfileMenu = ({
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
   const { mutate: logout } = useLogoutMutation();
-  const { environment } = useEnvironmentConfig();
-  const studioOidc = environment?.featureFlags?.studioOidc;
-  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
-  const showSettingsLink = studioOidc || isAdminEnabled;
 
   if (!owner || !user) {
     return null;
@@ -97,7 +91,7 @@ export const ProfileMenu = ({
       ? []
       : [{ name: t('top_bar.group_tools'), items: [...navigationItems] }]),
     { name: t('top_bar.group_organizations'), items: [...orgMenuItems, userMenuItem] },
-    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
+    { items: [settingsMenuItem] },
     { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];

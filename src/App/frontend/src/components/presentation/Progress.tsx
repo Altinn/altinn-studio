@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { getLabelId } from 'src/components/label/Label';
+import { getLabelId } from '@app/form-component';
+
 import classes from 'src/components/presentation/Progress.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/hooks/navigation';

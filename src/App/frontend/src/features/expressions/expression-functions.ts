@@ -5,7 +5,8 @@ import { SearchParams } from 'src/core/routing/types';
 import { evalExpr, exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
-import { ObjectFunctionEvaluator } from 'src/features/expressions/ObjectFunctionEvaluator';
+import { JmespathFunctionEvaluator } from 'src/features/expressions/function-evaluators/JmespathFunctionEvaluator';
+import { ObjectFunctionEvaluator } from 'src/features/expressions/function-evaluators/ObjectFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, ExprValidation, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
@@ -269,6 +270,11 @@ export const ExprFunctionDefinitions = {
   object: {
     args: args(rest(ExprVal.Any)),
     returns: ExprVal.Object,
+  },
+  jmespath: {
+    args: args(required(ExprVal.Any), required(ExprVal.String)),
+    returns: ExprVal.Any,
+    needs: noSources,
   },
   _experimentalSelectAndMap: {
     args: args(
@@ -744,6 +750,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   },
   object(...argumentList): ValidObject {
     return new ObjectFunctionEvaluator(this, argumentList).evaluate();
+  },
+  jmespath(...argumentList): ValidValue {
+    return new JmespathFunctionEvaluator(this, argumentList).evaluate();
   },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
