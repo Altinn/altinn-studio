@@ -38,12 +38,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly AltinityAttachmentBuffer _attachmentStore;
     private readonly IApiKeyService _apiKeyService;
     private readonly IUserOrganizationService _userOrganizationService;
-
-    private static readonly ConcurrentDictionary<string, string> s_sessionIdToDeveloper = new();
+    private readonly IChatService _chatService;
 
     private static readonly ConcurrentDictionary<string, HashSet<string>> s_connectionToSessionIds = new();
-
-    private readonly IChatService _chatService;
 
     public AltinityProxyHub(
         IHttpContextAccessor httpContextAccessor,
@@ -121,7 +118,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             throw new HubException("Access denied: Developer does not own current thread.");
         }
 
-        s_sessionIdToDeveloper.TryAdd(threadId, developer);
         s_connectionToSessionIds.AddOrUpdate(
             connectionId,
             _ => new HashSet<string> { threadId },
@@ -152,13 +148,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         await Groups.RemoveFromGroupAsync(connectionId, developer);
 
-        if (s_connectionToSessionIds.TryRemove(connectionId, out HashSet<string>? sessionIds) && sessionIds is not null)
-        {
-            foreach (string sessionId in sessionIds)
-            {
-                s_sessionIdToDeveloper.TryRemove(sessionId, out _);
-            }
-        }
+        s_connectionToSessionIds.TryRemove(connectionId, out _);
 
         // Don't close the developer WS — it persists across tab reconnects.
         // It will be cleaned up by the service when the developer has no active sessions.
@@ -177,7 +167,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string sessionId = ExtractSessionIdFromRequest(request);
-        ValidateSessionOwnership(sessionId, developer);
+        ValidateConnectionOwnsSession(sessionId);
         await ValidateOrgMembershipAsync(request, developer);
 
         _logger.LogInformation(
@@ -300,27 +290,26 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
     }
 
-    private void ValidateSessionOwnership(string sessionId, string developer)
+    private void ValidateConnectionOwnsSession(string sessionId)
     {
-        if (!s_sessionIdToDeveloper.TryGetValue(sessionId, out string? sessionOwner))
+        string connectionId = Context.ConnectionId;
+        bool isRegistered = false;
+        if (s_connectionToSessionIds.TryGetValue(connectionId, out HashSet<string>? sessions))
         {
-            _logger.LogWarning(
-                "User {Developer} attempted to use non-existent session {SessionId}",
-                developer,
-                sessionId
-            );
-            throw new HubException("Invalid session: Session does not exist");
+            lock (sessions)
+            {
+                isRegistered = sessions.Contains(sessionId);
+            }
         }
 
-        if (sessionOwner != developer)
+        if (!isRegistered)
         {
             _logger.LogWarning(
-                "User {Developer} attempted to access session {SessionId} owned by {SessionOwner}",
-                developer,
+                "Session {SessionId} is not registered on connection {ConnectionId}",
                 sessionId,
-                sessionOwner
+                connectionId
             );
-            throw new HubException("Access denied: You don't own this session");
+            throw new HubException("Access denied: Session is not registered on this connection");
         }
     }
 
@@ -404,7 +393,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     public async Task<object> CancelWorkflow(string sessionId)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        ValidateSessionOwnership(sessionId, developer);
+        ValidateConnectionOwnsSession(sessionId);
 
         _logger.LogInformation("CancelWorkflow called for session {SessionId} by {Developer}", sessionId, developer);
 
