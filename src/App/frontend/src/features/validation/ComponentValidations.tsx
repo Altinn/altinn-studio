@@ -8,7 +8,7 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemIfType } from 'src/utils/layout/useNodeItem';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { BaseValidation, NodeRefValidation } from 'src/features/validation';
 import type { AlertSeverity } from 'src/layout/Alert/config.generated';
@@ -37,8 +37,8 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
   const currentId = useCurrentComponentId();
   const baseId = baseComponentId ?? currentId;
   const indexedId = useIndexedId(baseId);
-  const inputItem = useItemIfType<'Input' | 'TextArea'>(baseId, (type) => type === 'Input' || type === 'TextArea');
-  const inputMaxLength = inputItem?.maxLength;
+  const config = useExternalItem(baseComponentId);
+  const inputMaxLength = config.type === 'Input' || config.type === 'TextArea' ? config.maxLength : undefined;
 
   // If maxLength is set in both schema and component, don't display the schema error message here.
   // TODO: This should preferably be implemented in the Input component, via ValidationFilter, but that causes
