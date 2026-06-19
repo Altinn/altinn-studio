@@ -1,4 +1,4 @@
-name: Resourceadm Playwright Tests in Dev
+name: Designer Frontend Resourceadm - Playwright tests in Staging
 
 on:
   workflow_dispatch:

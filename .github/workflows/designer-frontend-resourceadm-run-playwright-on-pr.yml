@@ -1,11 +1,11 @@
-name: Resource admin playwright tests on pr
+name: Designer Frontend Resourceadm - Playwright tests on PR
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/resourceadm/**'
-      - '.github/workflows/run-playwright-resourceadm-on-pr.yaml'
+      - '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml'
   workflow_dispatch:
 
 concurrency:
