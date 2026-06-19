@@ -7,7 +7,7 @@ RUN dotnet restore src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj
 COPY src/ src/
 RUN dotnet publish src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj -c Release -o /out --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:8c7671a6f0f984d0c102ee70d61e8010857de032b320561dea97cc5781aea5f8 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:f03685b2735e0d3d25d6c60672e74b21bb6334f1402f71bae2d2cf02307163cd AS runtime
 WORKDIR /app
 
 RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community typst
