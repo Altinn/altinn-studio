@@ -13,6 +13,7 @@ export default defineConfig<ExtendedTestOptions>({
     trace: 'on-first-retry',
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
     screenshot: 'only-on-failure',
+    channel: 'chrome',
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

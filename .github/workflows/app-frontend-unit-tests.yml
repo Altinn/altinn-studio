@@ -20,7 +20,7 @@ concurrency:
 jobs:
   unit-tests:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     name: Type-checks, eslint, unit tests and SonarCloud
     defaults:
@@ -33,13 +33,13 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: install node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '22'
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         id: yarn-cache
@@ -69,7 +69,9 @@ jobs:
         run: yarn lint
 
       - name: run tests
-        run: yarn test --coverage
+        run: yarn test --coverage --maxWorkers=2
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
 
       # TODO: consider for removal?
       # - name: SonarCloud Scan

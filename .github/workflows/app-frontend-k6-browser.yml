@@ -28,7 +28,7 @@ jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Frontend
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted-single
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -39,7 +39,7 @@ jobs:
   k6-browser:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: K6 Browser
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted-single
     timeout-minutes: 30
     needs: [build-frontend]
     steps:
