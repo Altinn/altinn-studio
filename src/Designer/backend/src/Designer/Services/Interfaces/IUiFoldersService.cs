@@ -44,37 +44,31 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
-    public Task SaveGlobalValidationOnNavigation(
+    public Task<IEnumerable<ValidationOnNavigationDto>> GetLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        ValidationOnNavigation? validationOnNavigation,
         CancellationToken cancellationToken
     );
 
-    public Task<Dictionary<string, ValidationOnNavigation?>> GetLayoutSetsValidationOnNavigation(
+    public Task<IEnumerable<PageValidationOnNavigationDto>> GetPagesValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        IEnumerable<string> layoutSetIds,
+        CancellationToken cancellationToken
+    );
+
+    public Task SaveGlobalValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        ValidationOnNavigation? config,
         CancellationToken cancellationToken
     );
 
     public Task SaveLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        IEnumerable<string> layoutSetIds,
-        ValidationOnNavigation? config,
-        CancellationToken cancellationToken
-    );
-
-    public Task<Dictionary<string, ValidationOnNavigation?>> GetPagesValidationOnNavigation(
-        AltinnRepoEditingContext editingContext,
-        string layoutSetId,
-        IEnumerable<string> pageIds,
+        IEnumerable<ValidationOnNavigationDto> settings,
         CancellationToken cancellationToken
     );
 
     public Task SavePagesValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        string layoutSetId,
-        IEnumerable<string> pageIds,
-        ValidationOnNavigation? config,
+        IEnumerable<PageValidationOnNavigationDto> settings,
         CancellationToken cancellationToken
     );
 

@@ -12,6 +12,11 @@ spec:
   maxReplicaCount: 64
   minReplicaCount: 0
   pollingInterval: 30
+  # Keep in-flight CI jobs running when the runner image/spec changes
+  # default strategy cancels running job on updates
+  # (this lets us deploy runner changes without interrupting active workflows)
+  rollout:
+    strategy: gradual
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5
   jobTargetRef:
@@ -20,12 +25,20 @@ spec:
     activeDeadlineSeconds: 7200
     template:
       metadata:
+        annotations:
+          # Same as above, we want to leave time for nodes to complete all jobs
+          # before letting the cluster-autoscaler shutdown/drain nodes for scaledown
+          cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         labels:
           app.kubernetes.io/name: github-runner
           app.kubernetes.io/component: runner-single
       spec:
         runtimeClassName: kata-vm-isolation
         restartPolicy: Never
+        hostAliases:
+          - ip: "127.0.0.1"
+            hostnames:
+              - studio.localhost
         securityContext:
           fsGroup: 1001
         containers:
@@ -37,6 +50,19 @@ spec:
               privileged: true
               runAsUser: 0
               runAsGroup: 0
+            # Kata reports runtime SIGKILL as raw exit code 9. This runner
+            # starts dockerd inside the main container, so trigger the existing
+            # shell cleanup trap from inside the guest before the runtime stop
+            # path can force-kill the process.
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - |
+                      kill -TERM 1 2>/dev/null || true
+                      sleep 5
             env:
               - name: DOCKER_HOST
                 value: unix:///var/run/docker.sock
@@ -62,6 +88,8 @@ spec:
                 value: 40G
               - name: DOCKER_DISK_SIZE
                 value: 30G
+              - name: DOCKER_REGISTRY_MIRROR
+                value: https://mirror.gcr.io
               - name: APP_ID
                 valueFrom:
                   secretKeyRef:
