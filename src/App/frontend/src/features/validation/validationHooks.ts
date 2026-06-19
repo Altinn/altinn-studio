@@ -20,6 +20,7 @@ import {
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useExpressionDataSources, useExpressionDataSourcesBase } from 'src/utils/layout/useExpressionDataSources';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
@@ -258,22 +259,26 @@ export function usePruneValidationMasks() {
 
   const hasFormErrors =
     !formMask || derived.nodes.some((node) => getValidationsForNode(derived, node.id, formMask, 'error').length > 0);
-  const stalePages = Object.entries(pageMasks)
-    .filter(
-      ([pageKey, mask]) =>
-        !(derived.nodeIdsByPage.get(pageKey) ?? emptyArray).some(
-          (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
-        ),
-    )
-    .map(([pageKey]) => pageKey);
-  const staleRows = Object.entries(rowMasks)
-    .filter(
-      ([rowId, mask]) =>
-        !(derived.nodeIdsByRowId.get(rowId) ?? emptyArray).some(
-          (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
-        ),
-    )
-    .map(([rowId]) => rowId);
+  const stalePages = useShallowMemo(
+    Object.entries(pageMasks)
+      .filter(
+        ([pageKey, mask]) =>
+          !(derived.nodeIdsByPage.get(pageKey) ?? emptyArray).some(
+            (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
+          ),
+      )
+      .map(([pageKey]) => pageKey),
+  );
+  const staleRows = useShallowMemo(
+    Object.entries(rowMasks)
+      .filter(
+        ([rowId, mask]) =>
+          !(derived.nodeIdsByRowId.get(rowId) ?? emptyArray).some(
+            (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
+          ),
+      )
+      .map(([rowId]) => rowId),
+  );
 
   return useCallback(() => {
     if (formMask && !hasFormErrors) {
