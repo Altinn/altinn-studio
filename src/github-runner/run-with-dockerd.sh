@@ -178,6 +178,7 @@ export LOGNAME=runner
 
 RUNNER_HOME_DISK_SIZE="${RUNNER_HOME_DISK_SIZE:-40G}"
 DOCKER_DISK_SIZE="${DOCKER_DISK_SIZE:-30G}"
+DOCKER_REGISTRY_MIRROR="${DOCKER_REGISTRY_MIRROR:-https://mirror.gcr.io}"
 RUNNER_DIND_DISK_DIR="${RUNNER_DIND_DISK_DIR:-/var/lib/github-runner-disks}"
 export GOPATH="${GOPATH:-${RUNNER_HOME}/go}"
 export GOCACHE="${GOCACHE:-${RUNNER_HOME}/.cache/go-build}"
@@ -210,7 +211,15 @@ chown -R runner:runner \
 log "filesystem layout before dockerd startup"
 df -PT / "${RUNNER_HOME}" "${RUNNER_WORKDIR}" /var/lib/docker /tmp || true
 
-dockerd --host="${DOCKER_HOST}" --ip6tables=false &
+dockerd_args=(
+  --host="${DOCKER_HOST}"
+  --ip6tables=false
+)
+if [[ "${DOCKER_REGISTRY_MIRROR}" != "" ]]; then
+  dockerd_args+=(--registry-mirror="${DOCKER_REGISTRY_MIRROR}")
+fi
+
+dockerd "${dockerd_args[@]}" &
 dockerd_pid="$!"
 
 cleanup() {

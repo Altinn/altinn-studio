@@ -4,6 +4,7 @@ ARG GO_VERSION=1.26.1
 ARG NODE_CHANNEL=22
 ARG YARN_CHANNEL=stable
 ARG DOTNET_CHANNELS="8.0 9.0 10.0"
+ARG CHROME_FOR_TESTING_CHANNEL=Stable
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
 
@@ -17,6 +18,7 @@ RUN apt-get update \
       ca-certificates \
       curl \
       docker.io \
+      docker-compose-v2 \
       e2fsprogs \
       fonts-liberation \
       git \
@@ -31,10 +33,12 @@ RUN apt-get update \
       libdbus-1-3 \
       libexpat1 \
       libfontconfig1 \
+      libgbm-dev \
       libgbm1 \
       libglib2.0-0 \
       libgtk-3-0 \
       libicu74 \
+      libnotify-dev \
       libnspr4 \
       libnss3 \
       libpango-1.0-0 \
@@ -59,9 +63,23 @@ RUN apt-get update \
       unzip \
       util-linux \
       wget \
+      xauth \
       xdg-utils \
       xz-utils \
+      xvfb \
       zstd \
+    && CHROME_FOR_TESTING_URL="$(curl -fsSL "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json" \
+      | jq -r --arg channel "${CHROME_FOR_TESTING_CHANNEL}" '.channels[$channel].downloads.chrome[] | select(.platform == "linux64") | .url')" \
+    && test -n "${CHROME_FOR_TESTING_URL}" \
+    && test "${CHROME_FOR_TESTING_URL}" != "null" \
+    && curl -fsSL "${CHROME_FOR_TESTING_URL}" -o /tmp/chrome-for-testing.zip \
+    && mkdir -p /opt/chrome-for-testing \
+    && unzip -q /tmp/chrome-for-testing.zip -d /opt/chrome-for-testing \
+    && rm -f /tmp/chrome-for-testing.zip \
+    && mkdir -p /opt/google/chrome \
+    && ln -s /opt/chrome-for-testing/chrome-linux64/chrome /opt/google/chrome/chrome \
+    && ln -s /opt/chrome-for-testing/chrome-linux64/chrome /usr/bin/google-chrome \
+    && ln -s /opt/chrome-for-testing/chrome-linux64/chrome /usr/bin/chrome \
     && rm -rf /var/lib/apt/lists/* \
     && chmod +x /usr/local/bin/altinn-github-runner \
     && chmod +x /usr/local/bin/altinn-github-runner-dind \
@@ -119,6 +137,8 @@ ENV DOTNET_ROOT=/usr/share/dotnet
 ENV DOTNET_INSTALL_DIR=/usr/share/dotnet
 ENV COREPACK_HOME=/opt/corepack
 ENV RUNNER_TOOL_CACHE=/opt/tools
+ENV CHROME_PATH=/opt/chrome-for-testing/chrome-linux64/chrome
+ENV PUPPETEER_EXECUTABLE_PATH=/opt/chrome-for-testing/chrome-linux64/chrome
 ENV TMPDIR=/tmp
 ENV TMP=/tmp
 ENV TEMP=/tmp

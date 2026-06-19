@@ -22,6 +22,11 @@
       "expects": [[1, 2], [3, 4]]
     },
     {
+      "name": "Supports objects",
+      "expression": ["list", ["object", "a", 1], ["object", "b", 2]],
+      "expects": [{ "a": 1 }, { "b": 2 }]
+    },
+    {
       "name": "Does not evaluate the final expression when the result happens to be a valid expression",
       "expression": ["list", "equals", 1, 1],
       "expects": ["equals", 1, 1]

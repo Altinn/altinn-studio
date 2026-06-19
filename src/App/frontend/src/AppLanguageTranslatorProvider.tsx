@@ -7,13 +7,14 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export function AppLanguageTranslatorProvider({ children }: PropsWithChildren) {
-  const { lang, langAsString } = useLanguage();
+  const { lang, langAsString, langAsNonProcessedString } = useLanguage();
   const currentLanguage = useCurrentLanguage();
 
   return (
     <LanguageTranslatorProvider
       lang={lang}
       langAsString={langAsString}
+      langAsNonProcessedString={langAsNonProcessedString}
       currentLanguage={currentLanguage}
     >
       {children}
