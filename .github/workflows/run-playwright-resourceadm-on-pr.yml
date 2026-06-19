@@ -17,7 +17,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Playwright (${{ matrix.studio-oidc-mode && 'StudioOidc' || 'GiteaOidc' }})
     timeout-minutes: 25
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +61,7 @@ jobs:
         env:
           environment: local
         run: |
-          yarn resourceadm:setup:playwright
+          yarn resourceadm:setup:local:env
           yarn resourceadm:playwright:test:all
 
       - name: Store artifacts
