@@ -1,11 +1,11 @@
-name: Resource admin playwright tests on pr
+name: Designer Frontend Resourceadm - Playwright tests on PR
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/resourceadm/**'
-      - '.github/workflows/run-playwright-resourceadm-on-pr.yaml'
+      - '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml'
   workflow_dispatch:
 
 concurrency:
@@ -17,7 +17,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Playwright (${{ matrix.studio-oidc-mode && 'StudioOidc' || 'GiteaOidc' }})
     timeout-minutes: 25
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +61,7 @@ jobs:
         env:
           environment: local
         run: |
-          yarn resourceadm:setup:playwright
+          yarn resourceadm:setup:local:env
           yarn resourceadm:playwright:test:all
 
       - name: Store artifacts
