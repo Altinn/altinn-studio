@@ -95,6 +95,8 @@ src/cli/**/dockerfile*                                          @altinn/team-alt
 src/cli/**/global.json                                          @altinn/team-altinn-studio-kjoring
 src/cli/**/go.mod                                               @altinn/team-altinn-studio-kjoring
 src/cli/**/go.sum                                               @altinn/team-altinn-studio-kjoring
+src/Designer/development/fake-ansattporten/**/Dockerfile*       @altinn/team-altinn-studio-kjoring
+src/Designer/development/fake-ansattporten/**/go.mod            @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/docker-compose.*.yml                         @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/Dockerfile*                                  @altinn/team-altinn-studio-kjoring
 src/gitea-runner/**/Dockerfile*                                 @altinn/team-altinn-studio-kjoring
