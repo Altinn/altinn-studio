@@ -39,6 +39,8 @@
         { "$ref": "#/definitions/strict-string" },
         { "$ref": "#/definitions/strict-boolean" },
         { "$ref": "#/definitions/strict-number" },
+        { "$ref": "#/definitions/strict-list" },
+        { "$ref": "#/definitions/strict-object" },
         { "$ref": "#/definitions/func-if" },
         { "$ref": "#/definitions/func-component" },
         { "$ref": "#/definitions/func-dataModel" },
