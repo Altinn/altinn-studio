@@ -370,6 +370,65 @@ describe('ScopeList', () => {
     );
   });
 
+  it('should call updateSelectedMaskinportenScopes without unchecked scopes when completing the dialog', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    await user.click(within(dialog).getByRole('checkbox', { name: scopeMock3.scope }));
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: textMock('app_settings.maskinporten_add_scope_dialog_done'),
+      }),
+    );
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [scopeMock4],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should select and deselect filtered scopes with the select all checkbox', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    const selectAllCheckbox = within(dialog).getByRole('checkbox', {
+      name: textMock('app_settings.maskinporten_select_all_scopes'),
+    });
+
+    await user.click(selectAllCheckbox);
+
+    expect(within(dialog).getByRole('checkbox', { name: scopeMock1.scope })).toBeChecked();
+    expect(within(dialog).getByRole('checkbox', { name: scopeMock2.scope })).toBeChecked();
+
+    await user.click(selectAllCheckbox);
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: textMock('app_settings.maskinporten_add_scope_dialog_done'),
+      }),
+    );
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [scopeMock4],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
   it('should use updated selected scopes when completing the dialog after selected scopes change', async () => {
     const user = userEvent.setup();
     const { renderResult } = renderScopeList({
