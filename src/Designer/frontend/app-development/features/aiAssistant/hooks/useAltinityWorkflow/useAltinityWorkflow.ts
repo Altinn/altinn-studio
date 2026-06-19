@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type {
   UserMessage,
   AssistantMessage,
@@ -53,7 +53,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
-  const registeredThreadIds = useRef<Set<string>>(new Set());
 
   const {
     selectedThreadId,
@@ -74,15 +73,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       return { ...prev, [threadId]: { ...prevWorkflowStatus, message: statusMessage } };
     });
   }, []);
-
-  const ensureSessionRegistered = useCallback(
-    async (threadId: string): Promise<void> => {
-      if (registeredThreadIds.current.has(threadId)) return;
-      await registerSession(org, app, threadId);
-      registeredThreadIds.current.add(threadId);
-    },
-    [registerSession, org, app],
-  );
 
   const markWorkflowCompleted = useCallback(
     (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
@@ -267,7 +257,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       }
 
       try {
-        await ensureSessionRegistered(threadId);
+        await registerSession(org, app, threadId);
       } catch (error) {
         console.error('Failed to register session for thread:', error);
         setWorkflowStatus(threadId, { isActive: false });
@@ -279,7 +269,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [
       selectedThreadId,
       createThread,
-      ensureSessionRegistered,
+      registerSession,
+      org,
+      app,
       runWorkflowForSession,
       selectThread,
       setWorkflowStatus,
