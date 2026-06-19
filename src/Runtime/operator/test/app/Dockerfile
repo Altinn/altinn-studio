@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:608d8a4b570b88bd8b1fbb792f00cee88d557eee3a56ebf06b359fdea05a50ed AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:d9f4f4a5d99a43799b500ee1365c370e3233822fbe7d43666715d9b5b5cda2ab AS build
 WORKDIR /App
 
 COPY /App/App.csproj .
