@@ -24,7 +24,7 @@ export const SettingsNavigation = (): ReactElement => {
 
   const hiddenTasks = getHiddenTasks({ taskNavigationGroups, layoutSets });
   const allTasks = [...taskNavigationGroups, ...hiddenTasks];
-  console.log(allTasks);
+
   return (
     <div className={classes.navigationSettingsWrapper}>
       <div className={classes.navigationTabContent}>
