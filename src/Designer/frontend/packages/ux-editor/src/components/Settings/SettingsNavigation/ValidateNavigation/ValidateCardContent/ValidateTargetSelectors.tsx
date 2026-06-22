@@ -4,8 +4,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
 import { getAvailablePages, getAvailableTasks } from '../utils/ValidateNavigationUtils';
-import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
-import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
+import { useValidationOnNavigationQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationQuery';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 
 type RenderTaskOptionsProps = {
   tasksWithRules?: string[];
@@ -65,7 +65,11 @@ export const TasksSelector = ({
 }: TasksSelectorProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: settings } = useValidationOnNavigationGroupedSettingsQuery(org, app);
+  const { data: settings } = useValidationOnNavigationQuery(
+    org,
+    app,
+    ValidationOnNavigationLevel.LayoutSets,
+  );
   const tasksWithRules = settings?.flatMap((config) => config.tasks) ?? [];
   const selectedTasksValues = selectedTasks.map((task) => task.value);
   const initialSelectedTasksValues = initialSelectedTasks?.map((task) => task.value) || [];
@@ -105,7 +109,11 @@ export const PagesSelector = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
-  const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
+  const { data: pageValidationData } = useValidationOnNavigationQuery(
+    org,
+    app,
+    ValidationOnNavigationLevel.Pages,
+  );
 
   const configsForTask = (pageValidationData ?? []).filter((config) => config.task === taskName);
 

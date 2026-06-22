@@ -3,16 +3,14 @@ import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
-import { useSaveValidationOnNavigationLayoutSets } from '@altinn/ux-editor/hooks/mutations/useSaveValidationOnNavigationLayoutSets';
-import { useDeleteValidationOnNavigationLayoutSets } from '@altinn/ux-editor/hooks/mutations/useDeleteValidationOnNavigationLayoutSets';
-import { useValidationOnNavigationLayoutSetsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationLayoutSetsQuery';
+import { useValidationOnNavigationQuery } from '../../../../../hooks/queries/useValidationOnNavigationQuery';
+import { useValidationOnNavigationMutation } from '../../../../../hooks/mutations/useValidationOnNavigationMutation';
 
 export const ValidateAllTasksConfig = () => {
   const { org, app } = useStudioEnvironmentParams();
 
-  const { data: externalConfig } = useValidationOnNavigationLayoutSetsQuery(org, app);
-  const { mutate: updateExternalConfig } = useSaveValidationOnNavigationLayoutSets(org, app);
-  const { mutate: deleteExternalConfig } = useDeleteValidationOnNavigationLayoutSets(org, app);
+  const { data: externalConfig } = useValidationOnNavigationQuery(org, app);
+  const { mutate: updateExternalConfig } = useValidationOnNavigationMutation(org, app);
 
   const internalConfig = useConvertToInternalConfig(externalConfig);
   const handleSave = (updatedConfig: InternalConfigState) => {
@@ -20,7 +18,7 @@ export const ValidateAllTasksConfig = () => {
   };
 
   const handleDelete = () => {
-    deleteExternalConfig();
+    updateExternalConfig({});
   };
 
   return (

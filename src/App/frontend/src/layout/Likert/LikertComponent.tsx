@@ -1,13 +1,12 @@
 import React from 'react';
 
+import { Description, getDescriptionId, getLabelId } from '@app/form-component';
 import { Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import type { PropsFromGenericComponent } from '..';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { Description } from 'src/components/form/Description';
-import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';

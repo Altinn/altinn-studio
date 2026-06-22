@@ -1,5 +1,3 @@
-import path from 'path';
-
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
 import { changeToLang } from 'test/e2e/support/lang';
@@ -110,8 +108,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.downloadAttachment).click();
     cy.wait('@downloadAttachment');
 
-    const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'test.pdf');
+    const downloadedFilename = `${Cypress.config('downloadsFolder')}/test.pdf`;
     cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer?.length).equal(299));
   });
 
@@ -168,8 +165,7 @@ describe('UI Components', () => {
 
     cy.get(appFrontend.changeOfName.downloadAttachment).click();
 
-    const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'test.pdf');
+    const downloadedFilename = `${Cypress.config('downloadsFolder')}/test.pdf`;
 
     cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer.length).equal(299));
   });
