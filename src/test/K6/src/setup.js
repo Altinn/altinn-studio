@@ -4,8 +4,14 @@ import * as config from './config.js';
 import * as headers from './buildrequestheaders.js';
 import { getParties } from './api/platform/authorization/authorization.js';
 import { addErrorCount, stopIterationOnFail } from './errorcounter.js';
+import { convertMaskinPortenToken } from './api/platform/authentication.js';
+import { generateToken } from './api/altinn-testtools/token-generator.js';
 
 const environment = __ENV.env.toLowerCase();
+const tokenGeneratorUserName = __ENV.tokengenuser;
+const tokenGeneratorUserPwd = __ENV.tokengenuserpwd;
+const scopes = __ENV.scopes;
+const maskinPortenToken = __ENV.maskinporten;
 
 //Request to Authenticate an user with Altinn userName and password and returns ASPXAUTH Cookie
 export function authenticateUser(userName, userPassword) {
@@ -153,6 +159,25 @@ export function clearCookies() {
   var jar = http.cookieJar();
   jar.set('https://' + config.baseUrl, 'AltinnStudioRuntime', 'test', { expires: 'Mon, 02 Jan 2010 15:04:05 MST' });
   jar.set('https://' + config.baseUrl, config.authCookieName, 'test', { expires: 'Mon, 02 Jan 2010 15:04:05 MST' });
+}
+
+/**
+ * generate an altinn token for TTD based on the environment
+ * use exchange token if prod, and altinnTestTools for test environments
+ * @returns altinn token with the scopes for an org/appowner
+ */
+export function getAltinnTokenForTTD() {
+  if (environment === 'prod') {
+    return convertMaskinPortenToken(maskinPortenToken, 'true');
+  } else {
+    var queryParams = {
+      env: environment,
+      scopes: scopes,
+      org: 'ttd',
+      orgNo: '991825827',
+    };
+    return generateToken('enterprise', tokenGeneratorUserName, tokenGeneratorUserPwd, queryParams);
+  }
 }
 
 export function getSBLBuildVersion() {
