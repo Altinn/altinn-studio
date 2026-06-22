@@ -155,10 +155,3 @@ function BackendError(): React.ReactElement {
     </StudioDetails.Content>
   );
 }
-
-const fileStateToClassMap: Record<FileState, string | null> = {
-  added: classes.added,
-  changed: classes.changed,
-  saved: null,
-  withProblem: null,
-};
