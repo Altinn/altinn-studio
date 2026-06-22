@@ -20,6 +20,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -29,19 +30,25 @@ public class UiFoldersService : IUiFoldersService
     private readonly IProcessModelingService _processModelingService;
     private readonly IPublisher _publisher;
     private readonly ILogger<UiFoldersService> _logger;
+    private readonly IAppVersionService _appVersionService;
+    private readonly IAppDevelopmentService _appDevelopmentService;
     private const string LayoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
 
     public UiFoldersService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IProcessModelingService processModelingService,
         IPublisher publisher,
-        ILogger<UiFoldersService> logger
+        ILogger<UiFoldersService> logger,
+        IAppVersionService appVersionService,
+        IAppDevelopmentService appDevelopmentService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _processModelingService = processModelingService;
         _publisher = publisher;
         _logger = logger;
+        _appVersionService = appVersionService;
+        _appDevelopmentService = appDevelopmentService;
     }
 
     private AltinnAppGitRepository GetRepository(
@@ -58,6 +65,19 @@ public class UiFoldersService : IUiFoldersService
         );
     }
 
+    private bool IsV9App(AltinnRepoEditingContext editingContext)
+    {
+        try
+        {
+            SemanticVersion version = _appVersionService.GetAppLibVersion(editingContext);
+            return version.Major >= 9;
+        }
+        catch (FileNotFoundException)
+        {
+            return true;
+        }
+    }
+
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
         definitions.Process.Tasks.Any(task => task.Id == taskId);
 
@@ -66,8 +86,16 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+        if (!IsV9App(editingContext))
+        {
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                editingContext,
+                cancellationToken
+            );
+            return layoutSetsModel.Sets.Select(s => s.ToDto());
+        }
 
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
         return [.. layoutSetInfos.Select(ToLayoutSetDto)];
     }
 
@@ -77,7 +105,6 @@ public class UiFoldersService : IUiFoldersService
     )
     {
         List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
-
         return
         [
             .. layoutSetInfos.Select(info =>
@@ -146,6 +173,16 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
+        if (!IsV9App(editingContext))
+        {
+            await _appDevelopmentService.AddLayoutSet(editingContext, newLayoutSet, taskType, cancellationToken);
+            await _publisher.Publish(
+                new LayoutSetCreatedEvent { EditingContext = editingContext, LayoutSet = newLayoutSet },
+                cancellationToken
+            );
+            return await GetLayoutSets(editingContext, cancellationToken);
+        }
+
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSet.Id, cancellationToken);
@@ -176,6 +213,26 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
+        if (!IsV9App(editingContext))
+        {
+            await _appDevelopmentService.UpdateLayoutSetName(
+                editingContext,
+                oldLayoutSetName,
+                newLayoutSetName,
+                cancellationToken
+            );
+            await _publisher.Publish(
+                new LayoutSetIdChangedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSetName = oldLayoutSetName,
+                    NewLayoutSetName = newLayoutSetName,
+                },
+                cancellationToken
+            );
+            return await GetLayoutSets(editingContext, cancellationToken);
+        }
+
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         ValidateLayoutSetName(oldLayoutSetName);
@@ -243,6 +300,16 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
+        if (!IsV9App(editingContext))
+        {
+            await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetToDeleteId, cancellationToken);
+            await _publisher.Publish(
+                new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetToDeleteId },
+                cancellationToken
+            );
+            return await GetLayoutSets(editingContext, cancellationToken);
+        }
+
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         ValidateLayoutSetName(layoutSetToDeleteId);
