@@ -22,7 +22,8 @@ public class AltinityProxyHubTests
     private const string TestDeveloper = "testUser";
     private const string TestOrg = "ttd";
     private const string TestApp = "test-app";
-    private const string TestConnectionId = "connection-1";
+
+    private readonly string _testConnectionId = Guid.NewGuid().ToString();
 
     private readonly Mock<IChatService> _chatServiceMock = new();
     private readonly Mock<IAltinityWebSocketService> _webSocketServiceMock = new();
@@ -130,7 +131,7 @@ public class AltinityProxyHubTests
         );
 
         var hubCallerContext = new Mock<HubCallerContext>();
-        hubCallerContext.Setup(c => c.ConnectionId).Returns(TestConnectionId);
+        hubCallerContext.Setup(c => c.ConnectionId).Returns(_testConnectionId);
         hub.Context = hubCallerContext.Object;
 
         return hub;
