@@ -10,8 +10,10 @@ export interface IComponentStructureProps {
   innerGrid?: IGridStyling;
   /** Grid sizing for the validation messages. */
   validationGrid?: IGridStyling;
+  /** Class name for the outer container element. */
   className?: string;
-  style?: React.CSSProperties;
+  /** Inline style for the inner content wrapper (the element wrapping the children). */
+  contentStyle?: React.CSSProperties;
   /** Validation messages to render. When provided, a dedicated validation area is rendered. */
   validationMessages?: ReactNode;
 }
@@ -58,7 +60,7 @@ export function ComponentStructure({
   innerGrid,
   validationGrid,
   className,
-  style,
+  contentStyle,
   validationMessages,
   children,
 }: PropsWithChildren<IComponentStructureProps>) {
@@ -69,7 +71,7 @@ export function ComponentStructure({
 
   return (
     <Flex id={id} className={className} size={{ xs: 12, ...containerSpan }} item container>
-      <Flex item size={{ xs: 12, ...innerSpan }} style={style}>
+      <Flex item size={{ xs: 12, ...innerSpan }} style={contentStyle}>
         {children}
       </Flex>
       {validationMessages && (

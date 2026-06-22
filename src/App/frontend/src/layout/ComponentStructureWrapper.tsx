@@ -30,7 +30,7 @@ export function ComponentStructureWrapper({
       innerGrid={innerGrid}
       validationGrid={validationGrid}
       className={className}
-      style={style}
+      contentStyle={style}
       validationMessages={
         showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
       }
