@@ -60,7 +60,7 @@ export function areFileMapsEqual(map1: CodeListFileMap, map2: CodeListFileMap): 
       const file2 = map2.get(key);
       Guard.againstUndefined(file1);
       Guard.againstUndefined(file2);
-      return areFilesEqualIfNoError(file1, file2);
+      return areFilesEqualOrUncomparable(file1, file2);
     })
   );
 }
@@ -71,7 +71,7 @@ function areFileKeysEqual(map1: CodeListFileMap, map2: CodeListFileMap): boolean
   return ArrayUtils.arraysEqualUnordered(keysMap1, keysMap2);
 }
 
-function areFilesEqualIfNoError(file1: CodeListFile, file2: CodeListFile): boolean {
+function areFilesEqualOrUncomparable(file1: CodeListFile, file2: CodeListFile): boolean {
   return hasProblem(file1) || hasProblem(file2) || areFilesEqual(file1, file2);
 }
 

@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
 
-import { Flex, HelpTextContainer, Input, Label } from '@app/form-component';
+import { Flex, HelpTextContainer, Input, Label, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 
-import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';

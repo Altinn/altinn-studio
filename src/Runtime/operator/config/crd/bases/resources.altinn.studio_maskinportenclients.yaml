@@ -153,6 +153,15 @@ spec:
                 items:
                   type: string
                 type: array
+              lastSecretRotationRestartedAt:
+                description: LastSecretRotationRestartedAt is when the latest Maskinporten
+                  compatibility rollout was triggered.
+                format: date-time
+                type: string
+              lastSecretRotationRestartedFingerprint:
+                description: LastSecretRotationRestartedFingerprint identifies the
+                  latest rotated secret version that triggered an app rollout.
+                type: string
               lastSynced:
                 description: LastSynced is the timestamp of the last successful sync
                   towards Maskinporten API
@@ -161,6 +170,15 @@ spec:
               observedGeneration:
                 format: int64
                 type: integer
+              pendingSecretRotationDetectedAt:
+                description: PendingSecretRotationDetectedAt is when the pending rotated
+                  secret was observed.
+                format: date-time
+                type: string
+              pendingSecretRotationFingerprint:
+                description: PendingSecretRotationFingerprint identifies a rotated
+                  Maskinporten secret that still needs an app rollout.
+                type: string
             type: object
         type: object
     served: true
