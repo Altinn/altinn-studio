@@ -26,8 +26,6 @@ export type ServicesContextProviderProps = ServicesContextProps & {
   clientConfig?: QueryClientConfig;
 };
 
-const LOG_OUT_TIMER_MS = 5000;
-
 const ServicesContext = createContext<ServicesContextProps>(undefined);
 
 const handleError = (
@@ -69,6 +67,13 @@ const handleError = (
 
   const errorCode = error?.response?.data?.errorCode;
   const detail = error?.response?.data?.detail;
+  const isSessionExpiredError =
+    error?.response?.status === ServerCodes.Unauthorized &&
+    errorCode === ApiErrorCodes.SessionExpired;
+
+  if (isSessionExpiredError) {
+    window.location.assign(userLogoutAfterPath());
+  }
 
   if (
     meta?.hideDefaultError === true ||
