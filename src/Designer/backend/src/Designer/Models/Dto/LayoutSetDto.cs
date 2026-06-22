@@ -19,7 +19,7 @@ public class LayoutSetDto
 
     [JsonPropertyName("task")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public TaskModel TaskType { get; set; }
+    public TaskModel Task { get; set; }
 
     [JsonPropertyName("pageCount")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
