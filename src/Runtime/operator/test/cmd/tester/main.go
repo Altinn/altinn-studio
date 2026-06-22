@@ -13,6 +13,7 @@ import (
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 )
@@ -127,37 +128,11 @@ func envtestAssetsPath(ctx context.Context, projectRoot, envtestK8sVersion strin
 }
 
 func findProjectRoot() (string, error) {
-	basePath, err := os.Getwd()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return "", fmt.Errorf("find project root: %w", err)
 	}
-
-	for range 100 {
-		if isOperatorProjectRoot(basePath) {
-			return basePath, nil
-		}
-
-		parentPath := filepath.Dir(basePath)
-		if parentPath == basePath {
-			return "", fmt.Errorf("find project root: reached root of file system")
-		}
-		basePath = parentPath
-	}
-
-	return "", fmt.Errorf("find project root: reached max directory traversal")
-}
-
-func isOperatorProjectRoot(dir string) bool {
-	for _, marker := range []string{
-		"PROJECT",
-		filepath.Join("config", "crd"),
-		filepath.Join("cmd", "main.go"),
-	} {
-		if _, err := os.Stat(filepath.Join(dir, marker)); err != nil {
-			return false
-		}
-	}
-	return true
+	return root, nil
 }
 
 func listNonE2EPackages(ctx context.Context, projectRoot string) ([]string, error) {

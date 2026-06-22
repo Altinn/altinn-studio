@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 )
 
@@ -165,35 +166,9 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 }
 
 func FindProjectRoot() (string, error) {
-	basePath, err := os.Getwd()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
-		return "", fmt.Errorf("get working directory: %w", err)
+		return "", fmt.Errorf("find project root: %w", err)
 	}
-
-	for range 100 {
-		if isOperatorProjectRoot(basePath) {
-			return basePath, nil
-		}
-
-		parentPath := filepath.Dir(basePath)
-		if parentPath == basePath {
-			return "", fmt.Errorf("reached root of file system")
-		}
-		basePath = parentPath
-	}
-
-	return "", fmt.Errorf("reached max directory traversal")
-}
-
-func isOperatorProjectRoot(dir string) bool {
-	for _, marker := range []string{
-		"PROJECT",
-		filepath.Join("config", "crd"),
-		filepath.Join("cmd", "main.go"),
-	} {
-		if _, err := os.Stat(filepath.Join(dir, marker)); err != nil {
-			return false
-		}
-	}
-	return true
+	return root, nil
 }

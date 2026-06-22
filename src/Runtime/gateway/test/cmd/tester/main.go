@@ -14,6 +14,7 @@ import (
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 )
@@ -21,7 +22,6 @@ import (
 const (
 	cachePath              = ".cache"
 	startCommandArgCount   = 3
-	projectRootSearchDepth = 10
 	exitCodeCanceled       = 130
 	graphApplyDurationStep = 10 * time.Millisecond
 )
@@ -432,36 +432,11 @@ func closeRuntimeBestEffort(runtime *kind.KindContainerRuntime) {
 }
 
 func findProjectRoot() (string, error) {
-	dir, err := os.Getwd()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
-		return "", fmt.Errorf("get working directory: %w", err)
+		return "", fmt.Errorf("find project root: %w", err)
 	}
-
-	for range projectRootSearchDepth {
-		if isGatewayProjectRoot(dir) {
-			return dir, nil
-		}
-
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-		dir = parent
-	}
-	return "", fmt.Errorf("gateway project root not found within %d parent directories: %w", projectRootSearchDepth, os.ErrNotExist)
-}
-
-func isGatewayProjectRoot(dir string) bool {
-	for _, marker := range []string{
-		"Altinn.Studio.Gateway.slnx",
-		filepath.Join("infra", "kustomize"),
-		filepath.Join("src", "Altinn.Studio.Gateway.Api"),
-	} {
-		if _, err := os.Stat(filepath.Join(dir, marker)); err != nil {
-			return false
-		}
-	}
-	return true
+	return root, nil
 }
 
 func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {

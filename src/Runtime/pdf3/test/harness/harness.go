@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/pdf3/internal/assert"
 	ptesting "altinn.studio/pdf3/internal/testing"
@@ -260,50 +261,15 @@ func RequestPDFWithHost(
 
 var projectRoot string
 
-// FindProjectRoot searches upward for the pdf3 project root.
-// It starts from the current working directory and checks up to maxIterations parent directories.
 func FindProjectRoot() (string, error) {
 	if projectRoot != "" {
 		return projectRoot, nil
 	}
 
-	const maxIterations = 10
-
-	// Get current working directory
-	dir, err := os.Getwd()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
-		return "", fmt.Errorf("get working directory: %w", err)
+		return "", fmt.Errorf("%w: %w", errProjectRootNotFound, err)
 	}
-
-	// Track the previous directory to detect when we've reached the filesystem root
-	prevDir := ""
-
-	for range maxIterations {
-		if isProjectRoot(dir) {
-			projectRoot = dir
-			return dir, nil
-		}
-
-		// Move to parent directory
-		parentDir := filepath.Dir(dir)
-
-		// Check if we've reached the filesystem root (dir == parentDir on Unix, or checking against previous)
-		if parentDir == dir || parentDir == prevDir {
-			return "", fmt.Errorf("%w: reached filesystem root without finding go.mod", errProjectRootNotFound)
-		}
-
-		prevDir = dir
-		dir = parentDir
-	}
-
-	return "", fmt.Errorf("%w: exceeded maximum iterations searching for go.mod", errProjectRootNotFound)
-}
-
-func isProjectRoot(dir string) bool {
-	for _, marker := range []string{"Dockerfile.proxy", "Dockerfile.worker", "infra/kustomize"} {
-		if _, err := os.Stat(filepath.Join(dir, marker)); err != nil {
-			return false
-		}
-	}
-	return true
+	projectRoot = root
+	return root, nil
 }
