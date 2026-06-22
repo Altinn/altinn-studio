@@ -32,7 +32,7 @@ export const getLayoutSetTypeTranslationKey = (
 
   const taskType = getTaskType(layoutSet);
 
-  if (taskType === '' && layoutSet.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT) {
+  if (taskType === '' && getTaskId(layoutSet) === PROTECTED_TASK_NAME_CUSTOM_RECEIPT) {
     return 'process_editor.configuration_panel_custom_receipt_accordion_header';
   }
   if (taskType) {
@@ -51,4 +51,12 @@ const getTaskType = (layoutSet: LayoutSetModel | UiFolderLayoutSetModel): string
     return layoutSet.taskType;
   }
   return '';
+};
+
+const getTaskId = (layoutSet: LayoutSetModel | UiFolderLayoutSetModel): string | undefined => {
+  if ('task' in layoutSet) {
+    return layoutSet.task?.id;
+  }
+
+  return layoutSet.id;
 };

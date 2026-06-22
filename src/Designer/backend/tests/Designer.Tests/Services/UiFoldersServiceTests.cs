@@ -67,7 +67,7 @@ public class UiFoldersServiceTests : IDisposable
             editingContext,
             CancellationToken.None
         );
-        LayoutSetDto layoutSet = result.Single(dto => dto.Id == "Task_1");
+        UiFolderLayoutSetDto layoutSet = result.Single(dto => dto.Id == "Task_1");
 
         // Assert
         Assert.Equal("myModel", layoutSet.DataType);
