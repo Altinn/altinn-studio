@@ -67,6 +67,7 @@ fmt: golangci-lint ## Format code (CSharpier + golangci-lint)
 
 tidy: ## Tidy go modules
 	@echo "Tidying go modules..."
+	@go mod tidy
 	@cd test && go mod tidy
 	@echo "✓ Modules tidied"
 
