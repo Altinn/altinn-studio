@@ -21,7 +21,9 @@ describe('Redirect', () => {
     cy.get('@instantiate.all').should('have.length', 1);
   });
 
-  it('User with too low authentication level is redirected to step-up authentication instead of the error page', () => {
+  // TODO - This test is currently skipped as the log-in flow is not currently implemented in localtest
+  // Task: https://github.com/Altinn/app-localtest/issues/216
+  it.skip('User with too low authentication level is redirected to step-up authentication instead of the error page', () => {
     cy.allowFailureOnEnd();
 
     cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
