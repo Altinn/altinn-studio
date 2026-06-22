@@ -126,7 +126,6 @@ describe('SchemaInspector', () => {
     await user.click(getFieldsTab());
     await user.click(screen.getByDisplayValue('abc'));
     await user.keyboard('{Enter}');
-    // eslint-disable-next-line testing-library/no-unnecessary-act
 
     // eslint-disable-next-line testing-library/await-async-utils
     waitFor(() => {

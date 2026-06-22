@@ -42,3 +42,16 @@ function codeListFileContentToData(fileContent: string): CodeList {
 export function codeListToString(codeList: CodeList): string {
   return JSON.stringify(codeList);
 }
+
+export type FileState = 'saved' | 'changed' | 'added' | 'withProblem';
+
+export function fileState(currentFile: CodeListFile, savedFile: CodeListFile | null): FileState {
+  if (!savedFile) return 'added';
+  else if (!hasContent(savedFile) || !hasContent(currentFile)) return 'withProblem';
+  else if (areFilesEqual(currentFile, savedFile)) return 'saved';
+  else return 'changed';
+}
+
+function areFilesEqual(file1: OrdinaryCodeListFile, file2: OrdinaryCodeListFile): boolean {
+  return file1.name === file2.name && file1.content === file2.content;
+}

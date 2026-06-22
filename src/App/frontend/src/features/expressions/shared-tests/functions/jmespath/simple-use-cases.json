@@ -1,0 +1,150 @@
+{
+  "name": "jmespath",
+  "testCases": [
+    {
+      "name": "Works with a simple property query that returns a string",
+      "expression": ["jmespath", ["object", "name", "Kari"], "name"],
+      "expects": "Kari"
+    },
+    {
+      "name": "Works with a simple property query that returns a number",
+      "expression": ["jmespath", ["object", "ageInYears", 18], "ageInYears"],
+      "expects": 18
+    },
+    {
+      "name": "Works with a simple property query that returns a boolean",
+      "expression": ["jmespath", ["object", "likesIceCream", true], "likesIceCream"],
+      "expects": true
+    },
+    {
+      "name": "Works with a simple property query that returns null",
+      "expression": ["jmespath", ["object", "favouriteColour", null], "favouriteColour"],
+      "expects": null
+    },
+    {
+      "name": "Works with a simple property query that returns an object",
+      "expression": [
+        "jmespath",
+        [
+          "object",
+          "person",
+          [
+            "object",
+            "name", "Kari",
+            "ageInYears", 18,
+            "likesIceCream", true,
+            "favouriteColour", null
+          ]
+        ],
+        "person"
+      ],
+      "expects": {
+        "name": "Kari",
+        "ageInYears": 18,
+        "likesIceCream": true,
+        "favouriteColour": null
+      }
+    },
+    {
+      "name": "Works with a simple property query that returns a list",
+      "expression": [
+        "jmespath",
+        [
+          "object",
+          "colours",
+          ["list", "red", "green", "blue"]
+        ],
+        "colours"
+      ],
+      "expects": ["red", "green", "blue"]
+    },
+    {
+      "name": "Works with a simple property query on a list of objects",
+      "expression": [
+        "jmespath",
+        [
+          "list",
+          ["object", "name", "Ola", "ageInYears", 30],
+          ["object", "name", "Kari", "ageInYears", 18],
+          ["object", "name", "Knut", "ageInYears", 16]
+        ],
+        "[].name"
+      ],
+      "expects": ["Ola", "Kari", "Knut"]
+    },
+    {
+      "name": "Works with filtering",
+      "expression": [
+        "jmespath",
+        [
+          "list",
+          ["object", "name", "Ola", "ageInYears", 30],
+          ["object", "name", "Kari", "ageInYears", 18],
+          ["object", "name", "Knut", "ageInYears", 16]
+        ],
+        "[?ageInYears>=`18`].name"
+      ],
+      "expects": ["Ola", "Kari"]
+    },
+    {
+      "name": "Works with the current-node token",
+      "expression": ["jmespath", ["list", "something"], "@"],
+      "expects": ["something"]
+    },
+    {
+      "name": "Works with literal expressions",
+      "expression": ["jmespath", ["object"], "'Lorem ipsum'"],
+      "expects": "Lorem ipsum"
+    },
+    {
+      "name": "Works with functions",
+      "expression": ["jmespath", ["object"], "abs(`-1`)"],
+      "expects": 1
+    },
+    {
+      "name": "Returns null when no results are found",
+      "expression": ["jmespath", ["object", "name", "Kari", "ageInYears", 18], "city"],
+      "expects": null
+    },
+    {
+      "name": "Accepts string input",
+      "expression": ["jmespath", "This is a string", "@"],
+      "expects": "This is a string"
+    },
+    {
+      "name": "Accepts number input",
+      "expression": ["jmespath", 12, "@"],
+      "expects": 12
+    },
+    {
+      "name": "Accepts boolean input",
+      "expression": ["jmespath", true, "@"],
+      "expects": true
+    },
+    {
+      "name": "Accepts null input",
+      "expression": ["jmespath", null, "@"],
+      "expects": null
+    },
+    {
+      "name": "Fails when query is invalid",
+      "expression": ["jmespath", ["object", "name", "Kari", "ageInYears", 18], "#"],
+      "expectsFailure": "Jmespath error"
+    },
+    {
+      "name": "Fails when no arguments are present",
+      "expression": ["jmespath"],
+      "expectsFailure": "Expected 2 argument(s), got 0"
+    },
+    {
+      "name": "Fails when the query is null",
+      "expression": ["jmespath", ["object"], null],
+      "expectsFailure": "Expected argument to be string"
+    },
+    {
+      "name": "Fails when the query is neither a string nor null",
+      "expression": ["jmespath", ["object", "name", "Kari", "ageInYears", 18], ["object"]],
+      "expectsFailure": "Expected argument to be string"
+    }
+  ]
+}

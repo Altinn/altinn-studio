@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { CodeListsPage } from './CodeListsPage';
 import type { CodeListsPageProps } from './CodeListsPage';
@@ -8,10 +8,11 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { codeLists, coloursFile } from './test-data/codeLists';
 import { screen, within } from '@studio/ui-test';
 import { FileNameUtils } from '@studio/pure-functions';
+import type { CodeListFile } from '../../../types/CodeListFile';
 
 // Test data:
 const onPublish = jest.fn();
-const onSave = jest.fn();
+const onSave = jest.fn<Promise<void>, [CodeListFile[]]>(async () => {});
 const defaultProps: CodeListsPageProps = {
   codeLists,
   isPublishing: jest.fn().mockReturnValue(false),
@@ -103,6 +104,42 @@ describe('CodeListsPage', () => {
     const expectedMessage = textMock('app_content_library.code_lists.error.missing_name');
     expect(screen.getByText(expectedMessage)).toBeInTheDocument();
   });
+
+  it('Does not display any save button when there are no changes', () => {
+    renderCodeListPage();
+    expect(querySaveButton()).not.toBeInTheDocument();
+  });
+
+  it('Makes the save button disappear after saving changes', async () => {
+    const user = userEvent.setup();
+    renderCodeListPage();
+
+    const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
+    const newName = 'a';
+    await user.clear(nameField);
+    await user.type(nameField, newName);
+    await saveCodeLists(user);
+
+    await waitFor(() => expect(querySaveButton()).not.toBeInTheDocument());
+  });
+
+  it('Displays an error message when the saving request fails', async () => {
+    const user = userEvent.setup();
+    const failingOnSave = jest.fn<Promise<void>, [CodeListFile[]]>(async () => Promise.reject());
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    renderCodeListPage({ onSave: failingOnSave });
+
+    const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
+    const newName = 'a';
+    await user.clear(nameField);
+    await user.type(nameField, newName);
+    await saveCodeLists(user);
+
+    const expectedMessage = textMock('app_content_library.code_lists.save.error');
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+
+    consoleError.mockRestore();
+  });
 });
 
 function renderCodeListPage(props?: Partial<CodeListsPageProps>): RenderResult {
@@ -120,3 +157,6 @@ function getNameField(name: string): HTMLElement {
   const nameLabel = textMock('app_content_library.code_lists.name');
   return within(details).getByRole('textbox', { name: nameLabel });
 }
+
+const querySaveButton = (): HTMLElement | null =>
+  screen.queryByRole('button', { name: textMock('general.save') });

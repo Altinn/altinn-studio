@@ -6,8 +6,10 @@ import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
+import { JmespathFunctionEvaluator } from 'src/features/expressions/function-evaluators/JmespathFunctionEvaluator';
+import { ObjectFunctionEvaluator } from 'src/features/expressions/function-evaluators/ObjectFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
-import { addError } from 'src/features/expressions/validation';
+import { addError, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
@@ -20,6 +22,8 @@ import type {
   ExprFunctionName,
   ExprFunctions,
   ExprValToActual,
+  ValidObject,
+  ValidValue,
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -317,6 +321,21 @@ export const ExprFunctionDefinitions = {
   lowerCaseFirst: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: noSources,
+  },
+  list: {
+    args: args(rest(ExprVal.Any)),
+    returns: ExprVal.List,
+    needs: noSources,
+  },
+  object: {
+    args: args(rest(ExprVal.Any)),
+    returns: ExprVal.Object,
+    needs: noSources,
+  },
+  jmespath: {
+    args: args(required(ExprVal.Any), required(ExprVal.String)),
+    returns: ExprVal.Any,
     needs: noSources,
   },
   _experimentalSelectAndMap: {
@@ -789,6 +808,15 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     }
     return string.charAt(0).toLowerCase() + string.slice(1);
   },
+  list(...items): ValidValue[] {
+    return items;
+  },
+  object(...argumentList): ValidObject {
+    return new ObjectFunctionEvaluator(this, argumentList).evaluate();
+  },
+  jmespath(...argumentList): ValidValue {
+    return new JmespathFunctionEvaluator(this, argumentList).evaluate();
+  },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
@@ -883,6 +911,13 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
       }
     },
   },
+  object: {
+    validator({ rawArgs, ctx, path }) {
+      if (rawArgs.length % 2 === 1) {
+        addError(ctx, path, 'The object function must have an even number of arguments');
+      }
+    },
+  },
 };
 
 function pickSimpleValue(
@@ -898,7 +933,7 @@ function pickSimpleValue(
   }
 
   const value = params.dataSources.formDataSelector(path);
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (isValidValue(value)) {
     return value;
   }
   return null;
