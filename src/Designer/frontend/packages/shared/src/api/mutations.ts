@@ -86,7 +86,6 @@ import {
   chatMessagesPath,
   chatMessagePath,
   chatFeedbackPath,
-  userLogoutAfterPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';

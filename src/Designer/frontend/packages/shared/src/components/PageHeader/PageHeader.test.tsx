@@ -12,7 +12,6 @@ import {
   ORG_LIBRARY_BASENAME,
 } from 'app-shared/constants';
 
-const mockLogout = jest.fn();
 const mockOrgSelect = jest.fn();
 const mockUserSelect = jest.fn();
 
@@ -33,10 +32,6 @@ const mockUser = {
 jest.mock('@studio/hooks', () => ({
   ...jest.requireActual('@studio/hooks'),
   useMediaQuery: jest.fn(),
-}));
-
-jest.mock('app-shared/hooks/mutations/useLogoutMutation', () => ({
-  useLogoutMutation: () => ({ mutate: mockLogout }),
 }));
 
 jest.mock('app-shared/hooks/queries', () => ({
@@ -74,9 +69,8 @@ describe('PageHeader', () => {
     const settingsLink = screen.getByRole('menuitem', { name: textMock('settings') });
 
     expect(settingsLink).toHaveAttribute('href', '/settings/ttd');
-    expect(
-      screen.getByRole('menuitemradio', { name: textMock('shared.header_logout') }),
-    ).toBeInTheDocument();
+    const logoutLink = screen.getByRole('menuitem', { name: textMock('shared.header_logout') });
+    expect(logoutLink).toHaveAttribute('href', '/Home/Logout');
   });
 
   it('renders org menu items in the profile menu', async () => {
