@@ -11,6 +11,7 @@ import {
   DISPLAY_NAME,
   ORG_LIBRARY_BASENAME,
 } from 'app-shared/constants';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 const mockOrgSelect = jest.fn();
 const mockUserSelect = jest.fn();
@@ -70,7 +71,7 @@ describe('PageHeader', () => {
 
     expect(settingsLink).toHaveAttribute('href', '/settings/ttd');
     const logoutLink = screen.getByRole('menuitem', { name: textMock('shared.header_logout') });
-    expect(logoutLink).toHaveAttribute('href', '/Home/Logout');
+    expect(logoutLink).toHaveAttribute('href', userLogoutAfterPath());
   });
 
   it('renders org menu items in the profile menu', async () => {
