@@ -156,6 +156,24 @@ describe('PageHeader', () => {
     );
   });
 
+  it('uses "self" in nav link hrefs when owner is the current user', () => {
+    render(
+      <MemoryRouter>
+        <PageHeader
+          owner={mockUser.login}
+          onOrgSelect={mockOrgSelect}
+          onUserSelect={mockUserSelect}
+        />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
+    ).toHaveAttribute('href', '/dashboard/app-dashboard/self');
+    expect(
+      screen.getByRole('link', { name: textMock('dashboard.header_item_library') }),
+    ).toHaveAttribute('href', '/dashboard/org-library/self');
+  });
+
   describe('dashboard link active state', () => {
     const appDashboardBasePath = `${DASHBOARD_BASENAME}/${APP_DASHBOARD_BASENAME}`;
 
