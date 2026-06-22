@@ -16,14 +16,14 @@ let pdpInputJson = open('../data/pdpinput.json');
  * @param {*} actionName 'read', 'write', 'sign'
  * @returns the ruleid for the newly added rule
  */
- export function addRulesForTest(altinnToken, performedByUserId, offeredByPartyId, coveredBy, coveredByType, taskName, actionName, appOwner, appName) {
+export function addRulesForTest(altinnToken, performedByUserId, offeredByPartyId, coveredBy, coveredByType, taskName, actionName, appOwner, appName) {
   var policyMatchKeys = {
     coveredBy: 'urn:altinn:' + coveredByType,
     resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
   };
-  
+
   var res = delegation.addRules(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredBy, appOwner, appName, taskName, actionName);
-  
+
   // Assert
   var success = check(res, {
     'Add delegation rule - status is 201': (r) => r.status === 201,
@@ -45,7 +45,16 @@ let pdpInputJson = open('../data/pdpinput.json');
  * @param {*} actionName 'read', 'write', 'sign'
  * @returns the object used to generate policy match in addMultipleRules
  */
- export function generateDataForAddMultipleRules(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, taskName, actionName, appOwnerIn=appOwner, appNameIn=appName) {
+export function generateDataForAddMultipleRules(
+  delegatedByUserId,
+  offeredByPartyId,
+  coveredBy,
+  coveredByType,
+  taskName,
+  actionName,
+  appOwnerIn = appOwner,
+  appNameIn = appName,
+) {
   var policyMatchKeys = {
     coveredBy: 'urn:altinn:' + coveredByType,
     resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
@@ -59,7 +68,7 @@ let pdpInputJson = open('../data/pdpinput.json');
     appOwner: appOwnerIn,
     appName: appNameIn,
     altinnTask: taskName,
-    altinnAction: actionName
+    altinnAction: actionName,
   };
 }
 
@@ -85,7 +94,7 @@ export function checkPDPDecision(offeredByPartyId, coveredBy, taskName, actionNa
     'Get PDP Decision for delegated rule - decision is permit': (r) => r.json('response.0.decision') === expectedDecision,
   });
 
-  if(!success && showResults) {
+  if (!success && showResults) {
     console.log('Expected decision to be ' + expectedDecision + ', but it was not.');
   }
 
@@ -114,17 +123,16 @@ export function deleteAllRules(altinnToken, performedByUserId, offeredByPartyId,
     return;
   }
 
-  res = delegation.deletePolicy(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredBy, appOwner, appName, null);  
+  res = delegation.deletePolicy(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredBy, appOwner, appName, null);
   var success = check(res, {
     'Delete delegated policy with all rules - status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
   sleep(3);
-  
 }
 
 export function minimumSBLVersion(major, minor) {
-  var altinnBuildVersion = setUpData.getSBLBuildVersion(); 
+  var altinnBuildVersion = setUpData.getSBLBuildVersion();
   if (altinnBuildVersion.split('.')[0] >= major && altinnBuildVersion.split('.')[1] >= minor) {
     return true;
   }

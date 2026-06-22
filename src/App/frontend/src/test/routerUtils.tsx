@@ -28,6 +28,7 @@ export function createLoaderFunctionArgs(partialArgs: Partial<LoaderFunctionArgs
     request: partialArgs.request ?? new Request('http://localhost/'),
     params: partialArgs.params ?? {},
     context: partialArgs.context ?? new RouterContextProvider(),
-    unstable_pattern: partialArgs.unstable_pattern ?? '',
+    pattern: partialArgs.pattern ?? '',
+    url: partialArgs.url ?? new URL('http://localhost/'),
   };
 }

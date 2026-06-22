@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -117,37 +119,22 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] List<string>? layoutSets,
-        [FromQuery] List<string>? pages,
+        [FromQuery] ValidationOnNavigationLevel level,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        if (layoutSets == null || layoutSets.Count == 0)
+        return level switch
         {
-            return Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken));
-        }
-
-        if (pages == null || pages.Count == 0)
-        {
-            return Ok(
-                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(
-                    editingContext,
-                    layoutSets,
-                    cancellationToken
-                )
-            );
-        }
-
-        return Ok(
-            await _uiFoldersService.GetPagesValidationOnNavigation(
-                editingContext,
-                layoutSets[0],
-                pages,
-                cancellationToken
-            )
-        );
+            ValidationOnNavigationLevel.Pages => Ok(
+                await _uiFoldersService.GetPagesValidationOnNavigation(editingContext, cancellationToken)
+            ),
+            ValidationOnNavigationLevel.LayoutSets => Ok(
+                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(editingContext, cancellationToken)
+            ),
+            _ => Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken)),
+        };
     }
 
     [HttpPost("settings/validation-on-navigation")]
@@ -155,76 +142,44 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> SaveValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] List<string>? layoutSets,
-        [FromQuery] List<string>? pages,
-        [FromBody] ValidationOnNavigation config,
+        [FromQuery] ValidationOnNavigationLevel level,
+        [FromBody] JsonElement config,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        if (layoutSets == null || layoutSets.Count == 0)
+        try
         {
-            await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
-            return Ok();
+            switch (level)
+            {
+                case ValidationOnNavigationLevel.Pages:
+                    await _uiFoldersService.SavePagesValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<List<PageValidationOnNavigationDto>>() ?? [],
+                        cancellationToken
+                    );
+                    break;
+                case ValidationOnNavigationLevel.LayoutSets:
+                    await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<List<ValidationOnNavigationDto>>() ?? [],
+                        cancellationToken
+                    );
+                    break;
+                default:
+                    await _uiFoldersService.SaveGlobalValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<ValidationOnNavigation>(),
+                        cancellationToken
+                    );
+                    break;
+            }
         }
-
-        if (pages == null || pages.Count == 0)
+        catch (JsonException)
         {
-            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
-                editingContext,
-                layoutSets,
-                config,
-                cancellationToken
-            );
-            return Ok();
+            return BadRequest("Invalid JSON format for the provided configuration.");
         }
-
-        await _uiFoldersService.SavePagesValidationOnNavigation(
-            editingContext,
-            layoutSets[0],
-            pages,
-            config,
-            cancellationToken
-        );
-        return Ok();
-    }
-
-    [HttpDelete("settings/validation-on-navigation")]
-    public async Task<IActionResult> DeleteValidationOnNavigation(
-        string org,
-        string app,
-        [FromQuery] List<string>? layoutSets,
-        [FromQuery] List<string>? pages,
-        CancellationToken cancellationToken
-    )
-    {
-        AltinnRepoEditingContext editingContext = CreateContext(org, app);
-
-        if (layoutSets == null || layoutSets.Count == 0)
-        {
-            await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, null, cancellationToken);
-            return Ok();
-        }
-
-        if (pages == null || pages.Count == 0)
-        {
-            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
-                editingContext,
-                layoutSets,
-                null,
-                cancellationToken
-            );
-            return Ok();
-        }
-
-        await _uiFoldersService.SavePagesValidationOnNavigation(
-            editingContext,
-            layoutSets[0],
-            pages,
-            null,
-            cancellationToken
-        );
         return Ok();
     }
 

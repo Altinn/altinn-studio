@@ -132,8 +132,7 @@ spec:
                         or operation_Name == 'POST Instances/PostSimplified [app/org]'
                         or operation_Name == 'POST {org}/{app}/instances'
                         or operation_Name == 'POST {org}/{app}/instances/create'
-                    | extend instanceId = extract(@'/instances/\d+/([^/]+)', 1, url)
-                    | summarize count() by cloud_RoleName, instanceId
+                    | summarize count() by cloud_RoleName
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series

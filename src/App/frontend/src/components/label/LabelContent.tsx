@@ -1,12 +1,14 @@
 import React, { forwardRef } from 'react';
 
-import { HelpTextContainer } from '@app/form-component';
+import {
+  Description,
+  getDescriptionId,
+  HelpTextContainer,
+  OptionalIndicator,
+  RequiredIndicator,
+} from '@app/form-component';
 import cn from 'classnames';
 
-import { Description } from 'src/components/form/Description';
-import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { getDescriptionId } from 'src/components/label/Label';
 import classes from 'src/components/label/LabelContent.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
