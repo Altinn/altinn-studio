@@ -26,6 +26,7 @@ func (r *deterministicRand) Read(p []byte) (n int, err error) {
 
 	if len(p) == 1 {
 		// Work around randutil.MaybeReadByte, while keeping snapshots deterministic.
+		p[0] = 0
 		return 1, nil
 	}
 

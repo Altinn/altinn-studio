@@ -57,8 +57,8 @@ github.com/cloudnative-pg/cnpg-i v0.3.1 h1:fKj8NoToWI11HUL2UWYJBpkVzmaTvbs3kDMo7
 github.com/cloudnative-pg/cnpg-i v0.3.1/go.mod h1:glRDiJLJY51FY8ScJIv/OkaGJxFnojJkkNAqSy5XC6s=
 github.com/cloudnative-pg/machinery v0.3.3 h1:CaqXqLTJH9RrVv3R/YU0NmFaI/F18HLg2JfH3mQLcDk=
 github.com/cloudnative-pg/machinery v0.3.3/go.mod h1:RYAYlVKBF5pH4mg+Q8wHjNDyENV9ajbkG41zOEf8DEs=
-github.com/containerd/containerd v1.7.30 h1:/2vezDpLDVGGmkUXmlNPLCCNKHJ5BbC5tJB5JNzQhqE=
-github.com/containerd/containerd v1.7.30/go.mod h1:fek494vwJClULlTpExsmOyKCMUAbuVjlFsJQc4/j44M=
+github.com/containerd/containerd v1.7.33 h1:iAkYGC/ifR/V+0eR4iXWHNGYUF0DF2PmGV5iz4Irj5M=
+github.com/containerd/containerd v1.7.33/go.mod h1:gSbSCVjPCdkfJCjyrzz7aRC+xFlqVbatNpfHfVCYGUM=
 github.com/containerd/errdefs v1.0.0 h1:tg5yIfIlQIrxYtu9ajqY42W3lpS19XqdxRQeEwYG8PI=
 github.com/containerd/errdefs v1.0.0/go.mod h1:+YBYIdtsnF4Iw6nWZhJcqGSg/dwvV7tyJ/kCkyJ2k+M=
 github.com/containerd/errdefs/pkg v0.3.0 h1:9IKJ06FvyNlexW690DXuQNx2KA2cUJXx151Xdx3ZPPE=

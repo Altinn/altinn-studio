@@ -44,7 +44,7 @@ require (
 	github.com/cloudnative-pg/barman-cloud v0.4.1-0.20260108104508-ced266c145f5 // indirect
 	github.com/cloudnative-pg/cnpg-i v0.3.1 // indirect
 	github.com/cloudnative-pg/machinery v0.3.3 // indirect
-	github.com/containerd/containerd v1.7.30 // indirect
+	github.com/containerd/containerd v1.7.33 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
