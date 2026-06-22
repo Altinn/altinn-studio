@@ -438,10 +438,8 @@ func findProjectRoot() (string, error) {
 	}
 
 	for range projectRootSearchDepth {
-		if _, statErr := os.Stat(filepath.Join(dir, "go.mod")); statErr == nil {
+		if isGatewayProjectRoot(dir) {
 			return dir, nil
-		} else if !errors.Is(statErr, os.ErrNotExist) {
-			return "", fmt.Errorf("stat go.mod in %q: %w", dir, statErr)
 		}
 
 		parent := filepath.Dir(dir)
@@ -450,7 +448,20 @@ func findProjectRoot() (string, error) {
 		}
 		dir = parent
 	}
-	return "", fmt.Errorf("go.mod not found within %d parent directories: %w", projectRootSearchDepth, os.ErrNotExist)
+	return "", fmt.Errorf("gateway project root not found within %d parent directories: %w", projectRootSearchDepth, os.ErrNotExist)
+}
+
+func isGatewayProjectRoot(dir string) bool {
+	for _, marker := range []string{
+		"Altinn.Studio.Gateway.slnx",
+		filepath.Join("infra", "kustomize"),
+		filepath.Join("src", "Altinn.Studio.Gateway.Api"),
+	} {
+		if _, err := os.Stat(filepath.Join(dir, marker)); err != nil {
+			return false
+		}
+	}
+	return true
 }
 
 func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {

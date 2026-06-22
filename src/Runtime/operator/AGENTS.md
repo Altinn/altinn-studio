@@ -23,6 +23,13 @@ make lint-fix          # Run linter with auto-fixes
 docker compose up -d --build  # Start local fake APIs (required for `make test` to work)
 ```
 
+### Go Modules
+
+- Root `go.mod` is for the operator runtime, production fakes, and unit tests that do not need local cluster orchestration.
+- `test/go.mod` owns orchestration-only dependencies such as `altinn.studio/devenv`, Kind, Flux, Helm and Docker SDKs.
+- `test/cmd/tester` is the local orchestration CLI used by Makefile targets.
+- Keep local/dev/e2e-only dependencies in the nested `test` module unless runtime binaries actually need them.
+
 ## Architecture
 
 ### Core Components
@@ -43,6 +50,7 @@ docker compose up -d --build  # Start local fake APIs (required for `make test` 
 - `internal/controller/`: Controller reconciliation logic
 - `config/`: Kubernetes manifests and Kustomize configurations
 - `test/e2e/`: End-to-end tests using Ginkgo/Gomega
+- `test/cmd/tester/`: Test orchestration CLI
 - `cmd/main.go`: Operator entry point
 
 ### Key Technologies

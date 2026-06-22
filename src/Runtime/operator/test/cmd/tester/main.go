@@ -15,7 +15,6 @@ import (
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
-	"altinn.studio/operator/internal/config"
 )
 
 var errInvalidVariant = errors.New("invalid variant")
@@ -127,6 +126,40 @@ func envtestAssetsPath(ctx context.Context, projectRoot, envtestK8sVersion strin
 	return strings.TrimSpace(string(assetsPath)), nil
 }
 
+func findProjectRoot() (string, error) {
+	basePath, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("find project root: %w", err)
+	}
+
+	for range 100 {
+		if isOperatorProjectRoot(basePath) {
+			return basePath, nil
+		}
+
+		parentPath := filepath.Dir(basePath)
+		if parentPath == basePath {
+			return "", fmt.Errorf("find project root: reached root of file system")
+		}
+		basePath = parentPath
+	}
+
+	return "", fmt.Errorf("find project root: reached max directory traversal")
+}
+
+func isOperatorProjectRoot(dir string) bool {
+	for _, marker := range []string{
+		"PROJECT",
+		filepath.Join("config", "crd"),
+		filepath.Join("cmd", "main.go"),
+	} {
+		if _, err := os.Stat(filepath.Join(dir, marker)); err != nil {
+			return false
+		}
+	}
+	return true
+}
+
 func listNonE2EPackages(ctx context.Context, projectRoot string) ([]string, error) {
 	listCmd := exec.CommandContext(ctx, "go", "list", "./...")
 	listCmd.Dir = projectRoot
@@ -178,7 +211,7 @@ func runUnitTest() int {
 	ctx := context.Background()
 	stdoutln("=== Unit Tests ===")
 
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := findProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -235,7 +268,7 @@ func runUnitTest() int {
 }
 
 func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := findProjectRoot()
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
@@ -571,7 +604,7 @@ func runStop() int {
 	ctx := context.Background()
 	stdoutln("=== Operator Runtime Stop ===")
 
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := findProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -618,7 +651,7 @@ func runE2ETest() int {
 		return 1
 	}
 
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := findProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -664,7 +697,7 @@ func runE2ETest() int {
 
 	stdoutln("Running e2e tests...")
 	testExitCode := 0
-	if err := runTests(ctx, projectRoot, "./test/e2e/"); err != nil {
+	if err := runTests(ctx, projectRoot, "./e2e/"); err != nil {
 		exitErr := &exec.ExitError{}
 		if errors.As(err, &exitErr) {
 			testExitCode = exitErr.ExitCode()
@@ -693,7 +726,7 @@ func runE2ETest() int {
 func runTests(ctx context.Context, projectRoot, packagePath string) error {
 	//nolint:gosec // This helper only runs `go test` on internal package paths chosen by the caller.
 	cmd := exec.CommandContext(ctx, "go", "test", "-tags=e2e", packagePath, "-v", "-ginkgo.v")
-	cmd.Dir = projectRoot
+	cmd.Dir = filepath.Join(projectRoot, "test")
 	cmd.Env = os.Environ()
 	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
 		cmd.Env = append(cmd.Env, "UPDATE_SNAPS=true")

@@ -260,7 +260,7 @@ func RequestPDFWithHost(
 
 var projectRoot string
 
-// FindProjectRoot searches upward for a directory containing go.mod
+// FindProjectRoot searches upward for the pdf3 project root.
 // It starts from the current working directory and checks up to maxIterations parent directories.
 func FindProjectRoot() (string, error) {
 	if projectRoot != "" {
@@ -279,9 +279,7 @@ func FindProjectRoot() (string, error) {
 	prevDir := ""
 
 	for range maxIterations {
-		// Check if go.mod exists in current directory
-		goModPath := filepath.Join(dir, "go.mod")
-		if _, err := os.Stat(goModPath); err == nil {
+		if isProjectRoot(dir) {
 			projectRoot = dir
 			return dir, nil
 		}
@@ -299,4 +297,13 @@ func FindProjectRoot() (string, error) {
 	}
 
 	return "", fmt.Errorf("%w: exceeded maximum iterations searching for go.mod", errProjectRootNotFound)
+}
+
+func isProjectRoot(dir string) bool {
+	for _, marker := range []string{"Dockerfile.proxy", "Dockerfile.worker", "infra/kustomize"} {
+		if _, err := os.Stat(filepath.Join(dir, marker)); err != nil {
+			return false
+		}
+	}
+	return true
 }

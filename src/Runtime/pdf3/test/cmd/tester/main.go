@@ -536,7 +536,7 @@ func runTestSuites(projectRoot string, runBoth, runSimple, runSmoke bool) int {
 			stderrf("failed to write test status: %v\n", err)
 			return 1
 		}
-		if err := runTests(projectRoot, "./test/integration/simple/..."); err != nil {
+		if err := runTests(projectRoot, "./integration/simple/..."); err != nil {
 			return exitCodeForTestError(err)
 		}
 	}
@@ -546,7 +546,7 @@ func runTestSuites(projectRoot string, runBoth, runSimple, runSmoke bool) int {
 			stderrf("failed to write test status: %v\n", err)
 			return 1
 		}
-		if err := runTests(projectRoot, "./test/integration/smoke/..."); err != nil {
+		if err := runTests(projectRoot, "./integration/smoke/..."); err != nil {
 			return exitCodeForTestError(err)
 		}
 	}
@@ -676,7 +676,7 @@ func runTest(args []string) int {
 func runTests(projectRoot, packagePath string) error {
 	//nolint:gosec // packagePath is chosen from fixed local CLI options.
 	cmd := exec.CommandContext(context.Background(), "go", "test", "-count=1", "-timeout", "5m", packagePath)
-	cmd.Dir = projectRoot
+	cmd.Dir = filepath.Join(projectRoot, "test")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
