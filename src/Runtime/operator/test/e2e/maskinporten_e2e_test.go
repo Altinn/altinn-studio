@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/maskinporten"
@@ -164,7 +165,7 @@ var _ = Describe("controller", Ordered, func() {
 		By("loading kind runtime")
 
 		var err error
-		projectRoot, err := utils.FindProjectRoot()
+		projectRoot, err := projectroot.Find(projectroot.Marker)
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 		Runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())

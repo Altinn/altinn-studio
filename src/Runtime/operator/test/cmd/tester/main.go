@@ -127,14 +127,6 @@ func envtestAssetsPath(ctx context.Context, projectRoot, envtestK8sVersion strin
 	return strings.TrimSpace(string(assetsPath)), nil
 }
 
-func findProjectRoot() (string, error) {
-	root, err := projectroot.Find(projectroot.Marker)
-	if err != nil {
-		return "", fmt.Errorf("find project root: %w", err)
-	}
-	return root, nil
-}
-
 func listNonE2EPackages(ctx context.Context, projectRoot string) ([]string, error) {
 	listCmd := exec.CommandContext(ctx, "go", "list", "./...")
 	listCmd.Dir = projectRoot
@@ -186,7 +178,7 @@ func runUnitTest() int {
 	ctx := context.Background()
 	stdoutln("=== Unit Tests ===")
 
-	projectRoot, err := findProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -243,7 +235,7 @@ func runUnitTest() int {
 }
 
 func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
-	projectRoot, err := findProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
@@ -579,7 +571,7 @@ func runStop() int {
 	ctx := context.Background()
 	stdoutln("=== Operator Runtime Stop ===")
 
-	projectRoot, err := findProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -626,7 +618,7 @@ func runE2ETest() int {
 		return 1
 	}
 
-	projectRoot, err := findProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1

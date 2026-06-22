@@ -100,7 +100,7 @@ func runStart(args []string) (exitCode int) {
 func runStop() (exitCode int) {
 	writeStdoutln("=== Gateway Runtime Stop ===")
 
-	root, err := findProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -130,7 +130,7 @@ func runStop() (exitCode int) {
 }
 
 func runTest() (exitCode int) {
-	root, err := findProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -191,9 +191,9 @@ func runTest() (exitCode int) {
 }
 
 func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
-	root, err := findProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("find project root: %w", err)
 	}
 
 	runtime, err := kind.New(variant, filepath.Join(root, cachePath), gatewayClusterOptions())
@@ -429,14 +429,6 @@ func closeRuntimeBestEffort(runtime *kind.KindContainerRuntime) {
 	if err := runtime.Close(); err != nil {
 		fmt.Fprintf(os.Stderr, "warning: close runtime: %v\n", err)
 	}
-}
-
-func findProjectRoot() (string, error) {
-	root, err := projectroot.Find(projectroot.Marker)
-	if err != nil {
-		return "", fmt.Errorf("find project root: %w", err)
-	}
-	return root, nil
 }
 
 func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {

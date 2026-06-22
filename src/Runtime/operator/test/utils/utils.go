@@ -25,7 +25,7 @@ const apisPath = "/apis"
 func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	var err error
 	if dir == "" {
-		dir, err = FindProjectRoot()
+		dir, err = projectroot.Find(projectroot.Marker)
 		if err != nil {
 			return nil, fmt.Errorf("find project root: %w", err)
 		}
@@ -163,12 +163,4 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		CNPG:    cnpgClient,
 		Storage: storageClient,
 	}, nil
-}
-
-func FindProjectRoot() (string, error) {
-	root, err := projectroot.Find(projectroot.Marker)
-	if err != nil {
-		return "", fmt.Errorf("find project root: %w", err)
-	}
-	return root, nil
 }

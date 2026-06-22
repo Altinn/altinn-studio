@@ -20,6 +20,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/operator/test/utils"
 )
@@ -60,7 +61,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		By("loading kind runtime")
 
 		var err error
-		projectRoot, err := utils.FindProjectRoot()
+		projectRoot, err := projectroot.Find(projectroot.Marker)
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 		Runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())

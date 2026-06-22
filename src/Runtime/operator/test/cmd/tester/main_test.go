@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/projectroot"
 )
 
 func TestOperatorCABundleWorkloadsPatchPreKustomizeDeploymentName(t *testing.T) {
-	projectRoot, err := findProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		t.Fatalf("find project root: %v", err)
 	}
