@@ -9,7 +9,6 @@ jest.mock('./StudioCodeFragment.module.css', () => ({
   code: 'code',
 }));
 
-/* eslint-disable testing-library/no-node-access */
 describe('StudioCodeFragment', () => {
   it('Renders the given content', () => {
     const content = 'Test';

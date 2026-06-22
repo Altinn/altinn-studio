@@ -24,7 +24,7 @@ jobs:
   typecheck:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: 'Typechecking and linting'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     permissions:
       actions: read
@@ -32,7 +32,7 @@ jobs:
       security-events: write
     steps:
       - name: 'Checking Out Code'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -58,11 +58,11 @@ jobs:
   test:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: 'Testing'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     steps:
       - name: 'Checking Out Code'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -75,7 +75,7 @@ jobs:
           yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:

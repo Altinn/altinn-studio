@@ -1,0 +1,14 @@
+[
+  {
+    "value": "cat",
+    "label": { "nb": "Katt", "nn": "Katt", "en": "Cat" }
+  },
+  {
+    "value": "dog",
+    "label": { "nb": "Hund", "nn": "Hund", "en": "Dog" }
+  },
+  {
+    "value": "rabbit",
+    "label": { "nb": "Kanin", "nn": "Kanin", "en": "Rabbit" }
+  }
+]

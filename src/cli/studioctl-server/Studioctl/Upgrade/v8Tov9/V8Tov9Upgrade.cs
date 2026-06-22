@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
@@ -23,6 +24,11 @@ internal sealed record V8Tov9UpgradeOptions(
 
 internal static class V8Tov9Upgrade
 {
+    private static readonly Regex _programCsPathMatcher = new(
+        @"^Program\.cs$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
@@ -69,11 +75,18 @@ internal static class V8Tov9Upgrade
                 );
                 returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
             }
+
+            if (returnCode == 0)
+                returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
         if (returnCode == 0)
             returnCode = await RemoveSwashbucklePackage(projectFile);
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
+            returnCode = await MigrateOpenApiNamespace(projectFile);
 
         options.CancellationToken.ThrowIfCancellationRequested();
         if (returnCode == 0)
@@ -122,12 +135,41 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateDockerfile(string projectFolder, string targetFramework)
+    {
+        try
+        {
+            await DockerfileMigration.Migrate(projectFolder, targetFramework);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Dockerfile: {ex.Message}");
+            return 1;
+        }
+    }
+
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
         var rewriter = new ProjectFileRewriter(projectFile);
         await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
         await UpgradeConsole.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
         return 0;
+    }
+
+    static async Task<int> MigrateOpenApiNamespace(string projectFile)
+    {
+        try
+        {
+            var migration = new UsingNamespaceMigration(projectFile);
+            migration.Migrate("Microsoft.OpenApi.Models", "Microsoft.OpenApi", _programCsPathMatcher);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating OpenAPI namespace in Program.cs: {ex.Message}");
+            return 1;
+        }
     }
 
     static async Task<int> MigrateLaunchSettings(string projectFile)

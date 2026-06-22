@@ -553,9 +553,12 @@ public class UiFoldersService : IUiFoldersService
         UiSettings globalSettingsFile =
             await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
 
-        globalSettingsFile.ValidationOnNavigation = config;
+        globalSettingsFile.ValidationOnNavigation = IsEmpty(config) ? null : config;
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
+
+    private static bool IsEmpty(ValidationOnNavigation? config) =>
+        config == null || (string.IsNullOrEmpty(config.Page) && (config.Show == null || config.Show.Count == 0));
 
     public async Task<IEnumerable<ValidationOnNavigationDto>> GetLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
@@ -710,7 +713,23 @@ public class UiFoldersService : IUiFoldersService
 
             foreach (string pageId in repository.GetLayoutNames(layoutSetInfo.LayoutSetName))
             {
-                JsonNode layout = await repository.GetLayout(layoutSetInfo.LayoutSetName, pageId, cancellationToken);
+                JsonNode layout;
+                try
+                {
+                    layout = await repository.GetLayout(layoutSetInfo.LayoutSetName, pageId, cancellationToken);
+                }
+                catch (Exception e) when (e is FileNotFoundException or JsonException)
+                {
+                    // Skip a single unreadable layout file rather than aborting the whole save operation.
+                    _logger.LogWarning(
+                        e,
+                        "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                        SanitizeForLog(pageId),
+                        SanitizeForLog(layoutSetInfo.LayoutSetName)
+                    );
+                    continue;
+                }
+
                 JsonObject? data = layout["data"]?.AsObject();
                 if (data == null)
                 {

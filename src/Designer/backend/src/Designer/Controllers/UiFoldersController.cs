@@ -171,10 +171,9 @@ public class UiFoldersController : Controller
                     );
                     break;
                 default:
-                    ValidationOnNavigation? global = config.Deserialize<ValidationOnNavigation>();
                     await _uiFoldersService.SaveGlobalValidationOnNavigation(
                         editingContext,
-                        IsEmpty(global) ? null : global,
+                        config.Deserialize<ValidationOnNavigation>(),
                         cancellationToken
                     );
                     break;
@@ -186,9 +185,6 @@ public class UiFoldersController : Controller
         }
         return Ok();
     }
-
-    private static bool IsEmpty(ValidationOnNavigation? config) =>
-        config == null || (string.IsNullOrEmpty(config.Page) && (config.Show == null || config.Show.Count == 0));
 
     [HttpGet("settings/task-navigation")]
     [UseSystemTextJson]
