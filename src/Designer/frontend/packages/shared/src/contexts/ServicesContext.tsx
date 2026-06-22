@@ -73,6 +73,7 @@ const handleError = (
 
   if (isSessionExpiredError) {
     window.location.assign(userLogoutAfterPath());
+    return;
   }
 
   if (
