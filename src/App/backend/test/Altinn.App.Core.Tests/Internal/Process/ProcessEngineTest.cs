@@ -46,7 +46,7 @@ public sealed class ProcessEngineTest
 {
     private readonly ITestOutputHelper _output;
     private static readonly int _instanceOwnerPartyId = 1337;
-    private static readonly Guid _instanceGuid = new("00000000-ABCD-EFGH-0000-001230000000");
+    private static readonly Guid _instanceGuid = new("00000000-ABCD-EF00-0000-001230000000");
     private static readonly string _instanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}";
     private static readonly string _collectionKey = _instanceGuid.ToString();
 

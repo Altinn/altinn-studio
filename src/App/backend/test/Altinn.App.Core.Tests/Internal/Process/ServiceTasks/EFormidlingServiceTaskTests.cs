@@ -185,7 +185,10 @@ public class EFormidlingServiceTaskTests
         await _serviceTask.Execute(parameters);
 
         // Assert
-        _eFormidlingServiceMock.Verify(x => x.SendEFormidlingShipment(It.IsAny<Instance>()), Times.Never);
+        _eFormidlingServiceMock.Verify(
+            x => x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            Times.Never
+        );
         _loggerMock.Verify(
             x =>
                 x.Log(

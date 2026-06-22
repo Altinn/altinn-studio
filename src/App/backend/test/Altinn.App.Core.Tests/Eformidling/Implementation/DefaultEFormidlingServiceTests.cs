@@ -32,6 +32,18 @@ public class DefaultEFormidlingServiceTests
     private const string ModelDataType = "model";
     private const string FileAttachmentsDataType = "file-attachments";
 
+    private static readonly ValidAltinnEFormidlingConfiguration TestConfiguration = new(
+        true,
+        null,
+        "urn:no:difi:profile:arkivmelding:plan:3.0",
+        "urn:no:difi:arkivmelding:xsd::arkivmelding",
+        "v8",
+        "arkivmelding",
+        3,
+        null,
+        [ModelDataType, FileAttachmentsDataType]
+    );
+
     private readonly record struct Fixture(IServiceProvider ServiceProvider, Instance Instance, Guid InstanceGuid)
         : IAsyncDisposable
     {
@@ -76,7 +88,6 @@ public class DefaultEFormidlingServiceTests
         var tokenGenerator = new Mock<IAccessTokenGenerator>(MockBehavior.Strict);
         var processReader = new Mock<IProcessReader>(MockBehavior.Strict);
         var hostEnvironment = new Mock<IHostEnvironment>(MockBehavior.Strict);
-        var eFormidlingLegacyConfigProvider = new Mock<IEFormidlingLegacyConfigurationProvider>(MockBehavior.Strict);
 
         var instanceGuid = Guid.Parse("41C1099C-7EDD-47F5-AD1F-6267B497796F");
         var instance = new Instance
@@ -144,15 +155,6 @@ public class DefaultEFormidlingServiceTests
                         },
                         new DataType { Id = FileAttachmentsDataType },
                     ],
-                    EFormidling = new EFormidlingContract
-                    {
-                        Process = "urn:no:difi:profile:arkivmelding:plan:3.0",
-                        Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding",
-                        TypeVersion = "v8",
-                        Type = "arkivmelding",
-                        SecurityLevel = 3,
-                        DataTypes = [ModelDataType, FileAttachmentsDataType],
-                    },
                 }
             );
         tokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");
@@ -166,21 +168,6 @@ public class DefaultEFormidlingServiceTests
             {
                 return (EFormidlingMetadataFilename, Stream.Null);
             });
-        eFormidlingLegacyConfigProvider
-            .Setup(cp => cp.GetLegacyConfiguration())
-            .ReturnsAsync(
-                new ValidAltinnEFormidlingConfiguration(
-                    true,
-                    null,
-                    "urn:no:difi:profile:arkivmelding:plan:3.0",
-                    "urn:no:difi:arkivmelding:xsd::arkivmelding",
-                    "v8",
-                    "arkivmelding",
-                    3,
-                    null,
-                    [ModelDataType, FileAttachmentsDataType]
-                )
-            );
         dataClient
             .Setup(x =>
                 x.GetBinaryData(
@@ -200,7 +187,6 @@ public class DefaultEFormidlingServiceTests
         services.TryAddTransient(_ => dataClient.Object);
         services.TryAddTransient(_ => eFormidlingReceivers.Object);
         services.TryAddTransient(_ => eFormidlingMetadata.Object);
-        services.TryAddTransient(_ => eFormidlingLegacyConfigProvider.Object);
         services.TryAddTransient(_ => eventClient.Object);
         services.TryAddTransient(_ => appSettings);
         services.TryAddTransient(_ => platformSettings);
@@ -223,7 +209,7 @@ public class DefaultEFormidlingServiceTests
         var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
 
         // Act
-        var result = defaultEformidlingService.SendEFormidlingShipment(instance);
+        var result = defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
 
         // Assert
         var expectedReqHeaders = new Dictionary<string, string>
@@ -358,7 +344,7 @@ public class DefaultEFormidlingServiceTests
         var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
 
         // Act
-        var result = defaultEformidlingService.SendEFormidlingShipment(instance);
+        var result = defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
 
         // Assert
         var expectedReqHeaders = new Dictionary<string, string>

@@ -34,18 +34,6 @@
       "minCount": 0
     }
   ],
-  "eFormidling": {
-    "serviceId": "DPF",
-    "dpfShipmentType": "altinn3.skjema",
-    "process": "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
-    "dataTypes": [ "default" ],
-    "sendAfterTaskId": "Task_2",
-    "receiver": "910075918",
-    "standard": "urn:no:difi:arkivmelding:xsd::arkivmelding",
-    "type": "arkivmelding",
-    "typeVersion": "2.0",
-    "securityLevel": 3
-  },
   "partyTypesAllowed": {
     "bankruptcyEstate": false,
     "organisation": false,
