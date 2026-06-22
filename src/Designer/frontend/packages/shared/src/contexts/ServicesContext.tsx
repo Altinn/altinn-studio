@@ -13,7 +13,6 @@ import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 
-import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
