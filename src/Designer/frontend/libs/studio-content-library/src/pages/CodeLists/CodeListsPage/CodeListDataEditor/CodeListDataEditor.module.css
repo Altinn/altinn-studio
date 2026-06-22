@@ -33,3 +33,12 @@
 .unnamed {
   font-style: italic;
 }
+
+.summary:is(.added, .changed)::after {
+  aspect-ratio: 1;
+  background-color: var(--ds-color-info-base-default);
+  border-radius: 100%;
+  content: '';
+  height: var(--ds-size-3);
+  margin-inline-start: var(--ds-size-1);
+}
