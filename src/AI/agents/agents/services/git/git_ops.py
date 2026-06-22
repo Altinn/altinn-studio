@@ -1,4 +1,5 @@
 """Git operations with safety caps and preview"""
+import asyncio
 import subprocess
 import json
 import re
@@ -734,3 +735,35 @@ def deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[
         except Exception as e:
             print(f"  Warning: could not deduplicate {rel_path}: {e}")
     return modified
+
+
+# ── Async wrappers ──────────────────────────────────────────────────────────
+# These offload the blocking sync work onto a thread so the asyncio event loop
+# can interleave other workflows while git/file I/O runs. See AGENTS.md for
+# the concurrency story.
+
+async def apply_async(patch: dict, repo_path: str = None):
+    await asyncio.to_thread(apply, patch, repo_path)
+
+
+async def commit_async(message: str, repo_path: str = None, branch_name: str = None) -> str:
+    return await asyncio.to_thread(commit, message, repo_path, branch_name)
+
+
+async def revert_async(repo_path: str = None):
+    await asyncio.to_thread(revert, repo_path)
+
+
+async def deduplicate_resource_ids_async(repo_path: str, resource_files: List[str]) -> List[str]:
+    return await asyncio.to_thread(deduplicate_resource_ids, repo_path, resource_files)
+
+
+async def cleanup_feature_branch_async(
+    repo_path: str,
+    feature_branch: str,
+    base: str = "main",
+    allow_branch_cleanup: bool = True,
+) -> Dict[str, Any]:
+    return await asyncio.to_thread(
+        cleanup_feature_branch, repo_path, feature_branch, base, allow_branch_cleanup
+    )

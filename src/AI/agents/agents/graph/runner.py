@@ -13,9 +13,58 @@ from agents.services.events import AgentEvent, EventSink, sink
 from shared.utils.logging_utils import get_logger
 import asyncio
 import json
+from contextlib import asynccontextmanager
 
 
 _active_tasks: set = set()
+
+# Bounded parallelism for workflows. Lazily constructed so the config is read
+# at first use (the loop must exist before asyncio.Semaphore is created).
+_workflow_semaphore: asyncio.Semaphore | None = None
+_running_workflow_count: int = 0
+
+
+def _get_workflow_semaphore() -> asyncio.Semaphore:
+    global _workflow_semaphore
+    if _workflow_semaphore is None:
+        from shared.config import get_config
+        _workflow_semaphore = asyncio.Semaphore(get_config().MAX_CONCURRENT_WORKFLOWS)
+    return _workflow_semaphore
+
+
+@asynccontextmanager
+async def acquire_workflow_slot(session_id: str, mode: str = "workflow"):
+    """Bounded-concurrency gate shared by workflow and chat paths.
+
+    Emits the ▶️ / ⏳ / ⏹️ log lines so concurrency is observable regardless
+    of which entry point started the task.
+    """
+    global _running_workflow_count
+    from shared.config import get_config
+
+    _log = get_logger(__name__)
+    cap = get_config().MAX_CONCURRENT_WORKFLOWS
+    semaphore = _get_workflow_semaphore()
+
+    if semaphore.locked():
+        _log.info(
+            f"⏳ {mode.capitalize()} {session_id} queued — "
+            f"{_running_workflow_count}/{cap} slots in use"
+        )
+    async with semaphore:
+        _running_workflow_count += 1
+        try:
+            _log.info(
+                f"▶️ {mode.capitalize()} {session_id} started — "
+                f"{_running_workflow_count}/{cap} tasks running concurrently"
+            )
+            yield
+        finally:
+            _running_workflow_count -= 1
+            _log.info(
+                f"⏹️ {mode.capitalize()} {session_id} finished — "
+                f"{_running_workflow_count}/{cap} tasks still running"
+            )
 
 
 class WorkflowCancelled(Exception):
@@ -332,8 +381,12 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
         event_sink = sink
 
     async def _run():
-        try:
+        async with acquire_workflow_slot(state.session_id, mode="workflow"):
             await run_once(state, event_sink)
+
+    async def _run_with_handlers():
+        try:
+            await _run()
         except WorkflowCancelled:
             log.info(f"🛑 Workflow cancelled for session {state.session_id}")
         except GoalRejected as e:
@@ -368,7 +421,12 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                 }
             ))
 
-    # Create background task
-    task = asyncio.create_task(_run())
+    # Each workflow runs as its own asyncio.Task so the event loop can interleave
+    # them freely. Hold a strong reference until it finishes — otherwise asyncio
+    # is allowed to garbage-collect a running task mid-flight (see PEP 3156 /
+    # asyncio.create_task docs).
+    task = asyncio.create_task(_run_with_handlers(), name=f"workflow-{state.session_id}")
+    _active_tasks.add(task)
+    task.add_done_callback(_active_tasks.discard)
     return task
 

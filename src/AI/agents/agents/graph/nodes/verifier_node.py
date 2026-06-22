@@ -12,6 +12,8 @@ from agents.services.events import sink
 from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
+import asyncio
+
 
 log = get_logger(__name__)
 
@@ -106,7 +108,7 @@ async def handle(state: AgentState) -> AgentState:
         # and should never block a commit. They are included in verify_notes so the
         # reviewer LLM can mention them, but they do NOT affect tests_passed.
         if state.form_spec:
-            spec_notes = _validate_against_spec(state.form_spec, state.repo_path)
+            spec_notes = await asyncio.to_thread(_validate_against_spec, state.form_spec, state.repo_path)
             if spec_notes:
                 log.warning(f"⚠️ Spec validation found {len(spec_notes)} soft warnings (will not block commit)")
                 for note in spec_notes:
@@ -189,8 +191,9 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
         log.info(f"Found {len(validation_errors)} validation errors to fix")
         
         # ── Deterministic fixes (no LLM needed) ──────────────────────────
-        deterministic_fixed = _apply_deterministic_fixes(
-            state.repo_path, state.repo_facts or {}, validation_errors
+        deterministic_fixed = await asyncio.to_thread(
+            _apply_deterministic_fixes,
+            state.repo_path, state.repo_facts or {}, validation_errors,
         )
         if deterministic_fixed:
             log.info(f"🧹 Deterministic fix applied for {len(deterministic_fixed)} error(s)")
@@ -225,9 +228,9 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
                 change["operation"] = change.pop("op")
         
         fix_patch["skip_reset"] = True
-        
+
         log.info(f"Applying auto-fix patch with {len(fix_patch['changes'])} changes")
-        git_ops.apply(fix_patch, state.repo_path)
+        await git_ops.apply_async(fix_patch, state.repo_path)
         
         return True
         
@@ -338,14 +341,18 @@ async def _generate_fix_patch(
     Reads the current on-disk contents of every affected file so the LLM can
     produce exact ``replace_text`` or structural JSON patches.
     """
-    try:
-        # Read current file contents — include ALL affected files
-        file_contents = {}
+    def _read_all() -> Dict[str, str]:
+        out: Dict[str, str] = {}
         for file_path in affected_files:
             full_path = Path(repo_path) / file_path
             if full_path.exists():
                 with open(full_path, 'r', encoding='utf-8') as f:
-                    file_contents[file_path] = f.read()
+                    out[file_path] = f.read()
+        return out
+
+    try:
+        # Read current file contents — include ALL affected files
+        file_contents = await asyncio.to_thread(_read_all)
 
         if not file_contents:
             log.warning("No file contents available for LLM fixer")
@@ -370,7 +377,7 @@ async def _generate_fix_patch(
             file_contents=json.dumps(file_contents, indent=2)
         )
 
-        response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
+        response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
 
         # Parse JSON response
         clean = response.strip()

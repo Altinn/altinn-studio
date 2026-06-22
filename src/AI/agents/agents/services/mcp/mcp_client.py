@@ -357,7 +357,7 @@ class MCPClient:
                     "tool": "repository_scanner"
                 })
 
-                repo_context = discover_repository_context(repository_path)
+                repo_context = await asyncio.to_thread(discover_repository_context, repository_path)
                 # Convert PlanContext to dict format for compatibility
                 repo_facts = {
                     'layouts': repo_context.layout_pages,
@@ -374,13 +374,18 @@ class MCPClient:
                     first_layout = repo_facts['layouts'][0]
                     layout_path = Path(repository_path) / first_layout
 
+                    def _read_layout():
+                        if not layout_path.exists():
+                            return None
+                        with open(layout_path, 'r') as f:
+                            data = json.load(f)
+                        # Truncate to first few components for context
+                        if 'data' in data and 'layout' in data['data']:
+                            data['data']['layout'] = data['data']['layout'][:3]
+                        return data
+
                     try:
-                        if layout_path.exists():
-                            with open(layout_path, 'r') as f:
-                                layout_context = json.load(f)
-                                # Truncate to first few components for context
-                                if 'data' in layout_context and 'layout' in layout_context['data']:
-                                    layout_context['data']['layout'] = layout_context['data']['layout'][:3]
+                        layout_context = await asyncio.to_thread(_read_layout)
                     except Exception as e:
                         log.warning(f"Could not load layout context: {e}")
 

@@ -3,7 +3,7 @@ import re
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
-from agents.graph.runner import run_in_background
+from agents.graph.runner import run_in_background, acquire_workflow_slot
 from agents.graph.nodes import assistant
 from agents.services.events import sink, AgentEvent
 
@@ -76,7 +76,7 @@ async def start_agent(
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
-        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, api_key=designer_api_key)
+        repo_path = await repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, api_key=designer_api_key)
 
         branch_info = f" on branch {req.branch}" if req.branch else ""
         log.info(f"Cloned repository {req.repo_url} to {repo_path} for session {req.session_id}{branch_info}")
@@ -248,7 +248,12 @@ async def start_agent(
             # Mark session as started and create background task - API returns immediately
             import asyncio
             sink.mark_session_started(req.session_id)
-            task = asyncio.create_task(_run_chat())
+
+            async def _run_chat_with_slot():
+                async with acquire_workflow_slot(req.session_id, mode="chat"):
+                    await _run_chat()
+
+            task = asyncio.create_task(_run_chat_with_slot(), name=f"chat-{req.session_id}")
             _active_tasks.add(task)
             task.add_done_callback(_active_tasks.discard)
         else:

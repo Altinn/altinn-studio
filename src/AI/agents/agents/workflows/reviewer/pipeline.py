@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -361,13 +362,13 @@ async def execute_reviewer_workflow(
         log.warning(f"Reviewer preconditions failed: {precondition_failures}")
 
         # Clean up feature branch
-        cleanup_feature_branch(repo_path)
+        await cleanup_feature_branch(repo_path)
 
         # Clean up artifacts
         cleanup_generated_artifacts(repo_path)
 
         # Revert changes
-        git_ops.revert(repo_path)
+        await git_ops.revert_async(repo_path)
 
 
         return {
@@ -393,10 +394,14 @@ async def execute_reviewer_workflow(
     effective_passed = tests_passed or not _has_hard_errors(verify_notes)
     if decision == "commit" and effective_passed and len(changed_files) > 0:
         try:
-            # Stage changed files
+            # Stage changed files (single git add call, run off the event loop)
             import subprocess
-            for file_path in changed_files:
-                subprocess.run(["git", "add", file_path], cwd=repo_path, check=True)
+            await asyncio.to_thread(
+                subprocess.run,
+                ["git", "add", "--", *changed_files],
+                cwd=repo_path,
+                check=True,
+            )
 
             # Commit changes
             # Extract a unique identifier from session_id (skip "session_" prefix if present)
@@ -405,8 +410,8 @@ async def execute_reviewer_workflow(
             else:
                 unique_id = session_id[:8]
             branch_name = f"altinity_session_{unique_id}"
-            commit_hash = git_ops.commit(commit_message, repo_path, branch_name=branch_name)
-            
+            commit_hash = await git_ops.commit_async(commit_message, repo_path, branch_name=branch_name)
+
             if commit_hash is None:
                 log.warning("No changes to commit - all requested changes were already implemented")
                 decision = "no_changes"
@@ -416,7 +421,7 @@ async def execute_reviewer_workflow(
                 try:
                     from agents.services.git.repo_manager import get_repo_manager
                     repo_manager = get_repo_manager()
-                    repo_manager.push_branch(session_id, branch_name)
+                    await repo_manager.push_branch(session_id, branch_name)
                     log.info(f"Successfully pushed branch {branch_name} to remote")
                 except Exception as push_error:
                     log.error(f"Failed to push branch {branch_name}: {push_error}")
@@ -427,17 +432,17 @@ async def execute_reviewer_workflow(
         except subprocess.CalledProcessError as e:
             log.error(f"Git staging failed: {e}")
             # Fall back to revert
-            git_ops.revert(repo_path)
+            await git_ops.revert_async(repo_path)
             decision = "revert"
     else:
         # Revert changes
-        git_ops.revert(repo_path)
+        await git_ops.revert_async(repo_path)
 
     # Clean up cloned repository after workflow completion
     try:
         from agents.services.git.repo_manager import get_repo_manager
         repo_manager = get_repo_manager()
-        repo_manager.cleanup_session(session_id)
+        await repo_manager.cleanup_session(session_id)
         log.info(f"Cleaned up repository for session {session_id}")
     except Exception as cleanup_error:
         log.error(f"Failed to cleanup repository for session {session_id}: {cleanup_error}")

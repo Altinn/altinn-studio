@@ -27,6 +27,8 @@ class BaseConfig:
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8071"))
 
+    MAX_CONCURRENT_WORKFLOWS = int(os.getenv("MAX_CONCURRENT_WORKFLOWS", "5"))
+
     # Gitea integration for agent branch pushes
     GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://host.docker.internal/repos")
 

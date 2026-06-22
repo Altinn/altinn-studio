@@ -3,6 +3,7 @@ Repository management service for cloning and managing Altinn app repos.
 Handles cloning from gitea, temporary storage, and cleanup.
 """
 
+import asyncio
 import tempfile
 import shutil
 from pathlib import Path
@@ -37,7 +38,19 @@ class RepoManager:
         cmd = ["git", "-c", f"http.extraHeader=X-Api-Key: {api_key}"] + args
         return subprocess.run(cmd, capture_output=True, text=True, check=True, **kwargs)
 
-    def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None, api_key: Optional[str] = None) -> Path:
+    async def clone_repo_for_session(
+        self,
+        repo_url: str,
+        session_id: str,
+        branch: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ) -> Path:
+        """Async wrapper that offloads the blocking git clone to a thread."""
+        return await asyncio.to_thread(
+            self._clone_repo_for_session_sync, repo_url, session_id, branch, api_key
+        )
+
+    def _clone_repo_for_session_sync(self, repo_url: str, session_id: str, branch: Optional[str] = None, api_key: Optional[str] = None) -> Path:
         """
         Clone a repository for a specific session.
 
@@ -132,7 +145,11 @@ class RepoManager:
             log.error(error_msg)
             raise Exception(error_msg)
 
-    def push_branch(self, session_id: str, branch_name: str) -> bool:
+    async def push_branch(self, session_id: str, branch_name: str) -> bool:
+        """Async wrapper that offloads the blocking git push to a thread."""
+        return await asyncio.to_thread(self._push_branch_sync, session_id, branch_name)
+
+    def _push_branch_sync(self, session_id: str, branch_name: str) -> bool:
         """
         Push a branch to the remote repository.
 
@@ -168,7 +185,11 @@ class RepoManager:
             log.error(error_msg)
             raise Exception(error_msg)
 
-    def cleanup_session(self, session_id: str):
+    async def cleanup_session(self, session_id: str):
+        """Async wrapper that offloads the blocking rmtree to a thread."""
+        await asyncio.to_thread(self._cleanup_session_sync, session_id)
+
+    def _cleanup_session_sync(self, session_id: str):
         """
         Clean up repository for a completed session.
 
