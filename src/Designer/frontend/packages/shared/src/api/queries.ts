@@ -127,6 +127,7 @@ import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
@@ -175,7 +176,7 @@ export const getImageFileNames = (owner: string, app: string) => get<string[]>(g
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
-export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(`${uiFoldersPath(owner, app)}/layout-sets/extended`);
+export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(`${uiFoldersPath(owner, app)}/layout-sets/extended`);
 export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(owner, app)}/validation-on-navigation`);
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));

@@ -7,7 +7,7 @@ import {
   FolderIcon,
 } from '@studio/icons';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
@@ -45,7 +45,7 @@ export const getTaskIcon = (taskType: string) => {
 
 type GetHiddenTasksProps = {
   taskNavigationGroups: TaskNavigationGroup[];
-  layoutSets: LayoutSetModel[];
+  layoutSets: UiFolderLayoutSetModel[];
 };
 
 export const getHiddenTasks = ({
@@ -55,15 +55,15 @@ export const getHiddenTasks = ({
   const filteredLayoutSets = layoutSets.filter((layoutSet) => {
     return (
       layoutSet?.type !== 'subform' &&
-      layoutSet.task?.id !== PROTECTED_TASK_NAME_CUSTOM_RECEIPT &&
-      layoutSet?.task
+      layoutSet?.id !== PROTECTED_TASK_NAME_CUSTOM_RECEIPT &&
+      layoutSet?.taskType
     );
   });
 
   const internalTasksFormat: TaskNavigationGroup[] = filteredLayoutSets.map((layoutSet) => ({
-    taskId: layoutSet.task.id,
-    taskType: layoutSet.task.type,
-    pageCount: undefined, // This will be added later: https://digdir.slack.com/archives/C07PN8DMJ2E/p1746537888455189
+    taskId: layoutSet.id,
+    taskType: layoutSet.taskType,
+    pageCount: layoutSet.pageCount,
   }));
 
   const isReceiptInNavigationGroups = taskNavigationGroups.some(
@@ -84,17 +84,17 @@ export const getHiddenTasks = ({
 
 export const getLayoutSetForTask = (
   task: TaskNavigationGroup,
-  layoutSets: LayoutSetModel[],
-): LayoutSetModel => {
+  layoutSets: UiFolderLayoutSetModel[],
+): UiFolderLayoutSetModel => {
   const isReceipt = task.taskType === TaskType.Receipt;
   const taskId = isReceipt ? PROTECTED_TASK_NAME_CUSTOM_RECEIPT : task.taskId;
 
-  return layoutSets?.find((layoutSet) => layoutSet.task?.id === taskId);
+  return layoutSets?.find((layoutSet) => layoutSet?.id === taskId);
 };
 
 export const getLayoutSetIdForTask = (
   task: TaskNavigationGroup,
-  layoutSets: LayoutSetModel[],
+  layoutSets: UiFolderLayoutSetModel[],
 ): string => {
   const matchingLayoutSet = getLayoutSetForTask(task, layoutSets);
   return matchingLayoutSet?.id;
@@ -102,11 +102,11 @@ export const getLayoutSetIdForTask = (
 
 export const isDefaultReceiptTask = (
   task: TaskNavigationGroup,
-  layoutSets: LayoutSetModel[],
+  layoutSets: UiFolderLayoutSetModel[],
 ): boolean => {
   const isReceipt = task.taskType === TaskType.Receipt;
   const isCustomReceipt = layoutSets?.some(
-    (layoutSet) => layoutSet.task?.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
+    (layoutSet) => layoutSet.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
   );
 
   return isReceipt && !isCustomReceipt;

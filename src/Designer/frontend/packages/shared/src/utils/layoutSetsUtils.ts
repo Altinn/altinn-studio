@@ -2,6 +2,7 @@ import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
 import { StringUtils } from '@studio/pure-functions';
 
 export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string | undefined => {
@@ -24,14 +25,30 @@ export const getLayoutSetIdValidationErrorKey = (
   return null;
 };
 
-export const getLayoutSetTypeTranslationKey = (layoutSet: LayoutSetModel): string => {
+export const getLayoutSetTypeTranslationKey = (
+  layoutSet: LayoutSetModel | UiFolderLayoutSetModel,
+): string => {
   if (layoutSet.type === 'subform') return 'ux_editor.subform';
-  if (layoutSet.task?.type === '' && layoutSet.task?.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT) {
+
+  const taskType = getTaskType(layoutSet);
+
+  if (taskType === '' && layoutSet.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT) {
     return 'process_editor.configuration_panel_custom_receipt_accordion_header';
   }
-  if (layoutSet.task?.type) {
-    return `process_editor.task_type.${layoutSet.task.type}`;
+  if (taskType) {
+    return `process_editor.task_type.${taskType}`;
   }
 
+  return '';
+};
+
+const getTaskType = (layoutSet: LayoutSetModel | UiFolderLayoutSetModel): string | undefined => {
+  if ('task' in layoutSet) {
+    return layoutSet.task?.type;
+  }
+
+  if ('taskType' in layoutSet) {
+    return layoutSet.taskType;
+  }
   return '';
 };
