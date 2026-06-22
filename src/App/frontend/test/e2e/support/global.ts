@@ -1,4 +1,3 @@
-import type JQuery from 'cypress/types/jquery';
 import type { RouteMatcher } from 'cypress/types/net-stubbing';
 import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
