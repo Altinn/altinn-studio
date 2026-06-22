@@ -1,5 +1,7 @@
 declare module '*.png';
 
+declare module '*.css';
+
 declare module '*.module.css';
 
 declare module 'ajv-formats-draft2019' {

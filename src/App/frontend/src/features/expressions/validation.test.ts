@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 import { getSharedTests } from 'src/features/expressions/shared';
-import { ExprValidation } from 'src/features/expressions/validation';
+import { assertValidValue, ExprValidation } from 'src/features/expressions/validation';
 
 describe('Expression validation', () => {
   let originalLogError: typeof window.logError;
@@ -36,6 +36,16 @@ describe('Expression validation', () => {
       { expr: '5 == 5', and: 'other property' },
     ])('should validate %p as an invalid expression (non-throwing)', (maybeExpr) => {
       expect(ExprValidation.throwIfInvalid(maybeExpr)).toBeUndefined();
+    });
+  });
+
+  describe('assertValidValue', () => {
+    it('Throws an error when the value is not valid', () => {
+      expect(() => assertValidValue(BigInt(1))).toThrow('Invalid expression value.');
+    });
+
+    it('Accepts valid values', () => {
+      expect(() => assertValidValue(1)).not.toThrow();
     });
   });
 });

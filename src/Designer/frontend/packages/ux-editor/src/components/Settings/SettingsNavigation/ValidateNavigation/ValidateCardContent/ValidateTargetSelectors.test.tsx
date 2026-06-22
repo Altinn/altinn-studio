@@ -13,6 +13,7 @@ import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 import { app, org } from '@studio/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
@@ -59,6 +60,10 @@ describe('TasksSelector and TaskSelector', () => {
   const renderTasksSelector = (props: Partial<TasksSelectorProps> = {}) => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+    queryClient.setQueryData(
+      [QueryKey.ValidationOnNavigation, org, app, ValidationOnNavigationLevel.LayoutSets],
+      [],
+    );
 
     const defaultProps: TasksSelectorProps = {
       selectedTasks: [],
@@ -72,6 +77,10 @@ describe('TasksSelector and TaskSelector', () => {
   const renderTaskSelector = (props: Partial<TaskSelectorProps> = {}) => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+    queryClient.setQueryData(
+      [QueryKey.ValidationOnNavigation, org, app, ValidationOnNavigationLevel.LayoutSets],
+      [],
+    );
 
     const defaultProps: TaskSelectorProps = {
       selectedTask: null,
@@ -114,8 +123,12 @@ describe('PagesSelector', () => {
 
   const renderPagesSelector = (
     props: Partial<PagesSelectorProps> = {},
-    queryClientMock?: ReturnType<typeof createQueryClientMock>,
+    queryClientMock: ReturnType<typeof createQueryClientMock> = createQueryClientMock(),
   ) => {
+    queryClientMock.setQueryData(
+      [QueryKey.ValidationOnNavigation, org, app, ValidationOnNavigationLevel.Pages],
+      [],
+    );
     const defaultProps: PagesSelectorProps = {
       taskName: undefined,
       selectedPages: [],

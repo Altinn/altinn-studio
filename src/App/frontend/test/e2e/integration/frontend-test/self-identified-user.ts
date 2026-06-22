@@ -1,10 +1,11 @@
-import { CyHttpMessages } from 'cypress/types/net-stubbing';
+import type { CyHttpMessages } from 'cypress/types/net-stubbing';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import IncomingHttpResponse = CyHttpMessages.IncomingHttpResponse;
 import { Tenor } from 'test/e2e/support/users';
 
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+
+type IncomingHttpResponse<T> = CyHttpMessages.IncomingHttpResponse<T>;
 
 const appFrontend = new AppFrontend();
 

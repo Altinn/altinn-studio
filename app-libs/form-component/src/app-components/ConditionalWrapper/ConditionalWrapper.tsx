@@ -1,5 +1,5 @@
-import type { JSX, PropsWithChildren } from 'react';
 import type React from 'react';
+import type { JSX, PropsWithChildren } from 'react';
 
 interface IConditionalWrapperProps {
   condition: boolean;

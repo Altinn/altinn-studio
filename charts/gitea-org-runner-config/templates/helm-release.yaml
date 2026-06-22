@@ -66,12 +66,12 @@ spec:
 
     resources:
       requests:
-        cpu: 500m
-        memory: 2Gi
-        ephemeral-storage: 16Gi
+        cpu: "2"
+        memory: {{ .Values.runnerMemory | quote }}
+        ephemeral-storage: 20Gi
       limits:
         cpu: "2"
-        memory: 2Gi
+        memory: {{ .Values.runnerMemory | quote }}
         ephemeral-storage: 20Gi
 
     tolerations:

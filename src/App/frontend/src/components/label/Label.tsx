@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Flex } from '@app/form-component';
+import { Flex, getLabelId } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
@@ -126,16 +126,4 @@ function LabelGridItemWrapper({ children, labelGrid }: PropsWithChildren<{ label
       {children}
     </Flex>
   );
-}
-
-export function getLabelId(nodeId: string) {
-  return `label-${nodeId}`;
-}
-
-export function getDescriptionId(nodeId?: string) {
-  if (!nodeId) {
-    return undefined;
-  }
-
-  return `description-${getLabelId(nodeId)}`;
 }
