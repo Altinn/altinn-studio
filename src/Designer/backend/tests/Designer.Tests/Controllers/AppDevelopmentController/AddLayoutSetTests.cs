@@ -131,11 +131,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser")]
-    public async Task AddLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(
-        string org,
-        string app,
-        string developer
-    )
+    public async Task AddLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
