@@ -41,7 +41,10 @@ export type InputProps = {
   | 'pattern'
   | 'onKeyDown'
 > &
-  LabelRequired;
+  LabelRequired & {
+    /** Pass-through for arbitrary data-* attributes (e.g. `data-bindingkey`). */
+    [dataAttr: `data-${string}`]: string | undefined;
+  };
 
 export function Input(props: InputProps) {
   const {
