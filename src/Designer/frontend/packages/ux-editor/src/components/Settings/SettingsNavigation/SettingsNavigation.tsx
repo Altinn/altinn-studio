@@ -1,4 +1,4 @@
-import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
+import { useTaskNavigationGroupQuery } from '../../../hooks/queries/useTaskNavigationGroupQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioParagraph, StudioHeading, StudioSpinner, StudioDivider } from '@studio/components';
 import type { ReactElement } from 'react';

@@ -61,7 +61,7 @@ public class UiFoldersService : IUiFoldersService
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
         definitions.Process.Tasks.Any(task => task.Id == taskId);
 
-    public async Task<IEnumerable<LayoutSetDto>> GetLayoutSets(
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     )
@@ -71,7 +71,7 @@ public class UiFoldersService : IUiFoldersService
         return [.. layoutSetInfos.Select(ToLayoutSetDto)];
     }
 
-    public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     )
@@ -82,7 +82,7 @@ public class UiFoldersService : IUiFoldersService
         [
             .. layoutSetInfos.Select(info =>
             {
-                LayoutSetDto layoutSet = ToLayoutSetDto(info);
+                UiFolderLayoutSetDto layoutSet = ToLayoutSetDto(info);
 
                 PagesDto pages = PagesDto.From(info.LayoutSettings);
                 layoutSet.PageCount =
@@ -93,13 +93,13 @@ public class UiFoldersService : IUiFoldersService
         ];
     }
 
-    private static LayoutSetDto ToLayoutSetDto(LayoutSetInfo info) =>
+    private static UiFolderLayoutSetDto ToLayoutSetDto(LayoutSetInfo info) =>
         new()
         {
             Id = info.LayoutSetName,
             DataType = info.LayoutSettings.DataType,
             Type = info.LayoutSettings.Type,
-            Task = info.TaskType != null ? new TaskModel { Type = info.TaskType } : null,
+            TaskType = info.TaskType,
         };
 
     /// <summary>
@@ -131,7 +131,7 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
-    public async Task<IEnumerable<LayoutSetDto>> AddLayoutSet(
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> AddLayoutSet(
         AltinnRepoEditingContext editingContext,
         LayoutSetConfig newLayoutSet,
         TaskType? taskType,
@@ -161,7 +161,7 @@ public class UiFoldersService : IUiFoldersService
         return await GetLayoutSets(editingContext, cancellationToken);
     }
 
-    public async Task<IEnumerable<LayoutSetDto>> UpdateLayoutSetName(
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> UpdateLayoutSetName(
         AltinnRepoEditingContext editingContext,
         string oldLayoutSetName,
         string newLayoutSetName,
@@ -229,7 +229,7 @@ public class UiFoldersService : IUiFoldersService
         return await GetLayoutSets(editingContext, cancellationToken);
     }
 
-    public async Task<IEnumerable<LayoutSetDto>> DeleteLayoutSet(
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
         AltinnRepoEditingContext editingContext,
         string layoutSetToDeleteId,
         CancellationToken cancellationToken

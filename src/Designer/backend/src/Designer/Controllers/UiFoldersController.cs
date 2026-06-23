@@ -41,7 +41,10 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.GetLayoutSets(editingContext, cancellationToken);
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.GetLayoutSets(
+            editingContext,
+            cancellationToken
+        );
         return Ok(layoutSets);
     }
 
@@ -55,7 +58,7 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.AddLayoutSet(
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.AddLayoutSet(
             editingContext,
             layoutSetPayload.LayoutSetConfig,
             layoutSetPayload.TaskType,
@@ -75,7 +78,7 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.UpdateLayoutSetName(
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.UpdateLayoutSetName(
             editingContext,
             layoutSetId,
             newLayoutSetName,
@@ -94,7 +97,7 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
             editingContext,
             layoutSetId,
             cancellationToken
@@ -107,7 +110,7 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
+        IEnumerable<UiFolderLayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
             editingContext,
             cancellationToken
         );

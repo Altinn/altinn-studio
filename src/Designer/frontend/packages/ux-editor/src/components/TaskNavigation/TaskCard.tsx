@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
 import { useState } from 'react';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
 
 type TaskCardProps = {
-  layoutSetModel: LayoutSetModel;
+  layoutSetModel: UiFolderLayoutSetModel;
 };
 
 export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
