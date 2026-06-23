@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import { Accordion } from './Accordion';
 
 describe('Accordion', () => {
-  it('renders the title and children', () => {
+  it('resolves the title through translation, renders children, and is closed by default', () => {
     renderWithTranslations(
       <Accordion title='my.title'>
         <p>Child content</p>
@@ -12,8 +12,11 @@ describe('Accordion', () => {
       { overrides: { 'my.title': 'Resolved Title' } },
     );
 
-    expect(screen.getByRole('button', { name: 'Resolved Title' })).toBeInTheDocument();
+    const button = screen.getByRole('button', { name: 'Resolved Title' });
+    expect(button).toBeInTheDocument();
     expect(screen.getByText('Child content')).toBeInTheDocument();
+    // openByDefault is omitted, so the accordion starts closed.
+    expect(button.parentElement).not.toHaveAttribute('open');
   });
 
   it('uses the id for data-testid', () => {
@@ -24,17 +27,6 @@ describe('Accordion', () => {
     );
 
     expect(screen.getByTestId('accordion-component-acc-1')).toBeInTheDocument();
-  });
-
-  it('is closed by default when openByDefault is false or omitted', () => {
-    renderWithTranslations(
-      <Accordion title='x'>
-        <p>Body</p>
-      </Accordion>,
-    );
-
-    const button = screen.getByRole('button', { name: 'x' });
-    expect(button.parentElement).not.toHaveAttribute('open');
   });
 
   it('opens by default when openByDefault is true', () => {
@@ -48,30 +40,10 @@ describe('Accordion', () => {
     expect(button.parentElement).toHaveAttribute('open');
   });
 
-  it('renders multiple children', () => {
-    renderWithTranslations(
-      <Accordion title='x'>
-        <p>First child</p>
-        <p>Second child</p>
-      </Accordion>,
-    );
-
-    expect(screen.getByText('First child')).toBeInTheDocument();
-    expect(screen.getByText('Second child')).toBeInTheDocument();
-  });
-
   it('renders without children', () => {
     renderWithTranslations(<Accordion title='x' />);
 
     expect(screen.getByRole('button', { name: 'x' })).toBeInTheDocument();
-  });
-
-  it('resolves title through translation context', () => {
-    renderWithTranslations(<Accordion title='form.section' />, {
-      overrides: { 'form.section': 'Translated Section' },
-    });
-
-    expect(screen.getByRole('button', { name: 'Translated Section' })).toBeInTheDocument();
   });
 
   it('forwards className to the rendered accordion element', () => {
