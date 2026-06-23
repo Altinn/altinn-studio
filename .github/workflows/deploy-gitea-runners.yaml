@@ -84,7 +84,7 @@ jobs:
       environment: ${{ matrix.environment }}
       config-chart-name: gitea-org-runner-config
       artifact-name: gitea-runners
-      helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=gitea-runners,runnerMemory=${{ matrix.environment == 'prod' && '7Gi' || '2Gi' }}
+      helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=gitea-runners,runnerCpu=${{ matrix.environment == 'prod' && '2' || '500m' }},runnerMemory=${{ matrix.environment == 'prod' && '7Gi' || '2Gi' }}
       trace-workflow: false
       trace-team-name: 'team-studio'
     secrets:
