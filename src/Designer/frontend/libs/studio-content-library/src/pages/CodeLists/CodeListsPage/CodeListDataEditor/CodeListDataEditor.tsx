@@ -92,7 +92,7 @@ function OrdinaryFileEditorContent({
   onDelete,
   onUpdate,
   ...rest
-}: OrdinaryFileEditorContentProps): React.ReactElement {
+}: OrdinaryFileEditorContentProps): ReactElement {
   const { t } = useTranslation();
 
   const name = useMemo(() => getCodeListNameFromFile(currentFile), [currentFile]);
@@ -190,7 +190,7 @@ function DataView({
   );
 }
 
-function BackendError(): React.ReactElement {
+function BackendError(): ReactElement {
   const { contactPagePath } = useRouterContext();
   return (
     <StudioDetails.Content>
