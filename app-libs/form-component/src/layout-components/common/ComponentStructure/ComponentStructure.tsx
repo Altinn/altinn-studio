@@ -18,10 +18,19 @@ export interface IComponentStructureProps {
   validationMessages?: ReactNode;
 }
 
-type GridSize = IGridStyling['xs'];
+type GridSize = NonNullable<IGridStyling['xs']>;
 
-const toNumber = (grid: GridSize | undefined): number | undefined =>
-  typeof grid === 'number' ? grid : undefined;
+function toWidth(size: GridSize | undefined): number | undefined {
+  return typeof size === 'number' ? size : undefined;
+}
+
+/**
+ * Re-normalizes a column width to a 12-column span within a container `containerWidth` columns wide.
+ * Falls back to full width (12) when the width is absent.
+ */
+function toSpan(width: number | undefined, containerWidth: number): GridSize {
+  return width != null ? (Math.round((width / containerWidth) * 12) as GridSize) : 12;
+}
 
 function componentWithValidationSpan(
   innerGrid: IGridStyling | undefined,
@@ -31,21 +40,17 @@ function componentWithValidationSpan(
   const innerSpan: IGridStyling = {};
   const validationSpan: IGridStyling = {};
 
-  for (const breakpoints of ['xs', 'sm', 'md', 'lg', 'xl'] as const) {
-    const innerGridNumber = toNumber(innerGrid?.[breakpoints]);
-    const validationGridNumber = toNumber(validationGrid?.[breakpoints]);
-    if (innerGridNumber == null && validationGridNumber == null) {
+  for (const breakpoint of ['xs', 'sm', 'md', 'lg', 'xl'] as const) {
+    const innerWidth = toWidth(innerGrid?.[breakpoint]);
+    const validationWidth = toWidth(validationGrid?.[breakpoint]);
+    if (innerWidth == null && validationWidth == null) {
       continue;
     }
 
-    const maxWidth = Math.max(innerGridNumber ?? 0, validationGridNumber ?? 0);
-    containerSpan[breakpoints] = maxWidth as GridSize;
-    innerSpan[breakpoints] =
-      innerGridNumber != null ? (Math.round((innerGridNumber / maxWidth) * 12) as GridSize) : 12;
-    validationSpan[breakpoints] =
-      validationGridNumber != null
-        ? (Math.round((validationGridNumber / maxWidth) * 12) as GridSize)
-        : 12;
+    const containerWidth = Math.max(innerWidth ?? 0, validationWidth ?? 0);
+    containerSpan[breakpoint] = containerWidth as GridSize;
+    innerSpan[breakpoint] = toSpan(innerWidth, containerWidth);
+    validationSpan[breakpoint] = toSpan(validationWidth, containerWidth);
   }
 
   return { containerSpan, innerSpan, validationSpan };
