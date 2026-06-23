@@ -446,7 +446,7 @@ internal sealed class EFormidlingMetadata : IEFormidlingMetadata
 
 internal sealed class EFormidlingReceivers : IEFormidlingReceivers
 {
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
+    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)
     {
         SnapshotLogger.LogInfo("IEFormidlingReceivers.GetEFormidlingReceivers");
         return Task.FromResult(new List<Receiver>());
