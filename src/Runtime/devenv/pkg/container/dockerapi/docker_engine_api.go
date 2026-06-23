@@ -11,7 +11,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -217,17 +216,10 @@ func dockerBuildArgs(contextPath, dockerfile, tag string, opts types.BuildOption
 	}
 	args = append(args,
 		"-t", tag,
-		"-f", resolveDockerfilePath(contextPath, dockerfile),
+		"-f", dockerfile,
 		contextPath,
 	)
 	return args
-}
-
-func resolveDockerfilePath(contextPath, dockerfile string) string {
-	if dockerfile == "" || filepath.IsAbs(dockerfile) {
-		return dockerfile
-	}
-	return filepath.Join(contextPath, dockerfile)
 }
 
 func buildxBuild(opts types.BuildOptions) bool {

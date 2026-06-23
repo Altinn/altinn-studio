@@ -411,24 +411,6 @@ func TestDockerBuildArgs_IncludesRegistryCache(t *testing.T) {
 	}
 }
 
-func TestDockerBuildArgs_ResolvesDockerfileRelativeToContext(t *testing.T) {
-	t.Parallel()
-
-	got := dockerBuildArgs("/repo/src/Runtime/pdf3", "Dockerfile.proxy", "pdf3-proxy:latest", types.BuildOptions{})
-	want := []string{
-		"build",
-		"--progress", "rawjson",
-		"--provenance=false",
-		"--sbom=false",
-		"-t", "pdf3-proxy:latest",
-		"-f", "/repo/src/Runtime/pdf3/Dockerfile.proxy",
-		"/repo/src/Runtime/pdf3",
-	}
-	if !slices.Equal(got, want) {
-		t.Fatalf("dockerBuildArgs() = %#v, want %#v", got, want)
-	}
-}
-
 func TestBuildProgressAggregator_AggregatesStatuses(t *testing.T) {
 	t.Parallel()
 
