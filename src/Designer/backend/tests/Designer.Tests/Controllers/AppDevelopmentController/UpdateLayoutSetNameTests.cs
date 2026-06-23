@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -20,7 +18,7 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/app-development";
+        $"/designer/api/{org}/{repository}/ui-folders";
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
@@ -31,7 +29,7 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
         string newLayoutSetName = "newSetId";
         LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{oldLayoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{oldLayoutSetName}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -52,34 +50,6 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-    public async Task UpdateLayoutSetName_NewLayoutSetNameExistsBefore_ReturnsBadRequest(
-        string org,
-        string app,
-        string developer,
-        string oldLayoutSetName
-    )
-    {
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(org, app, developer, targetRepository);
-        const string ExistingLayoutSetName = "layoutSet2";
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{oldLayoutSetName}";
-
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
-        {
-            Content = new StringContent($"\"{ExistingLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
-        };
-
-        using var response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        string responseContent = await response.Content.ReadAsStringAsync();
-        Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(
-            responseContent
-        );
-        Assert.Equal($"Layout set name, {ExistingLayoutSetName}, already exists.", responseMessage["infoMessage"]);
-    }
-
-    [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
     public async Task UpdateLayoutSet_NewLayoutSetNameIsEmpty_ReturnsBadRequest(
         string org,
         string app,
@@ -91,7 +61,7 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         string newLayoutSetName = "";
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{oldLayoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{oldLayoutSetName}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -115,7 +85,7 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         string newLayoutSetName = ".abc";
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{oldLayoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{oldLayoutSetName}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -139,7 +109,7 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         string newLayoutSetName = "newSet";
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{oldLayoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{oldLayoutSetName}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {

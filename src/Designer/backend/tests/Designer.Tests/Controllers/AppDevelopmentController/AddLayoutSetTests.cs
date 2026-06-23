@@ -24,7 +24,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/app-development";
+        $"/designer/api/{org}/{repository}/ui-folders";
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
@@ -41,7 +41,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -78,7 +78,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfig = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -113,7 +113,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfig = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -130,12 +130,11 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     }
 
     [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
+    [InlineData("ttd", "app-with-layoutsets", "testUser")]
     public async Task AddLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(
         string org,
         string app,
-        string developer,
-        string layoutSetId
+        string developer
     )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -147,7 +146,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfig = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -176,7 +175,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfig = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -205,7 +204,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfig = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -246,7 +245,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
         var layoutSetPayload = new LayoutSetPayload() { TaskType = TaskType.Pdf, LayoutSetConfig = newLayoutSetConfig };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -285,7 +284,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfig = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {

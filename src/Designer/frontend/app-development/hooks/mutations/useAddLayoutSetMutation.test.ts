@@ -67,7 +67,11 @@ describe('useAddLayoutSetMutation', () => {
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: [QueryKey.LayoutSets, org, app] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.LayoutSetsExtended, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.LayoutSets, org, app],
+    });
   });
 });
