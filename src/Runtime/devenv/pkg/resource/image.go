@@ -74,7 +74,7 @@ func (r *PulledImage) Validate() error {
 type BuiltImage struct {
 	Enabled     *bool
 	ContextPath string
-	Dockerfile  string // relative to ContextPath, defaults to "Dockerfile"
+	Dockerfile  string // path passed to the container runtime, defaults to "Dockerfile"
 	Tag         string
 	Build       types.BuildOptions
 }

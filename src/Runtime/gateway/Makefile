@@ -17,19 +17,19 @@ help: ## Show this help message
 start: start-minimal ## Start the Kind cluster (alias for start-minimal)
 
 start-minimal: ## Start with minimal variant
-	@go run ./cmd/tester start minimal
+	@cd test && go run ./cmd/tester start minimal
 
 start-standard: ## Start with standard variant
-	@go run ./cmd/tester start standard
+	@cd test && go run ./cmd/tester start standard
 
 stop: ## Stop the runtime fixture/cluster
-	@go run ./cmd/tester stop
+	@cd test && go run ./cmd/tester stop
 
 test: ## Run unit tests
 	@echo "No unit tests yet"
 
 test-e2e: ## Run e2e tests (starts cluster if needed, keeps running)
-	@go run ./cmd/tester test
+	@cd test && go run ./cmd/tester test
 
 restore: ## Restore .NET packages and tools
 	@echo "Restoring .NET packages..."
@@ -40,9 +40,7 @@ restore: ## Restore .NET packages and tools
 
 build: ## Build Go and .NET projects
 	@echo "Building Go packages..."
-	@tmp_dir=$$(mktemp -d) && \
-		go build -o "$$tmp_dir" ./... && \
-		rm -rf "$$tmp_dir"
+	@cd test && go test ./cmd/tester
 	@echo "Building .NET solution..."
 	@dotnet build Altinn.Studio.Gateway.slnx
 	@echo "✓ Build successful"
@@ -51,11 +49,11 @@ lint: golangci-lint ## Run linters (Roslyn + golangci-lint)
 	@echo "Linting .NET (Roslyn analyzers)..."
 	@DOTNET_TREATWARNINGSASERRORS=true dotnet build Altinn.Studio.Gateway.slnx
 	@echo "Linting Go..."
-	@"$(abspath $(GOLANGCI_LINT))" run ./...
+	@cd test && "$(abspath $(GOLANGCI_LINT))" run --config ../.golangci.yml ./...
 	@echo "✓ Lint passed"
 
 lint-fix: golangci-lint ## Run linters with auto-fix (Go only)
-	@"$(abspath $(GOLANGCI_LINT))" run --fix ./...
+	@cd test && "$(abspath $(GOLANGCI_LINT))" run --fix --config ../.golangci.yml ./...
 
 lint-config: golangci-lint ## Verify linter configuration
 	@"$(abspath $(GOLANGCI_LINT))" config verify
@@ -64,12 +62,13 @@ fmt: golangci-lint ## Format code (CSharpier + golangci-lint)
 	@echo "Formatting .NET (CSharpier)..."
 	@dotnet csharpier format .
 	@echo "Formatting Go..."
-	@"$(abspath $(GOLANGCI_LINT))" fmt
+	@cd test && "$(abspath $(GOLANGCI_LINT))" fmt --config ../.golangci.yml
 	@echo "✓ Formatted"
 
 tidy: ## Tidy go modules
 	@echo "Tidying go modules..."
 	@go mod tidy
+	@cd test && go mod tidy
 	@echo "✓ Modules tidied"
 
 clean: ## Clean build artifacts and cache
