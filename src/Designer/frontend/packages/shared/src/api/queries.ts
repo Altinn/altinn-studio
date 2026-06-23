@@ -20,7 +20,7 @@ import {
   formLayoutsPath,
   frontEndSettingsPath,
   layoutSetsPath,
-  layoutSetsExtendedPath,
+  layoutSetsExtendedV4Path,
   layoutSettingsPath,
   validateNavigationLayoutSettingsPath,
   validateNavigationPageSettingsPath,
@@ -73,7 +73,7 @@ import {
   dataTypePath,
   orgCodeListsPath,
   layoutPagesPath,
-  taskNavigationGroupPath,
+  taskNavigationGroupV4Path,
   validationOnNavigationPath,
   availableResourcesInOrgLibraryPath,
   consentTemplatesPath,
@@ -88,7 +88,9 @@ import {
   contactPointsPath,
   botAccountsPath,
   botAccountApiKeysPath,
-  uiFoldersPath,
+  layoutSetsExtendedPath,
+  validationOnNavigationLayoutSetsPath,
+  taskNavigationGroupPath,
 } from './paths';
 
 import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -175,9 +177,9 @@ export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEnd
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
-export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(`${uiFoldersPath(owner, app)}/layout-sets/extended`);
-export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(owner, app)}/validation-on-navigation`);
+export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedV4Path(owner, app));
+export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(validationOnNavigationLayoutSetsPath(owner, app));
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
@@ -194,8 +196,8 @@ export const getRuleConfig = (owner: string, app: string, layoutSetName: string)
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
-export const getTaskNavigationGroupV4 = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app));
-export const getTaskNavigationGroup = (org: string, app: string) => get<TaskNavigationGroup[]>(`${uiFoldersPath(org, app)}/settings/task-navigation`);
+export const getTaskNavigationGroupV4 = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupV4Path(org, app));
+export const getTaskNavigationGroup = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app));
 export const getTextResources = (owner: string, app: string, lang: string) => get<ITextResourcesWithLanguage>(textResourcesPath(owner, app, lang));
 export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
