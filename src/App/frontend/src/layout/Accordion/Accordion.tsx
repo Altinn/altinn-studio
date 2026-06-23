@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { AccordionItem, Flex } from '@app/form-component';
-import { Card } from '@digdir/designsystemet-react';
+import { Accordion as AccordionLayout } from '@app/form-component';
 
-import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -13,43 +11,28 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accordion'>) => {
-  const { textResourceBindings, children, openByDefault } = useItemWhenType(baseComponentId, 'Accordion');
+  const { id, textResourceBindings, children, openByDefault } = useItemWhenType(baseComponentId, 'Accordion');
   const canRender = useHasCapability('renderInAccordion');
+  // Inside an AccordionGroup the group already provides the Card wrapper, so the
+  // Accordion renders as a bare item instead.
   const renderAsAccordionItem = useIsInAccordionGroup();
-
-  const title = textResourceBindings?.title ?? '';
-
-  const AccordionContent = ({ className }: { className?: string }) => (
-    <AccordionItem
-      title={<Lang id={title} />}
-      className={className}
-      defaultOpen={Boolean(openByDefault)}
-    >
-      <Flex
-        item
-        container
-        spacing={6}
-        alignItems='flex-start'
-      >
-        {children.filter(canRender).map((id) => (
-          <GenericComponent
-            key={id}
-            baseComponentId={id}
-          />
-        ))}
-      </Flex>
-    </AccordionItem>
-  );
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      {renderAsAccordionItem ? (
-        <AccordionContent className={classes.container} />
-      ) : (
-        <Card data-color='neutral'>
-          <AccordionContent className={classes.container} />
-        </Card>
-      )}
+      <AccordionLayout
+        id={id}
+        title={textResourceBindings?.title}
+        openByDefault={Boolean(openByDefault)}
+        renderAsCard={!renderAsAccordionItem}
+        className={classes.container}
+      >
+        {children.filter(canRender).map((childId) => (
+          <GenericComponent
+            key={childId}
+            baseComponentId={childId}
+          />
+        ))}
+      </AccordionLayout>
     </ComponentStructureWrapper>
   );
 };
