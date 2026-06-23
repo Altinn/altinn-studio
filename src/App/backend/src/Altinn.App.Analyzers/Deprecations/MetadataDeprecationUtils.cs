@@ -7,13 +7,13 @@ namespace Altinn.App.Analyzers.Deprecations;
 /// Parses <c>applicationmetadata.json</c> and reports use of configuration that is no longer
 /// supported by this version of the app backend (see <see cref="Diagnostics.Deprecations"/>).
 /// </summary>
-public static class MetadataDeprecationUtils
+internal static class MetadataDeprecationUtils
 {
     /// <summary>
     /// Inspects the given applicationmetadata.json file and appends a diagnostic for each
     /// deprecated property found.
     /// </summary>
-    public static void CollectDeprecationDiagnostics(
+    internal static void CollectDeprecationDiagnostics(
         AdditionalText text,
         CancellationToken token,
         List<Diagnostic> diagnostics

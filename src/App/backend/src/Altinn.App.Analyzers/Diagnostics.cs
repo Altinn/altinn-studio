@@ -36,7 +36,7 @@ public static class Diagnostics
         );
     }
 
-    public static class Deprecations
+    internal static class Deprecations
     {
         public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
             "ALTINNAPP0600",
