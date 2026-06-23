@@ -90,7 +90,7 @@ function OrdinaryFileEditorContent({
   onPublish,
   onUpdate,
   publishedCodeLists,
-}: OrdinaryFileEditorContentProps): React.ReactElement {
+}: OrdinaryFileEditorContentProps): ReactElement {
   const texts = useCodeListEditorTexts();
   const { t } = useTranslation();
 
@@ -143,7 +143,7 @@ function OrdinaryFileEditorContent({
   );
 }
 
-function BackendError(): React.ReactElement {
+function BackendError(): ReactElement {
   return (
     <StudioDetails.Content>
       <StudioAlert data-color='danger'>
