@@ -62,7 +62,7 @@ export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-de
 export const layoutSetsExtendedV4Path = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${apiBasePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
-export const validationOnNavigationLayoutSetsPath = (org, app) => `${layoutSetsPath(owner, app)}/validation-on-navigation`; // Get
+export const validationOnNavigationLayoutSetsPath = (org, app) => `${layoutSetsPath(org, app)}/validation-on-navigation`; // Get
 export const validateNavigationLayoutSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation`; // Get, Post
 export const validateNavigationPageSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation/pages`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
