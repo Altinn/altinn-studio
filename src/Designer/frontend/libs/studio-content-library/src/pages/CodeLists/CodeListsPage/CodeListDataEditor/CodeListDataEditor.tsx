@@ -25,6 +25,7 @@ import classes from './CodeListDataEditor.module.css';
 import { Publishing } from './Publishing';
 import type { CodeListFile, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 import cn from 'classnames';
+import { useRouterContext } from '../../../../ContentLibrary/RouterContext';
 
 export type CodeListDataEditorProps<FileInfo = CodeListFile> = Readonly<{
   currentFile: FileInfo;
@@ -144,12 +145,13 @@ function OrdinaryFileEditorContent({
 }
 
 function BackendError(): ReactElement {
+  const { contactPagePath } = useRouterContext();
   return (
     <StudioDetails.Content>
       <StudioAlert data-color='danger'>
         <Trans
           i18nKey='app_content_library.code_lists.backend_error'
-          components={{ a: <StudioLink href='/info/contact'>{null}</StudioLink> }}
+          components={{ a: <StudioLink href={contactPagePath}>{null}</StudioLink> }}
         />
       </StudioAlert>
     </StudioDetails.Content>
