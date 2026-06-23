@@ -21,7 +21,6 @@ namespace Altinn.App.Core.Configuration
         public string DefaultBootstrapUrl { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
-        public bool EnableEFormidling { get; set; }
         public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
         public string FooterFileName { get; set; }
@@ -143,14 +142,12 @@ namespace Altinn.App.Core.EFormidling.Implementation
 {
     public class DefaultEFormidlingReceivers : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers
     {
-        public DefaultEFormidlingReceivers(Altinn.App.Core.Internal.App.IAppMetadata appMetadata) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance) { }
+        public DefaultEFormidlingReceivers() { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig) { }
     }
     public class DefaultEFormidlingService : Altinn.App.Core.EFormidling.Interface.IEFormidlingService
     {
-        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Altinn.App.Core.EFormidling.Implementation.IEFormidlingLegacyConfigurationProvider configurationProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
-        public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance) { }
+        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
         public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
     }
     public class EformidlingDeliveryException : Altinn.App.Core.Exceptions.AltinnException
@@ -158,10 +155,6 @@ namespace Altinn.App.Core.EFormidling.Implementation
         public EformidlingDeliveryException() { }
         public EformidlingDeliveryException(string message) { }
         public EformidlingDeliveryException(string message, System.Exception inner) { }
-    }
-    public interface IEFormidlingLegacyConfigurationProvider
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration> GetLegacyConfiguration();
     }
 }
 namespace Altinn.App.Core.EFormidling.Interface
@@ -175,12 +168,10 @@ namespace Altinn.App.Core.EFormidling.Interface
     }
     public interface IEFormidlingReceivers
     {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig);
     }
     public interface IEFormidlingService
     {
-        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance);
         System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
     }
 }

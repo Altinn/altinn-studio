@@ -30,12 +30,10 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         : base(factory, outputHelper)
     {
         var eFormidlingServiceMock = new Mock<IEFormidlingService>();
-        var eFormidlingConfigurationProviderMock = new Mock<IEFormidlingLegacyConfigurationProvider>();
         var maskinportenClientMock = new Mock<IMaskinportenClient>();
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(eFormidlingServiceMock.Object);
-            services.AddSingleton(eFormidlingConfigurationProviderMock.Object);
             services.RemoveAll<IMaskinportenClient>();
             services.AddSingleton(maskinportenClientMock.Object);
         };
