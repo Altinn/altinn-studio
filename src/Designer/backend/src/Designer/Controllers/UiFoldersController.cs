@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -22,10 +28,21 @@ namespace Altinn.Studio.Designer.Controllers;
 public class UiFoldersController : Controller
 {
     private readonly IUiFoldersService _uiFoldersService;
+    private readonly IAppVersionService _appVersionService;
+    private readonly IAppDevelopmentService _appDevelopmentService;
+    private readonly IPublisher _publisher;
 
-    public UiFoldersController(IUiFoldersService uiFoldersService)
+    public UiFoldersController(
+        IUiFoldersService uiFoldersService,
+        IAppVersionService appVersionService,
+        IAppDevelopmentService appDevelopmentService,
+        IPublisher publisher
+    )
     {
         _uiFoldersService = uiFoldersService;
+        _appVersionService = appVersionService;
+        _appDevelopmentService = appDevelopmentService;
+        _publisher = publisher;
     }
 
     private AltinnRepoEditingContext CreateContext(string org, string app)
@@ -39,6 +56,10 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!IsV9App(editingContext))
+        {
+            return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        }
         IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.GetLayoutSets(editingContext, cancellationToken);
         return Ok(layoutSets);
     }
@@ -53,6 +74,24 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!IsV9App(editingContext))
+        {
+            await _appDevelopmentService.AddLayoutSet(
+                editingContext,
+                layoutSetPayload.LayoutSetConfig,
+                layoutSetPayload.TaskType,
+                cancellationToken
+            );
+            await _publisher.Publish(
+                new LayoutSetCreatedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSet = layoutSetPayload.LayoutSetConfig,
+                },
+                cancellationToken
+            );
+            return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        }
         IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.AddLayoutSet(
             editingContext,
             layoutSetPayload.LayoutSetConfig,
@@ -73,6 +112,25 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!IsV9App(editingContext))
+        {
+            await _appDevelopmentService.UpdateLayoutSetName(
+                editingContext,
+                layoutSetId,
+                newLayoutSetName,
+                cancellationToken
+            );
+            await _publisher.Publish(
+                new LayoutSetIdChangedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSetName = layoutSetId,
+                    NewLayoutSetName = newLayoutSetName,
+                },
+                cancellationToken
+            );
+            return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        }
         IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.UpdateLayoutSetName(
             editingContext,
             layoutSetId,
@@ -92,6 +150,15 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!IsV9App(editingContext))
+        {
+            await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetId, cancellationToken);
+            await _publisher.Publish(
+                new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetId },
+                cancellationToken
+            );
+            return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        }
         IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
             editingContext,
             layoutSetId,
@@ -269,5 +336,30 @@ public class UiFoldersController : Controller
         {
             return BadRequest(exception.Message);
         }
+    }
+
+    private bool IsV9App(AltinnRepoEditingContext editingContext)
+    {
+        try
+        {
+            SemanticVersion version = _appVersionService.GetAppLibVersion(editingContext);
+            return version.Major >= 9;
+        }
+        catch (FileNotFoundException)
+        {
+            return true;
+        }
+    }
+
+    private async Task<IEnumerable<LayoutSetDto>> GetV8LayoutSets(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+            editingContext,
+            cancellationToken
+        );
+        return layoutSetsModel.Sets.Select(s => s.ToDto());
     }
 }
