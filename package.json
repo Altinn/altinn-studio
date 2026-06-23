@@ -2,20 +2,8 @@
   "name": "altinn-studio",
   "devDependencies": {
     "eslint": "10.5.0",
-    "husky": "9.1.7",
-    "lint-staged": "16.4.0",
+    "lefthook": "2.1.9",
     "prettier": "3.8.4"
-  },
-  "lint-staged": {
-    "./src/App/frontend/**/*.{js,jsx,ts,tsx}": [
-      "./scripts/pre-commit-check-for-skipped-tests",
-      "yarn --cwd src/App/frontend eslint --cache --fix"
-    ],
-    "./src/App/frontend/**/*.json": "yarn --cwd src/App/frontend eslint --cache --fix",
-    "./src/App/frontend/**/*.{css,md}": "prettier -w",
-    "./app-libs/form-component/**/*.{js,jsx,ts,tsx}": "yarn --cwd app-libs/form-component eslint --cache --fix",
-    "*{js,jsx,tsx,ts,css,md}": "prettier -w",
-    "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
   },
   "packageManager": "yarn@4.16.0",
   "private": true,
@@ -27,10 +15,10 @@
     "lint:libs": "yarn workspace @app/form-engine lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
-    "setup": "husky && node src/Designer/development/setup.js && yarn run git:ignore-revs",
+    "setup": "lefthook install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   },
   "syncpack": {
     "semverRange": ""

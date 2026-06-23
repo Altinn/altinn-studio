@@ -1,0 +1,25 @@
+# Git hooks managed by lefthook — https://lefthook.dev/
+# Replaces the previous husky + lint-staged setup.
+pre-commit:
+  commands:
+    check-skipped-tests:
+      glob: 'src/App/frontend/*.{js,jsx,ts,tsx}'
+      run: ./scripts/pre-commit-check-for-skipped-tests {staged_files}
+    app-frontend-eslint:
+      root: 'src/App/frontend/'
+      glob: '*.{js,jsx,ts,tsx,json}'
+      run: yarn eslint --cache --fix {staged_files}
+      stage_fixed: true
+    form-component-eslint:
+      root: 'app-libs/form-component/'
+      glob: '*.{js,jsx,ts,tsx}'
+      run: yarn eslint --cache --fix {staged_files}
+      stage_fixed: true
+    sort-language-texts:
+      glob: 'src/Designer/frontend/language/src/*.json'
+      run: yarn sort-texts
+      stage_fixed: true
+    prettier:
+      glob: '*.{js,jsx,tsx,ts,css,md}'
+      run: yarn prettier -w {staged_files}
+      stage_fixed: true
