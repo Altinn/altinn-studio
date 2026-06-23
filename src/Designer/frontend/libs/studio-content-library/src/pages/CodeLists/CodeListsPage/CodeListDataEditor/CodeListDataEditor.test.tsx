@@ -1,28 +1,30 @@
 import { fruitsFile } from '../test-data/codeLists';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListDataEditorProps } from './CodeListDataEditor';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
-import { FileNameUtils, ArrayUtils } from '@studio/pure-functions';
+import { FileNameUtils, ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import type { CodeList } from '../../../../types/CodeList';
 import type { OrdinaryCodeListFile } from '../../../../types/CodeListFile';
+import { screen } from '@studio/ui-test';
 
 // Test data:
-const file = fruitsFile;
-const codeListName = FileNameUtils.removeExtension(file.name);
+const currentFile = fruitsFile;
+const codeListName = FileNameUtils.removeExtension(currentFile.name);
 const extractCodeList = ({ content }: OrdinaryCodeListFile): CodeList => JSON.parse(content);
 const onUpdate = jest.fn();
 const onDelete = jest.fn();
 const onPublish = jest.fn();
 const defaultProps: CodeListDataEditorProps = {
-  file,
+  currentFile,
   isPublishing: false,
   onDelete,
   onPublish,
   onUpdate,
   publishedCodeLists: [],
+  savedFile: currentFile,
 };
 
 describe('CodeListDataEditor', () => {
@@ -30,7 +32,7 @@ describe('CodeListDataEditor', () => {
 
   it('Renders the code list editor with given content', () => {
     renderCodeListDataEditor();
-    const expectedNumberOfRowsIncludingHeaders = extractCodeList(file).length + 1;
+    const expectedNumberOfRowsIncludingHeaders = extractCodeList(currentFile).length + 1;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRowsIncludingHeaders);
   });
 
@@ -68,7 +70,7 @@ describe('CodeListDataEditor', () => {
   });
 
   it('Renders with placeholder when name is empty', () => {
-    renderCodeListDataEditor({ file: { ...file, name: '.json' } });
+    renderCodeListDataEditor({ currentFile: { ...currentFile, name: '.json' } });
     const placeholderText = textMock('app_content_library.code_lists.unnamed');
     expect(screen.getByText(placeholderText)).toBeInTheDocument();
   });
@@ -85,11 +87,14 @@ describe('CodeListDataEditor', () => {
     const publishButtonName = textMock('app_content_library.code_lists.publish');
     await user.click(screen.getByRole('button', { name: publishButtonName }));
     expect(onPublish).toHaveBeenCalledTimes(1);
-    expect(onPublish).toHaveBeenCalledWith({ name: codeListName, codes: extractCodeList(file) });
+    expect(onPublish).toHaveBeenCalledWith({
+      name: codeListName,
+      codes: extractCodeList(currentFile),
+    });
   });
 
   it('Disables the publish button when no name is given', () => {
-    renderCodeListDataEditor({ file: { ...file, name: '.json' } });
+    renderCodeListDataEditor({ currentFile: { ...currentFile, name: '.json' } });
     const publishButtonName = textMock('app_content_library.code_lists.publish');
     expect(screen.getByRole('button', { name: publishButtonName })).toBeDisabled();
   });
@@ -118,6 +123,29 @@ describe('CodeListDataEditor', () => {
     const buttonNameWhilePublishing = textMock('app_content_library.code_lists.is_publishing');
     const loadingButton = screen.getByRole('button', { name: buttonNameWhilePublishing });
     expect(loadingButton).toBeInTheDocument();
+  });
+
+  it('Does not have any state class by default', () => {
+    renderCodeListDataEditor();
+    const summary = screen.getSummaryByText(codeListName);
+    expect(summary).not.toHaveClass('added');
+    expect(summary).not.toHaveClass('changed');
+  });
+
+  it('Has the "changed" state class when saved file is different from current file', () => {
+    const savedFile: OrdinaryCodeListFile = {
+      ...ObjectUtils.deepCopy(currentFile),
+      name: 'something-else',
+    };
+    renderCodeListDataEditor({ currentFile, savedFile });
+    const summary = screen.getSummaryByText(codeListName);
+    expect(summary).toHaveClass('changed');
+  });
+
+  it('Has the "added" state class when no saved file exists', () => {
+    renderCodeListDataEditor({ savedFile: null });
+    const summary = screen.getSummaryByText(codeListName);
+    expect(summary).toHaveClass('added');
   });
 });
 

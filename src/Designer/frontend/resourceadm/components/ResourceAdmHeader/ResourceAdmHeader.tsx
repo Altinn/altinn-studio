@@ -11,7 +11,7 @@ import { StudioAvatar } from '@studio/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
 import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 import type { User } from 'app-shared/types/Repository';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAppName } from '../../utils/stringUtils';
@@ -54,7 +54,6 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   const { t } = useTranslation();
   const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useUrlParams();
-  const { mutate: logout } = useLogoutMutation();
   const navigate = useNavigate();
   const selectableOrgs = organizations;
 
@@ -91,7 +90,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
+    action: { type: 'link', href: userLogoutAfterPath() },
     itemName: t('shared.header_logout'),
   };
 
