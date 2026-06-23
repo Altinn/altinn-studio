@@ -227,7 +227,3 @@ All data saves during callbacks use `StorageAuthenticationMethod.ServiceOwner()`
 - The task in Storage's XACML resource comes from `instance.Process.CurrentTask` as persisted in Storage's DB
 
 **Implication for task-start data saves**: Between `MutateProcessState` and `SaveProcessStateToStorage`, task-start commands create/modify data while Storage still has the OLD task as current. This works because ServiceOwner has write access on all tasks. If Storage ever starts forwarding the real userId to the authorization service (e.g., via a header), we would need to persist the process state between the two command groups instead. The factory already separates `taskEndSteps` and `taskStartSteps`, so moving the `SaveProcessStateToStorage` insert point would be straightforward.
-
-## Known TODOs / Notes
-
-- `AppCallbackPayload.LockToken` naming inconsistency with engine (LockKey vs LockToken)

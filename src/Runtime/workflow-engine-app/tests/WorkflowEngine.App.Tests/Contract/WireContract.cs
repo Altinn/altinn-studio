@@ -85,7 +85,7 @@ internal static class WireContract
     /// <list type="bullet">
     ///   <item>Every type and field the app models must exist on the engine with the same kind and
     ///         nullability — the app must never introduce or reshape a field the engine does not know.</item>
-    ///   <item>Every non-nullable engine field must be modelled by the app — the app must not silently
+    ///   <item>Every non-nullable engine field must be modeled by the app — the app must not silently
     ///         drop a value the engine always sends or requires.</item>
     ///   <item>Optional (nullable) engine fields and engine-only types may be omitted by the app —
     ///         this is the legitimate subsetting the app relies on.</item>
@@ -102,7 +102,7 @@ internal static class WireContract
         {
             if (!engine.TryGetValue(name, out var engineType))
             {
-                problems.Add($"Type '{name}': modelled by the app but absent from the engine contract.");
+                problems.Add($"Type '{name}': modeled by the app but absent from the engine contract.");
                 continue;
             }
 
@@ -135,7 +135,7 @@ internal static class WireContract
             foreach (var engineField in engineType.Fields.Where(f => !f.Nullable && !appFields.Contains(f.Name)))
             {
                 problems.Add(
-                    $"{name}.{engineField.Name}: required by the engine (non-nullable) but not modelled by the app."
+                    $"{name}.{engineField.Name}: required by the engine (non-nullable) but not modeled by the app."
                 );
             }
         }

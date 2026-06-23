@@ -32,7 +32,7 @@ engine canonical types  ──describe──▶  wire-contract.verified.json  �
   pulled directly from this folder at build time.
 
 The app check is directional (the app is a consumer, not a mirror): every field the app models must
-exist on the engine with the same shape, and every non-nullable engine field must be modelled by the
+exist on the engine with the same shape, and every non-nullable engine field must be modeled by the
 app — but the app may omit optional engine fields and engine-only response variants.
 
 ## When the engine contract changes
