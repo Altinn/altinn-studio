@@ -5,17 +5,23 @@ import (
 	"path/filepath"
 	"testing"
 
+	"altinn.studio/devenv/pkg/projectroot"
+	pdfaconverter "altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/test/harness"
 )
 
 func TestConvertFixturePDFToPDFA(t *testing.T) {
-	inputPath := filepath.Join("testdata", "pdfa-conversion-input.pdf")
+	projectRoot, err := projectroot.Find(projectroot.Marker)
+	if err != nil {
+		t.Fatalf("find project root: %v", err)
+	}
+	inputPath := filepath.Join(projectRoot, "internal", "pdfa", "testdata", "pdfa-conversion-input.pdf")
 	input, err := os.ReadFile(inputPath)
 	if err != nil {
 		t.Fatalf("ReadFile() error = %v", err)
 	}
 
-	converter := NewConverter()
+	converter := pdfaconverter.NewConverter()
 	output, err := converter.Convert(input)
 	if err != nil {
 		t.Fatalf("Convert() error = %v", err)

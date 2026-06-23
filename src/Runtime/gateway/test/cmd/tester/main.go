@@ -14,6 +14,7 @@ import (
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 )
@@ -21,7 +22,6 @@ import (
 const (
 	cachePath              = ".cache"
 	startCommandArgCount   = 3
-	projectRootSearchDepth = 10
 	exitCodeCanceled       = 130
 	graphApplyDurationStep = 10 * time.Millisecond
 )
@@ -100,7 +100,7 @@ func runStart(args []string) (exitCode int) {
 func runStop() (exitCode int) {
 	writeStdoutln("=== Gateway Runtime Stop ===")
 
-	root, err := findProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -130,7 +130,7 @@ func runStop() (exitCode int) {
 }
 
 func runTest() (exitCode int) {
-	root, err := findProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -191,9 +191,9 @@ func runTest() (exitCode int) {
 }
 
 func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
-	root, err := findProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("find project root: %w", err)
 	}
 
 	runtime, err := kind.New(variant, filepath.Join(root, cachePath), gatewayClusterOptions())
@@ -429,28 +429,6 @@ func closeRuntimeBestEffort(runtime *kind.KindContainerRuntime) {
 	if err := runtime.Close(); err != nil {
 		fmt.Fprintf(os.Stderr, "warning: close runtime: %v\n", err)
 	}
-}
-
-func findProjectRoot() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("get working directory: %w", err)
-	}
-
-	for range projectRootSearchDepth {
-		if _, statErr := os.Stat(filepath.Join(dir, "go.mod")); statErr == nil {
-			return dir, nil
-		} else if !errors.Is(statErr, os.ErrNotExist) {
-			return "", fmt.Errorf("stat go.mod in %q: %w", dir, statErr)
-		}
-
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-		dir = parent
-	}
-	return "", fmt.Errorf("go.mod not found within %d parent directories: %w", projectRootSearchDepth, os.ErrNotExist)
 }
 
 func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {
