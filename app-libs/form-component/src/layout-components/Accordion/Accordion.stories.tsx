@@ -15,6 +15,10 @@ export const ACCORDION_PROP_CATEGORIES = {
   children: 'runtime',
   className: 'runtime',
   renderAsItem: 'runtime',
+  contentId: 'runtime',
+  innerGrid: 'runtime',
+  validationGrid: 'runtime',
+  validationMessages: 'runtime',
 } satisfies PropCategories<AccordionProps>;
 
 const meta = {

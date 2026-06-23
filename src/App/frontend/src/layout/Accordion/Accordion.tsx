@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Accordion as AccordionLayout, ComponentStructure } from '@app/form-component';
+import { Accordion as AccordionLayout } from '@app/form-component';
 
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import classes from 'src/layout/Accordion/Accordion.module.css';
@@ -25,27 +25,24 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   } = useComponentStructureData(baseComponentId);
 
   return (
-    <ComponentStructure
-      id={contentId}
+    <AccordionLayout
+      title={textResourceBindings?.title}
+      openByDefault={Boolean(openByDefault)}
+      renderAsItem={renderAsAccordionItem}
+      className={classes.container}
+      contentId={contentId}
       innerGrid={innerGrid}
       validationGrid={validationGrid}
       validationMessages={
         showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
       }
     >
-      <AccordionLayout
-        title={textResourceBindings?.title}
-        openByDefault={Boolean(openByDefault)}
-        renderAsItem={renderAsAccordionItem}
-        className={classes.container}
-      >
-        {children.filter(canRender).map((childId) => (
-          <GenericComponent
-            key={childId}
-            baseComponentId={childId}
-          />
-        ))}
-      </AccordionLayout>
-    </ComponentStructure>
+      {children.filter(canRender).map((childId) => (
+        <GenericComponent
+          key={childId}
+          baseComponentId={childId}
+        />
+      ))}
+    </AccordionLayout>
   );
 };
