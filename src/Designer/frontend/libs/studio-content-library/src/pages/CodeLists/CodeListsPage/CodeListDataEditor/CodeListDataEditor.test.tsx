@@ -156,6 +156,38 @@ describe('CodeListDataEditor', () => {
     const expectedMessage = textMock('app_content_library.code_lists.backend_error');
     expect(screen.getByText(expectedMessage)).toBeInTheDocument();
   });
+
+  it('Displays the correct error message when there is a JSON syntax error in the code list file', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const fileWithInvalidJson: OrdinaryCodeListFile = { name: 'invalid.json', content: '{' };
+
+      renderCodeListDataEditor({ currentFile: fileWithInvalidJson });
+
+      const expectedMessageCode = 'app_content_library.code_lists.parse_error.invalid_json_syntax';
+      expect(screen.getByText(textMock(expectedMessageCode))).toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('Displays the correct error message when the code list file has valid syntax, but is not correctly structured', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const invalidCodeListJson = '{ "Hello": "I am not a code list" }';
+      const invalidFile: OrdinaryCodeListFile = {
+        name: 'invalid.json',
+        content: invalidCodeListJson,
+      };
+
+      renderCodeListDataEditor({ currentFile: invalidFile });
+
+      const expectedMessageCode = 'app_content_library.code_lists.parse_error.invalid_code_list';
+      expect(screen.getByText(textMock(expectedMessageCode))).toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
 
 function renderCodeListDataEditor(props: Partial<CodeListDataEditorProps> = {}): RenderResult {

@@ -125,6 +125,8 @@
   "app_content_library.code_lists.latest_version": "Siste versjon: {{version}}",
   "app_content_library.code_lists.name": "Navn",
   "app_content_library.code_lists.page_name": "Kodelister (ny)",
+  "app_content_library.code_lists.parse_error.invalid_code_list": "Kodelistefilen har ikke en gyldig struktur.",
+  "app_content_library.code_lists.parse_error.invalid_json_syntax": "Det er en JSON-syntaksfeil i kodelistefilen.",
   "app_content_library.code_lists.publish": "Publiser",
   "app_content_library.code_lists.publish_new_version": "Publiser ny versjon",
   "app_content_library.code_lists.save.error": "Det har oppstått en feil under lagring. Prøv igjen. Hvis problemet gjentar seg, <a>ta kontakt med oss</a>.",
