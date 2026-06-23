@@ -8,6 +8,8 @@ import (
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/projectroot"
+	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
 func TestOperatorCABundleWorkloadsPatchPreKustomizeDeploymentName(t *testing.T) {
@@ -47,5 +49,55 @@ func TestOperatorCABundleWorkloadsPatchPreKustomizeDeploymentName(t *testing.T) 
 		if !strings.Contains(manifest, want) {
 			t.Fatalf("patched manager manifest missing %q:\n%s", want, manifest)
 		}
+	}
+}
+
+func TestOperatorImageResourcesUsesDockerfilesRelativeToContexts(t *testing.T) {
+	projectRoot := t.TempDir()
+
+	resources, _ := operatorImageResources(projectRoot, &kind.KindContainerRuntime{})
+	images := map[string]*resource.BuiltImage{}
+	for _, res := range resources {
+		image, ok := res.(*resource.BuiltImage)
+		if ok {
+			images[image.Tag] = image
+		}
+	}
+
+	tests := []struct {
+		tag         string
+		contextPath string
+		dockerfile  string
+	}{
+		{
+			tag:         "operator-controller:latest",
+			contextPath: projectRoot,
+			dockerfile:  "Dockerfile",
+		},
+		{
+			tag:         "operator-fakes:latest",
+			contextPath: projectRoot,
+			dockerfile:  "Dockerfile.fakes",
+		},
+		{
+			tag:         "operator-localtestapp:latest",
+			contextPath: filepath.Join(projectRoot, "test/app"),
+			dockerfile:  "Dockerfile",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.tag, func(t *testing.T) {
+			image := images[tt.tag]
+			if image == nil {
+				t.Fatalf("missing image resource %q", tt.tag)
+			}
+			if image.ContextPath != tt.contextPath {
+				t.Fatalf("ContextPath = %q, want %q", image.ContextPath, tt.contextPath)
+			}
+			if image.Dockerfile != tt.dockerfile {
+				t.Fatalf("Dockerfile = %q, want %q", image.Dockerfile, tt.dockerfile)
+			}
+		})
 	}
 }

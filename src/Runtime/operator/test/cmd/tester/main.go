@@ -341,7 +341,7 @@ func operatorImageResources(
 	}
 	localtestAppImage := &resource.BuiltImage{
 		ContextPath: filepath.Join(projectRoot, "test/app"),
-		Dockerfile:  "test/app/Dockerfile",
+		Dockerfile:  "Dockerfile",
 		Tag:         "operator-localtestapp:latest",
 	}
 	controllerPublished := &resource.PublishedImage{
