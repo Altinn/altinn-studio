@@ -104,7 +104,11 @@ export function UserInput({
       setTimeout(() => {
         onCreateThread?.();
         onSubmitMessage(
-          createUserMessage(`Concurrency testing #${iteration}`, allowAppChanges, attachments),
+          createUserMessage(
+            `Add a text component named test-${iteration}`,
+            allowAppChanges,
+            attachments,
+          ),
         );
       }, delayMs);
     }

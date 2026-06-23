@@ -191,7 +191,7 @@ describe('UserInput', () => {
     for (let iteration = 1; iteration <= 5; iteration++) {
       expect(onSubmitMessage).toHaveBeenNthCalledWith(
         iteration,
-        expect.objectContaining({ content: `Concurrency testing #${iteration}` }),
+        expect.objectContaining({ content: `Add a text component named test-${iteration}` }),
       );
     }
     jest.useRealTimers();
