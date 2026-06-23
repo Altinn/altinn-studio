@@ -1,12 +1,13 @@
 import React from 'react';
 
-import { Accordion as AccordionLayout } from '@app/form-component';
+import { Accordion as AccordionLayout, ComponentStructure } from '@app/form-component';
 
+import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -16,9 +17,22 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   // Inside an AccordionGroup the group already provides the Card wrapper, so the
   // Accordion renders as a bare item instead.
   const renderAsAccordionItem = useIsInAccordionGroup();
+  const {
+    id: contentId,
+    innerGrid,
+    validationGrid,
+    showValidationMessages,
+  } = useComponentStructureData(baseComponentId);
 
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
+    <ComponentStructure
+      id={contentId}
+      innerGrid={innerGrid}
+      validationGrid={validationGrid}
+      validationMessages={
+        showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
+      }
+    >
       <AccordionLayout
         title={textResourceBindings?.title}
         openByDefault={Boolean(openByDefault)}
@@ -32,6 +46,6 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
           />
         ))}
       </AccordionLayout>
-    </ComponentStructureWrapper>
+    </ComponentStructure>
   );
 };
