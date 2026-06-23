@@ -12,7 +12,7 @@ import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { Card } from '@digdir/designsystemet-react';
 
 export interface AccordionProps {
-  /** Component ID, used for test IDs */
+  /** Component ID, rendered as the standard HTML `id` on the wrapper element */
   id?: string;
   /** Text resource key or literal string for the accordion title */
   title?: string;
@@ -51,8 +51,8 @@ export function Accordion({
 
   const inner = renderAsCard ? <Card data-color='neutral'>{content}</Card> : content;
 
-  // Only introduce the wrapper element when it carries a test id. This avoids
-  // shipping a semantically empty `<div data-testid={undefined}>` when `id` is
-  // omitted, and keeps the DOM closer to the runtime's output.
-  return id ? <div data-testid={`accordion-component-${id}`}>{inner}</div> : inner;
+  // Only introduce the wrapper element when an `id` is provided, so we don't ship a
+  // semantically empty `<div>` when `id` is omitted and keep the DOM close to the
+  // runtime's output.
+  return id ? <div id={id}>{inner}</div> : inner;
 }

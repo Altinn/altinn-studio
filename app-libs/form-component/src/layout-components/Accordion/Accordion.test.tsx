@@ -19,14 +19,14 @@ describe('Accordion', () => {
     expect(button.parentElement).not.toHaveAttribute('open');
   });
 
-  it('uses the id for data-testid', () => {
-    renderWithTranslations(
+  it('renders the id as a standard HTML id on the wrapper element', () => {
+    const { container } = renderWithTranslations(
       <Accordion id='acc-1' title='x'>
         <p>Body</p>
       </Accordion>,
     );
 
-    expect(screen.getByTestId('accordion-component-acc-1')).toBeInTheDocument();
+    expect(container.querySelector('#acc-1')).toBeInTheDocument();
   });
 
   it('opens by default when openByDefault is true', () => {
