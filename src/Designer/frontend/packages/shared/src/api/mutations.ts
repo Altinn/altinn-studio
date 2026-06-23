@@ -37,7 +37,6 @@ import {
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
-  layoutSetPath,
   uiFoldersLayoutSetPath,
   uiFoldersLayoutSetsPath,
   processEditorDataTypePath,
@@ -111,7 +110,6 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';

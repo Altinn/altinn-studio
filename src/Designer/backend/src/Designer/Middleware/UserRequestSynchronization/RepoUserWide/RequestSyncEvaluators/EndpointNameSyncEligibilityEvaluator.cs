@@ -38,16 +38,24 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
         {
             TrimmedControllerName(nameof(AppDevelopmentController)),
             GenerateFrozenSet(
-                nameof(AppDevelopmentController.AddLayoutSet),
                 nameof(AppDevelopmentController.DeleteFormLayout),
-                nameof(AppDevelopmentController.DeleteLayoutSet),
                 nameof(AppDevelopmentController.GetModelMetadata),
                 nameof(AppDevelopmentController.SaveFormLayout),
                 nameof(AppDevelopmentController.SaveLayoutSettings),
                 nameof(AppDevelopmentController.SaveRuleConfig),
                 nameof(AppDevelopmentController.SaveRuleHandler),
-                nameof(AppDevelopmentController.UpdateFormLayoutName),
-                nameof(AppDevelopmentController.UpdateLayoutSetName)
+                nameof(AppDevelopmentController.UpdateFormLayoutName)
+            )
+        },
+        {
+            TrimmedControllerName(nameof(UiFoldersController)),
+            GenerateFrozenSet(
+                nameof(UiFoldersController.AddLayoutSet),
+                nameof(UiFoldersController.UpdateLayoutSetName),
+                nameof(UiFoldersController.DeleteLayoutSet),
+                nameof(UiFoldersController.SaveValidationOnNavigation),
+                nameof(UiFoldersController.DeleteValidationOnNavigation),
+                nameof(UiFoldersController.UpdateGlobalTaskNavigation)
             )
         },
         {
