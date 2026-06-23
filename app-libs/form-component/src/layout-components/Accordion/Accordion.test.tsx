@@ -19,16 +19,6 @@ describe('Accordion', () => {
     expect(button.parentElement).not.toHaveAttribute('open');
   });
 
-  it('renders the id as a standard HTML id on the wrapper element', () => {
-    const { container } = renderWithTranslations(
-      <Accordion id='acc-1' title='x'>
-        <p>Body</p>
-      </Accordion>,
-    );
-
-    expect(container.querySelector('#acc-1')).toBeInTheDocument();
-  });
-
   it('opens by default when openByDefault is true', () => {
     renderWithTranslations(
       <Accordion title='x' openByDefault>

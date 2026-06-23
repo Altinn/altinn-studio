@@ -10,7 +10,6 @@ import type { AccordionProps } from './Accordion';
  * makes it exhaustive — a new prop must be classified here.
  */
 export const ACCORDION_PROP_CATEGORIES = {
-  id: 'config',
   title: 'config',
   openByDefault: 'config',
   children: 'runtime',
@@ -27,7 +26,6 @@ const meta = {
     layout: 'padded',
   },
   args: {
-    id: 'accordion-preview',
     title: 'What is included in this section?',
   },
 } satisfies Meta<typeof Accordion>;

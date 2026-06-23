@@ -12,8 +12,6 @@ import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { Card } from '@digdir/designsystemet-react';
 
 export interface AccordionProps {
-  /** Component ID, rendered as the standard HTML `id` on the wrapper element */
-  id?: string;
   /** Text resource key or literal string for the accordion title */
   title?: string;
   /** Whether the accordion starts open */
@@ -31,7 +29,6 @@ export interface AccordionProps {
 }
 
 export function Accordion({
-  id,
   title,
   openByDefault = false,
   children,
@@ -48,10 +45,5 @@ export function Accordion({
     </AccordionItem>
   );
 
-  const inner = renderAsItem ? content : <Card data-color='neutral'>{content}</Card>;
-
-  // Only introduce the wrapper element when an `id` is provided, so we don't ship a
-  // semantically empty `<div>` when `id` is omitted and keep the DOM close to the
-  // runtime's output.
-  return id ? <div id={id}>{inner}</div> : inner;
+  return renderAsItem ? content : <Card data-color='neutral'>{content}</Card>;
 }

@@ -11,7 +11,7 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accordion'>) => {
-  const { id, textResourceBindings, children, openByDefault } = useItemWhenType(baseComponentId, 'Accordion');
+  const { textResourceBindings, children, openByDefault } = useItemWhenType(baseComponentId, 'Accordion');
   const canRender = useHasCapability('renderInAccordion');
   // Inside an AccordionGroup the group already provides the Card wrapper, so the
   // Accordion renders as a bare item instead.
@@ -20,7 +20,6 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <AccordionLayout
-        id={id}
         title={textResourceBindings?.title}
         openByDefault={Boolean(openByDefault)}
         renderAsItem={renderAsAccordionItem}
