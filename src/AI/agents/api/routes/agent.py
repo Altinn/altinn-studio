@@ -3,7 +3,8 @@ import re
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
-from agents.graph.runner import run_in_background, acquire_workflow_slot
+from agents.graph.runner import run_in_background
+from agents.services.concurrency import acquire_workflow_slot
 from agents.graph.nodes import assistant
 from agents.services.events import sink, AgentEvent
 
