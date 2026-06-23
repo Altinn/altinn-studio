@@ -2,6 +2,7 @@ import { type UseMutateFunction, useMutation, useQueryClient } from '@tanstack/r
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 
 export type AddLayoutSetMutationPayload = {
@@ -9,7 +10,7 @@ export type AddLayoutSetMutationPayload = {
 } & LayoutSetPayload;
 
 export type AddLayoutSetMutation = UseMutateFunction<
-  LayoutSetModel[],
+  (LayoutSetModel | UiFolderLayoutSetModel)[],
   Error,
   AddLayoutSetMutationPayload
 >;

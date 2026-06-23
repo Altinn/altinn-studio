@@ -2,7 +2,7 @@ import type { BpmnContextProps } from '../../src/contexts/BpmnContext';
 import { mockBpmnDetails } from './bpmnDetailsMock';
 import type { BpmnApiContextProps } from '../../src/contexts/BpmnApiContext';
 import { mockModelerRef } from './bpmnModelerMock';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
@@ -24,20 +24,20 @@ export const mockBpmnContextValue: BpmnContextProps = {
   setIsInitialized: jest.fn(),
 };
 
-export const mockLayoutSets: LayoutSets = {
-  sets: [
-    {
-      id: 'testId',
-      dataType: 'dataTypeId1',
-      tasks: [mockBpmnDetails.id],
-    },
-    {
-      id: 'layoutSetId2',
-      dataType: 'dataTypeId2',
-      tasks: ['Task_2'],
-    },
-  ],
-};
+export const mockLayoutSets: LayoutSetResponse[] = [
+  {
+    id: 'testId',
+    dataType: 'dataTypeId1',
+    type: 'data',
+    task: { id: mockBpmnDetails.id, type: 'data' },
+  },
+  {
+    id: 'layoutSetId2',
+    dataType: 'dataTypeId2',
+    type: 'data',
+    task: { id: 'Task_2', type: 'data' },
+  },
+];
 
 export const mockBpmnApiContextValue: BpmnApiContextProps = {
   layoutSets: mockLayoutSets,

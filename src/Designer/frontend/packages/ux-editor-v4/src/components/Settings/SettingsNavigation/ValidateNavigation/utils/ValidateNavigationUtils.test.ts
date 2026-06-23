@@ -113,8 +113,8 @@ describe('getValuesToDisplay', () => {
 
 describe('getAvailableTasks', () => {
   const tasks = [
-    { id: 'task1', name: 'Task 1' },
-    { id: 'task2', name: 'Task 2' },
+    { id: 'task1', dataType: '', type: '' },
+    { id: 'task2', dataType: '', type: '' },
   ];
 
   it('should return all tasks if no tasksWithRules or selectedTasks provided', () => {
@@ -123,7 +123,7 @@ describe('getAvailableTasks', () => {
   });
 
   it('should return only tasks that are not in tasksWithRules unless they are selected', () => {
-    const extendedTasks = [...tasks, { id: 'task3', name: 'Task 3' }];
+    const extendedTasks = [...tasks, { id: 'task3', dataType: '', type: '' }];
     const tasksWithRules = ['task1', 'task2'];
     const selectedTasks = ['task2'];
     const availableTasks = getAvailableTasks(extendedTasks, tasksWithRules, selectedTasks);

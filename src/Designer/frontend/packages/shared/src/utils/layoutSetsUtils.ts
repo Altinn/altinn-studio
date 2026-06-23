@@ -1,18 +1,20 @@
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
 import { StringUtils } from '@studio/pure-functions';
 
-export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string | undefined => {
-  return layoutSets?.sets?.find((set) => set.tasks?.includes(PROTECTED_TASK_NAME_CUSTOM_RECEIPT))
-    ?.id;
+export type LayoutSetResponse = LayoutSetModel | UiFolderLayoutSetModel;
+
+export const getLayoutSetNameForCustomReceipt = (
+  layoutSets: LayoutSetResponse[],
+): string | undefined => {
+  return layoutSets?.find((set) => getTaskId(set) === PROTECTED_TASK_NAME_CUSTOM_RECEIPT)?.id;
 };
 
 export const getLayoutSetIdValidationErrorKey = (
   newLayoutSetId: string,
-  layoutSets: LayoutSets,
+  layoutSets: LayoutSetResponse[],
   oldLayoutSetId?: string,
 ): string => {
   if (oldLayoutSetId === newLayoutSetId) return null;
@@ -20,7 +22,7 @@ export const getLayoutSetIdValidationErrorKey = (
   if (newLayoutSetId.length === 1)
     return 'process_editor.configuration_panel_custom_receipt_layout_set_name_validation';
   if (!validateLayoutNameAndLayoutSetName(newLayoutSetId)) return 'validation_errors.name_invalid';
-  if (layoutSets.sets.some((set) => StringUtils.areCaseInsensitiveEqual(set.id, newLayoutSetId)))
+  if (layoutSets.some((set) => StringUtils.areCaseInsensitiveEqual(set.id, newLayoutSetId)))
     return 'process_editor.configuration_panel_layout_set_id_not_unique';
   return null;
 };
@@ -42,7 +44,7 @@ export const getLayoutSetTypeTranslationKey = (
   return '';
 };
 
-const getTaskType = (layoutSet: LayoutSetModel | UiFolderLayoutSetModel): string | undefined => {
+const getTaskType = (layoutSet: LayoutSetResponse): string | undefined => {
   if ('task' in layoutSet) {
     return layoutSet.task?.type;
   }
@@ -53,7 +55,7 @@ const getTaskType = (layoutSet: LayoutSetModel | UiFolderLayoutSetModel): string
   return '';
 };
 
-const getTaskId = (layoutSet: LayoutSetModel | UiFolderLayoutSetModel): string | undefined => {
+export const getTaskId = (layoutSet: LayoutSetResponse): string | undefined => {
   if ('task' in layoutSet) {
     return layoutSet.task?.id;
   }

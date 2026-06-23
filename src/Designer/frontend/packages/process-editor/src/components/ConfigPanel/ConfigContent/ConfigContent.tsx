@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
+import { getTaskId } from 'app-shared/utils/layoutSetsUtils';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
 import {
@@ -26,15 +27,13 @@ export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets, availableDataModelIds } = useBpmnApiContext();
-  const layoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(bpmnDetails.id));
+  const layoutSet = layoutSets?.find((set) => getTaskId(set) === bpmnDetails.id);
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
   const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails.element);
   const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
-  const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
-    (set) => set.tasks && set.tasks[0] == bpmnDetails.id,
-  );
+  const taskHasConnectedLayoutSet = layoutSets?.some((set) => getTaskId(set) === bpmnDetails.id);
   const { shouldDisplayAction } = useStudioRecommendedNextActionContext();
 
   const studioModeler = new StudioModeler();
@@ -88,7 +87,7 @@ export const ConfigContent = (): React.ReactElement => {
               <StudioDetails.Content className={classes.detailsContent}>
                 <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
                 <EditDataTypes
-                  connectedTaskId={layoutSet.tasks[0]}
+                  connectedTaskId={getTaskId(layoutSet)}
                   dataModelIds={availableDataModelIds}
                   existingDataTypeForTask={existingDataTypeForTask}
                 />

@@ -1,6 +1,7 @@
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
+import { getTaskId } from 'app-shared/utils/layoutSetsUtils';
 
-export const getLayoutSetIdFromTaskId = (elementId: string, layoutSets: LayoutSets) => {
-  const layoutSet = layoutSets.sets.find((set) => set.tasks && set.tasks[0] === elementId);
+export const getLayoutSetIdFromTaskId = (elementId: string, layoutSets: LayoutSetResponse[]) => {
+  const layoutSet = layoutSets.find((set) => getTaskId(set) === elementId);
   return layoutSet?.id;
 };

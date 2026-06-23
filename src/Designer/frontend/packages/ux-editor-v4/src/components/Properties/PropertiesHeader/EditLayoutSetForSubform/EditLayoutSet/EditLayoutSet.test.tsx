@@ -1,6 +1,6 @@
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { app, org } from '@studio/testing/testids';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -13,7 +13,7 @@ import { layoutSets } from 'app-shared/mocks/mocks';
 
 const handleComponentChange = jest.fn();
 const subformLayoutSetId = 'subformLayoutSetId';
-const subformLayoutSet = { sets: [{ id: subformLayoutSetId, type: 'subform' }] } as LayoutSets;
+const subformLayoutSet: LayoutSetResponse[] = [{ id: subformLayoutSetId, dataType: '', type: 'subform' }];
 
 describe('EditLayoutSet', () => {
   afterEach(jest.clearAllMocks);
@@ -86,7 +86,7 @@ describe('EditLayoutSet', () => {
   });
 });
 
-const renderEditLayoutSet = (layoutSetsMock: LayoutSets = layoutSets) => {
+const renderEditLayoutSet = (layoutSetsMock: LayoutSetResponse[] = layoutSets) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
 

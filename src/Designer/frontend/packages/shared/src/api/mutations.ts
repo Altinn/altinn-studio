@@ -113,6 +113,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
@@ -141,13 +142,13 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, _layoutSetIdToUpdate: string, payload: LayoutSetPayload) => post<LayoutSetModel[]>(uiFoldersLayoutSetsPath(org, app), payload);
+export const addLayoutSet = (org: string, app: string, _layoutSetIdToUpdate: string, payload: LayoutSetPayload) => post<(LayoutSetModel | UiFolderLayoutSetModel)[]>(uiFoldersLayoutSetsPath(org, app), payload);
 export const addImage = (org: string, app: string, form: FormData) => post<FormData>(addImagePath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteImage = (org: string, app: string, imageName: string) => del(imagePath(org, app, imageName));
 
-export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
+export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<(LayoutSetModel | UiFolderLayoutSetModel)[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
-export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
+export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put<(LayoutSetModel | UiFolderLayoutSetModel)[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });

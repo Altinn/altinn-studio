@@ -1,5 +1,5 @@
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
-import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 
 /**
  * Returns the title to show in the config panel when a task is selected.
@@ -55,8 +55,8 @@ export const checkForInvalidCharacters = (newId: string): InvalidCharacter | und
  * @returns the data type if found, undefined otherwise
  */
 export const getDataTypeFromLayoutSetsWithExistingId = (
-  layoutSets: LayoutSets,
+  layoutSets: LayoutSetResponse[],
   existingId: string,
 ): string | undefined => {
-  return layoutSets.sets.find((layoutSet) => layoutSet.id === existingId)?.dataType;
+  return layoutSets.find((layoutSet) => layoutSet.id === existingId)?.dataType;
 };

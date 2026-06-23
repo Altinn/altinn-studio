@@ -4,7 +4,7 @@ import type {
   DataModelMetadataResponse,
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Commit } from 'app-shared/types/Commit';
@@ -117,9 +117,7 @@ export const environment: Environment = {
   type: '',
 };
 
-export const layoutSets: LayoutSets = {
-  sets: [],
-};
+export const layoutSets: LayoutSetResponse[] = [];
 
 export const newsList: NewsList = {
   news: [],

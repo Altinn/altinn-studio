@@ -1,4 +1,5 @@
-import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import React, { createContext, useContext } from 'react';
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
@@ -13,7 +14,7 @@ export type BpmnApiContextProps = {
   availableDataTypeIds: string[];
   availableDataModelIds: string[];
   allDataModelIds: string[];
-  layoutSets: LayoutSets;
+  layoutSets: LayoutSetResponse[];
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: string | undefined;
   addLayoutSet: (

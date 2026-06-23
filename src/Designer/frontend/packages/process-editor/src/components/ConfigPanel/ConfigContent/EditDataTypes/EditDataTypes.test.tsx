@@ -9,17 +9,12 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 
 const mockTaskId: string = 'testId';
-const layoutSetsWithoutDataTypeConnection: LayoutSets = {
-  sets: [
-    {
-      id: 'setWithDataType',
-      tasks: [mockTaskId],
-    },
-  ],
-};
+const layoutSetsWithoutDataTypeConnection: LayoutSetResponse[] = [
+  { id: 'setWithDataType', dataType: '', type: '', task: { id: mockTaskId, type: '' } },
+];
 
 const defaultProps: EditDataTypesProps = {
   dataModelIds: [],
@@ -71,7 +66,7 @@ describe('EditDataTypes', () => {
   it('should display description to select data type and show all available data types including existing as options', async () => {
     const user = userEvent.setup();
     const availableDataModelIds = ['dataModel1', 'dataModel2'];
-    const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
+    const existingDataType = mockBpmnApiContextValue.layoutSets[0].dataType;
     renderEditDataTypes({
       bpmnApiContextProps: { availableDataModelIds },
       componentProps: {
@@ -105,7 +100,7 @@ describe('EditDataTypes', () => {
 
   it('should display the existing data type in preview as a button to edit when task has connected data model', async () => {
     const user = userEvent.setup();
-    const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
+    const existingDataType = mockBpmnApiContextValue.layoutSets[0].dataType;
 
     renderEditDataTypes({
       componentProps: {
@@ -130,13 +125,13 @@ describe('EditDataTypes', () => {
     const user = userEvent.setup();
     renderEditDataTypes({
       componentProps: {
-        existingDataTypeForTask: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+        existingDataTypeForTask: mockBpmnApiContextValue.layoutSets[0].dataType,
       },
     });
 
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_model', {
-        dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+        dataModelName: mockBpmnApiContextValue.layoutSets[0].dataType,
       }),
     });
 
@@ -146,7 +141,7 @@ describe('EditDataTypes', () => {
     expect(
       screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_set_data_model', {
-          dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+          dataModelName: mockBpmnApiContextValue.layoutSets[0].dataType,
         }),
       }),
     ).toBeInTheDocument();

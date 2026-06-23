@@ -1,7 +1,7 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { PaymentPolicyBuilder } from '../../../utils/policy';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import { getLayoutSetIdFromTaskId } from '../bpmnHandlerUtils/bpmnHandlerUtils';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
@@ -12,7 +12,7 @@ export class OnProcessTaskRemoveHandler {
     private readonly org: string,
     private readonly app: string,
     private readonly currentPolicy: Policy,
-    private readonly layoutSets: LayoutSets,
+    private readonly layoutSets: LayoutSetResponse[],
     private readonly mutateApplicationPolicy: (policy: Policy) => void,
     private readonly deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void,
     private readonly deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void,

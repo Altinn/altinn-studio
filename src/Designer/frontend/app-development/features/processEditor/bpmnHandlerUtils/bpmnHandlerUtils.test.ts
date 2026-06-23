@@ -1,12 +1,10 @@
 import { mockBpmnDetails } from '../../../../packages/process-editor/test/mocks/bpmnDetailsMock';
 import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
 
-const layoutSets = {
-  sets: [
-    { id: 'layoutSet1', tasks: ['task1'] },
-    { id: 'layoutSet2', tasks: ['task2'] },
-  ],
-};
+const layoutSets = [
+  { id: 'layoutSet1', dataType: '', type: '', task: { id: 'task1', type: '' } },
+  { id: 'layoutSet2', dataType: '', type: '', task: { id: 'task2', type: '' } },
+];
 
 describe('bpmnHandlerUtils', () => {
   describe('getLayoutSetIdFromTaskId', () => {
@@ -21,8 +19,7 @@ describe('bpmnHandlerUtils', () => {
     });
 
     it('should return undefined if layout sets are empty', () => {
-      const layoutSets = { sets: [] };
-      const result = getLayoutSetIdFromTaskId(mockBpmnDetails.id, layoutSets);
+      const result = getLayoutSetIdFromTaskId(mockBpmnDetails.id, []);
       expect(result).toBeUndefined();
     });
   });

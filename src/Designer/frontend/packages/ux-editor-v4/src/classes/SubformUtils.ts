@@ -1,6 +1,6 @@
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 
-type SubformLayoutSet = LayoutSetConfig & {
+type SubformLayoutSet = LayoutSetResponse & {
   type: 'subform';
 };
 
@@ -10,7 +10,7 @@ interface SubformUtils {
 }
 
 export class SubformUtilsImpl implements SubformUtils {
-  constructor(private readonly layoutSets: Array<LayoutSetConfig>) {}
+  constructor(private readonly layoutSets: Array<LayoutSetResponse>) {}
 
   public get hasSubforms(): boolean {
     return this.getSubformLayoutSets.length > 0;

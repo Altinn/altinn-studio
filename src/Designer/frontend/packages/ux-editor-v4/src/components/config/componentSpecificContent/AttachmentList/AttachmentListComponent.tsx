@@ -7,7 +7,9 @@ import { reservedDataTypes } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { getTaskId } from 'app-shared/utils/layoutSetsUtils';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 import { convertInternalToExternalFormat } from './convertFunctions/convertToExternalFormat';
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
@@ -52,9 +54,9 @@ export const AttachmentListComponent = ({
     });
   };
 
-  const isTaskCustomReceipt = layoutSets?.sets
-    .find((set) => set.id === layoutSet)
-    ?.tasks?.includes('CustomReceipt');
+  const currentSet = layoutSets?.find((set) => set.id === layoutSet);
+  const isTaskCustomReceipt =
+    currentSet != null && getTaskId(currentSet) === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
 
   const { dataTypeIds = [] } = component || {};
   const internalDataFormat = convertExternalToInternalFormat(availableAttachments, dataTypeIds);
@@ -71,7 +73,7 @@ export const AttachmentListComponent = ({
 };
 
 const getAvailableAttachments = (
-  layoutSets: LayoutSets,
+  layoutSets: LayoutSetResponse[],
   selectedFormLayoutSetName: string,
   availableDataTypes: DataTypeElement[],
 ): AvailableAttachementLists => {
@@ -113,18 +115,24 @@ const filterAttachments = (
   });
 };
 
-const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] =>
-  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)?.tasks;
+const currentTasks = (
+  layoutSets: LayoutSetResponse[],
+  selectedFormLayoutSetName: string,
+): string[] => {
+  const set = layoutSets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName);
+  const taskId = set ? getTaskId(set) : undefined;
+  return taskId ? [taskId] : [];
+};
 
-const sampleTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
+const sampleTasks = (
+  layoutSets: LayoutSetResponse[],
+  selectedFormLayoutSetName: string,
+): string[] => {
   const tasks = [];
-  for (const layoutSet of layoutSets.sets) {
-    if (layoutSet.tasks) {
-      tasks.push(...layoutSet.tasks);
-    }
-    if (layoutSet.id === selectedFormLayoutSetName) {
-      break;
-    }
+  for (const layoutSet of layoutSets) {
+    const taskId = getTaskId(layoutSet);
+    if (taskId) tasks.push(taskId);
+    if (layoutSet.id === selectedFormLayoutSetName) break;
   }
   return tasks;
 };

@@ -3,7 +3,7 @@ import { type ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from '../types/TableColumn';
 import type { IInternalLayout, IFormLayouts } from '@altinn/ux-editor/types/global';
 import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';
-import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 
 export const updateComponentWithSubform = (
   component: FormItem<ComponentType.Subform>,
@@ -46,8 +46,11 @@ const componentsWithTitleAndDefaultDataModel = (
   return components.filter((comp) => comp.textResourceBindings?.title && hasValidDataBinding(comp));
 };
 
-export const getDefaultDataModel = (layoutSets: LayoutSets, subformLayout: string): string => {
-  const layoutSet = layoutSets?.sets.find((layoutSet) => layoutSet.id === subformLayout);
+export const getDefaultDataModel = (
+  layoutSets: LayoutSetResponse[],
+  subformLayout: string,
+): string => {
+  const layoutSet = layoutSets?.find((layoutSet) => layoutSet.id === subformLayout);
 
   return layoutSet?.dataType ?? '';
 };

@@ -12,6 +12,7 @@ import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { getTaskId } from 'app-shared/utils/layoutSetsUtils';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface UpdateFormComponentMutationArgs {
@@ -70,9 +71,8 @@ export const useUpdateFormComponentMutation = (
             updatedComponent.type === ComponentTypeV3.FileUploadWithTag
           ) {
             // Todo: Consider handling this in the backend
-            const taskId = layoutSets
-              ? layoutSets?.sets.find((set) => set.id === layoutSetName)?.tasks[0]
-              : TASKID_FOR_STATELESS_APPS;
+            const set = layoutSets?.find((s) => s.id === layoutSetName);
+            const taskId = set ? getTaskId(set) : TASKID_FOR_STATELESS_APPS;
             const {
               maxNumberOfAttachments,
               minNumberOfAttachments,

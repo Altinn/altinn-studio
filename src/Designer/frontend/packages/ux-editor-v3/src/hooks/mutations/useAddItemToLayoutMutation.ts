@@ -6,6 +6,7 @@ import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetada
 import type { FormFileUploaderComponent } from '../../types/FormComponent';
 import { addItemOfType } from '../../utils/formLayoutUtils';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { getTaskId } from 'app-shared/utils/layoutSetsUtils';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface AddFormItemMutationArgs {
@@ -32,9 +33,8 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
           componentType === ComponentTypeV3.FileUpload ||
           componentType === ComponentTypeV3.FileUploadWithTag
         ) {
-          const taskId = layoutSets
-            ? layoutSets?.sets.find((set) => set.id === layoutSetName)?.tasks[0]
-            : TASKID_FOR_STATELESS_APPS;
+          const set = layoutSets?.find((s) => s.id === layoutSetName);
+          const taskId = set ? getTaskId(set) : TASKID_FOR_STATELESS_APPS;
           const fileUploadComponent = updatedLayout.components[newId];
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           const {

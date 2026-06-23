@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { getTaskId } from 'app-shared/utils/layoutSetsUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -12,7 +13,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
 
-const connectedTaskId = mockBpmnApiContextValue.layoutSets.sets[0].tasks[0];
+const connectedTaskId = getTaskId(mockBpmnApiContextValue.layoutSets[0]);
 const mockOnClose = jest.fn();
 
 const defaultSelectDataTypeProps: SelectDataTypesProps = {

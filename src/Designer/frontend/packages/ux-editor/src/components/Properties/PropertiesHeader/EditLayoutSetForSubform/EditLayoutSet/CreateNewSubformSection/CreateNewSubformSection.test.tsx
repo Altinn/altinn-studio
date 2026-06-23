@@ -9,7 +9,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 
 const setShowCreateSubformCardMock = jest.fn();
 const onComponentUpdate = jest.fn();
@@ -235,7 +235,7 @@ describe('CreateNewSubformSection ', () => {
 });
 
 type RenderCreateNewSubformLayoutSetProps = {
-  layoutSetsMock?: LayoutSets;
+  layoutSetsMock?: LayoutSetResponse[];
   hasSubforms?: boolean;
   queries?: Partial<ServicesContextProps>;
 };

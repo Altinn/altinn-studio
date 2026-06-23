@@ -1,13 +1,13 @@
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 export const useValidateLayoutSetName = () => {
   const { t } = useTranslation();
 
   const validateLayoutSetName = (
     newLayoutSetId: string,
-    layoutSets: LayoutSets,
+    layoutSets: LayoutSetResponse[],
     oldLayoutSetId?: string,
   ): string => {
     const validationResult = getLayoutSetIdValidationErrorKey(

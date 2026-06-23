@@ -89,6 +89,7 @@ import {
   botAccountsPath,
   botAccountApiKeysPath,
   layoutSetsExtendedPath,
+  uiFoldersLayoutSetsPath,
   validationOnNavigationLayoutSetsPath,
   taskNavigationGroupPath,
 } from './paths';
@@ -177,6 +178,7 @@ export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEnd
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
+export const getUiFoldersLayoutSets = (owner: string, app: string) => get<(LayoutSetModel | UiFolderLayoutSetModel)[]>(uiFoldersLayoutSetsPath(owner, app));
 export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedV4Path(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
 export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(validationOnNavigationLayoutSetsPath(owner, app));

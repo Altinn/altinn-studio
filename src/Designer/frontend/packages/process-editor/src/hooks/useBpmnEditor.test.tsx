@@ -7,7 +7,7 @@ import type { BpmnContextProps, BpmnContextProviderProps } from '../contexts/Bpm
 import { BpmnContextProvider, useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnApiContextProps } from '../contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 import { BpmnConfigPanelFormContextProvider } from '../contexts/BpmnConfigPanelContext';
@@ -34,14 +34,9 @@ const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
   bpmnXml: undefined,
 };
 const layoutSetId = 'someLayoutSetId';
-const layoutSets: LayoutSets = {
-  sets: [
-    {
-      id: layoutSetId,
-      tasks: [mockBpmnDetails.id],
-    },
-  ],
-};
+const layoutSets: LayoutSetResponse[] = [
+  { id: layoutSetId, dataType: '', type: '', task: { id: mockBpmnDetails.id, type: '' } },
+];
 const defaultBpmnApiContextProps: BpmnApiContextProps = {
   availableDataTypeIds: [],
   availableDataModelIds: [],

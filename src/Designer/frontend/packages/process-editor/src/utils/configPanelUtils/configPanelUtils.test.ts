@@ -55,12 +55,10 @@ describe('configPanelUtils', () => {
     const layoutSetDataType1: string = 'dataType1';
     const layoutSetDataType2: string = 'dataType2';
 
-    const layoutSets = {
-      sets: [
-        { id: layoutSetId1, dataType: layoutSetDataType1, tasks: [] },
-        { id: layoutSetId2, dataType: layoutSetDataType2, tasks: [] },
-      ],
-    };
+    const layoutSets = [
+      { id: layoutSetId1, dataType: layoutSetDataType1, type: '' },
+      { id: layoutSetId2, dataType: layoutSetDataType2, type: '' },
+    ];
 
     it('returns existing data model id when layout set id matches', () => {
       const existingDataModelId = getDataTypeFromLayoutSetsWithExistingId(layoutSets, layoutSetId1);

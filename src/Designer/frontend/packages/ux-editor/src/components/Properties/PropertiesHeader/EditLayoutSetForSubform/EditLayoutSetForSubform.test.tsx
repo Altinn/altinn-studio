@@ -8,7 +8,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layoutSets } from 'app-shared/mocks/mocks';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { AppContext } from '../../../../AppContext';
@@ -22,7 +22,7 @@ jest.mock('react-router-dom', () => ({
 
 const handleComponentChangeMock = jest.fn();
 const subformLayoutSetId = 'subformLayoutSetId';
-const layoutSetsDefault = { sets: [{ id: subformLayoutSetId, type: 'subform' }] } as LayoutSets;
+const layoutSetsDefault: LayoutSetResponse[] = [{ id: subformLayoutSetId, dataType: '', type: 'subform' }];
 
 describe('EditLayoutSetForSubform', () => {
   afterEach(() => {
@@ -71,7 +71,7 @@ describe('EditLayoutSetForSubform', () => {
 });
 
 type RenderEditLayoutSetForSubformProps = {
-  layoutSetsMock?: LayoutSets;
+  layoutSetsMock?: LayoutSetResponse[];
   componentProps?: Partial<FormComponent<ComponentType.Subform>>;
 };
 

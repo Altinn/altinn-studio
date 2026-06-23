@@ -61,7 +61,6 @@ import {
   branchStatus,
   createRepoCommitPayload,
   dataModelMetadataResponse,
-  layoutSets,
   orgList,
   policy,
   repoStatus,
@@ -146,7 +145,10 @@ export const queriesMock: ServicesContextProps = {
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>({ sets: [] })),
+  getUiFoldersLayoutSets: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
   getLayoutSetsExtendedV4: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),

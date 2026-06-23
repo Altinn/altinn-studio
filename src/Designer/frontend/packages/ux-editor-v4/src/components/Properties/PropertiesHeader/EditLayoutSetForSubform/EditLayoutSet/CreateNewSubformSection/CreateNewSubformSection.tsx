@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetResponse } from 'app-shared/utils/layoutSetsUtils';
 import { SubformDataModel } from './SubformDataModel';
 import { CreateNewSubformButtons } from './CreateNewSubformButtons';
 import { SubformInstructions } from './SubformInstructions';
@@ -15,7 +15,7 @@ import { StudioCard, StudioRecommendedNextAction, StudioTextfield } from '@studi
 import classes from './CreateNewSubformSection.module.css';
 
 type CreateNewSubformSectionProps = {
-  layoutSets: LayoutSets;
+  layoutSets: LayoutSetResponse[];
   setShowCreateSubformCard: (showCreateSubform: boolean) => void;
   hasSubforms: boolean;
   recommendedNextActionText: {
