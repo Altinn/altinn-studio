@@ -12,7 +12,7 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import classes from './TaskCardEditing.module.css';
@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 
 export type TaskCardEditingProps = {
-  layoutSetModel: LayoutSetModel;
+  layoutSetModel: UiFolderLayoutSetModel;
   onClose: () => void;
 };
 
@@ -75,7 +75,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
       updateProcessDataType(
         {
           newDataTypes: [dataType],
-          connectedTaskId: layoutSetModel.task?.id,
+          connectedTaskId: layoutSetModel.id,
         },
         { onSettled },
       );
