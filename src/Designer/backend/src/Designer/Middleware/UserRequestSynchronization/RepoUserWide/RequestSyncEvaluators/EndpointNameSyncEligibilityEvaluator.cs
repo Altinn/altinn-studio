@@ -54,7 +54,6 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
                 nameof(UiFoldersController.UpdateLayoutSetName),
                 nameof(UiFoldersController.DeleteLayoutSet),
                 nameof(UiFoldersController.SaveValidationOnNavigation),
-                nameof(UiFoldersController.DeleteValidationOnNavigation),
                 nameof(UiFoldersController.UpdateGlobalTaskNavigation)
             )
         },
