@@ -1,13 +1,12 @@
 import React, { useRef } from 'react';
 
-import { Label } from '@app/form-component';
+import { getDescriptionId, Label } from '@app/form-component';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { EXPERIMENTAL_Suggestion as Suggestion, Label as DSLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { getDescriptionId } from 'src/components/label/Label';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { FormStore } from 'src/features/form/FormContext';

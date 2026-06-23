@@ -18,7 +18,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ### Common Commands
 
-All orchestration commands use the Makefile, which internally calls `go run ./cmd/tester`:
+All orchestration commands use the Makefile, which internally calls `go run ./cmd/tester` from the nested `test` module:
 
 ```bash
 # Setup and cluster management
@@ -68,7 +68,7 @@ make check                # Complete CI check (tidy, fmt, lint, test)
    - Manages 1 browser session with Chrome CDP
    - Returns 429 when queue is full
 
-3. **cmd/tester/main.go** - Test orchestration CLI
+3. **test/cmd/tester/main.go** - Test orchestration CLI
    - Subcommands: `start`, `stop`, `test`, `loadtest-local`, `loadtest-env`
    - Handles cluster setup, Docker builds, image pushes, Flux deployments
    - Used by Makefile for all orchestration tasks
@@ -135,6 +135,11 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 
 - **test-local.ts** - k6 script for local cluster
 - **test-env.js** - k6 script for remote environments
+
+**Test module** (`test/`):
+
+- Owns orchestration-only dependencies such as `altinn.studio/devenv`, Kind, Flux, Helm and Docker SDKs
+- Keep production dependencies in the root `pdf3` module unless runtime binaries actually need them
 
 **Test harness** (`test/harness/`):
 

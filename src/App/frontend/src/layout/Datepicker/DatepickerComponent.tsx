@@ -1,20 +1,22 @@
 import React from 'react';
 
 import {
+  ComponentStructure,
   DatePickerControl,
   DatePickerDropdownCaption,
   Flex,
   getDateConstraint,
   getDateFormat,
-  Label,
+  LabelComponent,
 } from '@app/form-component';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
-import { useLabel } from 'src/utils/layout/useLabel';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
+import { useLabelData } from 'src/utils/layout/useLabelData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -45,21 +47,28 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
     setValue('simpleBinding', isoDateString);
   };
 
-  const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId, overrideDisplay });
+  const labelData = useLabelData({ baseComponentId, overrideDisplay });
+  const {
+    id: contentId,
+    innerGrid,
+    validationGrid,
+    showValidationMessages,
+  } = useComponentStructureData(baseComponentId);
 
   return (
-    <Label
+    <LabelComponent
       htmlFor={id}
-      label={labelText}
       grid={grid?.labelGrid}
-      required={required}
-      requiredIndicator={getRequiredComponent()}
-      optionalIndicator={getOptionalComponent()}
-      help={getHelpTextComponent()}
-      description={getDescriptionComponent()}
+      {...labelData}
     >
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
+      <ComponentStructure
+        id={contentId}
+        innerGrid={innerGrid}
+        validationGrid={validationGrid}
+        validationMessages={
+          showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
+        }
+      >
         <Flex
           container
           item
@@ -88,7 +97,7 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
             autoComplete={autocomplete}
           />
         </Flex>
-      </ComponentStructureWrapper>
-    </Label>
+      </ComponentStructure>
+    </LabelComponent>
   );
 }

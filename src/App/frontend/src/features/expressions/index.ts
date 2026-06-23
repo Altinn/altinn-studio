@@ -10,7 +10,7 @@ import {
 } from 'src/features/expressions/errors';
 import { ExprFunctionDefinitions, ExprFunctionImplementations } from 'src/features/expressions/expression-functions';
 import { ExprVal } from 'src/features/expressions/types';
-import { isValidArray } from 'src/features/expressions/validation';
+import { isValidArray, isValidObject } from 'src/features/expressions/validation';
 import { type ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type {
   ExprConfig,
@@ -308,7 +308,7 @@ export const ExprTypes: {
   },
   [ExprVal.Any]: {
     nullable: true,
-    accepts: [ExprVal.Boolean, ExprVal.String, ExprVal.Number, ExprVal.Any, ExprVal.List],
+    accepts: [ExprVal.Boolean, ExprVal.String, ExprVal.Number, ExprVal.Any, ExprVal.List, ExprVal.Object],
     impl: (arg) => arg,
   },
   [ExprVal.Date]: {
@@ -334,6 +334,17 @@ export const ExprTypes: {
         return arg;
       } else {
         throw new UnexpectedType(this.expr, this.path, 'list', arg);
+      }
+    },
+  },
+  [ExprVal.Object]: {
+    nullable: false,
+    accepts: [ExprVal.Object, ExprVal.Any],
+    impl(arg) {
+      if (isValidObject(arg)) {
+        return arg;
+      } else {
+        throw new UnexpectedType(this.expr, this.path, 'object', arg);
       }
     },
   },

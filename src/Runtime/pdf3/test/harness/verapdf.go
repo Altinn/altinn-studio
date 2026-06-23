@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/projectroot"
 )
 
 const (
@@ -59,7 +60,7 @@ func EnsureVeraPDFImage(t *testing.T) string {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		t.Fatalf("Failed to locate project root for veraPDF image build: %v", err)
 	}

@@ -18,6 +18,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers;
@@ -1065,16 +1066,21 @@ public class AppDevelopmentController : Controller
     }
 
     [HttpGet("app-version")]
-    public VersionResponse GetAppVersion(string org, string app)
+    public ActionResult<VersionResponse> GetAppVersion(string org, string app)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        var backendVersion = _appVersionService.GetAppLibVersion(editingContext);
+        SemanticVersion backendVersion = _appVersionService.GetAppLibVersion(editingContext);
+        if (backendVersion is null)
+        {
+            return NotFound();
+        }
+
         string frontendVersion;
 
         // For v9 apps and onwards, Index.cshtml no longer exists and frontend major version aligns with backend major version.
-        if (backendVersion?.Major >= 9)
+        if (backendVersion.Major >= 9)
         {
             frontendVersion = backendVersion.Major.ToString();
         }
@@ -1083,6 +1089,6 @@ public class AppDevelopmentController : Controller
             _appDevelopmentService.TryGetFrontendVersion(editingContext, out frontendVersion);
         }
 
-        return new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion };
+        return Ok(new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion });
     }
 }
