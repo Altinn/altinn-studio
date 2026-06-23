@@ -1,11 +1,13 @@
 namespace Altinn.App.Analyzers.Deprecations;
 
 /// <summary>
-/// Reports use of <c>applicationmetadata.json</c> configuration that is no longer honoured by this
-/// version of the app backend, so apps fail the build instead of silently shipping a broken feature.
+/// Validates <c>applicationmetadata.json</c> at build time. Currently it reports use of configuration
+/// that is no longer honoured by this version of the app backend, so apps fail the build instead of
+/// silently shipping a broken feature. This is the umbrella entry point for applicationmetadata.json
+/// checks — additional rule groups (e.g. sanity/usage checks) can be added here as more collectors.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ApplicationMetadataDeprecationAnalyzer : DiagnosticAnalyzer
+public sealed class ApplicationMetadataAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         [Diagnostics.Deprecations.EnablePdfCreation, Diagnostics.Deprecations.LegacyEFormidling];
