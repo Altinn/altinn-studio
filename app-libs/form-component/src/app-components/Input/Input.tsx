@@ -42,7 +42,10 @@ export type InputProps = {
   | 'onKeyDown'
 > &
   LabelRequired & {
-    /** Pass-through for arbitrary data-* attributes (e.g. `data-bindingkey`). */
+    /**
+     * Allows `data-*` attributes to be passed through to the underlying input. Needed for
+     * `data-bindingkey`, which the runtime uses to focus a specific field (e.g. on validation error).
+     */
     [dataAttr: `data-${string}`]: string | undefined;
   };
 

@@ -18,8 +18,7 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import langKey from './src/language/eslint.js';
+import langKey from 'src/language/eslint.js';
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig([
