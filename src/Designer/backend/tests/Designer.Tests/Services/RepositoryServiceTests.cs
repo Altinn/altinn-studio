@@ -31,6 +31,8 @@ namespace Designer.Tests.Services;
 
 public class RepositoryServiceTests
 {
+    private const string LatestStableAppPackageVersion = "8.12.6";
+
     [Fact]
     public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
     {
@@ -136,6 +138,17 @@ public class RepositoryServiceTests
                 .GetAltinnStudioSettings();
             Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
             Assert.True(altinnStudioSettings.UseNullableReferenceTypes);
+            string appCsprojPath = Path.Combine(repositoryDirectory, "App", "App.csproj");
+            string appCsproj = await File.ReadAllTextAsync(appCsprojPath);
+            Assert.Contains(
+                $"<PackageReference Include=\"Altinn.App.Api\" Version=\"{LatestStableAppPackageVersion}\">",
+                appCsproj
+            );
+            Assert.Contains(
+                $"<PackageReference Include=\"Altinn.App.Core\" Version=\"{LatestStableAppPackageVersion}\" />",
+                appCsproj
+            );
+            Assert.DoesNotContain("Version=\"*\"", appCsproj);
             appScopesServiceMock.Verify(
                 s =>
                     s.AddDefaultMaskinportenScopesAsync(
@@ -614,7 +627,8 @@ public class RepositoryServiceTests
         string developer,
         ISourceControl sourceControlMock = null,
         ICustomTemplateService customTemplateServiceMock = null,
-        IAppScopesService appScopesServiceMock = null
+        IAppScopesService appScopesServiceMock = null,
+        IAppTemplatePackageVersionService appTemplatePackageVersionServiceMock = null
     )
     {
         HttpContext ctx = GetHttpContextForTestUser(developer);
@@ -682,7 +696,28 @@ public class RepositoryServiceTests
 
         IResourceRegistry resourceRegistryService = new Mock<IResourceRegistry>().Object;
         IAuthorizationPolicyService authorizationPolicyServiceMock = new Mock<IAuthorizationPolicyService>().Object;
-        appScopesServiceMock ??= new Mock<IAppScopesService>().Object;
+        if (appScopesServiceMock is null)
+        {
+            Mock<IAppScopesService> defaultAppScopesServiceMock = new();
+            defaultAppScopesServiceMock
+                .Setup(s =>
+                    s.AddDefaultMaskinportenScopesAsync(
+                        It.IsAny<AltinnRepoEditingContext>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(null as AppScopesEntity);
+            appScopesServiceMock = defaultAppScopesServiceMock.Object;
+        }
+
+        if (appTemplatePackageVersionServiceMock is null)
+        {
+            Mock<IAppTemplatePackageVersionService> defaultPackageVersionServiceMock = new();
+            defaultPackageVersionServiceMock
+                .Setup(s => s.GetLatestStableAppPackageVersion(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(LatestStableAppPackageVersion);
+            appTemplatePackageVersionServiceMock = defaultPackageVersionServiceMock.Object;
+        }
 
         RepositoryService service = new(
             repoSettings,
@@ -697,7 +732,8 @@ public class RepositoryServiceTests
             resourceRegistryService,
             customTemplateServiceMock,
             authorizationPolicyServiceMock,
-            appScopesServiceMock
+            appScopesServiceMock,
+            appTemplatePackageVersionServiceMock
         );
 
         return service;

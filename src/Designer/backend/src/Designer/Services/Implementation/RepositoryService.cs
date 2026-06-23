@@ -39,6 +39,9 @@ public class RepositoryService : IRepository
     // Using Norwegian name of initial page to be consistent
     // with automatic naming from frontend when adding new page
     private const string InitialLayout = "Side1";
+    private const string AppProjectFileName = "App.csproj";
+    private const string AppApiPackageName = "Altinn.App.Api";
+    private const string AppCorePackageName = "Altinn.App.Core";
 
     private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
@@ -55,6 +58,7 @@ public class RepositoryService : IRepository
     private readonly ICustomTemplateService _templateService;
     private readonly IAuthorizationPolicyService _authorizationPolicyService;
     private readonly IAppScopesService _appScopesService;
+    private readonly IAppTemplatePackageVersionService _appTemplatePackageVersionService;
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -77,6 +81,7 @@ public class RepositoryService : IRepository
     /// <param name="templateService">The service for handling custom templates</param>
     /// <param name="authorizationPolicyService">The service for policy files</param>
     /// <param name="appScopesService">The service for handling app scopes</param>
+    /// <param name="appTemplatePackageVersionService">The service for resolving app template package versions</param>
     public RepositoryService(
         ServiceRepositorySettings repositorySettings,
         GeneralSettings generalSettings,
@@ -90,7 +95,8 @@ public class RepositoryService : IRepository
         IResourceRegistry resourceRegistryService,
         ICustomTemplateService templateService,
         IAuthorizationPolicyService authorizationPolicyService,
-        IAppScopesService appScopesService
+        IAppScopesService appScopesService,
+        IAppTemplatePackageVersionService appTemplatePackageVersionService
     )
     {
         _settings = repositorySettings;
@@ -106,6 +112,7 @@ public class RepositoryService : IRepository
         _templateService = templateService;
         _authorizationPolicyService = authorizationPolicyService;
         _appScopesService = appScopesService;
+        _appTemplatePackageVersionService = appTemplatePackageVersionService;
     }
 
     /// <summary>
@@ -295,6 +302,7 @@ public class RepositoryService : IRepository
                 // This creates all files
                 CreateServiceMetadata(metadata);
                 await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
+                await PinAppTemplatePackageVersions(org, serviceConfig.RepositoryName, developer);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
 
@@ -324,6 +332,25 @@ public class RepositoryService : IRepository
         }
 
         return repository;
+    }
+
+    private async Task PinAppTemplatePackageVersions(string org, string repositoryName, string developer)
+    {
+        string latestStableVersion = await _appTemplatePackageVersionService.GetLatestStableAppPackageVersion();
+        string appCsprojPath = Path.Combine(
+            _settings.GetServicePath(org, repositoryName, developer),
+            _settings.GetAppFolderName(),
+            AppProjectFileName
+        );
+
+        CsprojPatcher.UpsertPackageReferences(
+            appCsprojPath,
+            new List<(string Include, string Version)>
+            {
+                (AppApiPackageName, latestStableVersion),
+                (AppCorePackageName, latestStableVersion),
+            }
+        );
     }
 
     private async Task ApplyCustomTemplates(
