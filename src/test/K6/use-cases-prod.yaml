@@ -91,13 +91,6 @@ steps:
   displayName: 'Delete instances'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
-- script: |
-   k6 run --quiet $(pwd)/src/tests/app/appowner/complete-instances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e tokengenuser=$(tokengenuser) -e tokengenuserpwd=$(tokengenuserpwd) -e scopes=altinn:serviceowner/instances.read,altinn:serviceowner/instances.write
-
-  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
-  displayName: 'Complete instances'
-  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
-
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
   inputs:
