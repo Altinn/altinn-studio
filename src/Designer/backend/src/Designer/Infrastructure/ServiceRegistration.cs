@@ -109,7 +109,9 @@ public static class ServiceRegistration
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
         services.AddTransient<IAppVersionService, AppVersionService>();
-        services.AddHttpClient<IAppTemplatePackageVersionService, AppTemplatePackageVersionService>();
+        services
+            .AddHttpClient<IAppTemplatePackageVersionService, AppTemplatePackageVersionService>()
+            .AddStandardResilienceHandler();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
         services.AddTransient<IUiFoldersService, UiFoldersService>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();

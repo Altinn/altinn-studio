@@ -276,6 +276,11 @@ public class RepositoryService : IRepository
                 developer,
                 token
             );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            org,
+            serviceConfig.RepositoryName,
+            developer
+        );
         string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, developer);
         var options = new CreateRepoOption(serviceConfig.RepositoryName);
 
@@ -302,7 +307,7 @@ public class RepositoryService : IRepository
                 // This creates all files
                 CreateServiceMetadata(metadata);
                 await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
-                await PinAppTemplatePackageVersions(org, serviceConfig.RepositoryName, developer);
+                await PinAppTemplatePackageVersions(editingContext);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
 
@@ -319,9 +324,7 @@ public class RepositoryService : IRepository
                     Message = "App created",
                 };
                 _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
-                await _appScopesService.AddDefaultMaskinportenScopesAsync(
-                    AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer)
-                );
+                await _appScopesService.AddDefaultMaskinportenScopesAsync(editingContext);
             }
             catch (Exception)
             {
@@ -334,11 +337,11 @@ public class RepositoryService : IRepository
         return repository;
     }
 
-    private async Task PinAppTemplatePackageVersions(string org, string repositoryName, string developer)
+    private async Task PinAppTemplatePackageVersions(AltinnRepoEditingContext editingContext)
     {
         string latestStableVersion = await _appTemplatePackageVersionService.GetLatestStableAppPackageVersion();
         string appCsprojPath = Path.Combine(
-            _settings.GetServicePath(org, repositoryName, developer),
+            _settings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer),
             _settings.GetAppFolderName(),
             AppProjectFileName
         );
