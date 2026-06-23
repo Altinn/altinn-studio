@@ -1,5 +1,6 @@
 import {
   addCodeListToMap,
+  areFileMapsEqual,
   createCodeListMap,
   deleteCodeListFromMap,
   updateCodeListFileInMap,
@@ -8,9 +9,14 @@ import {
 import { codeListMap, coloursKey, countriesKey, fruitsKey } from './test-data/codeListMap';
 import { codeLists, coloursFile, countriesFile, fruitsFile } from './test-data/codeLists';
 import type { CodeListMapError } from './types/CodeListMapError';
-import type { CodeListFile } from '../../../types/CodeListFile';
+import type {
+  CodeListFile,
+  CodeListFileWithProblem,
+  OrdinaryCodeListFile,
+} from '../../../types/CodeListFile';
 import type { CodeList } from '../../../types/CodeList';
 import type { CodeListFileMap } from './types/CodeListFileMap';
+import { ObjectUtils, ReadonlyMapUtils } from '@studio/pure-functions';
 
 describe('CodeListsPage utils', () => {
   describe('createCodeListMap', () => {
@@ -93,4 +99,45 @@ describe('CodeListsPage utils', () => {
       expect(result).toEqual(expectedResult);
     });
   });
+
+  describe('areFileMapsEqual', () => {
+    it('Returns true when the two maps contain the same list of files', () => {
+      const map1 = codeListMap;
+      const map2 = createMutableCodeListFileMapClone(map1);
+      expect(areFileMapsEqual(map1, map2)).toBe(true);
+    });
+
+    it('Returns true when both maps are empty', () => {
+      expect(areFileMapsEqual(new Map(), new Map())).toBe(true);
+    });
+
+    it('Returns false when one of the files has different names', () => {
+      const map1 = codeListMap;
+      const map2 = createMutableCodeListFileMapClone(map1);
+      map2.set(coloursKey, { ...coloursFile, name: 'something-else.json' });
+      expect(areFileMapsEqual(map1, map2)).toBe(false);
+    });
+
+    it('Returns false when one of the files has different content', () => {
+      const map1 = codeListMap;
+      const map2 = createMutableCodeListFileMapClone(map1);
+      map2.set(coloursKey, { ...coloursFile, content: '[]' });
+      expect(areFileMapsEqual(map1, map2)).toBe(false);
+    });
+
+    it('Ignores files with backend problems', () => {
+      const keyOfProblemFile = 'keyOfProblem';
+      const nameOfProblemFile = 'backend-fail.json';
+      const problemFile: CodeListFileWithProblem = { name: nameOfProblemFile, problem: {} };
+      const noProblemFile: OrdinaryCodeListFile = { name: nameOfProblemFile, content: '[]' };
+      const map1 = ReadonlyMapUtils.prependEntry(codeListMap, keyOfProblemFile, problemFile);
+      const map2 = createMutableCodeListFileMapClone(map1);
+      map2.set(keyOfProblemFile, noProblemFile);
+      expect(areFileMapsEqual(map1, map2)).toBe(true);
+    });
+  });
 });
+
+function createMutableCodeListFileMapClone(map: CodeListFileMap): Map<string, CodeListFile> {
+  return new Map(ObjectUtils.deepCopy<[string, CodeListFile][]>(Array.from(map)));
+}
