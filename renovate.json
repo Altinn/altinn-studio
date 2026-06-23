@@ -64,6 +64,17 @@
       "commitMessageSuffix": " (app)"
     },
     {
+      "description": "Automerge non-major Altinn app template package updates",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/src/App/App.csproj"],
+      "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Altinn app template NuGet packages",
+      "groupSlug": "app-template-nuget",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
       "matchFileNames": ["src/Runtime/localtest/**"],
       "additionalBranchPrefix": "localtest/",
       "commitMessageSuffix": " (localtest)"
