@@ -2,6 +2,7 @@ chartVersion: ""
 releaseName: ""
 imageTag: ""
 giteaInstanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
+runnerCpu: "500m"
 runnerMemory: 2Gi
 
 runtimeClassName: "kata-vm-isolation"
