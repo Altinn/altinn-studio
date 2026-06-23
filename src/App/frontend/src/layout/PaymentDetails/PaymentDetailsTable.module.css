@@ -6,6 +6,10 @@
   text-align: left;
 }
 
+.tableRow td {
+  word-break: break-word;
+}
+
 .tableRow:hover td {
   background-color: var(--ds-color-neutral-background-default);
 }
