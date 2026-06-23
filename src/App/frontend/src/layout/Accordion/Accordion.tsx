@@ -23,7 +23,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
         id={id}
         title={textResourceBindings?.title}
         openByDefault={Boolean(openByDefault)}
-        renderAsCard={!renderAsAccordionItem}
+        renderAsItem={renderAsAccordionItem}
         className={classes.container}
       >
         {children.filter(canRender).map((childId) => (

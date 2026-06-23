@@ -15,7 +15,7 @@ export const ACCORDION_PROP_CATEGORIES = {
   openByDefault: 'config',
   children: 'runtime',
   className: 'runtime',
-  renderAsCard: 'runtime',
+  renderAsItem: 'runtime',
 } satisfies PropCategories<AccordionProps>;
 
 const meta = {
@@ -71,7 +71,7 @@ export const WithMultipleChildren: Story = {
 
 export const WithoutCard: Story = {
   args: {
-    renderAsCard: false,
+    renderAsItem: true,
     children: (
       <p>Rendered without the Card wrapper, as it would appear inside an AccordionGroup.</p>
     ),

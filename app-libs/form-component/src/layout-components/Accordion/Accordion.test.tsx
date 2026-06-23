@@ -59,7 +59,7 @@ describe('Accordion', () => {
     expect(button.parentElement).toHaveClass('foo');
   });
 
-  it('wraps in Card by default (renderAsCard=true)', () => {
+  it('wraps in Card by default (renderAsItem omitted)', () => {
     const { container } = renderWithTranslations(
       <Accordion title='x'>
         <p>Body</p>
@@ -69,9 +69,9 @@ describe('Accordion', () => {
     expect(container.querySelector('[data-color="neutral"]')).toBeInTheDocument();
   });
 
-  it('does not wrap in Card when renderAsCard is false', () => {
+  it('does not wrap in Card when renderAsItem is true', () => {
     const { container } = renderWithTranslations(
-      <Accordion title='x' renderAsCard={false}>
+      <Accordion title='x' renderAsItem>
         <p>Body</p>
       </Accordion>,
     );

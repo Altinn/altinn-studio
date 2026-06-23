@@ -23,12 +23,11 @@ export interface AccordionProps {
   /** Optional CSS class name passed to the AccordionItem */
   className?: string;
   /**
-   * Whether to wrap the accordion in a Card component.
-   * In the runtime, this is `true` when the Accordion is NOT inside an AccordionGroup
-   * (since AccordionGroup provides its own Card wrapper).
-   * Defaults to `true`.
+   * Render the accordion as a bare item, without the surrounding Card.
+   * In the runtime this is `true` when the Accordion is inside an AccordionGroup
+   * (which provides its own Card wrapper). Defaults to `false` (wrapped in a Card).
    */
-  renderAsCard?: boolean;
+  renderAsItem?: boolean;
 }
 
 export function Accordion({
@@ -37,7 +36,7 @@ export function Accordion({
   openByDefault = false,
   children,
   className,
-  renderAsCard = true,
+  renderAsItem,
 }: AccordionProps) {
   const { lang } = useTranslation();
 
@@ -49,7 +48,7 @@ export function Accordion({
     </AccordionItem>
   );
 
-  const inner = renderAsCard ? <Card data-color='neutral'>{content}</Card> : content;
+  const inner = renderAsItem ? content : <Card data-color='neutral'>{content}</Card>;
 
   // Only introduce the wrapper element when an `id` is provided, so we don't ship a
   // semantically empty `<div>` when `id` is omitted and keep the DOM close to the
