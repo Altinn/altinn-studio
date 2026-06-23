@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -146,7 +147,10 @@ func (c *Client) BuildWithProgress(
 		Indeterminate: true,
 	})
 
-	output, err := runPodmanCommand(ctx, []string{"build", "-t", tag, "-f", dockerfile, contextPath})
+	output, err := runPodmanCommand(
+		ctx,
+		[]string{"build", "-t", tag, "-f", resolveDockerfilePath(contextPath, dockerfile), contextPath},
+	)
 	if err != nil {
 		return fmt.Errorf("podman build failed: %w\nOutput: %s", err, string(output))
 	}
@@ -158,6 +162,13 @@ func (c *Client) BuildWithProgress(
 		Indeterminate: false,
 	})
 	return nil
+}
+
+func resolveDockerfilePath(contextPath, dockerfile string) string {
+	if dockerfile == "" || filepath.IsAbs(dockerfile) {
+		return dockerfile
+	}
+	return filepath.Join(contextPath, dockerfile)
 }
 
 // Push pushes an image to a registry.
