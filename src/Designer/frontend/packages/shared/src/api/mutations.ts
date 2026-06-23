@@ -61,7 +61,7 @@ import {
   layoutPageGroupsPath,
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
-  taskNavigationGroupPath,
+  taskNavigationGroupV4Path,
   validationOnNavigationPath,
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
@@ -86,6 +86,7 @@ import {
   chatMessagesPath,
   chatMessagePath,
   chatFeedbackPath,
+  taskNavigationGroupPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -186,6 +187,7 @@ export const updateDataType = (org: string, app: string, dataModelName: string, 
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
+export const updateTaskNavigationGroupV4 = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupV4Path(org, app), payload);
 export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
 export const updateValidationOnNavigationLayoutSettings = (org: string, app: string, payload: IValidationOnNavigationLayoutSettings[]) => post<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(org, app), payload);
 export const updateValidationOnNavigationPageSettings = (org: string, app: string, payload: IValidationOnNavigationPageSettings[]) => post<void, IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(org, app), payload);
