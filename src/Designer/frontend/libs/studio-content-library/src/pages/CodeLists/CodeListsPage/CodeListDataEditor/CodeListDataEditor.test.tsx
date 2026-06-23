@@ -7,8 +7,10 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
 import { FileNameUtils, ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import type { CodeList } from '../../../../types/CodeList';
-import type { OrdinaryCodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFileWithProblem, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 import { screen } from '@studio/ui-test';
+import { RouterContextProvider } from '../../../../ContentLibrary/RouterContext';
+import { PageName } from '../../../../types/PageName';
 
 // Test data:
 const currentFile = fruitsFile;
@@ -147,10 +149,61 @@ describe('CodeListDataEditor', () => {
     const summary = screen.getSummaryByText(codeListName);
     expect(summary).toHaveClass('added');
   });
+
+  it('Displays an error message when the file could not be loaded because of backend errors', () => {
+    const fileWithProblem: CodeListFileWithProblem = { name: 'fail.json', problem: {} };
+    renderCodeListDataEditor({ currentFile: fileWithProblem });
+    const expectedMessage = textMock('app_content_library.code_lists.backend_error');
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+  });
+
+  it('Displays the correct error message when there is a JSON syntax error in the code list file', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const fileWithInvalidJson: OrdinaryCodeListFile = { name: 'invalid.json', content: '{' };
+
+      renderCodeListDataEditor({ currentFile: fileWithInvalidJson });
+
+      const expectedMessageCode = 'app_content_library.code_lists.parse_error.invalid_json_syntax';
+      expect(screen.getByText(textMock(expectedMessageCode))).toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('Displays the correct error message when the code list file has valid syntax, but is not correctly structured', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const invalidCodeListJson = '{ "Hello": "I am not a code list" }';
+      const invalidFile: OrdinaryCodeListFile = {
+        name: 'invalid.json',
+        content: invalidCodeListJson,
+      };
+
+      renderCodeListDataEditor({ currentFile: invalidFile });
+
+      const expectedMessageCode = 'app_content_library.code_lists.parse_error.invalid_code_list';
+      expect(screen.getByText(textMock(expectedMessageCode))).toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
 
 function renderCodeListDataEditor(props: Partial<CodeListDataEditorProps> = {}): RenderResult {
-  return render(<CodeListDataEditor {...defaultProps} {...props} />);
+  return render(<CodeListDataEditor {...defaultProps} {...props} />, {
+    wrapper: (p) => (
+      <RouterContextProvider
+        value={{
+          location: PageName.LandingPage,
+          navigate: jest.fn(),
+          renderLink: jest.fn(),
+          contactPagePath: '/contact/',
+        }}
+        {...p}
+      />
+    ),
+  });
 }
 
 function getNameInput(): HTMLElement {
