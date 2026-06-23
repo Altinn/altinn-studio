@@ -30,6 +30,10 @@
   grid-area: codes;
 }
 
+.error {
+  grid-area: span 2 / span 2;
+}
+
 .unnamed {
   font-style: italic;
 }
