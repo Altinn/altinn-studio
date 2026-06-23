@@ -1,8 +1,13 @@
 import { ArrayUtils, FileNameUtils, ReadonlyMapUtils } from '@studio/pure-functions';
 import { v4 as uuid } from 'uuid';
 import type { CodeListMapError } from './types/CodeListMapError';
-import type { CodeListFile } from '../../../types/CodeListFile';
+import type {
+  CodeListFile,
+  CodeListFileWithProblem,
+  OrdinaryCodeListFile,
+} from '../../../types/CodeListFile';
 import type { CodeListFileMap } from './types/CodeListFileMap';
+import { Guard } from '@studio/guard';
 
 export function createCodeListMap(codeLists: CodeListFile[]): CodeListFileMap {
   const entries: [string, CodeListFile][] = codeLists.map((codeList) => [uuid(), codeList]);
@@ -45,4 +50,35 @@ function hasDuplicateCodeListNames(codeListMap: CodeListFileMap): boolean {
 
 function codeListNames(codeListMap: CodeListFileMap): string[] {
   return [...codeListMap.values()].map(({ name }) => FileNameUtils.removeExtension(name));
+}
+
+export function areFileMapsEqual(map1: CodeListFileMap, map2: CodeListFileMap): boolean {
+  return (
+    areFileKeysEqual(map1, map2) &&
+    map1.keys().every((key) => {
+      const file1 = map1.get(key);
+      const file2 = map2.get(key);
+      Guard.againstUndefined(file1);
+      Guard.againstUndefined(file2);
+      return areFilesEqualOrUncomparable(file1, file2);
+    })
+  );
+}
+
+function areFileKeysEqual(map1: CodeListFileMap, map2: CodeListFileMap): boolean {
+  const keysMap1 = map1.keys().toArray();
+  const keysMap2 = map2.keys().toArray();
+  return ArrayUtils.arraysEqualUnordered(keysMap1, keysMap2);
+}
+
+function areFilesEqualOrUncomparable(file1: CodeListFile, file2: CodeListFile): boolean {
+  return hasProblem(file1) || hasProblem(file2) || areFilesEqual(file1, file2);
+}
+
+function hasProblem(file: CodeListFile): file is CodeListFileWithProblem {
+  return file.hasOwnProperty('problem');
+}
+
+function areFilesEqual(file1: OrdinaryCodeListFile, file2: OrdinaryCodeListFile): boolean {
+  return file1.name === file2.name && file1.content === file2.content;
 }

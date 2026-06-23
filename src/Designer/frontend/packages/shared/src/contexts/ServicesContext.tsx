@@ -26,8 +26,6 @@ export type ServicesContextProviderProps = ServicesContextProps & {
   clientConfig?: QueryClientConfig;
 };
 
-const LOG_OUT_TIMER_MS = 5000;
-
 const ServicesContext = createContext<ServicesContextProps>(undefined);
 
 const handleError = (
@@ -35,7 +33,6 @@ const handleError = (
   t: (key: string) => string,
   i18n: i18n,
   meta: QueryMeta | MutationMeta,
-  logout: () => Promise<void>,
 ): void => {
   if (isCancel(error)) {
     return;
@@ -75,10 +72,8 @@ const handleError = (
     errorCode === ApiErrorCodes.SessionExpired;
 
   if (isSessionExpiredError) {
-    return renderToast(errorCode || 'Unauthorized', detail, {
-      onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
-      autoClose: LOG_OUT_TIMER_MS,
-    });
+    window.location.assign(userLogoutAfterPath());
+    return;
   }
 
   if (
@@ -129,11 +124,11 @@ export const ServicesContextProvider = ({
         ...clientConfig,
         queryCache: new QueryCache({
           onError: (error: AxiosError<ApiError>, query) =>
-            handleError(error, t, i18n, query.options?.meta, queries.logout),
+            handleError(error, t, i18n, query.options?.meta),
         }),
         mutationCache: new MutationCache({
           onError: (error: AxiosError<ApiError>, variables, context, mutation) =>
-            handleError(error, t, i18n, mutation.options?.meta, queries.logout),
+            handleError(error, t, i18n, mutation.options?.meta),
         }),
       }),
   );

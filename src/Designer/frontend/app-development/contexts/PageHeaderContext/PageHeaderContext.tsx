@@ -12,10 +12,10 @@ import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSearchParams } from 'react-router-dom';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 export type PageHeaderContextProps = {
   user: User;
@@ -41,7 +41,6 @@ export const PageHeaderContextProvider = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { flags } = useFeatureFlagsContext();
-  const { mutate: logout } = useLogoutMutation();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
 
@@ -63,7 +62,7 @@ export const PageHeaderContextProvider = ({
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
+    action: { type: 'link', href: userLogoutAfterPath() },
     itemName: t('shared.header_logout'),
   };
 

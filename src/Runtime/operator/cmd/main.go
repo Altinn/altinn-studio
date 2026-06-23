@@ -26,7 +26,6 @@ import (
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
@@ -37,6 +36,7 @@ import (
 	"altinn.studio/operator/internal/controller/inactivityscaler"
 	"altinn.studio/operator/internal/controller/maskinporten"
 	"altinn.studio/operator/internal/controller/secretsync"
+	"altinn.studio/operator/internal/grafanaapi"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
@@ -51,7 +51,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(resourcesv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
+	utilruntime.Must(grafanaapi.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	utilruntime.Must(cnpgv1.AddToScheme(scheme))

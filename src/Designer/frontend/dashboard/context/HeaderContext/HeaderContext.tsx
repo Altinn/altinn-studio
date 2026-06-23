@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
@@ -15,6 +14,7 @@ import { type NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { isOrg } from 'dashboard/utils/orgUtils/orgUtils';
 
 export type HeaderContextProps = {
@@ -38,7 +38,6 @@ export const HeaderContextProvider = ({
 }: Partial<HeaderContextProviderProps>): ReactElement => {
   const { t } = useTranslation();
 
-  const { mutate: logout } = useLogoutMutation();
   const selectedContext = useSelectedContext();
   const navigate = useNavigate();
   const repoPath = useRepoPath(user, selectableOrgs);
@@ -84,7 +83,7 @@ export const HeaderContextProvider = ({
   };
 
   const logOutMenuItem: NavigationMenuItem = {
-    action: { type: 'button', onClick: logout },
+    action: { type: 'link', href: userLogoutAfterPath() },
     itemName: t('shared.header_logout'),
   };
 
