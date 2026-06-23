@@ -45,9 +45,11 @@ function codeListFileContentToData(fileContent: string): CodeList {
   return data;
 }
 
-export class CodeListParseError {
+export class CodeListParseError extends Error {
   readonly #code: CodeListParseErrorCode;
   constructor(code: CodeListParseErrorCode) {
+    super(code);
+    this.name = 'CodeListParseError';
     this.#code = code;
   }
   get code(): CodeListParseErrorCode {

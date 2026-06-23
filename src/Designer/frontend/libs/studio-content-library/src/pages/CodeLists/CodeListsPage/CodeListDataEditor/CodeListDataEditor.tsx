@@ -117,7 +117,7 @@ function OrdinaryFileEditorContent({
       <StudioDeleteButton className={classes.deleteButton} onDelete={onDelete}>
         {t('general.delete')}
       </StudioDeleteButton>
-      <ErrorBoundary FallbackComponent={ParseErrorFallback}>
+      <ErrorBoundary FallbackComponent={ParseErrorFallback} resetKeys={[currentFile]}>
         <DataView currentFile={currentFile} onUpdate={onUpdate} {...rest} />
       </ErrorBoundary>
     </StudioDetails.Content>
