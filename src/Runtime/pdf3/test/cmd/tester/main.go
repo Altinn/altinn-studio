@@ -248,12 +248,12 @@ func addPDF3PublishResources(
 ) (pdf3PublishedResources, func() error, error) {
 	proxyImage := &resource.BuiltImage{
 		ContextPath: root,
-		Dockerfile:  "Dockerfile.proxy",
+		Dockerfile:  filepath.Join(root, "Dockerfile.proxy"),
 		Tag:         "pdf3-proxy:latest",
 	}
 	workerImage := &resource.BuiltImage{
 		ContextPath: root,
-		Dockerfile:  "Dockerfile.worker",
+		Dockerfile:  filepath.Join(root, "Dockerfile.worker"),
 		Tag:         "pdf3-worker:latest",
 	}
 	proxyPublished := &resource.PublishedImage{

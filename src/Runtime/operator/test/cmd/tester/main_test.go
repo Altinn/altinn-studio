@@ -52,7 +52,7 @@ func TestOperatorCABundleWorkloadsPatchPreKustomizeDeploymentName(t *testing.T) 
 	}
 }
 
-func TestOperatorImageResourcesUsesDockerfilesRelativeToContexts(t *testing.T) {
+func TestOperatorImageResourcesUsesExplicitDockerfilePaths(t *testing.T) {
 	projectRoot := t.TempDir()
 
 	resources, _ := operatorImageResources(projectRoot, &kind.KindContainerRuntime{})
@@ -72,17 +72,17 @@ func TestOperatorImageResourcesUsesDockerfilesRelativeToContexts(t *testing.T) {
 		{
 			tag:         "operator-controller:latest",
 			contextPath: projectRoot,
-			dockerfile:  "Dockerfile",
+			dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		},
 		{
 			tag:         "operator-fakes:latest",
 			contextPath: projectRoot,
-			dockerfile:  "Dockerfile.fakes",
+			dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		},
 		{
 			tag:         "operator-localtestapp:latest",
 			contextPath: filepath.Join(projectRoot, "test/app"),
-			dockerfile:  "Dockerfile",
+			dockerfile:  filepath.Join(projectRoot, "test/app", "Dockerfile"),
 		},
 	}
 

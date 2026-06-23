@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
@@ -58,7 +57,10 @@ func (b Backend) applyBuiltImage(
 	backendCtx executor.BackendContext,
 	img *resource.BuiltImage,
 ) (executor.Output, error) {
-	dockerfile := builtImageDockerfile(img.ContextPath, img.Dockerfile)
+	dockerfile := img.Dockerfile
+	if dockerfile == "" {
+		dockerfile = "Dockerfile"
+	}
 
 	if err := b.client.BuildWithProgress(ctx, img.ContextPath, dockerfile, img.Tag, func(update types.ProgressUpdate) {
 		backendCtx.NotifyProgress(img.ID(), progressFromContainerUpdate(update))
@@ -72,16 +74,6 @@ func (b Backend) applyBuiltImage(
 	}
 
 	return executor.ImageOutput{ImageID: info.ID}, nil
-}
-
-func builtImageDockerfile(contextPath, dockerfile string) string {
-	if dockerfile == "" {
-		dockerfile = "Dockerfile"
-	}
-	if filepath.IsAbs(dockerfile) {
-		return dockerfile
-	}
-	return filepath.Join(contextPath, dockerfile)
 }
 
 func (b Backend) applyPublishedImage(

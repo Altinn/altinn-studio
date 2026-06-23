@@ -331,17 +331,17 @@ func operatorImageResources(
 ) ([]resource.Resource, []resource.ResourceRef) {
 	controllerImage := &resource.BuiltImage{
 		ContextPath: projectRoot,
-		Dockerfile:  "Dockerfile",
+		Dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		Tag:         "operator-controller:latest",
 	}
 	fakesImage := &resource.BuiltImage{
 		ContextPath: projectRoot,
-		Dockerfile:  "Dockerfile.fakes",
+		Dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		Tag:         "operator-fakes:latest",
 	}
 	localtestAppImage := &resource.BuiltImage{
 		ContextPath: filepath.Join(projectRoot, "test/app"),
-		Dockerfile:  "Dockerfile",
+		Dockerfile:  filepath.Join(projectRoot, "test/app", "Dockerfile"),
 		Tag:         "operator-localtestapp:latest",
 	}
 	controllerPublished := &resource.PublishedImage{

@@ -146,14 +146,14 @@ func TestBuiltImage_DockerfilePath(t *testing.T) {
 		want       string
 	}{
 		{
-			name:       "default Dockerfile is relative to context",
+			name:       "empty Dockerfile defaults to Dockerfile",
 			dockerfile: "",
-			want:       filepath.Join(contextPath, "Dockerfile"),
+			want:       "Dockerfile",
 		},
 		{
-			name:       "custom Dockerfile is relative to context",
+			name:       "custom Dockerfile is passed through",
 			dockerfile: "Dockerfile.proxy",
-			want:       filepath.Join(contextPath, "Dockerfile.proxy"),
+			want:       "Dockerfile.proxy",
 		},
 		{
 			name:       "absolute Dockerfile is preserved",
