@@ -16,6 +16,7 @@ import (
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 	localharness "altinn.studio/pdf3/test/harness"
@@ -169,7 +170,7 @@ func setupRuntime(
 	variant kind.KindContainerRuntimeVariant,
 	options kind.KindContainerRuntimeOptions,
 ) (*kind.KindContainerRuntime, error) {
-	root, err := localharness.FindProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return nil, fmt.Errorf("find project root: %w", err)
 	}
@@ -448,7 +449,7 @@ func runStop() int {
 		return 1
 	}
 
-	root, err := localharness.FindProjectRoot()
+	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return writeErrorf("Failed to find project root", err)
 	}
@@ -598,7 +599,7 @@ func runTest(args []string) int {
 		return writeErrorf("Error parsing flags", err)
 	}
 
-	projectRoot, err := localharness.FindProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return writeErrorf("Failed to find project root", err)
 	}
@@ -829,7 +830,7 @@ func findChromePath(projectRoot string) (string, error) {
 
 func runLoadtestEnv() int {
 	// Find project root
-	projectRoot, err := localharness.FindProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return writeErrorf("Failed to find project root", err)
 	}
@@ -904,7 +905,7 @@ func runLoadtestLocal(args []string) int {
 	}
 
 	// Find project root
-	projectRoot, err := localharness.FindProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return writeErrorf("Failed to find project root", err)
 	}

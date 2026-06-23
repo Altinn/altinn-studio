@@ -5,14 +5,15 @@ import (
 	"path/filepath"
 	"testing"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	pdfaconverter "altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/test/harness"
 )
 
 func TestConvertFixturePDFToPDFA(t *testing.T) {
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
-		t.Fatalf("FindProjectRoot() error = %v", err)
+		t.Fatalf("find project root: %v", err)
 	}
 	inputPath := filepath.Join(projectRoot, "internal", "pdfa", "testdata", "pdfa-conversion-input.pdf")
 	input, err := os.ReadFile(inputPath)

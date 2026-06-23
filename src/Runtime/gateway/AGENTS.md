@@ -23,10 +23,3 @@ make test-e2e             # Run e2e tests (starts cluster if needed)
 # Utilities
 make clean                # Clean build artifacts and cache
 ```
-
-### Go Module
-
-- Gateway runtime code is .NET; Go is only used for local/test orchestration.
-- Root `go.mod` is intentionally dependency-free.
-- `test/go.mod` owns local orchestration dependencies such as `altinn.studio/devenv`, Kind, Flux, Helm and Docker SDKs.
-- Keep local/dev/test-only Go code under `test/` unless runtime code actually needs the dependency.

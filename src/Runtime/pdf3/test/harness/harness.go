@@ -32,7 +32,6 @@ var (
 
 var (
 	errUnexpectedStatusCode = errors.New("unexpected status code")
-	errProjectRootNotFound  = errors.New("project root not found")
 )
 
 func Init() {
@@ -44,7 +43,7 @@ func Init() {
 	}
 
 	var err error
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Couldn't find project root: %v\n", err)
 		os.Exit(1)
@@ -257,19 +256,4 @@ func RequestPDFWithHost(
 		Input:    testInput,
 		WorkerIP: workerIP,
 	}, nil
-}
-
-var projectRoot string
-
-func FindProjectRoot() (string, error) {
-	if projectRoot != "" {
-		return projectRoot, nil
-	}
-
-	root, err := projectroot.Find(projectroot.Marker)
-	if err != nil {
-		return "", fmt.Errorf("%w: %w", errProjectRootNotFound, err)
-	}
-	projectRoot = root
-	return root, nil
 }
