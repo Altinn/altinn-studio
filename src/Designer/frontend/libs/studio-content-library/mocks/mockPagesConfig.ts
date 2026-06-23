@@ -26,7 +26,7 @@ export const mockPagesConfig: PagesConfig = {
     codeLists: [],
     isPublishing: () => false,
     onPublish: () => {},
-    onSave: () => {},
+    onSave: async () => Promise.resolve(),
     publishedCodeLists: [],
   },
   images: {

@@ -58,8 +58,8 @@ const GROUPS = [
     owner: '@altinn/team-access-info',
     roots: ['src/Designer/frontend/resourceadm'],
     extraPaths: [
-      '.github/workflows/playwright-resourceadm.yml',
-      '.github/workflows/run-playwright-resourceadm-on-pr.yml',
+      '.github/workflows/designer-frontend-resourceadm-playwright-staging.yml',
+      '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml',
     ],
   },
   {
@@ -88,6 +88,7 @@ const GROUPS = [
       'src/Runtime/pdf3',
       'src/Runtime/gateway',
       'src/Runtime/devenv',
+      'src/Designer/development/fake-ansattporten',
       'src/test/K6',
       'src/tools/health',
       'src/tools/releaser',

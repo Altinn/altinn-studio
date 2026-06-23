@@ -85,7 +85,6 @@ export const repositoryLayoutPath = (org, app, layout) => `/repos/${org}/${app}/
 export const publishPath = (org, app) => `/editor/${org}/${app}/deploy`;
 export const repositoryOwnerPath = (org) => `/repos/${org}`;
 export const repositoryBasePath = () => `/repos`;
-export const userLogoutPath = () => `/repos/user/logout`;
 
 // Home
 export const userLogoutAfterPath = () => `/Home/Logout`;

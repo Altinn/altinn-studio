@@ -4,9 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
-import { useFeatureFlagsContext, FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useRepoPath } from '../../hooks/useRepoPath';
 import { useSubroute } from '../../hooks/useSubRoute';
@@ -14,8 +13,8 @@ import { type NavigationMenuItem } from '../../types/NavigationMenuItem';
 import { type NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { isOrg } from 'dashboard/utils/orgUtils/orgUtils';
 
 export type HeaderContextProps = {
@@ -39,13 +38,11 @@ export const HeaderContextProvider = ({
 }: Partial<HeaderContextProviderProps>): ReactElement => {
   const { t } = useTranslation();
 
-  const { mutate: logout } = useLogoutMutation();
   const selectedContext = useSelectedContext();
   const navigate = useNavigate();
   const repoPath = useRepoPath(user, selectableOrgs);
   const subroute = useSubroute();
 
-  const { environment } = useEnvironmentConfig();
   const { flags } = useFeatureFlagsContext();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
@@ -86,28 +83,20 @@ export const HeaderContextProvider = ({
   };
 
   const logOutMenuItem: NavigationMenuItem = {
-    action: { type: 'button', onClick: logout },
+    action: { type: 'link', href: userLogoutAfterPath() },
     itemName: t('shared.header_logout'),
   };
-
-  const studioOidc = environment?.featureFlags?.studioOidc;
-  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
-  const showSettingsLink = studioOidc || isAdminEnabled;
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
     name: t('top_bar.group_organizations'),
     showName: true,
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
-  const profileMenuItems: NavigationMenuItem[] = [
-    ...(showSettingsLink ? [settingsMenuItem] : []),
-    giteaMenuItem,
-    logOutMenuItem,
-  ];
+  const profileMenuItems: NavigationMenuItem[] = [settingsMenuItem, giteaMenuItem, logOutMenuItem];
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
-    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
+    { items: [settingsMenuItem] },
     { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];

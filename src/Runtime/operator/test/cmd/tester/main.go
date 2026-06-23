@@ -13,9 +13,9 @@ import (
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
-	"altinn.studio/operator/internal/config"
 )
 
 var errInvalidVariant = errors.New("invalid variant")
@@ -178,7 +178,7 @@ func runUnitTest() int {
 	ctx := context.Background()
 	stdoutln("=== Unit Tests ===")
 
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -235,7 +235,7 @@ func runUnitTest() int {
 }
 
 func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
@@ -331,17 +331,17 @@ func operatorImageResources(
 ) ([]resource.Resource, []resource.ResourceRef) {
 	controllerImage := &resource.BuiltImage{
 		ContextPath: projectRoot,
-		Dockerfile:  "Dockerfile",
+		Dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		Tag:         "operator-controller:latest",
 	}
 	fakesImage := &resource.BuiltImage{
 		ContextPath: projectRoot,
-		Dockerfile:  "Dockerfile.fakes",
+		Dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		Tag:         "operator-fakes:latest",
 	}
 	localtestAppImage := &resource.BuiltImage{
 		ContextPath: filepath.Join(projectRoot, "test/app"),
-		Dockerfile:  "test/app/Dockerfile",
+		Dockerfile:  filepath.Join(projectRoot, "test/app", "Dockerfile"),
 		Tag:         "operator-localtestapp:latest",
 	}
 	controllerPublished := &resource.PublishedImage{
@@ -571,7 +571,7 @@ func runStop() int {
 	ctx := context.Background()
 	stdoutln("=== Operator Runtime Stop ===")
 
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -618,7 +618,7 @@ func runE2ETest() int {
 		return 1
 	}
 
-	projectRoot, err := config.TryFindProjectRootByGoMod()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		return 1
@@ -664,7 +664,7 @@ func runE2ETest() int {
 
 	stdoutln("Running e2e tests...")
 	testExitCode := 0
-	if err := runTests(ctx, projectRoot, "./test/e2e/"); err != nil {
+	if err := runTests(ctx, projectRoot, "./e2e/"); err != nil {
 		exitErr := &exec.ExitError{}
 		if errors.As(err, &exitErr) {
 			testExitCode = exitErr.ExitCode()
@@ -693,7 +693,7 @@ func runE2ETest() int {
 func runTests(ctx context.Context, projectRoot, packagePath string) error {
 	//nolint:gosec // This helper only runs `go test` on internal package paths chosen by the caller.
 	cmd := exec.CommandContext(ctx, "go", "test", "-tags=e2e", packagePath, "-v", "-ginkgo.v")
-	cmd.Dir = projectRoot
+	cmd.Dir = filepath.Join(projectRoot, "test")
 	cmd.Env = os.Environ()
 	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
 		cmd.Env = append(cmd.Env, "UPDATE_SNAPS=true")
