@@ -1,7 +1,6 @@
 using System.Collections.Frozen;
 using System.Text;
 using Altinn.App.Api.Controllers;
-using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Cache;
@@ -47,17 +46,6 @@ internal sealed class ScopeAuthorizationMiddleware(RequestDelegate _next)
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        // Workflow engine callbacks authenticate via their own scheme (instance-bound machine-to-machine
-        // traffic) and carry no user/service-owner scopes. apiScopes authorization governs external
-        // user/service-owner API access and must not apply to these internal callbacks. Resolving the
-        // authentication context for the callback principal below would also throw, since it has no user ID
-        // claim. Skip scope authorization entirely for callback endpoints.
-        if (WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(context.GetEndpoint()))
-        {
-            await _next(context);
-            return;
-        }
-
         var user = context.User;
         var isAuth = user.Identity?.IsAuthenticated ?? false;
 

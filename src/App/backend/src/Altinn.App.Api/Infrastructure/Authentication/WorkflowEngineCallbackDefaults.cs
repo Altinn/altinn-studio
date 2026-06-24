@@ -1,3 +1,5 @@
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+
 namespace Altinn.App.Api.Infrastructure.Authentication;
 
 /// <summary>
@@ -10,7 +12,7 @@ internal static class WorkflowEngineCallbackDefaults
     /// The authentication scheme that validates workflow engine callback tokens
     /// (<see cref="WorkflowEngineCallbackAuthenticationHandler"/>).
     /// </summary>
-    public const string AuthenticationScheme = "WorkflowEngineCallback";
+    public const string AuthenticationScheme = WorkflowCallbackAuthentication.Scheme;
 
     /// <summary>
     /// The default (selector) policy scheme that forwards callback requests to

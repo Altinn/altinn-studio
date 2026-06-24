@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -79,8 +80,19 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         parsedToken.Payload.TryGetValue("actual_iss", out var actualIss) && actualIss is "localtest";
                 }
 
+                // Workflow-engine callbacks authenticate via their own scheme. Their principal is bound to
+                // an instance and carries no Altinn user/org claims, so the legacy localtest parser would
+                // throw trying to classify it as a user token. The standard parser correctly treats an
+                // authenticated principal without identity claims as Authenticated.Unknown, so we use it for
+                // callbacks regardless of environment.
+                var isWorkflowCallback = string.Equals(
+                    httpContext.User?.Identity?.AuthenticationType,
+                    WorkflowCallbackAuthentication.Scheme,
+                    StringComparison.Ordinal
+                );
+
                 var isLocaltest = _runtimeEnvironment.IsLocaltestPlatform() && !generalSettings.IsTest;
-                if (isLocaltest && !isNewLocaltestToken)
+                if (isLocaltest && !isNewLocaltestToken && !isWorkflowCallback)
                 {
                     authInfo = Authenticated.FromOldLocalTest(
                         tokenStr: token,
