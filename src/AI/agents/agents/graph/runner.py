@@ -333,7 +333,7 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
         event_sink = sink
 
     async def _run():
-        async with acquire_workflow_slot(state.session_id, mode="workflow"):
+        async with acquire_workflow_slot(state.session_id):
             await run_once(state, event_sink)
 
     async def _run_with_handlers():

@@ -251,7 +251,7 @@ async def start_agent(
             sink.mark_session_started(req.session_id)
 
             async def _run_chat_with_slot():
-                async with acquire_workflow_slot(req.session_id, mode="chat"):
+                async with acquire_workflow_slot(req.session_id):
                     await _run_chat()
 
             task = asyncio.create_task(_run_chat_with_slot(), name=f"chat-{req.session_id}")

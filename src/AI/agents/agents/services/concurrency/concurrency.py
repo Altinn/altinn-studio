@@ -24,7 +24,7 @@ def _get_workflow_semaphore() -> asyncio.Semaphore:
 
 
 @asynccontextmanager
-async def acquire_workflow_slot(session_id: str, mode: str = "workflow") -> AsyncIterator[None]:
+async def acquire_workflow_slot(session_id: str) -> AsyncIterator[None]:
     """Bounded-concurrency gate shared by workflow and chat paths.
 
     Emits the ▶️ / ⏳ / ⏹️ log lines so concurrency is observable.
@@ -42,7 +42,7 @@ async def acquire_workflow_slot(session_id: str, mode: str = "workflow") -> Asyn
         _queued_workflow_count += 1
         position_in_queue = _queued_workflow_count
         _log.info(
-            f"⏳ {mode.capitalize()} {session_id} queued — "
+            f"⏳ {session_id} queued — "
             f"{_running_workflow_count}/{cap} slots in use, "
             f"position {position_in_queue} in queue"
         )
@@ -60,13 +60,13 @@ async def acquire_workflow_slot(session_id: str, mode: str = "workflow") -> Asyn
         _running_workflow_count += 1
         try:
             _log.info(
-                f"▶️ {mode.capitalize()} {session_id} started — "
+                f"▶️ {session_id} started — "
                 f"{_running_workflow_count}/{cap} tasks running concurrently"
             )
             yield
         finally:
             _running_workflow_count -= 1
             _log.info(
-                f"⏹️ {mode.capitalize()} {session_id} finished — "
+                f"⏹️ {session_id} finished — "
                 f"{_running_workflow_count}/{cap} tasks still running"
             )
