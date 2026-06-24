@@ -12,6 +12,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -244,7 +245,7 @@ func handleEndSession(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(redirectURI, "?") {
 			sep = "&"
 		}
-		location = fmt.Sprintf("%s%sstate=%s", redirectURI, sep, state)
+		location = fmt.Sprintf("%s%sstate=%s", redirectURI, sep, url.QueryEscape(state))
 	}
 	http.Redirect(w, r, location, http.StatusFound)
 }

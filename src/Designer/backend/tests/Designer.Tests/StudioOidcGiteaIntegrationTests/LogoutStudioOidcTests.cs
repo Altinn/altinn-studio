@@ -35,8 +35,8 @@ public class LogoutStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<LogoutS
         string location = logoutResponse.Headers.Location!.ToString();
         Assert.StartsWith(GiteaFixture.FakeAnsattportenUrl, location);
         Assert.Contains("/endsession", location);
-        Assert.Contains("id_token_hint=", location);
-        Assert.Contains("client_id=", location);
+        Assert.Matches(@"[?&]id_token_hint=[^&]+", location);
+        Assert.Matches(@"[?&]client_id=[^&]+", location);
         Assert.Contains("post_logout_redirect_uri=", location);
         Assert.Contains("signout-callback-oidc", location);
 
@@ -60,6 +60,6 @@ public class LogoutStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<LogoutS
         using HttpResponseMessage logoutResponse = await HttpClient.GetAsync("Home/Logout");
 
         Assert.Equal(HttpStatusCode.Redirect, logoutResponse.StatusCode);
-        Assert.Contains("id_token_hint=", logoutResponse.Headers.Location!.ToString());
+        Assert.Matches(@"[?&]id_token_hint=[^&]+", logoutResponse.Headers.Location!.ToString());
     }
 }
