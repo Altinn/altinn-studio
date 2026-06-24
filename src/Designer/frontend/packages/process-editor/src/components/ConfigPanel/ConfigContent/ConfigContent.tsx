@@ -17,6 +17,7 @@ import { EditUniqueFromSignaturesInDataTypes } from './EditUniqueFromSignaturesI
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
+import { getTasksForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
@@ -26,14 +27,16 @@ export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets, availableDataModelIds } = useBpmnApiContext();
-  const layoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(bpmnDetails.id));
+  const layoutSet = layoutSets?.sets.find((set) =>
+    getTasksForLayoutSet(set).includes(bpmnDetails.id),
+  );
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
   const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails.element);
   const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
-    (set) => set.tasks && set.tasks[0] == bpmnDetails.id,
+    (set) => getTasksForLayoutSet(set)[0] === bpmnDetails.id,
   );
   const { shouldDisplayAction } = useStudioRecommendedNextActionContext();
 
@@ -88,7 +91,7 @@ export const ConfigContent = (): React.ReactElement => {
               <StudioDetails.Content className={classes.detailsContent}>
                 <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
                 <EditDataTypes
-                  connectedTaskId={layoutSet.tasks[0]}
+                  connectedTaskId={getTasksForLayoutSet(layoutSet)[0]}
                   dataModelIds={availableDataModelIds}
                   existingDataTypeForTask={existingDataTypeForTask}
                 />

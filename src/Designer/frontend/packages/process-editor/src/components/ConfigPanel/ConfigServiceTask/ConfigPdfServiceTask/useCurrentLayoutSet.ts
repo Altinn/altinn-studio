@@ -1,4 +1,5 @@
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
+import { getTasksForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 
@@ -11,7 +12,7 @@ export const useCurrentLayoutSet = (): UseCurrentLayoutSetResult => {
   const { layoutSets } = useBpmnApiContext();
 
   const currentLayoutSet = layoutSets?.sets?.find(
-    (layoutSet) => layoutSet.tasks?.[0] === bpmnDetails?.id,
+    (layoutSet) => getTasksForLayoutSet(layoutSet)[0] === bpmnDetails?.id,
   );
 
   return {

@@ -1,13 +1,22 @@
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSet, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
 import { StringUtils } from '@studio/pure-functions';
 
+/**
+ * Returns the tasks a layout set is connected to, normalizing across app-frontend versions.
+ * In v4 the connection is stored in the `tasks` array. In v9 the array is dropped and the
+ * task id is the layout set id itself.
+ */
+export const getTasksForLayoutSet = (layoutSet: LayoutSet): string[] =>
+  layoutSet.tasks ?? [layoutSet.id];
+
 export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string | undefined => {
-  return layoutSets?.sets?.find((set) => set.tasks?.includes(PROTECTED_TASK_NAME_CUSTOM_RECEIPT))
-    ?.id;
+  return layoutSets?.sets?.find((set) =>
+    getTasksForLayoutSet(set).includes(PROTECTED_TASK_NAME_CUSTOM_RECEIPT),
+  )?.id;
 };
 
 export const getLayoutSetIdValidationErrorKey = (

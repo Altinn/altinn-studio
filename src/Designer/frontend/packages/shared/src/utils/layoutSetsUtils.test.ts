@@ -2,8 +2,9 @@ import {
   getLayoutSetIdValidationErrorKey,
   getLayoutSetNameForCustomReceipt,
   getLayoutSetTypeTranslationKey,
+  getTasksForLayoutSet,
 } from 'app-shared/utils/layoutSetsUtils';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSet, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from '../constants';
 
@@ -60,6 +61,30 @@ describe('getLayoutSetNameForCustomReceipt', () => {
       ],
     };
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithUndefinedTasks)).toBeUndefined();
+  });
+
+  it('should match the custom receipt set by id when tasks is absent (v9)', () => {
+    const layoutSetsV9: LayoutSets = {
+      sets: [{ id: taskIdCustomReceipt }],
+    };
+    expect(getLayoutSetNameForCustomReceipt(layoutSetsV9)).toBe(taskIdCustomReceipt);
+  });
+});
+
+describe('getTasksForLayoutSet', () => {
+  it('should return the tasks array when present (v4)', () => {
+    const layoutSet: LayoutSet = { id: layoutSetName, tasks: ['Task_1'] };
+    expect(getTasksForLayoutSet(layoutSet)).toEqual(['Task_1']);
+  });
+
+  it('should fall back to the layout set id when tasks is undefined (v9)', () => {
+    const layoutSet: LayoutSet = { id: layoutSetName };
+    expect(getTasksForLayoutSet(layoutSet)).toEqual([layoutSetName]);
+  });
+
+  it('should fall back to the layout set id when tasks is null', () => {
+    const layoutSet: LayoutSet = { id: layoutSetName, tasks: null };
+    expect(getTasksForLayoutSet(layoutSet)).toEqual([layoutSetName]);
   });
 });
 describe('getLayoutSetIdValidationErrorKey', () => {
