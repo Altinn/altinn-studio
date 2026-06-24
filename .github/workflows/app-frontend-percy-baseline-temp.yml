@@ -19,6 +19,7 @@ on:
       - 'app-libs/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
+      - '.github/workflows/app-frontend-percy-baseline-temp.yml'
   workflow_dispatch:
 
 concurrency:
