@@ -159,7 +159,7 @@ func ensureObjectMap(obj *unstructured.Unstructured, field string) {
 	}
 }
 
-func setManagedRoles(g *WithT, cluster *unstructured.Unstructured, roles ...map[string]any) {
+func setManagedRolesInMemory(g *WithT, cluster *unstructured.Unstructured, roles ...map[string]any) {
 	items := make([]any, 0, len(roles))
 	for _, role := range roles {
 		items = append(items, role)
@@ -514,7 +514,7 @@ func TestReconciler_SkipsClusterUpdateForDefaultedCNPGFields(t *testing.T) {
 	parameters["archive_mode"] = "on"
 	parameters["log_destination"] = "csvlog"
 	g.Expect(cnpgapi.SetSpec(liveCluster, spec)).To(Succeed())
-	setManagedRoles(g, liveCluster, map[string]any{
+	setManagedRolesInMemory(g, liveCluster, map[string]any{
 		"name":  "testapp",
 		"login": true,
 		"passwordSecret": map[string]any{
@@ -548,7 +548,7 @@ func TestReconciler_UpdatesClusterWhenOwnedSpecFieldDiffers(t *testing.T) {
 	storage := nestedMap(g, liveCluster, "spec", "storage")
 	storage["size"] = "8Gi"
 	g.Expect(unstructured.SetNestedMap(liveCluster.Object, storage, "spec", "storage")).To(Succeed())
-	setManagedRoles(g, liveCluster, map[string]any{
+	setManagedRolesInMemory(g, liveCluster, map[string]any{
 		"name":  "testapp",
 		"login": true,
 		"passwordSecret": map[string]any{
@@ -782,7 +782,7 @@ func TestReconciler_RemoveManagedRoleConflictStopsAfterRefreshWhenRoleAlreadyGon
 	g := NewWithT(t)
 
 	cluster := cnpgapi.NewCluster(cnpgNamespace, clusterName)
-	setManagedRoles(g, cluster, map[string]any{"name": "testapp"})
+	setManagedRolesInMemory(g, cluster, map[string]any{"name": "testapp"})
 	updateCalls := 0
 	k8sClient := newFakeK8sClientWithInterceptors(
 		interceptor.Funcs{
@@ -1236,7 +1236,7 @@ func TestReconciler_DoesNotAdoptExistingWorkflowEnginePasswordSecretOrRole(t *te
 	h.mustSyncAll(g)
 
 	cluster := getCluster(g, h)
-	setManagedRoles(g, cluster, map[string]any{
+	setManagedRolesInMemory(g, cluster, map[string]any{
 		"name": workflowEngineDatabaseName,
 		"passwordSecret": map[string]any{
 			"name": "pg-apps-cluster-workflow-engine-app-password",

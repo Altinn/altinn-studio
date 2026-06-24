@@ -140,12 +140,11 @@ func RemoveRole(obj *unstructured.Unstructured, name string) (found bool, err er
 }
 
 func HasManaged(obj *unstructured.Unstructured) (bool, error) {
-	managed, found, err := Managed(obj)
-	if err != nil || !found {
+	currentRoles, err := roles(obj)
+	if err != nil {
 		return false, err
 	}
-	roles, ok := managed["roles"].([]any)
-	return ok && len(roles) > 0, nil
+	return len(currentRoles) > 0, nil
 }
 
 func RolePasswordSecretName(obj *unstructured.Unstructured, roleName string) (string, bool, error) {
