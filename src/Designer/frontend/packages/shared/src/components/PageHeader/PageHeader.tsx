@@ -14,6 +14,7 @@ import type { User } from 'app-shared/types/Repository';
 import { NavigationMenu } from './NavigationMenu/NavigationMenu';
 import type { NavigationMenuItem } from './NavigationMenu/NavigationMenuItem';
 import { ProfileMenu } from './ProfileMenu/ProfileMenu';
+import { useUserQuery } from 'app-shared/hooks/queries';
 
 const isPathActive = (pathname: string, basePath: string): boolean =>
   pathname === basePath || pathname.startsWith(`${basePath}/`);
@@ -26,13 +27,15 @@ type PageHeaderProps = {
 
 export const PageHeader = ({ owner, onOrgSelect, onUserSelect }: PageHeaderProps): ReactElement => {
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const { data: currentUser } = useUserQuery();
+  const ownerInPath = currentUser?.login === owner ? 'self' : (owner ?? '');
 
   const appDashboardBasePath = `${DASHBOARD_BASENAME}/${APP_DASHBOARD_BASENAME}`;
   const orgLibraryBasePath = `${DASHBOARD_BASENAME}/${ORG_LIBRARY_BASENAME}`;
   const { pathname } = window.location;
   const navigationMenuItems: NavigationMenuItem[] = [
     {
-      href: `${appDashboardBasePath}/${owner ?? ''}`,
+      href: `${appDashboardBasePath}/${ownerInPath}`,
       textKey: 'dashboard.header_item_dashboard',
       isActive: isPathActive(pathname, appDashboardBasePath),
     },
@@ -43,7 +46,7 @@ export const PageHeader = ({ owner, onOrgSelect, onUserSelect }: PageHeaderProps
       isBeta: true,
     },
     {
-      href: `${orgLibraryBasePath}/${owner ?? ''}`,
+      href: `${orgLibraryBasePath}/${ownerInPath}`,
       textKey: 'dashboard.header_item_library',
       isActive: isPathActive(pathname, orgLibraryBasePath),
       isBeta: true,

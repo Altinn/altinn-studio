@@ -5,10 +5,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryKey as TanstackQueryKey } from '@tanstack/react-query';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 
-const layoutSetsExtended: LayoutSetModel[] = [
-  { id: 'layoutSet1', dataType: 'dataType1', type: 'type1', task: { id: 'task1', type: 'data' } },
+const layoutSetsExtended: UiFolderLayoutSetModel[] = [
+  { id: 'layoutSet1', dataType: 'dataType1', type: 'type1', taskType: 'data' },
 ];
 const getLayoutSetsExtended = jest.fn(() => Promise.resolve(layoutSetsExtended));
 

@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/pdf3/internal/assert"
 	ptesting "altinn.studio/pdf3/internal/testing"
@@ -31,7 +32,6 @@ var (
 
 var (
 	errUnexpectedStatusCode = errors.New("unexpected status code")
-	errProjectRootNotFound  = errors.New("project root not found")
 )
 
 func Init() {
@@ -43,7 +43,7 @@ func Init() {
 	}
 
 	var err error
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Couldn't find project root: %v\n", err)
 		os.Exit(1)
@@ -256,47 +256,4 @@ func RequestPDFWithHost(
 		Input:    testInput,
 		WorkerIP: workerIP,
 	}, nil
-}
-
-var projectRoot string
-
-// FindProjectRoot searches upward for a directory containing go.mod
-// It starts from the current working directory and checks up to maxIterations parent directories.
-func FindProjectRoot() (string, error) {
-	if projectRoot != "" {
-		return projectRoot, nil
-	}
-
-	const maxIterations = 10
-
-	// Get current working directory
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("get working directory: %w", err)
-	}
-
-	// Track the previous directory to detect when we've reached the filesystem root
-	prevDir := ""
-
-	for range maxIterations {
-		// Check if go.mod exists in current directory
-		goModPath := filepath.Join(dir, "go.mod")
-		if _, err := os.Stat(goModPath); err == nil {
-			projectRoot = dir
-			return dir, nil
-		}
-
-		// Move to parent directory
-		parentDir := filepath.Dir(dir)
-
-		// Check if we've reached the filesystem root (dir == parentDir on Unix, or checking against previous)
-		if parentDir == dir || parentDir == prevDir {
-			return "", fmt.Errorf("%w: reached filesystem root without finding go.mod", errProjectRootNotFound)
-		}
-
-		prevDir = dir
-		dir = parentDir
-	}
-
-	return "", fmt.Errorf("%w: exceeded maximum iterations searching for go.mod", errProjectRootNotFound)
 }

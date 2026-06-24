@@ -59,9 +59,10 @@ export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${apiBas
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${apiBasePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
 export const layoutNamesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets`; // Get
-export const layoutSetsExtendedPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
+export const layoutSetsExtendedV4Path = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${apiBasePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
+export const validationOnNavigationLayoutSetsPath = (org, app) => `${layoutSetsPath(org, app)}/validation-on-navigation`; // Get
 export const validateNavigationLayoutSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation`; // Get, Post
 export const validateNavigationPageSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation/pages`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
@@ -73,9 +74,11 @@ export const layoutPagesPath = (org, app, layoutSetName, pageName) => `${layoutP
 export const layoutPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/page-groups/`;
 export const layoutConvertToPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pagegroups/`;
 export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pageorder/`;
-export const taskNavigationGroupPath = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
+export const taskNavigationGroupV4Path = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
+export const taskNavigationGroupPath = (org, app) => `${uiFoldersPath(org, app)}/settings/task-navigation`;
 export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
 export const validationOnNavigationPath = (org, app) => `${uiFoldersPath(org, app)}/settings/validation-on-navigation`; // Get, Post, Delete
+export const layoutSetsExtendedPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets/extended`; // Get
 
 // Gitea
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
@@ -85,7 +88,6 @@ export const repositoryLayoutPath = (org, app, layout) => `/repos/${org}/${app}/
 export const publishPath = (org, app) => `/editor/${org}/${app}/deploy`;
 export const repositoryOwnerPath = (org) => `/repos/${org}`;
 export const repositoryBasePath = () => `/repos`;
-export const userLogoutPath = () => `/repos/user/logout`;
 
 // Home
 export const userLogoutAfterPath = () => `/Home/Logout`;

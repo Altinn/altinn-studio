@@ -9,6 +9,7 @@ public static class SyncErrorCodes
     public const string PolicyFileTaskIdSyncError = nameof(PolicyFileTaskIdSyncError);
     public const string ApplicationMetadataDataTypeSyncError = nameof(ApplicationMetadataDataTypeSyncError);
     public const string LayoutSetsDataTypeSyncError = nameof(LayoutSetsDataTypeSyncError);
+    public const string LayoutSettingsDataTypeSyncError = nameof(LayoutSettingsDataTypeSyncError);
     public const string LayoutSetComponentIdSyncError = nameof(LayoutSetComponentIdSyncError);
     public const string LayoutSetDeletedLayoutsSyncError = nameof(LayoutSetDeletedLayoutsSyncError);
     public const string LayoutSetIdChangedLayoutsSyncError = nameof(LayoutSetIdChangedLayoutsSyncError);
