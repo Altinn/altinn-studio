@@ -40,6 +40,9 @@ def _make_state(tmp_dir: str, changed_files: list | None = None, repo_facts: dic
         session_id="test-session",
         user_goal="test",
         repo_path=tmp_dir,
+        app_name="test-app",
+        developer="test-developer",
+        org="ttd",
         changed_files=changed_files or [],
         repo_facts=repo_facts,
     )
