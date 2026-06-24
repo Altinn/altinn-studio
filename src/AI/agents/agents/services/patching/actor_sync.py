@@ -3,12 +3,12 @@ Actor sync service for datamodel artifact synchronization.
 Handles post-SoT-edit synchronization of generated artifacts.
 """
 
-import asyncio
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 from shared.utils.logging_utils import get_logger
 from agents.schemas.plan_schema import PlanStep
+from agents.services.git import git_ops
 log = get_logger(__name__)
 
 
@@ -113,14 +113,9 @@ async def _sync_single_file(
 ) -> Dict[str, Any]:
     """Sync artifacts for a single Source of Truth file."""
     
-    from pathlib import Path
-    
     # Get current branch name for logging only (no enforcement needed)
-    import subprocess
     try:
-        result = subprocess.run(['git', 'branch', '--show-current'], 
-                              cwd=repo_path, capture_output=True, text=True)
-        current_branch = result.stdout.strip() if result.returncode == 0 else "unknown"
+        current_branch = await git_ops.current_branch(repo_path)
     except Exception:
         current_branch = "unknown"
     

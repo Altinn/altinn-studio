@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
 import glob
 import os
-import subprocess
 from pathlib import Path
 from typing import Dict, List
 
@@ -18,24 +16,16 @@ log = get_logger(__name__)
 
 
 async def cleanup_feature_branch(repo_path: str, *, base_branch: str = "master") -> None:
-    """Clean up feature branch when workflow fails. Runs git off the event loop."""
+    """Clean up feature branch when workflow fails."""
 
     try:
-        result = await asyncio.to_thread(
-            subprocess.run,
-            ["git", "branch", "--show-current"],
-            cwd=repo_path,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        current_branch = result.stdout.strip()
+        current_branch = await git_ops.current_branch(repo_path)
 
         if current_branch in {"master", "main", base_branch}:
             log.info("Not cleaning up branch %s (protected branch)", current_branch)
             return
 
-        cleanup_result = await git_ops.cleanup_feature_branch_async(
+        cleanup_result = await git_ops.cleanup_feature_branch(
             repo_path=repo_path,
             feature_branch=current_branch,
             base=base_branch,

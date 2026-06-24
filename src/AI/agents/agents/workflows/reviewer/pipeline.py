@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import re
@@ -368,7 +367,7 @@ async def execute_reviewer_workflow(
         cleanup_generated_artifacts(repo_path)
 
         # Revert changes
-        await git_ops.revert_async(repo_path)
+        await git_ops.revert(repo_path)
 
 
         return {
@@ -394,14 +393,7 @@ async def execute_reviewer_workflow(
     effective_passed = tests_passed or not _has_hard_errors(verify_notes)
     if decision == "commit" and effective_passed and len(changed_files) > 0:
         try:
-            # Stage changed files (single git add call, run off the event loop)
-            import subprocess
-            await asyncio.to_thread(
-                subprocess.run,
-                ["git", "add", "--", *changed_files],
-                cwd=repo_path,
-                check=True,
-            )
+            await git_ops.stage_files(repo_path, changed_files)
 
             # Commit changes
             # Extract a unique identifier from session_id (skip "session_" prefix if present)
@@ -410,7 +402,7 @@ async def execute_reviewer_workflow(
             else:
                 unique_id = session_id[:8]
             branch_name = f"altinity_session_{unique_id}"
-            commit_hash = await git_ops.commit_async(commit_message, repo_path, branch_name=branch_name)
+            commit_hash = await git_ops.commit(commit_message, repo_path, branch_name=branch_name)
 
             if commit_hash is None:
                 log.warning("No changes to commit - all requested changes were already implemented")
@@ -432,11 +424,11 @@ async def execute_reviewer_workflow(
         except subprocess.CalledProcessError as e:
             log.error(f"Git staging failed: {e}")
             # Fall back to revert
-            await git_ops.revert_async(repo_path)
+            await git_ops.revert(repo_path)
             decision = "revert"
     else:
         # Revert changes
-        await git_ops.revert_async(repo_path)
+        await git_ops.revert(repo_path)
 
     # Clean up cloned repository after workflow completion
     try:

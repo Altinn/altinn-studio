@@ -39,6 +39,8 @@ def _make_state(tmp_dir: str, changed_files: list | None = None, repo_facts: dic
     return AgentState(
         session_id="test-session",
         user_goal="test",
+        developer="test-developer",
+        org="test-org",
         repo_path=tmp_dir,
         changed_files=changed_files or [],
         repo_facts=repo_facts,
@@ -61,7 +63,8 @@ def _make_verification_result(tool_results: list | None = None, errors: list | N
 class TestDeduplicateResourceIds:
     """Unit tests for the dedup function in git_ops."""
 
-    def test_removes_duplicate_keeps_last(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_removes_duplicate_keeps_last(self, tmp_path):
         resources = [
             {"id": "app.field.name", "value": "Old Name"},
             {"id": "app.field.age", "value": "Age"},
@@ -69,7 +72,7 @@ class TestDeduplicateResourceIds:
         ]
         rel = _make_resource_file(tmp_path, "App/config/texts/resource.nb.json", resources)
 
-        modified = deduplicate_resource_ids(str(tmp_path), [rel])
+        modified = await deduplicate_resource_ids(str(tmp_path), [rel])
 
         assert modified == [rel]
         data = json.loads((tmp_path / rel).read_text())
@@ -79,18 +82,20 @@ class TestDeduplicateResourceIds:
         name_entry = next(r for r in data["resources"] if r["id"] == "app.field.name")
         assert name_entry["value"] == "New Name"
 
-    def test_no_duplicates_no_modification(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_no_duplicates_no_modification(self, tmp_path):
         resources = [
             {"id": "app.field.name", "value": "Name"},
             {"id": "app.field.age", "value": "Age"},
         ]
         rel = _make_resource_file(tmp_path, "App/config/texts/resource.nb.json", resources)
 
-        modified = deduplicate_resource_ids(str(tmp_path), [rel])
+        modified = await deduplicate_resource_ids(str(tmp_path), [rel])
 
         assert modified == []
 
-    def test_multiple_duplicates(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_multiple_duplicates(self, tmp_path):
         resources = [
             {"id": "a", "value": "1"},
             {"id": "b", "value": "2"},
@@ -100,7 +105,7 @@ class TestDeduplicateResourceIds:
         ]
         rel = _make_resource_file(tmp_path, "App/config/texts/resource.nb.json", resources)
 
-        modified = deduplicate_resource_ids(str(tmp_path), [rel])
+        modified = await deduplicate_resource_ids(str(tmp_path), [rel])
 
         assert len(modified) == 1
         data = json.loads((tmp_path / rel).read_text())
@@ -108,24 +113,27 @@ class TestDeduplicateResourceIds:
         assert len(ids) == 3
         assert len(set(ids)) == 3  # all unique
 
-    def test_missing_file_skipped(self, tmp_path):
-        modified = deduplicate_resource_ids(
+    @pytest.mark.asyncio
+    async def test_missing_file_skipped(self, tmp_path):
+        modified = await deduplicate_resource_ids(
             str(tmp_path), ["App/config/texts/nonexistent.json"]
         )
         assert modified == []
 
-    def test_non_dict_resources_skipped(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_non_dict_resources_skipped(self, tmp_path):
         """Files with non-standard structure should be left alone."""
         full = tmp_path / "App/config/texts/resource.nb.json"
         full.parent.mkdir(parents=True, exist_ok=True)
         full.write_text(json.dumps(["not", "a", "dict"]))
 
-        modified = deduplicate_resource_ids(
+        modified = await deduplicate_resource_ids(
             str(tmp_path), ["App/config/texts/resource.nb.json"]
         )
         assert modified == []
 
-    def test_entries_without_id_preserved(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_entries_without_id_preserved(self, tmp_path):
         resources = [
             {"id": "a", "value": "1"},
             {"value": "no-id-entry"},
@@ -133,7 +141,7 @@ class TestDeduplicateResourceIds:
         ]
         rel = _make_resource_file(tmp_path, "App/config/texts/resource.nb.json", resources)
 
-        modified = deduplicate_resource_ids(str(tmp_path), [rel])
+        modified = await deduplicate_resource_ids(str(tmp_path), [rel])
 
         assert len(modified) == 1
         data = json.loads((tmp_path / rel).read_text())
@@ -148,7 +156,8 @@ class TestDeduplicateResourceIds:
 class TestApplyDeterministicFixes:
     """Tests for the deterministic fix dispatcher."""
 
-    def test_fixes_duplicate_resource_id_error(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_fixes_duplicate_resource_id_error(self, tmp_path):
         resources = [
             {"id": "app.field.sendIn", "value": "Send inn"},
             {"id": "app.field.name", "value": "Navn"},
@@ -158,17 +167,19 @@ class TestApplyDeterministicFixes:
         repo_facts = {"resources": [rel]}
         errors = ["Duplicate resource IDs: ['app.field.sendIn']"]
 
-        fixed = _apply_deterministic_fixes(str(tmp_path), repo_facts, errors)
+        fixed = await _apply_deterministic_fixes(str(tmp_path), repo_facts, errors)
 
         assert len(fixed) == 1
         assert "Deduplicated" in fixed[0]
 
-    def test_no_match_returns_empty(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_no_match_returns_empty(self, tmp_path):
         errors = ["Missing required property 'value' in component header-1"]
-        fixed = _apply_deterministic_fixes(str(tmp_path), {}, errors)
+        fixed = await _apply_deterministic_fixes(str(tmp_path), {}, errors)
         assert fixed == []
 
-    def test_fallback_discovers_resource_files(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_fallback_discovers_resource_files(self, tmp_path):
         """When repo_facts has no resources key, discover files from disk."""
         resources = [
             {"id": "x", "value": "1"},
@@ -177,11 +188,12 @@ class TestApplyDeterministicFixes:
         _make_resource_file(tmp_path, "App/config/texts/resource.nb.json", resources)
 
         errors = ["Duplicate resource IDs: ['x']"]
-        fixed = _apply_deterministic_fixes(str(tmp_path), {}, errors)
+        fixed = await _apply_deterministic_fixes(str(tmp_path), {}, errors)
 
         assert len(fixed) == 1
 
-    def test_dict_error_format(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_dict_error_format(self, tmp_path):
         """Errors can be dicts with a 'message' key."""
         resources = [
             {"id": "y", "value": "1"},
@@ -190,7 +202,7 @@ class TestApplyDeterministicFixes:
         rel = _make_resource_file(tmp_path, "App/config/texts/resource.nb.json", resources)
 
         errors = [{"message": "Duplicate resource IDs: ['y']", "path": "resources"}]
-        fixed = _apply_deterministic_fixes(str(tmp_path), {"resources": [rel]}, errors)
+        fixed = await _apply_deterministic_fixes(str(tmp_path), {"resources": [rel]}, errors)
 
         assert len(fixed) == 1
 
@@ -289,7 +301,7 @@ class TestAttemptAutoFix:
             new_callable=AsyncMock,
             return_value=fake_patch,
         ) as mock_llm:
-            with patch("agents.services.git.git_ops.apply") as mock_apply:
+            with patch("agents.services.git.git_ops._apply") as mock_apply:
                 result = await _attempt_auto_fix(state, verification)
 
         assert result is True

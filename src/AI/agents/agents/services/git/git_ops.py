@@ -52,7 +52,7 @@ def preview(patch: dict) -> dict:
         "file_count": len(files)
     }
 
-def apply(patch: dict, repo_path: str | None = None):
+def _apply(patch: dict, repo_path: str | None = None):
     """Write files from patch to disk in the target repository"""
     changes = patch.get("changes", [])
     files = patch.get("files", [])
@@ -358,7 +358,7 @@ def apply(patch: dict, repo_path: str | None = None):
             print(f"Continuing with remaining changes...")
             continue
 
-def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
+def _commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
     """Create branch if missing and commit, return hash"""
     try:
         # Use provided branch name or create feature branch with timestamp
@@ -420,7 +420,7 @@ def commit(message: str, repo_path: str | None = None, branch_name: str | None =
     except subprocess.CalledProcessError as e:
         raise Exception(f"Git commit failed: {e}")
 
-def revert(repo_path: str | None = None):
+def _revert(repo_path: str | None = None):
     """Restore from index or stash"""
     try:
         # Work in the target repository directory
@@ -621,7 +621,7 @@ def find_and_replace_in_resources(repo_path: str, old_value: str, new_value: str
         return {"error": f"Resource replacement failed: {e}"}
 
 
-def cleanup_feature_branch(repo_path: str, feature_branch: str, base: str = "main", allow_branch_cleanup: bool = True) -> Dict[str, Any]:
+def _cleanup_feature_branch(repo_path: str, feature_branch: str, base: str = "main", allow_branch_cleanup: bool = True) -> Dict[str, Any]:
     """
     Clean up feature branch on failure or zero-diff scenarios.
     
@@ -698,7 +698,7 @@ def cleanup_feature_branch(repo_path: str, feature_branch: str, base: str = "mai
         }
 
 
-def deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[str]:
+def _deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[str]:
     """Remove duplicate resource IDs from text resource JSON files.
 
     Keeps the *last* occurrence of each ID (most recently inserted).
@@ -737,28 +737,60 @@ def deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[
     return modified
 
 
-async def apply_async(patch: dict, repo_path: str | None = None):
-    await asyncio.to_thread(apply, patch, repo_path)
+def _status_changed_files(repo_path: str) -> List[str]:
+    result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=repo_path, capture_output=True, text=True,
+    )
+    return [line.split()[-1] for line in result.stdout.splitlines() if line.strip()]
 
 
-async def commit_async(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
-    return await asyncio.to_thread(commit, message, repo_path, branch_name)
+def _stage_files(repo_path: str, files: List[str]) -> None:
+    subprocess.run(["git", "add", "--", *files], cwd=repo_path, check=True)
 
 
-async def revert_async(repo_path: str | None = None):
-    await asyncio.to_thread(revert, repo_path)
+def _current_branch(repo_path: str) -> str:
+    result = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=repo_path, capture_output=True, text=True, check=True,
+    )
+    return result.stdout.strip()
 
 
-async def deduplicate_resource_ids_async(repo_path: str, resource_files: List[str]) -> List[str]:
-    return await asyncio.to_thread(deduplicate_resource_ids, repo_path, resource_files)
+async def apply(patch: dict, repo_path: str | None = None):
+    await asyncio.to_thread(_apply, patch, repo_path)
 
 
-async def cleanup_feature_branch_async(
+async def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
+    return await asyncio.to_thread(_commit, message, repo_path, branch_name)
+
+
+async def revert(repo_path: str | None = None):
+    await asyncio.to_thread(_revert, repo_path)
+
+
+async def deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[str]:
+    return await asyncio.to_thread(_deduplicate_resource_ids, repo_path, resource_files)
+
+
+async def status_changed_files(repo_path: str) -> List[str]:
+    return await asyncio.to_thread(_status_changed_files, repo_path)
+
+
+async def stage_files(repo_path: str, files: List[str]) -> None:
+    await asyncio.to_thread(_stage_files, repo_path, files)
+
+
+async def current_branch(repo_path: str) -> str:
+    return await asyncio.to_thread(_current_branch, repo_path)
+
+
+async def cleanup_feature_branch(
     repo_path: str,
     feature_branch: str,
     base: str = "main",
     allow_branch_cleanup: bool = True,
 ) -> Dict[str, Any]:
     return await asyncio.to_thread(
-        cleanup_feature_branch, repo_path, feature_branch, base, allow_branch_cleanup
+        _cleanup_feature_branch, repo_path, feature_branch, base, allow_branch_cleanup
     )

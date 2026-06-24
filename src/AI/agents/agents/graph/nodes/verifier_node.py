@@ -191,8 +191,7 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
         log.info(f"Found {len(validation_errors)} validation errors to fix")
         
         # ── Deterministic fixes (no LLM needed) ──────────────────────────
-        deterministic_fixed = await asyncio.to_thread(
-            _apply_deterministic_fixes,
+        deterministic_fixed = await _apply_deterministic_fixes(
             state.repo_path, state.repo_facts or {}, validation_errors,
         )
         if deterministic_fixed:
@@ -230,7 +229,7 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
         fix_patch["skip_reset"] = True
 
         log.info(f"Applying auto-fix patch with {len(fix_patch['changes'])} changes")
-        await git_ops.apply_async(fix_patch, state.repo_path)
+        await git_ops.apply(fix_patch, state.repo_path)
         
         return True
         
@@ -287,7 +286,7 @@ def _collect_error_strings(result) -> list[str]:
 _DUPLICATE_RESOURCE_ID_PATTERN = "Duplicate resource IDs"
 
 
-def _apply_deterministic_fixes(
+async def _apply_deterministic_fixes(
     repo_path: str, repo_facts: Dict[str, Any], validation_errors: list
 ) -> list[str]:
     """Apply deterministic (non-LLM) fixes for known error patterns.
@@ -313,7 +312,7 @@ def _apply_deterministic_fixes(
         for e in validation_errors
     )
     if has_duplicate_id_error and resource_files:
-        deduped = git_ops.deduplicate_resource_ids(repo_path, resource_files)
+        deduped = await git_ops.deduplicate_resource_ids(repo_path, resource_files)
         if deduped:
             for f in deduped:
                 fixed.append(f"Deduplicated resource IDs in {f}")

@@ -1,5 +1,3 @@
-"""Bounded-concurrency primitives for workflow and chat execution."""
+from .work_queue import acquire_queue_slot
 
-from .concurrency import acquire_workflow_slot
-
-__all__ = ["acquire_workflow_slot"]
+__all__ = ["acquire_queue_slot"]

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import subprocess
 from typing import Optional
 
 from agents.graph.state import AgentState
@@ -156,14 +155,14 @@ async def handle(state: AgentState) -> AgentState:
             log.info("✅ Patch validation passed")
 
         log.info(f"🔧 Applying patch with {len(normalized_patch_data.get('changes', []))} changes to {len(normalized_patch_data.get('files', []))} files")
-        await git_ops.apply_async(normalized_patch_data, state.repo_path)
+        await git_ops.apply(normalized_patch_data, state.repo_path)
 
         # Deduplicate resource IDs only in files touched by this patch
         all_resource_files = set((state.repo_facts or {}).get("resources", []))
         patch_files = {c.get("file", "") for c in normalized_patch_data.get("changes", [])}
         touched_resource_files = list(all_resource_files & patch_files)
         if touched_resource_files:
-            deduped = await git_ops.deduplicate_resource_ids_async(state.repo_path, touched_resource_files)
+            deduped = await git_ops.deduplicate_resource_ids(state.repo_path, touched_resource_files)
             if deduped:
                 log.info(f"🧹 Deduplicated resource IDs in {len(deduped)} file(s): {deduped}")
         
@@ -261,15 +260,8 @@ async def handle(state: AgentState) -> AgentState:
 
         # Check git status to see what actually changed
         try:
-            git_status = await asyncio.to_thread(
-                subprocess.run,
-                ["git", "status", "--porcelain"],
-                cwd=state.repo_path,
-                capture_output=True,
-                text=True,
-            )
-            actual_changed_files = [line.split()[-1] for line in git_status.stdout.strip().split('\n') if line.strip()]
-            
+            actual_changed_files = await git_ops.status_changed_files(state.repo_path)
+
             if not actual_changed_files:
                 log.warning("⚠️ Git status shows no actual changes after patch application")
                 # Don't proceed to verification/review if no changes

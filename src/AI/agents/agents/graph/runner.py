@@ -10,7 +10,7 @@ from .nodes.actor_node import handle as actor_node
 from .nodes.verifier_node import handle as verifier_node
 from .nodes.reviewer_node import handle as reviewer_node
 from agents.services.events import AgentEvent, EventSink, sink
-from agents.services.concurrency import acquire_workflow_slot
+from agents.services.concurrency import acquire_queue_slot
 from shared.utils.logging_utils import get_logger
 import asyncio
 import json
@@ -333,12 +333,9 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
         event_sink = sink
 
     async def _run():
-        async with acquire_workflow_slot(state.session_id):
-            await run_once(state, event_sink)
-
-    async def _run_with_handlers():
         try:
-            await _run()
+            async with acquire_queue_slot(state.session_id):
+                await run_once(state, event_sink)
         except WorkflowCancelled:
             log.info(f"🛑 Workflow cancelled for session {state.session_id}")
         except GoalRejected as e:
@@ -373,11 +370,8 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                 }
             ))
 
-    # Each workflow runs as its own asyncio.Task so the event loop can interleave
-    # them freely. Hold a strong reference until it finishes — otherwise asyncio
-    # is allowed to garbage-collect a running task mid-flight (see PEP 3156 /
-    # asyncio.create_task docs).
-    task = asyncio.create_task(_run_with_handlers(), name=f"workflow-{state.session_id}")
+    # Each workflow runs as its own asyncio.Task so the event loop can interleave them freely.
+    task = asyncio.create_task(_run(), name=f"workflow-{state.session_id}")
     _active_tasks.add(task)
     task.add_done_callback(_active_tasks.discard)
     return task

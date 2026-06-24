@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
-from agents.services.concurrency import acquire_workflow_slot
+from agents.services.concurrency import acquire_queue_slot
 from agents.graph.nodes import assistant
 from agents.services.events import sink, AgentEvent
 
@@ -251,7 +251,7 @@ async def start_agent(
             sink.mark_session_started(req.session_id)
 
             async def _run_chat_with_slot():
-                async with acquire_workflow_slot(req.session_id):
+                async with acquire_queue_slot(req.session_id):
                     await _run_chat()
 
             task = asyncio.create_task(_run_chat_with_slot(), name=f"chat-{req.session_id}")
