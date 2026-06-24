@@ -263,8 +263,8 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     }
 
     [Theory]
-    [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-    public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(
+    [InlineData("ttd", "app-without-layoutsets", "testUser", "newSet")]
+    public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsOk(
         string org,
         string app,
         string developer,
@@ -288,7 +288,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)

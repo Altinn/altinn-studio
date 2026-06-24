@@ -147,8 +147,8 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
     }
 
     [Theory]
-    [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-    public async Task DeleteLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(
+    [InlineData("ttd", "app-without-layoutsets", "testUser", "someSet")]
+    public async Task DeleteLayoutSet_AppWithoutLayoutSets_ReturnsOk(
         string org,
         string app,
         string developer,
@@ -163,7 +163,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Theory]

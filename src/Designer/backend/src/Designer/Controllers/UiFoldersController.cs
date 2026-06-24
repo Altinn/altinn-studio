@@ -301,7 +301,7 @@ public class UiFoldersController : Controller
         try
         {
             SemanticVersion version = _appVersionService.GetAppLibVersion(editingContext);
-            return version.Major >= 9;
+            return version is null || version.Major >= 9;
         }
         catch (FileNotFoundException)
         {
