@@ -44,7 +44,7 @@ const handleError = (
 
   const renderToast = (
     key: string,
-    additionalData?: Record<string, unknown>,
+    values?: Record<string, unknown>,
     detail?: string,
     options: ToastOptions = {},
   ) => {
@@ -52,7 +52,7 @@ const handleError = (
     if (i18n.exists(errorMessageKey)) {
       const message = (
         <div>
-          <Trans i18nKey={errorMessageKey} values={additionalData} components={{ b: <strong /> }} />{' '}
+          <Trans i18nKey={errorMessageKey} values={values} components={{ b: <strong /> }} />{' '}
           {detail && (
             <>
               <br />
@@ -71,7 +71,7 @@ const handleError = (
   };
 
   const errorCode = error?.response?.data?.errorCode;
-  const additionalData = error?.response?.data?.additionalData;
+  const values = error?.response?.data?.values;
   const detail = error?.response?.data?.detail;
   const isSessionExpiredError =
     error?.response?.status === ServerCodes.Unauthorized &&
@@ -89,7 +89,7 @@ const handleError = (
     return;
 
   if (errorCode) {
-    return renderToast(errorCode, additionalData, detail);
+    return renderToast(errorCode, values, detail);
   }
 
   renderDefaultToast();

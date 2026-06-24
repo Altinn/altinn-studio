@@ -4,6 +4,6 @@ namespace Altinn.Studio.Designer.Filters;
 public static class ProblemDetailsExtensionsCodes
 {
     public const string ErrorCode = "errorCode";
-    public const string Detail = "detail";
-    public const string AdditionalData = "additionalData";
+    public const string Values = "values";
+    public const string CustomErrorMessages = "customErrorMessages";
 }
