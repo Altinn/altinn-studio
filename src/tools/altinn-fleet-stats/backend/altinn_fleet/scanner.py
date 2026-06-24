@@ -144,8 +144,14 @@ def _enumerate_layout_sets(app_dir: Path) -> list[tuple[str, Path, list[str]]]:
         for s in data.get("sets", []):
             sid = s.get("id", "")
             if sid:
-                tasks = s.get("tasks") or [sid]
-                result.append((sid, ui / sid, tasks))
+                raw_tasks = s.get("tasks")
+                tasks = (
+                    [t for t in raw_tasks if isinstance(t, str) and t]
+                    if isinstance(raw_tasks, list)
+                    else []
+                )
+                # v9 apps omit "tasks"; the task id then equals the layout set id.
+                result.append((sid, ui / sid, tasks or [sid]))
         return result
     # Legacy: layouts directly under App/ui
     if (ui / "layouts").exists() or (ui / "Settings.json").exists() or (ui / "FormLayout.json").exists():

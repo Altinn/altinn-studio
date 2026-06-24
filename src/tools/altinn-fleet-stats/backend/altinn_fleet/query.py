@@ -177,10 +177,12 @@ SAMPLE_QUERIES = [
             "SELECT app_id, layout_set,\n"
             "       COUNT(*)                    AS task_count,\n"
             "       GROUP_CONCAT(task_id, ', ') AS tasks\n"
-            "FROM layout_set_tasks\n"
+            "FROM (SELECT app_id, layout_set, task_id\n"
+            "      FROM layout_set_tasks\n"
+            "      ORDER BY app_id, layout_set, task_id)\n"
             "GROUP BY app_id, layout_set\n"
             "HAVING COUNT(*) > 1\n"
-            "ORDER BY task_count DESC;"
+            "ORDER BY task_count DESC, app_id, layout_set;"
         ),
     },
     {
