@@ -67,7 +67,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Preview: Story = {};
+export const Preview: Story = {
+  args: {
+    title: 'Fødselsdato',
+    description: 'Oppgi datoen du ble født.',
+    help: 'Du finner fødselsdatoen din i passet eller på fødselsattesten.',
+  },
+};
 
 export const ReadOnly: Story = {
   args: {
