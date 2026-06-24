@@ -1,53 +1,47 @@
 import React from 'react';
 
-import { Fieldset, Flex } from '@app/form-component';
+import { ButtonGroupLayout } from '@app/form-component';
 
 import type { PropsFromGenericComponent } from '..';
 
-import classes from 'src/layout/ButtonGroup/ButtonGroupComponent.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useLabel } from 'src/utils/layout/useLabel';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export function ButtonGroupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
-  const { grid, children } = useExternalItem(baseComponentId, 'ButtonGroup');
-  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
-    baseComponentId,
-    overrideDisplay,
-  });
+  const { grid, children, textResourceBindings } = useItemWhenType(baseComponentId, 'ButtonGroup');
+  const canRender = useHasCapability('renderInButtonGroup');
+
+  const renderLabel = overrideDisplay?.renderLabel ?? true;
+  const inTable = overrideDisplay?.renderedInTable === true;
+  const showLabel = renderLabel && !inTable;
 
   return (
-    <Fieldset
-      grid={grid?.labelGrid}
-      legend={labelText}
-      description={getDescriptionComponent()}
-      help={getHelpTextComponent()}
-    >
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
-        <Flex
-          item
-          container
-          alignItems='center'
-          className={classes.container}
-        >
-          {children.map((id) => (
-            <Child
-              key={id}
-              baseId={id}
-            />
-          ))}
-        </Flex>
-      </ComponentStructureWrapper>
-    </Fieldset>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
+      <ButtonGroupLayout
+        id={baseComponentId}
+        title={showLabel ? textResourceBindings?.title : undefined}
+        description={textResourceBindings?.description}
+        help={textResourceBindings?.help}
+        grid={grid?.labelGrid}
+      >
+        {children.map((childId) => (
+          <Child
+            key={childId}
+            baseId={childId}
+            canRender={canRender}
+          />
+        ))}
+      </ButtonGroupLayout>
+    </ComponentStructureWrapper>
   );
 }
 
-function Child({ baseId }: { baseId: string }) {
+function Child({ baseId, canRender }: { baseId: string; canRender: (id: string) => boolean }) {
   const id = useIndexedId(baseId);
-  const canRender = useHasCapability('renderInButtonGroup');
+
   if (!canRender(baseId)) {
     return null;
   }
