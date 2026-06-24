@@ -23,12 +23,12 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/cnpgapi"
 	"altinn.studio/operator/internal/controller/appcodesync"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
 	"altinn.studio/operator/internal/controller/cnpgsync"
@@ -54,7 +54,7 @@ func init() {
 	utilruntime.Must(grafanaapi.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
-	utilruntime.Must(cnpgv1.AddToScheme(scheme))
+	utilruntime.Must(cnpgapi.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
