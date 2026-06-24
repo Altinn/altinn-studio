@@ -172,6 +172,20 @@ SAMPLE_QUERIES = [
         ),
     },
     {
+        "title": "Layout-sett knyttet til flere tasks",
+        "sql": (
+            "SELECT app_id, layout_set,\n"
+            "       COUNT(*)                    AS task_count,\n"
+            "       GROUP_CONCAT(task_id, ', ') AS tasks\n"
+            "FROM (SELECT app_id, layout_set, task_id\n"
+            "      FROM layout_set_tasks\n"
+            "      ORDER BY app_id, layout_set, task_id)\n"
+            "GROUP BY app_id, layout_set\n"
+            "HAVING COUNT(*) > 1\n"
+            "ORDER BY task_count DESC, app_id, layout_set;"
+        ),
+    },
+    {
         "title": "Døde tekstressurser per app (topp 20)",
         "sql": (
             "SELECT tk.app_id,\n"
