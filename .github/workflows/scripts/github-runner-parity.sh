@@ -110,3 +110,4 @@ run_optional mount
 
 section "Docker"
 run_optional docker info
+run_optional docker compose version

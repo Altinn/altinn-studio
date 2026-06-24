@@ -61,7 +61,9 @@ export function useCreateInstance(language: string) {
     onError: async (error) => {
       window.logError('Instantiation failed:\n', error);
 
-      // Redirect to step-up authentication if the error is a too-low auth level. No-op otherwise.
+      // If the instantiation failed because the user is authenticated with a too low security level, the backend
+      // responds with 403 and a RequiredAuthenticationLevel. We then redirect to step-up authentication instead of
+      // falling through to a generic "missing roles" error page. No-op for any other error.
       await maybeAuthenticationRedirect(error);
     },
     onSuccess: (data) => {

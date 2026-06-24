@@ -1,15 +1,12 @@
 import React from 'react';
 import type { HtmlHTMLAttributes } from 'react';
 
-import { HelpTextContainer } from '@app/form-component';
+import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/form/caption/Caption.module.css';
-import { Description } from 'src/components/form/Description';
-import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
 type HelpTextProps = {

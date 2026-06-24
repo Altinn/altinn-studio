@@ -19,7 +19,6 @@ import {
   ruleConfigPath,
   textResourceIdsPath,
   textResourcesPath,
-  userLogoutPath,
   userStarredRepoPath,
   dataModelPath,
   resourcePolicyPath,
@@ -62,7 +61,8 @@ import {
   layoutPageGroupsPath,
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
-  taskNavigationGroupPath,
+  taskNavigationGroupV4Path,
+  validationOnNavigationPath,
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
@@ -86,6 +86,7 @@ import {
   chatMessagesPath,
   chatMessagePath,
   chatFeedbackPath,
+  taskNavigationGroupPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -97,7 +98,8 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ValidationOnNavigationByLevel, ValidationOnNavigationLevel } from 'app-shared/types/global';
+import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -163,7 +165,6 @@ export const deleteDataModel = (org: string, app: string, modelPath: string) => 
 export const deleteFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string) => del(formLayoutPath(org, app, layoutName, layoutSetName));
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
 export const generateModels = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, false), payload);
-export const logout = () => get(userLogoutPath());
 export const publishCodeList = (org: string, payload: PublishCodeListPayload) => post<void, PublishCodeListPayload>(orgCodeListPublishPath(org), payload);
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
@@ -186,6 +187,7 @@ export const updateDataType = (org: string, app: string, dataModelName: string, 
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
+export const updateTaskNavigationGroupV4 = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupV4Path(org, app), payload);
 export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
 export const updateValidationOnNavigationLayoutSettings = (org: string, app: string, payload: IValidationOnNavigationLayoutSettings[]) => post<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(org, app), payload);
 export const updateValidationOnNavigationPageSettings = (org: string, app: string, payload: IValidationOnNavigationPageSettings[]) => post<void, IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(org, app), payload);
@@ -198,6 +200,9 @@ export const changePageOrder = (org: string, app: string, layoutSetName: string,
 export const changePageGroups = (org: string, app: string, layoutSetName: string, pageGroups: PagesModel) => put(layoutPageGroupsPath(org, app, layoutSetName), pageGroups);
 export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
+export const updateValidationOnNavigation = <TLevel extends ValidationOnNavigationLevel>(org: string, app: string, level: TLevel, config: ValidationOnNavigationByLevel[TLevel]) =>
+  post<void, ValidationOnNavigationByLevel[TLevel]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level })}`, config);
+
 export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
 export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
 

@@ -11,6 +11,11 @@ type LanguageTranslatorContextProps = {
   lang: LangFn;
   langAsString: LangAsStringFn;
   /**
+   * Like {@link langAsString}, but returns the raw text without parsing HTML/markdown. Use this when
+   * the text resource is a literal marker (e.g. the required `*`) that markdown processing would strip.
+   */
+  langAsNonProcessedString: LangAsStringFn;
+  /**
    * The currently active language code (e.g. `nb`, `nn`, `en`)
    */
   currentLanguage: string;
@@ -19,6 +24,7 @@ type LanguageTranslatorContextProps = {
 const contextNoTranslate: LanguageTranslatorContextProps = {
   lang: (key) => key ?? null,
   langAsString: (key) => key ?? '',
+  langAsNonProcessedString: (key) => key ?? '',
   currentLanguage: 'nb',
 };
 
@@ -27,11 +33,14 @@ const LanguageTranslatorContext = createContext<LanguageTranslatorContextProps>(
 export function LanguageTranslatorProvider({
   lang,
   langAsString,
+  langAsNonProcessedString,
   currentLanguage,
   children,
 }: PropsWithChildren<LanguageTranslatorContextProps>) {
   return (
-    <LanguageTranslatorContext.Provider value={{ lang, langAsString, currentLanguage }}>
+    <LanguageTranslatorContext.Provider
+      value={{ lang, langAsString, langAsNonProcessedString, currentLanguage }}
+    >
       {children}
     </LanguageTranslatorContext.Provider>
   );

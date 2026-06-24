@@ -2,16 +2,12 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { ProfileMenu } from './ProfileMenu';
-import { FeatureFlag, FeatureFlagsContextProvider } from '@studio/feature-flags';
 
-const mockLogout = jest.fn();
 const mockOnOrgSelect = jest.fn();
 const mockOnUserSelect = jest.fn();
-const mockEnvironment: { environment: AltinnStudioEnvironment | null } = { environment: null };
 
 const mockUseUserQuery = jest.fn();
 const mockUseOrganizationsQuery = jest.fn();
@@ -20,14 +16,6 @@ jest.mock('app-shared/hooks/queries', () => ({
   ...jest.requireActual('app-shared/hooks/queries'),
   useUserQuery: () => mockUseUserQuery(),
   useOrganizationsQuery: () => mockUseOrganizationsQuery(),
-}));
-
-jest.mock('app-shared/hooks/mutations/useLogoutMutation', () => ({
-  useLogoutMutation: () => ({ mutate: mockLogout }),
-}));
-
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => mockEnvironment,
 }));
 
 const userWithFullName: User = {
@@ -64,7 +52,6 @@ type RenderOptions = {
   user?: User | null;
   organizations?: Organization[];
   shouldDisplayDesktopMenu?: boolean;
-  featureFlags?: FeatureFlag[];
 };
 
 const renderProfileMenu = ({
@@ -72,22 +59,19 @@ const renderProfileMenu = ({
   user = userWithFullName,
   organizations = [],
   shouldDisplayDesktopMenu = false,
-  featureFlags = [],
 }: RenderOptions = {}) => {
   mockUseUserQuery.mockReturnValue({ data: user ?? undefined });
   mockUseOrganizationsQuery.mockReturnValue({ data: organizations });
   return render(
-    <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
-      <MemoryRouter>
-        <ProfileMenu
-          owner={owner}
-          navigationMenuItems={[]}
-          shouldDisplayDesktopMenu={shouldDisplayDesktopMenu}
-          onOrgSelect={mockOnOrgSelect}
-          onUserSelect={mockOnUserSelect}
-        />
-      </MemoryRouter>
-    </FeatureFlagsContextProvider>,
+    <MemoryRouter>
+      <ProfileMenu
+        owner={owner}
+        navigationMenuItems={[]}
+        shouldDisplayDesktopMenu={shouldDisplayDesktopMenu}
+        onOrgSelect={mockOnOrgSelect}
+        onUserSelect={mockOnUserSelect}
+      />
+    </MemoryRouter>,
   );
 };
 
@@ -163,41 +147,14 @@ describe('ProfileMenu', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should include settings link when studioOidc is enabled', async () => {
+  it('should include settings link', async () => {
     const user = userEvent.setup();
-    mockEnvironment.environment = { featureFlags: { studioOidc: true } } as AltinnStudioEnvironment;
 
     renderProfileMenu();
 
     await user.click(getTriggerButton());
 
     expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
-  });
-
-  it('should include settings link when Admin feature flag is enabled', async () => {
-    const user = userEvent.setup();
-    mockEnvironment.environment = {
-      featureFlags: { studioOidc: false },
-    } as AltinnStudioEnvironment;
-
-    renderProfileMenu({ featureFlags: [FeatureFlag.Admin] });
-
-    await user.click(getTriggerButton());
-
-    expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
-  });
-
-  it('should not include settings link when neither studioOidc nor Admin flag is enabled', async () => {
-    const user = userEvent.setup();
-    mockEnvironment.environment = {
-      featureFlags: { studioOidc: false },
-    } as AltinnStudioEnvironment;
-
-    renderProfileMenu();
-
-    await user.click(getTriggerButton());
-
-    expect(screen.queryByRole('menuitem', { name: textMock('settings') })).not.toBeInTheDocument();
   });
 
   it('renders no org items when organizations data is unavailable', async () => {
@@ -205,17 +162,15 @@ describe('ProfileMenu', () => {
     mockUseOrganizationsQuery.mockReturnValue({ data: undefined });
     const user = userEvent.setup();
     render(
-      <FeatureFlagsContextProvider value={{ flags: [] }}>
-        <MemoryRouter>
-          <ProfileMenu
-            owner='testuser'
-            navigationMenuItems={[]}
-            shouldDisplayDesktopMenu={false}
-            onOrgSelect={mockOnOrgSelect}
-            onUserSelect={mockOnUserSelect}
-          />
-        </MemoryRouter>
-      </FeatureFlagsContextProvider>,
+      <MemoryRouter>
+        <ProfileMenu
+          owner='testuser'
+          navigationMenuItems={[]}
+          shouldDisplayDesktopMenu={false}
+          onOrgSelect={mockOnOrgSelect}
+          onUserSelect={mockOnUserSelect}
+        />
+      </MemoryRouter>,
     );
     await user.click(getTriggerButton());
     expect(

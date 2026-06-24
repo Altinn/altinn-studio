@@ -12,8 +12,9 @@
         "booleanList": [true, false],
         "nullList": [null, null],
         "multidimensionalList": [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        "objectList": [{ "a": 1 }, { "a": 2 }],
         "emptyList": [],
-        "differentTypesList": [1, "string", true, null, [null]],
+        "differentTypesList": [1, "string", true, null, [null], { "a": null }],
         "listThatLooksLikeAnExpression": ["equals", 1, 1]
       }
     }
@@ -45,6 +46,11 @@
       "expects": [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
     },
     {
+      "name": "Object list lookup",
+      "expression": ["dataModel", "objectList"],
+      "expects": [{ "a": 1 }, { "a": 2 }]
+    },
+    {
       "name": "Empty list lookup",
       "expression": ["dataModel", "emptyList"],
       "expects": []
@@ -52,7 +58,7 @@
     {
       "name": "Lookup of list with different types",
       "expression": ["dataModel", "differentTypesList"],
-      "expects": [1, "string", true, null, [null]]
+      "expects": [1, "string", true, null, [null], { "a": null }]
     },
     {
       "name": "Lookup of list that looks like an expression",
