@@ -1,3 +1,4 @@
+import { Button } from '@app/form-component/app-components';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -34,8 +35,8 @@ export const Preview: Story = {
   args: {
     children: (
       <>
-        <button type='button'>Save</button>
-        <button type='button'>Cancel</button>
+        <Button variant='primary'>Save</Button>
+        <Button variant='secondary'>Cancel</Button>
       </>
     ),
   },
@@ -47,8 +48,8 @@ export const WithDescription: Story = {
     description: 'Select one of the actions below.',
     children: (
       <>
-        <button type='button'>Submit</button>
-        <button type='button'>Draft</button>
+        <Button variant='primary'>Submit</Button>
+        <Button variant='secondary'>Draft</Button>
       </>
     ),
   },
@@ -60,8 +61,8 @@ export const WithHelpText: Story = {
     help: 'Use these buttons to save or submit your form.',
     children: (
       <>
-        <button type='button'>Save</button>
-        <button type='button'>Submit</button>
+        <Button variant='primary'>Save</Button>
+        <Button variant='secondary'>Submit</Button>
       </>
     ),
   },
@@ -72,8 +73,8 @@ export const WithoutLegend: Story = {
     title: undefined,
     children: (
       <>
-        <button type='button'>OK</button>
-        <button type='button'>Cancel</button>
+        <Button variant='primary'>OK</Button>
+        <Button variant='secondary'>Cancel</Button>
       </>
     ),
   },
