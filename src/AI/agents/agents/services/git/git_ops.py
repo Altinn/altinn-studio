@@ -52,7 +52,7 @@ def preview(patch: dict) -> dict:
         "file_count": len(files)
     }
 
-def apply(patch: dict, repo_path: str = None):
+def apply(patch: dict, repo_path: str | None = None):
     """Write files from patch to disk in the target repository"""
     changes = patch.get("changes", [])
     files = patch.get("files", [])
@@ -358,7 +358,7 @@ def apply(patch: dict, repo_path: str = None):
             print(f"Continuing with remaining changes...")
             continue
 
-def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
+def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
     """Create branch if missing and commit, return hash"""
     try:
         # Use provided branch name or create feature branch with timestamp
@@ -420,7 +420,7 @@ def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
     except subprocess.CalledProcessError as e:
         raise Exception(f"Git commit failed: {e}")
 
-def revert(repo_path: str = None):
+def revert(repo_path: str | None = None):
     """Restore from index or stash"""
     try:
         # Work in the target repository directory
@@ -737,20 +737,15 @@ def deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[
     return modified
 
 
-# ── Async wrappers ──────────────────────────────────────────────────────────
-# These offload the blocking sync work onto a thread so the asyncio event loop
-# can interleave other workflows while git/file I/O runs. See AGENTS.md for
-# the concurrency story.
-
-async def apply_async(patch: dict, repo_path: str = None):
+async def apply_async(patch: dict, repo_path: str | None = None):
     await asyncio.to_thread(apply, patch, repo_path)
 
 
-async def commit_async(message: str, repo_path: str = None, branch_name: str = None) -> str:
+async def commit_async(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
     return await asyncio.to_thread(commit, message, repo_path, branch_name)
 
 
-async def revert_async(repo_path: str = None):
+async def revert_async(repo_path: str | None = None):
     await asyncio.to_thread(revert, repo_path)
 
 
