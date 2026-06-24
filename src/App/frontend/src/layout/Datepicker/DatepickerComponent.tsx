@@ -23,7 +23,7 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
 
   return (
     <Datepicker
-      id={id}
+      componentId={id}
       value={formData.simpleBinding}
       format={format}
       minDate={minDate}

@@ -1,17 +1,49 @@
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
+import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Datepicker } from './Datepicker';
+import type { DatepickerProps } from './Datepicker';
+
+/**
+ * Sorts each prop into a Storybook docs group
+ */
+export const DATEPICKER_PROP_CATEGORIES = {
+  // Text resources — Studio "Tekst" section (textResourceBindings)
+  title: 'text',
+  help: 'text',
+  description: 'text',
+  // Data model binding — Studio "Datamodeller" section (dataModelBindings.simpleBinding)
+  value: 'data',
+  // Configurable options — Studio "Innhold" section
+  componentId: 'content',
+  format: 'content',
+  minDate: 'content',
+  maxDate: 'content',
+  timeStamp: 'content',
+  readOnly: 'content',
+  required: 'content',
+  autoComplete: 'content',
+  showOptionalMarking: 'content',
+  labelGrid: 'content',
+  innerGrid: 'content',
+  validationGrid: 'content',
+  // Injected by the runtime wrapper — not part of the Studio configuration
+  onValueChange: 'runtime',
+  validationMessages: 'runtime',
+} satisfies PropCategories<DatepickerProps>;
 
 const meta = {
   title: 'LayoutComponents/Datepicker',
   component: Datepicker,
+  // DATEPICKER_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
+  excludeStories: ['DATEPICKER_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',
   },
   args: {
-    id: 'datepicker-preview',
+    componentId: 'datepicker-preview',
     format: 'dd.MM.yyyy',
     value: '',
     onValueChange: fn(),

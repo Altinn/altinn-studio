@@ -17,7 +17,8 @@ import { DatePickerDropdownCaption } from './DatePickerDropdownCaption';
 import 'react-day-picker/style.css';
 
 export interface DatepickerProps {
-  id: string;
+  /** The configured component id (Studio "Komponent-ID"). Rendered as the input's `id` and the label's `htmlFor`. */
+  componentId: string;
   value: string;
   /** Unicode date format from the component config. Falls back to the locale's short date format. */
   format?: string;
@@ -52,7 +53,7 @@ export interface DatepickerProps {
 }
 
 export function Datepicker({
-  id,
+  componentId,
   value,
   format,
   minDate,
@@ -80,8 +81,8 @@ export function Datepicker({
 
   return (
     <LabelComponent
-      htmlFor={id}
-      componentId={id}
+      htmlFor={componentId}
+      componentId={componentId}
       title={title}
       help={help}
       description={description}
@@ -91,14 +92,14 @@ export function Datepicker({
       grid={labelGrid}
     >
       <ComponentStructure
-        componentId={id}
+        componentId={componentId}
         innerGrid={innerGrid}
         validationGrid={validationGrid}
         validationMessages={validationMessages}
       >
         <Flex container item size={{ xs: 12 }}>
           <DatePickerControl
-            id={id}
+            id={componentId}
             value={value}
             dateFormat={dateFormat}
             timeStamp={timeStamp}

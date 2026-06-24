@@ -11,7 +11,7 @@ const render = (
   options?: Parameters<typeof renderWithTranslations>[1],
 ) =>
   renderWithTranslations(
-    <Datepicker id='my-datepicker' value='' onValueChange={() => {}} {...props} />,
+    <Datepicker componentId='my-datepicker' value='' onValueChange={() => {}} {...props} />,
     options,
   );
 
