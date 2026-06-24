@@ -127,8 +127,13 @@ def _backend_version(csproj: Path) -> tuple[str, str]:
     return (m.group(1), m.group(2))
 
 
-def _enumerate_layout_sets(app_dir: Path) -> list[tuple[str, Path]]:
-    """Return (layout_set_id, layout_set_dir) pairs."""
+def _enumerate_layout_sets(app_dir: Path) -> list[tuple[str, Path, list[str]]]:
+    """Return (layout_set_id, layout_set_dir, task_ids) triples.
+
+    task_ids is the layout set's "tasks" array from layout-sets.json (v4). For
+    v9 apps the array is absent and the task id equals the layout set id, so we
+    fall back to [layout_set_id].
+    """
     ui = app_dir / "App" / "ui"
     if not ui.exists():
         return []
@@ -139,11 +144,12 @@ def _enumerate_layout_sets(app_dir: Path) -> list[tuple[str, Path]]:
         for s in data.get("sets", []):
             sid = s.get("id", "")
             if sid:
-                result.append((sid, ui / sid))
+                tasks = s.get("tasks") or [sid]
+                result.append((sid, ui / sid, tasks))
         return result
     # Legacy: layouts directly under App/ui
     if (ui / "layouts").exists() or (ui / "Settings.json").exists() or (ui / "FormLayout.json").exists():
-        return [("(default)", ui)]
+        return [("(default)", ui, [])]
     return []
 
 
@@ -401,7 +407,14 @@ def scan_app(conn: sqlite3.Connection, app_dir: Path, env: str,
                 (name, "application_metadata", key, kind),
             )
 
-    for layout_set_id, layout_set_dir in layout_sets:
+    for layout_set_id, layout_set_dir, task_ids in layout_sets:
+        for task_id in task_ids:
+            conn.execute(
+                """INSERT OR IGNORE INTO layout_set_tasks (app_id, layout_set, task_id)
+                   VALUES (?, ?, ?)""",
+                (name, layout_set_id, task_id),
+            )
+
         settings_path = layout_set_dir / "Settings.json"
         active_pages = _settings_pages(settings_path)
         settings_data = _read_json(settings_path) or {}

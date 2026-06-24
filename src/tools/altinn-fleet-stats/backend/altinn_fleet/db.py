@@ -45,6 +45,14 @@ CREATE TABLE IF NOT EXISTS layouts (
 );
 CREATE INDEX IF NOT EXISTS idx_layouts_app ON layouts(app_id);
 
+CREATE TABLE IF NOT EXISTS layout_set_tasks (
+    app_id TEXT NOT NULL REFERENCES apps(app_id) ON DELETE CASCADE,
+    layout_set TEXT NOT NULL,
+    task_id TEXT NOT NULL,              -- task id from layout-sets.json "tasks"
+    PRIMARY KEY (app_id, layout_set, task_id)
+);
+CREATE INDEX IF NOT EXISTS idx_lst_app ON layout_set_tasks(app_id);
+
 CREATE TABLE IF NOT EXISTS components (
     component_id INTEGER PRIMARY KEY AUTOINCREMENT,
     layout_id INTEGER NOT NULL REFERENCES layouts(layout_id) ON DELETE CASCADE,
