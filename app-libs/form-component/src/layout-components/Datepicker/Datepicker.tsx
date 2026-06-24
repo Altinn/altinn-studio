@@ -82,7 +82,6 @@ export function Datepicker({
   return (
     <LabelComponent
       htmlFor={componentId}
-      componentId={componentId}
       title={title}
       help={help}
       description={description}

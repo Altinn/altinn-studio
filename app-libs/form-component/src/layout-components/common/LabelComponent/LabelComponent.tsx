@@ -11,10 +11,11 @@ import type { IGridStyling } from '@app/form-component/app-components/Flex/Flex'
 export interface ILabelComponentProps {
   /** Id for the rendered label element. */
   id?: string;
-  /** Id of the form element this label belongs to. Sets the label's `htmlFor`. */
+  /**
+   * Id of the form element this label belongs to. Sets the label's `htmlFor` and is also used to
+   * build the description element id (so the control can reference it via `aria-describedby`).
+   */
   htmlFor?: string;
-  /** Id of the component, used to build the description element id. */
-  componentId?: string;
   /** Text-resource key for the label text. When undefined, only the children are rendered. */
   title?: string;
   /** Text-resource key for the help text. */
@@ -36,7 +37,6 @@ export interface ILabelComponentProps {
 export function LabelComponent({
   id,
   htmlFor,
-  componentId,
   title,
   help,
   description,
@@ -66,7 +66,7 @@ export function LabelComponent({
       help={help ? <HelpTextContainer title={title} helpText={lang(help)} /> : undefined}
       description={
         description ? (
-          <Description componentId={componentId} description={lang(description)} />
+          <Description componentId={htmlFor} description={lang(description)} />
         ) : undefined
       }
     >
