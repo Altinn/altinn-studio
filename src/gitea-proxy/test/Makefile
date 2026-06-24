@@ -1,17 +1,13 @@
 COMPOSE := docker compose -f docker-compose.test.yml
 HURL    := hurl
 
-PROXY_ON_PUB  ?= http://localhost:18080
-PROXY_ON_INT  ?= http://localhost:18081
-PROXY_OFF_PUB ?= http://localhost:18090
-PROXY_OFF_INT ?= http://localhost:18091
+PROXY_ON_PUB ?= http://localhost:18080
+PROXY_ON_INT ?= http://localhost:18081
 
 HURL_ARGS := \
   --variables-file fixtures.env \
   --variable proxy_on_pub=$(PROXY_ON_PUB) \
-  --variable proxy_on_int=$(PROXY_ON_INT) \
-  --variable proxy_off_pub=$(PROXY_OFF_PUB) \
-  --variable proxy_off_int=$(PROXY_OFF_INT)
+  --variable proxy_on_int=$(PROXY_ON_INT)
 
 HURL_FILES := public.hurl trusted.hurl
 
@@ -58,7 +54,7 @@ trusted:
 	@$(HURL) --test $(HURL_ARGS) trusted.hurl
 
 wait:
-	@for url in $(PROXY_ON_PUB) $(PROXY_ON_INT) $(PROXY_OFF_PUB) $(PROXY_OFF_INT); do \
+	@for url in $(PROXY_ON_PUB) $(PROXY_ON_INT); do \
 	  ok=0; \
 	  for i in $$(seq 1 60); do \
 	    if curl -fs -o /dev/null --max-time 2 $$url/foo; then ok=1; break; fi; \
