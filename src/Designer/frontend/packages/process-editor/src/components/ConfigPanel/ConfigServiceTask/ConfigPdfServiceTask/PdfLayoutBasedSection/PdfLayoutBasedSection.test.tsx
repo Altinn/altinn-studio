@@ -39,7 +39,7 @@ describe('PdfLayoutBasedSection', () => {
             sets: [
               {
                 id: 'pdf-layout-set',
-                tasks: [pdfBpmnDetails.id],
+                taskId: pdfBpmnDetails.id,
               },
             ],
           },
@@ -64,7 +64,7 @@ describe('PdfLayoutBasedSection', () => {
             sets: [
               {
                 id: 'pdf-layout-set',
-                tasks: [pdfBpmnDetails.id],
+                taskId: pdfBpmnDetails.id,
               },
             ],
           },
@@ -326,7 +326,7 @@ describe('PdfLayoutBasedSection', () => {
         layoutSetConfig: {
           id: 'my-pdf-layout',
           dataType: 'dataModel1',
-          tasks: [pdfBpmnDetails.id],
+          taskId: pdfBpmnDetails.id,
         },
       });
     });

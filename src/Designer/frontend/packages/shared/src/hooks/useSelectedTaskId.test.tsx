@@ -66,7 +66,7 @@ describe('useSelectedTaskId', () => {
       sets: [
         {
           id: layoutSet1NameMock,
-          tasks: [taskTest],
+          taskId: taskTest,
         },
       ],
     });

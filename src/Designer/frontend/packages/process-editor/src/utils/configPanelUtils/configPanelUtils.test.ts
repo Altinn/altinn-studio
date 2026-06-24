@@ -57,8 +57,8 @@ describe('configPanelUtils', () => {
 
     const layoutSets = {
       sets: [
-        { id: layoutSetId1, dataType: layoutSetDataType1, tasks: [] },
-        { id: layoutSetId2, dataType: layoutSetDataType2, tasks: [] },
+        { id: layoutSetId1, dataType: layoutSetDataType1 },
+        { id: layoutSetId2, dataType: layoutSetDataType2 },
       ],
     };
 

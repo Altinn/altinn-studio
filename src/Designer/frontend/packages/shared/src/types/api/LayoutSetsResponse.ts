@@ -6,7 +6,7 @@ export type LayoutSets = {
 export type LayoutSet = {
   id: string;
   dataType?: string;
-  tasks?: string[];
+  taskId?: string;
   type?: LayoutSetType;
 };
 

@@ -28,8 +28,7 @@ export const usePreviewLayoutMetadata = (
 
   const layoutOrder = layoutSettingsQuery.data?.pages?.order;
   const firstLayoutName = Array.isArray(layoutOrder) ? layoutOrder[0] : undefined;
-  const tasks = firstLayoutSet?.tasks;
-  const taskId = Array.isArray(tasks) ? tasks[0] : undefined;
+  const taskId = firstLayoutSet?.taskId;
 
   const isPending = layoutSetsQuery.isPending || layoutSettingsQuery.isPending;
   const errorMessage = layoutSetsQuery.error?.message ?? layoutSettingsQuery.error?.message;

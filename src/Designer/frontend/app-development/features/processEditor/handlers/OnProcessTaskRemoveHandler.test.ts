@@ -98,7 +98,7 @@ describe('OnProcessTaskRemoveHandler', () => {
 
   it('should remove layoutSet when data-task is deleted', () => {
     const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'data', tasks: ['testElementId'] }],
+      sets: [{ id: 'testLayoutSetId', dataType: 'data', taskId: 'testElementId' }],
     };
 
     const taskMetadata = createTaskMetadataMock('data', {
@@ -167,7 +167,7 @@ describe('OnProcessTaskRemoveHandler', () => {
 
   it('should delete layoutSet for payment-task if layoutSet exists', () => {
     const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testElementId'] }],
+      sets: [{ id: 'testLayoutSetId', dataType: 'payment', taskId: 'testElementId' }],
     };
 
     const taskMetadata = createTaskMetadataMock(
@@ -185,7 +185,7 @@ describe('OnProcessTaskRemoveHandler', () => {
 
   it('should remove datatype from app metadata and delete layoutSet when the signing task is deleted', () => {
     const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'signing', tasks: ['testElementId'] }],
+      sets: [{ id: 'testLayoutSetId', dataType: 'signing', taskId: 'testElementId' }],
     };
 
     const taskMetadata = createTaskMetadataMock(
@@ -205,7 +205,7 @@ describe('OnProcessTaskRemoveHandler', () => {
 
   it('should remove both dataTypes from app metadata and delete layoutSet when the payment task is deleted', () => {
     const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testElementId'] }],
+      sets: [{ id: 'testLayoutSetId', dataType: 'payment', taskId: 'testElementId' }],
     };
 
     const taskMetadata = createTaskMetadataMock(
@@ -225,9 +225,7 @@ describe('OnProcessTaskRemoveHandler', () => {
 
   it('should remove datatype from app metadata and delete layoutSet when the userControlledSigning task is deleted', () => {
     const layoutSets: LayoutSets = {
-      sets: [
-        { id: 'testLayoutSetId', dataType: 'userControlledSigning', tasks: ['testElementId'] },
-      ],
+      sets: [{ id: 'testLayoutSetId', dataType: 'userControlledSigning', taskId: 'testElementId' }],
     };
 
     const taskMetadata = createTaskMetadataMock(
@@ -276,7 +274,7 @@ describe('OnProcessTaskRemoveHandler', () => {
 
   it('should remove layoutSet when pdf-task is deleted', () => {
     const layoutSets: LayoutSets = {
-      sets: [{ id: 'pdfLayoutSetId', dataType: 'pdf', tasks: ['testElementId'] }],
+      sets: [{ id: 'pdfLayoutSetId', dataType: 'pdf', taskId: 'testElementId' }],
     };
 
     const taskMetadata = createTaskMetadataMock(

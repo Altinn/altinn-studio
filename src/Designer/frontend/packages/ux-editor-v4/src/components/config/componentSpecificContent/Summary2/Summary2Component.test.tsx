@@ -52,7 +52,7 @@ describe('Summary2ComponentTargetSelector', () => {
     });
 
     const select = targetTaskIdSelect();
-    expect(select).toHaveValue(layoutSetsMock.sets[1].tasks[0]);
+    expect(select).toHaveValue(layoutSetsMock.sets[1].taskId);
   });
 
   it('should allow selecting a layout set', async () => {

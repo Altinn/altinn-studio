@@ -8,7 +8,7 @@ import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { getTasksForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
+import { getTaskIdForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 import { convertInternalToExternalFormat } from './convertFunctions/convertToExternalFormat';
@@ -57,7 +57,7 @@ export const AttachmentListComponent = ({
   const selectedLayoutSet = layoutSets?.sets.find((set) => set.id === layoutSet);
   const isTaskCustomReceipt =
     selectedLayoutSet &&
-    getTasksForLayoutSet(selectedLayoutSet).includes(PROTECTED_TASK_NAME_CUSTOM_RECEIPT);
+    getTaskIdForLayoutSet(selectedLayoutSet) === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
 
   const { dataTypeIds = [] } = component || {};
   const internalDataFormat = convertExternalToInternalFormat(availableAttachments, dataTypeIds);
@@ -120,13 +120,13 @@ const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string)
   const selectedLayoutSet = layoutSets.sets.find(
     (layoutSet) => layoutSet.id === selectedFormLayoutSetName,
   );
-  return selectedLayoutSet ? getTasksForLayoutSet(selectedLayoutSet) : [];
+  return selectedLayoutSet ? [getTaskIdForLayoutSet(selectedLayoutSet)] : [];
 };
 
 const sampleTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
   const tasks = [];
   for (const layoutSet of layoutSets.sets) {
-    tasks.push(...getTasksForLayoutSet(layoutSet));
+    tasks.push(getTaskIdForLayoutSet(layoutSet));
     if (layoutSet.id === selectedFormLayoutSetName) {
       break;
     }

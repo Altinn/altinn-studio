@@ -12,7 +12,7 @@ const layoutSetIdToUpdate = 'oldLayoutSetName';
 const taskType = 'data';
 const layoutSetConfig: LayoutSetConfig = {
   id: 'newLayoutSetName',
-  tasks: ['task_2'],
+  taskId: 'task_2',
 };
 
 describe('useAddLayoutSetMutation', () => {
@@ -56,7 +56,7 @@ describe('useAddLayoutSetMutation', () => {
   });
 
   it('Sets queryData if response is of type LayoutSets', async () => {
-    const layoutSets = { sets: [{ id: 'set1', tasks: ['Task_1'] }] };
+    const layoutSets = { sets: [{ id: 'set1', taskId: 'Task_1' }] };
     const queryClientMock = createQueryClientMock();
     const addLayoutSetMock = jest
       .fn()

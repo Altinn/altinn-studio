@@ -303,7 +303,7 @@ const renderConfigPdfServiceTask = (options: RenderOptions = {}) => {
           ? [
               {
                 id: 'pdf-layout-set',
-                tasks: [bpmnDetails.id],
+                taskId: bpmnDetails.id,
               },
             ]
           : [],

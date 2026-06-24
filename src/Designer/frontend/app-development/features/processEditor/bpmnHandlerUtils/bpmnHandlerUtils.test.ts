@@ -3,8 +3,8 @@ import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
 
 const layoutSets = {
   sets: [
-    { id: 'layoutSet1', tasks: ['task1'] },
-    { id: 'layoutSet2', tasks: ['task2'] },
+    { id: 'layoutSet1', taskId: 'task1' },
+    { id: 'layoutSet2', taskId: 'task2' },
   ],
 };
 

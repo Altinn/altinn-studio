@@ -6,7 +6,7 @@ describe('useValidateLayoutSetName', () => {
     const existingLayoutSetName = 'existingLayoutSetName';
     const { validateLayoutSetName } = useValidateLayoutSetName();
     const layoutSetNameValidation = validateLayoutSetName(existingLayoutSetName, {
-      sets: [{ id: existingLayoutSetName, tasks: [] }],
+      sets: [{ id: existingLayoutSetName }],
     });
     expect(layoutSetNameValidation).toBe(
       textMock('process_editor.configuration_panel_layout_set_id_not_unique'),
@@ -17,7 +17,7 @@ describe('useValidateLayoutSetName', () => {
     const uniqueLayoutSetName = 'uniqueLayoutSetName';
     const { validateLayoutSetName } = useValidateLayoutSetName();
     const layoutSetNameValidation = validateLayoutSetName(uniqueLayoutSetName, {
-      sets: [{ id: 'existingLayoutSetName', tasks: [] }],
+      sets: [{ id: 'existingLayoutSetName' }],
     });
     expect(layoutSetNameValidation).toBe('');
   });

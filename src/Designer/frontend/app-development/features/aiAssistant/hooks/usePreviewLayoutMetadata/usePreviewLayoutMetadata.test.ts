@@ -11,7 +11,7 @@ const taskId = 'Task_1';
 const layoutName = 'first-page';
 
 const layoutSetsWithEntry: LayoutSets = {
-  sets: [{ id: layoutSetName, tasks: [taskId] }],
+  sets: [{ id: layoutSetName, taskId: taskId }],
 };
 
 const layoutSettingsWithPages: ILayoutSettings = {

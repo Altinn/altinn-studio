@@ -63,7 +63,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetConfig: { id: testElementId, tasks: [testElementId] },
+      layoutSetConfig: { id: testElementId, taskId: testElementId },
       layoutSetIdToUpdate: testElementId,
       taskType: 'data',
     });
@@ -101,7 +101,7 @@ describe('OnProcessTaskAddHandler', () => {
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: {
         id: 'testElementId',
-        tasks: ['testElementId'],
+        taskId: 'testElementId',
       },
       layoutSetIdToUpdate: 'testElementId',
       taskType: 'payment',
@@ -133,7 +133,7 @@ describe('OnProcessTaskAddHandler', () => {
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: {
         id: 'testElementId',
-        tasks: ['testElementId'],
+        taskId: 'testElementId',
       },
       layoutSetIdToUpdate: 'testElementId',
       taskType: 'signing',
@@ -160,7 +160,7 @@ describe('OnProcessTaskAddHandler', () => {
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: {
         id: 'testElementId',
-        tasks: ['testElementId'],
+        taskId: 'testElementId',
       },
       layoutSetIdToUpdate: 'testElementId',
       taskType: 'signing',

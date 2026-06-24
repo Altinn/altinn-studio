@@ -16,7 +16,7 @@ const layoutSetsWithoutDataTypeConnection: LayoutSets = {
   sets: [
     {
       id: 'setWithDataType',
-      tasks: [mockTaskId],
+      taskId: mockTaskId,
     },
   ],
 };

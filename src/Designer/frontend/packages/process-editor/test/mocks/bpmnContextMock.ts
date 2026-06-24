@@ -29,12 +29,12 @@ export const mockLayoutSets: LayoutSets = {
     {
       id: 'testId',
       dataType: 'dataTypeId1',
-      tasks: [mockBpmnDetails.id],
+      taskId: mockBpmnDetails.id,
     },
     {
       id: 'layoutSetId2',
       dataType: 'dataTypeId2',
-      tasks: ['Task_2'],
+      taskId: 'Task_2',
     },
   ],
 };

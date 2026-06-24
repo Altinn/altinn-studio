@@ -20,11 +20,11 @@ const existingLayoutSetName: string = 'layoutSetName1';
 const existingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets.sets[0].id;
 const layoutSetWithCustomReceipt: LayoutSetConfig = {
   id: existingCustomReceiptLayoutSetId,
-  tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
+  taskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
 };
 const layoutSetWithDataTask: LayoutSetConfig = {
   id: existingLayoutSetName,
-  tasks: ['Task_1'],
+  taskId: 'Task_1',
 };
 
 const layoutSetIdTextKeys: Record<string, string> = {

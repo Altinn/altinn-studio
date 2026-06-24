@@ -11,12 +11,12 @@ export const layoutSetsMock: LayoutSets = {
     {
       id: layoutSet1NameMock,
       dataType: 'data-model',
-      tasks: ['Task_1'],
+      taskId: 'Task_1',
     },
     {
       id: layoutSet2NameMock,
       dataType: 'data-model-2',
-      tasks: ['Task_2'],
+      taskId: 'Task_2',
     },
     {
       id: layoutSet3SubformNameMock,

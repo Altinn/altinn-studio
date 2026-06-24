@@ -38,7 +38,7 @@ const layoutSets: LayoutSets = {
   sets: [
     {
       id: layoutSetId,
-      tasks: [mockBpmnDetails.id],
+      taskId: mockBpmnDetails.id,
     },
   ],
 };

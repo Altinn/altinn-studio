@@ -6,16 +6,16 @@ import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetM
 import { StringUtils } from '@studio/pure-functions';
 
 /**
- * Returns the tasks a layout set is connected to, normalizing across app-frontend versions.
- * In v4 the connection is stored in the `tasks` array. In v9 the array is dropped and the
- * task id is the layout set id itself.
+ * Returns the task a layout set is connected to, normalizing across app-frontend versions.
+ * In v4 the connection is sent as `taskId`. In v9 `taskId` is absent and the task id is the
+ * layout set id itself.
  */
-export const getTasksForLayoutSet = (layoutSet: LayoutSet): string[] =>
-  layoutSet.tasks ?? [layoutSet.id];
+export const getTaskIdForLayoutSet = (layoutSet: LayoutSet): string =>
+  layoutSet.taskId ?? layoutSet.id;
 
 export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string | undefined => {
-  return layoutSets?.sets?.find((set) =>
-    getTasksForLayoutSet(set).includes(PROTECTED_TASK_NAME_CUSTOM_RECEIPT),
+  return layoutSets?.sets?.find(
+    (set) => getTaskIdForLayoutSet(set) === PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
   )?.id;
 };
 

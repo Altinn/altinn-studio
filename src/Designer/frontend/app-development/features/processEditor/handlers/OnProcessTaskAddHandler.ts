@@ -117,7 +117,7 @@ export class OnProcessTaskAddHandler {
     return {
       layoutSetIdToUpdate: elementId,
       taskType: taskMetadata.taskType,
-      layoutSetConfig: { id: elementId, tasks: [elementId] },
+      layoutSetConfig: { id: elementId, taskId: elementId },
     };
   }
 
