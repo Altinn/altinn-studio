@@ -10,21 +10,25 @@ import type { AddressLayoutProps } from './AddressLayout';
  * `satisfies PropCategories<AddressLayoutProps>` makes it exhaustive — a new prop must be classified.
  */
 export const ADDRESS_PROP_CATEGORIES = {
-  id: 'config',
-  simplified: 'config',
-  required: 'config',
-  readOnly: 'config',
-  showOptionalMarking: 'config',
-  titleKey: 'config',
-  careOfTitleKey: 'config',
-  zipCodeTitleKey: 'config',
-  postPlaceTitleKey: 'config',
-  houseNumberTitleKey: 'config',
-  address: 'runtime',
-  careOf: 'runtime',
-  zipCode: 'runtime',
-  postPlace: 'runtime',
-  houseNumber: 'runtime',
+  // Text resources — Studio "Tekst" section (textResourceBindings)
+  titleKey: 'text',
+  careOfTitleKey: 'text',
+  zipCodeTitleKey: 'text',
+  postPlaceTitleKey: 'text',
+  houseNumberTitleKey: 'text',
+  // Data-model-bound values — Studio "Datamodeller" section
+  address: 'data',
+  careOf: 'data',
+  zipCode: 'data',
+  postPlace: 'data',
+  houseNumber: 'data',
+  // Configurable options — Studio "Innhold" section
+  id: 'content',
+  simplified: 'content',
+  required: 'content',
+  readOnly: 'content',
+  showOptionalMarking: 'content',
+  // Injected by the runtime wrapper — not part of the Studio configuration
   errors: 'runtime',
   onChange: 'runtime',
   onBlur: 'runtime',

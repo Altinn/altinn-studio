@@ -8,12 +8,14 @@ import classes from './AddressLayout.module.css';
 export type AddressFieldKey = 'address' | 'zipCode' | 'postPlace' | 'careOf' | 'houseNumber';
 
 export interface AddressLayoutProps {
-  // Config (Studio-configurable)
+  // Content — configurable options (Studio "Innhold")
   id: string;
   simplified?: boolean;
   required?: boolean;
   readOnly?: boolean;
   showOptionalMarking?: boolean;
+
+  // Text — text-resource-bound labels (Studio "Tekst")
   /** Text-resource key for the address label. Defaults to `address_component.address`. */
   titleKey?: string;
   /** Text-resource key for the care-of label. Defaults to `address_component.care_of`. */
@@ -25,12 +27,14 @@ export interface AddressLayoutProps {
   /** Text-resource key for the house number label. Defaults to `address_component.house_number`. */
   houseNumberTitleKey?: string;
 
-  // Runtime (injected by the wrapper)
+  // Data — data-model-bound values (Studio "Datamodeller"), supplied by the wrapper
   address?: string;
   careOf?: string;
   zipCode?: string;
   postPlace?: string;
   houseNumber?: string;
+
+  // Runtime — injected by the wrapper, not part of the Studio configuration
   errors?: Partial<Record<AddressFieldKey, boolean>>;
   onChange?: (field: AddressFieldKey, value: string) => void;
   onBlur?: () => void;
