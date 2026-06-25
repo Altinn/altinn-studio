@@ -76,22 +76,11 @@ internal sealed class WorkflowStateSigner
             );
         }
 
-        AppCode? code = null;
-        for (int i = 0; i < validationCodes.Count; i++)
-        {
-            if (validationCodes[i].Id == envelope.SecretId)
-            {
-                code = validationCodes[i];
-                break;
-            }
-        }
-
-        if (code is null)
-        {
-            throw new WorkflowCallbackStateException(
+        AppCode code =
+            validationCodes.FirstOrDefault(t => t.Id == envelope.SecretId)
+            ?? throw new WorkflowCallbackStateException(
                 "Workflow callback state envelope references an unknown signing secret."
             );
-        }
 
         // Reject codes that are themselves expired (with the same clock skew the token validator applies), so
         // the blob and the callback token fail together during rotation.
