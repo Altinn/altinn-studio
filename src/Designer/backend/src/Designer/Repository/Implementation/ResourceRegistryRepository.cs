@@ -16,7 +16,6 @@ public class ResourceRegistryRepository(
     public async Task<List<ServiceResource>> GetServiceResources(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false,
         bool includeMigratedApps = false
     )
     {
@@ -25,7 +24,6 @@ public class ResourceRegistryRepository(
             string resourceListUrl = GetResourceRegistryResourceListUrl(
                 env,
                 includeApps,
-                includeAltinn2,
                 includeMigratedApps
             );
             HttpResponseMessage getResourceResponse = await httpClient.GetAsync(resourceListUrl);
@@ -44,10 +42,9 @@ public class ResourceRegistryRepository(
     private string GetResourceRegistryResourceListUrl(
         string env,
         bool includeApps,
-        bool includeAltinn2,
         bool includeMigratedApps
     )
     {
-        return $"{GetResourceRegistryBaseUrl(env)}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}&includeMigratedApps={includeMigratedApps}";
+        return $"{GetResourceRegistryBaseUrl(env)}/resourcelist?includeApps={includeApps}&includeMigratedApps={includeMigratedApps}";
     }
 }

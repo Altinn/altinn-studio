@@ -30,7 +30,6 @@ import {
   publishResourcePath,
   appMetadataPath,
   serviceConfigPath,
-  importResourceFromAltinn2Path,
   importResourceFromAltinn3Path,
   accessListPath,
   createAccessListsPath,
@@ -40,7 +39,6 @@ import {
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
-  altinn2DelegationsMigrationPath,
   imagePath,
   addImagePath,
   optionListUploadPath,
@@ -105,7 +103,7 @@ import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPaylo
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '../types/Policy';
-import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
 import type { Branch, RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
@@ -208,7 +206,6 @@ export const deleteValidationOnNavigationLayoutSets = (org: string, app: string)
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
-export const importResourceFromAltinn2 = (org: string, environment: string, code: string, edition: string, payload: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, code, edition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
 export const importResourceFromAltinn3 = (org: string, resourceId: string, environment: string) => post<Resource>(importResourceFromAltinn3Path(org, resourceId, environment));
 export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(createAccessListsPath(org, environment), payload);
 export const updateAccessList = (org: string, listId: string, environment: string, payload: AccessList) => put<AccessList>(accessListPath(org, listId, environment), payload);
@@ -220,7 +217,6 @@ export const removeResourceAccessList = (org: string, resourceId: string, listId
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
-export const migrateDelegations = (org: string, env: string, payload: MigrateDelegationsRequest) => post(altinn2DelegationsMigrationPath(org, env), payload);
 
 // Preview
 export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<any>(createInstancePath(org, app, partyId, taskId), {}, { headers });
