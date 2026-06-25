@@ -141,7 +141,7 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, payload: LayoutSetPayload) => post<LayoutSetModel[]>(uiFoldersLayoutSetsPath(org, app), payload);
+export const addLayoutSet = (org: string, app: string, payload: LayoutSetPayload) => post<void>(uiFoldersLayoutSetsPath(org, app), payload);
 export const addImage = (org: string, app: string, form: FormData) => post<FormData>(addImagePath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteImage = (org: string, app: string, imageName: string) => del(imagePath(org, app, imageName));
 

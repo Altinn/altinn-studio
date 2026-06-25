@@ -1,13 +1,12 @@
 import { type UseMutateFunction, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 
 export type AddLayoutSetMutationPayload = LayoutSetPayload;
 
 export type AddLayoutSetMutation = UseMutateFunction<
-  LayoutSetModel[],
+  void,
   Error,
   AddLayoutSetMutationPayload
 >;
