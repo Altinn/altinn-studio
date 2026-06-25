@@ -8,7 +8,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const layoutSetIdToUpdate = 'oldLayoutSetName';
 const taskType = 'data';
 const layoutSetConfig: LayoutSetConfig = {
   id: 'newLayoutSetName',
@@ -23,7 +22,6 @@ describe('useAddLayoutSetMutation', () => {
       .renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate,
         taskType,
         layoutSetConfig,
       }),
@@ -31,7 +29,7 @@ describe('useAddLayoutSetMutation', () => {
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(queriesMock.addLayoutSet).toHaveBeenCalledTimes(1);
-    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, layoutSetIdToUpdate, {
+    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, {
       layoutSetConfig,
       taskType,
     });
@@ -42,16 +40,15 @@ describe('useAddLayoutSetMutation', () => {
       .renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate,
         layoutSetConfig,
       }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(queriesMock.addLayoutSet).toHaveBeenCalledTimes(1);
-    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, layoutSetIdToUpdate, {
+    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, {
       layoutSetConfig,
-      undefined,
+      taskType: undefined,
     });
   });
 
@@ -63,7 +60,7 @@ describe('useAddLayoutSetMutation', () => {
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
     await waitFor(() =>
-      addLayoutSetResult.current.mutateAsync({ layoutSetIdToUpdate, taskType, layoutSetConfig }),
+      addLayoutSetResult.current.mutateAsync({ taskType, layoutSetConfig }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
