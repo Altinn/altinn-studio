@@ -19,22 +19,25 @@ internal sealed class WorkflowCallbackStateService
     private readonly ModelSerializationService _modelSerializationService;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
+    private readonly WorkflowStateSigner _stateSigner;
 
     public WorkflowCallbackStateService(
         InstanceDataUnitOfWorkInitializer unitOfWorkInitializer,
         ModelSerializationService modelSerializationService,
         IAppMetadata appMetadata,
-        IAppModel appModel
+        IAppModel appModel,
+        WorkflowStateSigner stateSigner
     )
     {
         _unitOfWorkInitializer = unitOfWorkInitializer;
         _modelSerializationService = modelSerializationService;
         _appMetadata = appMetadata;
         _appModel = appModel;
+        _stateSigner = stateSigner;
     }
 
     /// <summary>
-    /// Captures the current state of the unit of work into an opaque string for transport.
+    /// Captures the current state of the unit of work into an opaque, signed string for transport.
     /// </summary>
     public async Task<string> CaptureState(InstanceDataUnitOfWork unitOfWork)
     {
@@ -48,7 +51,8 @@ internal sealed class WorkflowCallbackStateService
             })
             .ToList();
         var callbackState = new WorkflowCallbackState { Instance = unitOfWork.Instance, FormData = formData };
-        return JsonSerializer.Serialize(callbackState);
+        string payload = JsonSerializer.Serialize(callbackState);
+        return _stateSigner.Sign(payload);
     }
 
     /// <summary>
@@ -66,8 +70,13 @@ internal sealed class WorkflowCallbackStateService
         string? language
     )
     {
+        // Verify the detached HMAC signature and unwrap the inner payload before trusting any of it. A leaked
+        // callback token cannot be combined with a forged/tampered blob: the inner payload is bound to a
+        // secret only the app holds. Any failure (tampering, unknown/expired secret) throws and maps to 422.
+        string payload = _stateSigner.Verify(state);
+
         WorkflowCallbackState callbackState =
-            JsonSerializer.Deserialize<WorkflowCallbackState>(state)
+            JsonSerializer.Deserialize<WorkflowCallbackState>(payload)
             ?? throw new WorkflowCallbackStateException(
                 "Failed to deserialize workflow callback state from callback payload"
             );

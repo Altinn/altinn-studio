@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -31,6 +32,13 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
 
     private string GenerateToken(Guid instanceGuid) =>
         Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid);
+
+    /// <summary>
+    /// Produces a properly HMAC-signed state envelope around the given inner state, as the app would at enqueue
+    /// time. The callback controller verifies this signature before trusting any of the blob.
+    /// </summary>
+    private string SignState(WorkflowCallbackState state) =>
+        Services.GetRequiredService<WorkflowStateSigner>().Sign(JsonSerializer.Serialize(state));
 
     private static string CallbackUrl(Guid instanceGuid) =>
         $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/some-command";
@@ -109,7 +117,97 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             Actor = new Actor { Language = "nb" },
             LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
+            // Properly signed so the instance-mismatch check (not the signature check) is what rejects it.
+            State = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+        };
+        using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        using var response = await client.PostAsync(
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            content
+        );
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Callback_WithUnsignedStateBlob_IsRejected()
+    {
+        // A leaked callback token combined with a hand-crafted (unsigned) state blob must not be honored:
+        // the HMAC envelope is missing, so verification fails and the controller returns a non-retryable 422.
+        var routeInstanceGuid = Guid.NewGuid();
+
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            GenerateToken(routeInstanceGuid)
+        );
+
+        var stateInstance = new Instance
+        {
+            Id = $"{InstanceOwnerPartyId}/{routeInstanceGuid}",
+            AppId = $"{Org}/{App}",
+            Org = Org,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
+            Data = [],
+        };
+        var payload = new AppCallbackPayload
+        {
+            CommandKey = MutateProcessState.Key,
+            Actor = new Actor { Language = "nb" },
+            LockToken = "lock-token",
+            WorkflowId = Guid.NewGuid(),
+            // Raw inner state, NOT wrapped in a signed envelope.
             State = JsonSerializer.Serialize(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+        };
+        using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        using var response = await client.PostAsync(
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            content
+        );
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Callback_WithTamperedSignedStateBlob_IsRejected()
+    {
+        // Take a validly signed envelope, then mutate the signed payload bytes. The detached HMAC no longer
+        // matches, so the controller rejects it with a non-retryable 422.
+        var routeInstanceGuid = Guid.NewGuid();
+
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            GenerateToken(routeInstanceGuid)
+        );
+
+        var stateInstance = new Instance
+        {
+            Id = $"{InstanceOwnerPartyId}/{routeInstanceGuid}",
+            AppId = $"{Org}/{App}",
+            Org = Org,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
+            Data = [],
+        };
+        string signed = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] });
+        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(signed)!;
+        string tampered = JsonSerializer.Serialize(
+            envelope with
+            {
+                // Mutate the signed payload bytes; the detached HMAC will no longer match.
+                Payload = envelope.Payload.Replace(Org, "evil"),
+            }
+        );
+
+        var payload = new AppCallbackPayload
+        {
+            CommandKey = MutateProcessState.Key,
+            Actor = new Actor { Language = "nb" },
+            LockToken = "lock-token",
+            WorkflowId = Guid.NewGuid(),
+            State = tampered,
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 

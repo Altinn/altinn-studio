@@ -2636,7 +2636,22 @@ public sealed class ProcessEngineTest
             callbackTokenGeneratorMock.Setup(g => g.GenerateToken(It.IsAny<Guid>())).Returns("test-callback-token");
             services.TryAddTransient<IWorkflowCallbackTokenGenerator>(_ => callbackTokenGeneratorMock.Object);
 
+            // WorkflowCallbackStateService now signs the captured state with WorkflowStateSigner, which needs
+            // a callback secret. Provide a deterministic non-expired code so capture produces a real envelope.
+            var secretProviderMock = new Mock<IWorkflowCallbackSecretProvider>(MockBehavior.Strict);
+            var stateSigningCode = new Altinn.App.Core.Infrastructure.Clients.Secrets.AppCode
+            {
+                Id = "test-secret-id",
+                Code = "test-state-signing-secret-long-enough",
+                IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
+                ExpiresAt = DateTimeOffset.UtcNow.AddDays(186),
+            };
+            secretProviderMock.Setup(p => p.GetSigningSecret()).Returns(stateSigningCode);
+            secretProviderMock.Setup(p => p.GetValidationSecrets()).Returns([stateSigningCode]);
+            services.TryAddSingleton<IWorkflowCallbackSecretProvider>(_ => secretProviderMock.Object);
+
             services.TryAddTransient<ProcessNextRequestFactory>();
+            services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
 
             if (registerProcessEnd)
