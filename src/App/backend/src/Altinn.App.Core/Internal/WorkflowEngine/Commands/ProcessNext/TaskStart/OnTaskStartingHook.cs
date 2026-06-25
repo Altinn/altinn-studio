@@ -48,16 +48,16 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
 
         try
         {
-            OnTaskStartingResult handlerResult = await hook.Execute(hookParameters);
+            HookResult handlerResult = await hook.Execute(hookParameters);
 
             return handlerResult switch
             {
-                SuccessfulOnTaskStartingResult => new SuccessfulProcessEngineCommandResult(),
-                FailedOnTaskStartingResult failed => failed.Kind == FailureKind.Permanent
+                SuccessfulHookResult => new SuccessfulProcessEngineCommandResult(),
+                FailedHookResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(
-                    $"Unexpected {nameof(OnTaskStartingResult)} type: {handlerResult.GetType().Name}"
+                    $"Unexpected {nameof(HookResult)} type: {handlerResult.GetType().Name}"
                 ),
             };
         }

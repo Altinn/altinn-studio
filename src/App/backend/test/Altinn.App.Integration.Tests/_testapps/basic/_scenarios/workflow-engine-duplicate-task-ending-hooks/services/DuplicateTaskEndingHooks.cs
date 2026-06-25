@@ -8,16 +8,14 @@ public sealed class FirstTaskEndingHook : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<OnTaskEndingResult> Execute(OnTaskEndingContext context) =>
-        Task.FromResult<OnTaskEndingResult>(OnTaskEndingResult.Success());
+    public Task<HookResult> Execute(OnTaskEndingContext context) => Task.FromResult<HookResult>(HookResult.Success());
 }
 
 public sealed class SecondTaskEndingHook : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<OnTaskEndingResult> Execute(OnTaskEndingContext context) =>
-        Task.FromResult<OnTaskEndingResult>(OnTaskEndingResult.Success());
+    public Task<HookResult> Execute(OnTaskEndingContext context) => Task.FromResult<HookResult>(HookResult.Success());
 }
 
 public static class ServiceRegistration

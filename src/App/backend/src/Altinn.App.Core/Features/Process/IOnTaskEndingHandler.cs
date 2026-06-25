@@ -20,8 +20,11 @@ public interface IOnTaskEndingHandler
     /// Executes the end task hook logic.
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
-    /// <returns>An end task result indicating success or failure.</returns>
-    public Task<OnTaskEndingResult> Execute(OnTaskEndingContext context);
+    /// <returns>
+    /// A result indicating success or failure. Construct via <see cref="HookResult.Success"/>,
+    /// <see cref="HookResult.FailedRetryable"/>, or <see cref="HookResult.FailedPermanent"/>.
+    /// </returns>
+    public Task<HookResult> Execute(OnTaskEndingContext context);
 }
 
 /// <summary>
@@ -44,62 +47,4 @@ public sealed class OnTaskEndingContext
     /// Cancellation token for the hook execution.
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
-}
-
-/// <summary>
-/// Base type for end task hook execution results.
-/// </summary>
-public abstract record OnTaskEndingResult : HookResult
-{
-    /// <summary>
-    /// Creates a result representing successful hook execution.
-    /// </summary>
-    public static SuccessfulOnTaskEndingResult Success() => new();
-
-    /// <summary>
-    /// Creates a retryable failure. The workflow engine will retry the step with backoff.
-    /// Use this for transient errors (external service down, timeout, rate limit, etc.).
-    /// </summary>
-    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskEndingResult FailedRetryable(string errorMessage)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedOnTaskEndingResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
-    }
-
-    /// <summary>
-    /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
-    /// and mark the step as failed immediately.
-    /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
-    /// </summary>
-    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskEndingResult FailedPermanent(string errorMessage)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedOnTaskEndingResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
-    }
-}
-
-/// <summary>
-/// Represents a successful end task hook execution.
-/// </summary>
-public sealed record SuccessfulOnTaskEndingResult : OnTaskEndingResult;
-
-/// <summary>
-/// Represents a failed end task hook execution. Construct via
-/// <see cref="OnTaskEndingResult.FailedRetryable"/> or <see cref="OnTaskEndingResult.FailedPermanent"/>.
-/// </summary>
-public sealed record FailedOnTaskEndingResult : OnTaskEndingResult
-{
-    internal FailedOnTaskEndingResult() { }
-
-    /// <summary>
-    /// Human-readable error message describing the failure.
-    /// </summary>
-    public required string ErrorMessage { get; init; }
-
-    /// <summary>
-    /// Whether the failure is retryable or permanent.
-    /// </summary>
-    internal FailureKind Kind { get; init; }
 }
