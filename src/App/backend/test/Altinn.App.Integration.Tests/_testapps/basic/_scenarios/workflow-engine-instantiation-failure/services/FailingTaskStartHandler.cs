@@ -8,7 +8,7 @@ public sealed class FailingTaskStartHandler : IOnTaskStartingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<OnTaskStartingHandlerResult> ExecuteAsync(OnTaskStartingContext context) =>
+    public Task<OnTaskStartingHandlerResult> Execute(OnTaskStartingContext context) =>
         Task.FromResult<OnTaskStartingHandlerResult>(
             OnTaskStartingHandlerResult.FailedPermanent("Scenario task start failed permanently.")
         );

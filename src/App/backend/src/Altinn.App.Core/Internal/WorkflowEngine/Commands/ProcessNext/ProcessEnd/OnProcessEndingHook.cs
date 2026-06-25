@@ -48,7 +48,7 @@ internal sealed class OnProcessEndingHook : IWorkflowEngineCommand
 
         try
         {
-            OnProcessEndingHandlerResult result = await hook.ExecuteAsync(hookParameters);
+            OnProcessEndingHandlerResult result = await hook.Execute(hookParameters);
 
             return result switch
             {

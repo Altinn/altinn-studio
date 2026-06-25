@@ -21,7 +21,7 @@ public interface IOnTaskEndingHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>An end task result indicating success or failure.</returns>
-    public Task<OnEndingHandlerResult> ExecuteAsync(OnTaskEndingHandlerContext context);
+    public Task<OnEndingHandlerResult> Execute(OnTaskEndingHandlerContext context);
 }
 
 /// <summary>

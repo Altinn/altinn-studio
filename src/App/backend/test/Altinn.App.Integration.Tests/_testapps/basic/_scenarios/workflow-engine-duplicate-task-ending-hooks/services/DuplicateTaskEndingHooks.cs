@@ -8,7 +8,7 @@ public sealed class FirstTaskEndingHook : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<OnEndingHandlerResult> ExecuteAsync(OnTaskEndingHandlerContext context) =>
+    public Task<OnEndingHandlerResult> Execute(OnTaskEndingHandlerContext context) =>
         Task.FromResult<OnEndingHandlerResult>(OnEndingHandlerResult.Success());
 }
 
@@ -16,7 +16,7 @@ public sealed class SecondTaskEndingHook : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<OnEndingHandlerResult> ExecuteAsync(OnTaskEndingHandlerContext context) =>
+    public Task<OnEndingHandlerResult> Execute(OnTaskEndingHandlerContext context) =>
         Task.FromResult<OnEndingHandlerResult>(OnEndingHandlerResult.Success());
 }
 

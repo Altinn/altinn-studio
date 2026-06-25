@@ -21,7 +21,7 @@ public interface IOnTaskAbandonHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>An abandon task result indicating success or failure.</returns>
-    public Task<OnAbandonHandlerResult> ExecuteAsync(OnTaskAbandonHandlerContext context);
+    public Task<OnAbandonHandlerResult> Execute(OnTaskAbandonHandlerContext context);
 }
 
 /// <summary>

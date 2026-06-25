@@ -47,7 +47,7 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
 
         try
         {
-            OnTaskStartingHandlerResult handlerResult = await hook.ExecuteAsync(hookParameters);
+            OnTaskStartingHandlerResult handlerResult = await hook.Execute(hookParameters);
 
             return handlerResult switch
             {

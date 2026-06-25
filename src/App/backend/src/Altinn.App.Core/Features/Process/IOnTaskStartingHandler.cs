@@ -21,7 +21,7 @@ public interface IOnTaskStartingHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>A start task result indicating success or failure.</returns>
-    public Task<OnTaskStartingHandlerResult> ExecuteAsync(OnTaskStartingContext context);
+    public Task<OnTaskStartingHandlerResult> Execute(OnTaskStartingContext context);
 }
 
 /// <summary>

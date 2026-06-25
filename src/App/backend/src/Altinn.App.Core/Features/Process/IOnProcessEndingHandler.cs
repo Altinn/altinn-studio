@@ -14,7 +14,7 @@ public interface IOnProcessEndingHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>An end process result indicating success or failure.</returns>
-    public Task<OnProcessEndingHandlerResult> ExecuteAsync(OnProcessEndingHandlerContext context);
+    public Task<OnProcessEndingHandlerResult> Execute(OnProcessEndingHandlerContext context);
 }
 
 /// <summary>

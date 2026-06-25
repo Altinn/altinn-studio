@@ -47,7 +47,7 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
 
         try
         {
-            OnAbandonHandlerResult result = await hook.ExecuteAsync(hookParameters);
+            OnAbandonHandlerResult result = await hook.Execute(hookParameters);
 
             return result switch
             {
