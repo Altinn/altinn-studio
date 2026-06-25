@@ -18,7 +18,6 @@ const meta = {
   ],
   args: {
     htmlFor: 'example',
-    componentId: 'example',
     title: 'First name',
   },
 } satisfies Meta<typeof LabelComponent>;
