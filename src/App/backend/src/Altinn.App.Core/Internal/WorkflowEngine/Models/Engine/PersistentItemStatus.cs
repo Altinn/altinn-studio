@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// Represents the status of a persistent workflow item.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum PersistentItemStatus
+internal enum PersistentItemStatus
 {
     /// <summary>The item has been enqueued for processing.</summary>
     Enqueued = 0,

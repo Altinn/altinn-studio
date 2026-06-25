@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// Defines backoff types for retry strategies.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum BackoffType
+internal enum BackoffType
 {
     /// <summary>
     /// Constant backoff type. The delay between retries remains the same regardless of the number of attempts.

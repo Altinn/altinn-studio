@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// <summary>
 /// Defines a retry strategy for process engine tasks.
 /// </summary>
-public sealed record RetryStrategy
+internal sealed record RetryStrategy
 {
     /// <summary>
     /// The type of backoff to use.

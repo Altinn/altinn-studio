@@ -77,9 +77,7 @@ public class OnTaskStartingHookTests
         // Arrange
         var handler = new Mock<IOnTaskStartingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskStartingContext>()))
-            .ReturnsAsync(OnTaskStartingHandlerResult.Success());
+        handler.Setup(x => x.Execute(It.IsAny<OnTaskStartingContext>())).ReturnsAsync(HookResult.Success());
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -90,7 +88,7 @@ public class OnTaskStartingHookTests
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         handler.Verify(
             x =>
-                x.ExecuteAsync(
+                x.Execute(
                     It.Is<OnTaskStartingContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
@@ -130,8 +128,8 @@ public class OnTaskStartingHookTests
         var handler = new Mock<IOnTaskStartingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskStartingContext>()))
-            .ReturnsAsync(OnTaskStartingHandlerResult.FailedPermanent("Hook failed"));
+            .Setup(x => x.Execute(It.IsAny<OnTaskStartingContext>()))
+            .ReturnsAsync(HookResult.FailedPermanent("Hook failed"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -151,8 +149,8 @@ public class OnTaskStartingHookTests
         var handler = new Mock<IOnTaskStartingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskStartingContext>()))
-            .ReturnsAsync(OnTaskStartingHandlerResult.FailedRetryable("Transient error"));
+            .Setup(x => x.Execute(It.IsAny<OnTaskStartingContext>()))
+            .ReturnsAsync(HookResult.FailedRetryable("Transient error"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -172,7 +170,7 @@ public class OnTaskStartingHookTests
         var handler = new Mock<IOnTaskStartingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskStartingContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnTaskStartingContext>()))
             .ThrowsAsync(new InvalidOperationException("Handler exploded"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());

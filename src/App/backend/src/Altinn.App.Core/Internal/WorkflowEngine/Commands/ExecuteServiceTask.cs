@@ -45,7 +45,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
             {
                 string errorMessage = $"Service task '{serviceTask.Type}' failed: {failedResult.ErrorMessage}";
 
-                return failedResult.NonRetryable
+                return failedResult.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(errorMessage, "ServiceTaskFailedException")
                     : FailedProcessEngineCommandResult.Retryable(errorMessage, "ServiceTaskFailedException");
             }

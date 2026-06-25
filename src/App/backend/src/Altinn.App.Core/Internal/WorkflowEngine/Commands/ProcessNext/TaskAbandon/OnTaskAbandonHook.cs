@@ -39,24 +39,25 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
             return new SuccessfulProcessEngineCommandResult();
         }
 
-        var hookParameters = new OnTaskAbandonHandlerContext
+        var hookParameters = new OnTaskAbandonContext
         {
+            TaskId = taskId,
             InstanceDataMutator = dataMutator,
             CancellationToken = parameters.CancellationToken,
         };
 
         try
         {
-            OnAbandonHandlerResult result = await hook.ExecuteAsync(hookParameters);
+            HookResult result = await hook.Execute(hookParameters);
 
             return result switch
             {
-                SuccessfulOnAbandonHandlerResult => new SuccessfulProcessEngineCommandResult(),
-                FailedOnTaskAbandonHandlerResult failed => failed.NonRetryable
+                SuccessfulHookResult => new SuccessfulProcessEngineCommandResult(),
+                FailedHookResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(
-                    $"Unexpected {nameof(OnAbandonHandlerResult)} type: {result.GetType().Name}"
+                    $"Unexpected {nameof(HookResult)} type: {result.GetType().Name}"
                 ),
             };
         }

@@ -77,9 +77,7 @@ public class OnTaskEndingHookTests
         // Arrange
         var handler = new Mock<IOnTaskEndingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskEndingHandlerContext>()))
-            .ReturnsAsync(OnEndingHandlerResult.Success());
+        handler.Setup(x => x.Execute(It.IsAny<OnTaskEndingContext>())).ReturnsAsync(HookResult.Success());
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -90,8 +88,8 @@ public class OnTaskEndingHookTests
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         handler.Verify(
             x =>
-                x.ExecuteAsync(
-                    It.Is<OnTaskEndingHandlerContext>(c =>
+                x.Execute(
+                    It.Is<OnTaskEndingContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
                     )
@@ -130,8 +128,8 @@ public class OnTaskEndingHookTests
         var handler = new Mock<IOnTaskEndingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskEndingHandlerContext>()))
-            .ReturnsAsync(OnEndingHandlerResult.FailedPermanent("Hook failed"));
+            .Setup(x => x.Execute(It.IsAny<OnTaskEndingContext>()))
+            .ReturnsAsync(HookResult.FailedPermanent("Hook failed"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -151,8 +149,8 @@ public class OnTaskEndingHookTests
         var handler = new Mock<IOnTaskEndingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskEndingHandlerContext>()))
-            .ReturnsAsync(OnEndingHandlerResult.FailedRetryable("Transient error"));
+            .Setup(x => x.Execute(It.IsAny<OnTaskEndingContext>()))
+            .ReturnsAsync(HookResult.FailedRetryable("Transient error"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -172,7 +170,7 @@ public class OnTaskEndingHookTests
         var handler = new Mock<IOnTaskEndingHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.ExecuteAsync(It.IsAny<OnTaskEndingHandlerContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnTaskEndingContext>()))
             .ThrowsAsync(new InvalidOperationException("Handler exploded"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());

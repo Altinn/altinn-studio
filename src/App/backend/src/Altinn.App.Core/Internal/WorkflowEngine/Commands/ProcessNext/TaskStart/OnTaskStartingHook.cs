@@ -41,22 +41,23 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
 
         var hookParameters = new OnTaskStartingContext
         {
+            TaskId = taskId,
             InstanceDataMutator = dataMutator,
             CancellationToken = parameters.CancellationToken,
         };
 
         try
         {
-            OnTaskStartingHandlerResult handlerResult = await hook.ExecuteAsync(hookParameters);
+            HookResult handlerResult = await hook.Execute(hookParameters);
 
             return handlerResult switch
             {
-                SuccessfulOnTaskStartingHandlerResult => new SuccessfulProcessEngineCommandResult(),
-                FailedOnTaskStartingHandlerResult failed => failed.NonRetryable
+                SuccessfulHookResult => new SuccessfulProcessEngineCommandResult(),
+                FailedHookResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(
-                    $"Unexpected {nameof(OnTaskStartingHandlerResult)} type: {handlerResult.GetType().Name}"
+                    $"Unexpected {nameof(HookResult)} type: {handlerResult.GetType().Name}"
                 ),
             };
         }
