@@ -1,5 +1,19 @@
 # Git hooks managed by lefthook — https://lefthook.dev/
 # Replaces the previous husky + lint-staged setup.
+
+# Disable ANSI colors. VS Code's Git output panel doesn't interpret ANSI,
+# so colored output shows up as raw escape codes (e.g. ^[[38;2;...m).
+colors: false
+
+# Trim output to the useful parts. Dropping "meta" removes the decorative
+# banner box, and dropping "summary" removes a divider line that lefthook
+# 2.1.9 colorizes even with colors disabled. Failures still show command
+# output via execution_out.
+output:
+  - failure
+  - execution
+  - execution_out
+
 pre-commit:
   commands:
     check-skipped-tests:
