@@ -21,11 +21,7 @@ public class ResourceRegistryRepository(
     {
         using (HttpClient httpClient = new HttpClient())
         {
-            string resourceListUrl = GetResourceRegistryResourceListUrl(
-                env,
-                includeApps,
-                includeMigratedApps
-            );
+            string resourceListUrl = GetResourceRegistryResourceListUrl(env, includeApps, includeMigratedApps);
             HttpResponseMessage getResourceResponse = await httpClient.GetAsync(resourceListUrl);
             getResourceResponse.EnsureSuccessStatusCode();
             return await getResourceResponse.Content.ReadAsAsync<List<ServiceResource>>();
@@ -39,11 +35,7 @@ public class ResourceRegistryRepository(
             : $"{envSettings.ResourceRegistryEnvBaseUrl}{platformSettings.ResourceRegistryUrl}";
     }
 
-    private string GetResourceRegistryResourceListUrl(
-        string env,
-        bool includeApps,
-        bool includeMigratedApps
-    )
+    private string GetResourceRegistryResourceListUrl(string env, bool includeApps, bool includeMigratedApps)
     {
         return $"{GetResourceRegistryBaseUrl(env)}/resourcelist?includeApps={includeApps}&includeMigratedApps={includeMigratedApps}";
     }

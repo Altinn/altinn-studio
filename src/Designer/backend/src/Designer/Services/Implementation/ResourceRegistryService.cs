@@ -64,20 +64,12 @@ public class ResourceRegistryService : IResourceRegistry
         bool includeMigratedApps = false
     )
     {
-        return await _resourceRegistryRepository.GetServiceResources(
-            env,
-            includeApps,
-            includeMigratedApps
-        );
+        return await _resourceRegistryRepository.GetServiceResources(env, includeApps, includeMigratedApps);
     }
 
     public async Task<bool> ServiceResourceExists(string id, string env)
     {
-        var resourceList = await GetServiceResourceList(
-            env,
-            includeApps: false,
-            includeMigratedApps: false
-        );
+        var resourceList = await GetServiceResourceList(env, includeApps: false, includeMigratedApps: false);
         return resourceList.Any((serviceResource) => serviceResource.Identifier.Equals(id));
     }
 
