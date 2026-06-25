@@ -1,0 +1,28 @@
+services:
+  fleet:
+    build: .
+    image: altinn-fleet:latest
+    container_name: altinn-fleet
+    ports:
+      - "9091:9091"
+    volumes:
+      - fleet-data:/data
+    environment:
+      # Hvilket miljø vi henter fra: "prod" eller "tt02"
+      FLEET_ENV: ${FLEET_ENV:-prod}
+
+      # Optional auth for altinn.studio (prod gitea). Kun nødvendig for private repos.
+      FLEET_GIT_USERNAME: ${FLEET_GIT_USERNAME:-}
+      FLEET_GIT_TOKEN: ${FLEET_GIT_TOKEN:-}
+
+      # Optional auth for dev.altinn.studio (fallback for noen apper)
+      FLEET_DEV_GIT_USERNAME: ${FLEET_DEV_GIT_USERNAME:-}
+      FLEET_DEV_GIT_TOKEN: ${FLEET_DEV_GIT_TOKEN:-}
+
+      # Konkurrensgrenser
+      FLEET_FETCH_CONCURRENCY: ${FLEET_FETCH_CONCURRENCY:-8}
+      FLEET_SCAN_CONCURRENCY: ${FLEET_SCAN_CONCURRENCY:-8}
+    restart: unless-stopped
+
+volumes:
+  fleet-data:

@@ -5,6 +5,7 @@ import {
   DatePickerDropdownCaption,
   DynamicForm,
   type FormDataObject,
+  getDatepickerFormat,
 } from '@app/form-component';
 import { Button, Dialog } from '@digdir/designsystemet-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,7 +15,6 @@ import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';

@@ -14,12 +14,8 @@ import type {
 
 const originalWindowLocation = window.location;
 
-const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
-  environment: { featureFlags: { studioOidc: true } },
-};
-
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => mockEnvironment,
+  useEnvironmentConfig: () => ({ environment: {}, isPending: false }),
 }));
 
 const owner = 'test-user';
@@ -78,7 +74,6 @@ const renderStudioctlAuth = ({
 
 describe('StudioctlAuth', () => {
   beforeEach(() => {
-    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
     delete window.location;
     Object.defineProperty(window, 'location', {
       configurable: true,
@@ -149,15 +144,6 @@ describe('StudioctlAuth', () => {
 
     await waitFor(() => expect(cancelStudioctlAuthRequest).toHaveBeenCalledWith(requestId));
     expect(window.location.assign).toHaveBeenCalledWith(callbackUrl);
-  });
-
-  it('renders not found when studio OIDC is disabled', async () => {
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-    renderStudioctlAuth();
-
-    expect(
-      await screen.findByRole('heading', { name: textMock('not_found_page.heading') }),
-    ).toBeInTheDocument();
   });
 
   it('renders a spinner while user data is loading', () => {

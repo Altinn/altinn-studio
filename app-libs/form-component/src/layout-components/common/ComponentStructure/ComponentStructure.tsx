@@ -4,8 +4,11 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { Flex, type IGridStyling } from '@app/form-component/app-components/Flex';
 
 export interface IComponentStructureProps {
-  /** Id for the outer content wrapper element. */
-  id?: string;
+  /**
+   * Id of the configured component. The outer content wrapper element's DOM id is derived from this
+   * as `form-content-${componentId}`, currently only used for e2e tests.
+   */
+  componentId?: string;
   /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
   /** Grid sizing for the validation messages. */
@@ -61,7 +64,7 @@ function componentWithValidationSpan(
  * messages in a responsive grid.
  */
 export function ComponentStructure({
-  id,
+  componentId,
   innerGrid,
   validationGrid,
   className,
@@ -75,7 +78,13 @@ export function ComponentStructure({
   );
 
   return (
-    <Flex id={id} className={className} size={{ xs: 12, ...containerSpan }} item container>
+    <Flex
+      id={componentId ? `form-content-${componentId}` : undefined}
+      className={className}
+      size={{ xs: 12, ...containerSpan }}
+      item
+      container
+    >
       <Flex item size={{ xs: 12, ...innerSpan }} style={contentStyle}>
         {children}
       </Flex>

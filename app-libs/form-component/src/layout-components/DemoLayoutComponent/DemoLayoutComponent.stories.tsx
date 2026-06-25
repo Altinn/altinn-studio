@@ -10,11 +10,11 @@ import type { DemoLayoutComponentProps } from './DemoLayoutComponent';
  * PropCategories<DemoLayoutComponentProps>` makes it exhaustive — a new prop must be classified here.
  */
 export const DEMO_PROP_CATEGORIES = {
-  id: 'config',
-  title: 'config',
-  content: 'config',
-  variant: 'config',
-  showLanguageInfo: 'config',
+  id: 'content',
+  title: 'text',
+  content: 'text',
+  variant: 'content',
+  showLanguageInfo: 'content',
   renderedInTable: 'runtime',
   dataValue: 'runtime',
   hidden: 'runtime',
