@@ -188,37 +188,27 @@ jobs:
         shell: bash
         env:
           CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
-          # DIAGNOSTIC: render inside the pinned Chrome 133 container (the proven-good
-          # environment from build 1130, before commit 79a01c5 removed Docker).
-          CYPRESS_BROWSER_IMAGE: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN_TEMP }}
           PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
         run: |
-          # DIAGNOSTIC: single fast spec instead of the full suite × 6 containers.
-          base_command='npx cypress run --browser chrome --spec test/e2e/integration/component-library/button.ts --env environment=localtest'
+          # DIAGNOSTIC: host Chrome (no Docker), single fast spec. Tests whether the
+          # baseurlinjection.ts <base> fix alone resolves the CSS issue, so CI can stay
+          # off the pinned-Chrome container (the ci/migrate-more-frontend goal).
+          cypress_args=(
+            run
+            --browser "${CHROME_PATH:-chrome}"
+            --spec test/e2e/integration/component-library/button.ts
+            --env environment=localtest
+          )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            container_command="npx percy exec -- ${base_command}"
+            npx percy exec -- npx cypress "${cypress_args[@]}"
           else
-            container_command="${base_command}"
+            npx cypress "${cypress_args[@]}"
           fi
-
-          docker run --rm --network host \
-            --user "$(id -u):$(id -g)" \
-            -e HOME=/tmp \
-            -e CI=1 \
-            -e CYPRESS_CACHE_FOLDER \
-            -e GITHUB_TOKEN \
-            -e PERCY_TOKEN \
-            -e PERCY_BRANCH \
-            -e PERCY_TARGET_BRANCH \
-            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
-            -w "${GITHUB_WORKSPACE}/src/App/frontend" \
-            "${CYPRESS_BROWSER_IMAGE}" \
-            bash -lc "${container_command}"
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
