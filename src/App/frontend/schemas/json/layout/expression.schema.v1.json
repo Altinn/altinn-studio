@@ -766,13 +766,7 @@
       "type": "array",
       "items": [
         { "const": "average" },
-        { "$ref": "#/definitions/list" },
-        {
-          "anyOf": [
-            { "$ref": "#/definitions/number" },
-            { "const":  null }
-          ]
-        }
+        { "$ref": "#/definitions/list" }
       ],
       "additionalItems": false
     },
