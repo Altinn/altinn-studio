@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
@@ -26,12 +25,14 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/cnpgapi"
 	"altinn.studio/operator/internal/operatorcontext"
 	randomutil "altinn.studio/operator/internal/random"
 	rt "altinn.studio/operator/internal/runtime"
@@ -677,7 +678,7 @@ func (r *CnpgSyncReconciler) ensureImageCatalog(ctx context.Context) error {
 		return fmt.Errorf("build ImageCatalog: %w", err)
 	}
 
-	catalog := &cnpgv1.ImageCatalog{}
+	catalog := cnpgapi.NewImageCatalog(cnpgNamespace, imageCatalogName)
 	key := client.ObjectKey{Name: imageCatalogName, Namespace: cnpgNamespace}
 	err = r.k8sClient.Get(ctx, key, catalog)
 
@@ -692,13 +693,25 @@ func (r *CnpgSyncReconciler) ensureImageCatalog(ctx context.Context) error {
 		return fmt.Errorf("get ImageCatalog: %w", err)
 	}
 
-	if diff.Diff(catalog.Spec, desired.Spec) != "" {
-		catalog.Spec = desired.Spec
+	catalogSpec, err := cnpgapi.Spec(catalog)
+	if err != nil {
+		return fmt.Errorf("read ImageCatalog spec: %w", err)
+	}
+	desiredSpec, err := cnpgapi.Spec(desired)
+	if err != nil {
+		return fmt.Errorf("read desired ImageCatalog spec: %w", err)
+	}
+	if diff.Diff(catalogSpec, desiredSpec) != "" {
+		if err := cnpgapi.SetSpec(catalog, desiredSpec); err != nil {
+			return fmt.Errorf("set ImageCatalog spec: %w", err)
+		}
 		if err := r.updateWithRetry(ctx, catalog, "ImageCatalog", func() error {
 			if err := r.k8sClient.Get(ctx, key, catalog); err != nil {
 				return fmt.Errorf("refresh ImageCatalog: %w", err)
 			}
-			catalog.Spec = desired.Spec
+			if err := cnpgapi.SetSpec(catalog, desiredSpec); err != nil {
+				return fmt.Errorf("set ImageCatalog spec: %w", err)
+			}
 			return nil
 		}); err != nil {
 			return fmt.Errorf("update ImageCatalog: %w", err)
@@ -708,35 +721,26 @@ func (r *CnpgSyncReconciler) ensureImageCatalog(ctx context.Context) error {
 	return nil
 }
 
-func (r *CnpgSyncReconciler) buildImageCatalog() (*cnpgv1.ImageCatalog, error) {
-	images := make([]cnpgv1.CatalogImage, 0, len(supportedPostgresqlMajorVersions))
+func (r *CnpgSyncReconciler) buildImageCatalog() (*unstructured.Unstructured, error) {
+	images := make([]any, 0, len(supportedPostgresqlMajorVersions))
 	for _, major := range supportedPostgresqlMajorVersions {
 		var imageRef string
 		imageRef, err := r.getImageRef(major)
 		if err != nil {
 			return nil, fmt.Errorf("get image ref for major version %d: %w", major, err)
 		}
-		images = append(images, cnpgv1.CatalogImage{
-			Major: major,
-			Image: imageRef,
-		})
+		images = append(images, map[string]any{"major": int64(major), "image": imageRef})
 	}
-	return &cnpgv1.ImageCatalog{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      imageCatalogName,
-			Namespace: cnpgNamespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": "altinn-studio-operator",
-			},
-		},
-		Spec: cnpgv1.ImageCatalogSpec{
-			Images: images,
-		},
-	}, nil
+	catalog := cnpgapi.NewImageCatalog(cnpgNamespace, imageCatalogName)
+	catalog.SetLabels(map[string]string{managedByLabelKey: managedByLabelValue})
+	if err := cnpgapi.SetSpec(catalog, map[string]any{"images": images}); err != nil {
+		return nil, fmt.Errorf("set ImageCatalog spec: %w", err)
+	}
+	return catalog, nil
 }
 
 func (r *CnpgSyncReconciler) ensureCluster(ctx context.Context) error {
-	cluster := &cnpgv1.Cluster{}
+	cluster := cnpgapi.NewCluster(cnpgNamespace, clusterName)
 	key := client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}
 	err := r.k8sClient.Get(ctx, key, cluster)
 
@@ -756,18 +760,21 @@ func (r *CnpgSyncReconciler) ensureCluster(ctx context.Context) error {
 		return fmt.Errorf("get Cluster: %w", err)
 	}
 
-	if diff.Diff(cluster.Spec, desired.Spec) != "" {
-		managed := cluster.Spec.Managed // Preserve managed roles added by ensureManagedRole
-		cluster.Spec = desired.Spec
-		cluster.Spec.Managed = managed
+	clusterSpec, err := setClusterDesiredSpecPreservingManaged(cluster, desired)
+	if err != nil {
+		return err
+	}
+	clusterSpecWithManaged, err := cnpgapi.Spec(cluster)
+	if err != nil {
+		return fmt.Errorf("read merged Cluster spec: %w", err)
+	}
+	if diff.Diff(projectClusterSpecForDiff(clusterSpec, clusterSpecWithManaged), clusterSpecWithManaged) != "" {
 		if err := r.updateWithRetry(ctx, cluster, "Cluster", func() error {
 			if err := r.k8sClient.Get(ctx, key, cluster); err != nil {
 				return fmt.Errorf("refresh Cluster: %w", err)
 			}
-			managed := cluster.Spec.Managed
-			cluster.Spec = desired.Spec
-			cluster.Spec.Managed = managed
-			return nil
+			_, err := setClusterDesiredSpecPreservingManaged(cluster, desired)
+			return err
 		}); err != nil {
 			return fmt.Errorf("update Cluster: %w", err)
 		}
@@ -776,7 +783,88 @@ func (r *CnpgSyncReconciler) ensureCluster(ctx context.Context) error {
 	return nil
 }
 
-func (r *CnpgSyncReconciler) deleteClusterIfExists(ctx context.Context, cluster *cnpgv1.Cluster, getErr error) error {
+func setClusterDesiredSpecPreservingManaged(
+	cluster *unstructured.Unstructured,
+	desired *unstructured.Unstructured,
+) (map[string]any, error) {
+	clusterSpec, err := cnpgapi.Spec(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("read Cluster spec: %w", err)
+	}
+	desiredSpec, err := cnpgapi.Spec(desired)
+	if err != nil {
+		return nil, fmt.Errorf("read desired Cluster spec: %w", err)
+	}
+	managed, managedFound, err := cnpgapi.Managed(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("read Cluster managed spec: %w", err)
+	}
+	if err := cnpgapi.SetSpec(cluster, desiredSpec); err != nil {
+		return nil, fmt.Errorf("set Cluster spec: %w", err)
+	}
+	if err := cnpgapi.SetManaged(cluster, managed, managedFound); err != nil {
+		return nil, fmt.Errorf("preserve Cluster managed spec: %w", err)
+	}
+	return clusterSpec, nil
+}
+
+func projectClusterSpecForDiff(spec, shape map[string]any) map[string]any {
+	projected := make(map[string]any, len(shape))
+	for key, shapeValue := range shape {
+		value, found := spec[key]
+		if !found {
+			continue
+		}
+		projected[key] = projectClusterSpecValueForDiff(value, shapeValue)
+	}
+	return projected
+}
+
+func projectClusterSpecValueForDiff(value, shape any) any {
+	switch shapeValue := shape.(type) {
+	case map[string]any:
+		if valueMap, ok := value.(map[string]any); ok {
+			return projectClusterSpecForDiff(valueMap, shapeValue)
+		}
+	case []any:
+		if valueSlice, ok := value.([]any); ok {
+			return projectClusterSpecSliceForDiff(valueSlice, shapeValue)
+		}
+	}
+	return value
+}
+
+func projectClusterSpecSliceForDiff(values, shape []any) []any {
+	projected := make([]any, len(values))
+	for index, value := range values {
+		shapeValue, found := clusterSpecSliceShapeAt(shape, index)
+		if !found {
+			projected[index] = value
+			continue
+		}
+		projected[index] = projectClusterSpecValueForDiff(value, shapeValue)
+	}
+	return projected
+}
+
+func clusterSpecSliceShapeAt(shape []any, index int) (any, bool) {
+	if len(shape) == 0 {
+		return nil, false
+	}
+	if index < len(shape) {
+		return shape[index], true
+	}
+	if len(shape) == 1 {
+		return shape[0], true
+	}
+	return nil, false
+}
+
+func (r *CnpgSyncReconciler) deleteClusterIfExists(
+	ctx context.Context,
+	cluster *unstructured.Unstructured,
+	getErr error,
+) error {
 	if apierrors.IsNotFound(getErr) {
 		return nil
 	}
@@ -791,7 +879,7 @@ func (r *CnpgSyncReconciler) deleteClusterIfExists(ctx context.Context, cluster 
 	return nil
 }
 
-func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
+func (r *CnpgSyncReconciler) buildCluster(numApps int) *unstructured.Unstructured {
 	scale, ok := clusterScaleForEnvironment(r.runtime.GetOperatorContext().Environment)
 	if !ok {
 		return nil
@@ -805,118 +893,114 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 
 	storageClass := storageClassName
 	apiGroup := "postgresql.cnpg.io"
-	return &cnpgv1.Cluster{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      clusterName,
-			Namespace: cnpgNamespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": "altinn-studio-operator",
+	cluster := cnpgapi.NewCluster(cnpgNamespace, clusterName)
+	cluster.SetLabels(map[string]string{managedByLabelKey: managedByLabelValue})
+	spec := map[string]any{
+		"instances": int64(cfg.Instances),
+		"enablePDB": cfg.EnablePDB,
+		"bootstrap": map[string]any{
+			"initdb": map[string]any{
+				"dataChecksums": true,
+				"encoding":      "UTF8",
+				"localeCollate": "nb_NO.UTF8",
+				"localeCType":   "nb_NO.UTF8",
 			},
 		},
-		Spec: cnpgv1.ClusterSpec{
-			Instances: cfg.Instances,
-			EnablePDB: new(cfg.EnablePDB),
-			Bootstrap: &cnpgv1.BootstrapConfiguration{
-				InitDB: &cnpgv1.BootstrapInitDB{
-					DataChecksums: new(true),
-					Encoding:      "UTF8",
-					LocaleCollate: "nb_NO.UTF8",
-					LocaleCType:   "nb_NO.UTF8",
-				},
+		"env": []any{
+			map[string]any{"name": "TZ", "value": "Europe/Oslo"},
+		},
+		"enableSuperuserAccess": true,
+		"postgresql": map[string]any{
+			// Azure docs: https://learn.microsoft.com/en-us/azure/aks/deploy-postgresql-ha?tabs=azuredisk#postgresql-performance-parameters
+			// pgtune: https://pgtune.leopard.in.ua/?dbVersion=18&osType=linux&dbType=web&cpuNum=1&totalMemory=1&totalMemoryUnit=GB&connectionNum=100&hdType=ssd
+			"parameters": map[string]any{
+				"timezone":                       "Europe/Oslo",
+				"max_connections":                strconv.Itoa(cfg.MaxConnections),
+				"superuser_reserved_connections": strconv.Itoa(cfg.SuperuserReservedConnections),
+				// Memory
+				"shared_buffers":       cfg.SharedBuffers,
+				"effective_cache_size": cfg.EffectiveCacheSize,
+				"work_mem":             cfg.WorkMem,
+				"maintenance_work_mem": cfg.MaintenanceWorkMem,
+				"huge_pages":           "off",
+				// WAL
+				"wal_compression":        "lz4",
+				"wal_buffers":            cfg.WalBuffers,
+				"min_wal_size":           cfg.MinWalSize,
+				"max_wal_size":           cfg.MaxWalSize,
+				"wal_writer_flush_after": cfg.WalWriterFlushAfter,
+				// Checkpoints
+				"checkpoint_completion_target": "0.9",
+				"checkpoint_flush_after":       cfg.CheckpointFlushAfter,
+				"checkpoint_timeout":           "15min",
+				// IO
+				"effective_io_concurrency":   "128",
+				"maintenance_io_concurrency": "128",
+				// Other
+				"default_toast_compression": "lz4",
+				// SSD cost tuning
+				"random_page_cost": "1.1",
+				// Autovacuum
+				"autovacuum_vacuum_cost_limit": cfg.AutovacuumVacuumCostLimit,
+				// Monitoring
+				"pg_stat_statements.track":      "all",
+				"pg_stat_statements.max":        cfg.PgStatStatementsMax,
+				"default_statistics_target":     "100",
+				"log_checkpoints":               "on",
+				"log_lock_waits":                "on",
+				"log_min_duration_statement":    "1000",
+				"log_statement":                 "ddl",
+				"log_temp_files":                "1024",
+				"log_autovacuum_min_duration":   "1s",
+				"auto_explain.log_min_duration": "10s",
+				// TCP Keepalive (detect dead connections holding locks)
+				"tcp_keepalives_idle":              "60",
+				"tcp_keepalives_interval":          "10",
+				"tcp_keepalives_count":             "6",
+				"client_connection_check_interval": "10000", // ms, poll socket during long queries
 			},
-			Env: []corev1.EnvVar{
-				{Name: "TZ", Value: "Europe/Oslo"},
+		},
+		"imageCatalogRef": map[string]any{
+			"apiGroup": apiGroup,
+			"kind":     "ImageCatalog",
+			"name":     imageCatalogName,
+			"major":    int64(18),
+		},
+		"storage": map[string]any{
+			"storageClass": storageClass,
+			"size":         cfg.StorageSize,
+		},
+		"walStorage": map[string]any{
+			"storageClass": storageClass,
+			"size":         cfg.WalStorageSize,
+		},
+		"resources": map[string]any{
+			"requests": map[string]any{
+				"cpu":    cfg.CPURequest,
+				"memory": cfg.MemoryRequest,
 			},
-			EnableSuperuserAccess: new(true),
-			PostgresConfiguration: cnpgv1.PostgresConfiguration{
-				// Azure docs: https://learn.microsoft.com/en-us/azure/aks/deploy-postgresql-ha?tabs=azuredisk#postgresql-performance-parameters
-				// pgtune: https://pgtune.leopard.in.ua/?dbVersion=18&osType=linux&dbType=web&cpuNum=1&totalMemory=1&totalMemoryUnit=GB&connectionNum=100&hdType=ssd
-				Parameters: map[string]string{
-					"timezone":                       "Europe/Oslo",
-					"max_connections":                strconv.Itoa(cfg.MaxConnections),
-					"superuser_reserved_connections": strconv.Itoa(cfg.SuperuserReservedConnections),
-					// Memory
-					"shared_buffers":       cfg.SharedBuffers,
-					"effective_cache_size": cfg.EffectiveCacheSize,
-					"work_mem":             cfg.WorkMem,
-					"maintenance_work_mem": cfg.MaintenanceWorkMem,
-					"huge_pages":           "off",
-					// WAL
-					"wal_compression":        "lz4",
-					"wal_buffers":            cfg.WalBuffers,
-					"min_wal_size":           cfg.MinWalSize,
-					"max_wal_size":           cfg.MaxWalSize,
-					"wal_writer_flush_after": cfg.WalWriterFlushAfter,
-					// Checkpoints
-					"checkpoint_completion_target": "0.9",
-					"checkpoint_flush_after":       cfg.CheckpointFlushAfter,
-					"checkpoint_timeout":           "15min",
-					// IO
-					"effective_io_concurrency":   "128",
-					"maintenance_io_concurrency": "128",
-					// Other
-					"default_toast_compression": "lz4",
-					// SSD cost tuning
-					"random_page_cost": "1.1",
-					// Autovacuum
-					"autovacuum_vacuum_cost_limit": cfg.AutovacuumVacuumCostLimit,
-					// Monitoring
-					"pg_stat_statements.track":      "all",
-					"pg_stat_statements.max":        cfg.PgStatStatementsMax,
-					"default_statistics_target":     "100",
-					"log_checkpoints":               "on",
-					"log_lock_waits":                "on",
-					"log_min_duration_statement":    "1000",
-					"log_statement":                 "ddl",
-					"log_temp_files":                "1024",
-					"log_autovacuum_min_duration":   "1s",
-					"auto_explain.log_min_duration": "10s",
-					// TCP Keepalive (detect dead connections holding locks)
-					"tcp_keepalives_idle":              "60",
-					"tcp_keepalives_interval":          "10",
-					"tcp_keepalives_count":             "6",
-					"client_connection_check_interval": "10000", // ms, poll socket during long queries
-				},
-			},
-			ImageCatalogRef: &cnpgv1.ImageCatalogRef{
-				TypedLocalObjectReference: corev1.TypedLocalObjectReference{
-					APIGroup: &apiGroup,
-					Kind:     "ImageCatalog",
-					Name:     imageCatalogName,
-				},
-				Major: 18,
-			},
-			StorageConfiguration: cnpgv1.StorageConfiguration{
-				StorageClass: &storageClass,
-				Size:         cfg.StorageSize,
-			},
-			WalStorage: &cnpgv1.StorageConfiguration{
-				StorageClass: &storageClass,
-				Size:         cfg.WalStorageSize,
-			},
-			Resources: corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse(cfg.CPURequest),
-					corev1.ResourceMemory: resource.MustParse(cfg.MemoryRequest),
-				},
-			},
-			Affinity: cnpgv1.AffinityConfiguration{
-				EnablePodAntiAffinity: new(false),
-			},
-			TopologySpreadConstraints: []corev1.TopologySpreadConstraint{
-				{
-					MaxSkew:           1,
-					TopologyKey:       "topology.kubernetes.io/zone",
-					WhenUnsatisfiable: corev1.DoNotSchedule,
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"cnpg.io/cluster": clusterName,
-						},
+		},
+		"affinity": map[string]any{
+			"enablePodAntiAffinity": false,
+		},
+		"topologySpreadConstraints": []any{
+			map[string]any{
+				"maxSkew":           int64(1),
+				"topologyKey":       "topology.kubernetes.io/zone",
+				"whenUnsatisfiable": string(corev1.DoNotSchedule),
+				"labelSelector": map[string]any{
+					"matchLabels": map[string]any{
+						"cnpg.io/cluster": clusterName,
 					},
 				},
 			},
 		},
 	}
+	if err := cnpgapi.SetSpec(cluster, spec); err != nil {
+		r.logger.Error(err, "failed to build Cluster spec")
+		return nil
+	}
+	return cluster
 }
 
 func clusterScaleForEnvironment(environment string) (int, bool) {
@@ -1582,37 +1666,31 @@ func (r *CnpgSyncReconciler) ensureManagedRoleForResource(
 		connectionLimit = int64(scaleInt(connectionsPerApp, scale))
 	}
 
-	cluster := &cnpgv1.Cluster{}
+	cluster := cnpgapi.NewCluster(cnpgNamespace, clusterName)
 	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
 		return false, fmt.Errorf("get cluster: %w", err)
 	}
 
 	// Check if role already exists in spec
-	roleExists := false
-	if cluster.Spec.Managed != nil {
-		for _, role := range cluster.Spec.Managed.Roles {
-			if role.Name == pgRole {
-				roleExists = true
-				break
-			}
-		}
+	roleExists, err := cnpgapi.RoleExists(cluster, pgRole)
+	if err != nil {
+		return false, fmt.Errorf("read managed roles: %w", err)
 	}
 
 	if !roleExists {
 		secretName := fmt.Sprintf(passwordSecretNameFormat, resourceName)
-		role := cnpgv1.RoleConfiguration{
-			Name:            pgRole,
-			Login:           true,
-			ConnectionLimit: connectionLimit,
-			PasswordSecret: &cnpgv1.LocalObjectReference{
-				Name: secretName,
+		role := map[string]any{
+			"name":            pgRole,
+			"login":           true,
+			"connectionLimit": connectionLimit,
+			"passwordSecret": map[string]any{
+				"name": secretName,
 			},
 		}
 
-		if cluster.Spec.Managed == nil {
-			cluster.Spec.Managed = &cnpgv1.ManagedConfiguration{}
+		if err := cnpgapi.AddRole(cluster, role); err != nil {
+			return false, fmt.Errorf("add managed role: %w", err)
 		}
-		cluster.Spec.Managed.Roles = append(cluster.Spec.Managed.Roles, role)
 
 		for attempt := range maxUpdateRetries {
 			err := r.k8sClient.Update(ctx, cluster)
@@ -1632,21 +1710,25 @@ func (r *CnpgSyncReconciler) ensureManagedRoleForResource(
 				return false, fmt.Errorf("refresh cluster: %w", err)
 			}
 			// Re-check if role was added by another process
-			for _, existing := range cluster.Spec.Managed.Roles {
-				if existing.Name == pgRole {
-					return false, nil // Role already added, continue to status check
-				}
+			roleExists, err := cnpgapi.RoleExists(cluster, pgRole)
+			if err != nil {
+				return false, fmt.Errorf("read managed roles: %w", err)
 			}
-			cluster.Spec.Managed.Roles = append(cluster.Spec.Managed.Roles, role)
+			if roleExists {
+				return false, nil // Role already added, continue to status check
+			}
+			if err := cnpgapi.AddRole(cluster, role); err != nil {
+				return false, fmt.Errorf("add managed role: %w", err)
+			}
 		}
 		return false, fmt.Errorf("%w: %d attempts", errManagedRoleAddRetryExhausted, maxUpdateRetries)
 	}
 
 	// Check if role is reconciled
-	if cluster.Status.ManagedRolesStatus.ByStatus == nil {
-		return false, nil
+	reconciledRoles, err := cnpgapi.ReconciledRoleNames(cluster)
+	if err != nil {
+		return false, fmt.Errorf("read reconciled roles: %w", err)
 	}
-	reconciledRoles := cluster.Status.ManagedRolesStatus.ByStatus[cnpgv1.RoleStatusReconciled]
 	if slices.Contains(reconciledRoles, pgRole) {
 		return true, nil
 	}
@@ -1673,24 +1755,21 @@ func (r *CnpgSyncReconciler) ensureDatabaseForResource(
 	labels map[string]string,
 ) (ready bool, err error) {
 	dbName := fmt.Sprintf(databaseNameFormat, resourceName)
-	database := &cnpgv1.Database{}
+	database := cnpgapi.NewDatabase(cnpgNamespace, dbName)
 	err = r.k8sClient.Get(ctx, client.ObjectKey{Name: dbName, Namespace: cnpgNamespace}, database)
 
 	if apierrors.IsNotFound(err) {
-		database = &cnpgv1.Database{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      dbName,
-				Namespace: cnpgNamespace,
-				Labels:    labels,
+		database = cnpgapi.NewDatabase(cnpgNamespace, dbName)
+		database.SetLabels(labels)
+		if err := cnpgapi.SetSpec(database, map[string]any{
+			"cluster": map[string]any{
+				"name": clusterName,
 			},
-			Spec: cnpgv1.DatabaseSpec{
-				ClusterRef: corev1.LocalObjectReference{
-					Name: clusterName,
-				},
-				Name:          pgName, // PostgreSQL database name
-				Owner:         pgName, // The managed role
-				ReclaimPolicy: cnpgv1.DatabaseReclaimDelete,
-			},
+			"name":                  pgName, // PostgreSQL database name
+			"owner":                 pgName, // The managed role
+			"databaseReclaimPolicy": cnpgapi.ReclaimDelete,
+		}); err != nil {
+			return false, fmt.Errorf("build database spec: %w", err)
 		}
 
 		if err := r.k8sClient.Create(ctx, database); err != nil {
@@ -1704,7 +1783,11 @@ func (r *CnpgSyncReconciler) ensureDatabaseForResource(
 	}
 
 	// Check if database is applied
-	if database.Status.Applied != nil && *database.Status.Applied {
+	applied, err := cnpgapi.DatabaseApplied(database)
+	if err != nil {
+		return false, fmt.Errorf("read database status: %w", err)
+	}
+	if applied {
 		return true, nil
 	}
 	return false, nil
@@ -1721,14 +1804,18 @@ func (r *CnpgSyncReconciler) syncDatabaseSecrets(ctx context.Context) error {
 	for _, appId := range apps {
 		// Check if database is ready
 		dbName := fmt.Sprintf(databaseNameFormat, appId)
-		database := &cnpgv1.Database{}
+		database := cnpgapi.NewDatabase(cnpgNamespace, dbName)
 		if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: dbName, Namespace: cnpgNamespace}, database); err != nil {
 			if apierrors.IsNotFound(err) {
 				continue // Database not created yet
 			}
 			return fmt.Errorf("get database %s: %w", dbName, err)
 		}
-		if database.Status.Applied == nil || !*database.Status.Applied {
+		applied, err := cnpgapi.DatabaseApplied(database)
+		if err != nil {
+			return fmt.Errorf("read database status %s: %w", dbName, err)
+		}
+		if !applied {
 			continue // Database not ready
 		}
 
@@ -1884,7 +1971,7 @@ func (r *CnpgSyncReconciler) syncWorkflowEngineAppSecret(ctx context.Context) er
 		return nil
 	}
 
-	database := &cnpgv1.Database{}
+	database := cnpgapi.NewDatabase(cnpgNamespace, fmt.Sprintf(databaseNameFormat, workflowEngineAppId))
 	if err := r.k8sClient.Get(
 		ctx,
 		client.ObjectKey{Name: fmt.Sprintf(databaseNameFormat, workflowEngineAppId), Namespace: cnpgNamespace},
@@ -1898,7 +1985,11 @@ func (r *CnpgSyncReconciler) syncWorkflowEngineAppSecret(ctx context.Context) er
 	if !isManagedWorkflowEngineDatabase(database) {
 		return nil
 	}
-	if database.Status.Applied == nil || !*database.Status.Applied {
+	applied, err := cnpgapi.DatabaseApplied(database)
+	if err != nil {
+		return fmt.Errorf("read workflow engine database status: %w", err)
+	}
+	if !applied {
 		return nil
 	}
 
@@ -1931,7 +2022,7 @@ func (r *CnpgSyncReconciler) syncWorkflowEngineAppSecret(ctx context.Context) er
 
 	secret := &corev1.Secret{}
 	key := client.ObjectKey{Name: workflowEngineSecretName, Namespace: workflowEngineSecretNamespace}
-	err := r.k8sClient.Get(ctx, key, secret)
+	err = r.k8sClient.Get(ctx, key, secret)
 	if apierrors.IsNotFound(err) {
 		r.logger.Info("workflow engine secret not found, skipping secret sync",
 			"secretName", workflowEngineSecretName,
@@ -2068,7 +2159,7 @@ func (r *CnpgSyncReconciler) cleanupRemovedApps(ctx context.Context) error {
 	}
 
 	// List all databases managed by us
-	dbList := &cnpgv1.DatabaseList{}
+	dbList := cnpgapi.NewDatabaseList()
 	if err := r.k8sClient.List(ctx, dbList,
 		client.InNamespace(cnpgNamespace),
 		client.MatchingLabels{"app.kubernetes.io/managed-by": "altinn-studio-operator"},
@@ -2077,7 +2168,7 @@ func (r *CnpgSyncReconciler) cleanupRemovedApps(ctx context.Context) error {
 	}
 
 	for _, db := range dbList.Items {
-		appId := db.Labels["altinn.studio/app-id"]
+		appId := db.GetLabels()["altinn.studio/app-id"]
 		if appId == "" {
 			continue // Skip databases without the app-id label
 		}
@@ -2119,9 +2210,10 @@ func (r *CnpgSyncReconciler) cleanupRemovedWorkflowEngineApp(ctx context.Context
 	return r.cleanupWorkflowEngineAppResources(ctx, ownedDatabase, ownedRole, ownedPasswordSecret)
 }
 
-func isManagedWorkflowEngineDatabase(database *cnpgv1.Database) bool {
-	return database.Labels[managedByLabelKey] == managedByLabelValue &&
-		database.Labels[workflowEngineLabelKey] == workflowEngineLabelValue
+func isManagedWorkflowEngineDatabase(database client.Object) bool {
+	labels := database.GetLabels()
+	return labels[managedByLabelKey] == managedByLabelValue &&
+		labels[workflowEngineLabelKey] == workflowEngineLabelValue
 }
 
 func isManagedWorkflowEnginePasswordSecret(secret *corev1.Secret) bool {
@@ -2130,7 +2222,7 @@ func isManagedWorkflowEnginePasswordSecret(secret *corev1.Secret) bool {
 }
 
 func (r *CnpgSyncReconciler) workflowEngineDatabaseOwnership(ctx context.Context) (owned, exists bool, err error) {
-	database := &cnpgv1.Database{}
+	database := cnpgapi.NewDatabase(cnpgNamespace, fmt.Sprintf(databaseNameFormat, workflowEngineAppId))
 	err = r.k8sClient.Get(
 		ctx,
 		client.ObjectKey{Name: fmt.Sprintf(databaseNameFormat, workflowEngineAppId), Namespace: cnpgNamespace},
@@ -2202,14 +2294,18 @@ func (r *CnpgSyncReconciler) ensureWorkflowEnginePasswordSecret(ctx context.Cont
 }
 
 func (r *CnpgSyncReconciler) workflowEngineRoleOwnership(ctx context.Context) (owned, exists bool, err error) {
-	cluster := &cnpgv1.Cluster{}
+	cluster := cnpgapi.NewCluster(cnpgNamespace, clusterName)
 	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
 		if apierrors.IsNotFound(err) {
 			return false, false, nil
 		}
 		return false, false, fmt.Errorf("get cluster: %w", err)
 	}
-	if cluster.Spec.Managed == nil {
+	hasManaged, err := cnpgapi.HasManaged(cluster)
+	if err != nil {
+		return false, false, fmt.Errorf("read managed roles: %w", err)
+	}
+	if !hasManaged {
 		return false, false, nil
 	}
 
@@ -2219,15 +2315,14 @@ func (r *CnpgSyncReconciler) workflowEngineRoleOwnership(ctx context.Context) (o
 	}
 
 	passwordSecretName := fmt.Sprintf(passwordSecretNameFormat, workflowEngineAppId)
-	for _, role := range cluster.Spec.Managed.Roles {
-		if role.Name != workflowEngineDatabaseName {
-			continue
-		}
-		return passwordSecretOwned &&
-			role.PasswordSecret != nil &&
-			role.PasswordSecret.Name == passwordSecretName, true, nil
+	roleSecretName, roleExists, err := cnpgapi.RolePasswordSecretName(cluster, workflowEngineDatabaseName)
+	if err != nil {
+		return false, false, fmt.Errorf("read workflow engine role: %w", err)
 	}
-	return false, false, nil
+	if !roleExists {
+		return false, false, nil
+	}
+	return passwordSecretOwned && roleSecretName == passwordSecretName, true, nil
 }
 
 // cleanupAppDatabase removes all database resources for an app.
@@ -2276,7 +2371,7 @@ func (r *CnpgSyncReconciler) cleanupWorkflowEngineAppResources(
 
 func (r *CnpgSyncReconciler) deleteDatabaseIfExists(ctx context.Context, appId string) error {
 	dbName := fmt.Sprintf(databaseNameFormat, appId)
-	database := &cnpgv1.Database{}
+	database := cnpgapi.NewDatabase(cnpgNamespace, dbName)
 	err := r.k8sClient.Get(ctx, client.ObjectKey{Name: dbName, Namespace: cnpgNamespace}, database)
 
 	if apierrors.IsNotFound(err) {
@@ -2301,7 +2396,7 @@ func (r *CnpgSyncReconciler) removeManagedRoleForResource(
 	ctx context.Context,
 	resourceName, pgRole string,
 ) error {
-	cluster := &cnpgv1.Cluster{}
+	cluster := cnpgapi.NewCluster(cnpgNamespace, clusterName)
 	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
@@ -2309,25 +2404,22 @@ func (r *CnpgSyncReconciler) removeManagedRoleForResource(
 		return fmt.Errorf("get cluster: %w", err)
 	}
 
-	if cluster.Spec.Managed == nil {
+	hasManaged, err := cnpgapi.HasManaged(cluster)
+	if err != nil {
+		return fmt.Errorf("read managed roles: %w", err)
+	}
+	if !hasManaged {
 		return nil
 	}
 
-	newRoles := make([]cnpgv1.RoleConfiguration, 0, len(cluster.Spec.Managed.Roles))
-	found := false
-	for _, role := range cluster.Spec.Managed.Roles {
-		if role.Name == pgRole {
-			found = true
-			continue
-		}
-		newRoles = append(newRoles, role)
+	found, err := cnpgapi.RemoveRole(cluster, pgRole)
+	if err != nil {
+		return fmt.Errorf("remove managed role: %w", err)
 	}
-
 	if !found {
 		return nil
 	}
 
-	cluster.Spec.Managed.Roles = newRoles
 	for attempt := range maxUpdateRetries {
 		err := r.k8sClient.Update(ctx, cluster)
 		if err == nil {
@@ -2345,23 +2437,20 @@ func (r *CnpgSyncReconciler) removeManagedRoleForResource(
 		); err != nil {
 			return fmt.Errorf("refresh cluster: %w", err)
 		}
-		if cluster.Spec.Managed == nil {
+		hasManaged, err := cnpgapi.HasManaged(cluster)
+		if err != nil {
+			return fmt.Errorf("read managed roles: %w", err)
+		}
+		if !hasManaged {
 			return nil // Nothing to remove
 		}
-		// Rebuild newRoles excluding pgRole
-		newRoles = make([]cnpgv1.RoleConfiguration, 0, len(cluster.Spec.Managed.Roles))
-		found = false
-		for _, role := range cluster.Spec.Managed.Roles {
-			if role.Name == pgRole {
-				found = true
-				continue
-			}
-			newRoles = append(newRoles, role)
+		found, err = cnpgapi.RemoveRole(cluster, pgRole)
+		if err != nil {
+			return fmt.Errorf("remove managed role: %w", err)
 		}
 		if !found {
 			return nil // Already removed
 		}
-		cluster.Spec.Managed.Roles = newRoles
 	}
 	return fmt.Errorf("%w: %d attempts", errManagedRoleRemoveRetryExhausted, maxUpdateRetries)
 }

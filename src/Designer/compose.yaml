@@ -98,14 +98,12 @@ services:
     post_start:
       - command: >
           sh -c '
-          STUDIO_OIDC_FLAG=$$([ "$$FeatureManagement__StudioOidc" = "true" ] && echo true || echo false) &&
-          echo "{\"accountLinkUrl\": \"$$StudioOidcLoginSettings__AccountLinkUrl\", \"featureFlags\": {\"studioOidc\": $$STUDIO_OIDC_FLAG}}" > /app/wwwroot/designer/config/env.json
+          echo "{\"accountLinkUrl\": \"$$StudioOidcLoginSettings__AccountLinkUrl\", \"featureFlags\": {\"studioOidc\": true}}" > /app/wwwroot/designer/config/env.json
           '
     volumes:
       - 'designer-git-data:/AltinnCore/Repos'
       - 'keys:/mnt/keys'
     environment:
-      - FeatureManagement__StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
       - StudioOidcLoginSettings__AccountLinkUrl=http://studio.localhost/repos/user/oauth2/fake-ansattporten
       - OTEL_SERVICE_NAME=studio-designer
       - ASPNETCORE_ENVIRONMENT=Development
@@ -149,7 +147,6 @@ services:
       - StudioOidcLoginSettings:AuthorizationDetails:0:RepresentationIsRequired=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
-      - FeatureManagement:StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true
@@ -202,7 +199,6 @@ services:
     environment:
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - GITEA_HOST=studio-repositories:3000
-      - STUDIO_OIDC_ENABLED=${FEATUREFLAGS_STUDIOOIDC:-true}
       - OTEL_ENDPOINT=localhost:4317
       - OTEL_SERVICE_NAME=gitea-proxy
       - OTEL_TRACE=off
