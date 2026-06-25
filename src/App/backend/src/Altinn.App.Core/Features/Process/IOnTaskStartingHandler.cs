@@ -21,7 +21,7 @@ public interface IOnTaskStartingHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>A start task result indicating success or failure.</returns>
-    public Task<OnTaskStartingHandlerResult> Execute(OnTaskStartingContext context);
+    public Task<OnTaskStartingResult> Execute(OnTaskStartingContext context);
 }
 
 /// <summary>
@@ -43,19 +43,19 @@ public sealed class OnTaskStartingContext
 /// <summary>
 /// Base type for start task hook execution results.
 /// </summary>
-public abstract record OnTaskStartingHandlerResult : HookResult
+public abstract record OnTaskStartingResult : HookResult
 {
     /// <summary>
     /// Creates a result representing successful hook execution.
     /// </summary>
-    public static SuccessfulOnTaskStartingHandlerResult Success() => new();
+    public static SuccessfulOnTaskStartingResult Success() => new();
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskStartingHandlerResult FailedRetryable(string errorMessage) =>
+    public static FailedOnTaskStartingResult FailedRetryable(string errorMessage) =>
         new(errorMessage, NonRetryable: false);
 
     /// <summary>
@@ -64,14 +64,14 @@ public abstract record OnTaskStartingHandlerResult : HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskStartingHandlerResult FailedPermanent(string errorMessage) =>
+    public static FailedOnTaskStartingResult FailedPermanent(string errorMessage) =>
         new(errorMessage, NonRetryable: true);
 }
 
 /// <summary>
 /// Represents a successful start task hook execution.
 /// </summary>
-public sealed record SuccessfulOnTaskStartingHandlerResult : OnTaskStartingHandlerResult;
+public sealed record SuccessfulOnTaskStartingResult : OnTaskStartingResult;
 
 /// <summary>
 /// Represents a failed start task hook execution.
@@ -81,5 +81,4 @@ public sealed record SuccessfulOnTaskStartingHandlerResult : OnTaskStartingHandl
 /// If true, the workflow engine will not retry this step (permanent failure).
 /// If false, the workflow engine will retry with backoff (transient failure).
 /// </param>
-public sealed record FailedOnTaskStartingHandlerResult(string ErrorMessage, bool NonRetryable)
-    : OnTaskStartingHandlerResult;
+public sealed record FailedOnTaskStartingResult(string ErrorMessage, bool NonRetryable) : OnTaskStartingResult;

@@ -39,7 +39,7 @@ internal sealed class OnTaskEndingHook : IWorkflowEngineCommand
             return new SuccessfulProcessEngineCommandResult();
         }
 
-        var hookParameters = new OnTaskEndingHandlerContext
+        var hookParameters = new OnTaskEndingContext
         {
             InstanceDataMutator = dataMutator,
             CancellationToken = parameters.CancellationToken,
@@ -47,16 +47,16 @@ internal sealed class OnTaskEndingHook : IWorkflowEngineCommand
 
         try
         {
-            OnEndingHandlerResult result = await hook.Execute(hookParameters);
+            OnTaskEndingResult result = await hook.Execute(hookParameters);
 
             return result switch
             {
-                SuccessfulOnEndingHandlerResult => new SuccessfulProcessEngineCommandResult(),
-                FailedOnTaskEndingHandlerResult failed => failed.NonRetryable
+                SuccessfulOnTaskEndingResult => new SuccessfulProcessEngineCommandResult(),
+                FailedOnTaskEndingResult failed => failed.NonRetryable
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(
-                    $"Unexpected {nameof(OnEndingHandlerResult)} type: {result.GetType().Name}"
+                    $"Unexpected {nameof(OnTaskEndingResult)} type: {result.GetType().Name}"
                 ),
             };
         }

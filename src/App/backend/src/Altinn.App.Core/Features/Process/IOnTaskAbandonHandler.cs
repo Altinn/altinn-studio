@@ -21,13 +21,13 @@ public interface IOnTaskAbandonHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>An abandon task result indicating success or failure.</returns>
-    public Task<OnAbandonHandlerResult> Execute(OnTaskAbandonHandlerContext context);
+    public Task<OnTaskAbandonResult> Execute(OnTaskAbandonContext context);
 }
 
 /// <summary>
 /// Parameters for abandon task hook execution.
 /// </summary>
-public sealed class OnTaskAbandonHandlerContext
+public sealed class OnTaskAbandonContext
 {
     /// <summary>
     /// An instance data mutator that can be used to access and modify instance data. Changes made will be automatically saved if the hook execution is successful.
@@ -43,19 +43,19 @@ public sealed class OnTaskAbandonHandlerContext
 /// <summary>
 /// Base type for abandon task hook execution results.
 /// </summary>
-public abstract record OnAbandonHandlerResult : HookResult
+public abstract record OnTaskAbandonResult : HookResult
 {
     /// <summary>
     /// Creates a result representing successful hook execution.
     /// </summary>
-    public static SuccessfulOnAbandonHandlerResult Success() => new();
+    public static SuccessfulOnTaskAbandonResult Success() => new();
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskAbandonHandlerResult FailedRetryable(string errorMessage) =>
+    public static FailedOnTaskAbandonResult FailedRetryable(string errorMessage) =>
         new(errorMessage, NonRetryable: false);
 
     /// <summary>
@@ -64,14 +64,14 @@ public abstract record OnAbandonHandlerResult : HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskAbandonHandlerResult FailedPermanent(string errorMessage) =>
+    public static FailedOnTaskAbandonResult FailedPermanent(string errorMessage) =>
         new(errorMessage, NonRetryable: true);
 }
 
 /// <summary>
 /// Represents a successful abandon task hook execution.
 /// </summary>
-public sealed record SuccessfulOnAbandonHandlerResult : OnAbandonHandlerResult;
+public sealed record SuccessfulOnTaskAbandonResult : OnTaskAbandonResult;
 
 /// <summary>
 /// Represents a failed abandon task hook execution.
@@ -81,4 +81,4 @@ public sealed record SuccessfulOnAbandonHandlerResult : OnAbandonHandlerResult;
 /// If true, the workflow engine will not retry this step (permanent failure).
 /// If false, the workflow engine will retry with backoff (transient failure).
 /// </param>
-public sealed record FailedOnTaskAbandonHandlerResult(string ErrorMessage, bool NonRetryable) : OnAbandonHandlerResult;
+public sealed record FailedOnTaskAbandonResult(string ErrorMessage, bool NonRetryable) : OnTaskAbandonResult;

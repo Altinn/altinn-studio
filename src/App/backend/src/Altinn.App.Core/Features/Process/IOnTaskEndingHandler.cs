@@ -21,13 +21,13 @@ public interface IOnTaskEndingHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>An end task result indicating success or failure.</returns>
-    public Task<OnEndingHandlerResult> Execute(OnTaskEndingHandlerContext context);
+    public Task<OnTaskEndingResult> Execute(OnTaskEndingContext context);
 }
 
 /// <summary>
 /// Parameters for end task hook execution.
 /// </summary>
-public sealed class OnTaskEndingHandlerContext
+public sealed class OnTaskEndingContext
 {
     /// <summary>
     /// An instance data mutator that can be used to access and modify instance data. Changes made will be automatically saved if the hook execution is successful.
@@ -43,19 +43,19 @@ public sealed class OnTaskEndingHandlerContext
 /// <summary>
 /// Base type for end task hook execution results.
 /// </summary>
-public abstract record OnEndingHandlerResult : HookResult
+public abstract record OnTaskEndingResult : HookResult
 {
     /// <summary>
     /// Creates a result representing successful hook execution.
     /// </summary>
-    public static SuccessfulOnEndingHandlerResult Success() => new();
+    public static SuccessfulOnTaskEndingResult Success() => new();
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskEndingHandlerResult FailedRetryable(string errorMessage) =>
+    public static FailedOnTaskEndingResult FailedRetryable(string errorMessage) =>
         new(errorMessage, NonRetryable: false);
 
     /// <summary>
@@ -64,14 +64,14 @@ public abstract record OnEndingHandlerResult : HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskEndingHandlerResult FailedPermanent(string errorMessage) =>
+    public static FailedOnTaskEndingResult FailedPermanent(string errorMessage) =>
         new(errorMessage, NonRetryable: true);
 }
 
 /// <summary>
 /// Represents a successful end task hook execution.
 /// </summary>
-public sealed record SuccessfulOnEndingHandlerResult : OnEndingHandlerResult;
+public sealed record SuccessfulOnTaskEndingResult : OnTaskEndingResult;
 
 /// <summary>
 /// Represents a failed end task hook execution.
@@ -81,4 +81,4 @@ public sealed record SuccessfulOnEndingHandlerResult : OnEndingHandlerResult;
 /// If true, the workflow engine will not retry this step (permanent failure).
 /// If false, the workflow engine will retry with backoff (transient failure).
 /// </param>
-public sealed record FailedOnTaskEndingHandlerResult(string ErrorMessage, bool NonRetryable) : OnEndingHandlerResult;
+public sealed record FailedOnTaskEndingResult(string ErrorMessage, bool NonRetryable) : OnTaskEndingResult;

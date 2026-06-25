@@ -14,13 +14,13 @@ public interface IOnProcessEndingHandler
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>An end process result indicating success or failure.</returns>
-    public Task<OnProcessEndingHandlerResult> Execute(OnProcessEndingHandlerContext context);
+    public Task<OnProcessEndingResult> Execute(OnProcessEndingContext context);
 }
 
 /// <summary>
 /// Parameters for end process hook execution.
 /// </summary>
-public sealed class OnProcessEndingHandlerContext
+public sealed class OnProcessEndingContext
 {
     /// <summary>
     /// An instance data mutator that can be used to access and modify instance data. Changes made will be automatically saved if the hook execution is successful.
@@ -36,19 +36,19 @@ public sealed class OnProcessEndingHandlerContext
 /// <summary>
 /// Base type for end process hook execution results.
 /// </summary>
-public abstract record OnProcessEndingHandlerResult : HookResult
+public abstract record OnProcessEndingResult : HookResult
 {
     /// <summary>
     /// Creates a result representing successful hook execution.
     /// </summary>
-    public static SuccessfulOnProcessEndingHandlerResult Success() => new();
+    public static SuccessfulOnProcessEndingResult Success() => new();
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnProcessEndingHandlerResult FailedRetryable(string errorMessage) =>
+    public static FailedOnProcessEndingResult FailedRetryable(string errorMessage) =>
         new(errorMessage, NonRetryable: false);
 
     /// <summary>
@@ -57,14 +57,14 @@ public abstract record OnProcessEndingHandlerResult : HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnProcessEndingHandlerResult FailedPermanent(string errorMessage) =>
+    public static FailedOnProcessEndingResult FailedPermanent(string errorMessage) =>
         new(errorMessage, NonRetryable: true);
 }
 
 /// <summary>
 /// Represents a successful end process hook execution.
 /// </summary>
-public sealed record SuccessfulOnProcessEndingHandlerResult : OnProcessEndingHandlerResult;
+public sealed record SuccessfulOnProcessEndingResult : OnProcessEndingResult;
 
 /// <summary>
 /// Represents a failed end process hook execution.
@@ -74,5 +74,4 @@ public sealed record SuccessfulOnProcessEndingHandlerResult : OnProcessEndingHan
 /// If true, the workflow engine will not retry this step (permanent failure).
 /// If false, the workflow engine will retry with backoff (transient failure).
 /// </param>
-public sealed record FailedOnProcessEndingHandlerResult(string ErrorMessage, bool NonRetryable)
-    : OnProcessEndingHandlerResult;
+public sealed record FailedOnProcessEndingResult(string ErrorMessage, bool NonRetryable) : OnProcessEndingResult;
