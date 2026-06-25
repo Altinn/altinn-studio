@@ -69,9 +69,9 @@ type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {
-    title: 'Fødselsdato',
-    description: 'Oppgi datoen du ble født.',
-    help: 'Du finner fødselsdatoen din i passet eller på fødselsattesten.',
+    title: 'Dato for vedtak',
+    description: 'Oppgi datoen vedtaket ble fattet.',
+    help: 'Du finner vedtaksdatoen øverst i vedtaksbrevet du har mottatt.',
   },
 };
 
@@ -91,6 +91,6 @@ export const WithMinMax: Story = {
 
 export const WithValidationMessages: Story = {
   args: {
-    validationMessages: 'You must enter a valid date.',
+    validationMessages: 'Du må oppgi en gyldig dato.',
   },
 };
