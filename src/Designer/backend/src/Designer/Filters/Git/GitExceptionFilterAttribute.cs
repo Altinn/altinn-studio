@@ -73,7 +73,7 @@ public class GitExceptionFilterAttribute : ExceptionFilterAttribute
         {
             context.Result = new ObjectResult(
                 ProblemDetailsUtils.GenerateProblemDetails(
-                    GitErrorCodes.NonExistingBranch,
+                    GitErrorCodes.BranchNotFound,
                     HttpStatusCode.NotFound,
                     values: new Dictionary<string, object> { { "branchName", branchNotFoundException.BranchName } }
                 )

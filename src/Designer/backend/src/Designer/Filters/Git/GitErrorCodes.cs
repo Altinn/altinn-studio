@@ -5,7 +5,7 @@ public class GitErrorCodes
 {
     public const string NonFastForwardError = "GT_01";
     public const string RepositoryNotFound = "GT_02";
-    public const string SessionExpired = nameof(SessionExpired);
+    public const string SessionExpired = "GT_SessionExpired";
     public const string UncommittedChanges = "GT_04";
-    public const string NonExistingBranch = nameof(NonExistingBranch);
+    public const string BranchNotFound = "GT_BranchNotFound";
 }
