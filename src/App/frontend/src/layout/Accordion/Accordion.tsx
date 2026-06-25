@@ -18,7 +18,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   // Accordion renders as a bare item instead.
   const renderAsAccordionItem = useIsInAccordionGroup();
   const {
-    id: contentId,
+    componentId,
     innerGrid,
     validationGrid,
     showValidationMessages,
@@ -30,7 +30,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
       openByDefault={Boolean(openByDefault)}
       renderAsItem={renderAsAccordionItem}
       className={classes.container}
-      contentId={contentId}
+      componentId={componentId}
       innerGrid={innerGrid}
       validationGrid={validationGrid}
       validationMessages={

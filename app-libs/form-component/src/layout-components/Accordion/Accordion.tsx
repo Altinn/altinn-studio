@@ -29,8 +29,8 @@ export interface AccordionProps {
    * (which provides its own Card wrapper). Defaults to `false` (wrapped in a Card).
    */
   renderAsItem?: boolean;
-  /** Id for the surrounding ComponentStructure content wrapper. */
-  contentId?: string;
+  /** The configured component id. The wrapping element's DOM id is derived as `form-content-${componentId}`. */
+  componentId?: string;
   /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
   /** Grid sizing for the validation messages. */
@@ -45,7 +45,7 @@ export function Accordion({
   children,
   className,
   renderAsItem,
-  contentId,
+  componentId,
   innerGrid,
   validationGrid,
   validationMessages,
@@ -62,7 +62,7 @@ export function Accordion({
 
   return (
     <ComponentStructure
-      id={contentId}
+      componentId={componentId}
       innerGrid={innerGrid}
       validationGrid={validationGrid}
       validationMessages={validationMessages}

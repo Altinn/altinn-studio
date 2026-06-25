@@ -1,3 +1,5 @@
+import { ParagraphText } from '@app/form-component/app-components';
+import { List } from '@digdir/designsystemet-react';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -10,14 +12,17 @@ import type { AccordionProps } from './Accordion';
  * makes it exhaustive — a new prop must be classified here.
  */
 export const ACCORDION_PROP_CATEGORIES = {
-  title: 'config',
-  openByDefault: 'config',
+  // Text resource — Studio "Tekst" section (textResourceBindings)
+  title: 'text',
+  // Configurable options — Studio "Innhold" section
+  openByDefault: 'content',
+  componentId: 'content',
+  innerGrid: 'content',
+  validationGrid: 'content',
+  // Injected by the runtime wrapper — not part of the Studio configuration
   children: 'runtime',
   className: 'runtime',
   renderAsItem: 'runtime',
-  contentId: 'runtime',
-  innerGrid: 'runtime',
-  validationGrid: 'runtime',
   validationMessages: 'runtime',
 } satisfies PropCategories<AccordionProps>;
 
@@ -41,10 +46,10 @@ type Story = StoryObj<typeof meta>;
 export const Preview: Story = {
   args: {
     children: (
-      <p>
+      <ParagraphText>
         Accordion content goes here. Use this to hide secondary information until the user wants to
         see it.
-      </p>
+      </ParagraphText>
     ),
   },
 };
@@ -52,7 +57,9 @@ export const Preview: Story = {
 export const OpenByDefault: Story = {
   args: {
     openByDefault: true,
-    children: <p>This accordion starts expanded because openByDefault is true.</p>,
+    children: (
+      <ParagraphText>This accordion starts expanded because openByDefault is true.</ParagraphText>
+    ),
   },
 };
 
@@ -60,12 +67,12 @@ export const WithMultipleChildren: Story = {
   args: {
     children: (
       <>
-        <p>First paragraph of content.</p>
-        <p>Second paragraph of content.</p>
-        <ul>
-          <li>And a list item</li>
-          <li>And another list item</li>
-        </ul>
+        <ParagraphText>First paragraph of content.</ParagraphText>
+        <ParagraphText>Second paragraph of content.</ParagraphText>
+        <List.Unordered>
+          <List.Item>And a list item</List.Item>
+          <List.Item>And another list item</List.Item>
+        </List.Unordered>
       </>
     ),
   },
@@ -75,7 +82,9 @@ export const WithoutCard: Story = {
   args: {
     renderAsItem: true,
     children: (
-      <p>Rendered without the Card wrapper, as it would appear inside an AccordionGroup.</p>
+      <ParagraphText>
+        Rendered without the Card wrapper, as it would appear inside an AccordionGroup.
+      </ParagraphText>
     ),
   },
 };

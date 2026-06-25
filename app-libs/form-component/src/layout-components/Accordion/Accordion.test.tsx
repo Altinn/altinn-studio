@@ -68,4 +68,24 @@ describe('Accordion', () => {
 
     expect(container.querySelector('[data-color="neutral"]')).not.toBeInTheDocument();
   });
+
+  it('renders the form-content DOM id from componentId', () => {
+    const { container } = renderWithTranslations(
+      <Accordion title='x' componentId='my-accordion'>
+        <p>Body</p>
+      </Accordion>,
+    );
+
+    expect(container.querySelector('#form-content-my-accordion')).toBeInTheDocument();
+  });
+
+  it('does not render a form-content DOM id when componentId is omitted', () => {
+    const { container } = renderWithTranslations(
+      <Accordion title='x'>
+        <p>Body</p>
+      </Accordion>,
+    );
+
+    expect(container.querySelector('[id^="form-content-"]')).not.toBeInTheDocument();
+  });
 });
