@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
@@ -55,8 +54,7 @@ public class SourceControlServiceTest : IDisposable
         _sourceControlService = new SourceControlService(
             _settings,
             _giteaClientMock.Object,
-            new Mock<IGitServerAuthHeadersProvider>().Object,
-            new Mock<IConfiguration>().Object
+            new Mock<IGitServerAuthHeadersProvider>().Object
         );
     }
 
@@ -405,8 +403,7 @@ public class SourceControlServiceTest : IDisposable
         SourceControlService service = new(
             repoSettings,
             giteaMock.Object,
-            new Mock<IGitServerAuthHeadersProvider>().Object,
-            new Mock<IConfiguration>().Object
+            new Mock<IGitServerAuthHeadersProvider>().Object
         );
 
         return service;

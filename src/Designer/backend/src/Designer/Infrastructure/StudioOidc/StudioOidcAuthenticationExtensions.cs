@@ -39,14 +39,6 @@ public static class StudioOidcAuthenticationExtensions
         IWebHostEnvironment env
     )
     {
-        bool featureEnabled =
-            configuration.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
-
-        if (!featureEnabled)
-        {
-            return services;
-        }
-
         StudioOidcLoginSettings? oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
 
         if (oidcSettings == null)
