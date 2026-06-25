@@ -41,6 +41,7 @@ internal sealed class OnTaskEndingHook : IWorkflowEngineCommand
 
         var hookParameters = new OnTaskEndingContext
         {
+            TaskId = taskId,
             InstanceDataMutator = dataMutator,
             CancellationToken = parameters.CancellationToken,
         };

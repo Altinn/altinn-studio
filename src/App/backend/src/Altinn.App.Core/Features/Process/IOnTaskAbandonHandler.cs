@@ -30,6 +30,12 @@ public interface IOnTaskAbandonHandler
 public sealed class OnTaskAbandonContext
 {
     /// <summary>
+    /// The ID of the task this hook is running for (the task being abandoned).
+    /// Matches the <c>taskId</c> passed to <see cref="IOnTaskAbandonHandler.ShouldRunForTask"/>.
+    /// </summary>
+    public required string TaskId { get; init; }
+
+    /// <summary>
     /// An instance data mutator that can be used to access and modify instance data. Changes made will be automatically saved if the hook execution is successful.
     /// </summary>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }

@@ -41,6 +41,7 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
 
         var hookParameters = new OnTaskStartingContext
         {
+            TaskId = taskId,
             InstanceDataMutator = dataMutator,
             CancellationToken = parameters.CancellationToken,
         };
