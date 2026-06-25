@@ -158,11 +158,11 @@ public class UiFoldersController : Controller
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
         if (!IsV9App(editingContext))
         {
-            await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetId, cancellationToken);
             await _publisher.Publish(
                 new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetId },
                 cancellationToken
             );
+            await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetId, cancellationToken);
             return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
         }
         IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
