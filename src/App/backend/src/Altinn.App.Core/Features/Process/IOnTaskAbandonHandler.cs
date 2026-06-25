@@ -55,8 +55,11 @@ public abstract record OnTaskAbandonResult : HookResult
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskAbandonResult FailedRetryable(string errorMessage) =>
-        new(errorMessage, NonRetryable: false);
+    public static FailedOnTaskAbandonResult FailedRetryable(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedOnTaskAbandonResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
+    }
 
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
@@ -64,8 +67,11 @@ public abstract record OnTaskAbandonResult : HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskAbandonResult FailedPermanent(string errorMessage) =>
-        new(errorMessage, NonRetryable: true);
+    public static FailedOnTaskAbandonResult FailedPermanent(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedOnTaskAbandonResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+    }
 }
 
 /// <summary>
@@ -74,11 +80,20 @@ public abstract record OnTaskAbandonResult : HookResult
 public sealed record SuccessfulOnTaskAbandonResult : OnTaskAbandonResult;
 
 /// <summary>
-/// Represents a failed abandon task hook execution.
+/// Represents a failed abandon task hook execution. Construct via
+/// <see cref="OnTaskAbandonResult.FailedRetryable"/> or <see cref="OnTaskAbandonResult.FailedPermanent"/>.
 /// </summary>
-/// <param name="ErrorMessage">Human-readable error message describing the failure.</param>
-/// <param name="NonRetryable">
-/// If true, the workflow engine will not retry this step (permanent failure).
-/// If false, the workflow engine will retry with backoff (transient failure).
-/// </param>
-public sealed record FailedOnTaskAbandonResult(string ErrorMessage, bool NonRetryable) : OnTaskAbandonResult;
+public sealed record FailedOnTaskAbandonResult : OnTaskAbandonResult
+{
+    internal FailedOnTaskAbandonResult() { }
+
+    /// <summary>
+    /// Human-readable error message describing the failure.
+    /// </summary>
+    public required string ErrorMessage { get; init; }
+
+    /// <summary>
+    /// Whether the failure is retryable or permanent.
+    /// </summary>
+    internal FailureKind Kind { get; init; }
+}

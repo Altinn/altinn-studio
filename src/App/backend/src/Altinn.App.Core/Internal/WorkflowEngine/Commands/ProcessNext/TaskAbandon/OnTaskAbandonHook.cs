@@ -52,7 +52,7 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
             return result switch
             {
                 SuccessfulOnTaskAbandonResult => new SuccessfulProcessEngineCommandResult(),
-                FailedOnTaskAbandonResult failed => failed.NonRetryable
+                FailedOnTaskAbandonResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(

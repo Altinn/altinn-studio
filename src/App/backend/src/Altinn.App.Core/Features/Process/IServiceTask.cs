@@ -61,8 +61,11 @@ public abstract record ServiceTaskResult
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceTaskFailedResult FailedRetryable(string errorMessage) =>
-        new(errorMessage, NonRetryable: false);
+    public static ServiceTaskFailedResult FailedRetryable(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new ServiceTaskFailedResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
+    }
 
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
@@ -70,7 +73,11 @@ public abstract record ServiceTaskResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceTaskFailedResult FailedPermanent(string errorMessage) => new(errorMessage, NonRetryable: true);
+    public static ServiceTaskFailedResult FailedPermanent(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new ServiceTaskFailedResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+    }
 }
 
 /// <summary>
@@ -92,11 +99,20 @@ public sealed record ServiceTaskSuccessResult : ServiceTaskResult
 }
 
 /// <summary>
-/// Represents a failed result of executing a service task.
+/// Represents a failed result of executing a service task. Construct via
+/// <see cref="ServiceTaskResult.FailedRetryable"/> or <see cref="ServiceTaskResult.FailedPermanent"/>.
 /// </summary>
-/// <param name="ErrorMessage">Human-readable error message describing the failure.</param>
-/// <param name="NonRetryable">
-/// If true, the workflow engine will not retry this step (permanent failure).
-/// If false, the workflow engine will retry with backoff (transient failure).
-/// </param>
-public sealed record ServiceTaskFailedResult(string ErrorMessage, bool NonRetryable) : ServiceTaskResult;
+public sealed record ServiceTaskFailedResult : ServiceTaskResult
+{
+    internal ServiceTaskFailedResult() { }
+
+    /// <summary>
+    /// Human-readable error message describing the failure.
+    /// </summary>
+    public required string ErrorMessage { get; init; }
+
+    /// <summary>
+    /// Whether the failure is retryable or permanent.
+    /// </summary>
+    internal FailureKind Kind { get; init; }
+}

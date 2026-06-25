@@ -106,7 +106,7 @@ public class FiksArkivServiceTaskTest
 
         // Assert
         var failedResult = Assert.IsType<ServiceTaskFailedResult>(result);
-        Assert.False(failedResult.NonRetryable);
+        Assert.Equal(FailureKind.Retryable, failedResult.Kind);
     }
 
     private static Mock<IInstanceDataMutator> InstanceDataMutatorMockFactory(Instance instance)

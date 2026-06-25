@@ -52,7 +52,7 @@ internal sealed class OnTaskEndingHook : IWorkflowEngineCommand
             return result switch
             {
                 SuccessfulOnTaskEndingResult => new SuccessfulProcessEngineCommandResult(),
-                FailedOnTaskEndingResult failed => failed.NonRetryable
+                FailedOnTaskEndingResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(

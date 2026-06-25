@@ -53,7 +53,7 @@ internal sealed class OnProcessEndingHook : IWorkflowEngineCommand
             return result switch
             {
                 SuccessfulOnProcessEndingResult => new SuccessfulProcessEngineCommandResult(),
-                FailedOnProcessEndingResult failed => failed.NonRetryable
+                FailedOnProcessEndingResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(

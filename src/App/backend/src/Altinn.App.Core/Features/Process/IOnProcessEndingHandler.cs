@@ -48,8 +48,11 @@ public abstract record OnProcessEndingResult : HookResult
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnProcessEndingResult FailedRetryable(string errorMessage) =>
-        new(errorMessage, NonRetryable: false);
+    public static FailedOnProcessEndingResult FailedRetryable(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedOnProcessEndingResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
+    }
 
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
@@ -57,8 +60,11 @@ public abstract record OnProcessEndingResult : HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnProcessEndingResult FailedPermanent(string errorMessage) =>
-        new(errorMessage, NonRetryable: true);
+    public static FailedOnProcessEndingResult FailedPermanent(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedOnProcessEndingResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+    }
 }
 
 /// <summary>
@@ -67,11 +73,20 @@ public abstract record OnProcessEndingResult : HookResult
 public sealed record SuccessfulOnProcessEndingResult : OnProcessEndingResult;
 
 /// <summary>
-/// Represents a failed end process hook execution.
+/// Represents a failed end process hook execution. Construct via
+/// <see cref="OnProcessEndingResult.FailedRetryable"/> or <see cref="OnProcessEndingResult.FailedPermanent"/>.
 /// </summary>
-/// <param name="ErrorMessage">Human-readable error message describing the failure.</param>
-/// <param name="NonRetryable">
-/// If true, the workflow engine will not retry this step (permanent failure).
-/// If false, the workflow engine will retry with backoff (transient failure).
-/// </param>
-public sealed record FailedOnProcessEndingResult(string ErrorMessage, bool NonRetryable) : OnProcessEndingResult;
+public sealed record FailedOnProcessEndingResult : OnProcessEndingResult
+{
+    internal FailedOnProcessEndingResult() { }
+
+    /// <summary>
+    /// Human-readable error message describing the failure.
+    /// </summary>
+    public required string ErrorMessage { get; init; }
+
+    /// <summary>
+    /// Whether the failure is retryable or permanent.
+    /// </summary>
+    internal FailureKind Kind { get; init; }
+}

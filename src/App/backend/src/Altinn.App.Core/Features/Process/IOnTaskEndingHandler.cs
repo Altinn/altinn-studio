@@ -55,8 +55,11 @@ public abstract record OnTaskEndingResult : HookResult
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskEndingResult FailedRetryable(string errorMessage) =>
-        new(errorMessage, NonRetryable: false);
+    public static FailedOnTaskEndingResult FailedRetryable(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedOnTaskEndingResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
+    }
 
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
@@ -64,8 +67,11 @@ public abstract record OnTaskEndingResult : HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedOnTaskEndingResult FailedPermanent(string errorMessage) =>
-        new(errorMessage, NonRetryable: true);
+    public static FailedOnTaskEndingResult FailedPermanent(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedOnTaskEndingResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+    }
 }
 
 /// <summary>
@@ -74,11 +80,20 @@ public abstract record OnTaskEndingResult : HookResult
 public sealed record SuccessfulOnTaskEndingResult : OnTaskEndingResult;
 
 /// <summary>
-/// Represents a failed end task hook execution.
+/// Represents a failed end task hook execution. Construct via
+/// <see cref="OnTaskEndingResult.FailedRetryable"/> or <see cref="OnTaskEndingResult.FailedPermanent"/>.
 /// </summary>
-/// <param name="ErrorMessage">Human-readable error message describing the failure.</param>
-/// <param name="NonRetryable">
-/// If true, the workflow engine will not retry this step (permanent failure).
-/// If false, the workflow engine will retry with backoff (transient failure).
-/// </param>
-public sealed record FailedOnTaskEndingResult(string ErrorMessage, bool NonRetryable) : OnTaskEndingResult;
+public sealed record FailedOnTaskEndingResult : OnTaskEndingResult
+{
+    internal FailedOnTaskEndingResult() { }
+
+    /// <summary>
+    /// Human-readable error message describing the failure.
+    /// </summary>
+    public required string ErrorMessage { get; init; }
+
+    /// <summary>
+    /// Whether the failure is retryable or permanent.
+    /// </summary>
+    internal FailureKind Kind { get; init; }
+}
