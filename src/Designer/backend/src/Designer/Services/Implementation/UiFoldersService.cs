@@ -61,6 +61,7 @@ public class UiFoldersService : IUiFoldersService
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
         definitions.Process.Tasks.Any(task => task.Id == taskId);
 
+    // TODO: Update return type to a shared model used by both v8 and v9, so the controller can return the same model for both versions to frontend.
     public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
@@ -129,6 +130,7 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
+    // TODO: Return type UiFolderLayoutSetsDto is to be replaced
     public async Task<IEnumerable<UiFolderLayoutSetDto>> AddLayoutSet(
         AltinnRepoEditingContext editingContext,
         LayoutSetConfig newLayoutSet,
@@ -159,6 +161,7 @@ public class UiFoldersService : IUiFoldersService
         return await GetLayoutSets(editingContext, cancellationToken);
     }
 
+    // TODO: Return type UiFolderLayoutSetsDto is to be replaced
     public async Task<IEnumerable<UiFolderLayoutSetDto>> UpdateLayoutSetName(
         AltinnRepoEditingContext editingContext,
         string oldLayoutSetName,
@@ -227,6 +230,7 @@ public class UiFoldersService : IUiFoldersService
         return await GetLayoutSets(editingContext, cancellationToken);
     }
 
+    // TODO: Return type UiFolderLayoutSetsDto is to be replaced
     public async Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
         AltinnRepoEditingContext editingContext,
         string layoutSetToDeleteId,
