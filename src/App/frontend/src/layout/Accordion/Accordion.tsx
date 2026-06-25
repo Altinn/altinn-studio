@@ -17,12 +17,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   // Inside an AccordionGroup the group already provides the Card wrapper, so the
   // Accordion renders as a bare item instead.
   const renderAsAccordionItem = useIsInAccordionGroup();
-  const {
-    componentId,
-    innerGrid,
-    validationGrid,
-    showValidationMessages,
-  } = useComponentStructureData(baseComponentId);
+  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
 
   return (
     <AccordionLayout
