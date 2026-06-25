@@ -11,6 +11,7 @@ from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
+from shared.utils.path_utils import app_name_from_repo_url
 from pathlib import Path
 from typing import Optional, List
 from shared.models import AttachmentUpload, AgentAttachment
@@ -73,6 +74,8 @@ async def start_agent(
                     status_code=503,
                     detail="MCP server is not available. Please retry shortly.",
                 ) from ping_err
+
+        app_name = app_name_from_repo_url(req.repo_url)
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
@@ -145,6 +148,7 @@ async def start_agent(
                             session_id=req.session_id,
                             user_goal=req.goal,
                             repo_path=str(repo_path),
+                            app_name=app_name,
                             developer=developer,
                             org=req.org,
                             attachments=saved_attachments,
@@ -204,7 +208,12 @@ async def start_agent(
                                 "session_id": req.session_id,
                                 "conversation_history": history_for_trace,
                             },
-                            metadata={"span_type": "AGENT", "session_id": req.session_id, "developer": developer},
+                            metadata={
+                                "span_type": "AGENT",
+                                "session_id": req.session_id,
+                                "developer": developer,
+                                "app_name": app_name,
+                            },
                         ) as root_span:
                             with propagate_attributes(user_id=req.org):
                                 result_state_ref = await _run_chat_inner()
@@ -267,6 +276,7 @@ async def start_agent(
                 session_id=req.session_id,
                 user_goal=req.goal,
                 repo_path=str(repo_path),
+                app_name=app_name,
                 developer=developer,
                 org=req.org,
                 attachments=saved_attachments,

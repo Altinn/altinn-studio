@@ -12,6 +12,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -82,6 +83,7 @@ func main() {
 	mux.HandleFunc("/org-select", handleOrgSelect)
 	mux.HandleFunc("/token", handleToken)
 	mux.HandleFunc("/userinfo", handleUserInfo)
+	mux.HandleFunc("/endsession", handleEndSession)
 
 	log.Printf("Fake Ansattporten listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
@@ -113,6 +115,7 @@ func handleDiscovery(w http.ResponseWriter, r *http.Request) {
 		"authorization_endpoint":                browserBaseURL() + "/authorize",
 		"token_endpoint":                        base + "/token",
 		"userinfo_endpoint":                     base + "/userinfo",
+		"end_session_endpoint":                  browserBaseURL() + "/endsession",
 		"jwks_uri":                              base + "/jwks",
 		"response_types_supported":              []string{"code"},
 		"subject_types_supported":               []string{"public"},
@@ -222,6 +225,29 @@ func handleAuthorize(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	pickerTemplate.Execute(w, data)
+}
+
+func handleEndSession(w http.ResponseWriter, r *http.Request) {
+	redirectURI := r.URL.Query().Get("post_logout_redirect_uri")
+	state := r.URL.Query().Get("state")
+	idTokenHint := r.URL.Query().Get("id_token_hint")
+	clientID := r.URL.Query().Get("client_id")
+
+	if redirectURI == "" || (idTokenHint == "" && clientID == "") {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write([]byte("<!DOCTYPE html><html><body>Logged out. You can close this window now.</body></html>"))
+		return
+	}
+
+	location := redirectURI
+	if state != "" {
+		sep := "?"
+		if strings.Contains(redirectURI, "?") {
+			sep = "&"
+		}
+		location = fmt.Sprintf("%s%sstate=%s", redirectURI, sep, url.QueryEscape(state))
+	}
+	http.Redirect(w, r, location, http.StatusFound)
 }
 
 func handleOrgSelect(w http.ResponseWriter, r *http.Request) {

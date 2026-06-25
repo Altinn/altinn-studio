@@ -196,6 +196,7 @@ export const queriesMock: ServicesContextProps = {
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
+  getTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getTextResources: jest
@@ -357,6 +358,7 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationPageSettings: jest.fn().mockImplementation(() => Promise.resolve()),
