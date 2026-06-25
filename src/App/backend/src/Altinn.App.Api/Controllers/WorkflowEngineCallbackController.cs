@@ -181,8 +181,17 @@ public class WorkflowEngineCallbackController : ControllerBase
                     string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
                     if (string.IsNullOrWhiteSpace(collectionKey))
                     {
-                        throw new InvalidOperationException(
-                            "Workflow callback is missing Collection-Key header required for auto-advance process next."
+                        _logger.LogError(
+                            "Workflow callback is missing the '{Header}' header required for auto-advance. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                            CollectionKeyHeader,
+                            commandKey,
+                            instanceId
+                        );
+                        activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
+                        return NonRetryableProblem(
+                            "Missing Collection-Key",
+                            "Workflow callback is missing the Collection-Key header required for auto-advance process next.",
+                            StatusCodes.Status422UnprocessableEntity
                         );
                     }
 
