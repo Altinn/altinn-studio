@@ -144,15 +144,11 @@ jobs:
         (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
       )
     runs-on: self-hosted-single
-    timeout-minutes: 120
+    timeout-minutes: 30
     needs: [build-frontend, build-app-run-targets]
     defaults:
       run:
         working-directory: src/App/frontend/
-    strategy:
-      fail-fast: false
-      matrix:
-        containers: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -171,7 +167,8 @@ jobs:
         uses: ./.github/actions/app-run-local-env
         with:
           run-localtest: true
-          app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
+          # DIAGNOSTIC: only start the app the single spec needs (component-library), not all apps.
+          app-run-targets-json: '[{"path":"src/test/apps/component-library"}]'
           skip-app-build: true
 
       - name: Set Percy command based on PR draft status or main branch
@@ -191,41 +188,48 @@ jobs:
         shell: bash
         env:
           CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
-          CYPRESS_PROJECT_ID: o7mikf
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
+          # DIAGNOSTIC: render inside the pinned Chrome 133 container (the proven-good
+          # environment from build 1130, before commit 79a01c5 removed Docker).
+          CYPRESS_BROWSER_IMAGE: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN_TEMP }}
-          PERCY_PARALLEL_TOTAL: 6
-          PERCY_PARALLEL_NONCE: ${{ github.run_id }}-${{ github.run_attempt }}
           PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
         run: |
-          cypress_args=(
-            run
-            --record
-            --parallel
-            --group altinn-app-frontend
-            --tag altinn-app-frontend
-            --browser "${CHROME_PATH:-chrome}"
-            --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}"
-            --spec test/e2e/integration
-            --env environment=localtest
-          )
+          # DIAGNOSTIC: single fast spec instead of the full suite × 6 containers.
+          base_command='npx cypress run --browser chrome --spec test/e2e/integration/component-library/button.ts --env environment=localtest'
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            npx percy exec --parallel -- npx cypress "${cypress_args[@]}"
+            container_command="npx percy exec -- ${base_command}"
           else
-            npx cypress "${cypress_args[@]}"
+            container_command="${base_command}"
           fi
 
+          docker run --rm --network host \
+            --user "$(id -u):$(id -g)" \
+            -e HOME=/tmp \
+            -e CI=1 \
+            -e CYPRESS_CACHE_FOLDER \
+            -e GITHUB_TOKEN \
+            -e PERCY_TOKEN \
+            -e PERCY_BRANCH \
+            -e PERCY_TARGET_BRANCH \
+            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            -w "${GITHUB_WORKSPACE}/src/App/frontend" \
+            "${CYPRESS_BROWSER_IMAGE}" \
+            bash -lc "${container_command}"
+
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
-        if: failure()
+        if: always()
         with:
           name: app-frontend-logs
           path: |
             src/App/frontend/test/logs/*
+            src/App/frontend/test/screenshots/**
+            src/App/frontend/test/videos/**
             ${{ env.STUDIOCTL_HOME }}/logs/**
+          if-no-files-found: ignore
 
       - name: Stop localtest
         if: always()
