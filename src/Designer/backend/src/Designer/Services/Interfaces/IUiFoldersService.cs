@@ -9,32 +9,32 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IUiFoldersService
 {
-    public Task<IEnumerable<LayoutSetDto>> GetLayoutSets(
+    public Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
     );
 
-    public Task<IEnumerable<LayoutSetDto>> AddLayoutSet(
+    public Task<IEnumerable<UiFolderLayoutSetDto>> AddLayoutSet(
         AltinnRepoEditingContext editingContext,
         LayoutSetConfig newLayoutSet,
         TaskType? taskType,
         CancellationToken cancellationToken
     );
 
-    public Task<IEnumerable<LayoutSetDto>> UpdateLayoutSetName(
+    public Task<IEnumerable<UiFolderLayoutSetDto>> UpdateLayoutSetName(
         AltinnRepoEditingContext editingContext,
         string oldLayoutSetName,
         string newLayoutSetName,
         CancellationToken cancellationToken
     );
 
-    public Task<IEnumerable<LayoutSetDto>> DeleteLayoutSet(
+    public Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
         AltinnRepoEditingContext editingContext,
         string layoutSetToDeleteId,
         CancellationToken cancellationToken
     );
 
-    public Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
+    public Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
     );

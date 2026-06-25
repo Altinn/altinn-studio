@@ -217,7 +217,7 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 
 function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
   const { data } = useSharedCodeListsQuery(orgName);
-  const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
+  const { mutateAsync } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
   const { publish, isPublishing } = usePublishCodeList(orgName);
   const { t } = useTranslation();
   const { data: publishedCodeLists } = usePublishedResourcesQuery(
@@ -227,15 +227,15 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
 
   const handleSave = useCallback(
-    (codeListFiles: OrdinaryCodeListFile[]): void => {
+    async (codeListFiles: OrdinaryCodeListFile[]): Promise<void> => {
       const payload = libraryCodeListsToUpdatePayload(
         data,
         codeListFiles,
         t('org_content_library.code_lists.commit_message_default'),
       );
-      mutate(payload);
+      await mutateAsync(payload);
     },
-    [data, mutate, t],
+    [data, mutateAsync, t],
   );
 
   const handlePublish = useCallback(

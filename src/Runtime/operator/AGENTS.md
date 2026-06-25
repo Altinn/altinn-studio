@@ -43,6 +43,7 @@ docker compose up -d --build  # Start local fake APIs (required for `make test` 
 - `internal/controller/`: Controller reconciliation logic
 - `config/`: Kubernetes manifests and Kustomize configurations
 - `test/e2e/`: End-to-end tests using Ginkgo/Gomega
+- `test/cmd/tester/`: Test orchestration CLI
 - `cmd/main.go`: Operator entry point
 
 ### Key Technologies

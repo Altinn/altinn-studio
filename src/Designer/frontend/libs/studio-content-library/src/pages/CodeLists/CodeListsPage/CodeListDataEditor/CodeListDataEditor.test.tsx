@@ -1,28 +1,32 @@
 import { fruitsFile } from '../test-data/codeLists';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListDataEditorProps } from './CodeListDataEditor';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
-import { FileNameUtils, ArrayUtils } from '@studio/pure-functions';
+import { FileNameUtils, ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import type { CodeList } from '../../../../types/CodeList';
-import type { OrdinaryCodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFileWithProblem, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
+import { screen } from '@studio/ui-test';
+import { RouterContextProvider } from '../../../../ContentLibrary/RouterContext';
+import { PageName } from '../../../../types/PageName';
 
 // Test data:
-const file = fruitsFile;
-const codeListName = FileNameUtils.removeExtension(file.name);
+const currentFile = fruitsFile;
+const codeListName = FileNameUtils.removeExtension(currentFile.name);
 const extractCodeList = ({ content }: OrdinaryCodeListFile): CodeList => JSON.parse(content);
 const onUpdate = jest.fn();
 const onDelete = jest.fn();
 const onPublish = jest.fn();
 const defaultProps: CodeListDataEditorProps = {
-  file,
+  currentFile,
   isPublishing: false,
   onDelete,
   onPublish,
   onUpdate,
   publishedCodeLists: [],
+  savedFile: currentFile,
 };
 
 describe('CodeListDataEditor', () => {
@@ -30,7 +34,7 @@ describe('CodeListDataEditor', () => {
 
   it('Renders the code list editor with given content', () => {
     renderCodeListDataEditor();
-    const expectedNumberOfRowsIncludingHeaders = extractCodeList(file).length + 1;
+    const expectedNumberOfRowsIncludingHeaders = extractCodeList(currentFile).length + 1;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRowsIncludingHeaders);
   });
 
@@ -68,7 +72,7 @@ describe('CodeListDataEditor', () => {
   });
 
   it('Renders with placeholder when name is empty', () => {
-    renderCodeListDataEditor({ file: { ...file, name: '.json' } });
+    renderCodeListDataEditor({ currentFile: { ...currentFile, name: '.json' } });
     const placeholderText = textMock('app_content_library.code_lists.unnamed');
     expect(screen.getByText(placeholderText)).toBeInTheDocument();
   });
@@ -85,11 +89,14 @@ describe('CodeListDataEditor', () => {
     const publishButtonName = textMock('app_content_library.code_lists.publish');
     await user.click(screen.getByRole('button', { name: publishButtonName }));
     expect(onPublish).toHaveBeenCalledTimes(1);
-    expect(onPublish).toHaveBeenCalledWith({ name: codeListName, codes: extractCodeList(file) });
+    expect(onPublish).toHaveBeenCalledWith({
+      name: codeListName,
+      codes: extractCodeList(currentFile),
+    });
   });
 
   it('Disables the publish button when no name is given', () => {
-    renderCodeListDataEditor({ file: { ...file, name: '.json' } });
+    renderCodeListDataEditor({ currentFile: { ...currentFile, name: '.json' } });
     const publishButtonName = textMock('app_content_library.code_lists.publish');
     expect(screen.getByRole('button', { name: publishButtonName })).toBeDisabled();
   });
@@ -119,10 +126,84 @@ describe('CodeListDataEditor', () => {
     const loadingButton = screen.getByRole('button', { name: buttonNameWhilePublishing });
     expect(loadingButton).toBeInTheDocument();
   });
+
+  it('Does not have any state class by default', () => {
+    renderCodeListDataEditor();
+    const summary = screen.getSummaryByText(codeListName);
+    expect(summary).not.toHaveClass('added');
+    expect(summary).not.toHaveClass('changed');
+  });
+
+  it('Has the "changed" state class when saved file is different from current file', () => {
+    const savedFile: OrdinaryCodeListFile = {
+      ...ObjectUtils.deepCopy(currentFile),
+      name: 'something-else',
+    };
+    renderCodeListDataEditor({ currentFile, savedFile });
+    const summary = screen.getSummaryByText(codeListName);
+    expect(summary).toHaveClass('changed');
+  });
+
+  it('Has the "added" state class when no saved file exists', () => {
+    renderCodeListDataEditor({ savedFile: null });
+    const summary = screen.getSummaryByText(codeListName);
+    expect(summary).toHaveClass('added');
+  });
+
+  it('Displays an error message when the file could not be loaded because of backend errors', () => {
+    const fileWithProblem: CodeListFileWithProblem = { name: 'fail.json', problem: {} };
+    renderCodeListDataEditor({ currentFile: fileWithProblem });
+    const expectedMessage = textMock('app_content_library.code_lists.backend_error');
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+  });
+
+  it('Displays the correct error message when there is a JSON syntax error in the code list file', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const fileWithInvalidJson: OrdinaryCodeListFile = { name: 'invalid.json', content: '{' };
+
+      renderCodeListDataEditor({ currentFile: fileWithInvalidJson });
+
+      const expectedMessageCode = 'app_content_library.code_lists.parse_error.invalid_json_syntax';
+      expect(screen.getByText(textMock(expectedMessageCode))).toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('Displays the correct error message when the code list file has valid syntax, but is not correctly structured', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const invalidCodeListJson = '{ "Hello": "I am not a code list" }';
+      const invalidFile: OrdinaryCodeListFile = {
+        name: 'invalid.json',
+        content: invalidCodeListJson,
+      };
+
+      renderCodeListDataEditor({ currentFile: invalidFile });
+
+      const expectedMessageCode = 'app_content_library.code_lists.parse_error.invalid_code_list';
+      expect(screen.getByText(textMock(expectedMessageCode))).toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
 
 function renderCodeListDataEditor(props: Partial<CodeListDataEditorProps> = {}): RenderResult {
-  return render(<CodeListDataEditor {...defaultProps} {...props} />);
+  return render(<CodeListDataEditor {...defaultProps} {...props} />, {
+    wrapper: (p) => (
+      <RouterContextProvider
+        value={{
+          location: PageName.LandingPage,
+          navigate: jest.fn(),
+          renderLink: jest.fn(),
+          contactPagePath: '/contact/',
+        }}
+        {...p}
+      />
+    ),
+  });
 }
 
 function getNameInput(): HTMLElement {

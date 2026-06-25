@@ -58,15 +58,15 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
-        List<LayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetDto>>(content);
+        List<UiFolderLayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<UiFolderLayoutSetDto>>(content);
 
         Assert.Equal(2, layoutSets.Count);
 
-        LayoutSetDto dataSet = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1");
+        UiFolderLayoutSetDto dataSet = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1");
         Assert.Equal("model", dataSet.DataType);
-        Assert.Equal("data", dataSet.Task.Type);
+        Assert.Equal("data", dataSet.TaskType);
 
-        LayoutSetDto subform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "moreInfoSubform");
+        UiFolderLayoutSetDto subform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "moreInfoSubform");
         Assert.Equal("subform", subform.Type);
     }
 
@@ -143,8 +143,8 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
-        List<LayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetDto>>(content);
-        LayoutSetDto created = Assert.Single(layoutSets, layoutSet => layoutSet.Id == NewLayoutSetName);
+        List<UiFolderLayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<UiFolderLayoutSetDto>>(content);
+        UiFolderLayoutSetDto created = Assert.Single(layoutSets, layoutSet => layoutSet.Id == NewLayoutSetName);
         Assert.Equal("subform", created.Type);
 
         string savedSettings = TestDataHelper.GetFileFromRepo(

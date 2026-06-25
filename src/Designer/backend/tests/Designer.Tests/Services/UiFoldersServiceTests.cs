@@ -30,7 +30,10 @@ public class UiFoldersServiceTests : IDisposable
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
 
         // Act
-        IEnumerable<LayoutSetDto> result = await service.GetLayoutSetsExtended(editingContext, CancellationToken.None);
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.Single(result);
@@ -44,7 +47,10 @@ public class UiFoldersServiceTests : IDisposable
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
 
         // Act
-        IEnumerable<LayoutSetDto> result = await service.GetLayoutSetsExtended(editingContext, CancellationToken.None);
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.DoesNotContain(result, dto => dto.Id == "orphanFolder");
@@ -57,8 +63,11 @@ public class UiFoldersServiceTests : IDisposable
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
 
         // Act
-        IEnumerable<LayoutSetDto> result = await service.GetLayoutSetsExtended(editingContext, CancellationToken.None);
-        LayoutSetDto layoutSet = result.Single(dto => dto.Id == "Task_1");
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
+        UiFolderLayoutSetDto layoutSet = result.Single(dto => dto.Id == "Task_1");
 
         // Assert
         Assert.Equal("myModel", layoutSet.DataType);

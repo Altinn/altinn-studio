@@ -61,9 +61,9 @@ const renderPageLayout = ({
 };
 
 describe('PageLayout', () => {
-  const mockEnvironmentConfig = (studioOidc: boolean) =>
+  const mockEnvironmentConfig = () =>
     jest.mocked(useEnvironmentConfig).mockReturnValue({
-      environment: { featureFlags: { studioOidc } },
+      environment: {},
       isPending: false,
       error: null,
     });
@@ -71,7 +71,7 @@ describe('PageLayout', () => {
   beforeEach(() => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     (useFeatureFlag as jest.Mock).mockReturnValue(false);
-    mockEnvironmentConfig(true);
+    mockEnvironmentConfig();
   });
 
   afterEach(() => {
@@ -220,10 +220,9 @@ describe('PageLayout', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('shows settings when admin flag is enabled and studioOidc is disabled', async () => {
+  it('shows settings when admin flag is enabled', async () => {
     const user = userEvent.setup();
     (useFeatureFlag as jest.Mock).mockReturnValue(true);
-    mockEnvironmentConfig(false);
 
     renderPageLayout({ initialEntries: ['/test'] });
     await user.click(screen.getByRole('button', { name: userWithName.full_name }));

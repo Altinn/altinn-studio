@@ -1,4 +1,4 @@
-import type { JSX, PropsWithChildren, ReactElement, Ref } from 'react';
+import type { JSX, PropsWithChildren, ReactElement, ReactNode, Ref } from 'react';
 
 import { Flex } from '@app/form-component/app-components/Flex/Flex';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
@@ -10,7 +10,7 @@ import classes from './Label.module.css';
 
 export type LabelProps = {
   id?: string;
-  label: string | ReactElement | undefined;
+  label: ReactNode;
   htmlFor?: DesignsystemetLabelProps['htmlFor'];
   required?: boolean;
   requiredIndicator?: JSX.Element;
