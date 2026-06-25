@@ -16,7 +16,7 @@ export interface ValidationMessageItem {
 export interface ValidationMessagesProps {
   /** Rendered as the wrapper div id  */
   id?: string;
-  /** Rendered as the `data-validation` attribute (the app passes the indexed id) */
+  /** Rendered as the `data-validation` attribute */
   dataValidation?: string;
   validations: ValidationMessageItem[];
 }

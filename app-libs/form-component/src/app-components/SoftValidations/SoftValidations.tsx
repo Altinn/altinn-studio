@@ -9,7 +9,6 @@ export type SoftValidationSeverity = 'warning' | 'info' | 'success';
 export interface SoftValidationItem {
   /** Stable identifier for the message, unique within the list */
   id: string;
-  /** Already translated/rendered message content */
   message: ReactNode;
 }
 
