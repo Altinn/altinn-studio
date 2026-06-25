@@ -11,13 +11,6 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
-  environment: null,
-};
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => mockEnvironment,
-}));
-
 const renderMenu = (initialEntries: string[] = ['/ttd/bot-accounts']) =>
   renderWithProviders(<Menu />, { initialEntries });
 
@@ -32,37 +25,20 @@ const getBotAccountsTab = () =>
   });
 
 describe('Menu', () => {
-  beforeEach(() => {
-    mockEnvironment.environment = null;
-  });
-
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the bot accounts tab when studioOidc is enabled', () => {
-    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
+  it('renders the bot accounts tab', () => {
     renderMenu();
     expect(getBotAccountsTab()).toBeInTheDocument();
   });
 
-  it('does not render the bot accounts tab when studioOidc is disabled', () => {
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-    renderMenu();
-    expect(
-      screen.queryByRole('tab', {
-        name: textMock('settings.orgs.bot_accounts.menu.bot_accounts'),
-      }),
-    ).not.toBeInTheDocument();
-  });
-
   it('renders the contact points tab', () => {
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     renderMenu();
     expect(getContactPointsTab()).toBeInTheDocument();
   });
 
   it('navigates when a tab is clicked', async () => {
     const user = userEvent.setup();
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     renderMenu();
     await user.click(getContactPointsTab());
     expect(mockNavigate).toHaveBeenCalledWith({ pathname: 'contact-points' });
