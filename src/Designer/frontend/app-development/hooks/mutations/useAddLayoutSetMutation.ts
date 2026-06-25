@@ -5,11 +5,7 @@ import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 
 export type AddLayoutSetMutationPayload = LayoutSetPayload;
 
-export type AddLayoutSetMutation = UseMutateFunction<
-  void,
-  Error,
-  AddLayoutSetMutationPayload
->;
+export type AddLayoutSetMutation = UseMutateFunction<void, Error, AddLayoutSetMutationPayload>;
 
 export const useAddLayoutSetMutation = (org: string, app: string) => {
   const { addLayoutSet } = useServicesContext();

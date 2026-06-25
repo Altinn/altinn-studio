@@ -59,9 +59,7 @@ describe('useAddLayoutSetMutation', () => {
       {},
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
-    await waitFor(() =>
-      addLayoutSetResult.current.mutateAsync({ taskType, layoutSetConfig }),
-    );
+    await waitFor(() => addLayoutSetResult.current.mutateAsync({ taskType, layoutSetConfig }));
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
