@@ -12,9 +12,10 @@ Most likely these will be components migrated from `src/App/frontend/src/compone
 ## Storybook docs setup
 
 Layout components share a single docs page layout so every component's Storybook page looks the
-same: the **Studio configurable** props are shown under a heading, and the **Runtime (injected)**
-props in a collapsed section below them. Both are plain controls tables (not `table.category`
-sections), and every prop stays editable.
+same: the **Studio configurable** props are shown under a heading — grouped into **Text**, **Data**
+and **Innhold** subsections that mirror the configuration sections in Altinn Studio — and the
+**Runtime (injected)** props in a collapsed section below them. They are plain controls tables (not
+`table.category` sections), and every prop stays editable.
 
 `DemoLayoutComponent` is the reference example for this setup. To give a component this page, two
 pieces are needed.
@@ -35,8 +36,8 @@ import type { MyComponentProps } from './MyComponent';
 import type { PropCategories } from '../common/storybook';
 
 export const MY_COMPONENT_PROP_CATEGORIES = {
-  id: 'config', // configurable in Studio
-  title: 'config',
+  id: 'content', // configurable in Studio
+  title: 'text', // text-resource bound
   value: 'runtime', // injected by the runtime wrapper
 } satisfies PropCategories<MyComponentProps>;
 
@@ -48,12 +49,14 @@ const meta = {
 } satisfies Meta<typeof MyComponent>;
 ```
 
-- `config` — props that map 1:1 to the component's Studio-configurable options.
-- `runtime` — internal wiring supplied by the runtime wrapper (data binding, display overrides,
-  validation state, event handlers).
+The first three categories map 1:1 to the component's Studio-configurable options and are shown
+under the headings **Text**, **Data** and **Innhold**:
 
-A component with no runtime props classifies everything as `config`; the "Runtime (injected)"
-section is then omitted automatically.
+- `text` — text-resource bound props (label, help, description, ...). Studio's "Tekst" section.
+- `data` — data-model bound props. Studio's "Datamodeller" section.
+- `content` — the remaining configurable options (formatting, constraints, layout, ...). Studio's
+  "Innhold" section.
+- `runtime` — internal wiring supplied by the runtime wrapper (validation state, event handlers).
 
 ### 2. Add the `*.mdx` docs page
 
@@ -72,5 +75,5 @@ import { MY_COMPONENT_PROP_CATEGORIES } from './MyComponent.stories';
 <LayoutComponentDocs categories={MY_COMPONENT_PROP_CATEGORIES} />
 ```
 
-That's it — `LayoutComponentDocs` renders the title, description, primary preview, the two grouped
+That's it — `LayoutComponentDocs` renders the title, description, primary preview, the grouped
 controls tables and the remaining stories. See `DemoLayoutComponent/` for a working example.

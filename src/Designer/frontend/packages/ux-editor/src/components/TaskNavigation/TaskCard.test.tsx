@@ -1,5 +1,5 @@
 import { TaskCard } from './TaskCard';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
@@ -95,11 +95,11 @@ describe('taskCard', () => {
 });
 
 const render = (extendedRenderOptions?: Partial<ExtendedRenderOptions>) => {
-  const layoutSet: LayoutSetModel = {
+  const layoutSet: UiFolderLayoutSetModel = {
     id: 'test',
     dataType: 'datamodell123',
     type: 'subform',
-    task: { id: null, type: null },
+    taskType: null,
   };
   renderWithProviders(<TaskCard layoutSetModel={layoutSet} />, extendedRenderOptions);
 };
