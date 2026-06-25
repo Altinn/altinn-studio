@@ -68,4 +68,42 @@ describe('ButtonGroupLayout', () => {
     );
     expect(screen.getByRole('button', { name: 'Only child' })).toBeInTheDocument();
   });
+
+  it('renders validation messages when provided', () => {
+    renderWithTranslations(
+      <ButtonGroupLayout id='bg' validationMessages={<span>Error msg</span>} />,
+    );
+    expect(screen.getByText('Error msg')).toBeInTheDocument();
+  });
+
+  it('does not render validation area when validationMessages is undefined', () => {
+    renderWithTranslations(
+      <ButtonGroupLayout id='bg' componentId='bg-1'>
+        <button type='button'>Child</button>
+      </ButtonGroupLayout>,
+    );
+    // The form-content wrapper should contain only the inner content Flex,
+    // with no second validation Flex appended.
+    const formContent = document.getElementById('form-content-bg-1');
+    expect(formContent).toBeInTheDocument();
+    expect(formContent?.children).toHaveLength(1);
+  });
+
+  it('renders form-content wrapper with componentId', () => {
+    renderWithTranslations(
+      <ButtonGroupLayout id='bg' componentId='bg-1'>
+        <button type='button'>Child</button>
+      </ButtonGroupLayout>,
+    );
+    expect(document.getElementById('form-content-bg-1')).toBeInTheDocument();
+  });
+
+  it('does not render form-content wrapper when componentId is undefined', () => {
+    const { container } = renderWithTranslations(
+      <ButtonGroupLayout id='bg'>
+        <button type='button'>Child</button>
+      </ButtonGroupLayout>,
+    );
+    expect(container.querySelector('[id^="form-content-"]')).not.toBeInTheDocument();
+  });
 });

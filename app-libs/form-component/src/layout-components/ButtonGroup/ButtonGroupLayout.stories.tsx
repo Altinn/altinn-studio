@@ -6,11 +6,18 @@ import { ButtonGroupLayout } from './ButtonGroupLayout';
 import type { ButtonGroupLayoutProps } from './ButtonGroupLayout';
 
 export const BUTTON_GROUP_PROP_CATEGORIES = {
-  id: 'config',
-  title: 'config',
-  description: 'config',
-  help: 'config',
-  grid: 'runtime',
+  // Text resources — Studio "Tekst" section
+  title: 'text',
+  description: 'text',
+  help: 'text',
+  // Configurable options — Studio "Innhold" section
+  id: 'content',
+  componentId: 'content',
+  grid: 'content',
+  innerGrid: 'content',
+  validationGrid: 'content',
+  // Runtime — injected by wrapper
+  validationMessages: 'runtime',
   children: 'runtime',
 } satisfies PropCategories<ButtonGroupLayoutProps>;
 
@@ -23,6 +30,7 @@ const meta = {
   },
   args: {
     id: 'button-group-preview',
+    componentId: 'button-group-preview',
     title: 'Actions',
   },
 } satisfies Meta<typeof ButtonGroupLayout>;
