@@ -39,6 +39,11 @@ const createOnProcessTaskHandler = () =>
   );
 
 const testElementId = 'testElementId';
+const defaultLayoutSetConfig = {
+  id: testElementId,
+  taskId: testElementId,
+};
+
 const createTaskEvent = (businessObject?: BpmnBusinessObjectEditor): TaskEvent =>
   ({
     element: {
@@ -63,7 +68,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetConfig: { id: testElementId, taskId: testElementId },
+      layoutSetConfig: defaultLayoutSetConfig,
       layoutSetIdToUpdate: testElementId,
       taskType: 'data',
     });
@@ -99,23 +104,20 @@ describe('OnProcessTaskAddHandler', () => {
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetConfig: {
-        id: 'testElementId',
-        taskId: 'testElementId',
-      },
-      layoutSetIdToUpdate: 'testElementId',
+      layoutSetConfig: defaultLayoutSetConfig,
+      layoutSetIdToUpdate: testElementId,
       taskType: 'payment',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
       allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentInformation-1234',
-      taskId: 'testElementId',
+      taskId: testElementId,
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
       allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentReceiptPdf-1234',
-      taskId: 'testElementId',
+      taskId: testElementId,
     });
     expect(mutateApplicationPolicyMock).toHaveBeenCalledWith(expectedResponse);
   });
@@ -131,18 +133,15 @@ describe('OnProcessTaskAddHandler', () => {
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetConfig: {
-        id: 'testElementId',
-        taskId: 'testElementId',
-      },
-      layoutSetIdToUpdate: 'testElementId',
+      layoutSetConfig: defaultLayoutSetConfig,
+      layoutSetIdToUpdate: testElementId,
       taskType: 'signing',
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
-      taskId: 'testElementId',
+      taskId: testElementId,
     });
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
@@ -158,18 +157,15 @@ describe('OnProcessTaskAddHandler', () => {
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetConfig: {
-        id: 'testElementId',
-        taskId: 'testElementId',
-      },
-      layoutSetIdToUpdate: 'testElementId',
+      layoutSetConfig: defaultLayoutSetConfig,
+      layoutSetIdToUpdate: testElementId,
       taskType: 'signing',
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
-      taskId: 'testElementId',
+      taskId: testElementId,
     });
 
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
