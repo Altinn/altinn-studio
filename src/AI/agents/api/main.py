@@ -16,6 +16,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
+import this_module_does_not_exist_ci_test
+
 from shared.config import get_config
 
 # Get configuration
