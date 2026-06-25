@@ -18,7 +18,7 @@ pre-commit:
   # Run the commands concurrently. Safe because no two file-modifying commands
   # touch the same files: the two eslint commands have separate roots, and
   # prettier excludes the JS/TS those eslint configs already format (via
-  # eslint-plugin-prettier). check-skipped-tests only reads files.
+  # eslint-plugin-prettier).
   parallel: true
   commands:
     check-skipped-tests:
@@ -27,12 +27,12 @@ pre-commit:
     app-frontend-eslint:
       root: 'src/App/frontend/'
       glob: '*.{js,jsx,ts,tsx,json}'
-      run: yarn eslint --cache --fix {staged_files}
+      run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
       stage_fixed: true
     form-component-eslint:
       root: 'app-libs/form-component/'
       glob: '*.{js,jsx,ts,tsx}'
-      run: yarn eslint --cache --fix {staged_files}
+      run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
       stage_fixed: true
     sort-language-texts:
       glob: 'src/Designer/frontend/language/src/*.json'
