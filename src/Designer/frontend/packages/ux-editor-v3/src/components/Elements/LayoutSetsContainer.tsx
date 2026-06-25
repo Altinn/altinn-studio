@@ -8,7 +8,7 @@ import { useAppContext } from '../../hooks/useAppContext';
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
-  const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);
+  const layoutSetNames = layoutSetsQuery.data?.map((set) => set.id);
   const t = useText();
   const { selectedLayoutSet, setSelectedLayoutSet } = useAppContext();
 

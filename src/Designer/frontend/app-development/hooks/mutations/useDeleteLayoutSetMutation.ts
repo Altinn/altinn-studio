@@ -26,7 +26,7 @@ export const useDeleteLayoutSetMutation = (org: string, app: string) => {
 };
 
 const removeLayoutSet = (layoutSetId: string) => (old: LayoutSets | undefined) =>
-  old && { ...old, sets: old.sets.filter((set) => set.id !== layoutSetId) };
+  old?.filter((layoutSet) => layoutSet.id !== layoutSetId);
 
 const removeLayoutSetModel = (layoutSetId: string) => (old: LayoutSetModel[] | undefined) =>
   old?.filter((set) => set.id !== layoutSetId);

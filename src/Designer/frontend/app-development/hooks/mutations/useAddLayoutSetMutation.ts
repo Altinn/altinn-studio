@@ -21,10 +21,7 @@ export type AddLayoutSetMutation = UseMutateFunction<
   AddLayoutSetMutationPayload
 >;
 
-const isLayoutSets = (obj: LayoutSetsResponse): obj is LayoutSets => {
-  if (obj === undefined || !(obj instanceof Object)) return false;
-  return 'sets' in obj;
-};
+const isLayoutSets = (obj: LayoutSetsResponse): obj is LayoutSets => Array.isArray(obj);
 
 export const useAddLayoutSetMutation = (org: string, app: string) => {
   const { addLayoutSet } = useServicesContext();

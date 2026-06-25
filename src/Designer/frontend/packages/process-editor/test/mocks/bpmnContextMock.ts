@@ -24,20 +24,18 @@ export const mockBpmnContextValue: BpmnContextProps = {
   setIsInitialized: jest.fn(),
 };
 
-export const mockLayoutSets: LayoutSets = {
-  sets: [
-    {
-      id: 'testId',
-      dataType: 'dataTypeId1',
-      taskId: mockBpmnDetails.id,
-    },
-    {
-      id: 'layoutSetId2',
-      dataType: 'dataTypeId2',
-      taskId: 'Task_2',
-    },
-  ],
-};
+export const mockLayoutSets: LayoutSets = [
+  {
+    id: 'testId',
+    dataType: 'dataTypeId1',
+    taskId: mockBpmnDetails.id,
+  },
+  {
+    id: 'layoutSetId2',
+    dataType: 'dataTypeId2',
+    taskId: 'Task_2',
+  },
+];
 
 export const mockBpmnApiContextValue: BpmnApiContextProps = {
   layoutSets: mockLayoutSets,

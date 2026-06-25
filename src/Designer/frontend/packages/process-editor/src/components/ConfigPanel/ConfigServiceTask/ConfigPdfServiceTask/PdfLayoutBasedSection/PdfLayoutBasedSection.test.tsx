@@ -35,14 +35,12 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: {
-            sets: [
-              {
-                id: 'pdf-layout-set',
-                taskId: pdfBpmnDetails.id,
-              },
-            ],
-          },
+          layoutSets: [
+            {
+              id: 'pdf-layout-set',
+              taskId: pdfBpmnDetails.id,
+            },
+          ],
         },
       });
 
@@ -60,14 +58,12 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: {
-            sets: [
-              {
-                id: 'pdf-layout-set',
-                taskId: pdfBpmnDetails.id,
-              },
-            ],
-          },
+          layoutSets: [
+            {
+              id: 'pdf-layout-set',
+              taskId: pdfBpmnDetails.id,
+            },
+          ],
         },
       });
 
@@ -88,7 +84,7 @@ describe('PdfLayoutBasedSection', () => {
 
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: { layoutSets: { sets: [] } },
+        bpmnApiContextProps: { layoutSets: [] },
       });
 
       expect(
@@ -104,7 +100,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
         },
       });
@@ -123,7 +119,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
         },
       });
@@ -144,7 +140,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: [],
         },
       });
@@ -165,7 +161,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
@@ -183,7 +179,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
@@ -208,7 +204,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
@@ -231,7 +227,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
         },
       });
@@ -261,7 +257,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
         },
       });
@@ -296,7 +292,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1', 'dataModel2'],
           addLayoutSet: addLayoutSetMock,
         },
@@ -339,7 +335,7 @@ describe('PdfLayoutBasedSection', () => {
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
         bpmnApiContextProps: {
-          layoutSets: { sets: [] },
+          layoutSets: [],
           allDataModelIds: ['dataModel1'],
           addLayoutSet: addLayoutSetMock,
         },

@@ -21,7 +21,7 @@ export const usePreviewLayoutMetadata = (
 ): UsePreviewLayoutMetadataResult => {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
 
-  const firstLayoutSet = layoutSetsQuery.data?.sets?.[0];
+  const firstLayoutSet = layoutSetsQuery.data?.[0];
   const layoutSetName = firstLayoutSet?.id;
 
   const layoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);

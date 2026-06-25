@@ -56,7 +56,7 @@ describe('useAddLayoutSetMutation', () => {
   });
 
   it('Sets queryData if response is of type LayoutSets', async () => {
-    const layoutSets = { sets: [{ id: 'set1', taskId: 'Task_1' }] };
+    const layoutSets = [{ id: 'set1', taskId: 'Task_1' }];
     const queryClientMock = createQueryClientMock();
     const addLayoutSetMock = jest
       .fn()

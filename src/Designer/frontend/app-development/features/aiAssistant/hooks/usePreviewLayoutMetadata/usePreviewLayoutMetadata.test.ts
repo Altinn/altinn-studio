@@ -10,9 +10,7 @@ const layoutSetName = 'form-layout-set';
 const taskId = 'Task_1';
 const layoutName = 'first-page';
 
-const layoutSetsWithEntry: LayoutSets = {
-  sets: [{ id: layoutSetName, taskId: taskId }],
-};
+const layoutSetsWithEntry: LayoutSets = [{ id: layoutSetName, taskId: taskId }];
 
 const layoutSettingsWithPages: ILayoutSettings = {
   pages: { order: [layoutName, 'second-page'] },
@@ -36,9 +34,7 @@ describe('usePreviewLayoutMetadata', () => {
   });
 
   it('should default taskId to Task_1 when layout set has no tasks', async () => {
-    const layoutSetsWithoutTasks: LayoutSets = {
-      sets: [{ id: layoutSetName }],
-    };
+    const layoutSetsWithoutTasks: LayoutSets = [{ id: layoutSetName }];
 
     const { result } = renderHook({
       getLayoutSets: jest.fn().mockResolvedValue(layoutSetsWithoutTasks),
@@ -51,7 +47,7 @@ describe('usePreviewLayoutMetadata', () => {
   });
 
   it('should return empty metadata when there are no layout sets', async () => {
-    const emptyLayoutSets: LayoutSets = { sets: [] };
+    const emptyLayoutSets: LayoutSets = [];
 
     const { result } = renderHook({
       getLayoutSets: jest.fn().mockResolvedValue(emptyLayoutSets),

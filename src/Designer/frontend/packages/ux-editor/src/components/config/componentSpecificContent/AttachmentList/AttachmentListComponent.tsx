@@ -54,7 +54,7 @@ export const AttachmentListComponent = ({
     });
   };
 
-  const selectedLayoutSet = layoutSets?.sets.find((set) => set.id === layoutSet);
+  const selectedLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
   const isTaskCustomReceipt =
     selectedLayoutSet &&
     getTaskIdForLayoutSet(selectedLayoutSet) === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
@@ -117,7 +117,7 @@ const filterAttachments = (
 };
 
 const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
-  const selectedLayoutSet = layoutSets.sets.find(
+  const selectedLayoutSet = layoutSets.find(
     (layoutSet) => layoutSet.id === selectedFormLayoutSetName,
   );
   return selectedLayoutSet ? [getTaskIdForLayoutSet(selectedLayoutSet)] : [];
@@ -125,7 +125,7 @@ const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string)
 
 const sampleTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
   const tasks = [];
-  for (const layoutSet of layoutSets.sets) {
+  for (const layoutSet of layoutSets) {
     tasks.push(getTaskIdForLayoutSet(layoutSet));
     if (layoutSet.id === selectedFormLayoutSetName) {
       break;

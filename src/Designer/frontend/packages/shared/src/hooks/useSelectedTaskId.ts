@@ -7,7 +7,7 @@ export const useSelectedTaskId = (selectedFormLayoutSetName: string): string => 
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const selectedLayoutSet = layoutSets?.sets.find((set) => set.id === selectedFormLayoutSetName);
+  const selectedLayoutSet = layoutSets?.find((set) => set.id === selectedFormLayoutSetName);
   return (
     (selectedLayoutSet && getTaskIdForLayoutSet(selectedLayoutSet)) || TASKID_FOR_STATELESS_APPS
   );

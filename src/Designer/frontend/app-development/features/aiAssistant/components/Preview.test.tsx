@@ -11,9 +11,7 @@ const taskId = 'Task_1';
 const layoutName = 'first-page';
 const instanceId = 'mock-instance-id';
 
-const defaultLayoutSets: LayoutSets = {
-  sets: [{ id: layoutSetName, taskId: taskId }],
-};
+const defaultLayoutSets: LayoutSets = [{ id: layoutSetName, taskId: taskId }];
 
 const defaultLayoutSettings: ILayoutSettings = {
   pages: { order: [layoutName] },

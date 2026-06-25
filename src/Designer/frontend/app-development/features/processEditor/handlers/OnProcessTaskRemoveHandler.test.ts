@@ -29,9 +29,7 @@ const currentPolicyMock: Policy = {
   requiredAuthenticationLevelEndUser: '3',
   rules: [],
 };
-const layoutSetsMock = {
-  sets: [],
-};
+const layoutSetsMock = [];
 
 const mutateApplicationPolicyMock = jest.fn();
 const deleteDataTypeFromAppMetadataMock = jest.fn();
@@ -97,9 +95,9 @@ describe('OnProcessTaskRemoveHandler', () => {
   });
 
   it('should remove layoutSet when data-task is deleted', () => {
-    const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'data', taskId: 'testElementId' }],
-    };
+    const layoutSets: LayoutSets = [
+      { id: 'testLayoutSetId', dataType: 'data', taskId: 'testElementId' },
+    ];
 
     const taskMetadata = createTaskMetadataMock('data', {
       id: 'testEventId',
@@ -166,10 +164,9 @@ describe('OnProcessTaskRemoveHandler', () => {
   });
 
   it('should delete layoutSet for payment-task if layoutSet exists', () => {
-    const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'payment', taskId: 'testElementId' }],
-    };
-
+    const layoutSets: LayoutSets = [
+      { id: 'testLayoutSetId', dataType: 'payment', taskId: 'testElementId' },
+    ];
     const taskMetadata = createTaskMetadataMock(
       'payment',
       getMockBpmnElementForTask('payment').businessObject,
@@ -184,10 +181,9 @@ describe('OnProcessTaskRemoveHandler', () => {
   });
 
   it('should remove datatype from app metadata and delete layoutSet when the signing task is deleted', () => {
-    const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'signing', taskId: 'testElementId' }],
-    };
-
+    const layoutSets: LayoutSets = [
+      { id: 'testLayoutSetId', dataType: 'signing', taskId: 'testElementId' },
+    ];
     const taskMetadata = createTaskMetadataMock(
       'signing',
       getMockBpmnElementForTask('signing').businessObject,
@@ -204,9 +200,9 @@ describe('OnProcessTaskRemoveHandler', () => {
   });
 
   it('should remove both dataTypes from app metadata and delete layoutSet when the payment task is deleted', () => {
-    const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'payment', taskId: 'testElementId' }],
-    };
+    const layoutSets: LayoutSets = [
+      { id: 'testLayoutSetId', dataType: 'payment', taskId: 'testElementId' },
+    ];
 
     const taskMetadata = createTaskMetadataMock(
       'payment',
@@ -224,9 +220,9 @@ describe('OnProcessTaskRemoveHandler', () => {
   });
 
   it('should remove datatype from app metadata and delete layoutSet when the userControlledSigning task is deleted', () => {
-    const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'userControlledSigning', taskId: 'testElementId' }],
-    };
+    const layoutSets: LayoutSets = [
+      { id: 'testLayoutSetId', dataType: 'userControlledSigning', taskId: 'testElementId' },
+    ];
 
     const taskMetadata = createTaskMetadataMock(
       'signing',
@@ -273,10 +269,9 @@ describe('OnProcessTaskRemoveHandler', () => {
   });
 
   it('should remove layoutSet when pdf-task is deleted', () => {
-    const layoutSets: LayoutSets = {
-      sets: [{ id: 'pdfLayoutSetId', dataType: 'pdf', taskId: 'testElementId' }],
-    };
-
+    const layoutSets: LayoutSets = [
+      { id: 'pdfLayoutSetId', dataType: 'pdf', taskId: 'testElementId' },
+    ];
     const taskMetadata = createTaskMetadataMock(
       'pdf',
       getMockBpmnElementForTask('pdf').businessObject,

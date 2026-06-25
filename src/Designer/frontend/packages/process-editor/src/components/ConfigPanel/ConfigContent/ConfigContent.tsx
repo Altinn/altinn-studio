@@ -27,13 +27,13 @@ export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets, availableDataModelIds } = useBpmnApiContext();
-  const layoutSet = layoutSets?.sets.find((set) => getTaskIdForLayoutSet(set) === bpmnDetails.id);
+  const layoutSet = layoutSets?.find((set) => getTaskIdForLayoutSet(set) === bpmnDetails.id);
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
   const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails.element);
   const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
-  const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
+  const taskHasConnectedLayoutSet = layoutSets?.some(
     (set) => getTaskIdForLayoutSet(set) === bpmnDetails.id,
   );
   const { shouldDisplayAction } = useStudioRecommendedNextActionContext();

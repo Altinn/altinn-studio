@@ -8,7 +8,7 @@ import {
   mockBpmnApiContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
-import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 describe('useCurrentLayoutSet', () => {
   it('should return undefined when no layout set matches the current task', () => {
@@ -40,9 +40,9 @@ describe('useCurrentLayoutSet', () => {
   });
 });
 
-const renderUseCurrentLayoutSet = (sets: LayoutSet[]) => {
+const renderUseCurrentLayoutSet = (sets: LayoutSetConfig[]) => {
   const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, layoutSets: { sets } }}>
+    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, layoutSets: sets }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, bpmnDetails: mockBpmnDetails }}>
         {children}
       </BpmnContext.Provider>

@@ -1,17 +1,17 @@
-import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { getTaskIdForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 
 type UseCurrentLayoutSetResult = {
-  currentLayoutSet: LayoutSet | undefined;
+  currentLayoutSet: LayoutSetConfig | undefined;
 };
 
 export const useCurrentLayoutSet = (): UseCurrentLayoutSetResult => {
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets } = useBpmnApiContext();
 
-  const currentLayoutSet = layoutSets?.sets?.find(
+  const currentLayoutSet = layoutSets?.find(
     (layoutSet) => getTaskIdForLayoutSet(layoutSet) === bpmnDetails?.id,
   );
 
