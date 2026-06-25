@@ -800,24 +800,6 @@ public class AppDevelopmentController : Controller
         return Ok(modelMetadata);
     }
 
-    /// <summary>
-    /// Get all layout sets in the layout-set.json file
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The layout-sets.json</returns>
-    [HttpGet]
-    [UseSystemTextJson]
-    [Route("layout-sets")]
-    public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-        LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
-        return Ok(layoutSets);
-    }
-
     [HttpGet("layout-sets/extended")]
     [UseSystemTextJson]
     public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
