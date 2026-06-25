@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO.Hashing;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features.Auth;
@@ -211,6 +212,28 @@ public class AuthenticatedTests
             },
             $"type={tokenType}_{hash[0..4]}"
         );
+    }
+
+    [Fact]
+    public void Can_Classify_WorkflowEngineCallback()
+    {
+        var instanceGuid = Guid.NewGuid();
+        var jwt = new JwtSecurityToken(claims: [new Claim("jti", instanceGuid.ToString())]);
+        var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+        var auth = Authenticated.FromWorkflowEngineCallback(
+            tokenStr: token,
+            parsedToken: null,
+            instanceGuid: instanceGuid,
+            appMetadata: TestAuthentication.NewApplicationMetadata()
+        );
+
+        var callback = Assert.IsType<Authenticated.WorkflowEngineCallback>(auth);
+        Assert.Equal(instanceGuid, callback.InstanceGuid);
+        Assert.Equal(token, callback.Token);
+        // Callback principals carry no Altinn identity scopes and are not exchanged tokens.
+        Assert.False(callback.Scopes.HasScope("altinn:portal/enduser"));
+        Assert.False(callback.TokenIsExchanged);
     }
 
     [Fact]

@@ -99,6 +99,26 @@ public abstract class Authenticated
     }
 
     /// <summary>
+    /// The caller is the Altinn workflow engine invoking a process callback for a specific instance.
+    /// Authenticated via the <c>WorkflowEngineCallback</c> scheme using an app-minted token bound to the
+    /// instance; it carries no Altinn user/org identity — only the instance it is authorized to act on.
+    /// </summary>
+    public sealed class WorkflowEngineCallback : Authenticated
+    {
+        /// <summary>
+        /// The instance this callback is authorized to act on (the token's <c>jti</c>, validated against the
+        /// callback route).
+        /// </summary>
+        public Guid InstanceGuid { get; }
+
+        internal WorkflowEngineCallback(Guid instanceGuid, ref ParseContext context)
+            : base(ref context)
+        {
+            InstanceGuid = instanceGuid;
+        }
+    }
+
+    /// <summary>
     /// The logged in client is a user (e.g. Altinn portal/ID-porten)
     /// </summary>
     public sealed class User : Authenticated
@@ -807,6 +827,48 @@ public abstract class Authenticated
             }
             return false;
         }
+    }
+
+    /// <summary>
+    /// Builds the authentication info for a workflow-engine process callback. The callback is authenticated by
+    /// the <c>WorkflowEngineCallback</c> scheme with an app-minted token bound to <paramref name="instanceGuid"/>
+    /// and carries no Altinn user/org identity, so it maps directly to <see cref="WorkflowEngineCallback"/>
+    /// instead of being run through the standard user/org/system-user token classification.
+    /// </summary>
+    internal static Authenticated FromWorkflowEngineCallback(
+        string tokenStr,
+        JwtSecurityToken? parsedToken,
+        Guid instanceGuid,
+        ApplicationMetadata appMetadata
+    )
+    {
+        // The callback principal has no user/party/profile dimension, so the lookup delegates are never invoked.
+        var context = new ParseContext(
+            tokenStr,
+            true,
+            appMetadata,
+            static () => null,
+            static _ => Task.FromResult<UserProfile?>(null),
+            static _ => Task.FromResult<Party?>(null),
+            static _ =>
+                throw new InvalidOperationException(
+                    "Org party lookup is not applicable for a workflow-engine callback principal."
+                ),
+            static _ => Task.FromResult<List<Party>?>(null),
+            static (_, _) => Task.FromResult<bool?>(null)
+        );
+
+        if (!string.IsNullOrWhiteSpace(tokenStr))
+        {
+            JwtSecurityToken token = parsedToken ?? new JwtSecurityTokenHandler().ReadJwtToken(tokenStr);
+            context.ReadClaims(token);
+            context.Scopes = context.ScopeClaim.IsValidString(out var scopeClaimValue)
+                ? new Scopes(scopeClaimValue)
+                : new Scopes(null);
+            context.ResolveIssuer();
+        }
+
+        return new WorkflowEngineCallback(instanceGuid, ref context);
     }
 
     internal static Authenticated From(

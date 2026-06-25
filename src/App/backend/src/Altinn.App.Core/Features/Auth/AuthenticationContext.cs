@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Internal;
@@ -80,48 +81,62 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         parsedToken.Payload.TryGetValue("actual_iss", out var actualIss) && actualIss is "localtest";
                 }
 
-                // Workflow-engine callbacks authenticate via their own scheme. Their principal is bound to
-                // an instance and carries no Altinn user/org claims, so the legacy localtest parser would
-                // throw trying to classify it as a user token. The standard parser correctly treats an
-                // authenticated principal without identity claims as Authenticated.Unknown, so we use it for
-                // callbacks regardless of environment.
+                // Workflow-engine callbacks authenticate via their own scheme. Their principal is bound to an
+                // instance and carries no Altinn user/org claims, so it maps to a dedicated
+                // Authenticated.WorkflowEngineCallback rather than being run through the user/org token
+                // classification (which the legacy localtest parser would even throw on). The instance binding
+                // comes from the validated principal's NameIdentifier claim (set by the callback auth handler).
                 var isWorkflowCallback = string.Equals(
                     httpContext.User?.Identity?.AuthenticationType,
                     WorkflowCallbackAuthentication.Scheme,
                     StringComparison.Ordinal
                 );
 
-                var isLocaltest = _runtimeEnvironment.IsLocaltestPlatform() && !generalSettings.IsTest;
-                if (isLocaltest && !isNewLocaltestToken && !isWorkflowCallback)
+                if (isWorkflowCallback)
                 {
-                    authInfo = Authenticated.FromOldLocalTest(
+                    var instanceGuidClaim = httpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    _ = Guid.TryParse(instanceGuidClaim, out var callbackInstanceGuid);
+                    authInfo = Authenticated.FromWorkflowEngineCallback(
                         tokenStr: token,
                         parsedToken,
-                        isAuthenticated: !string.IsNullOrWhiteSpace(token),
-                        _appConfigurationCache.ApplicationMetadata,
-                        () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
-                        (int userId) => _profileClient.GetUserProfile(userId),
-                        (int partyId) => _altinnPartyClient.GetParty(partyId),
-                        (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                        (int userId) => _authorizationClient.GetPartyList(userId),
-                        (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                        callbackInstanceGuid,
+                        _appConfigurationCache.ApplicationMetadata
                     );
                 }
                 else
                 {
-                    var isAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false;
-                    authInfo = Authenticated.From(
-                        tokenStr: token,
-                        parsedToken,
-                        isAuthenticated: isAuthenticated,
-                        _appConfigurationCache.ApplicationMetadata,
-                        () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
-                        (int userId) => _profileClient.GetUserProfile(userId),
-                        (int partyId) => _altinnPartyClient.GetParty(partyId),
-                        (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                        (int userId) => _authorizationClient.GetPartyList(userId),
-                        (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
-                    );
+                    var isLocaltest = _runtimeEnvironment.IsLocaltestPlatform() && !generalSettings.IsTest;
+                    if (isLocaltest && !isNewLocaltestToken)
+                    {
+                        authInfo = Authenticated.FromOldLocalTest(
+                            tokenStr: token,
+                            parsedToken,
+                            isAuthenticated: !string.IsNullOrWhiteSpace(token),
+                            _appConfigurationCache.ApplicationMetadata,
+                            () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                            (int userId) => _profileClient.GetUserProfile(userId),
+                            (int partyId) => _altinnPartyClient.GetParty(partyId),
+                            (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
+                            (int userId) => _authorizationClient.GetPartyList(userId),
+                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                        );
+                    }
+                    else
+                    {
+                        var isAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false;
+                        authInfo = Authenticated.From(
+                            tokenStr: token,
+                            parsedToken,
+                            isAuthenticated: isAuthenticated,
+                            _appConfigurationCache.ApplicationMetadata,
+                            () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                            (int userId) => _profileClient.GetUserProfile(userId),
+                            (int partyId) => _altinnPartyClient.GetParty(partyId),
+                            (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
+                            (int userId) => _authorizationClient.GetPartyList(userId),
+                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                        );
+                    }
                 }
 
                 httpContext.Items[ItemsKey] = authInfo;

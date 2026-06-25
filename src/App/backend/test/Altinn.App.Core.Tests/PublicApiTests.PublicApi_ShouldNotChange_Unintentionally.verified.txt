@@ -372,6 +372,10 @@ namespace Altinn.App.Core.Features.Auth
                 public bool CanRepresentParty(int partyId) { }
             }
         }
+        public sealed class WorkflowEngineCallback : Altinn.App.Core.Features.Auth.Authenticated
+        {
+            public System.Guid InstanceGuid { get; }
+        }
     }
     public class AuthenticationContextException : System.Exception
     {
