@@ -7,11 +7,9 @@ COPY . .
 RUN dotnet tool install --version 9.0.0 --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 
-ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
-ENV OidcLoginSettings__ClientId=dummyRequired
-ENV OidcLoginSettings__ClientSecret=dummyRequired
-ENV FeatureManagement__StudioOidc=false
 ENV StudioOidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
+ENV StudioOidcLoginSettings__ClientId=dummyRequired
+ENV StudioOidcLoginSettings__ClientSecret=dummyRequired
 
 RUN dotnet restore src/Designer/Designer.csproj && \
     dotnet build src/Designer/Designer.csproj --no-restore && \
