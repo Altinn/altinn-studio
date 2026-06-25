@@ -1,9 +1,6 @@
 name: MCP - Test
 
 on:
-  push:
-    branches:
-      - altinity-workflows
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
