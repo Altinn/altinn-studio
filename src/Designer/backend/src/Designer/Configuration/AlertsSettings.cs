@@ -26,5 +26,8 @@ public class AlertsSettings : ISettingsMarker
     public Uri GetSlackWebhookUrl(AltinnEnvironment environment)
     {
         return environment.IsProd() ? Prod : Test;
+
+
+
     }
 }
