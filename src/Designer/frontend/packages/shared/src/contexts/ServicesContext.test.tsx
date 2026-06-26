@@ -140,7 +140,8 @@ describe('ServicesContext', () => {
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(404, errorCode, { branchName: 'my-branch' })),
+          queryFn: () =>
+            Promise.reject(createApiErrorMock(404, errorCode, { branchName: 'my-branch' })),
           retry: false,
         }),
       { wrapper },

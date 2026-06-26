@@ -13,6 +13,7 @@ import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 import type { OrgList } from 'app-shared/types/OrgList';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 
 const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -326,6 +327,24 @@ describe('ReleaseContainer', () => {
     expect(
       screen.getByText(textMock('app_create_release.local_changes_can_build')),
     ).toBeInTheDocument();
+  });
+
+  it('renders a StudioError when master branch is not found', async () => {
+    const mockGetBranchStatus = jest.fn().mockRejectedValue({
+      response: { data: { errorCode: ApiErrorCodes.BranchNotFound } },
+    });
+    renderReleaseContainer({ getBranchStatus: mockGetBranchStatus });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    expect(
+      screen.getByText(textMock('api_errors.' + ApiErrorCodes.BranchNotFound)),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('app_create_release.status_popover') }),
+    ).not.toBeInTheDocument();
   });
 });
 
