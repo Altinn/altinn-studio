@@ -66,7 +66,6 @@ describe('CreateCustomReceiptForm', () => {
           dataType: mockAllDataModelIds[0],
           tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
         },
-        layoutSetIdToUpdate: newId,
       },
       {
         onSuccess: expect.any(Function),

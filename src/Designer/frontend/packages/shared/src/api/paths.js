@@ -58,7 +58,7 @@ export const ruleConfigPath = (org, app, layoutSetName) => `${apiBasePath}/${org
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${apiBasePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${apiBasePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
 export const layoutNamesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-names`; // Get
-export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets`; // Get
+export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders/layout-sets`; // Get
 export const layoutSetsExtendedV4Path = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${apiBasePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
@@ -77,6 +77,8 @@ export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layo
 export const taskNavigationGroupV4Path = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
 export const taskNavigationGroupPath = (org, app) => `${uiFoldersPath(org, app)}/settings/task-navigation`;
 export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
+export const uiFoldersLayoutSetsPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets`; // Post
+export const uiFoldersLayoutSetPath = (org, app, layoutSetId) => `${uiFoldersPath(org, app)}/layout-sets/${layoutSetId}`; // Put, Delete
 export const validationOnNavigationPath = (org, app) => `${uiFoldersPath(org, app)}/settings/validation-on-navigation`; // Get, Post, Delete
 export const layoutSetsExtendedPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets/extended`; // Get
 

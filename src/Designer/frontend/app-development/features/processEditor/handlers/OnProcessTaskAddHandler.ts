@@ -109,13 +109,12 @@ export class OnProcessTaskAddHandler {
 
   /**
    * Creates the layout set config for the task
-   * @returns {{layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig}}
+   * @returns {{layoutSetConfig: LayoutSetConfig}}
    * @private
    */
   private createLayoutSetConfig(taskMetadata: OnProcessTaskEvent): AddLayoutSetMutationPayload {
     const elementId = taskMetadata.taskEvent.element.id;
     return {
-      layoutSetIdToUpdate: elementId,
       taskType: taskMetadata.taskType,
       layoutSetConfig: { id: elementId, tasks: [elementId] },
     };
