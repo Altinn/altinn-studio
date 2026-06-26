@@ -268,7 +268,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, ct: ct);
+        await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cascade: true, ct: ct);
         return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
     }
 
