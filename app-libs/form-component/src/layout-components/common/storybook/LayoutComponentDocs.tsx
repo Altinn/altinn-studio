@@ -34,8 +34,8 @@ export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
       <Description />
       <Primary />
 
-      <h2>Studio configurable</h2>
-      <p>Props that are configurable in Altinn Studio.</p>
+      <h2>Konfigurerbart i Studio</h2>
+      <p>Egenskaper som kan konfigureres i Altinn Studio.</p>
       {STUDIO_CATEGORIES.map(({ category, label }) =>
         groups[category].length > 0 ? (
           <section key={category}>
@@ -48,11 +48,11 @@ export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
       {groups.runtime.length > 0 && (
         <details>
           <summary>
-            <h2 style={{ display: 'inline' }}>Runtime (injected)</h2>
+            <h2 style={{ display: 'inline' }}>Kjøretid (injisert)</h2>
           </summary>
           <p>
-            Internal wiring supplied by the runtime wrapper — data binding, display overrides,
-            validation state and event handlers. Not part of the Studio configuration.
+            Intern kobling levert av kjøretids-wrapperen — databinding, visningsoverstyringer,
+            valideringstilstand og hendelseshåndterere. Ikke en del av Studio-konfigurasjonen.
           </p>
           <Controls include={groups.runtime} />
         </details>
