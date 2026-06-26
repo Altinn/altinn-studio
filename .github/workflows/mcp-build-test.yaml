@@ -1,8 +1,8 @@
-name: MCP - Test
+name: MCP
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/AI/mcp/**'
 
@@ -11,14 +11,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    runs-on: ubuntu-latest
+  build-and-test:
+    name: Build and test
+    if: ${{ !github.event.pull_request.draft }}
+    permissions:
+      contents: read
+    runs-on: self-hosted-single
     timeout-minutes: 30
 
     steps:
     - name: Check out code
       uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -37,3 +42,17 @@ jobs:
       run: python -m pytest
       env:
         AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
+
+    - name: Start MCP server
+      working-directory: src/AI/mcp
+      run: |
+        uv run -m server.main > server.log 2>&1 &
+        sleep 5
+        curl --retry 6 --retry-delay 5 --retry-connrefused http://localhost:8070/sse
+      env:
+        AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
+
+    - name: Output server logs on failure
+      if: failure()
+      working-directory: src/AI/mcp
+      run: cat server.log
