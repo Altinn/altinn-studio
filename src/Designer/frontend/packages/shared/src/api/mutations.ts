@@ -88,6 +88,7 @@ import {
   chatMessagePath,
   chatFeedbackPath,
   taskNavigationGroupPath,
+  layoutSetsV4Path,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -204,8 +205,8 @@ export const convertToPageOrder = (org: string, app: string, layoutSetName: stri
 export const updateValidationOnNavigation = <TLevel extends ValidationOnNavigationLevel>(org: string, app: string, level: TLevel, config: ValidationOnNavigationByLevel[TLevel]) =>
   post<void, ValidationOnNavigationByLevel[TLevel]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level })}`, config);
 
-export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
-export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
+export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsV4Path(org, app)}/validation-on-navigation`, payload);
+export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsV4Path(org, app)}/validation-on-navigation`);
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);

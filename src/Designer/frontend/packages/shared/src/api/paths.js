@@ -59,10 +59,11 @@ export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${apiBas
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${apiBasePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
 export const layoutNamesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders/layout-sets`; // Get
+export const layoutSetsV4Path = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets`; // Get
 export const layoutSetsExtendedV4Path = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${apiBasePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
-export const validationOnNavigationLayoutSetsPath = (org, app) => `${layoutSetsPath(org, app)}/validation-on-navigation`; // Get
+export const validationOnNavigationLayoutSetsPath = (org, app) => `${layoutSetsV4Path(org, app)}/validation-on-navigation`; // Get
 export const validateNavigationLayoutSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation`; // Get, Post
 export const validateNavigationPageSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation/pages`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
