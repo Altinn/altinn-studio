@@ -42,6 +42,7 @@ COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/stud
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
+COPY app-libs/package.json ./app-libs/
 COPY app-libs/form-component/package.json ./app-libs/form-component/
 COPY app-libs/form-engine/package.json ./app-libs/form-engine/
 COPY app-libs/language/package.json ./app-libs/language/
