@@ -1,4 +1,4 @@
-name: Altinity-agent - Test
+name: Altinity-agent
 
 on:
   pull_request:
@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  build-and-test:
     if: ${{ !github.event.pull_request.draft }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
 
     steps:
@@ -36,3 +36,17 @@ jobs:
       run: python -m pytest
       env:
         AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
+
+    - name: Start Altinity server
+      working-directory: src/AI/agents
+      run: |
+        uvicorn api.main:app --host 0.0.0.0 --port 8071 > server.log 2>&1 &
+        sleep 5
+        curl --fail --retry 6 --retry-delay 5 --retry-connrefused http://localhost:8071/health
+      env:
+        AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
+
+    - name: Output server logs on failure
+      if: failure()
+      working-directory: src/AI/agents
+      run: cat server.log

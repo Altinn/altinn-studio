@@ -1,4 +1,4 @@
-name: MCP - Test
+name: MCP
 
 on:
   pull_request:
@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  build-and-test:
     if: ${{ !github.event.pull_request.draft }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
 
     steps:
@@ -39,3 +39,17 @@ jobs:
       run: python -m pytest
       env:
         AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
+
+    - name: Start MCP server
+      working-directory: src/AI/mcp
+      run: |
+        uv run -m server.main > server.log 2>&1 &
+        sleep 5
+        curl --retry 6 --retry-delay 5 --retry-connrefused http://localhost:8070/sse
+      env:
+        AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
+
+    - name: Output server logs on failure
+      if: failure()
+      working-directory: src/AI/mcp
+      run: cat server.log
