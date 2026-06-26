@@ -19,35 +19,35 @@ type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {
-    title: 'This is a plain text paragraph shown in a form.',
+    title: 'Dette er et avsnitt med ren tekst som vises i et skjema.',
   },
 };
 
 export const WithHtml: Story = {
   args: {
-    title: `<h3>This is content set with props as html, but can be html or markdown</h3>
-      <p>And this is a <strong>paragraph</strong></p>
+    title: `<h3>Dette er innhold satt med props som html, men kan være html eller markdown</h3>
+      <p>Og dette er et <strong>avsnitt</strong></p>
       <ul>
-        <li>And this is a list item</li>
-        <li>And this is another list item</li>
+        <li>Og dette er et listeelement</li>
+        <li>Og dette er enda et listeelement</li>
       </ul>`,
   },
 };
 
 export const WithMarkdown: Story = {
   args: {
-    title: `### This is content set with props as text, but can be **html** or **markdown**
+    title: `### Dette er innhold satt med props som tekst, men kan være **html** eller **markdown**
 
-And this is a **paragraph**
+Og dette er et **avsnitt**
 
-- And this is a list item
-- And this is another list item`,
+- Og dette er et listeelement
+- Og dette er enda et listeelement`,
   },
 };
 
 export const WithHelpText: Story = {
   args: {
-    title: 'This is a paragraph with an accompanying help text.',
-    help: 'This **help text** gives the user more context about the paragraph.',
+    title: 'Dette er et avsnitt med en tilhørende hjelpetekst.',
+    help: 'Denne **hjelpeteksten** gir brukeren mer kontekst om avsnittet.',
   },
 };

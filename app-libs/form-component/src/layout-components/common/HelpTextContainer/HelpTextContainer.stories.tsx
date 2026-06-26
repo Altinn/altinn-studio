@@ -10,7 +10,7 @@ const meta = {
   },
   args: {
     id: 'example',
-    helpText: 'This is some helpful text that explains what to do.',
+    helpText: 'Dette er en hjelpetekst som forklarer hva du skal gjøre.',
   },
 } satisfies Meta<typeof HelpTextContainer>;
 
@@ -22,6 +22,6 @@ export const Preview: Story = {};
 
 export const WithTitle: Story = {
   args: {
-    title: 'Date of birth',
+    title: 'Fødselsdato',
   },
 };

@@ -6,7 +6,7 @@ const meta = {
   title: 'LayoutComponents/Common/Description',
   component: Description,
   args: {
-    description: 'A short description that explains the field.',
+    description: 'En kort beskrivelse som forklarer feltet.',
     componentId: 'example',
   },
 } satisfies Meta<typeof Description>;

@@ -15,7 +15,7 @@ const preview: Preview = {
   },
   tags: ['autodocs'],
   initialGlobals: {
-    locale: 'en' satisfies StaticLanguageCode,
+    locale: 'nb' satisfies StaticLanguageCode,
   },
   globalTypes: {
     locale: {
@@ -25,9 +25,9 @@ const preview: Preview = {
         title: 'Language',
         icon: 'globe',
         items: [
-          { value: 'en', title: 'English' },
           { value: 'nb', title: 'Norsk (nb)' },
           { value: 'nn', title: 'Norsk (nn)' },
+          { value: 'en', title: 'English' },
         ] satisfies { value: StaticLanguageCode; title: string }[],
         dynamicTitle: true,
       },
