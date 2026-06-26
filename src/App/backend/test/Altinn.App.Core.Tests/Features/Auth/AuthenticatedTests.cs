@@ -219,19 +219,21 @@ public class AuthenticatedTests
     {
         var instanceGuid = Guid.NewGuid();
         var instanceId = new InstanceIdentifier(512345, instanceGuid);
+        // AppId is the route authority — deliberately distinct from the app metadata identity.
+        var appId = new AppIdentifier("ttd", "callback-app");
         var jwt = new JwtSecurityToken(claims: [new Claim("jti", instanceGuid.ToString())]);
         var token = new JwtSecurityTokenHandler().WriteToken(jwt);
-        var appMetadata = TestAuthentication.NewApplicationMetadata();
 
         var auth = Authenticated.FromApp(
             tokenStr: token,
             parsedToken: null,
+            appId: appId,
             instanceId: instanceId,
-            appMetadata: appMetadata
+            appMetadata: TestAuthentication.NewApplicationMetadata()
         );
 
         var app = Assert.IsType<Authenticated.App>(auth);
-        Assert.Equal(appMetadata.AppIdentifier, app.AppId);
+        Assert.Equal(appId, app.AppId);
         Assert.Equal(instanceId, app.InstanceId);
         Assert.Equal(token, app.Token);
         // Callback principals carry no Altinn identity scopes and are not exchanged tokens.
@@ -242,19 +244,20 @@ public class AuthenticatedTests
     [Fact]
     public void Can_Classify_App_Callback_WithoutInstance()
     {
-        var appMetadata = TestAuthentication.NewApplicationMetadata();
+        var appId = new AppIdentifier("ttd", "callback-app");
         var jwt = new JwtSecurityToken(claims: [new Claim("jti", Guid.NewGuid().ToString())]);
         var token = new JwtSecurityTokenHandler().WriteToken(jwt);
 
         var auth = Authenticated.FromApp(
             tokenStr: token,
             parsedToken: null,
+            appId: appId,
             instanceId: null,
-            appMetadata: appMetadata
+            appMetadata: TestAuthentication.NewApplicationMetadata()
         );
 
         var app = Assert.IsType<Authenticated.App>(auth);
-        Assert.Equal(appMetadata.AppIdentifier, app.AppId);
+        Assert.Equal(appId, app.AppId);
         Assert.Null(app.InstanceId);
     }
 

@@ -836,13 +836,14 @@ public abstract class Authenticated
     /// <summary>
     /// Builds the authentication info for an app process callback (the workflow engine invoking the
     /// <c>WorkflowEngineCallback</c> scheme). The principal carries no Altinn user/org identity, so it maps
-    /// directly to <see cref="App"/> instead of being run through the standard token classification. The app
-    /// identity is taken from <paramref name="appMetadata"/> (the running app), and <paramref name="instanceId"/>
-    /// is the instance the callback targets, when instance-scoped.
+    /// directly to <see cref="App"/> instead of being run through the standard token classification.
+    /// <paramref name="appId"/> identifies the targeted app (resolved from the request route), and
+    /// <paramref name="instanceId"/> is the instance the callback targets, when instance-scoped.
     /// </summary>
     internal static Authenticated FromApp(
         string tokenStr,
         JwtSecurityToken? parsedToken,
+        AppIdentifier appId,
         InstanceIdentifier? instanceId,
         ApplicationMetadata appMetadata
     )
@@ -873,7 +874,7 @@ public abstract class Authenticated
             context.ResolveIssuer();
         }
 
-        return new App(appMetadata.AppIdentifier, instanceId, ref context);
+        return new App(appId, instanceId, ref context);
     }
 
     internal static Authenticated From(

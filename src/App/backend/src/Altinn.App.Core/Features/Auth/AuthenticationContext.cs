@@ -95,11 +95,16 @@ internal sealed class AuthenticationContext : IAuthenticationContext
 
                 if (isWorkflowCallback)
                 {
+                    var appMetadata = _appConfigurationCache.ApplicationMetadata;
+                    // The route is the authority for the app identity (it is what the request targeted and what
+                    // routing matched); fall back to the running app's metadata only if the route omits it.
+                    var appId = ResolveCallbackApp(httpContext) ?? appMetadata.AppIdentifier;
                     authInfo = Authenticated.FromApp(
                         tokenStr: token,
                         parsedToken,
+                        appId,
                         ResolveCallbackInstance(httpContext),
-                        _appConfigurationCache.ApplicationMetadata
+                        appMetadata
                     );
                 }
                 else
@@ -150,6 +155,26 @@ internal sealed class AuthenticationContext : IAuthenticationContext
             }
             return authInfo;
         }
+    }
+
+    /// <summary>
+    /// Resolves the app a workflow-engine callback targets from the route values (<c>{org}/{app}</c>).
+    /// Returns <c>null</c> when the route does not carry both values.
+    /// </summary>
+    private static AppIdentifier? ResolveCallbackApp(HttpContext httpContext)
+    {
+        var routeValues = httpContext.Request.RouteValues;
+        if (
+            routeValues.TryGetValue("org", out var orgValue)
+            && orgValue?.ToString() is { Length: > 0 } org
+            && routeValues.TryGetValue("app", out var appValue)
+            && appValue?.ToString() is { Length: > 0 } app
+        )
+        {
+            return new AppIdentifier(org, app);
+        }
+
+        return null;
     }
 
     /// <summary>
