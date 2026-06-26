@@ -14,10 +14,14 @@ namespace Altinn.App.Api.Helpers;
 /// </summary>
 internal enum WorkflowInitializationFlow
 {
-    /// <summary>A new instance is being created (instantiation or copy).</summary>
+    /// <summary>
+    /// A new instance is being created (instantiation or copy).
+    /// </summary>
     Instantiation,
 
-    /// <summary>The process is being started for an already existing instance.</summary>
+    /// <summary>
+    /// The process is being started for an already existing instance.
+    /// </summary>
     ProcessStart,
 }
 

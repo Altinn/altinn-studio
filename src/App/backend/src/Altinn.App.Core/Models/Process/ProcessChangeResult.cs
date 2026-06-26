@@ -212,10 +212,14 @@ public enum WorkflowFailureKind
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]
 public enum WorkflowSubmissionFailureKind
 {
-    /// <summary>The workflow engine explicitly rejected the submission.</summary>
+    /// <summary>
+    /// The workflow engine explicitly rejected the submission.
+    /// </summary>
     NotAccepted,
 
-    /// <summary>Runtime could not determine whether the submission was accepted.</summary>
+    /// <summary>
+    /// Runtime could not determine whether the submission was accepted.
+    /// </summary>
     Unknown,
 }
 

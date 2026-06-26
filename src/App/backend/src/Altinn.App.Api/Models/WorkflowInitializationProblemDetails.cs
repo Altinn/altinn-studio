@@ -20,13 +20,19 @@ internal sealed class JsonCamelCaseEnumConverter : JsonStringEnumConverter
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]
 public enum WorkflowInitializationState
 {
-    /// <summary>The workflow engine rejected the submitted workflow.</summary>
+    /// <summary>
+    /// The workflow engine rejected the submitted workflow.
+    /// </summary>
     WorkflowNotAccepted,
 
-    /// <summary>Runtime could not determine whether the workflow engine accepted the submission.</summary>
+    /// <summary>
+    /// Runtime could not determine whether the workflow engine accepted the submission.
+    /// </summary>
     WorkflowAcceptanceUnknown,
 
-    /// <summary>The workflow engine accepted the workflow, but it failed during execution.</summary>
+    /// <summary>
+    /// The workflow engine accepted the workflow, but it failed during execution.
+    /// </summary>
     WorkflowFailed,
 }
 
@@ -36,16 +42,24 @@ public enum WorkflowInitializationState
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]
 public enum WorkflowRecommendedAction
 {
-    /// <summary>The created instance was cleaned up; the client can safely retry instance creation.</summary>
+    /// <summary>
+    /// The created instance was cleaned up; the client can safely retry instance creation.
+    /// </summary>
     RetryInstanceCreation,
 
-    /// <summary>The existing instance was left untouched; the client can retry starting the process.</summary>
+    /// <summary>
+    /// The existing instance was left untouched; the client can retry starting the process.
+    /// </summary>
     RetryStartProcess,
 
-    /// <summary>The client should inspect the instance and workflow state before deciding how to proceed.</summary>
+    /// <summary>
+    /// The client should inspect the instance and workflow state before deciding how to proceed.
+    /// </summary>
     InspectInstance,
 
-    /// <summary>The process state may have changed; the client should call the resume endpoint.</summary>
+    /// <summary>
+    /// The process state may have changed; the client should call the resume endpoint.
+    /// </summary>
     ResumeCurrentTask,
 }
 
@@ -67,65 +81,91 @@ public sealed record WorkflowResumeEndpoint(
 /// </summary>
 public sealed class WorkflowInitializationProblemDetails : ProblemDetails
 {
-    /// <summary>The stage initialization reached when it failed.</summary>
+    /// <summary>
+    /// The stage initialization reached when it failed.
+    /// </summary>
     [JsonPropertyName("initializationState")]
     public required WorkflowInitializationState InitializationState { get; init; }
 
-    /// <summary>The recommended client recovery action.</summary>
+    /// <summary>
+    /// The recommended client recovery action.
+    /// </summary>
     [JsonPropertyName("recommendedAction")]
     public required WorkflowRecommendedAction RecommendedAction { get; init; }
 
-    /// <summary>Whether the created instance was deleted (instance creation flow only).</summary>
+    /// <summary>
+    /// Whether the created instance was deleted (instance creation flow only).
+    /// </summary>
     [JsonPropertyName("instanceDeleted")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? InstanceDeleted { get; init; }
 
-    /// <summary>Where to resume the process when the workflow failed after the state may have changed.</summary>
+    /// <summary>
+    /// Where to resume the process when the workflow failed after the state may have changed.
+    /// </summary>
     [JsonPropertyName("resumeEndpoint")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public WorkflowResumeEndpoint? ResumeEndpoint { get; init; }
 
-    /// <summary>Whether the workflow engine accepted the submission.</summary>
+    /// <summary>
+    /// Whether the workflow engine accepted the submission.
+    /// </summary>
     [JsonPropertyName("workflowAccepted")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? WorkflowAccepted { get; init; }
 
-    /// <summary>Structured detail about the workflow failure, when the workflow was accepted but failed.</summary>
+    /// <summary>
+    /// Structured detail about the workflow failure, when the workflow was accepted but failed.
+    /// </summary>
     [JsonPropertyName("workflowFailure")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public WorkflowFailure? WorkflowFailure { get; init; }
 
-    /// <summary>Why the submission was not accepted (submission failures only).</summary>
+    /// <summary>
+    /// Why the submission was not accepted (submission failures only).
+    /// </summary>
     [JsonPropertyName("workflowSubmissionFailureKind")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public WorkflowSubmissionFailureKind? WorkflowSubmissionFailureKind { get; init; }
 
-    /// <summary>The HTTP status code the workflow engine returned when rejecting the submission, if known.</summary>
+    /// <summary>
+    /// The HTTP status code the workflow engine returned when rejecting the submission, if known.
+    /// </summary>
     [JsonPropertyName("workflowSubmissionStatusCode")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? WorkflowSubmissionStatusCode { get; init; }
 
-    /// <summary>The workflow collection key, if known.</summary>
+    /// <summary>
+    /// The workflow collection key, if known.
+    /// </summary>
     [JsonPropertyName("workflowCollectionKey")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? WorkflowCollectionKey { get; init; }
 
-    /// <summary>Whether the process state may have changed in Storage before the failure.</summary>
+    /// <summary>
+    /// Whether the process state may have changed in Storage before the failure.
+    /// </summary>
     [JsonPropertyName("processStateChanged")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? ProcessStateChanged { get; init; }
 
-    /// <summary>The affected instance id, when an instance exists.</summary>
+    /// <summary>
+    /// The affected instance id, when an instance exists.
+    /// </summary>
     [JsonPropertyName("instanceId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? InstanceId { get; init; }
 
-    /// <summary>The affected instance owner party id, when an instance exists.</summary>
+    /// <summary>
+    /// The affected instance owner party id, when an instance exists.
+    /// </summary>
     [JsonPropertyName("instanceOwnerPartyId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? InstanceOwnerPartyId { get; init; }
 
-    /// <summary>The affected instance guid, when an instance exists.</summary>
+    /// <summary>
+    /// The affected instance guid, when an instance exists.
+    /// </summary>
     [JsonPropertyName("instanceGuid")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? InstanceGuid { get; init; }
