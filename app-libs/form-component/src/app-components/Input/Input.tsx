@@ -41,7 +41,13 @@ export type InputProps = {
   | 'pattern'
   | 'onKeyDown'
 > &
-  LabelRequired;
+  LabelRequired & {
+    /**
+     * Allows `data-*` attributes to be passed through to the underlying input. Needed for
+     * `data-bindingkey`, which the runtime uses to focus a specific field (e.g. on validation error).
+     */
+    [dataAttr: `data-${string}`]: string | undefined;
+  };
 
 export function Input(props: InputProps) {
   const {
