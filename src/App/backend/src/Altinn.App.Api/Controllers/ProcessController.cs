@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
@@ -11,6 +12,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -180,6 +182,26 @@ public class ProcessController : ControllerBase
 
             AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User);
             return Ok(appProcessState);
+        }
+        catch (WorkflowSubmissionFailedException exception)
+        {
+            // The existing instance is intentionally retained; unlike instantiation we never delete it here.
+            return HandleStartProcessWorkflowSubmissionFailure(
+                exception,
+                instance,
+                $"Process workflow submission failed for instance {instance?.Id} of {instance?.AppId}"
+            );
+        }
+        catch (WorkflowExecutionFailedException exception)
+        {
+            // Workflow was accepted but execution failed; the process state may have changed, so steer the
+            // client to resume rather than starting the process again.
+            return HandleStartProcessWorkflowExecutionFailure(
+                exception,
+                $"Process workflow execution failed for instance {exception.Instance.Id} of {exception.Instance.AppId}",
+                org,
+                app
+            );
         }
         catch (PlatformHttpException e)
         {
@@ -688,6 +710,52 @@ public class ProcessController : ControllerBase
                     }
                 );
         }
+    }
+
+    private ObjectResult HandleStartProcessWorkflowSubmissionFailure(
+        WorkflowSubmissionFailedException exception,
+        Instance? instance,
+        string message
+    )
+    {
+        return WorkflowInitializationProblem.Create(
+            _logger,
+            WorkflowInitializationFlow.ProcessStart,
+            exception,
+            message,
+            exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
+                ? "workflowNotAccepted"
+                : "workflowAcceptanceUnknown",
+            instance,
+            recommendedAction: exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
+                ? "retryStartProcess"
+                : "inspectInstance",
+            workflowSubmissionFailureKind: exception.Kind.ToString(),
+            workflowSubmissionStatusCode: exception.StatusCode,
+            workflowCollectionKey: exception.CollectionKey
+        );
+    }
+
+    private ObjectResult HandleStartProcessWorkflowExecutionFailure(
+        WorkflowExecutionFailedException exception,
+        string message,
+        string org,
+        string app
+    )
+    {
+        return WorkflowInitializationProblem.Create(
+            _logger,
+            WorkflowInitializationFlow.ProcessStart,
+            exception,
+            message,
+            initializationState: "workflowFailed",
+            instance: exception.Instance,
+            recommendedAction: "resumeCurrentTask",
+            resumeEndpoint: WorkflowInitializationProblem.CreateProcessResumeEndpoint(org, app, exception.Instance),
+            workflowFailure: exception.WorkflowFailure,
+            workflowAccepted: true,
+            processStateChanged: exception.ProcessStateChanged
+        );
     }
 
     private ObjectResult ExceptionResponse(Exception exception, string message)
