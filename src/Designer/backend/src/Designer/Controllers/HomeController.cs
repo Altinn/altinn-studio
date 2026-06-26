@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -95,7 +96,7 @@ public class HomeController : Controller
     /// Logout
     /// </summary>
     /// <returns>The logout page</returns>
-    public async Task<IActionResult> Logout()
+    public IActionResult Logout()
     {
         HttpContext.Response.Cookies.Append(
             _generalSettings.SessionTimeoutCookieName,
@@ -103,8 +104,12 @@ public class HomeController : Controller
             new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) }
         );
 
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return LocalRedirect("/");
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return LocalRedirect("/");
+        }
+
+        return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme);
     }
 
     /// <summary>

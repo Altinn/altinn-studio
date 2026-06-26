@@ -244,6 +244,27 @@ export function getFormatAsPatternFormat(datePickerFormat: string): string {
   return datePickerFormat.replaceAll(/[dmy]/gi, '#');
 }
 
+/**
+ * This function will massage locale date formats to require a fixed number of characters so that a pattern-format can be used on the text input
+ */
+export function getDatepickerFormat(unicodeFormat: string): string {
+  const tokens = unicodeFormat.split(UNICODE_TOKENS) as Token[];
+  const separators: (string | undefined)[] = unicodeFormat.match(UNICODE_TOKENS) ?? [];
+
+  return tokens.reduce((acc, token: Token, index) => {
+    if (['y', 'yy', 'yyy', 'yyyy', 'u', 'uu', 'uuu', 'uuuu'].includes(token)) {
+      return `${acc}yyyy${separators?.[index] ?? ''}`;
+    }
+    if (['M', 'MM', 'MMM', 'MMMM', 'MMMMM'].includes(token)) {
+      return `${acc}MM${separators?.[index] ?? ''}`;
+    }
+    if (['d', 'dd'].includes(token)) {
+      return `${acc}dd${separators?.[index] ?? ''}`;
+    }
+    return acc;
+  }, '');
+}
+
 export const getMonths = (start: Date, end: Date, current: Date): Date[] => {
   const dropdownMonths: Date[] = [];
 
