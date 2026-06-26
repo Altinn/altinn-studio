@@ -1,9 +1,6 @@
 name: MCP
 
 on:
-  push:
-    branches:
-      - fix-assistant-workflows
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
