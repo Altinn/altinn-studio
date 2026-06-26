@@ -6,9 +6,6 @@ export type AltinnStudioEnvironment = {
   postHogApiKey?: string;
   postHogApiHost?: string;
   accountLinkUrl?: string;
-  featureFlags?: {
-    studioOidc?: boolean;
-  };
 };
 
 /*
@@ -22,5 +19,4 @@ export const altinnStudioEnvironment: AltinnStudioEnvironment = {
   aiConnectionString: studioWindow.aiConnectionString,
   postHogApiKey: studioWindow.postHogApiKey,
   postHogApiHost: studioWindow.postHogApiHost,
-  featureFlags: studioWindow.featureFlags,
 };

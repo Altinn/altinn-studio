@@ -26,7 +26,6 @@ const defaultEnvVars = {
   POSTGRES_PASSWORD: randomPass(),
   CLIENT_ID: '',
   CLIENT_SECRET: '',
-  FEATUREFLAGS_STUDIOOIDC: true,
 };
 
 module.exports = () => {

@@ -2,3 +2,20 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base
+patches:
+  - target:
+      kind: Deployment
+      name: workflow-engine-app
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: workflow-engine-app
+      spec:
+        template:
+          spec:
+            containers:
+              - name: workflow-engine-app
+                env:
+                  - name: ConnectionStrings__WorkflowEngine
+                    value: "Host=${WORKFLOW_ENGINE_DB_HOST};Port=5432;Database=workflow_engine_${SERVICEOWNER_ID}_${ENVIRONMENT};Username=${WORKFLOW_ENGINE_DB_USERNAME};Ssl Mode=Require"

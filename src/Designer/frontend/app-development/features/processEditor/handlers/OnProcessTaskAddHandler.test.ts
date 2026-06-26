@@ -69,7 +69,6 @@ describe('OnProcessTaskAddHandler', () => {
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: defaultLayoutSetConfig,
-      layoutSetIdToUpdate: testElementId,
       taskType: 'data',
     });
     expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
@@ -105,7 +104,6 @@ describe('OnProcessTaskAddHandler', () => {
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: defaultLayoutSetConfig,
-      layoutSetIdToUpdate: testElementId,
       taskType: 'payment',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
@@ -134,7 +132,6 @@ describe('OnProcessTaskAddHandler', () => {
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: defaultLayoutSetConfig,
-      layoutSetIdToUpdate: testElementId,
       taskType: 'signing',
     });
 
@@ -158,7 +155,6 @@ describe('OnProcessTaskAddHandler', () => {
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: defaultLayoutSetConfig,
-      layoutSetIdToUpdate: testElementId,
       taskType: 'signing',
     });
 
