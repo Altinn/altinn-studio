@@ -42,7 +42,7 @@ export function setup() {
 //Tests for platform register
 export default function (data) {
   const runtimeToken = data['RuntimeToken'];
-  const ssn = data['ssn'];
+  const ssn = __ENV.pid;
   const orgNr = data['orgNumber'];
   var res;
 
