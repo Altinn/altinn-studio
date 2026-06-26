@@ -564,8 +564,6 @@ public abstract class Authenticated
         }
     }
 
-    // TODO: app token?
-
     internal delegate Authenticated Parser(
         string tokenStr,
         JwtSecurityToken? parsedToken,

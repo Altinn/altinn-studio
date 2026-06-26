@@ -100,7 +100,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                     // always carries {org}/{app}, so a missing app here is a broken invariant — fail loudly
                     // rather than silently falling back to the running app's metadata.
                     var appId =
-                        ResolveCallbackApp(httpContext)
+                        ResolveAppFromRoute(httpContext)
                         ?? throw new AuthenticationContextException(
                             "Workflow-engine callback request is missing the org/app route values required to identify the app."
                         );
@@ -108,7 +108,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         tokenStr: token,
                         parsedToken,
                         appId,
-                        ResolveCallbackInstance(httpContext),
+                        ResolveInstanceFromRoute(httpContext),
                         _appConfigurationCache.ApplicationMetadata
                     );
                 }
@@ -163,10 +163,10 @@ internal sealed class AuthenticationContext : IAuthenticationContext
     }
 
     /// <summary>
-    /// Resolves the app a workflow-engine callback targets from the route values (<c>{org}/{app}</c>).
+    /// Resolves an <see cref="AppIdentifier"/> from the route values (<c>{org}/{app}</c>).
     /// Returns <c>null</c> when the route does not carry both values.
     /// </summary>
-    private static AppIdentifier? ResolveCallbackApp(HttpContext httpContext)
+    private static AppIdentifier? ResolveAppFromRoute(HttpContext httpContext)
     {
         var routeValues = httpContext.Request.RouteValues;
         if (
@@ -183,11 +183,10 @@ internal sealed class AuthenticationContext : IAuthenticationContext
     }
 
     /// <summary>
-    /// Resolves the instance a workflow-engine callback targets from the route values
-    /// (<c>{instanceOwnerPartyId}/{instanceGuid}</c>). Returns <c>null</c> when the callback is not
-    /// instance-scoped or the route does not carry a valid instance identifier.
+    /// Resolves an <see cref="InstanceIdentifier"/> from the route values (<c>{instanceOwnerPartyId}/{instanceGuid}</c>).
+    /// Returns <c>null</c> when the route does not carry a valid instance identifier.
     /// </summary>
-    private static InstanceIdentifier? ResolveCallbackInstance(HttpContext httpContext)
+    private static InstanceIdentifier? ResolveInstanceFromRoute(HttpContext httpContext)
     {
         var routeValues = httpContext.Request.RouteValues;
         if (
