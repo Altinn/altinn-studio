@@ -15,7 +15,7 @@ public class GetLayoutSetsTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/app-development";
+        $"/designer/api/{org}/{repository}/ui-folders";
 
     public GetLayoutSetsTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

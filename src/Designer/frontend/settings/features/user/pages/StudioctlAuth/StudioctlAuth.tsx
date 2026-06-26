@@ -25,11 +25,10 @@ export const StudioctlAuth = (): React.ReactElement => {
   const { owner } = useRequiredRoutePathsParams(['owner']);
   const [searchParams] = useSearchParams();
   const requestId = searchParams.get('requestId');
-  const { environment, isPending: isEnvironmentPending } = useEnvironmentConfig();
+  const { isPending: isEnvironmentPending } = useEnvironmentConfig();
   const { data: user, isPending: isUserPending, isError: isUserError } = useUserQuery();
   const ownerMatchesUser = StringUtils.areCaseInsensitiveEqual(owner, user?.login ?? '');
-  const canLoadRequest =
-    Boolean(environment?.featureFlags?.studioOidc) && ownerMatchesUser && Boolean(requestId);
+  const canLoadRequest = ownerMatchesUser && Boolean(requestId);
   const {
     data: request,
     isPending: isRequestPending,
@@ -52,7 +51,7 @@ export const StudioctlAuth = (): React.ReactElement => {
     return <StudioPageError />;
   }
 
-  if (!environment?.featureFlags?.studioOidc || !ownerMatchesUser || !requestId) {
+  if (!ownerMatchesUser || !requestId) {
     return <NotFound />;
   }
 

@@ -42,6 +42,7 @@ public class SchemaModelService : ISchemaModelService
     private readonly IJsonSchemaToXmlSchemaConverter _jsonSchemaToXmlSchemaConverter;
     private readonly IModelMetadataToCsharpConverter _modelMetadataToCsharpConverter;
     private readonly IApplicationMetadataService _applicationMetadataService;
+    private readonly IAppVersionService _appVersionService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
@@ -62,6 +63,7 @@ public class SchemaModelService : ISchemaModelService
     /// Class for converting Json schemas to Xml schemas.</param>
     /// <param name="modelMetadataToCsharpConverter">C# model generator</param>
     /// <param name="applicationMetadataService"></param>
+    /// <param name="appVersionService"></param>
     public SchemaModelService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         ILoggerFactory loggerFactory,
@@ -69,7 +71,8 @@ public class SchemaModelService : ISchemaModelService
         IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter,
         IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter,
         IModelMetadataToCsharpConverter modelMetadataToCsharpConverter,
-        IApplicationMetadataService applicationMetadataService
+        IApplicationMetadataService applicationMetadataService,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
@@ -79,6 +82,7 @@ public class SchemaModelService : ISchemaModelService
         _jsonSchemaToXmlSchemaConverter = jsonSchemaToXmlSchemaConverter;
         _modelMetadataToCsharpConverter = modelMetadataToCsharpConverter;
         _applicationMetadataService = applicationMetadataService;
+        _appVersionService = appVersionService;
     }
 
     /// <inheritdoc/>
@@ -361,7 +365,12 @@ public class SchemaModelService : ISchemaModelService
             var altinnCoreFile = altinnAppGitRepository.GetAltinnCoreFileByRelativePath(relativeFilePath);
             var schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
 
-            await DeleteDatatypeFromApplicationMetadataAndLayoutSets(altinnAppGitRepository, schemaFileName);
+            bool isV9OrNewer = _appVersionService.GetAppLibVersion(altinnRepoEditingContext)?.Major >= 9 == true;
+            await DeleteDatatypeFromApplicationMetadataAndLayoutSets(
+                altinnAppGitRepository,
+                schemaFileName,
+                isV9OrNewer
+            );
             DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaFileName, altinnCoreFile.Directory);
         }
         else
@@ -529,7 +538,8 @@ public class SchemaModelService : ISchemaModelService
 
     private static async Task DeleteDatatypeFromApplicationMetadataAndLayoutSets(
         AltinnAppGitRepository altinnAppGitRepository,
-        string id
+        string id,
+        bool isV9OrNewer
     )
     {
         var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
@@ -537,20 +547,51 @@ public class SchemaModelService : ISchemaModelService
         if (applicationMetadata.DataTypes != null)
         {
             DataType dataTypeToDelete = applicationMetadata.DataTypes.Find(m => m.Id == id);
-            if (altinnAppGitRepository.AppUsesLayoutSets())
+            if (isV9OrNewer)
             {
-                var layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-                List<LayoutSetConfig> layoutSetsWithDataTypeToDelete = layoutSets.Sets.FindAll(set =>
-                    set.DataType == id
-                );
-                foreach (LayoutSetConfig layoutSet in layoutSetsWithDataTypeToDelete)
-                {
-                    layoutSet.DataType = null;
-                }
-                await altinnAppGitRepository.SaveLayoutSets(layoutSets);
+                await ClearDefaultDataTypeFromLayoutSettings(altinnAppGitRepository, id);
+            }
+            else if (altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                await ClearDataTypeFromLayoutSets(altinnAppGitRepository, id);
             }
             applicationMetadata.DataTypes.Remove(dataTypeToDelete);
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
+    }
+
+    private static async Task ClearDataTypeFromLayoutSets(AltinnAppGitRepository altinnAppGitRepository, string id)
+    {
+        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+        layoutSets.Sets.FindAll(set => set.DataType == id).ForEach(set => set.DataType = null);
+        await altinnAppGitRepository.SaveLayoutSets(layoutSets);
+    }
+
+    private static async Task ClearDefaultDataTypeFromLayoutSettings(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string id
+    )
+    {
+        IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders();
+        foreach (string layoutSetName in uiFolders)
+        {
+            LayoutSettings layoutSettings;
+            try
+            {
+                layoutSettings = await altinnAppGitRepository.GetLayoutSettings(layoutSetName);
+            }
+            catch (Exception e) when (e is FileNotFoundException or JsonException)
+            {
+                continue;
+            }
+
+            if (layoutSettings.DefaultDataType != id)
+            {
+                continue;
+            }
+
+            layoutSettings.DefaultDataType = null;
+            await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
         }
     }
 

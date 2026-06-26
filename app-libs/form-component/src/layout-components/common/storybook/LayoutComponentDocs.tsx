@@ -7,7 +7,7 @@ import {
   Title,
 } from '@storybook/addon-docs/blocks';
 
-import { splitPropKeys } from './propCategories';
+import { groupPropKeys, STUDIO_CATEGORIES } from './propCategories';
 import type { PropCategory } from './propCategories';
 
 interface LayoutComponentDocsProps {
@@ -25,7 +25,7 @@ interface LayoutComponentDocsProps {
  * section. Every prop stays editable. The runtime section is omitted when a component has none.
  */
 export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
-  const { configKeys, runtimeKeys } = splitPropKeys(categories);
+  const groups = groupPropKeys(categories);
 
   return (
     <>
@@ -36,9 +36,16 @@ export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
 
       <h2>Studio configurable</h2>
       <p>Props that are configurable in Altinn Studio.</p>
-      <Controls include={configKeys} />
+      {STUDIO_CATEGORIES.map(({ category, label }) =>
+        groups[category].length > 0 ? (
+          <section key={category}>
+            <h3>{label}</h3>
+            <Controls include={groups[category]} />
+          </section>
+        ) : null,
+      )}
 
-      {runtimeKeys.length > 0 && (
+      {groups.runtime.length > 0 && (
         <details>
           <summary>
             <h2 style={{ display: 'inline' }}>Runtime (injected)</h2>
@@ -47,7 +54,7 @@ export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
             Internal wiring supplied by the runtime wrapper — data binding, display overrides,
             validation state and event handlers. Not part of the Studio configuration.
           </p>
-          <Controls include={runtimeKeys} />
+          <Controls include={groups.runtime} />
         </details>
       )}
 
