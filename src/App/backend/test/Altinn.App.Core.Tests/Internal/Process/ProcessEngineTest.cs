@@ -2125,7 +2125,7 @@ public sealed class ProcessEngineTest
                 ),
             ]);
         processEngineClientMock
-            .Setup(c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, false, It.IsAny<CancellationToken>()))
+            .Setup(c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
 
         Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
@@ -2164,7 +2164,7 @@ public sealed class ProcessEngineTest
         result.ProcessStateChange!.OldProcessState.Should().BeEquivalentTo(originalInstance.Process);
         result.ProcessStateChange.NewProcessState.Should().BeEquivalentTo(resumedInstance.Process);
         processEngineClientMock.Verify(
-            c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, false, It.IsAny<CancellationToken>()),
+            c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, true, It.IsAny<CancellationToken>()),
             Times.Once
         );
     }
