@@ -10,3 +10,6 @@ patches:
       - op: replace
         path: /spec/serverType
         value: prod
+      - op: replace
+        path: /metadata/name
+        value: workflow-engine-db-server-prod
