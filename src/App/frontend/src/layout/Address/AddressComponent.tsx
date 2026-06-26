@@ -58,11 +58,11 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
       required={required}
       readOnly={readOnly}
       showOptionalMarking={!!labelSettings?.optionalIndicator}
-      titleKey={textResourceBindings?.title}
-      careOfTitleKey={textResourceBindings?.careOfTitle}
-      zipCodeTitleKey={textResourceBindings?.zipCodeTitle}
-      postPlaceTitleKey={textResourceBindings?.postPlaceTitle}
-      houseNumberTitleKey={textResourceBindings?.houseNumberTitle}
+      title={textResourceBindings?.title}
+      careOfTitle={textResourceBindings?.careOfTitle}
+      zipCodeTitle={textResourceBindings?.zipCodeTitle}
+      postPlaceTitle={textResourceBindings?.postPlaceTitle}
+      houseNumberTitle={textResourceBindings?.houseNumberTitle}
       address={address}
       careOf={careOf}
       zipCode={zipCode}
