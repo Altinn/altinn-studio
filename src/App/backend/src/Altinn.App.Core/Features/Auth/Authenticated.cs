@@ -99,22 +99,27 @@ public abstract class Authenticated
     }
 
     /// <summary>
-    /// The caller is the Altinn workflow engine invoking a process callback for a specific instance.
-    /// Authenticated via the <c>WorkflowEngineCallback</c> scheme using an app-minted token bound to the
-    /// instance; it carries no Altinn user/org identity — only the instance it is authorized to act on.
+    /// The caller is the app itself — its own machinery (the workflow engine invoking a process callback via
+    /// the <c>WorkflowEngineCallback</c> scheme) authenticated by an app-minted token. Carries the app
+    /// identity and, when the callback targets a specific instance, the identifier for that instance.
     /// </summary>
-    public sealed class WorkflowEngineCallback : Authenticated
+    public sealed class App : Authenticated
     {
         /// <summary>
-        /// The instance this callback is authorized to act on (the token's <c>jti</c>, validated against the
-        /// callback route).
+        /// The app this callback is running as.
         /// </summary>
-        public Guid InstanceGuid { get; }
+        public AppIdentifier AppId { get; }
 
-        internal WorkflowEngineCallback(Guid instanceGuid, ref ParseContext context)
+        /// <summary>
+        /// The instance the callback targets when it is instance-scoped; otherwise <c>null</c>.
+        /// </summary>
+        public InstanceIdentifier? InstanceId { get; }
+
+        internal App(AppIdentifier appId, InstanceIdentifier? instanceId, ref ParseContext context)
             : base(ref context)
         {
-            InstanceGuid = instanceGuid;
+            AppId = appId;
+            InstanceId = instanceId;
         }
     }
 
@@ -560,7 +565,6 @@ public abstract class Authenticated
     }
 
     // TODO: app token?
-    // public sealed record App(string Token) : Authenticated;
 
     internal delegate Authenticated Parser(
         string tokenStr,
@@ -830,15 +834,16 @@ public abstract class Authenticated
     }
 
     /// <summary>
-    /// Builds the authentication info for a workflow-engine process callback. The callback is authenticated by
-    /// the <c>WorkflowEngineCallback</c> scheme with an app-minted token bound to <paramref name="instanceGuid"/>
-    /// and carries no Altinn user/org identity, so it maps directly to <see cref="WorkflowEngineCallback"/>
-    /// instead of being run through the standard user/org/system-user token classification.
+    /// Builds the authentication info for an app process callback (the workflow engine invoking the
+    /// <c>WorkflowEngineCallback</c> scheme). The principal carries no Altinn user/org identity, so it maps
+    /// directly to <see cref="App"/> instead of being run through the standard token classification. The app
+    /// identity is taken from <paramref name="appMetadata"/> (the running app), and <paramref name="instanceId"/>
+    /// is the instance the callback targets, when instance-scoped.
     /// </summary>
-    internal static Authenticated FromWorkflowEngineCallback(
+    internal static Authenticated FromApp(
         string tokenStr,
         JwtSecurityToken? parsedToken,
-        Guid instanceGuid,
+        InstanceIdentifier? instanceId,
         ApplicationMetadata appMetadata
     )
     {
@@ -852,7 +857,7 @@ public abstract class Authenticated
             static _ => Task.FromResult<Party?>(null),
             static _ =>
                 throw new InvalidOperationException(
-                    "Org party lookup is not applicable for a workflow-engine callback principal."
+                    "Org party lookup is not applicable for an app callback principal."
                 ),
             static _ => Task.FromResult<List<Party>?>(null),
             static (_, _) => Task.FromResult<bool?>(null)
@@ -868,7 +873,7 @@ public abstract class Authenticated
             context.ResolveIssuer();
         }
 
-        return new WorkflowEngineCallback(instanceGuid, ref context);
+        return new App(appMetadata.AppIdentifier, instanceId, ref context);
     }
 
     internal static Authenticated From(

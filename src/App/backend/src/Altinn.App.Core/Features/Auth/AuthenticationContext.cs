@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Internal;
@@ -7,6 +6,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -81,11 +81,12 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         parsedToken.Payload.TryGetValue("actual_iss", out var actualIss) && actualIss is "localtest";
                 }
 
-                // Workflow-engine callbacks authenticate via their own scheme. Their principal is bound to an
-                // instance and carries no Altinn user/org claims, so it maps to a dedicated
-                // Authenticated.WorkflowEngineCallback rather than being run through the user/org token
-                // classification (which the legacy localtest parser would even throw on). The instance binding
-                // comes from the validated principal's NameIdentifier claim (set by the callback auth handler).
+                // Workflow-engine callbacks authenticate via their own scheme. Their principal carries no Altinn
+                // user/org claims, so it maps to a dedicated Authenticated.App rather than being run through the
+                // user/org token classification (which the legacy localtest parser would even throw on). The app
+                // identity comes from the running app's metadata; the targeted instance (when the callback is
+                // instance-scoped) is taken from the route, whose instance guid the callback auth handler has
+                // already validated against the token.
                 var isWorkflowCallback = string.Equals(
                     httpContext.User?.Identity?.AuthenticationType,
                     WorkflowCallbackAuthentication.Scheme,
@@ -94,12 +95,10 @@ internal sealed class AuthenticationContext : IAuthenticationContext
 
                 if (isWorkflowCallback)
                 {
-                    var instanceGuidClaim = httpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    _ = Guid.TryParse(instanceGuidClaim, out var callbackInstanceGuid);
-                    authInfo = Authenticated.FromWorkflowEngineCallback(
+                    authInfo = Authenticated.FromApp(
                         tokenStr: token,
                         parsedToken,
-                        callbackInstanceGuid,
+                        ResolveCallbackInstance(httpContext),
                         _appConfigurationCache.ApplicationMetadata
                     );
                 }
@@ -151,5 +150,26 @@ internal sealed class AuthenticationContext : IAuthenticationContext
             }
             return authInfo;
         }
+    }
+
+    /// <summary>
+    /// Resolves the instance a workflow-engine callback targets from the route values
+    /// (<c>{instanceOwnerPartyId}/{instanceGuid}</c>). Returns <c>null</c> when the callback is not
+    /// instance-scoped or the route does not carry a valid instance identifier.
+    /// </summary>
+    private static InstanceIdentifier? ResolveCallbackInstance(HttpContext httpContext)
+    {
+        var routeValues = httpContext.Request.RouteValues;
+        if (
+            routeValues.TryGetValue("instanceOwnerPartyId", out var partyValue)
+            && int.TryParse(partyValue?.ToString(), out var instanceOwnerPartyId)
+            && routeValues.TryGetValue("instanceGuid", out var guidValue)
+            && Guid.TryParse(guidValue?.ToString(), out var instanceGuid)
+        )
+        {
+            return new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+        }
+
+        return null;
     }
 }

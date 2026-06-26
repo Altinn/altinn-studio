@@ -215,25 +215,47 @@ public class AuthenticatedTests
     }
 
     [Fact]
-    public void Can_Classify_WorkflowEngineCallback()
+    public void Can_Classify_App_Callback_WithInstance()
     {
         var instanceGuid = Guid.NewGuid();
+        var instanceId = new InstanceIdentifier(512345, instanceGuid);
         var jwt = new JwtSecurityToken(claims: [new Claim("jti", instanceGuid.ToString())]);
         var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+        var appMetadata = TestAuthentication.NewApplicationMetadata();
 
-        var auth = Authenticated.FromWorkflowEngineCallback(
+        var auth = Authenticated.FromApp(
             tokenStr: token,
             parsedToken: null,
-            instanceGuid: instanceGuid,
-            appMetadata: TestAuthentication.NewApplicationMetadata()
+            instanceId: instanceId,
+            appMetadata: appMetadata
         );
 
-        var callback = Assert.IsType<Authenticated.WorkflowEngineCallback>(auth);
-        Assert.Equal(instanceGuid, callback.InstanceGuid);
-        Assert.Equal(token, callback.Token);
+        var app = Assert.IsType<Authenticated.App>(auth);
+        Assert.Equal(appMetadata.AppIdentifier, app.AppId);
+        Assert.Equal(instanceId, app.InstanceId);
+        Assert.Equal(token, app.Token);
         // Callback principals carry no Altinn identity scopes and are not exchanged tokens.
-        Assert.False(callback.Scopes.HasScope("altinn:portal/enduser"));
-        Assert.False(callback.TokenIsExchanged);
+        Assert.False(app.Scopes.HasScope("altinn:portal/enduser"));
+        Assert.False(app.TokenIsExchanged);
+    }
+
+    [Fact]
+    public void Can_Classify_App_Callback_WithoutInstance()
+    {
+        var appMetadata = TestAuthentication.NewApplicationMetadata();
+        var jwt = new JwtSecurityToken(claims: [new Claim("jti", Guid.NewGuid().ToString())]);
+        var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+        var auth = Authenticated.FromApp(
+            tokenStr: token,
+            parsedToken: null,
+            instanceId: null,
+            appMetadata: appMetadata
+        );
+
+        var app = Assert.IsType<Authenticated.App>(auth);
+        Assert.Equal(appMetadata.AppIdentifier, app.AppId);
+        Assert.Null(app.InstanceId);
     }
 
     [Fact]
