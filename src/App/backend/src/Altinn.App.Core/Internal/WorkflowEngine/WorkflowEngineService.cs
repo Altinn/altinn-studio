@@ -268,10 +268,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        // Resume with cascade so that auto-advance dependents left in DependencyFailed (because this
-        // workflow failed) are reset alongside the parent. Without it, resuming the failed parent
-        // would complete it while the dependent stays DependencyFailed, and waiting on the collection
-        // heads would keep reporting the dependency failure even after the parent succeeds.
         await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cascade: true, ct: ct);
         return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
     }
