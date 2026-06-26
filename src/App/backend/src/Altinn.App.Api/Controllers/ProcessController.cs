@@ -19,6 +19,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
+using CoreSubmissionFailureKind = Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailureKind;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -134,6 +135,7 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_INSTANTIATE)]
     public async Task<ActionResult<AppProcessState>> StartProcess(
         [FromRoute] string org,
@@ -721,16 +723,13 @@ public class ProcessController : ControllerBase
         // Derive the (state, action) pair together so they cannot drift apart. NotAccepted means the engine
         // rejected the submission and the existing instance was left untouched, so retrying the start is safe.
         // Unknown means we could not confirm whether it was accepted, so retrying could double-apply: inspect first.
-        (string state, string recommendedAction) = exception.Kind switch
+        (WorkflowInitializationState state, WorkflowRecommendedAction recommendedAction) = exception.Kind switch
         {
-            WorkflowSubmissionFailureKind.NotAccepted => (
-                WorkflowInitializationProblem.InitializationState.WorkflowNotAccepted,
-                WorkflowInitializationProblem.RecommendedAction.RetryStartProcess
+            CoreSubmissionFailureKind.NotAccepted => (
+                WorkflowInitializationState.WorkflowNotAccepted,
+                WorkflowRecommendedAction.RetryStartProcess
             ),
-            _ => (
-                WorkflowInitializationProblem.InitializationState.WorkflowAcceptanceUnknown,
-                WorkflowInitializationProblem.RecommendedAction.InspectInstance
-            ),
+            _ => (WorkflowInitializationState.WorkflowAcceptanceUnknown, WorkflowRecommendedAction.InspectInstance),
         };
 
         return WorkflowInitializationProblem.Create(
@@ -741,9 +740,9 @@ public class ProcessController : ControllerBase
             state,
             instance,
             recommendedAction,
-            workflowSubmissionFailureKind: WorkflowInitializationProblem.ToWireValue(exception.Kind),
-            workflowSubmissionStatusCode: exception.StatusCode,
-            workflowCollectionKey: exception.CollectionKey
+            submissionFailureKind: WorkflowInitializationProblem.ToSubmissionFailureKind(exception.Kind),
+            submissionStatusCode: exception.StatusCode,
+            collectionKey: exception.CollectionKey
         );
     }
 
@@ -759,9 +758,9 @@ public class ProcessController : ControllerBase
             WorkflowInitializationFlow.ProcessStart,
             exception,
             message,
-            initializationState: WorkflowInitializationProblem.InitializationState.WorkflowFailed,
+            state: WorkflowInitializationState.WorkflowFailed,
             instance: exception.Instance,
-            recommendedAction: WorkflowInitializationProblem.RecommendedAction.ResumeCurrentTask,
+            recommendedAction: WorkflowRecommendedAction.ResumeCurrentTask,
             resumeEndpoint: WorkflowInitializationProblem.CreateProcessResumeEndpoint(org, app, exception.Instance),
             workflowFailure: exception.WorkflowFailure,
             workflowAccepted: true,

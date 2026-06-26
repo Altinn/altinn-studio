@@ -44,6 +44,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using CoreSubmissionFailureKind = Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailureKind;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
 namespace Altinn.App.Api.Controllers;
@@ -308,6 +309,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> Post(
         [FromRoute] string org,
@@ -597,6 +599,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
         [FromRoute] string org,
@@ -921,6 +924,7 @@ public class InstancesController : ControllerBase
     [HttpGet("/{org}/{app}/legacy/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/copy")]
     [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CopyInstance(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -1510,7 +1514,7 @@ public class InstancesController : ControllerBase
     )
     {
         bool instanceDeleted = false;
-        if (exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instance is not null)
+        if (exception.Kind == CoreSubmissionFailureKind.NotAccepted && instance is not null)
         {
             instanceDeleted = await TryHardDeleteCreatedInstance(instance, "initial workflow was not accepted");
         }
@@ -1518,20 +1522,20 @@ public class InstancesController : ControllerBase
         // Derive the (state, action) pair together so they cannot drift apart. When the workflow was not
         // accepted and the orphaned instance was cleaned up, the client can safely retry creation; otherwise
         // (delete failed, or acceptance is unknown and a retry could double-create) the client must inspect first.
-        (string state, string recommendedAction) = (exception.Kind, instanceDeleted) switch
+        (WorkflowInitializationState state, WorkflowRecommendedAction recommendedAction) = (
+            exception.Kind,
+            instanceDeleted
+        ) switch
         {
-            (WorkflowSubmissionFailureKind.NotAccepted, true) => (
-                WorkflowInitializationProblem.InitializationState.WorkflowNotAccepted,
-                WorkflowInitializationProblem.RecommendedAction.RetryInstanceCreation
+            (CoreSubmissionFailureKind.NotAccepted, true) => (
+                WorkflowInitializationState.WorkflowNotAccepted,
+                WorkflowRecommendedAction.RetryInstanceCreation
             ),
-            (WorkflowSubmissionFailureKind.NotAccepted, false) => (
-                WorkflowInitializationProblem.InitializationState.WorkflowNotAccepted,
-                WorkflowInitializationProblem.RecommendedAction.InspectInstance
+            (CoreSubmissionFailureKind.NotAccepted, false) => (
+                WorkflowInitializationState.WorkflowNotAccepted,
+                WorkflowRecommendedAction.InspectInstance
             ),
-            _ => (
-                WorkflowInitializationProblem.InitializationState.WorkflowAcceptanceUnknown,
-                WorkflowInitializationProblem.RecommendedAction.InspectInstance
-            ),
+            _ => (WorkflowInitializationState.WorkflowAcceptanceUnknown, WorkflowRecommendedAction.InspectInstance),
         };
 
         return WorkflowInitializationProblem.Create(
@@ -1543,9 +1547,9 @@ public class InstancesController : ControllerBase
             instance,
             recommendedAction,
             instanceDeleted: instanceDeleted,
-            workflowSubmissionFailureKind: WorkflowInitializationProblem.ToWireValue(exception.Kind),
-            workflowSubmissionStatusCode: exception.StatusCode,
-            workflowCollectionKey: exception.CollectionKey
+            submissionFailureKind: WorkflowInitializationProblem.ToSubmissionFailureKind(exception.Kind),
+            submissionStatusCode: exception.StatusCode,
+            collectionKey: exception.CollectionKey
         );
     }
 
@@ -1561,9 +1565,9 @@ public class InstancesController : ControllerBase
             WorkflowInitializationFlow.Instantiation,
             exception,
             message,
-            initializationState: WorkflowInitializationProblem.InitializationState.WorkflowFailed,
+            state: WorkflowInitializationState.WorkflowFailed,
             instance: exception.Instance,
-            recommendedAction: WorkflowInitializationProblem.RecommendedAction.ResumeCurrentTask,
+            recommendedAction: WorkflowRecommendedAction.ResumeCurrentTask,
             resumeEndpoint: WorkflowInitializationProblem.CreateProcessResumeEndpoint(org, app, exception.Instance),
             workflowFailure: exception.WorkflowFailure,
             workflowAccepted: true,

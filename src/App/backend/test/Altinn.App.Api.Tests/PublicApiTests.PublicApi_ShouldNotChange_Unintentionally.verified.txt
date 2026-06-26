@@ -326,6 +326,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
         [Microsoft.AspNetCore.Mvc.HttpGet("/{org}/{app}/legacy/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/copy")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.Instance), 200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CopyInstance([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceDelete")]
@@ -355,6 +356,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.InstanceResponse), 201)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> Post([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] int? instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
@@ -362,6 +364,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.InstanceResponse), 201)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> PostSimplified([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.InstansiationInstance instansiationInstance, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
@@ -545,6 +548,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(409)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> StartProcess([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? startEvent = null) { }
     }
     [Microsoft.AspNetCore.Authorization.Authorize]
@@ -1246,5 +1250,75 @@ namespace Altinn.App.Api.Models
         public UserDefinedMetadataDto() { }
         [System.Text.Json.Serialization.JsonPropertyName("userDefinedMetadata")]
         public System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry> UserDefinedMetadata { get; init; }
+    }
+    public sealed class WorkflowInitializationProblemDetails : Microsoft.AspNetCore.Mvc.ProblemDetails
+    {
+        public WorkflowInitializationProblemDetails() { }
+        [System.Text.Json.Serialization.JsonPropertyName("initializationState")]
+        public required Altinn.App.Api.Models.WorkflowInitializationState InitializationState { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("instanceDeleted")]
+        public bool? InstanceDeleted { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("instanceGuid")]
+        public System.Guid? InstanceGuid { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("instanceId")]
+        public string? InstanceId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("instanceOwnerPartyId")]
+        public int? InstanceOwnerPartyId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("processStateChanged")]
+        public bool? ProcessStateChanged { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("recommendedAction")]
+        public required Altinn.App.Api.Models.WorkflowRecommendedAction RecommendedAction { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("resumeEndpoint")]
+        public Altinn.App.Api.Models.WorkflowResumeEndpoint? ResumeEndpoint { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("workflowAccepted")]
+        public bool? WorkflowAccepted { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("workflowCollectionKey")]
+        public string? WorkflowCollectionKey { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("workflowFailure")]
+        public Altinn.App.Core.Models.Process.WorkflowFailure? WorkflowFailure { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("workflowSubmissionFailureKind")]
+        public Altinn.App.Api.Models.WorkflowSubmissionFailureKind? WorkflowSubmissionFailureKind { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("workflowSubmissionStatusCode")]
+        public int? WorkflowSubmissionStatusCode { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Api.Models.JsonCamelCaseEnumConverter))]
+    public enum WorkflowInitializationState
+    {
+        WorkflowNotAccepted = 0,
+        WorkflowAcceptanceUnknown = 1,
+        WorkflowFailed = 2,
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Api.Models.JsonCamelCaseEnumConverter))]
+    public enum WorkflowRecommendedAction
+    {
+        RetryInstanceCreation = 0,
+        RetryStartProcess = 1,
+        InspectInstance = 2,
+        ResumeCurrentTask = 3,
+    }
+    public sealed class WorkflowResumeEndpoint : System.IEquatable<Altinn.App.Api.Models.WorkflowResumeEndpoint>
+    {
+        public WorkflowResumeEndpoint(string Method, string Path) { }
+        [System.Text.Json.Serialization.JsonPropertyName("method")]
+        public string Method { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("path")]
+        public string Path { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+    public enum WorkflowSubmissionFailureKind
+    {
+        NotAccepted = 0,
+        Unknown = 1,
     }
 }

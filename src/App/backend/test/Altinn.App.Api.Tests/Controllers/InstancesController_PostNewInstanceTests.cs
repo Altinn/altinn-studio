@@ -387,12 +387,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             .GetString()
             .Should()
             .Contain("The created instance was deleted, so the client can safely retry instance creation.");
-        root.GetProperty("technicalDetail")
-            .GetString()
-            .Should()
-            .Contain(
-                $"Initial process workflow submission failed for appId {org}/{app} for party {instanceOwnerPartyId}"
-            );
+        root.TryGetProperty("technicalDetail", out _).Should().BeFalse();
         root.GetProperty("initializationState").GetString().Should().Be("workflowNotAccepted");
         root.GetProperty("instanceDeleted").GetBoolean().Should().BeTrue();
         root.GetProperty("recommendedAction").GetString().Should().Be("retryInstanceCreation");
@@ -450,12 +445,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             .GetString()
             .Should()
             .Contain("Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.");
-        root.GetProperty("technicalDetail")
-            .GetString()
-            .Should()
-            .Contain(
-                $"Initial process workflow execution failed for appId {org}/{app} for party {instanceOwnerPartyId}"
-            );
+        root.TryGetProperty("technicalDetail", out _).Should().BeFalse();
         root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
         root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
         root.GetProperty("recommendedAction").GetString().Should().Be("resumeCurrentTask");
