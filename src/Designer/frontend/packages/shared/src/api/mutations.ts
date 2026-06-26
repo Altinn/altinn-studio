@@ -67,7 +67,6 @@ import {
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
-  layoutSetsPath,
   studioctlAuthRequestCancelPath,
   studioctlAuthRequestConfirmPath,
   userApiKeyPath,
