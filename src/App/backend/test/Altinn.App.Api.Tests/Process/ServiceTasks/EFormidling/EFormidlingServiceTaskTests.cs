@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.EFormidling.Implementation;

@@ -119,6 +119,8 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
+		"AppCodes__WorkflowEngineCallback__0__Id=local-dev",
+		"AppCodes__WorkflowEngineCallback__0__Code=LOCAL-DEV-ONLY-workflow-engine-callback-secret",
 	})
 	if spec.ProjectPath != projectPath {
 		t.Fatalf("ProjectPath = %q, want %q", spec.ProjectPath, projectPath)

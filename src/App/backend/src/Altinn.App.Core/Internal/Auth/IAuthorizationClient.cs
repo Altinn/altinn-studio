@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -14,16 +15,22 @@ public interface IAuthorizationClient
     /// Returns the list of parties that user has any rights for.
     /// </summary>
     /// <param name="userId">The userId.</param>
+    /// <param name="authenticationMethod">Optional authentication method override.</param>
     /// <returns>List of parties.</returns>
-    Task<List<Party>?> GetPartyList(int userId);
+    Task<List<Party>?> GetPartyList(int userId, StorageAuthenticationMethod? authenticationMethod = null);
 
     /// <summary>
     /// Verifies that the selected party is contained in the user's party list.
     /// </summary>
     /// <param name="userId">The user id.</param>
     /// <param name="partyId">The party id.</param>
+    /// <param name="authenticationMethod">Optional authentication method override.</param>
     /// <returns> Boolean indicating whether or not the user can represent the selected party.</returns>
-    Task<bool?> ValidateSelectedParty(int userId, int partyId);
+    Task<bool?> ValidateSelectedParty(
+        int userId,
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null
+    );
 
     /// <summary>
     /// Check if the user is authorized to perform the given action on the given instance.
