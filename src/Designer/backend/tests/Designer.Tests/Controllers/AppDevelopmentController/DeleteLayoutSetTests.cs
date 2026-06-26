@@ -21,7 +21,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/app-development";
+        $"/designer/api/{org}/{repository}/ui-folders";
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet2")]
@@ -36,7 +36,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetToDeleteId}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
@@ -66,7 +66,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
         Application appMetadataBefore = await GetApplicationMetadataFile(org, targetRepository, developer);
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetToDeleteId}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
@@ -100,7 +100,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
 
         Assert.True(LayoutSetFolderExists(org, targetRepository, developer, layoutSetToDeleteId));
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetToDeleteId}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
@@ -122,23 +122,33 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string layoutSetsBefore = TestDataHelper.GetFileFromRepo(org, app, developer, "App/ui/layout-sets.json");
+        string layoutSetsBefore = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/ui/layout-sets.json"
+        );
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetToDeleteId}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        string responseContent = await response.Content.ReadAsStringAsync();
+        string layoutSetsAfter = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/ui/layout-sets.json"
+        );
 
-        Assert.True(JsonUtils.DeepEquals(layoutSetsBefore, responseContent));
+        Assert.True(JsonUtils.DeepEquals(layoutSetsBefore, layoutSetsAfter));
     }
 
     [Theory]
-    [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-    public async Task DeleteLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(
+    [InlineData("ttd", "app-without-layoutsets", "testUser", "someSet")]
+    public async Task DeleteLayoutSet_AppWithoutLayoutSets_ReturnsOk(
         string org,
         string app,
         string developer,
@@ -148,12 +158,12 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetToDeleteId}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Theory]
@@ -179,7 +189,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetToDeleteId}";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -212,7 +222,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         string app = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, actualApp, developer, app);
 
-        string url = $"{VersionPrefix(org, app)}/layout-set/{layoutSetName}";
+        string url = $"{VersionPrefix(org, app)}/layout-sets/{layoutSetName}";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);

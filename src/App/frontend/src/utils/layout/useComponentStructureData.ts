@@ -5,7 +5,7 @@ import { useExternalItem } from 'src/utils/layout/hooks';
 import type { IGridStyling } from 'src/layout/common.generated';
 
 export interface ComponentStructureData {
-  id: string;
+  componentId: string;
   innerGrid: IGridStyling | undefined;
   validationGrid: IGridStyling | undefined;
   showValidationMessages: boolean;
@@ -21,10 +21,10 @@ export function useComponentStructureData(baseComponentId: string): ComponentStr
   const grid = overrideItemProps?.grid ?? component?.grid;
   const layoutComponent = getComponentDef(component.type);
   const showValidationMessages = layoutComponent.renderDefaultValidations();
-  const indexedId = useIndexedId(baseComponentId);
+  const componentId = useIndexedId(baseComponentId);
 
   return {
-    id: `form-content-${indexedId}`,
+    componentId,
     innerGrid: grid?.innerGrid,
     validationGrid: grid?.validationGrid,
     showValidationMessages,

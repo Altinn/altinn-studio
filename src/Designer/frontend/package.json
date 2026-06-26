@@ -57,7 +57,6 @@
     "jest-fail-on-console": "3.3.4",
     "jest-junit": "16.0.0",
     "lightningcss": "^1.29.3",
-    "lint-staged": "16.4.0",
     "mini-css-extract-plugin": "2.10.2",
     "prettier": "3.8.4",
     "source-map-loader": "5.0.0",
@@ -72,10 +71,6 @@
     "@babel/traverse": "7.29.7",
     "caniuse-lite": "1.0.30001799"
   },
-  "lint-staged": {
-    "*{js,jsx,tsx,ts,css,md}": "prettier -w",
-    "language/src/*.json": "yarn run sort-texts"
-  },
   "packageManager": "yarn@4.16.0",
   "private": true,
   "scripts": {
@@ -84,7 +79,7 @@
     "lint:fix": "yarn run lint --fix",
     "codestyle:check": "prettier . --check",
     "codestyle:fix": "prettier . --write",
-    "setup": "husky && node development/setup.js && yarn run git:ignore-revs",
+    "setup": "lefthook install && node development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",
     "appdev:preview": "yarn workspace app-development preview",

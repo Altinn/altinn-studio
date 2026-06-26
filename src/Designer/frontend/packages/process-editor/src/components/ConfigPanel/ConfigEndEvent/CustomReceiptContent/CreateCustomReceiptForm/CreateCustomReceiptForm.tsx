@@ -68,7 +68,6 @@ export const CreateCustomReceiptForm = ({
     };
     addLayoutSet(
       {
-        layoutSetIdToUpdate: customReceipt.layoutSetId,
         layoutSetConfig: customReceiptLayoutSetConfig,
       },
       {
