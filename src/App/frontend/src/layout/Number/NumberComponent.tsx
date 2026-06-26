@@ -1,65 +1,34 @@
 import React from 'react';
 
-import { DisplayNumber, getLabelId } from '@app/form-component';
-import cn from 'classnames';
+import { NumberLayout } from '@app/form-component';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/Number/Number.module.css';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'Number'>) => {
-  const {
-    textResourceBindings,
-    value,
-    icon,
-    direction: _direction,
-    formatting,
-  } = useItemWhenType(baseComponentId, 'Number');
-  const direction = _direction ?? 'horizontal';
+  const { textResourceBindings, value, icon, direction, formatting } = useItemWhenType(baseComponentId, 'Number');
   const currentLanguage = useCurrentLanguage();
-  const { langAsString } = useLanguage();
-  const indexedId = useIndexedId(baseComponentId);
-
-  if (isNaN(value)) {
-    return null;
-  }
+  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
 
   const numberFormatting = getMapToReactNumberConfig(formatting, value.toString(), currentLanguage);
 
-  if (!textResourceBindings?.title) {
-    return (
-      <DisplayNumber
-        value={value}
-        formatting={numberFormatting}
-      />
-    );
-  }
-
   return (
-    <ComponentStructureWrapper
-      baseComponentId={baseComponentId}
-      label={{
-        baseComponentId,
-        renderLabelAs: 'span',
-        className: cn(
-          classes.label,
-          classes.numberComponent,
-          direction === 'vertical' ? classes.vertical : classes.horizontal,
-        ),
-      }}
-    >
-      <DisplayNumber
-        value={value}
-        iconUrl={icon}
-        iconAltText={langAsString(textResourceBindings.title)}
-        labelId={getLabelId(indexedId)}
-        formatting={numberFormatting}
-      />
-    </ComponentStructureWrapper>
+    <NumberLayout
+      value={value}
+      formatting={numberFormatting}
+      icon={icon}
+      direction={direction}
+      title={textResourceBindings?.title}
+      componentId={componentId}
+      innerGrid={innerGrid}
+      validationGrid={validationGrid}
+      validationMessages={
+        showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
+      }
+    />
   );
 };
