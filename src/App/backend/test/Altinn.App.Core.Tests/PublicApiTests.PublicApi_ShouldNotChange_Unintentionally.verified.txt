@@ -301,6 +301,11 @@ namespace Altinn.App.Core.Features.Auth
         public bool TokenIsExchanged { get; }
         public Altinn.App.Core.Features.Auth.TokenIssuer TokenIssuer { get; }
         public System.Threading.Tasks.Task<string> GetLanguage() { }
+        public sealed class App : Altinn.App.Core.Features.Auth.Authenticated
+        {
+            public Altinn.App.Core.Models.AppIdentifier AppId { get; }
+            public Altinn.App.Core.Models.InstanceIdentifier? InstanceId { get; }
+        }
         public sealed class None : Altinn.App.Core.Features.Auth.Authenticated { }
         public sealed class Org : Altinn.App.Core.Features.Auth.Authenticated
         {
