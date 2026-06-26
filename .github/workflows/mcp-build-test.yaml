@@ -1,9 +1,6 @@
 name: MCP
 
 on:
-  push:
-    branches:
-      - altinity-workflows
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
@@ -15,6 +12,7 @@ concurrency:
 
 jobs:
   build-and-test:
+    name: Build and test
     if: ${{ !github.event.pull_request.draft }}
     runs-on: self-hosted-single
     timeout-minutes: 30
