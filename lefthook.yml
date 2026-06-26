@@ -49,3 +49,21 @@ pre-commit:
         - 'app-libs/form-component/**/*.{js,jsx,ts,tsx}'
       run: yarn prettier -w {staged_files}
       stage_fixed: true
+    designer-backend-csharpier:
+      # csharpier is a local dotnet tool (src/Designer/backend/.config/
+      # dotnet-tools.json). Rather than auto-installing, fail with a helpful
+      # message if dotnet or the restored tool is missing. The glob + root
+      # mean this only runs when C# under the Designer backend is staged.
+      root: 'src/Designer/backend/'
+      glob: '*.cs'
+      run: |
+        if ! command -v dotnet >/dev/null 2>&1; then
+          echo "Error: dotnet CLI is not installed or not in PATH"
+          exit 1
+        fi
+        if ! dotnet csharpier --version >/dev/null 2>&1; then
+          echo "Error: CSharpier is not installed. Run 'dotnet tool restore' (from src/Designer/backend) or 'dotnet tool install -g csharpier'"
+          exit 1
+        fi
+        dotnet csharpier format {staged_files}
+      stage_fixed: true
