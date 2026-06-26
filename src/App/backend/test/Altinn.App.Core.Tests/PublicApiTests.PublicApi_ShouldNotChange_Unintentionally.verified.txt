@@ -5465,6 +5465,12 @@ namespace Altinn.App.Core.Models.Process
         EngineFault = 2,
         Timeout = 3,
     }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+    public enum WorkflowSubmissionFailureKind
+    {
+        NotAccepted = 0,
+        Unknown = 1,
+    }
 }
 namespace Altinn.App.Core.Models.Result
 {

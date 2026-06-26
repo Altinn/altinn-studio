@@ -44,7 +44,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
-using CoreSubmissionFailureKind = Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailureKind;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
 namespace Altinn.App.Api.Controllers;
@@ -1514,7 +1513,7 @@ public class InstancesController : ControllerBase
     )
     {
         bool instanceDeleted = false;
-        if (exception.Kind == CoreSubmissionFailureKind.NotAccepted && instance is not null)
+        if (exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instance is not null)
         {
             instanceDeleted = await TryHardDeleteCreatedInstance(instance, "initial workflow was not accepted");
         }
@@ -1527,11 +1526,11 @@ public class InstancesController : ControllerBase
             instanceDeleted
         ) switch
         {
-            (CoreSubmissionFailureKind.NotAccepted, true) => (
+            (WorkflowSubmissionFailureKind.NotAccepted, true) => (
                 WorkflowInitializationState.WorkflowNotAccepted,
                 WorkflowRecommendedAction.RetryInstanceCreation
             ),
-            (CoreSubmissionFailureKind.NotAccepted, false) => (
+            (WorkflowSubmissionFailureKind.NotAccepted, false) => (
                 WorkflowInitializationState.WorkflowNotAccepted,
                 WorkflowRecommendedAction.InspectInstance
             ),
@@ -1547,7 +1546,7 @@ public class InstancesController : ControllerBase
             instance,
             recommendedAction,
             instanceDeleted: instanceDeleted,
-            submissionFailureKind: WorkflowInitializationProblem.ToSubmissionFailureKind(exception.Kind),
+            submissionFailureKind: exception.Kind,
             submissionStatusCode: exception.StatusCode,
             collectionKey: exception.CollectionKey
         );

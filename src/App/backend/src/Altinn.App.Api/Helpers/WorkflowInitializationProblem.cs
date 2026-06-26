@@ -4,7 +4,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
-using CoreSubmissionFailureKind = Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailureKind;
 
 namespace Altinn.App.Api.Helpers;
 
@@ -96,22 +95,6 @@ internal static class WorkflowInitializationProblem
             $"/{org}/{app}/instances/{identifier.InstanceOwnerPartyId}/{identifier.InstanceGuid}/process/resume"
         );
     }
-
-    /// <summary>
-    /// Maps the internal Core failure kind to the Api wire enum, keeping Core's domain enum decoupled
-    /// from the published contract.
-    /// </summary>
-    public static WorkflowSubmissionFailureKind ToSubmissionFailureKind(CoreSubmissionFailureKind kind) =>
-        kind switch
-        {
-            CoreSubmissionFailureKind.NotAccepted => WorkflowSubmissionFailureKind.NotAccepted,
-            CoreSubmissionFailureKind.Unknown => WorkflowSubmissionFailureKind.Unknown,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(kind),
-                kind,
-                "Unhandled workflow submission failure kind."
-            ),
-        };
 
     private static string CreateDetail(
         WorkflowInitializationFlow flow,

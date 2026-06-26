@@ -19,7 +19,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
-using CoreSubmissionFailureKind = Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailureKind;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -725,7 +724,7 @@ public class ProcessController : ControllerBase
         // Unknown means we could not confirm whether it was accepted, so retrying could double-apply: inspect first.
         (WorkflowInitializationState state, WorkflowRecommendedAction recommendedAction) = exception.Kind switch
         {
-            CoreSubmissionFailureKind.NotAccepted => (
+            WorkflowSubmissionFailureKind.NotAccepted => (
                 WorkflowInitializationState.WorkflowNotAccepted,
                 WorkflowRecommendedAction.RetryStartProcess
             ),
@@ -740,7 +739,7 @@ public class ProcessController : ControllerBase
             state,
             instance,
             recommendedAction,
-            submissionFailureKind: WorkflowInitializationProblem.ToSubmissionFailureKind(exception.Kind),
+            submissionFailureKind: exception.Kind,
             submissionStatusCode: exception.StatusCode,
             collectionKey: exception.CollectionKey
         );

@@ -197,6 +197,19 @@ public enum WorkflowFailureKind
 }
 
 /// <summary>
+/// Why the workflow engine did not accept a submitted workflow.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum WorkflowSubmissionFailureKind
+{
+    /// <summary>The workflow engine explicitly rejected the submission.</summary>
+    NotAccepted,
+
+    /// <summary>Runtime could not determine whether the submission was accepted.</summary>
+    Unknown,
+}
+
+/// <summary>
 /// The latest error captured for a workflow failure.
 /// </summary>
 public sealed class WorkflowFailureError

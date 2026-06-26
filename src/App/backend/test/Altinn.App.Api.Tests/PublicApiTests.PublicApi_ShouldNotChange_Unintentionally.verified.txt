@@ -1287,7 +1287,7 @@ namespace Altinn.App.Api.Models
         public Altinn.App.Core.Models.Process.WorkflowFailure? WorkflowFailure { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("workflowSubmissionFailureKind")]
-        public Altinn.App.Api.Models.WorkflowSubmissionFailureKind? WorkflowSubmissionFailureKind { get; init; }
+        public Altinn.App.Core.Models.Process.WorkflowSubmissionFailureKind? WorkflowSubmissionFailureKind { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("workflowSubmissionStatusCode")]
         public int? WorkflowSubmissionStatusCode { get; init; }
@@ -1314,11 +1314,5 @@ namespace Altinn.App.Api.Models
         public string Method { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("path")]
         public string Path { get; init; }
-    }
-    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
-    public enum WorkflowSubmissionFailureKind
-    {
-        NotAccepted = 0,
-        Unknown = 1,
     }
 }

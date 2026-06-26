@@ -50,19 +50,6 @@ public enum WorkflowRecommendedAction
 }
 
 /// <summary>
-/// Why the workflow engine did not accept a submitted workflow. Part of the wire contract.
-/// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum WorkflowSubmissionFailureKind
-{
-    /// <summary>The workflow engine explicitly rejected the submission.</summary>
-    NotAccepted,
-
-    /// <summary>Runtime could not determine whether the submission was accepted.</summary>
-    Unknown,
-}
-
-/// <summary>
 /// Hypermedia pointer to the process resume endpoint, surfaced so clients know where to recover
 /// a workflow that failed after the process state may already have changed.
 /// </summary>

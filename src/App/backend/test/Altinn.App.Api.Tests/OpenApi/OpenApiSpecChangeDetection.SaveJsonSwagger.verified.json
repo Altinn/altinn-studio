@@ -11964,8 +11964,7 @@
           "NotAccepted",
           "Unknown"
         ],
-        "type": "string",
-        "description": "Why the workflow engine did not accept a submitted workflow. Part of the wire contract."
+        "type": "string"
       }
     }
   },
