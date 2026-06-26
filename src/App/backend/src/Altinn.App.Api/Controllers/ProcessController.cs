@@ -718,18 +718,29 @@ public class ProcessController : ControllerBase
         string message
     )
     {
+        // Derive the (state, action) pair together so they cannot drift apart. NotAccepted means the engine
+        // rejected the submission and the existing instance was left untouched, so retrying the start is safe.
+        // Unknown means we could not confirm whether it was accepted, so retrying could double-apply: inspect first.
+        (string state, string recommendedAction) = exception.Kind switch
+        {
+            WorkflowSubmissionFailureKind.NotAccepted => (
+                WorkflowInitializationProblem.InitializationState.WorkflowNotAccepted,
+                WorkflowInitializationProblem.RecommendedAction.RetryStartProcess
+            ),
+            _ => (
+                WorkflowInitializationProblem.InitializationState.WorkflowAcceptanceUnknown,
+                WorkflowInitializationProblem.RecommendedAction.InspectInstance
+            ),
+        };
+
         return WorkflowInitializationProblem.Create(
             _logger,
             WorkflowInitializationFlow.ProcessStart,
             exception,
             message,
-            exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
-                ? "workflowNotAccepted"
-                : "workflowAcceptanceUnknown",
+            state,
             instance,
-            recommendedAction: exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
-                ? "retryStartProcess"
-                : "inspectInstance",
+            recommendedAction,
             workflowSubmissionFailureKind: exception.Kind.ToString(),
             workflowSubmissionStatusCode: exception.StatusCode,
             workflowCollectionKey: exception.CollectionKey
@@ -748,9 +759,9 @@ public class ProcessController : ControllerBase
             WorkflowInitializationFlow.ProcessStart,
             exception,
             message,
-            initializationState: "workflowFailed",
+            initializationState: WorkflowInitializationProblem.InitializationState.WorkflowFailed,
             instance: exception.Instance,
-            recommendedAction: "resumeCurrentTask",
+            recommendedAction: WorkflowInitializationProblem.RecommendedAction.ResumeCurrentTask,
             resumeEndpoint: WorkflowInitializationProblem.CreateProcessResumeEndpoint(org, app, exception.Instance),
             workflowFailure: exception.WorkflowFailure,
             workflowAccepted: true,

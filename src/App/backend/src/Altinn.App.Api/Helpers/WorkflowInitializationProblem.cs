@@ -34,6 +34,29 @@ internal sealed record ResumeEndpoint(string Method, string Path);
 /// </summary>
 internal static class WorkflowInitializationProblem
 {
+    /// <summary>
+    /// Stable <c>initializationState</c> values published on the wire. These are part of the external
+    /// recovery contract, so they must not change without coordinating with clients. Pinned by tests.
+    /// </summary>
+    public static class InitializationState
+    {
+        public const string WorkflowNotAccepted = "workflowNotAccepted";
+        public const string WorkflowAcceptanceUnknown = "workflowAcceptanceUnknown";
+        public const string WorkflowFailed = "workflowFailed";
+    }
+
+    /// <summary>
+    /// Stable <c>recommendedAction</c> values published on the wire. These are part of the external
+    /// recovery contract, so they must not change without coordinating with clients. Pinned by tests.
+    /// </summary>
+    public static class RecommendedAction
+    {
+        public const string RetryInstanceCreation = "retryInstanceCreation";
+        public const string RetryStartProcess = "retryStartProcess";
+        public const string InspectInstance = "inspectInstance";
+        public const string ResumeCurrentTask = "resumeCurrentTask";
+    }
+
     public static ObjectResult Create(
         ILogger logger,
         WorkflowInitializationFlow flow,
@@ -157,15 +180,15 @@ internal static class WorkflowInitializationProblem
     ) =>
         (initializationState, recommendedAction, instanceDeleted, workflowAccepted, processStateChanged) switch
         {
-            ("workflowNotAccepted", "retryInstanceCreation", true, _, _) =>
+            (InitializationState.WorkflowNotAccepted, RecommendedAction.RetryInstanceCreation, true, _, _) =>
                 "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. The created instance was deleted, so the client can safely retry instance creation.",
-            ("workflowNotAccepted", _, false, _, _) =>
+            (InitializationState.WorkflowNotAccepted, _, false, _, _) =>
                 "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. Runtime could not delete the created instance, so inspect the instance before retrying instance creation.",
-            ("workflowAcceptanceUnknown", _, _, _, _) =>
+            (InitializationState.WorkflowAcceptanceUnknown, _, _, _, _) =>
                 "Runtime submitted the initial workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying instance creation.",
-            ("workflowFailed", _, _, true, true) =>
+            (InitializationState.WorkflowFailed, _, _, true, true) =>
                 "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
-            ("workflowFailed", _, _, true, _) =>
+            (InitializationState.WorkflowFailed, _, _, true, _) =>
                 "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
             _ => "Runtime could not complete instance initialization. Inspect the response details before retrying.",
         };
@@ -177,13 +200,13 @@ internal static class WorkflowInitializationProblem
     ) =>
         (initializationState, workflowAccepted, processStateChanged) switch
         {
-            ("workflowNotAccepted", _, _) =>
+            (InitializationState.WorkflowNotAccepted, _, _) =>
                 "The workflow engine did not accept the process start. The existing instance was not modified, so the client can retry starting the process.",
-            ("workflowAcceptanceUnknown", _, _) =>
+            (InitializationState.WorkflowAcceptanceUnknown, _, _) =>
                 "Runtime submitted the process start workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying.",
-            ("workflowFailed", true, true) =>
+            (InitializationState.WorkflowFailed, true, true) =>
                 "The workflow engine accepted the process start, but the workflow failed after process state may have been updated in Storage. Do not start the process again; resolve the workflow failure and call the resume endpoint.",
-            ("workflowFailed", true, _) =>
+            (InitializationState.WorkflowFailed, true, _) =>
                 "The workflow engine accepted the process start, but the workflow failed before the process finished starting. Do not start the process again; resolve the workflow failure and call the resume endpoint.",
             _ => "Runtime could not start the process. Inspect the response details before retrying.",
         };

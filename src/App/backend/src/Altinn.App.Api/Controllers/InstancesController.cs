@@ -1515,18 +1515,33 @@ public class InstancesController : ControllerBase
             instanceDeleted = await TryHardDeleteCreatedInstance(instance, "initial workflow was not accepted");
         }
 
+        // Derive the (state, action) pair together so they cannot drift apart. When the workflow was not
+        // accepted and the orphaned instance was cleaned up, the client can safely retry creation; otherwise
+        // (delete failed, or acceptance is unknown and a retry could double-create) the client must inspect first.
+        (string state, string recommendedAction) = (exception.Kind, instanceDeleted) switch
+        {
+            (WorkflowSubmissionFailureKind.NotAccepted, true) => (
+                WorkflowInitializationProblem.InitializationState.WorkflowNotAccepted,
+                WorkflowInitializationProblem.RecommendedAction.RetryInstanceCreation
+            ),
+            (WorkflowSubmissionFailureKind.NotAccepted, false) => (
+                WorkflowInitializationProblem.InitializationState.WorkflowNotAccepted,
+                WorkflowInitializationProblem.RecommendedAction.InspectInstance
+            ),
+            _ => (
+                WorkflowInitializationProblem.InitializationState.WorkflowAcceptanceUnknown,
+                WorkflowInitializationProblem.RecommendedAction.InspectInstance
+            ),
+        };
+
         return WorkflowInitializationProblem.Create(
             _logger,
             WorkflowInitializationFlow.Instantiation,
             exception,
             message,
-            exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
-                ? "workflowNotAccepted"
-                : "workflowAcceptanceUnknown",
+            state,
             instance,
-            recommendedAction: exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instanceDeleted
-                ? "retryInstanceCreation"
-                : "inspectInstance",
+            recommendedAction,
             instanceDeleted: instanceDeleted,
             workflowSubmissionFailureKind: exception.Kind.ToString(),
             workflowSubmissionStatusCode: exception.StatusCode,
@@ -1546,9 +1561,9 @@ public class InstancesController : ControllerBase
             WorkflowInitializationFlow.Instantiation,
             exception,
             message,
-            initializationState: "workflowFailed",
+            initializationState: WorkflowInitializationProblem.InitializationState.WorkflowFailed,
             instance: exception.Instance,
-            recommendedAction: "resumeCurrentTask",
+            recommendedAction: WorkflowInitializationProblem.RecommendedAction.ResumeCurrentTask,
             resumeEndpoint: WorkflowInitializationProblem.CreateProcessResumeEndpoint(org, app, exception.Instance),
             workflowFailure: exception.WorkflowFailure,
             workflowAccepted: true,

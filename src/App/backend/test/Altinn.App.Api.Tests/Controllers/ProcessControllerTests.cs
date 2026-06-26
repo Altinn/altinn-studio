@@ -737,48 +737,16 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             },
         };
 
-        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>();
-        processEngineMock
-            .Setup(p => p.CreateInitialProcessState(It.IsAny<Altinn.App.Core.Models.Process.ProcessStartRequest>()))
-            .ReturnsAsync(
-                new Altinn.App.Core.Models.Process.ProcessChangeResult
-                {
-                    Success = true,
-                    ProcessStateChange = new Altinn.App.Core.Models.Process.ProcessStateChange(),
-                }
-            );
-        processEngineMock
-            .Setup(p =>
-                p.SubmitInitialProcessState(
-                    It.IsAny<Instance>(),
-                    It.IsAny<Altinn.App.Core.Models.Process.ProcessStateChange>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstantiationNotification?>(),
-                    It.IsAny<CancellationToken>()
-                )
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
+            new Altinn.App.Core.Internal.WorkflowEngine.WorkflowExecutionFailedException(
+                instance,
+                workflowFailure,
+                processStateChanged: true,
+                "Process workflow execution failed."
             )
-            .ThrowsAsync(
-                new Altinn.App.Core.Internal.WorkflowEngine.WorkflowExecutionFailedException(
-                    instance,
-                    workflowFailure,
-                    processStateChanged: true,
-                    "Process workflow execution failed."
-                )
-            );
-
-        using HttpClient client = GetRootedUserClient(
-            Org,
-            App,
-            1337,
-            InstanceOwnerPartyId,
-            configureServices: services =>
-            {
-                services.RemoveAll<Altinn.App.Core.Internal.Process.IProcessEngine>();
-                services.AddSingleton(processEngineMock.Object);
-            }
         );
+
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
 
         // Act
         using HttpResponseMessage response = await client.PostAsync(
@@ -811,6 +779,96 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Should()
             .Be(Altinn.App.Core.Models.Process.WorkflowFailureKind.StepFailed.ToString());
     }
+
+    // Pins the wire strings of the process-start submission-failure contract. NotAccepted leaves the existing
+    // instance untouched so the client can retry the start; Unknown is indeterminate so the client must inspect.
+    [Theory]
+    [InlineData(true, "workflowNotAccepted", "retryStartProcess")]
+    [InlineData(false, "workflowAcceptanceUnknown", "inspectInstance")]
+    public async Task StartProcess_WhenWorkflowSubmissionFails_ReturnsProblemDetailsWithoutResume(
+        bool notAccepted,
+        string expectedState,
+        string expectedAction
+    )
+    {
+        // Arrange
+        var submissionException = notAccepted
+            ? Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.NotAccepted(
+                "Simulated workflow rejection."
+            )
+            : Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.Unknown(
+                "Simulated unknown acceptance state."
+            );
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
+            submissionException
+        );
+
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        // Act
+        using HttpResponseMessage response = await client.PostAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/start",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+
+        // Assert
+        response.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("title").GetString().Should().Be("Process start failed.");
+        root.GetProperty("initializationState").GetString().Should().Be(expectedState);
+        root.GetProperty("recommendedAction").GetString().Should().Be(expectedAction);
+        // Submission never reached execution, so there is nothing to resume.
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+        root.TryGetProperty("workflowFailure", out _).Should().BeFalse();
+    }
+
+    private Mock<Altinn.App.Core.Internal.Process.IProcessEngine> CreateProcessEngineThrowingOnSubmit(
+        Exception submitException
+    )
+    {
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>();
+        processEngineMock
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<Altinn.App.Core.Models.Process.ProcessStartRequest>()))
+            .ReturnsAsync(
+                new Altinn.App.Core.Models.Process.ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new Altinn.App.Core.Models.Process.ProcessStateChange(),
+                }
+            );
+        processEngineMock
+            .Setup(p =>
+                p.SubmitInitialProcessState(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Altinn.App.Core.Models.Process.ProcessStateChange>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstantiationNotification?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(submitException);
+        return processEngineMock;
+    }
+
+    private HttpClient GetClientWithProcessEngine(
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock
+    ) =>
+        GetRootedUserClient(
+            Org,
+            App,
+            1337,
+            InstanceOwnerPartyId,
+            configureServices: services =>
+            {
+                services.RemoveAll<Altinn.App.Core.Internal.Process.IProcessEngine>();
+                services.AddSingleton(processEngineMock.Object);
+            }
+        );
 
     private static Mock<IPdfGeneratorClient> SetupPdfGeneratorMock()
     {
