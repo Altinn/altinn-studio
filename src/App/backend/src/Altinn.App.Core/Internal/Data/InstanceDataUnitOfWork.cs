@@ -66,11 +66,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         StorageAuthenticationMethod.CurrentUser();
 
     // Optional workflow-engine step idempotency key. When set, every data element created through this unit of work
-    // is tagged with a deterministic, retry-stable key ("{stepKey}#{ordinal}") that Storage uses to dedupe inserts,
-    // so a replayed callback (at-least-once delivery) cannot create duplicate data elements. Null outside the
-    // workflow engine, where creates behave exactly as before.
+    // is tagged with a deterministic, retry-stable key ("{stepKey}#{dataTypeId}#{ordinal}") that Storage uses to
+    // dedupe inserts, so a replayed callback (at-least-once delivery) cannot create duplicate data elements. Null
+    // outside the workflow engine, where creates behave exactly as before.
     private string? _idempotencyKeyPrefix;
-    private int _idempotencyOrdinal;
+    private readonly ConcurrentDictionary<string, int> _idempotencyOrdinalByDataType = new(StringComparer.Ordinal);
 
     public InstanceDataUnitOfWork(
         Instance instance,
@@ -117,27 +117,29 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     /// <summary>
     /// Enables idempotent data element creation for this unit of work. Each subsequently created data element gets a
-    /// deterministic key derived from <paramref name="stepKey"/> and the creation order, which is forwarded to Storage
-    /// so a replayed create returns the already-persisted element instead of inserting a duplicate. Used by the
-    /// workflow engine callback path, where the engine delivers callbacks at-least-once.
+    /// deterministic key derived from <paramref name="stepKey"/> and the data type, which is forwarded to Storage so a
+    /// replayed create returns the already-persisted element instead of inserting a duplicate. Used by the workflow
+    /// engine callback path, where the engine delivers callbacks at-least-once.
     /// </summary>
     internal void UseIdempotentCreates(string stepKey)
     {
         _idempotencyKeyPrefix = stepKey;
     }
 
-    // Assigns the next deterministic idempotency key for a created data element, or null when idempotent creates are
-    // not enabled. The ordinal keeps multiple creates within a single callback distinct while staying stable across
-    // retries (commands create elements in a deterministic order).
-    private string? NextIdempotencyKey()
+    // Assigns the next deterministic idempotency key for a created data element of the given type, or null when
+    // idempotent creates are not enabled. The data type id is folded into the key so the common case (one create per
+    // type, e.g. AutoCreate / shadow-save) is stable regardless of the order commands enumerate types in. The per-type
+    // ordinal disambiguates the rarer case of multiple creates of the *same* type within one callback; that case alone
+    // relies on a stable creation order across retries.
+    private string? NextIdempotencyKey(string dataTypeId)
     {
         if (_idempotencyKeyPrefix is null)
         {
             return null;
         }
 
-        int ordinal = Interlocked.Increment(ref _idempotencyOrdinal) - 1;
-        return $"{_idempotencyKeyPrefix}#{ordinal}";
+        int ordinal = _idempotencyOrdinalByDataType.AddOrUpdate(dataTypeId, 0, (_, current) => current + 1);
+        return $"{_idempotencyKeyPrefix}#{dataTypeId}#{ordinal}";
     }
 
     /// <inheritdoc />
@@ -300,7 +302,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             currentBinaryData: bytes,
             previousBinaryData: default // empty memory reference
         );
-        change.IdempotencyKey = NextIdempotencyKey();
+        change.IdempotencyKey = NextIdempotencyKey(dataType.Id);
         _changesForCreation.Add(change);
         return change;
     }
@@ -335,7 +337,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             generatedFromTask: generatedFromTask,
             metadata: metadata
         );
-        change.IdempotencyKey = NextIdempotencyKey();
+        change.IdempotencyKey = NextIdempotencyKey(dataType.Id);
         _changesForCreation.Add(change);
         return change;
     }
