@@ -18,6 +18,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers;
@@ -36,6 +37,7 @@ public class AppDevelopmentController : Controller
     private readonly ISourceControl _sourceControl;
     private readonly ILayoutService _layoutService;
     private readonly IMediator _mediator;
+    private readonly IAppVersionService _appVersionService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
@@ -45,12 +47,14 @@ public class AppDevelopmentController : Controller
     /// <param name="sourceControl">The source control service.</param>
     /// <param name="layoutService">An <see cref="ILayoutService"/></param>
     /// <param name="mediator"></param>
+    /// <param name="appVersionService">The app version service</param>
     public AppDevelopmentController(
         IAppDevelopmentService appDevelopmentService,
         IRepository repositoryService,
         ISourceControl sourceControl,
         ILayoutService layoutService,
-        IMediator mediator
+        IMediator mediator,
+        IAppVersionService appVersionService
     )
     {
         _appDevelopmentService = appDevelopmentService;
@@ -58,6 +62,7 @@ public class AppDevelopmentController : Controller
         _sourceControl = sourceControl;
         _layoutService = layoutService;
         _mediator = mediator;
+        _appVersionService = appVersionService;
     }
 
     /// <summary>
@@ -1166,16 +1171,21 @@ public class AppDevelopmentController : Controller
     }
 
     [HttpGet("app-version")]
-    public VersionResponse GetAppVersion(string org, string app)
+    public ActionResult<VersionResponse> GetAppVersion(string org, string app)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        var backendVersion = _appDevelopmentService.GetAppLibVersion(editingContext);
+        SemanticVersion backendVersion = _appVersionService.GetAppLibVersion(editingContext);
+        if (backendVersion is null)
+        {
+            return NotFound();
+        }
+
         string frontendVersion;
 
         // For v9 apps and onwards, Index.cshtml no longer exists and frontend major version aligns with backend major version.
-        if (backendVersion?.Major >= 9)
+        if (backendVersion.Major >= 9)
         {
             frontendVersion = backendVersion.Major.ToString();
         }
@@ -1184,6 +1194,6 @@ public class AppDevelopmentController : Controller
             _appDevelopmentService.TryGetFrontendVersion(editingContext, out frontendVersion);
         }
 
-        return new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion };
+        return Ok(new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion });
     }
 }

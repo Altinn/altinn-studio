@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:2b0e46d490f5b53a8dc07fbf636cdf5b90796878a256e1ce5b441e8d9675c5f4 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:fac7cce841f78faa4bca416fb4c636d1a129c09abd9b50e9b45664b95fd008a0 AS build
 WORKDIR /app
 
 COPY src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj src/Altinn.Augmenter.Agent/
@@ -7,7 +7,7 @@ RUN dotnet restore src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj
 COPY src/ src/
 RUN dotnet publish src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj -c Release -o /out --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:8c7671a6f0f984d0c102ee70d61e8010857de032b320561dea97cc5781aea5f8 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:f03685b2735e0d3d25d6c60672e74b21bb6334f1402f71bae2d2cf02307163cd AS runtime
 WORKDIR /app
 
 RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community typst

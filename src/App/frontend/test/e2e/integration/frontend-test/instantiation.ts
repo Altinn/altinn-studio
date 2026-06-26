@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses } from 'test/e2e/pageobjects/party-mocks';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+import { Tenor } from 'test/e2e/support/users';
 
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
@@ -13,7 +14,7 @@ describe('Instantiation', () => {
   const invalidParty =
     Cypress.env('type') === 'localtest'
       ? /01899699001/ // Localtest: Person party for user 2001 (MultiParty Prompt, SSN 01899699001)
-      : /310732001/; // TT02: Søvnig Impulsiv Tiger AS
+      : /314277961/; // TT02: Offisiell Virtuell Tiger AS
 
   beforeEach(() => {
     // Clear party cookie from previous tests to avoid cross-test state pollution
@@ -27,7 +28,10 @@ describe('Instantiation', () => {
 
     // User 2001 (multiPartyPrompt) has doNotPromptForParty=false in localtest,
     // so the backend redirects to party selection where we can pick the invalid party
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, {
+      cyUser: 'multiPartyPrompt',
+      tenorUser: Tenor.users.snaalDugnad,
+    });
     cy.findByRole('button', { name: invalidParty }).click();
 
     cy.findByText('Du kan ikke starte denne tjenesten').should('be.visible');
@@ -43,7 +47,10 @@ describe('Instantiation', () => {
         { id: 'def456', lastChanged: '2023-01-02T00:00:00.000Z', lastChangedBy: 'user' },
       ],
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, {
+      cyUser: 'multiPartyPrompt',
+      tenorUser: Tenor.users.snaalDugnad,
+    });
     cy.findByRole('button', { name: invalidParty }).click();
 
     cy.findByText('Du har allerede startet å fylle ut dette skjemaet.').should('be.visible');

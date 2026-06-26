@@ -619,18 +619,13 @@ public class DeploymentService : IDeploymentService
 
     private async Task<(string Token, string AuthHeaderName)> GetDeployTokenAsync(string username)
     {
-        if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
-        {
-            var (rawKey, _) = await _apiKeyService.CreateAsync(
-                username,
-                $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
-                Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
-                _timeProvider.GetUtcNow().AddHours(1)
-            );
-            return (rawKey, "X-Api-Key");
-        }
-
-        return (await _httpContext.GetDeveloperAppTokenAsync(), null);
+        var (rawKey, _) = await _apiKeyService.CreateAsync(
+            username,
+            $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+            Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+            _timeProvider.GetUtcNow().AddHours(1)
+        );
+        return (rawKey, "X-Api-Key");
     }
 
     private static (string TraceParent, string TraceState) GetCurrentTraceContext()

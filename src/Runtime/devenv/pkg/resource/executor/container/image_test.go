@@ -3,6 +3,7 @@ package containerbackend
 import (
 	"context"
 	"errors"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -131,6 +132,80 @@ func TestPulledImage_PullPolicies(t *testing.T) {
 			t.Fatalf("applyPulledImage() error = %v, want unsupported pull policy", err)
 		}
 	})
+}
+
+func TestBuiltImage_DockerfilePath(t *testing.T) {
+	t.Parallel()
+
+	contextPath := filepath.Join(string(filepath.Separator), "repo", "src", "Runtime", "pdf3")
+	absoluteDockerfile := filepath.Join(string(filepath.Separator), "tmp", "generated.Dockerfile")
+
+	tests := []struct {
+		name       string
+		dockerfile string
+		want       string
+	}{
+		{
+			name:       "empty Dockerfile defaults to Dockerfile",
+			dockerfile: "",
+			want:       "Dockerfile",
+		},
+		{
+			name:       "custom Dockerfile is passed through",
+			dockerfile: "Dockerfile.proxy",
+			want:       "Dockerfile.proxy",
+		},
+		{
+			name:       "absolute Dockerfile is preserved",
+			dockerfile: absoluteDockerfile,
+			want:       absoluteDockerfile,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client := containermock.New()
+			gotDockerfile := ""
+			client.BuildWithProgressFunc = func(
+				_ context.Context,
+				gotContextPath string,
+				dockerfile string,
+				tag string,
+				_ types.ProgressHandler,
+				_ ...types.BuildOptions,
+			) error {
+				if gotContextPath != contextPath {
+					t.Fatalf("BuildWithProgress contextPath = %q, want %q", gotContextPath, contextPath)
+				}
+				if tag != "pdf3-proxy:dev" {
+					t.Fatalf("BuildWithProgress tag = %q, want %q", tag, "pdf3-proxy:dev")
+				}
+				gotDockerfile = dockerfile
+				return nil
+			}
+			client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+				return types.ImageInfo{ID: "sha256:image"}, nil
+			}
+
+			_, err := New(client).applyBuiltImage(
+				t.Context(),
+				executor.BackendContext{},
+				&resource.BuiltImage{
+					ContextPath: contextPath,
+					Dockerfile:  tt.dockerfile,
+					Tag:         "pdf3-proxy:dev",
+				},
+			)
+			if err != nil {
+				t.Fatalf("applyBuiltImage() error = %v", err)
+			}
+			if gotDockerfile != tt.want {
+				t.Fatalf("BuildWithProgress dockerfile = %q, want %q", gotDockerfile, tt.want)
+			}
+		})
+	}
 }
 
 func TestPublishedImage_TagAndPush(t *testing.T) {

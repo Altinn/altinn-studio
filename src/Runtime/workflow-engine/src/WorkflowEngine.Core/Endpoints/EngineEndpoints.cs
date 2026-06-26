@@ -20,47 +20,88 @@ internal static class EngineEndpoints
         app.MapGet("/api/v1/namespaces", EngineRequestHandlers.ListNamespaces)
             .WithTags("Namespaces")
             .WithName("ListNamespaces")
+            .WithSummary("List namespaces")
             .WithDescription("Lists all distinct namespaces");
 
-        var group = app.MapGroup("/api/v1/{namespace}/workflows").WithTags("Workflows");
+        var workflowGroup = app.MapGroup("/api/v1/{namespace}/workflows").WithTags("Workflows");
 
-        group
+        workflowGroup
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)
             .WithName("EnqueueWorkflows")
+            .WithSummary("Enqueue workflows")
             .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
-        group
+        workflowGroup
             .MapGet("", EngineRequestHandlers.ListWorkflows)
             .WithName("ListWorkflows")
-            .WithDescription("Lists workflows, optionally filtered by collection key, labels, and statuses");
+            .WithSummary("List workflows")
+            .WithDescription(
+                """
+                Lists workflows in the namespace, newest first.
 
-        group
+                Optionally filtered by status (repeatable, case-insensitive), label (key:value, repeatable),
+                and collectionKey. Cursor-paginated: pass the nextCursor from a response back as the cursor parameter.
+
+                Returns 204 No Content when nothing matches, and 400 Bad Request for an unrecognized status value.
+                """
+            );
+
+        workflowGroup
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
+            .WithSummary("Get workflow")
             .WithDescription("Gets details of a single workflow by database ID");
 
-        group
+        workflowGroup
             .MapGet("/{workflowId:guid}/dependency-graph", EngineRequestHandlers.GetWorkflowDependencyGraph)
             .WithName("GetWorkflowDependencyGraph")
+            .WithSummary("Get workflow dependency graph")
             .WithDescription(
                 "Gets the connected dependency graph reachable from the requested workflow through dependency or link relations in either direction"
             );
 
-        group
+        workflowGroup
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
             .WithName("CancelWorkflow")
-            .WithDescription("Requests cancellation of a workflow");
+            .WithSummary("Cancel workflow")
+            .WithDescription(
+                """
+                Requests cancellation of a workflow. The request is idempotent.
 
-        group
+                200 OK returns canceledImmediately: true when the workflow was running on the pod that received
+                the request, so its cancellation token fired synchronously; false when it will be canceled via the
+                distributed path instead.
+
+                202 Accepted when cancellation was already pending, 409 Conflict when the workflow is already
+                terminal, 404 Not Found when it does not exist.
+                """
+            );
+
+        workflowGroup
             .MapPost("/{workflowId:guid}/resume", EngineRequestHandlers.ResumeWorkflow)
             .WithName("ResumeWorkflow")
-            .WithDescription("Resumes a terminal workflow (failed, canceled, dependency-failed) for re-processing");
+            .WithSummary("Resume workflow")
+            .WithDescription(
+                """
+                Resumes a terminal workflow (Failed, Canceled, DependencyFailed) back to Enqueued for re-processing.
+                Pass cascade=true to also resume workflows left in DependencyFailed by this one.
+
+                409 Conflict when the workflow is not in a resumable state, 404 Not Found when it does not exist.
+                """
+            );
 
         var collectionGroup = app.MapGroup("/api/v1/{namespace}/collections").WithTags("Collections");
 
         collectionGroup
+            .MapGet("", EngineRequestHandlers.ListCollections)
+            .WithName("ListCollections")
+            .WithSummary("List collections")
+            .WithDescription("Lists all workflow collections in the namespace, ordered by most recently updated");
+
+        collectionGroup
             .MapGet("/{key}", EngineRequestHandlers.GetCollection)
             .WithName("GetCollection")
+            .WithSummary("Get collection")
             .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
 
         return app;
@@ -139,11 +180,13 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListWorkflows(
+    public static async Task<
+        Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent, ProblemHttpResult>
+    > ListWorkflows(
         [FromRoute] string @namespace,
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
-        [FromQuery(Name = "status")] PersistentItemStatus[]? statuses,
+        [FromQuery(Name = "status")] string[]? statuses,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
@@ -153,12 +196,17 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
+        if (!TryParseStatuses(statuses, out var effectiveStatuses, out var invalidStatus))
+            return TypedResults.Problem(
+                detail: $"'{invalidStatus}' is not a valid workflow status. Valid values: {string.Join(", ", AllPersistentItemStatuses)}.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+
         var pagination = settings.Value.Pagination;
         var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
 
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var effectiveStatuses = GetQueryStatuses(statuses);
         var result = await repository.QueryWorkflows(
             effectivePageSize,
             effectiveStatuses,
@@ -341,8 +389,37 @@ internal static class EngineRequestHandlers
 
     private static readonly PersistentItemStatus[] AllPersistentItemStatuses = Enum.GetValues<PersistentItemStatus>();
 
-    private static PersistentItemStatus[] GetQueryStatuses(PersistentItemStatus[]? statuses) =>
-        statuses is { Length: > 0 } ? statuses : AllPersistentItemStatuses;
+    /// <summary>
+    /// Parses repeated <c>?status=</c> query values into <see cref="PersistentItemStatus"/> values,
+    /// case-insensitively (query-string binding bypasses the JSON converter that handles request bodies).
+    /// Returns all statuses when none are supplied. Returns <see langword="false"/> and sets
+    /// <paramref name="invalid"/> to the offending value when one is not a recognized status.
+    /// </summary>
+    private static bool TryParseStatuses(string[]? raw, out PersistentItemStatus[] statuses, out string? invalid)
+    {
+        invalid = null;
+        if (raw is null or { Length: 0 })
+        {
+            statuses = AllPersistentItemStatuses;
+            return true;
+        }
+
+        var parsed = new PersistentItemStatus[raw.Length];
+        for (int i = 0; i < raw.Length; i++)
+        {
+            if (!Enum.TryParse(raw[i], ignoreCase: true, out PersistentItemStatus status) || !Enum.IsDefined(status))
+            {
+                statuses = [];
+                invalid = raw[i];
+                return false;
+            }
+
+            parsed[i] = status;
+        }
+
+        statuses = parsed;
+        return true;
+    }
 
     private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
         IReadOnlyList<Workflow> workflows
@@ -400,10 +477,21 @@ internal static class EngineRequestHandlers
         return edges;
     }
 
-    /// <summary>
-    /// Gets a single workflow collection by <paramref name="key"/> within the requested namespace.
-    /// Normalizes <paramref name="ns"/>, records the query metric, and returns 404 when the collection is missing.
-    /// </summary>
+    public static async Task<Results<Ok<IReadOnlyList<WorkflowCollectionResponse>>, NoContent>> ListCollections(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
+
+        ns = NormalizeNamespace(ns);
+
+        var collections = await repository.GetCollections(ns, cancellationToken);
+
+        return collections.Count == 0 ? TypedResults.NoContent() : TypedResults.Ok(collections);
+    }
+
     public static async Task<Results<Ok<WorkflowCollectionDetailResponse>, NotFound>> GetCollection(
         [FromRoute(Name = "namespace")] string ns,
         [FromRoute] string key,

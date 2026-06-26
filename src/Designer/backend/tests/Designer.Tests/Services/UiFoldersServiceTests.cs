@@ -7,8 +7,11 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
+using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -27,7 +30,10 @@ public class UiFoldersServiceTests : IDisposable
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
 
         // Act
-        IEnumerable<LayoutSetDto> result = await service.GetLayoutSetsExtended(editingContext, CancellationToken.None);
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.Single(result);
@@ -41,7 +47,10 @@ public class UiFoldersServiceTests : IDisposable
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
 
         // Act
-        IEnumerable<LayoutSetDto> result = await service.GetLayoutSetsExtended(editingContext, CancellationToken.None);
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.DoesNotContain(result, dto => dto.Id == "orphanFolder");
@@ -54,8 +63,11 @@ public class UiFoldersServiceTests : IDisposable
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
 
         // Act
-        IEnumerable<LayoutSetDto> result = await service.GetLayoutSetsExtended(editingContext, CancellationToken.None);
-        LayoutSetDto layoutSet = result.Single(dto => dto.Id == "Task_1");
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
+        UiFolderLayoutSetDto layoutSet = result.Single(dto => dto.Id == "Task_1");
 
         // Assert
         Assert.Equal("myModel", layoutSet.DataType);
@@ -73,6 +85,8 @@ public class UiFoldersServiceTests : IDisposable
         );
         UiFoldersService service = new(
             new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory()),
+            new Mock<IProcessModelingService>().Object,
+            new Mock<IPublisher>().Object,
             NullLogger<UiFoldersService>.Instance
         );
         return (editingContext, service);

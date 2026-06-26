@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "preserve",
     "target": "es6",
-    "downlevelIteration": true,
     "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "rootDir": "./",
     "noEmit": true,
     "skipLibCheck": true,
@@ -18,15 +17,15 @@
     "strictBindCallApply": true,
     "allowUnusedLabels": false,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "paths": {
-      "@app/form-component/*": ["../../../libs/form-component/src/*"],
-      "src/*": ["src/*"],
-      "test/*": ["test/*"],
-      "schemas/*": ["schemas/*"],
-      "scripts/*": ["scripts/*"]
+      "@app/form-component/*": ["./../../../app-libs/form-component/src/*"],
+      "@app/language/*": ["./../../../app-libs/language/src/*"],
+      "src/*": ["./src/*"],
+      "test/*": ["./test/*"],
+      "schemas/*": ["./schemas/*"],
+      "scripts/*": ["./scripts/*"]
     },
     "allowSyntheticDefaultImports": true,
     "exactOptionalPropertyTypes": false,

@@ -8,6 +8,7 @@ internal static class ModuleInitializer
     [ModuleInitializer]
     public static void Init()
     {
+        Environment.SetEnvironmentVariable("STUDIOCTL_INTERNAL_DEV", "true");
         Verifier.DerivePathInfo(
             (file, _, type, method) => new(Path.Join(Path.GetDirectoryName(file), "_snapshots"), type.Name, method.Name)
         );

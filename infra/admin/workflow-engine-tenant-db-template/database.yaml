@@ -1,0 +1,16 @@
+apiVersion: storage.dis.altinn.cloud/v1alpha1
+kind: Database
+metadata:
+  name: ${DISDB_METANAME}
+  namespace: studio-admin
+spec:
+  name: ${DISDB_PGNAME}
+  server:
+    name: ${DISDB_SERVER}
+  access:
+    principals:
+      - role: Owner
+        servicePrincipal:
+          name: ${DISDB_GRANTEE_NAME}
+          principalId: "${DISDB_GRANTEE_OID}"
+  deletionPolicy: Retain

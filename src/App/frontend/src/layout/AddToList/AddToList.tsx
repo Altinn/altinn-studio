@@ -1,18 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { MonthCaption } from 'react-day-picker';
 
-import { DynamicForm } from '@app/form-component';
+import {
+  type DatePickerControlProps,
+  DatePickerDropdownCaption,
+  DynamicForm,
+  type FormDataObject,
+  getDatepickerFormat,
+} from '@app/form-component';
 import { Button, Dialog } from '@digdir/designsystemet-react';
 import { v4 as uuidv4 } from 'uuid';
-import type { FormDataObject } from '@app/form-component';
 import type { JSONSchema7 } from 'json-schema';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -42,7 +44,7 @@ interface ModalDynamicFormProps {
   backdropClose?: boolean;
   onClose?: () => void;
   modalRef?: React.RefObject<HTMLDialogElement | null>;
-  DropdownCaption: typeof MonthCaption;
+  DropdownCaption: DatePickerControlProps['DropdownCaption'];
 }
 
 export function AddToListModal({
@@ -146,7 +148,7 @@ export function AddToListComponent({ baseComponentId }: PropsFromGenericComponen
             setShowForm(false);
           }}
           backdropClose={true}
-          DropdownCaption={DropdownCaption}
+          DropdownCaption={DatePickerDropdownCaption}
         />
       )}
 

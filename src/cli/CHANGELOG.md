@@ -8,6 +8,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Update `studioctl app upgrade v9` to rewrite the app `Dockerfile` .NET base images to match the upgraded target framework (`net10.0`).
+
+## [0.1.0-preview.14] - 2026-06-08
+
 ### Changed
 
 - Update localtest PDF worker image.

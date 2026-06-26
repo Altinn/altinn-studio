@@ -1,23 +1,11 @@
 {
   "name": "altinn-studio",
   "devDependencies": {
-    "eslint": "8.57.1",
-    "husky": "9.1.7",
-    "lint-staged": "16.3.2",
-    "prettier": "3.8.1"
+    "eslint": "10.5.0",
+    "lefthook": "2.1.9",
+    "prettier": "3.8.4"
   },
-  "lint-staged": {
-    "./src/App/frontend/**/*.{js,jsx,ts,tsx}": [
-      "./scripts/pre-commit-check-for-skipped-tests",
-      "yarn --cwd src/App/frontend eslint --cache --fix"
-    ],
-    "./src/App/frontend/**/*.json": "yarn --cwd src/App/frontend eslint --cache --fix",
-    "./src/App/frontend/**/*.{css,md}": "prettier -w",
-    "./libs/form-component/**/*.{js,jsx,ts,tsx}": "yarn --cwd libs/form-component eslint --cache --fix",
-    "*{js,jsx,tsx,ts,css,md}": "prettier -w",
-    "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
-  },
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.16.0",
   "private": true,
   "scripts": {
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
@@ -27,10 +15,10 @@
     "lint:libs": "yarn workspace @app/form-engine lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
-    "setup": "husky && node src/Designer/development/setup.js && yarn run git:ignore-revs",
+    "setup": "lefthook install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   },
   "syncpack": {
     "semverRange": ""
@@ -65,7 +53,7 @@
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
-    "libs/**"
+    "app-libs/**"
   ],
   "resolutions": {
     "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"

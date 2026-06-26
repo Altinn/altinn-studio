@@ -1,10 +1,9 @@
-import { getDateConstraint, getDateFormat, strictParseISO } from '@app/form-component';
+import { getDateConstraint, getDateFormat, getDatepickerFormat, strictParseISO } from '@app/form-component';
 import { isAfter, isBefore } from 'date-fns';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 

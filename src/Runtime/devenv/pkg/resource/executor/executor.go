@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"golang.org/x/sync/errgroup"
 
@@ -40,15 +41,14 @@ func (e *Executor) SetObserver(o Observer) {
 }
 
 // Apply creates/updates all resources in the graph in dependency order.
-// Resources at the same dependency level are applied in parallel.
+// Resources are scheduled as soon as their dependencies have completed.
 func (e *Executor) Apply(ctx context.Context, g *resource.Graph, opts ...ApplyOption) (Outputs, error) {
 	if err := validateGraphID(g); err != nil {
 		return Outputs{}, err
 	}
 	options := newApplyOptions(opts)
-	levels, err := g.TopologicalOrder()
-	if err != nil {
-		return Outputs{}, fmt.Errorf("sort graph resources: %w", err)
+	if _, err := g.TopologicalOrder(); err != nil {
+		return Outputs{}, fmt.Errorf("validate graph dependencies: %w", err)
 	}
 	actual, err := e.Status(ctx, g)
 	if err != nil {
@@ -65,11 +65,11 @@ func (e *Executor) Apply(ctx context.Context, g *resource.Graph, opts ...ApplyOp
 		return Outputs{}, err
 	}
 
-	return e.executeApplyPlan(ctx, g, levels, plan)
+	return e.executeApplyPlan(ctx, g, plan)
 }
 
 // Destroy removes all resources in the graph in reverse dependency order.
-// Resources at the same dependency level are destroyed in parallel.
+// Resources are scheduled as soon as their dependents have been destroyed.
 func (e *Executor) Destroy(ctx context.Context, g *resource.Graph, opts ...DestroyOption) error {
 	if err := validateGraphID(g); err != nil {
 		return err
@@ -100,15 +100,25 @@ func (e *Executor) Status(ctx context.Context, g *resource.Graph, opts ...Status
 		Resources: make(map[resource.ResourceID]ObservedResource, len(resources)),
 	}
 
+	var mu sync.Mutex
+	eg, groupCtx := errgroup.WithContext(ctx)
 	for _, r := range resources {
 		if options.skipResource(r) {
 			continue
 		}
-		observed, err := e.observeResource(ctx, g.ID(), r)
-		if err != nil {
-			return Snapshot{}, fmt.Errorf("status %s: %w", r.ID(), err)
-		}
-		snapshot.Resources[r.ID()] = observed
+		eg.Go(func() error {
+			observed, err := e.observeResource(groupCtx, g.ID(), r)
+			if err != nil {
+				return fmt.Errorf("status %s: %w", r.ID(), err)
+			}
+			mu.Lock()
+			snapshot.Resources[r.ID()] = observed
+			mu.Unlock()
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return Snapshot{}, fmt.Errorf("observe graph resources: %w", err)
 	}
 
 	if err := e.discoverGraphResources(ctx, &snapshot); err != nil {
@@ -121,36 +131,29 @@ func (e *Executor) Status(ctx context.Context, g *resource.Graph, opts ...Status
 func (e *Executor) executeApplyPlan(
 	ctx context.Context,
 	g *resource.Graph,
-	levels [][]resource.Resource,
 	plan applyPlan,
 ) (Outputs, error) {
-	applyIDs := resourceIDSet(plan.reconcile)
-
 	e.outputs.Reset()
 
-	for _, level := range levels {
-		eg, groupCtx := errgroup.WithContext(ctx)
-		for _, r := range level {
-			if _, ok := applyIDs[r.ID()]; !ok {
-				continue
-			}
-			eg.Go(func() error {
-				e.notify(EventApplyStart, r.ID(), nil)
-				output, err := e.applyResource(groupCtx, g.ID(), r)
-				if err != nil {
-					e.notify(EventApplyFailed, r.ID(), err)
-					return fmt.Errorf("apply %s: %w", r.ID(), err)
-				}
-				if output != nil && !isNoOutput(output) {
-					e.outputs.Set(r.ID(), output)
-				}
-				e.notify(EventApplyDone, r.ID(), nil)
-				return nil
-			})
+	resources, err := schedulerResources(g, plan.reconcile)
+	if err != nil {
+		return Outputs{}, err
+	}
+	scheduler := newResourceScheduler(resources, scheduleDependenciesFirst)
+	if err := runResourceScheduler(ctx, scheduler, func(ctx context.Context, r resource.Resource) error {
+		e.notify(EventApplyStart, r.ID(), nil)
+		output, err := e.applyResource(ctx, g.ID(), r)
+		if err != nil {
+			e.notify(EventApplyFailed, r.ID(), err)
+			return fmt.Errorf("apply %s: %w", r.ID(), err)
 		}
-		if err := eg.Wait(); err != nil {
-			return Outputs{}, fmt.Errorf("apply level: %w", err)
+		if output != nil && !isNoOutput(output) {
+			e.outputs.Set(r.ID(), output)
 		}
+		e.notify(EventApplyDone, r.ID(), nil)
+		return nil
+	}); err != nil {
+		return Outputs{}, err
 	}
 	return e.outputs.Snapshot(), nil
 }
@@ -163,34 +166,22 @@ func (e *Executor) executeDestroyPlan(ctx context.Context, actual Snapshot, ids 
 	if err != nil {
 		return err
 	}
-	levels, err := graph.ReverseTopologicalOrderSubset(ids)
+	resources, err := schedulerResources(graph, ids)
 	if err != nil {
 		return fmt.Errorf("sort observed graph resources: %w", err)
 	}
-	for _, level := range levels {
-		eg, groupCtx := errgroup.WithContext(ctx)
-		for _, r := range level {
-			eg.Go(func() error {
-				observed, ok := actual.Resources[r.ID()]
-				if !ok {
-					return fmt.Errorf("%w: %q", errGraphResourceNotFound, r.ID())
-				}
-				return e.destroyObservedResource(groupCtx, r.ID(), observed)
-			})
+
+	scheduler := newResourceScheduler(resources, scheduleDependentsFirst)
+	if err := runResourceScheduler(ctx, scheduler, func(ctx context.Context, r resource.Resource) error {
+		observed, ok := actual.Resources[r.ID()]
+		if !ok {
+			return fmt.Errorf("%w: %q", errGraphResourceNotFound, r.ID())
 		}
-		if err := eg.Wait(); err != nil {
-			return fmt.Errorf("destroy level: %w", err)
-		}
+		return e.destroyObservedResource(ctx, r.ID(), observed)
+	}); err != nil {
+		return fmt.Errorf("destroy resources: %w", err)
 	}
 	return nil
-}
-
-func resourceIDSet(ids []resource.ResourceID) map[resource.ResourceID]struct{} {
-	set := make(map[resource.ResourceID]struct{}, len(ids))
-	for _, id := range ids {
-		set[id] = struct{}{}
-	}
-	return set
 }
 
 func validateGraphID(g *resource.Graph) error {

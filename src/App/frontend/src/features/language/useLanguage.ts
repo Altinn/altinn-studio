@@ -1,12 +1,13 @@
 import { Children, isValidElement, useCallback, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
+import { type FixedLanguageList, getLanguageFromCode, replaceParameters, type ValidLanguageKey } from '@app/language';
+
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/useLangToolsDataSources';
-import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
@@ -74,8 +75,6 @@ export interface TextResourceVariablesDataSources extends BaseTextResourceVariab
   formDataTypes: string[] | typeof ContextNotProvided;
   formDataSelector: FormDataSelector | typeof ContextNotProvided;
 }
-
-export type ValidLanguageKey = keyof FixedLanguageList;
 
 /**
  * Hook to resolve a key to a language string or React element (if the key is found and contains markdown or HTML).
@@ -418,29 +417,6 @@ function tryReadFromDataModel(
   }
   return formDataSelector({ dataType: dataModelName, field: path });
 }
-
-const replaceParameters = (nameString: string, params: SimpleLangParam[]) => {
-  if (nameString === undefined) {
-    return nameString;
-  }
-
-  let mutatingString = nameString;
-  for (const index in params) {
-    const param = params[index];
-    let paramAsString: string | undefined;
-    if (typeof param === 'string') {
-      paramAsString = param;
-    } else if (typeof param === 'number') {
-      paramAsString = param.toString();
-    }
-
-    if (paramAsString !== undefined) {
-      mutatingString = mutatingString.replaceAll(`{${index}}`, paramAsString);
-    }
-  }
-
-  return mutatingString;
-};
 
 function isTextReference(obj: unknown): obj is TextReference {
   return (

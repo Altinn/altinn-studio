@@ -37,7 +37,7 @@ jobs:
       run:
         working-directory: infra/runtime/grafana-manifests
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Set vars
         id: vars
@@ -54,7 +54,7 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+        uses: fluxcd/flux2/action@1fd61a06264d71cf445ed55c4f14d401d26a1c64 # v2.8.8
 
       - name: push artifact
         working-directory: infra/runtime/grafana-manifests
@@ -86,7 +86,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+        uses: fluxcd/flux2/action@1fd61a06264d71cf445ed55c4f14d401d26a1c64 # v2.8.8
 
       - name: tag artifact
         run: |

@@ -1,7 +1,5 @@
+import { type FixedLanguageList, getLanguageFromCode } from '@app/language';
 import { TZDate } from '@date-fns/tz';
-
-import { getLanguageFromCode } from 'src/language/languages';
-import type { FixedLanguageList } from 'src/language/languages';
 
 const UNICODE_TOKENS = /[^a-zA-Z0-9]+/g;
 type Separator = string | undefined;
@@ -76,27 +74,6 @@ export function formatDateLocale(localeStr: string, date: Date, unicodeFormat?: 
   }
 
   return output;
-}
-
-/**
- * This function will massage locale date formats to require a fixed number of characters so that a pattern-format can be used on the text input
- */
-export function getDatepickerFormat(unicodeFormat: string): string {
-  const tokens = unicodeFormat.split(UNICODE_TOKENS) as Token[];
-  const separators: Separator[] = unicodeFormat.match(UNICODE_TOKENS) ?? [];
-
-  return tokens.reduce((acc, token: Token, index) => {
-    if (['y', 'yy', 'yyy', 'yyyy', 'u', 'uu', 'uuu', 'uuuu'].includes(token)) {
-      return `${acc}yyyy${separators?.[index] ?? ''}`;
-    }
-    if (['M', 'MM', 'MMM', 'MMMM', 'MMMMM'].includes(token)) {
-      return `${acc}MM${separators?.[index] ?? ''}`;
-    }
-    if (['d', 'dd'].includes(token)) {
-      return `${acc}dd${separators?.[index] ?? ''}`;
-    }
-    return acc;
-  }, '');
 }
 
 function selectPartToUse(parts: Intl.DateTimeFormatPart[], token: Token) {

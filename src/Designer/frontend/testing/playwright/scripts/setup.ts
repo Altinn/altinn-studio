@@ -7,14 +7,13 @@ const giteaApi = require('../../../../development/utils/gitea-api');
 // Configure the dotenv to read form the .env file on root of monorepo.
 require('dotenv').config({ path: path.resolve(__dirname, '../../../../.env') });
 
-const environment: Record<string, string> = {
+const environment: Record<string, string | null | undefined> = {
   PLAYWRIGHT_TEST_BASE_URL: 'http://studio.localhost',
   PLAYWRIGHT_DESIGNER_APP_NAME: 'auto-test-app',
 
   PLAYWRIGHT_USER: process.env.GITEA_CYPRESS_USER,
   PLAYWRIGHT_PASS: process.env.GITEA_CYPRESS_PASS,
   GITEA_ACCESS_TOKEN: null,
-  STUDIO_OIDC_ENABLED: process.env.FEATUREFLAGS_STUDIOOIDC || 'false',
 };
 
 const createGiteaAccessToken = async (): Promise<void> => {
@@ -49,7 +48,7 @@ const getEnvFilePath = (): string => {
 
 const mapEnvironment = () => {
   return Object.keys(environment)
-    .map((key) => [key, environment[key]].join('='))
+    .map((key) => [key, environment[key] ?? ''].join('='))
     .join(os.EOL);
 };
 
