@@ -1,4 +1,5 @@
 import React, { type JSX, type PropsWithChildren, type ReactElement } from 'react';
+import type { ReactNode } from 'react';
 
 import { Flex } from '@app/form-component/app-components/Flex/Flex';
 import {
@@ -13,7 +14,7 @@ import labelClasses from './Label.module.css';
 
 export type FieldsetProps = {
   id?: string;
-  legend: string | ReactElement | undefined;
+  legend: string | ReactNode | undefined;
   legendSize?: Extract<DesignsystemetLabelProps['data-size'], 'sm' | 'md' | 'lg' | 'xl'>;
   className?: string;
   grid?: IGridStyling;

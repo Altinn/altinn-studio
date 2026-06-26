@@ -22,7 +22,6 @@ export function ButtonGroupComponent({ baseComponentId, overrideDisplay }: Props
 
   return (
     <ButtonGroupLayout
-      id={componentId}
       componentId={componentId}
       title={showLabel ? textResourceBindings?.title : undefined}
       description={textResourceBindings?.description}

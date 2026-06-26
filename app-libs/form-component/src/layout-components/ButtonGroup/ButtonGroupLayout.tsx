@@ -11,8 +11,6 @@ import type { IGridStyling } from '@app/form-component/app-components/Flex/Flex'
 import classes from './ButtonGroupLayout.module.css';
 
 export interface ButtonGroupLayoutProps {
-  /** Component ID, used for test IDs */
-  id?: string;
   /** The indexed component ID used for form-content wrapper */
   componentId?: string;
   /** Text resource key for the fieldset legend */
@@ -34,7 +32,6 @@ export interface ButtonGroupLayoutProps {
 }
 
 export function ButtonGroupLayout({
-  id,
   componentId,
   title,
   description,
@@ -47,14 +44,14 @@ export function ButtonGroupLayout({
 }: ButtonGroupLayoutProps) {
   const { lang, langAsString } = useTranslation();
 
-  const legendNode = title ? <>{lang(title)}</> : undefined;
+  const legendNode = title ? lang(title) : undefined;
 
   const descriptionNode = description ? (
-    <Description componentId={id} description={lang(description)} />
+    <Description componentId={componentId} description={lang(description)} />
   ) : undefined;
 
   const helpNode = help ? (
-    <HelpTextContainer id={id} title={langAsString(title)} helpText={lang(help)} />
+    <HelpTextContainer id={componentId} title={langAsString(title)} helpText={lang(help)} />
   ) : undefined;
 
   return (
