@@ -158,6 +158,44 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Contains("cannot be updated", exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task AddDataElement_WithoutIdempotentCreates_DoesNotSetIdempotencyKey()
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(bytes);
+
+        BinaryDataChange change = setup.DataMutator.AddBinaryDataElement(
+            "payment",
+            "application/json",
+            "extra.json",
+            bytes
+        );
+
+        Assert.Null(change.IdempotencyKey);
+    }
+
+    [Fact]
+    public async Task AddDataElement_WithIdempotentCreates_AssignsDeterministicOrdinalKeys()
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(bytes);
+
+        setup.DataMutator.UseIdempotentCreates("step-7");
+
+        BinaryDataChange first = setup.DataMutator.AddBinaryDataElement("payment", "application/json", "a.json", bytes);
+        BinaryDataChange second = setup.DataMutator.AddBinaryDataElement(
+            "payment",
+            "application/json",
+            "b.json",
+            bytes
+        );
+
+        // Keys are stable across retries because creates happen in a deterministic order, and distinct so multiple
+        // creates within one callback do not collapse onto each other.
+        Assert.Equal("step-7#0", first.IdempotencyKey);
+        Assert.Equal("step-7#1", second.IdempotencyKey);
+    }
+
     private sealed class BinaryDataUnitOfWorkSetup : IAsyncDisposable
     {
         public required MockedServiceCollection Services { get; init; }

@@ -65,6 +65,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private static readonly StorageAuthenticationMethod _defaultAuthenticationMethod =
         StorageAuthenticationMethod.CurrentUser();
 
+    // Optional workflow-engine step idempotency key. When set, every data element created through this unit of work
+    // is tagged with a deterministic, retry-stable key ("{stepKey}#{ordinal}") that Storage uses to dedupe inserts,
+    // so a replayed callback (at-least-once delivery) cannot create duplicate data elements. Null outside the
+    // workflow engine, where creates behave exactly as before.
+    private string? _idempotencyKeyPrefix;
+    private int _idempotencyOrdinal;
+
     public InstanceDataUnitOfWork(
         Instance instance,
         IDataClient dataClient,
@@ -107,6 +114,31 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     public string? TaskId { get; }
 
     public string? Language { get; }
+
+    /// <summary>
+    /// Enables idempotent data element creation for this unit of work. Each subsequently created data element gets a
+    /// deterministic key derived from <paramref name="stepKey"/> and the creation order, which is forwarded to Storage
+    /// so a replayed create returns the already-persisted element instead of inserting a duplicate. Used by the
+    /// workflow engine callback path, where the engine delivers callbacks at-least-once.
+    /// </summary>
+    internal void UseIdempotentCreates(string stepKey)
+    {
+        _idempotencyKeyPrefix = stepKey;
+    }
+
+    // Assigns the next deterministic idempotency key for a created data element, or null when idempotent creates are
+    // not enabled. The ordinal keeps multiple creates within a single callback distinct while staying stable across
+    // retries (commands create elements in a deterministic order).
+    private string? NextIdempotencyKey()
+    {
+        if (_idempotencyKeyPrefix is null)
+        {
+            return null;
+        }
+
+        int ordinal = Interlocked.Increment(ref _idempotencyOrdinal) - 1;
+        return $"{_idempotencyKeyPrefix}#{ordinal}";
+    }
 
     /// <inheritdoc />
     public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method)
@@ -268,6 +300,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             currentBinaryData: bytes,
             previousBinaryData: default // empty memory reference
         );
+        change.IdempotencyKey = NextIdempotencyKey();
         _changesForCreation.Add(change);
         return change;
     }
@@ -302,6 +335,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             generatedFromTask: generatedFromTask,
             metadata: metadata
         );
+        change.IdempotencyKey = NextIdempotencyKey();
         _changesForCreation.Add(change);
         return change;
     }
@@ -602,6 +636,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             (change as BinaryDataChange)?.FileName,
             new MemoryAsStream(bytes),
             generatedFromTask: (change as BinaryDataChange)?.GeneratedFromTask,
+            idempotencyKey: change.IdempotencyKey,
             authenticationMethod: GetAuthenticationMethod(change.DataType)
         );
 
