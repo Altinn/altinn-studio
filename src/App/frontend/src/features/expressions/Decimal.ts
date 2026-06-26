@@ -5,6 +5,7 @@ interface DecimalFacade {
   subtract(minuend: number, subtrahend: number): number;
   multiply(factor1: number, factor2: number): number;
   divide(dividend: number, divisor: number): number;
+  sum(numbers: number[]): number;
 }
 
 export const Decimal: DecimalFacade = class {
@@ -22,5 +23,9 @@ export const Decimal: DecimalFacade = class {
 
   static divide(factor1: number, factor2: number): number {
     return Decimaljs.div(factor1, factor2).toNumber();
+  }
+
+  static sum(numbers: number[]): number {
+    return Decimaljs.sum(...numbers, 0).toNumber();
   }
 };

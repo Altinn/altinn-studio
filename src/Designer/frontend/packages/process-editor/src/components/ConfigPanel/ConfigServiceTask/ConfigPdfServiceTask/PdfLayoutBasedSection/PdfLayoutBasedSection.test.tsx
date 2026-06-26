@@ -321,7 +321,6 @@ describe('PdfLayoutBasedSection', () => {
 
       await waitFor(() => expect(addLayoutSetMock).toHaveBeenCalledTimes(1));
       expect(addLayoutSetMock).toHaveBeenCalledWith({
-        layoutSetIdToUpdate: 'my-pdf-layout',
         taskType: 'pdf',
         layoutSetConfig: {
           id: 'my-pdf-layout',

@@ -25,6 +25,12 @@ spec:
             - containerPort: 8071
               name: http
               protocol: TCP
+          resources:
+            requests:
+              cpu: 100m # Tested usage: 70m spike for 5 concurrent workflows
+              memory: 250Mi # Tested usage: 220Mi
+            limits:
+              memory: 1Gi
           env:
             - name: AZURE_OPENAI_ENDPOINT
               value: "https://rndlabaidemoss0618689180.openai.azure.com/"

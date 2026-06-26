@@ -605,7 +605,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
             return layoutSetsFile;
         }
 
-        throw new NotFoundException("No layout set was found for this app");
+        throw new NoLayoutSetsFileFoundException("No layout set was found for this app");
     }
 
     public async Task SaveLayoutSets(LayoutSets layoutSets)

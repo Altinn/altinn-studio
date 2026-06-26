@@ -32,6 +32,7 @@ spec:
     metadata:
       labels:
         app: workflow-engine-app
+        azure.workload.identity/use: "true"
       annotations:
         linkerd.io/inject: enabled
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
