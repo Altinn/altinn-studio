@@ -1,74 +1,51 @@
 import React from 'react';
 
-import { Flex, Label, TimePicker as TimePickerControl } from '@app/form-component';
+import { TimePickerLayout } from '@app/form-component';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { useLabel } from 'src/utils/layout/useLabel';
+import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
+import { useLabelData } from 'src/utils/layout/useLabelData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function TimePickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'TimePicker'>) {
-  const { langAsString } = useLanguage();
-  const {
-    minTime,
-    maxTime,
-    format = 'HH:mm',
-    readOnly,
-    required,
-    id,
-    dataModelBindings,
-    grid,
-  } = useItemWhenType(baseComponentId, 'TimePicker');
+  const { minTime, maxTime, format, readOnly, required, id, dataModelBindings, grid } = useItemWhenType(
+    baseComponentId,
+    'TimePicker',
+  );
 
   const { setValue, formData } = useDataModelBindings(dataModelBindings);
   const value = formData.simpleBinding || '';
 
-  const segmentLabels = {
-    hours: langAsString('timepicker.hours'),
-    minutes: langAsString('timepicker.minutes'),
-    seconds: langAsString('timepicker.seconds'),
-    amPm: langAsString('timepicker.am_pm'),
-  };
+  const { title, help, description, showOptionalMarking } = useLabelData({
+    baseComponentId,
+    overrideDisplay,
+  });
 
-  const handleTimeChange = (timeString: string) => {
-    setValue('simpleBinding', timeString);
-  };
-
-  const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId, overrideDisplay });
+  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
 
   return (
-    <Label
-      htmlFor={id}
-      label={labelText}
-      grid={grid?.labelGrid}
+    <TimePickerLayout
+      id={id}
+      componentId={componentId}
+      value={value}
+      onChange={(v) => setValue('simpleBinding', v)}
+      format={format}
+      minTime={minTime}
+      maxTime={maxTime}
+      readOnly={readOnly}
       required={required}
-      requiredIndicator={getRequiredComponent()}
-      optionalIndicator={getOptionalComponent()}
-      help={getHelpTextComponent()}
-      description={getDescriptionComponent()}
-    >
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
-        <Flex
-          container
-          item
-          size={{ xs: 12 }}
-        >
-          <TimePickerControl
-            id={id}
-            value={value}
-            onChange={handleTimeChange}
-            format={format}
-            minTime={minTime}
-            maxTime={maxTime}
-            disabled={readOnly}
-            readOnly={readOnly}
-            labels={segmentLabels}
-          />
-        </Flex>
-      </ComponentStructureWrapper>
-    </Label>
+      title={title}
+      help={help}
+      description={description}
+      showOptionalMarking={showOptionalMarking}
+      labelGrid={grid?.labelGrid}
+      innerGrid={innerGrid}
+      validationGrid={validationGrid}
+      validationMessages={
+        showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
+      }
+    />
   );
 }
