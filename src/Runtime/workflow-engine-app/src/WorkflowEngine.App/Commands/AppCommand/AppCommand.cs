@@ -124,7 +124,13 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
 
-        _logger.SendingAppCommand(endpoint, payload);
+        _logger.SendingAppCommand(
+            commandData.CommandKey,
+            endpoint,
+            context.Workflow.DatabaseId,
+            workflowContext.InstanceOwnerPartyId,
+            workflowContext.InstanceGuid
+        );
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
@@ -193,10 +199,19 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
 internal static partial class AppCommandDescriptorLogs
 {
-    [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
+    // Routing fields only. Never log the AppCallbackPayload: it carries actor identifiers (incl. national
+    // identity number), the lock token, the command payload body, and the unencrypted state envelope
+    // (instance + form data).
+    [LoggerMessage(
+        LogLevel.Information,
+        "Sending AppCommand '{CommandKey}' to {Endpoint} (workflowId: {WorkflowId}, instance: {InstanceOwnerPartyId}/{InstanceGuid})"
+    )]
     internal static partial void SendingAppCommand(
         this ILogger<AppCommand> logger,
+        string commandKey,
         Uri endpoint,
-        AppCallbackPayload payload
+        Guid workflowId,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
     );
 }
