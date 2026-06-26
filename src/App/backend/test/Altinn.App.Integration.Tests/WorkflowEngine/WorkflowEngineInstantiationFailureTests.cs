@@ -48,7 +48,7 @@ public class WorkflowEngineInstantiationFailureTests(ITestOutputHelper output, A
         Assert.Equal("resumeCurrentTask", root.GetProperty("recommendedAction").GetString());
 
         JsonElement workflowFailure = root.GetProperty("workflowFailure");
-        Assert.Equal("StepFailed", workflowFailure.GetProperty("kind").GetString());
+        Assert.Equal("stepFailed", workflowFailure.GetProperty("kind").GetString());
         Assert.Equal("OnTaskStartingHook", workflowFailure.GetProperty("stepOperationId").GetString());
         Assert.Contains(
             "Scenario task start failed permanently.",

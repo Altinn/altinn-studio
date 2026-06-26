@@ -774,14 +774,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Should()
             .Be($"/{Org}/{App}/instances/{_instanceId}/process/resume");
         // Literal, not WorkflowFailureKind.StepFailed.ToString(), so renaming the enum member fails this test.
-        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("StepFailed");
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("stepFailed");
     }
 
     // Pins the wire strings of the process-start submission-failure contract. NotAccepted leaves the existing
     // instance untouched so the client can retry the start; Unknown is indeterminate so the client must inspect.
     [Theory]
-    [InlineData(true, "workflowNotAccepted", "retryStartProcess", "NotAccepted")]
-    [InlineData(false, "workflowAcceptanceUnknown", "inspectInstance", "Unknown")]
+    [InlineData(true, "workflowNotAccepted", "retryStartProcess", "notAccepted")]
+    [InlineData(false, "workflowAcceptanceUnknown", "inspectInstance", "unknown")]
     public async Task StartProcess_WhenWorkflowSubmissionFails_ReturnsProblemDetailsWithoutResume(
         bool notAccepted,
         string expectedState,

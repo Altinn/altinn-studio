@@ -37,7 +37,7 @@ public class WorkflowEngineConfigurationTests(ITestOutputHelper output, AppFixtu
 
         using JsonDocument document = JsonDocument.Parse(processNext.Data.Body!);
         JsonElement workflowFailure = document.RootElement.GetProperty("workflowFailure");
-        Assert.Equal("StepFailed", workflowFailure.GetProperty("kind").GetString());
+        Assert.Equal("stepFailed", workflowFailure.GetProperty("kind").GetString());
         Assert.Equal("OnTaskEndingHook", workflowFailure.GetProperty("stepOperationId").GetString());
 
         JsonElement lastError = workflowFailure.GetProperty("lastError");

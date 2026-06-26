@@ -11828,10 +11828,10 @@
       },
       "WorkflowFailureKind": {
         "enum": [
-          "StepFailed",
-          "DependencyFailed",
-          "EngineFault",
-          "Timeout"
+          "stepFailed",
+          "dependencyFailed",
+          "engineFault",
+          "timeout"
         ],
         "type": "string"
       },
@@ -11961,8 +11961,8 @@
       },
       "WorkflowSubmissionFailureKind": {
         "enum": [
-          "NotAccepted",
-          "Unknown"
+          "notAccepted",
+          "unknown"
         ],
         "type": "string"
       }

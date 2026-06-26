@@ -170,9 +170,19 @@ public sealed class WorkflowFailure
 }
 
 /// <summary>
+/// <see cref="JsonStringEnumConverter"/> that emits camelCase member names, matching the casing used
+/// for the rest of the JSON contract.
+/// </summary>
+internal sealed class JsonCamelCaseEnumConverter : JsonStringEnumConverter
+{
+    public JsonCamelCaseEnumConverter()
+        : base(System.Text.Json.JsonNamingPolicy.CamelCase) { }
+}
+
+/// <summary>
 /// Failure classifications for workflow-backed process-next operations.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonCamelCaseEnumConverter))]
 public enum WorkflowFailureKind
 {
     /// <summary>
@@ -199,7 +209,7 @@ public enum WorkflowFailureKind
 /// <summary>
 /// Why the workflow engine did not accept a submitted workflow.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonCamelCaseEnumConverter))]
 public enum WorkflowSubmissionFailureKind
 {
     /// <summary>The workflow engine explicitly rejected the submission.</summary>
