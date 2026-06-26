@@ -6,6 +6,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
+import { AverageFunctionEvaluator } from 'src/features/expressions/function-evaluators/AverageFunctionEvaluator';
 import { JmespathFunctionEvaluator } from 'src/features/expressions/function-evaluators/JmespathFunctionEvaluator';
 import { ObjectFunctionEvaluator } from 'src/features/expressions/function-evaluators/ObjectFunctionEvaluator';
 import { SumFunctionEvaluator } from 'src/features/expressions/function-evaluators/SumFunctionEvaluator';
@@ -341,6 +342,11 @@ export const ExprFunctionDefinitions = {
   },
   sum: {
     args: args(required(ExprVal.List)),
+    returns: ExprVal.Number,
+    needs: noSources,
+  },
+  average: {
+    args: args(required(ExprVal.List), required(ExprVal.Number)),
     returns: ExprVal.Number,
     needs: noSources,
   },
@@ -825,6 +831,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   },
   sum(...argumentList): number {
     return new SumFunctionEvaluator(this, argumentList).evaluate();
+  },
+  average(...argumentList): number | null {
+    return new AverageFunctionEvaluator(this, argumentList).evaluate();
   },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
