@@ -77,9 +77,9 @@ describe('expression schema tests', () => {
     const lastArgSpreads = args[args.length - 1]?.variant === 'rest';
 
     // With exactly the right number of arguments
-    const funcCall = [name, ...args.map((arg) => exprValToString(arg.type))];
+    const funcCall = [name, ...args.map((arg) => testArgumentFromExprVal(arg.type))];
     if (lastArgSpreads) {
-      funcCall.push(...args.map((arg) => exprValToString(arg.type)));
+      funcCall.push(...args.map((arg) => testArgumentFromExprVal(arg.type)));
     }
 
     // Use enum value, if defined in schema
@@ -140,6 +140,10 @@ describe('expression schema tests', () => {
     expect(operators).toEqual(valid);
   });
 });
+
+function testArgumentFromExprVal(val: ExprVal): string | string[] {
+  return val === ExprVal.List ? ['list'] : exprValToString(val);
+}
 
 function exprValToString(val: ExprVal): string {
   return val.toString().replaceAll('_', '');

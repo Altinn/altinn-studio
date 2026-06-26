@@ -8953,8 +8953,7 @@ __metadata:
   resolution: "altinn-studio@workspace:."
   dependencies:
     eslint: "npm:10.5.0"
-    husky: "npm:9.1.7"
-    lint-staged: "npm:16.4.0"
+    lefthook: "npm:2.1.9"
     prettier: "npm:3.8.4"
   languageName: unknown
   linkType: soft
@@ -14963,15 +14962,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:9.1.7":
-  version: 9.1.7
-  resolution: "husky@npm:9.1.7"
-  bin:
-    husky: bin.js
-  checksum: 10/c2412753f15695db369634ba70f50f5c0b7e5cb13b673d0826c411ec1bd9ddef08c1dad89ea154f57da2521d2605bd64308af748749b27d08c5f563bcd89975f
-  languageName: node
-  linkType: hard
-
 "hyperdyperid@npm:^1.2.0":
   version: 1.2.0
   resolution: "hyperdyperid@npm:1.2.0"
@@ -17755,6 +17745,117 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lefthook-darwin-arm64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-darwin-arm64@npm:2.1.9"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"lefthook-darwin-x64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-darwin-x64@npm:2.1.9"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lefthook-freebsd-arm64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-freebsd-arm64@npm:2.1.9"
+  conditions: os=freebsd & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"lefthook-freebsd-x64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-freebsd-x64@npm:2.1.9"
+  conditions: os=freebsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lefthook-linux-arm64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-linux-arm64@npm:2.1.9"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"lefthook-linux-x64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-linux-x64@npm:2.1.9"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lefthook-openbsd-arm64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-openbsd-arm64@npm:2.1.9"
+  conditions: os=openbsd & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"lefthook-openbsd-x64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-openbsd-x64@npm:2.1.9"
+  conditions: os=openbsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lefthook-windows-arm64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-windows-arm64@npm:2.1.9"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"lefthook-windows-x64@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook-windows-x64@npm:2.1.9"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lefthook@npm:2.1.9":
+  version: 2.1.9
+  resolution: "lefthook@npm:2.1.9"
+  dependencies:
+    lefthook-darwin-arm64: "npm:2.1.9"
+    lefthook-darwin-x64: "npm:2.1.9"
+    lefthook-freebsd-arm64: "npm:2.1.9"
+    lefthook-freebsd-x64: "npm:2.1.9"
+    lefthook-linux-arm64: "npm:2.1.9"
+    lefthook-linux-x64: "npm:2.1.9"
+    lefthook-openbsd-arm64: "npm:2.1.9"
+    lefthook-openbsd-x64: "npm:2.1.9"
+    lefthook-windows-arm64: "npm:2.1.9"
+    lefthook-windows-x64: "npm:2.1.9"
+  dependenciesMeta:
+    lefthook-darwin-arm64:
+      optional: true
+    lefthook-darwin-x64:
+      optional: true
+    lefthook-freebsd-arm64:
+      optional: true
+    lefthook-freebsd-x64:
+      optional: true
+    lefthook-linux-arm64:
+      optional: true
+    lefthook-linux-x64:
+      optional: true
+    lefthook-openbsd-arm64:
+      optional: true
+    lefthook-openbsd-x64:
+      optional: true
+    lefthook-windows-arm64:
+      optional: true
+    lefthook-windows-x64:
+      optional: true
+  bin:
+    lefthook: bin/index.js
+  checksum: 10/1148e4abeee286ffecb141dc1889cac8bd7ad61c925431807d8aa522639c9e13f91387ec483bed3ee159be1692b83d632625e6fc26201543868afc3c1effaaf3
+  languageName: node
+  linkType: hard
+
 "legacy-javascript@npm:latest":
   version: 0.0.1
   resolution: "legacy-javascript@npm:0.0.1"
@@ -18038,22 +18139,6 @@ __metadata:
   version: 1.2.4
   resolution: "lines-and-columns@npm:1.2.4"
   checksum: 10/0c37f9f7fa212b38912b7145e1cd16a5f3cd34d782441c3e6ca653485d326f58b3caccda66efce1c5812bde4961bbde3374fae4b0d11bf1226152337f3894aa5
-  languageName: node
-  linkType: hard
-
-"lint-staged@npm:16.4.0":
-  version: 16.4.0
-  resolution: "lint-staged@npm:16.4.0"
-  dependencies:
-    commander: "npm:^14.0.3"
-    listr2: "npm:^9.0.5"
-    picomatch: "npm:^4.0.3"
-    string-argv: "npm:^0.3.2"
-    tinyexec: "npm:^1.0.4"
-    yaml: "npm:^2.8.2"
-  bin:
-    lint-staged: bin/lint-staged.js
-  checksum: 10/eb7aa0d43e321bbf282ce0c693a3db762aa9b8e5bf29419a49c8877a247cd3a14cf8d519f914f8c8dcd2aea73ac83c0bb44fadb97a30004219e060a780dda74e
   languageName: node
   linkType: hard
 
@@ -22424,13 +22509,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string-argv@npm:^0.3.2":
-  version: 0.3.2
-  resolution: "string-argv@npm:0.3.2"
-  checksum: 10/f9d3addf887026b4b5f997a271149e93bf71efc8692e7dc0816e8807f960b18bcb9787b45beedf0f97ff459575ee389af3f189d8b649834cac602f2e857e75af
-  languageName: node
-  linkType: hard
-
 "string-hash@npm:^1.1.3":
   version: 1.1.3
   resolution: "string-hash@npm:1.1.3"
@@ -22764,7 +22842,6 @@ __metadata:
     jest-fail-on-console: "npm:3.3.4"
     jest-junit: "npm:16.0.0"
     lightningcss: "npm:^1.29.3"
-    lint-staged: "npm:16.4.0"
     mini-css-extract-plugin: "npm:2.10.2"
     prettier: "npm:3.8.4"
     react: "npm:19.2.7"
@@ -23150,13 +23227,6 @@ __metadata:
   version: 1.0.2
   resolution: "tinyexec@npm:1.0.2"
   checksum: 10/cb709ed4240e873d3816e67f851d445f5676e0ae3a52931a60ff571d93d388da09108c8057b62351766133ee05ff3159dd56c3a0fbd39a5933c6639ce8771405
-  languageName: node
-  linkType: hard
-
-"tinyexec@npm:^1.0.4":
-  version: 1.2.4
-  resolution: "tinyexec@npm:1.2.4"
-  checksum: 10/f20b3e6f56f24c3ebe0129d0b6e657e561d225df2cf93c1a10362996232dd6ad4b8af8c9e81d258a64d09020e723772baf6fe0be26512dba7c61bb366d67b1f9
   languageName: node
   linkType: hard
 
@@ -25110,7 +25180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.0.0, yaml@npm:^2.3.4, yaml@npm:^2.4.1, yaml@npm:^2.8.2":
+"yaml@npm:^2.0.0, yaml@npm:^2.3.4, yaml@npm:^2.4.1":
   version: 2.8.3
   resolution: "yaml@npm:2.8.3"
   bin:

@@ -13,7 +13,7 @@ const overrides = {
 describe('LabelComponent', () => {
   const render = (props?: Partial<ILabelComponentProps>) =>
     renderWithTranslations(
-      <LabelComponent htmlFor='example' componentId='example' title='my.title' {...props}>
+      <LabelComponent htmlFor='example' title='my.title' {...props}>
         <input id='example' />
       </LabelComponent>,
       { overrides },
