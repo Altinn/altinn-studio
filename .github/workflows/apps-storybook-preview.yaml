@@ -11,18 +11,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pull-requests: write
-
 jobs:
   build-and-deploy:
     if: ${{ github.event.action != 'closed' }}
     runs-on: ubuntu-latest
     name: Build and deploy preview
+    permissions:
+      pull-requests: write # Required for the Azure action to comment the preview URL on the PR
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Use node LTS and yarn cache
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
