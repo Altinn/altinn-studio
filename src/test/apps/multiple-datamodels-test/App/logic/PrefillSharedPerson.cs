@@ -10,7 +10,7 @@ public class PrefillSharedPerson : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public async Task<OnEndingHandlerResult> ExecuteAsync(OnTaskEndingHandlerContext context)
+    public async Task<HookResult> Execute(OnTaskEndingContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         DataElement dataElement = instance.Data.Find(d => d.DataType == nameof(sharedperson));
@@ -26,6 +26,6 @@ public class PrefillSharedPerson : IOnTaskEndingHandler
             city = "Kardemomme By",
         };
 
-        return OnEndingHandlerResult.Success();
+        return HookResult.Success();
     }
 }
