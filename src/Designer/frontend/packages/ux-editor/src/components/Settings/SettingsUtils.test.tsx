@@ -17,10 +17,10 @@ import {
 } from '@studio/icons';
 
 const layoutSetsMock = [
-  { id: 'layout1', dataType: null, type: '', task: { id: 'task1', type: 'data' } },
-  { id: 'layout3', dataType: null, type: '', task: { id: 'task3', type: 'subform' } },
-  { id: 'layout4', dataType: null, type: '', task: { id: 'task4', type: 'signing' } },
-  { id: 'layout5', dataType: null, type: '', task: { id: 'CustomReceipt', type: '' } },
+  { id: 'task1', dataType: null, type: '', taskType: 'data' },
+  { id: 'task3', dataType: null, type: '', taskType: 'subform' },
+  { id: 'task4', dataType: null, type: '', taskType: 'signing' },
+  { id: 'CustomReceipt', dataType: null, type: '', taskType: '' },
 ];
 
 describe('taskNavigationType', () => {
@@ -64,8 +64,8 @@ describe('getHiddenTasks', () => {
     const result = getHiddenTasks({
       taskNavigationGroups: [],
       layoutSets: [
-        { id: 'layout1', dataType: null, type: '', task: null },
-        { id: 'layout2', dataType: null, type: '', task: { id: 'task2', type: 'data' } },
+        { id: 'layout1', dataType: null, type: '', taskType: null },
+        { id: 'task2', dataType: null, type: '', taskType: 'data' },
       ],
     });
     expect(result).toEqual([
@@ -90,19 +90,19 @@ describe('getLayoutSetForTask', () => {
 describe('getLayoutSetIdForTask', () => {
   it('should return the correct layout set ID for a given task', () => {
     const task = { taskId: 'task1', name: 'Task 1', taskType: TaskType.Data };
-    expect(getLayoutSetIdForTask(task, layoutSetsMock)).toBe('layout1');
+    expect(getLayoutSetIdForTask(task, layoutSetsMock)).toBe('task1');
   });
 
   it('should return layout set ID for a custom receipt', () => {
     const task = { taskType: TaskType.Receipt };
-    expect(getLayoutSetIdForTask(task, layoutSetsMock)).toBe('layout5');
+    expect(getLayoutSetIdForTask(task, layoutSetsMock)).toBe('CustomReceipt');
   });
 });
 
 describe('isDefaultReceiptTask', () => {
   it('should return true for default receipt task', () => {
     const layoutSetsWithoutCustomReceipt = layoutSetsMock.filter(
-      (layoutSet) => layoutSet.task.id !== 'CustomReceipt',
+      (layoutSet) => layoutSet.id !== 'CustomReceipt',
     );
     const task = { taskType: TaskType.Receipt };
     expect(isDefaultReceiptTask(task, layoutSetsWithoutCustomReceipt)).toBe(true);

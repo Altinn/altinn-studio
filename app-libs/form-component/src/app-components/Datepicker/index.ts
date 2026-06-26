@@ -22,6 +22,7 @@ export {
   strictParseFormat,
   dateFormatCanBeNumericInReactPatternFormat,
   getFormatAsPatternFormat,
+  getDatepickerFormat,
   getMonths,
   getYears,
 } from './utils/dateHelpers';

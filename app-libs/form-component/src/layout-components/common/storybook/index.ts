@@ -1,3 +1,3 @@
 export { LayoutComponentDocs } from './LayoutComponentDocs';
-export { splitPropKeys } from './propCategories';
+export { groupPropKeys, STUDIO_CATEGORIES } from './propCategories';
 export type { PropCategory, PropCategories } from './propCategories';

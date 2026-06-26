@@ -13,7 +13,7 @@ import classes from './TaskAction.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
+import { useTaskNavigationGroupQuery } from '../../hooks/queries/useTaskNavigationGroupQuery';
 import { useLayoutSetsExtendedQuery } from '../../hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
 import { EditNameAction } from './EditNameAction';

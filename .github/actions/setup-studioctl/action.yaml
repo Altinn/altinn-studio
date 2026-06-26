@@ -9,7 +9,7 @@ runs:
         go-version-file: src/cli/go.mod
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5
+      uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
       with:
         dotnet-version: "10.0.x"
 

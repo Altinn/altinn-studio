@@ -13,7 +13,7 @@ jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
 
 const mockTask = {
   name: 'Test Task',
-  taskId: 'Task_1',
+  taskId: layoutSet1NameMock,
   taskType: 'data',
 };
 

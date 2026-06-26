@@ -251,6 +251,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 "full_goal_length": len(str(state.user_goal)),
                 "session_id": str(state.session_id),
                 "developer": state.developer,
+                "app_name": state.app_name,
             },
         ) as root_span:
             with propagate_attributes(user_id=state.org):
