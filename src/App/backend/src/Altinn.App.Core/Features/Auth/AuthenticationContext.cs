@@ -95,16 +95,21 @@ internal sealed class AuthenticationContext : IAuthenticationContext
 
                 if (isWorkflowCallback)
                 {
-                    var appMetadata = _appConfigurationCache.ApplicationMetadata;
                     // The route is the authority for the app identity (it is what the request targeted and what
-                    // routing matched); fall back to the running app's metadata only if the route omits it.
-                    var appId = ResolveCallbackApp(httpContext) ?? appMetadata.AppIdentifier;
+                    // routing matched). The callback scheme only ever applies to the callback route, which
+                    // always carries {org}/{app}, so a missing app here is a broken invariant — fail loudly
+                    // rather than silently falling back to the running app's metadata.
+                    var appId =
+                        ResolveCallbackApp(httpContext)
+                        ?? throw new AuthenticationContextException(
+                            "Workflow-engine callback request is missing the org/app route values required to identify the app."
+                        );
                     authInfo = Authenticated.FromApp(
                         tokenStr: token,
                         parsedToken,
                         appId,
                         ResolveCallbackInstance(httpContext),
-                        appMetadata
+                        _appConfigurationCache.ApplicationMetadata
                     );
                 }
                 else
