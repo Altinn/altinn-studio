@@ -1,14 +1,13 @@
-name: Library Form Component - Unit tests
+name: App Libraries - Unit tests
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'app-libs/form-component/src/**'
-      - 'app-libs/form-component/package.json'
-      - 'app-libs/form-component/tsconfig.json'
-      - 'app-libs/form-component/vitest.config.ts'
-      - '.github/workflows/libs-form-component-unit-tests.yml'
+      - 'app-libs/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/app-libs-unit-test.yml'
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +22,7 @@ jobs:
     name: Unit tests
     defaults:
       run:
-        working-directory: app-libs/form-component/
+        working-directory: app-libs/
     steps:
       - name: checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -58,5 +57,5 @@ jobs:
         run: yarn lint
 
       - name: run tests
-        run: yarn test
-        # TODO : Run with coverage (yarn test --coverage ?)
+        run: yarn test:ci
+        # TODO : Run with coverage (yarn test:ci --coverage ?)
