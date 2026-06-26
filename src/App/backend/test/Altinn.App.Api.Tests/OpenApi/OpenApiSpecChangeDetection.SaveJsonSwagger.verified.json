@@ -3574,6 +3574,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -3649,6 +3659,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
                 }
               }
             }
@@ -5275,6 +5295,26 @@
               "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
                 }
               }
             }
@@ -11720,6 +11760,211 @@
           }
         },
         "additionalProperties": false
+      },
+      "WorkflowFailure": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WorkflowFailureKind"
+          },
+          "workflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "workflowOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "stepOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "commandType": {
+            "type": "string",
+            "nullable": true
+          },
+          "retryCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "lastError": {
+            "$ref": "#/components/schemas/WorkflowFailureError"
+          },
+          "retryAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "retryTargetWorkflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowFailureError": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "httpStatusCode": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "wasRetryable": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowFailureKind": {
+        "enum": [
+          "stepFailed",
+          "dependencyFailed",
+          "engineFault",
+          "timeout"
+        ],
+        "type": "string"
+      },
+      "WorkflowInitializationProblemDetails": {
+        "required": [
+          "initializationState",
+          "recommendedAction"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          },
+          "initializationState": {
+            "$ref": "#/components/schemas/WorkflowInitializationState"
+          },
+          "recommendedAction": {
+            "$ref": "#/components/schemas/WorkflowRecommendedAction"
+          },
+          "instanceDeleted": {
+            "type": "boolean",
+            "description": "Whether the created instance was deleted (instance creation flow only).",
+            "nullable": true
+          },
+          "resumeEndpoint": {
+            "$ref": "#/components/schemas/WorkflowResumeEndpoint"
+          },
+          "workflowAccepted": {
+            "type": "boolean",
+            "description": "Whether the workflow engine accepted the submission.",
+            "nullable": true
+          },
+          "workflowFailure": {
+            "$ref": "#/components/schemas/WorkflowFailure"
+          },
+          "workflowSubmissionFailureKind": {
+            "$ref": "#/components/schemas/WorkflowSubmissionFailureKind"
+          },
+          "workflowSubmissionStatusCode": {
+            "type": "integer",
+            "description": "The HTTP status code the workflow engine returned when rejecting the submission, if known.",
+            "format": "int32",
+            "nullable": true
+          },
+          "workflowCollectionKey": {
+            "type": "string",
+            "description": "The workflow collection key, if known.",
+            "nullable": true
+          },
+          "processStateChanged": {
+            "type": "boolean",
+            "description": "Whether the process state may have changed in Storage before the failure.",
+            "nullable": true
+          },
+          "instanceId": {
+            "type": "string",
+            "description": "The affected instance id, when an instance exists.",
+            "nullable": true
+          },
+          "instanceOwnerPartyId": {
+            "type": "integer",
+            "description": "The affected instance owner party id, when an instance exists.",
+            "format": "int32",
+            "nullable": true
+          },
+          "instanceGuid": {
+            "type": "string",
+            "description": "The affected instance guid, when an instance exists.",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {},
+        "description": "Structured problem details returned when the workflow engine rejects or fails the initial process\nworkflow, for both instance creation and process start of an existing instance. Extends\nMicrosoft.AspNetCore.Mvc.ProblemDetails so the response remains valid `application/problem+json`; the\nworkflow-specific members are serialized alongside the standard ones and form a stable recovery\ncontract clients can react to."
+      },
+      "WorkflowInitializationState": {
+        "enum": [
+          "workflowNotAccepted",
+          "workflowAcceptanceUnknown",
+          "workflowFailed"
+        ],
+        "type": "string",
+        "description": "The stage an instance/process reached when workflow initialization failed. Part of the wire contract."
+      },
+      "WorkflowRecommendedAction": {
+        "enum": [
+          "retryInstanceCreation",
+          "retryStartProcess",
+          "inspectInstance",
+          "resumeCurrentTask"
+        ],
+        "type": "string",
+        "description": "The action a client should take to recover from a workflow initialization failure. Part of the wire contract."
+      },
+      "WorkflowResumeEndpoint": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "nullable": true
+          },
+          "path": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Hypermedia pointer to the process resume endpoint, surfaced so clients know where to recover\na workflow that failed after the process state may already have changed."
+      },
+      "WorkflowSubmissionFailureKind": {
+        "enum": [
+          "notAccepted",
+          "unknown"
+        ],
+        "type": "string"
       }
     }
   },

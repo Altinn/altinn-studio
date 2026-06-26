@@ -18,6 +18,7 @@ using Json.Patch;
 using Json.Pointer;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
@@ -714,6 +715,160 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 $$"""{"processHistory":[{"eventType":null,"elementId":"Task_1","occured":null,"started":"{{start}}","ended":null,"performedBy":null}]}"""
             );
     }
+
+    [Fact]
+    public async Task StartProcess_WhenWorkflowExecutionFails_ReturnsWorkflowFailedProblemDetails()
+    {
+        // Arrange: the workflow engine accepts the process start but the workflow then fails after the
+        // process state may already have changed in Storage.
+        var instance = new Instance
+        {
+            Id = _instanceId,
+            AppId = $"{Org}/{App}",
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
+        };
+        var workflowFailure = new Altinn.App.Core.Models.Process.WorkflowFailure
+        {
+            Kind = Altinn.App.Core.Models.Process.WorkflowFailureKind.StepFailed,
+            StepOperationId = "StartTask",
+            LastError = new Altinn.App.Core.Models.Process.WorkflowFailureError
+            {
+                Message = "Simulated workflow callback failure.",
+            },
+        };
+
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
+            new Altinn.App.Core.Internal.WorkflowEngine.WorkflowExecutionFailedException(
+                instance,
+                workflowFailure,
+                processStateChanged: true,
+                "Process workflow execution failed."
+            )
+        );
+
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        // Act
+        using HttpResponseMessage response = await client.PostAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/start",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+
+        // Assert: the endpoint surfaces the same structured recovery contract as instantiation instead of a bare 500.
+        response.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("title").GetString().Should().Be("Process start failed.");
+        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
+        root.GetProperty("recommendedAction").GetString().Should().Be("resumeCurrentTask");
+        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
+        root.GetProperty("processStateChanged").GetBoolean().Should().BeTrue();
+        root.GetProperty("detail").GetString().Should().Contain("call the resume endpoint");
+        JsonElement resumeEndpoint = root.GetProperty("resumeEndpoint");
+        resumeEndpoint.GetProperty("method").GetString().Should().Be("POST");
+        resumeEndpoint
+            .GetProperty("path")
+            .GetString()
+            .Should()
+            .Be($"/{Org}/{App}/instances/{_instanceId}/process/resume");
+        // Literal, not WorkflowFailureKind.StepFailed.ToString(), so renaming the enum member fails this test.
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("stepFailed");
+    }
+
+    // Pins the wire strings of the process-start submission-failure contract. NotAccepted leaves the existing
+    // instance untouched so the client can retry the start; Unknown is indeterminate so the client must inspect.
+    [Theory]
+    [InlineData(true, "workflowNotAccepted", "retryStartProcess", "notAccepted")]
+    [InlineData(false, "workflowAcceptanceUnknown", "inspectInstance", "unknown")]
+    public async Task StartProcess_WhenWorkflowSubmissionFails_ReturnsProblemDetailsWithoutResume(
+        bool notAccepted,
+        string expectedState,
+        string expectedAction,
+        string expectedFailureKind
+    )
+    {
+        // Arrange
+        var submissionException = notAccepted
+            ? Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.NotAccepted(
+                "Simulated workflow rejection."
+            )
+            : Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.Unknown(
+                "Simulated unknown acceptance state."
+            );
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
+            submissionException
+        );
+
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        // Act
+        using HttpResponseMessage response = await client.PostAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/start",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+
+        // Assert
+        response.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("title").GetString().Should().Be("Process start failed.");
+        root.GetProperty("initializationState").GetString().Should().Be(expectedState);
+        root.GetProperty("recommendedAction").GetString().Should().Be(expectedAction);
+        // Asserted against a literal, not Kind.ToString(), so an enum rename is caught as a contract break.
+        root.GetProperty("workflowSubmissionFailureKind").GetString().Should().Be(expectedFailureKind);
+        // Submission never reached execution, so there is nothing to resume.
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+        root.TryGetProperty("workflowFailure", out _).Should().BeFalse();
+    }
+
+    private Mock<Altinn.App.Core.Internal.Process.IProcessEngine> CreateProcessEngineThrowingOnSubmit(
+        Exception submitException
+    )
+    {
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>();
+        processEngineMock
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<Altinn.App.Core.Models.Process.ProcessStartRequest>()))
+            .ReturnsAsync(
+                new Altinn.App.Core.Models.Process.ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new Altinn.App.Core.Models.Process.ProcessStateChange(),
+                }
+            );
+        processEngineMock
+            .Setup(p =>
+                p.SubmitInitialProcessState(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Altinn.App.Core.Models.Process.ProcessStateChange>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstantiationNotification?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(submitException);
+        return processEngineMock;
+    }
+
+    private HttpClient GetClientWithProcessEngine(
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock
+    ) =>
+        GetRootedUserClient(
+            Org,
+            App,
+            1337,
+            InstanceOwnerPartyId,
+            configureServices: services =>
+            {
+                services.RemoveAll<Altinn.App.Core.Internal.Process.IProcessEngine>();
+                services.AddSingleton(processEngineMock.Object);
+            }
+        );
 
     private static Mock<IPdfGeneratorClient> SetupPdfGeneratorMock()
     {

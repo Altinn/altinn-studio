@@ -4,12 +4,6 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
-internal enum WorkflowSubmissionFailureKind
-{
-    NotAccepted,
-    Unknown,
-}
-
 internal sealed class WorkflowSubmissionFailedException : Exception
 {
     public WorkflowSubmissionFailureKind Kind { get; }

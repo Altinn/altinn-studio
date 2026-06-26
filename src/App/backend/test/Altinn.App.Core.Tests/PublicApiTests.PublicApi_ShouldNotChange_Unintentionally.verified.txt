@@ -5457,13 +5457,19 @@ namespace Altinn.App.Core.Models.Process
         public System.DateTimeOffset Timestamp { get; init; }
         public bool WasRetryable { get; init; }
     }
-    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
     public enum WorkflowFailureKind
     {
         StepFailed = 0,
         DependencyFailed = 1,
         EngineFault = 2,
         Timeout = 3,
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
+    public enum WorkflowSubmissionFailureKind
+    {
+        NotAccepted = 0,
+        Unknown = 1,
     }
 }
 namespace Altinn.App.Core.Models.Result

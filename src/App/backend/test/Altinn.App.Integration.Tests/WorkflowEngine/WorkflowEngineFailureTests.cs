@@ -76,7 +76,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal("Task_Service", refreshedInstance.Data.Model!.Process.CurrentTask!.ElementId);
 
         using JsonDocument document = JsonDocument.Parse(readProblem.Data.Body!);
-        Assert.Equal("StepFailed", document.RootElement.GetProperty("workflowFailure").GetProperty("kind").GetString());
+        Assert.Equal("stepFailed", document.RootElement.GetProperty("workflowFailure").GetProperty("kind").GetString());
         Assert.Equal(
             "resumeWorkflow",
             document.RootElement.GetProperty("workflowFailure").GetProperty("retryAction").GetString()
@@ -125,7 +125,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal(HttpStatusCode.InternalServerError, failedProcessNext.Response.StatusCode);
         using JsonDocument failureDocument = JsonDocument.Parse(failedProcessNext.Data.Body!);
         JsonElement failureRoot = failureDocument.RootElement;
-        Assert.Equal("StepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
+        Assert.Equal("stepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
         Assert.Equal(
             "ExecuteServiceTask",
             failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()

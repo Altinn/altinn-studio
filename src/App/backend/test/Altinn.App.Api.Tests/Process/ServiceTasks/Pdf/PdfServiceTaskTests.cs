@@ -170,7 +170,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         problem["title"]!.Value<string>().Should().Be("Something went wrong while moving to the next task.");
         problem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.InternalServerError);
         problem["detail"]!.Value<string>().Should().Be("Pdf generation failed");
-        problem["workflowFailure"]!["kind"]!.Value<string>().Should().Be("StepFailed");
+        problem["workflowFailure"]!["kind"]!.Value<string>().Should().Be("stepFailed");
         problem["workflowFailure"]!["retryAction"]!.Value<string>().Should().Be("resumeWorkflow");
         problem["processStateChanged"]!.Value<bool>().Should().BeTrue();
         problem["processState"]!["currentTask"]!["elementId"]!.Value<string>().Should().Be("Task_2");

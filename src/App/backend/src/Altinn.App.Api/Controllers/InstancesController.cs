@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
@@ -307,6 +308,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> Post(
         [FromRoute] string org,
@@ -596,6 +598,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
         [FromRoute] string org,
@@ -920,6 +923,7 @@ public class InstancesController : ControllerBase
     [HttpGet("/{org}/{app}/legacy/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/copy")]
     [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CopyInstance(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -1514,20 +1518,37 @@ public class InstancesController : ControllerBase
             instanceDeleted = await TryHardDeleteCreatedInstance(instance, "initial workflow was not accepted");
         }
 
-        return CreateWorkflowInitializationProblem(
+        // Derive the (state, action) pair together so they cannot drift apart. When the workflow was not
+        // accepted and the orphaned instance was cleaned up, the client can safely retry creation; otherwise
+        // (delete failed, or acceptance is unknown and a retry could double-create) the client must inspect first.
+        (WorkflowInitializationState state, WorkflowRecommendedAction recommendedAction) = (
+            exception.Kind,
+            instanceDeleted
+        ) switch
+        {
+            (WorkflowSubmissionFailureKind.NotAccepted, true) => (
+                WorkflowInitializationState.WorkflowNotAccepted,
+                WorkflowRecommendedAction.RetryInstanceCreation
+            ),
+            (WorkflowSubmissionFailureKind.NotAccepted, false) => (
+                WorkflowInitializationState.WorkflowNotAccepted,
+                WorkflowRecommendedAction.InspectInstance
+            ),
+            _ => (WorkflowInitializationState.WorkflowAcceptanceUnknown, WorkflowRecommendedAction.InspectInstance),
+        };
+
+        return WorkflowInitializationProblem.Create(
+            _logger,
+            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
-            exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
-                ? "workflowNotAccepted"
-                : "workflowAcceptanceUnknown",
+            state,
             instance,
-            recommendedAction: exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instanceDeleted
-                ? "retryInstanceCreation"
-                : "inspectInstance",
+            recommendedAction,
             instanceDeleted: instanceDeleted,
-            workflowSubmissionFailureKind: exception.Kind.ToString(),
-            workflowSubmissionStatusCode: exception.StatusCode,
-            workflowCollectionKey: exception.CollectionKey
+            submissionFailureKind: exception.Kind,
+            submissionStatusCode: exception.StatusCode,
+            collectionKey: exception.CollectionKey
         );
     }
 
@@ -1538,13 +1559,15 @@ public class InstancesController : ControllerBase
         string app
     )
     {
-        return CreateWorkflowInitializationProblem(
+        return WorkflowInitializationProblem.Create(
+            _logger,
+            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
-            initializationState: "workflowFailed",
+            state: WorkflowInitializationState.WorkflowFailed,
             instance: exception.Instance,
-            recommendedAction: "resumeCurrentTask",
-            resumeEndpoint: CreateProcessResumeEndpoint(org, app, exception.Instance),
+            recommendedAction: WorkflowRecommendedAction.ResumeCurrentTask,
+            resumeEndpoint: WorkflowInitializationProblem.CreateProcessResumeEndpoint(org, app, exception.Instance),
             workflowFailure: exception.WorkflowFailure,
             workflowAccepted: true,
             processStateChanged: exception.ProcessStateChanged
@@ -1576,133 +1599,6 @@ public class InstancesController : ControllerBase
             return false;
         }
     }
-
-    private ObjectResult CreateWorkflowInitializationProblem(
-        Exception exception,
-        string message,
-        string initializationState,
-        Instance? instance,
-        string recommendedAction,
-        bool? instanceDeleted = null,
-        ResumeEndpoint? resumeEndpoint = null,
-        WorkflowFailure? workflowFailure = null,
-        bool? workflowAccepted = null,
-        string? workflowSubmissionFailureKind = null,
-        HttpStatusCode? workflowSubmissionStatusCode = null,
-        string? workflowCollectionKey = null,
-        bool processStateChanged = false
-    )
-    {
-        const int statusCode = StatusCodes.Status500InternalServerError;
-
-        _logger.LogError(exception, message);
-
-        var problemDetails = new ProblemDetails
-        {
-            Detail = CreateWorkflowInitializationDetail(
-                initializationState,
-                recommendedAction,
-                instanceDeleted,
-                workflowAccepted,
-                processStateChanged
-            ),
-            Status = statusCode,
-            Title = "Instance initialization failed.",
-        };
-        problemDetails.Extensions["initializationState"] = initializationState;
-        problemDetails.Extensions["recommendedAction"] = recommendedAction;
-        problemDetails.Extensions["technicalDetail"] = message;
-
-        if (instanceDeleted.HasValue)
-        {
-            problemDetails.Extensions["instanceDeleted"] = instanceDeleted.Value;
-        }
-
-        if (resumeEndpoint is not null)
-        {
-            problemDetails.Extensions["resumeEndpoint"] = resumeEndpoint;
-        }
-
-        if (workflowAccepted.HasValue)
-        {
-            problemDetails.Extensions["workflowAccepted"] = workflowAccepted.Value;
-        }
-
-        if (workflowFailure is not null)
-        {
-            problemDetails.Extensions["workflowFailure"] = workflowFailure;
-        }
-
-        if (!string.IsNullOrWhiteSpace(workflowSubmissionFailureKind))
-        {
-            problemDetails.Extensions["workflowSubmissionFailureKind"] = workflowSubmissionFailureKind;
-        }
-
-        if (workflowSubmissionStatusCode.HasValue)
-        {
-            problemDetails.Extensions["workflowSubmissionStatusCode"] = (int)workflowSubmissionStatusCode.Value;
-        }
-
-        if (!string.IsNullOrWhiteSpace(workflowCollectionKey))
-        {
-            problemDetails.Extensions["workflowCollectionKey"] = workflowCollectionKey;
-        }
-
-        if (processStateChanged)
-        {
-            problemDetails.Extensions["processStateChanged"] = true;
-        }
-
-        AddInstanceExtensions(problemDetails, instance);
-
-        return StatusCode(statusCode, problemDetails);
-    }
-
-    private static string CreateWorkflowInitializationDetail(
-        string initializationState,
-        string recommendedAction,
-        bool? instanceDeleted,
-        bool? workflowAccepted,
-        bool processStateChanged
-    ) =>
-        (initializationState, recommendedAction, instanceDeleted, workflowAccepted, processStateChanged) switch
-        {
-            ("workflowNotAccepted", "retryInstanceCreation", true, _, _) =>
-                "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. The created instance was deleted, so the client can safely retry instance creation.",
-            ("workflowNotAccepted", _, false, _, _) =>
-                "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. Runtime could not delete the created instance, so inspect the instance before retrying instance creation.",
-            ("workflowAcceptanceUnknown", _, _, _, _) =>
-                "Runtime submitted the initial workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying instance creation.",
-            ("workflowFailed", _, _, true, true) =>
-                "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
-            ("workflowFailed", _, _, true, _) =>
-                "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
-            _ => "Runtime could not complete instance initialization. Inspect the response details before retrying.",
-        };
-
-    private static void AddInstanceExtensions(ProblemDetails problemDetails, Instance? instance)
-    {
-        if (instance?.Id is null)
-        {
-            return;
-        }
-
-        problemDetails.Extensions["instanceId"] = instance.Id;
-        var instanceIdentifier = new InstanceIdentifier(instance);
-        problemDetails.Extensions["instanceOwnerPartyId"] = instanceIdentifier.InstanceOwnerPartyId;
-        problemDetails.Extensions["instanceGuid"] = instanceIdentifier.InstanceGuid;
-    }
-
-    private static ResumeEndpoint CreateProcessResumeEndpoint(string org, string app, Instance instance)
-    {
-        var instanceIdentifier = new InstanceIdentifier(instance);
-        return new ResumeEndpoint(
-            "POST",
-            $"/{org}/{app}/instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/process/resume"
-        );
-    }
-
-    private sealed record ResumeEndpoint(string Method, string Path);
 
     private async Task<EnforcementResult> AuthorizeAction(
         string org,

@@ -79,7 +79,7 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
         Assert.Equal(HttpStatusCode.InternalServerError, failedProcessNext.Response.StatusCode);
         using JsonDocument failureDocument = JsonDocument.Parse(failedProcessNext.Data.Body!);
         JsonElement failureRoot = failureDocument.RootElement;
-        Assert.Equal("StepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
+        Assert.Equal("stepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
         Assert.Equal(
             "OnTaskEndingHook",
             failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
