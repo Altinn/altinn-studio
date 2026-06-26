@@ -24,7 +24,7 @@ public class AppCommandLoggingTests
     [Fact]
     public async Task Execute_DoesNotLogSensitivePayloadFields()
     {
-        var logCollector = new CapturingLoggerProvider();
+        using var logCollector = new CapturingLoggerProvider();
         using var fixture = AppCommandTestFixture.Create(services =>
             services.AddSingleton<ILoggerProvider>(logCollector)
         );
