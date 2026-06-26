@@ -396,10 +396,8 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         root.GetProperty("initializationState").GetString().Should().Be("workflowNotAccepted");
         root.GetProperty("instanceDeleted").GetBoolean().Should().BeTrue();
         root.GetProperty("recommendedAction").GetString().Should().Be("retryInstanceCreation");
-        root.GetProperty("workflowSubmissionFailureKind")
-            .GetString()
-            .Should()
-            .Be(WorkflowSubmissionFailureKind.NotAccepted.ToString());
+        // Literal, not Kind.ToString(), so an enum rename is caught as a wire-contract break.
+        root.GetProperty("workflowSubmissionFailureKind").GetString().Should().Be("NotAccepted");
         root.GetProperty("workflowSubmissionStatusCode").GetInt32().Should().Be(StatusCodes.Status429TooManyRequests);
         root.GetProperty("workflowCollectionKey").GetString().Should().NotBeNullOrWhiteSpace();
 
@@ -464,7 +462,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         JsonElement resumeEndpoint = root.GetProperty("resumeEndpoint");
         resumeEndpoint.GetProperty("method").GetString().Should().Be("POST");
         JsonElement workflowFailure = root.GetProperty("workflowFailure");
-        workflowFailure.GetProperty("kind").GetString().Should().Be(WorkflowFailureKind.StepFailed.ToString());
+        workflowFailure.GetProperty("kind").GetString().Should().Be("StepFailed");
         workflowFailure.GetProperty("stepOperationId").GetString().Should().Be("StartTask");
         workflowFailure
             .GetProperty("lastError")

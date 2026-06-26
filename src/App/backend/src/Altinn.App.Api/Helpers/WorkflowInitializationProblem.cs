@@ -1,4 +1,5 @@
 using System.Net;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
@@ -56,6 +57,32 @@ internal static class WorkflowInitializationProblem
         public const string InspectInstance = "inspectInstance";
         public const string ResumeCurrentTask = "resumeCurrentTask";
     }
+
+    /// <summary>
+    /// Stable <c>workflowSubmissionFailureKind</c> values published on the wire. Mapped explicitly from
+    /// <see cref="WorkflowSubmissionFailureKind"/> rather than via <c>ToString()</c> so that renaming an enum
+    /// member does not silently change the external contract. Pinned by tests.
+    /// </summary>
+    public static class SubmissionFailureKind
+    {
+        public const string NotAccepted = "NotAccepted";
+        public const string Unknown = "Unknown";
+    }
+
+    /// <summary>
+    /// Maps a <see cref="WorkflowSubmissionFailureKind"/> to its stable wire value.
+    /// </summary>
+    public static string ToWireValue(WorkflowSubmissionFailureKind kind) =>
+        kind switch
+        {
+            WorkflowSubmissionFailureKind.NotAccepted => SubmissionFailureKind.NotAccepted,
+            WorkflowSubmissionFailureKind.Unknown => SubmissionFailureKind.Unknown,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(kind),
+                kind,
+                "Unhandled workflow submission failure kind."
+            ),
+        };
 
     public static ObjectResult Create(
         ILogger logger,

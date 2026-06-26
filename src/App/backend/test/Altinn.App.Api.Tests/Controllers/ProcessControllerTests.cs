@@ -773,22 +773,20 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .GetString()
             .Should()
             .Be($"/{Org}/{App}/instances/{_instanceId}/process/resume");
-        root.GetProperty("workflowFailure")
-            .GetProperty("kind")
-            .GetString()
-            .Should()
-            .Be(Altinn.App.Core.Models.Process.WorkflowFailureKind.StepFailed.ToString());
+        // Literal, not WorkflowFailureKind.StepFailed.ToString(), so renaming the enum member fails this test.
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("StepFailed");
     }
 
     // Pins the wire strings of the process-start submission-failure contract. NotAccepted leaves the existing
     // instance untouched so the client can retry the start; Unknown is indeterminate so the client must inspect.
     [Theory]
-    [InlineData(true, "workflowNotAccepted", "retryStartProcess")]
-    [InlineData(false, "workflowAcceptanceUnknown", "inspectInstance")]
+    [InlineData(true, "workflowNotAccepted", "retryStartProcess", "NotAccepted")]
+    [InlineData(false, "workflowAcceptanceUnknown", "inspectInstance", "Unknown")]
     public async Task StartProcess_WhenWorkflowSubmissionFails_ReturnsProblemDetailsWithoutResume(
         bool notAccepted,
         string expectedState,
-        string expectedAction
+        string expectedAction,
+        string expectedFailureKind
     )
     {
         // Arrange
@@ -820,6 +818,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         root.GetProperty("title").GetString().Should().Be("Process start failed.");
         root.GetProperty("initializationState").GetString().Should().Be(expectedState);
         root.GetProperty("recommendedAction").GetString().Should().Be(expectedAction);
+        // Asserted against a literal, not Kind.ToString(), so an enum rename is caught as a contract break.
+        root.GetProperty("workflowSubmissionFailureKind").GetString().Should().Be(expectedFailureKind);
         // Submission never reached execution, so there is nothing to resume.
         root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
         root.TryGetProperty("workflowFailure", out _).Should().BeFalse();

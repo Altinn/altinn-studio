@@ -1543,7 +1543,7 @@ public class InstancesController : ControllerBase
             instance,
             recommendedAction,
             instanceDeleted: instanceDeleted,
-            workflowSubmissionFailureKind: exception.Kind.ToString(),
+            workflowSubmissionFailureKind: WorkflowInitializationProblem.ToWireValue(exception.Kind),
             workflowSubmissionStatusCode: exception.StatusCode,
             workflowCollectionKey: exception.CollectionKey
         );

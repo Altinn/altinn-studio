@@ -741,7 +741,7 @@ public class ProcessController : ControllerBase
             state,
             instance,
             recommendedAction,
-            workflowSubmissionFailureKind: exception.Kind.ToString(),
+            workflowSubmissionFailureKind: WorkflowInitializationProblem.ToWireValue(exception.Kind),
             workflowSubmissionStatusCode: exception.StatusCode,
             workflowCollectionKey: exception.CollectionKey
         );
