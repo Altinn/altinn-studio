@@ -11,11 +11,11 @@ import type { AddressLayoutProps } from './AddressLayout';
  */
 export const ADDRESS_PROP_CATEGORIES = {
   // Text resources — Studio "Tekst" section (textResourceBindings)
-  titleKey: 'text',
-  careOfTitleKey: 'text',
-  zipCodeTitleKey: 'text',
-  postPlaceTitleKey: 'text',
-  houseNumberTitleKey: 'text',
+  title: 'text',
+  careOfTitle: 'text',
+  zipCodeTitle: 'text',
+  postPlaceTitle: 'text',
+  houseNumberTitle: 'text',
   // Data-model-bound values — Studio "Datamodeller" section
   address: 'data',
   careOf: 'data',

@@ -15,17 +15,17 @@ export interface AddressLayoutProps {
   readOnly?: boolean;
   showOptionalMarking?: boolean;
 
-  // Text — text-resource-bound labels (Studio "Tekst")
-  /** Text-resource key for the address label. Defaults to `address_component.address`. */
-  titleKey?: string;
-  /** Text-resource key for the care-of label. Defaults to `address_component.care_of`. */
-  careOfTitleKey?: string;
-  /** Text-resource key for the zip code label. Defaults to `address_component.zip_code`. */
-  zipCodeTitleKey?: string;
-  /** Text-resource key for the post place label. Defaults to `address_component.post_place`. */
-  postPlaceTitleKey?: string;
-  /** Text-resource key for the house number label. Defaults to `address_component.house_number`. */
-  houseNumberTitleKey?: string;
+  // Text — labels resolved via `lang`: a text-resource key, or literal text when no resource matches (Studio "Tekst")
+  /** Address label. A text-resource key (resolved via `lang`) or literal text. Defaults to `address_component.address`. */
+  title?: string;
+  /** Care-of label. A text-resource key (resolved via `lang`) or literal text. Defaults to `address_component.care_of`. */
+  careOfTitle?: string;
+  /** Zip code label. A text-resource key (resolved via `lang`) or literal text. Defaults to `address_component.zip_code`. */
+  zipCodeTitle?: string;
+  /** Post place label. A text-resource key (resolved via `lang`) or literal text. Defaults to `address_component.post_place`. */
+  postPlaceTitle?: string;
+  /** House number label. A text-resource key (resolved via `lang`) or literal text. Defaults to `address_component.house_number`. */
+  houseNumberTitle?: string;
 
   // Data — data-model-bound values (Studio "Datamodeller"), supplied by the wrapper
   address?: string;
@@ -59,11 +59,11 @@ export function AddressLayout({
   required,
   readOnly,
   showOptionalMarking,
-  titleKey,
-  careOfTitleKey,
-  zipCodeTitleKey,
-  postPlaceTitleKey,
-  houseNumberTitleKey,
+  title,
+  careOfTitle,
+  zipCodeTitle,
+  postPlaceTitle,
+  houseNumberTitle,
   address,
   careOf,
   zipCode,
@@ -90,7 +90,7 @@ export function AddressLayout({
         <LabelComponent
           id={addressLabelId}
           htmlFor={`address_address_${id}`}
-          title={titleKey ?? 'address_component.address'}
+          title={title ?? 'address_component.address'}
           required={required}
           readOnly={readOnly}
           showOptionalMarking={showOptionalMarking}
@@ -118,7 +118,7 @@ export function AddressLayout({
           <LabelComponent
             id={careOfLabelId}
             htmlFor={`address_care_of_${id}`}
-            title={careOfTitleKey ?? 'address_component.care_of'}
+            title={careOfTitle ?? 'address_component.care_of'}
             required={required}
             readOnly={readOnly}
             showOptionalMarking={showOptionalMarking}
@@ -149,7 +149,7 @@ export function AddressLayout({
           <LabelComponent
             id={zipCodeLabelId}
             htmlFor={`address_zip_code_${id}`}
-            title={zipCodeTitleKey ?? 'address_component.zip_code'}
+            title={zipCodeTitle ?? 'address_component.zip_code'}
             required={required}
             readOnly={readOnly}
             showOptionalMarking={showOptionalMarking}
@@ -176,7 +176,7 @@ export function AddressLayout({
           <LabelComponent
             id={postPlaceLabelId}
             htmlFor={`address_post_place_${id}`}
-            title={postPlaceTitleKey ?? 'address_component.post_place'}
+            title={postPlaceTitle ?? 'address_component.post_place'}
             required={required}
             readOnly={readOnly}
             showOptionalMarking={showOptionalMarking}
@@ -201,7 +201,7 @@ export function AddressLayout({
           <LabelComponent
             id={houseNumberLabelId}
             htmlFor={`address_house_number_${id}`}
-            title={houseNumberTitleKey ?? 'address_component.house_number'}
+            title={houseNumberTitle ?? 'address_component.house_number'}
             help='address_component.house_number_helper'
             required={required}
             readOnly={readOnly}

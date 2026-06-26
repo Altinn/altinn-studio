@@ -125,8 +125,7 @@ describe('AddressLayout', () => {
   });
 
   it('renders custom title keys', () => {
-    renderWithTranslations(<AddressLayout id='addr' simplified={false} titleKey='MY_TITLE' />, {
-      language: 'nb',
+    renderWithTranslations(<AddressLayout id='addr' simplified={false} title='MY_TITLE' />, {
       overrides: { MY_TITLE: 'Custom Title' },
     });
     expect(screen.getByRole('textbox', { name: 'Custom Title' })).toBeInTheDocument();
