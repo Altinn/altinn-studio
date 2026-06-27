@@ -1,11 +1,10 @@
 package cnpgsync
 
 type CnpgTarget struct {
-	ServiceOwnerId    string
-	Environment       string
-	Backup            *PgDumpBackupConfig
-	Apps              []string
-	WorkflowEngineApp bool
+	ServiceOwnerId string
+	Environment    string
+	Backup         *PgDumpBackupConfig
+	Apps           []string
 }
 
 type PgDumpBackupConfig struct {
