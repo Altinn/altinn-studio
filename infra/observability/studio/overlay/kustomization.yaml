@@ -5,6 +5,7 @@ namespace: observability
 
 resources:
   - ../../base
+  - observability-proxy.yaml
 
 patches:
   - path: patches/router-config.yaml
@@ -35,3 +36,15 @@ patches:
       - op: replace
         path: /roleRef/name
         value: studio-otel-collector
+
+replacements:
+  - source:
+      kind: Deployment
+      name: observability-proxy
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: Deployment
+          name: observability-proxy
+        fieldPaths:
+          - spec.template.spec.containers.[name=observability-proxy].image
