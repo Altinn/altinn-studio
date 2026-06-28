@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Altinn.Studio.Observability.Proxy.Tests/Altinn.Studio.Observability.Proxy.Tests.csproj" />
+  </Folder>
+</Solution>
