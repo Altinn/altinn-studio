@@ -18,4 +18,4 @@ patches:
               - name: workflow-engine-app
                 env:
                   - name: ConnectionStrings__WorkflowEngine
-                    value: "Host=${WORKFLOW_ENGINE_DB_HOST};Port=5432;Database=workflow_engine_${SERVICEOWNER_ID}_${ENVIRONMENT};Username=${WORKFLOW_ENGINE_DB_USERNAME};Ssl Mode=Require"
+                    value: "Host=${WORKFLOW_ENGINE_DB_HOST};Port=5432;Database=workflow_engine_${SERVICEOWNER_ID}_${ENVIRONMENT};Username=${WORKFLOW_ENGINE_DB_USERNAME};Ssl Mode=Require;GSS Encryption Mode=Disable"
