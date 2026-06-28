@@ -1,0 +1,176 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: observability-proxy-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: observability-proxy
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: observability-proxy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-proxy
+  annotations:
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/observability-proxy:latest
+    altinn.studio/image-tag: latest
+  labels:
+    app: observability-proxy
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  replicas: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: observability-proxy
+  template:
+    metadata:
+      labels:
+        app: observability-proxy
+      annotations:
+        linkerd.io/inject: enabled
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      serviceAccountName: observability-proxy
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: observability-proxy
+          image: ""
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ObservabilityProxy__Downstreams__Otlp__Address
+              value: http://otel-victoria-ingest:4318/
+            - name: ObservabilityProxy__Downstreams__Traces__Address
+              value: http://victoria-traces:10428/
+            - name: ObservabilityProxy__Downstreams__Metrics__Address
+              value: http://victoria-metrics:8428/
+            - name: ObservabilityProxy__Authentication__Tokens__0__Token
+              valueFrom:
+                secretKeyRef:
+                  name: observability-proxy-tokens
+                  key: runtime-prod-ingest-token
+            - name: ObservabilityProxy__Authentication__Tokens__0__SourceIdentity
+              value: runtime-prod
+            - name: ObservabilityProxy__Authentication__Tokens__0__AllowedRouteGroups__0
+              value: otlp
+            - name: ObservabilityProxy__Authentication__Tokens__1__Token
+              valueFrom:
+                secretKeyRef:
+                  name: observability-proxy-tokens
+                  key: studio-prod-ingest-token
+            - name: ObservabilityProxy__Authentication__Tokens__1__SourceIdentity
+              value: studio-prod
+            - name: ObservabilityProxy__Authentication__Tokens__1__AllowedRouteGroups__0
+              value: otlp
+            - name: ObservabilityProxy__Authentication__Tokens__2__Token
+              valueFrom:
+                secretKeyRef:
+                  name: observability-proxy-tokens
+                  key: grafana-read-token
+            - name: ObservabilityProxy__Authentication__Tokens__2__SourceIdentity
+              value: platform-grafana
+            - name: ObservabilityProxy__Authentication__Tokens__2__AllowedRouteGroups__0
+              value: traces
+            - name: ObservabilityProxy__Authentication__Tokens__2__AllowedRouteGroups__1
+              value: metrics
+            - name: ObservabilityProxy__RateLimiting__PermitLimit
+              value: "10000"
+            - name: ObservabilityProxy__RateLimiting__WindowSeconds
+              value: "60"
+            - name: ObservabilityProxy__RateLimiting__QueueLimit
+              value: "0"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-proxy
+spec:
+  type: ClusterIP
+  selector:
+    app: observability-proxy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: observability-proxy-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: observability-proxy
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              run: altinn-loadbalancer
+        - podSelector:
+            matchLabels:
+              altinn.studio/otel-collector: otel-gateway
+      ports:
+        - protocol: TCP
+          port: 8080
