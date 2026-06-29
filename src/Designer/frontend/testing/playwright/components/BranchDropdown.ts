@@ -17,7 +17,9 @@ export class BranchDropdown extends BasePage {
 
   public async writeNewBranchName(branchName: string): Promise<void> {
     await this.page
-      .getByRole('textbox', { name: this.textMock('branching.new_branch_dialog.branch_name_label') })
+      .getByRole('textbox', {
+        name: this.textMock('branching.new_branch_dialog.branch_name_label'),
+      })
       .fill(branchName);
   }
 
