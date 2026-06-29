@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.EventHandlers.LayoutPageDeleted;
 
 public class LayoutPageDeletedLayoutsHandler(
     IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-    IAppDevelopmentService appDevelopmentService
+    IUiFoldersService uiFoldersService
 ) : INotificationHandler<LayoutPageDeletedEvent>
 {
     public async Task Handle(LayoutPageDeletedEvent notification, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ public class LayoutPageDeletedLayoutsHandler(
                 [
                     new Reference(ReferenceType.Layout, notification.LayoutSetName, notification.LayoutName),
                 ];
-                return await appDevelopmentService.UpdateLayoutReferences(
+                return await uiFoldersService.UpdateLayoutReferences(
                     notification.EditingContext,
                     referencesToDelete,
                     cancellationToken
