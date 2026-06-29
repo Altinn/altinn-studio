@@ -3,5 +3,4 @@ export * from './Address';
 export * from './ButtonGroup';
 export * from './Datepicker';
 export * from './Paragraph';
-export * from './Tabs';
 export * from './TimePicker';
