@@ -32,7 +32,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
@@ -71,7 +71,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["newTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "newTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
@@ -106,7 +106,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         const string ExistingTaskId = "Task_1";
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = [ExistingTaskId] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = ExistingTaskId };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
@@ -135,7 +135,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = "" };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = "" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
@@ -164,7 +164,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = null,
@@ -193,7 +193,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Payment,
@@ -238,7 +238,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         var layoutSetPayload = new LayoutSetPayload() { TaskType = TaskType.Pdf, LayoutSetConfig = newLayoutSetConfig };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
@@ -273,7 +273,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
