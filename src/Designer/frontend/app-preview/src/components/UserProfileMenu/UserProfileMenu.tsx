@@ -11,8 +11,8 @@ import {
   type StudioProfileMenuGroup,
 } from '@studio/components';
 import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 export type UserProfileMenuProps = {
   user: User;
@@ -24,7 +24,6 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   const { org } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { mutate: logout } = useLogoutMutation();
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl() },
@@ -41,7 +40,7 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
+    action: { type: 'link', href: userLogoutAfterPath() },
     itemName: t('shared.header_logout'),
   };
 

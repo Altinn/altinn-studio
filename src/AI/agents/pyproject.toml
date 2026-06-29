@@ -53,7 +53,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["agents*", "api*", "shared*"]
+include = ["agents*", "api*", "metrics*", "shared*"]
 
 [tool.setuptools.package-data]
 agents = ["prompts/**/*.md"]

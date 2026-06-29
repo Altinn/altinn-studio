@@ -171,6 +171,12 @@ public sealed partial class AppFixture : IAsyncDisposable
             );
             // studioctl run performs readiness checks. This only catches an immediate post-start crash.
             await EnsureAppStillRunning(appProcess, cancellationToken);
+            // ...and it only validates the app's own port. localtest reaches the app through its
+            // host bridge (container -> studioctl-server -> host app process), which is wired up
+            // separately and can briefly 404/502 right after start. The workflow engine drives the app
+            // through that same route via callbacks, so wait until localtest can actually route a
+            // request through to the app before handing the fixture to a test.
+            await WaitForLocaltestRoutingReady(appId, logger, cancellationToken);
 
             logger.LogInformation("Fixture created in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.00"));
             return new AppFixture(
@@ -207,6 +213,67 @@ public sealed partial class AppFixture : IAsyncDisposable
         {
             var appLogs = await GetAppLogs(appProcess, cancellationToken);
             throw new InvalidOperationException($"App process exited after studioctl reported it ready.\n{appLogs}");
+        }
+    }
+
+    private static async Task WaitForLocaltestRoutingReady(
+        string appId,
+        ILogger logger,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = new HttpClient
+        {
+            BaseAddress = new Uri($"http://local.altinn.cloud:{StudioctlLocaltestHostPort}"),
+            Timeout = TimeSpan.FromSeconds(10),
+        };
+        client.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
+
+        // This endpoint is served by the app itself (TestingApis), so a 200 proves localtest's host
+        // bridge can actually route a request through to the app process - unlike platform/storage
+        // routes that localtest answers itself. It is anonymous and returns 200 whenever the app
+        // handles the request, which is exactly the signal we need.
+        var probePath = $"/{appId}/api/testing/connectivity/localtest";
+        var deadline = TimeSpan.FromSeconds(60);
+        var timer = Stopwatch.StartNew();
+        var attempts = 0;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            attempts++;
+            var lastStatus = "connection failure";
+            try
+            {
+                using var response = await client.GetAsync(probePath, cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    logger.LogInformation(
+                        "localtest routing to app ready after {ElapsedSeconds}s ({Attempts} attempts)",
+                        timer.Elapsed.TotalSeconds.ToString("0.00"),
+                        attempts
+                    );
+                    return;
+                }
+
+                // 404/502/503 while localtest discovers the app's host port - retry.
+                lastStatus = $"{(int)response.StatusCode} {response.StatusCode}";
+            }
+            catch (HttpRequestException)
+            {
+                // localtest upstream not reachable yet - retry.
+            }
+            catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Per-request timeout - retry.
+            }
+
+            if (timer.Elapsed > deadline)
+                throw new InvalidOperationException(
+                    $"localtest did not start routing to '{appId}' within {deadline.TotalSeconds:0}s "
+                        + $"(last status: {lastStatus}, probe: {probePath})."
+                );
+
+            await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken);
         }
     }
 
@@ -488,7 +555,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var relativePath = Path.GetRelativePath(sourceDirectory, directory);
             if (skip(relativePath))
                 continue;
-
             Directory.CreateDirectory(Path.Join(targetDirectory, relativePath));
         }
 
@@ -497,7 +563,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var relativePath = Path.GetRelativePath(sourceDirectory, file);
             if (skip(relativePath))
                 continue;
-
             var targetPath = Path.Join(targetDirectory, relativePath);
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             File.Copy(file, targetPath, overwrite: true);
@@ -565,7 +630,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             _logger.LogError("Test errored, logging app output");
             await LogAppLogs();
         }
-
         await _appProcess.DisposeAsync();
         await DeleteDirectoryBestEffort(_logger, _generatedAppDirectory);
         await _studioctlEnvironmentLease.DisposeAsync();

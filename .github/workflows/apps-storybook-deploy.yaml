@@ -1,0 +1,48 @@
+name: Build and deploy Apps Storybook Main
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app-libs/form-component/**'
+      - '.github/workflows/apps-storybook-deploy.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    name: Build and deploy
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Use node LTS and yarn cache
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          cache: 'yarn'
+          node-version: '22'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build Storybook
+        working-directory: app-libs/form-component
+        run: yarn build-storybook
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9 #v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.APPS_DEV_STORYBOOK }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "app-libs/form-component/storybook-static"
+          api_location: ""
+          output_location: ""
+          skip_app_build: true

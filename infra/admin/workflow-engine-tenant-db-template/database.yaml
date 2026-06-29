@@ -6,7 +6,7 @@ metadata:
 spec:
   name: ${DISDB_PGNAME}
   server:
-    name: workflow-engine-db-server
+    name: ${DISDB_SERVER}
   access:
     principals:
       - role: Owner

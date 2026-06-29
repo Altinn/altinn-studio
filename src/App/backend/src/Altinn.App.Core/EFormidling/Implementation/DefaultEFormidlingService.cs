@@ -35,7 +35,6 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly IDataClient _dataClient;
     private readonly IEventsClient _eventClient;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IEFormidlingLegacyConfigurationProvider _configurationProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
@@ -47,7 +46,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         IDataClient dataClient,
         IEventsClient eventClient,
         IServiceProvider sp,
-        IEFormidlingLegacyConfigurationProvider configurationProvider,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,
@@ -64,13 +62,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         _dataClient = dataClient;
         _eventClient = eventClient;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
-        _configurationProvider = configurationProvider;
-    }
-
-    /// <inheritdoc />
-    public async Task SendEFormidlingShipment(Instance instance)
-    {
-        await SendEFormidlingShipmentInternal(instance, await _configurationProvider.GetLegacyConfiguration());
     }
 
     /// <inheritdoc />

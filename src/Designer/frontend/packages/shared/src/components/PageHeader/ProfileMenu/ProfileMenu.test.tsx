@@ -6,7 +6,6 @@ import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { ProfileMenu } from './ProfileMenu';
 
-const mockLogout = jest.fn();
 const mockOnOrgSelect = jest.fn();
 const mockOnUserSelect = jest.fn();
 
@@ -17,10 +16,6 @@ jest.mock('app-shared/hooks/queries', () => ({
   ...jest.requireActual('app-shared/hooks/queries'),
   useUserQuery: () => mockUseUserQuery(),
   useOrganizationsQuery: () => mockUseOrganizationsQuery(),
-}));
-
-jest.mock('app-shared/hooks/mutations/useLogoutMutation', () => ({
-  useLogoutMutation: () => ({ mutate: mockLogout }),
 }));
 
 const userWithFullName: User = {

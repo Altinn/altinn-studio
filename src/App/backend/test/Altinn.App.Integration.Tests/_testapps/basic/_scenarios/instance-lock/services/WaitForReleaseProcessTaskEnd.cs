@@ -1,8 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Features;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,11 +10,12 @@ using TestApp.Shared;
 
 namespace Altinn.App.Integration.Tests.Scenarios.InstanceLock;
 
-public sealed class WaitForReleaseProcessTaskEnd : IProcessTaskEnd
+public sealed class WaitForReleaseProcessTaskEnd : IProcessTask
 {
     private static TaskCompletionSource _signal = new();
+    public string Type => AltinnTaskTypes.Data;
 
-    public Task End(string taskId, Instance instance)
+    public Task End(ProcessTaskContext context)
     {
         return _signal.Task;
     }
@@ -59,7 +60,7 @@ public static class ServiceRegistration
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IProcessTaskEnd, WaitForReleaseProcessTaskEnd>();
+        services.AddTransient<IProcessTask, WaitForReleaseProcessTaskEnd>();
         services.AddSingleton<IEndpointConfigurator, WaitForReleaseProcessTaskEndEndpoints>();
     }
 }

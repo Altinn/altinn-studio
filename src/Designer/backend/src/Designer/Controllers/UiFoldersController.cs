@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -24,10 +28,21 @@ namespace Altinn.Studio.Designer.Controllers;
 public class UiFoldersController : Controller
 {
     private readonly IUiFoldersService _uiFoldersService;
+    private readonly IAppVersionService _appVersionService;
+    private readonly IAppDevelopmentService _appDevelopmentService;
+    private readonly IPublisher _publisher;
 
-    public UiFoldersController(IUiFoldersService uiFoldersService)
+    public UiFoldersController(
+        IUiFoldersService uiFoldersService,
+        IAppVersionService appVersionService,
+        IAppDevelopmentService appDevelopmentService,
+        IPublisher publisher
+    )
     {
         _uiFoldersService = uiFoldersService;
+        _appVersionService = appVersionService;
+        _appDevelopmentService = appDevelopmentService;
+        _publisher = publisher;
     }
 
     private AltinnRepoEditingContext CreateContext(string org, string app)
@@ -36,13 +51,22 @@ public class UiFoldersController : Controller
         return AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
     }
 
+    //TODO: Update return type to a shared model used by both v8 and v9, so the controller can return the same model for both versions to frontend.
+    //For now v8 returns LayoutSets, as it did before.
     [HttpGet("layout-sets")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.GetLayoutSets(editingContext, cancellationToken);
-        return Ok(layoutSets);
+        // if (!IsV9App(editingContext))
+        // {
+        return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        // }
+        // IEnumerable<LayoutSets> layoutSets = await _uiFoldersService.GetLayoutSets(
+        //     editingContext,
+        //     cancellationToken
+        // );
+        // return Ok(layoutSets);
     }
 
     [HttpPost("layout-sets")]
@@ -55,7 +79,25 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.AddLayoutSet(
+        if (!IsV9App(editingContext))
+        {
+            await _appDevelopmentService.AddLayoutSet(
+                editingContext,
+                layoutSetPayload.LayoutSetConfig,
+                layoutSetPayload.TaskType,
+                cancellationToken
+            );
+            await _publisher.Publish(
+                new LayoutSetCreatedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSet = layoutSetPayload.LayoutSetConfig,
+                },
+                cancellationToken
+            );
+            return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        }
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.AddLayoutSet(
             editingContext,
             layoutSetPayload.LayoutSetConfig,
             layoutSetPayload.TaskType,
@@ -64,6 +106,7 @@ public class UiFoldersController : Controller
         return Ok(layoutSets);
     }
 
+    //TODO: UpdateLayoutSetName return type in v9 is to be replaced to a shared model used by both v8 and v9.
     [HttpPut("layout-sets/{layoutSetId}")]
     [UseSystemTextJson]
     public async Task<IActionResult> UpdateLayoutSetName(
@@ -75,13 +118,32 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.UpdateLayoutSetName(
+        // if (!IsV9App(editingContext))
+        // {
+        await _appDevelopmentService.UpdateLayoutSetName(
             editingContext,
             layoutSetId,
             newLayoutSetName,
             cancellationToken
         );
-        return Ok(layoutSets);
+        await _publisher.Publish(
+            new LayoutSetIdChangedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSetName = layoutSetId,
+                NewLayoutSetName = newLayoutSetName,
+            },
+            cancellationToken
+        );
+        return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        // }
+        // IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.UpdateLayoutSetName(
+        //     editingContext,
+        //     layoutSetId,
+        //     newLayoutSetName,
+        //     cancellationToken
+        // );
+        // return Ok(layoutSets);
     }
 
     [HttpDelete("layout-sets/{layoutSetId}")]
@@ -94,7 +156,16 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
+        if (!IsV9App(editingContext))
+        {
+            await _publisher.Publish(
+                new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetId },
+                cancellationToken
+            );
+            await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetId, cancellationToken);
+            return Ok(await GetV8LayoutSets(editingContext, cancellationToken));
+        }
+        IEnumerable<UiFolderLayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
             editingContext,
             layoutSetId,
             cancellationToken
@@ -107,7 +178,7 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<LayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
+        IEnumerable<UiFolderLayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
             editingContext,
             cancellationToken
         );
@@ -224,5 +295,28 @@ public class UiFoldersController : Controller
         {
             return BadRequest(exception.Message);
         }
+    }
+
+    private bool IsV9App(AltinnRepoEditingContext editingContext)
+    {
+        try
+        {
+            SemanticVersion version = _appVersionService.GetAppLibVersion(editingContext);
+            return version != null && version.Major >= 9;
+        }
+        catch (FileNotFoundException)
+        {
+            return true;
+        }
+    }
+
+    //TODO: Update return type to a shared model used by both v8 and v9, so the controller can return the same model for both versions to frontend.
+    private async Task<LayoutSets> GetV8LayoutSets(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
+        return layoutSets;
     }
 }
