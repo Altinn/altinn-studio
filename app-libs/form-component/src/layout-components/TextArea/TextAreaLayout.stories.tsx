@@ -1,4 +1,5 @@
-import { useArgs } from 'storybook/preview-api';
+import { useState } from 'react';
+
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -40,15 +41,15 @@ const meta = {
     onChange: fn(),
     onBlur: fn(),
   },
-  render: function Render(args) {
-    const [{ value }, updateArgs] = useArgs();
+  render: function Render({ value: initialValue, onChange, ...args }) {
+    const [value, setValue] = useState(initialValue);
     return (
       <TextAreaLayout
         {...args}
         value={value}
         onChange={(newValue) => {
-          args.onChange?.(newValue);
-          updateArgs({ value: newValue });
+          onChange?.(newValue);
+          setValue(newValue);
         }}
       />
     );
