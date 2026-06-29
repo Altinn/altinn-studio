@@ -82,8 +82,11 @@ describe('TabsLayout', () => {
 
     // Suppress the expected React error boundary noise.
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => renderWithTranslations(<TabsLayout tabs={iconTabs} />, { overrides })).toThrow();
-    spy.mockRestore();
+    try {
+      expect(() => renderWithTranslations(<TabsLayout tabs={iconTabs} />, { overrides })).toThrow();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('throws on icon without file extension', () => {
@@ -92,8 +95,11 @@ describe('TabsLayout', () => {
     ];
 
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => renderWithTranslations(<TabsLayout tabs={iconTabs} />, { overrides })).toThrow();
-    spy.mockRestore();
+    try {
+      expect(() => renderWithTranslations(<TabsLayout tabs={iconTabs} />, { overrides })).toThrow();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('renders form-content-{componentId} wrapper when componentId is set', () => {
