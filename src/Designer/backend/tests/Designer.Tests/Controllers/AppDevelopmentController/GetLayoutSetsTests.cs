@@ -21,22 +21,31 @@ public class GetLayoutSetsTests
         : base(factory) { }
 
     [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/layout-sets.json")]
-    [InlineData("ttd", "app-without-layoutsets", "testUser", null, null)]
+    [InlineData(
+        "ttd",
+        "app-with-layoutsets",
+        "testUser",
+        "layoutSet1",
+        "TestData/App/ui/layout-sets.json",
+        "TestData/App/ui/layout-sets-response.json"
+    )]
+    [InlineData("ttd", "app-without-layoutsets", "testUser", null, null, null)]
     public async Task GetLayoutSets_ShouldReturnLayoutSets(
         string org,
         string app,
         string developer,
         string layoutSetName,
-        string expectedLayoutPaths
+        string layoutSetsFilePath,
+        string expectedResponsePath
     )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string expectedLayoutSets = string.IsNullOrEmpty(layoutSetName)
-            ? null
-            : await AddLayoutSetsToRepo(TestRepoPath, expectedLayoutPaths);
+        if (!string.IsNullOrEmpty(layoutSetName))
+        {
+            await AddLayoutSetsToRepo(TestRepoPath, layoutSetsFilePath);
+        }
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -53,6 +62,9 @@ public class GetLayoutSetsTests
         }
         else
         {
+            // The file stores the legacy envelope with `tasks`; the endpoint returns the flat
+            // shared model with `taskId` for the frontend.
+            string expectedLayoutSets = SharedResourcesHelper.LoadTestDataAsString(expectedResponsePath);
             Assert.True(JsonUtils.DeepEquals(expectedLayoutSets, responseContent));
         }
     }

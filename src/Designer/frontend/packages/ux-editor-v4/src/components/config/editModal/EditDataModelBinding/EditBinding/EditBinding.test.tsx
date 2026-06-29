@@ -71,9 +71,10 @@ const renderEditBinding = ({
   queries,
   shouldRenderWithMockedParent = false,
 }: RenderEditBinding) => {
-  queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
-    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
-  });
+  queryClient.setQueryData(
+    [QueryKey.LayoutSets, org, app],
+    [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
+  );
   queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
     dataTypes: [
       { id: defaultDataModel, maxCount: 1, appLogic: {} },
