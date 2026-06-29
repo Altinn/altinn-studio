@@ -4,11 +4,9 @@ import { isAfter, isBefore } from 'date-fns';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import { ComponentValidationContext } from "src/layout";
-import { IDataModelBindings } from "src/layout/layout";
-import { readDataFromState } from "src/features/validation/nodeValidation/readDataFromState";
+import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
+import type { ComponentValidationContext } from 'src/layout';
+import type { IDataModelBindings } from 'src/layout/layout';
 
 export function validateDatepicker(ctx: ComponentValidationContext<'Datepicker'>): ComponentValidation[] {
   const bindings = ctx.component.dataModelBindings as IDataModelBindings<'Datepicker'> | undefined;

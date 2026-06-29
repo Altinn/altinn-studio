@@ -276,17 +276,14 @@ export const ExprFunctionDefinitions = {
   jmespath: {
     args: args(required(ExprVal.Any), required(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: noSources,
   },
   sum: {
     args: args(required(ExprVal.List)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   average: {
     args: args(required(ExprVal.List), required(ExprVal.Number)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   _experimentalSelectAndMap: {
     args: args(

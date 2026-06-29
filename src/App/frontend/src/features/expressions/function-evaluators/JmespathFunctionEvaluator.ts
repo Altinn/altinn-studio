@@ -6,7 +6,7 @@ import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type { ValidValue } from 'src/features/expressions/types';
 
 export class JmespathFunctionEvaluator extends FunctionEvaluator<[ValidValue, string | null]> {
-  constructor(context: EvaluateExpressionParams<never[]>, argumentList: [ValidValue, string | null]) {
+  constructor(context: EvaluateExpressionParams, argumentList: [ValidValue, string | null]) {
     super(context, argumentList);
   }
 

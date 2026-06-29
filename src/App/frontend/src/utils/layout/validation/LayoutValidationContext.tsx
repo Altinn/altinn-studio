@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import type { ErrorObject } from 'ajv';
 import type Ajv from 'ajv';
+import type { ErrorObject } from 'ajv';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import {
