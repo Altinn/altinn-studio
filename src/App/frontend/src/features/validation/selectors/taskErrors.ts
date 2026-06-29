@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { FormStore } from 'src/features/form/FormContext';
 import {
   type AnyValidation,
@@ -11,6 +9,7 @@ import {
 } from 'src/features/validation/index';
 import { selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
 import { useAllValidations } from 'src/features/validation/validationHooks';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 
 const emptyArray: never[] = [];
 
@@ -33,7 +32,7 @@ export function useTaskErrors(): {
   const _formErrors = useAllValidations(formErrorVisibility, 'error');
   const formErrors = !_formErrors.length ? emptyArray : _formErrors;
 
-  const taskErrors = useMemo(() => {
+  const taskErrors = useMemoDeepEqual(() => {
     if (!showAllUnboundValidations) {
       return emptyArray;
     }

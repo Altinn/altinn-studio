@@ -21,6 +21,7 @@ import {
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useExpressionDataSources, useExpressionDataSourcesBase } from 'src/utils/layout/useExpressionDataSources';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
@@ -214,7 +215,10 @@ export function useAllValidations(
   includeHidden = false,
 ): NodeRefValidation[] {
   const derived = useDerivedState();
-  return derived.nodes.flatMap((node) => getNodeRefValidations(derived, node.id, mask, severity, includeHidden));
+  return useMemoDeepEqual(
+    () => derived.nodes.flatMap((node) => getNodeRefValidations(derived, node.id, mask, severity, includeHidden)),
+    [derived, includeHidden, mask, severity],
+  );
 }
 
 /** Returns validation arrays grouped by page from the current render snapshot. */
