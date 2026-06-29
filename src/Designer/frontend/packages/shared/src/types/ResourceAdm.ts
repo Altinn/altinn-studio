@@ -198,17 +198,6 @@ export interface ResourceFormError {
   error: string;
 }
 
-export interface DelegationCountOverview {
-  numberOfDelegations: number;
-  numberOfRelations: number;
-}
-
-export interface MigrateDelegationsRequest {
-  serviceCode: string;
-  serviceEditionCode: number;
-  resourceId: string;
-}
-
 interface ConsentTemplateTypeText {
   person: SupportedLanguage;
   org: SupportedLanguage;

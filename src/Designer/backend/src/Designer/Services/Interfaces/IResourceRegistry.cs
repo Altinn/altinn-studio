@@ -22,7 +22,6 @@ public interface IResourceRegistry
     Task<List<ServiceResource>> GetServiceResourceList(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false,
         bool includeMigratedApps = false
     );
 
@@ -35,26 +34,6 @@ public interface IResourceRegistry
     /// <param name="env"></param>
     /// <returns></returns>
     Task<ServiceResource> GetResource(string id, string env);
-
-    /// <summary>
-    /// Get Resource from Altinn 2 service
-    /// </summary>
-    Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment);
-
-    /// <summary>
-    /// Get the number of delegations of Altinn 2 service
-    /// </summary>
-    Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment);
-
-    /// <summary>
-    /// Start migration batch of Altinn 2 delegations to Altinn 3
-    /// </summary>
-    Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment);
-
-    /// <summary>
-    /// Get Policy from Altinn 2 Service
-    /// </summary>
-    Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);
 
     /// <summary>
     /// Get Policy from Altinn 3 resource
