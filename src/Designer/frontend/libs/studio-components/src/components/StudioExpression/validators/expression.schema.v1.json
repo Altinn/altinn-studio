@@ -153,7 +153,8 @@
         { "$ref": "#/definitions/func-countDataElements" },
         { "$ref": "#/definitions/func-jmespath" },
         { "$ref": "#/definitions/func-sum" },
-        { "$ref": "#/definitions/func-average" }
+        { "$ref": "#/definitions/func-average" },
+        { "$ref": "#/definitions/func-count" }
       ]
     },
     "list": {
@@ -700,6 +701,16 @@
         { "const": "average" },
         { "$ref": "#/definitions/list" },
         { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-count": {
+      "title": "Get the number of elements in a list",
+      "description": "This function returns the number of elements in a list.",
+      "type": "array",
+      "items": [
+        { "const": "count" },
+        { "$ref": "#/definitions/list" }
       ],
       "additionalItems": false
     },
