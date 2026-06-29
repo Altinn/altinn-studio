@@ -75,6 +75,23 @@ function useDerivedStateForBaseComponent<T>(
   });
 }
 
+function useDerivedStateForNode<T>(
+  baseComponentId: string,
+  indexedId: string | undefined,
+  select: (derived: ReturnType<typeof buildDerivedValidationState>, indexedId: string | undefined) => T,
+) {
+  const inputs = useDerivedValidationStateInputs();
+  return FormStore.raw.useMemoSelector((state) => {
+    const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
+    const derived = buildDerivedValidationState(state, {
+      ...inputs,
+      includedPageKeys: pageKey ? [pageKey] : undefined,
+      includedNodeIds: indexedId ? [indexedId] : emptyArray,
+    });
+    return select(derived, indexedId);
+  });
+}
+
 /**
  * Returns a stable callback that derives from the store snapshot available when
  * it is called, without subscribing this hook to derived validation changes.
@@ -119,15 +136,20 @@ export function useValidationVisibilityBreakdown(
   baseComponentId: string,
   indexedId: string | undefined,
 ): ValidationVisibilityBreakdownType {
-  return useDerivedStateForBaseComponent(baseComponentId, (derived) =>
-    indexedId ? (derived.visibleBreakdownByNode.get(indexedId) ?? emptyBreakdown) : emptyBreakdown,
+  return useDerivedStateForNode(
+    baseComponentId,
+    indexedId,
+    (derived, indexedId) =>
+      indexedId ? (derived.visibleBreakdownByNode.get(indexedId) ?? emptyBreakdown) : emptyBreakdown,
   );
 }
 
 /** Returns raw validations for one generated node without rerendering when unrelated validations change. */
 export function useRawValidations(baseComponentId: string, indexedId: string | undefined): AnyValidation[] {
-  return useDerivedStateForBaseComponent(baseComponentId, (derived) =>
-    indexedId ? (derived.rawValidationsByNode.get(indexedId) ?? emptyArray) : emptyArray,
+  return useDerivedStateForNode(
+    baseComponentId,
+    indexedId,
+    (derived, indexedId) => (indexedId ? (derived.rawValidationsByNode.get(indexedId) ?? emptyArray) : emptyArray),
   );
 }
 
@@ -137,8 +159,11 @@ export function useVisibleValidations(
   indexedId: string | undefined,
   showAll?: boolean,
 ): AnyValidation[] {
-  return useDerivedStateForBaseComponent(baseComponentId, (derived) =>
-    indexedId ? getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible') : emptyArray,
+  return useDerivedStateForNode(
+    baseComponentId,
+    indexedId,
+    (derived, indexedId) =>
+      indexedId ? getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible') : emptyArray,
   );
 }
 

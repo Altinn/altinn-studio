@@ -14,6 +14,7 @@ export type DerivedValidationNode = DerivedLayoutNode & {
 type DeriveNodesInputs = {
   pageOrder: string[];
   includedPageKeys?: Iterable<string>;
+  includedNodeIds?: Iterable<string>;
   pdfLayoutName: string | undefined;
   hiddenDataSources: ExpressionDataSources;
 };
@@ -75,7 +76,12 @@ export function deriveNodes(state: FormStoreState, inputs: DeriveNodesInputs): D
     }).hidden;
   }
 
-  return deriveLayoutNodes(state, inputs.includedPageKeys).map((node) => ({
+  const includedNodeIds = inputs.includedNodeIds ? new Set(inputs.includedNodeIds) : undefined;
+  const layoutNodes = deriveLayoutNodes(state, inputs.includedPageKeys).filter(
+    (node) => !includedNodeIds || includedNodeIds.has(node.id),
+  );
+
+  return layoutNodes.map((node) => ({
     ...node,
     hidden: evaluateHidden(node),
     isValid: inputs.pageOrder.includes(node.pageKey) || node.pageKey === inputs.pdfLayoutName,

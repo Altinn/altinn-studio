@@ -50,6 +50,7 @@ export type DerivedValidationState = {
 export type DerivedValidationStateInputs = {
   pageOrder: string[];
   includedPageKeys?: Iterable<string>;
+  includedNodeIds?: Iterable<string>;
   pdfLayoutName: string | undefined;
   hiddenDataSources: ExpressionDataSources;
   evalDataSources: ExpressionDataSources;
