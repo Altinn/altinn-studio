@@ -112,7 +112,6 @@
     <Watch Remove="Infrastructure\Authorization\GiteaResourceAccessListPermissionRequirement.cs" />
     <Watch Remove="Models\AccessList.cs" />
     <Watch Remove="Models\AccessListMember.cs" />
-    <Watch Remove="Models\AvailableService.cs" />
     <Watch Remove="Models\BrregPartyResultSet.cs" />
     <Watch Remove="Models\CompetentAuthority.cs" />
     <Watch Remove="Models\ConceptSchema.cs" />
@@ -159,8 +158,6 @@
     <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistryAdmin.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
-    <Watch Remove="TypedHttpClients\Altinn2Metadata\Altinn2MetadataClient.cs" />
-    <Watch Remove="TypedHttpClients\Altinn2Metadata\IAltinn2MetadataClient.cs" />
     <Watch Remove="TypedHttpClients\ResourceRegistryOptions\IResourceRegistryOptions.cs" />
     <Watch Remove="TypedHttpClients\ResourceRegistryOptions\ResourceRegistryOptionsClient.cs" />
   </ItemGroup>

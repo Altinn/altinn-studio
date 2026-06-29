@@ -48,7 +48,7 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
       layoutSetConfig: {
         id: newLayoutSetName,
         dataType: selectedDataModelId,
-        tasks: [bpmnDetails.id],
+        taskId: bpmnDetails.id,
       },
     });
   };

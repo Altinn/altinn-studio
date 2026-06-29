@@ -47,7 +47,7 @@ const componentsWithTitleAndDefaultDataModel = (
 };
 
 export const getDefaultDataModel = (layoutSets: LayoutSets, subformLayout: string): string => {
-  const layoutSet = layoutSets?.sets.find((layoutSet) => layoutSet.id === subformLayout);
+  const layoutSet = layoutSets?.find((layoutSet) => layoutSet.id === subformLayout);
 
   return layoutSet?.dataType ?? '';
 };

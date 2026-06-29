@@ -16,7 +16,6 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.UiFoldersController;
 
-//TODO: Temporary skip v9-only tests until shared v8/v9 return type is implemented
 public class LayoutSetTests(WebApplicationFactory<Program> factory)
     : DesignerEndpointsTestsBase<LayoutSetTests>(factory),
         IClassFixture<WebApplicationFactory<Program>>
@@ -28,7 +27,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
     private static string InitialLayoutPath(string layoutSetName) => $"App/ui/{layoutSetName}/layouts/Side1.json";
 
-    [Theory(Skip = "v9-only test, re-enable when shared v8/v9 return type is implemented")]
+    [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task GetLayoutSets_WhenNoDerivableSets_ReturnsEmptyArray(string org, string app, string developer)
     {
@@ -45,7 +44,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal("[]", actual);
     }
 
-    [Theory(Skip = "v9-only test, re-enable when shared v8/v9 return type is implemented")]
+    [Theory]
     [InlineData("ttd", "app-with-layoutsets-v9", "testUser")]
     public async Task GetLayoutSets_WhenSetsExist_ReturnsDerivedSets(string org, string app, string developer)
     {
@@ -59,19 +58,18 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
-        List<UiFolderLayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<UiFolderLayoutSetDto>>(content);
+        List<LayoutSetConfigDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetConfigDto>>(content);
 
         Assert.Equal(2, layoutSets.Count);
 
-        UiFolderLayoutSetDto dataSet = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1");
+        LayoutSetConfigDto dataSet = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1");
         Assert.Equal("model", dataSet.DataType);
-        Assert.Equal("data", dataSet.TaskType);
 
-        UiFolderLayoutSetDto subform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "moreInfoSubform");
+        LayoutSetConfigDto subform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "moreInfoSubform");
         Assert.Equal("subform", subform.Type);
     }
 
-    [Theory(Skip = "v9-only test, re-enable when shared v8/v9 return type is implemented")]
+    [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task AddLayoutSet_WhenValidPayload_CreatesLayoutSetFiles(string org, string app, string developer)
     {
@@ -82,7 +80,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         var payload = new LayoutSetPayload
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = new LayoutSetConfig { Id = NewLayoutSetName, DataType = "model" },
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
         };
 
         string url = VersionPrefix(org, targetRepository);
@@ -113,7 +111,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal("Side1", (string)settings["pages"]["order"].AsArray()[0]);
     }
 
-    [Theory(Skip = "v9-only test, re-enable when shared v8/v9 return type is implemented")]
+    [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task AddLayoutSet_WhenSubform_CreatesSetAndReturnsItInResponse(
         string org,
@@ -127,7 +125,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         const string NewLayoutSetName = "newSubform";
         var payload = new LayoutSetPayload
         {
-            LayoutSetConfig = new LayoutSetConfig { Id = NewLayoutSetName, Type = "subform" },
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, Type = "subform" },
         };
 
         string url = VersionPrefix(org, targetRepository);
@@ -144,8 +142,8 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
-        List<UiFolderLayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<UiFolderLayoutSetDto>>(content);
-        UiFolderLayoutSetDto created = Assert.Single(layoutSets, layoutSet => layoutSet.Id == NewLayoutSetName);
+        List<LayoutSetConfigDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetConfigDto>>(content);
+        LayoutSetConfigDto created = Assert.Single(layoutSets, layoutSet => layoutSet.Id == NewLayoutSetName);
         Assert.Equal("subform", created.Type);
 
         string savedSettings = TestDataHelper.GetFileFromRepo(
@@ -168,7 +166,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        var payload = new LayoutSetPayload { LayoutSetConfig = new LayoutSetConfig { Id = "form" } };
+        var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "form" } };
 
         string url = VersionPrefix(org, targetRepository);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
@@ -194,7 +192,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        var payload = new LayoutSetPayload { LayoutSetConfig = new LayoutSetConfig { Id = "invalid name!" } };
+        var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "invalid name!" } };
 
         string url = VersionPrefix(org, targetRepository);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)

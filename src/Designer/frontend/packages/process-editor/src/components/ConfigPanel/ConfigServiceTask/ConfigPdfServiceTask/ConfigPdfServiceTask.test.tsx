@@ -298,16 +298,14 @@ const renderConfigPdfServiceTask = (options: RenderOptions = {}) => {
       ...contextProps?.bpmnContextProps,
     },
     bpmnApiContextProps: {
-      layoutSets: {
-        sets: withLayoutSet
-          ? [
-              {
-                id: 'pdf-layout-set',
-                tasks: [bpmnDetails.id],
-              },
-            ]
-          : [],
-      },
+      layoutSets: withLayoutSet
+        ? [
+            {
+              id: 'pdf-layout-set',
+              taskId: bpmnDetails.id,
+            },
+          ]
+        : [],
       ...contextProps?.bpmnApiContextProps,
     },
   });
