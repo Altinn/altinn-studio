@@ -10,12 +10,13 @@ public class InstanceInformationTests
         var instanceGuid = Guid.NewGuid();
         var context = new AppWorkflowContext
         {
-            Actor = new Actor { UserIdOrOrgNumber = "user-1" },
+            Actor = new Actor { OrgId = "user-1" },
             LockToken = "lock-1",
             Org = "ttd",
             App = "my-app",
             InstanceOwnerPartyId = 50001,
             InstanceGuid = instanceGuid,
+            CallbackToken = "test-callback-token",
         };
 
         var info = InstanceInformation.FromContext(context);

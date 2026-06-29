@@ -30,7 +30,6 @@ describe('useCreateSubform', () => {
 
     expect(addLayoutSetMock).toHaveBeenCalledWith(
       {
-        layoutSetIdToUpdate: subformName,
         layoutSetConfig: {
           id: subformName,
           type: 'subform',

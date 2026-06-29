@@ -161,7 +161,7 @@ public class StatelessDataControllerTests
             .AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>()))
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
-            .RegisterClientMoq.Setup(p => p.GetParty(234))
+            .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
 
         // Act
@@ -189,7 +189,7 @@ public class StatelessDataControllerTests
             .AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>()))
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
-            .RegisterClientMoq.Setup(p => p.GetParty(234))
+            .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
 
         // Act

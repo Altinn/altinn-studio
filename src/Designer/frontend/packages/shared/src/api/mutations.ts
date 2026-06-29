@@ -35,7 +35,8 @@ import {
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
-  layoutSetPath,
+  uiFoldersLayoutSetPath,
+  uiFoldersLayoutSetsPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
@@ -64,7 +65,6 @@ import {
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
-  layoutSetsPath,
   studioctlAuthRequestCancelPath,
   studioctlAuthRequestConfirmPath,
   userApiKeyPath,
@@ -85,6 +85,7 @@ import {
   chatMessagePath,
   chatFeedbackPath,
   taskNavigationGroupPath,
+  layoutSetsV4Path,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -109,7 +110,7 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
+import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
@@ -138,13 +139,13 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetPayload) => post<AddLayoutSetResponse>(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
+export const addLayoutSet = (org: string, app: string, payload: LayoutSetPayload) => post<void>(uiFoldersLayoutSetsPath(org, app), payload);
 export const addImage = (org: string, app: string, form: FormData) => post<FormData>(addImagePath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteImage = (org: string, app: string, imageName: string) => del(imagePath(org, app, imageName));
 
-export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
+export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
-export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
+export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
@@ -201,8 +202,8 @@ export const convertToPageOrder = (org: string, app: string, layoutSetName: stri
 export const updateValidationOnNavigation = <TLevel extends ValidationOnNavigationLevel>(org: string, app: string, level: TLevel, config: ValidationOnNavigationByLevel[TLevel]) =>
   post<void, ValidationOnNavigationByLevel[TLevel]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level })}`, config);
 
-export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
-export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
+export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsV4Path(org, app)}/validation-on-navigation`, payload);
+export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsV4Path(org, app)}/validation-on-navigation`);
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);

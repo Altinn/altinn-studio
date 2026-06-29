@@ -6,8 +6,10 @@ import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
+import { AverageFunctionEvaluator } from 'src/features/expressions/function-evaluators/AverageFunctionEvaluator';
 import { JmespathFunctionEvaluator } from 'src/features/expressions/function-evaluators/JmespathFunctionEvaluator';
 import { ObjectFunctionEvaluator } from 'src/features/expressions/function-evaluators/ObjectFunctionEvaluator';
+import { SumFunctionEvaluator } from 'src/features/expressions/function-evaluators/SumFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
@@ -336,6 +338,16 @@ export const ExprFunctionDefinitions = {
   jmespath: {
     args: args(required(ExprVal.Any), required(ExprVal.String)),
     returns: ExprVal.Any,
+    needs: noSources,
+  },
+  sum: {
+    args: args(required(ExprVal.List)),
+    returns: ExprVal.Number,
+    needs: noSources,
+  },
+  average: {
+    args: args(required(ExprVal.List), required(ExprVal.Number)),
+    returns: ExprVal.Number,
     needs: noSources,
   },
   _experimentalSelectAndMap: {
@@ -816,6 +828,12 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   },
   jmespath(...argumentList): ValidValue {
     return new JmespathFunctionEvaluator(this, argumentList).evaluate();
+  },
+  sum(...argumentList): number {
+    return new SumFunctionEvaluator(this, argumentList).evaluate();
+  },
+  average(...argumentList): number | null {
+    return new AverageFunctionEvaluator(this, argumentList).evaluate();
   },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {

@@ -64,9 +64,9 @@ public sealed class SigningServiceTests : IDisposable
         );
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(
-                (PartyLookup lookup) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn }
@@ -220,9 +220,9 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(synchronizedSigneeContexts);
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(
-                (PartyLookup lookup) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn, Name = "A person" }
@@ -409,7 +409,7 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync((signeeContexts, true));
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
 
         // Act
@@ -616,6 +616,85 @@ public sealed class SigningServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task InitializeSignees_StoresSigneeStatesAsTaskGeneratedData()
+    {
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = "signeeStates",
+            SignatureDataType = "signature",
+        };
+
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
+        var instance = new Instance
+        {
+            Id = "123/abc",
+            AppId = "ttd/app1",
+            InstanceOwner = new InstanceOwner { PartyId = "123" },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [],
+        };
+        List<SigneeContext> signeeContexts = [];
+        var applicationMetadata = new ApplicationMetadata("ttd/app")
+        {
+            DataTypes = [new DataType { Id = "signeeStates", ActionRequiredToRead = "restricted-read" }],
+        };
+
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x =>
+            x.OverrideAuthenticationMethod(
+                It.Is<DataType>(dataType => dataType.Id == "signeeStates"),
+                It.IsAny<StorageAuthenticationMethod>()
+            )
+        );
+        cachedInstanceMutator
+            .Setup(x =>
+                x.AddBinaryDataElement(
+                    "signeeStates",
+                    "application/json",
+                    null,
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    "Task_1",
+                    null
+                )
+            )
+            .Returns(
+                new BinaryDataChange(
+                    ChangeType.Created,
+                    new DataType { Id = "signeeStates" },
+                    "application/json",
+                    null,
+                    null,
+                    ReadOnlyMemory<byte>.Empty,
+                    "Task_1"
+                )
+            );
+        _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _signingDelegationService
+            .Setup(x =>
+                x.DelegateSigneeRights(
+                    "Task_1",
+                    "123/abc",
+                    It.IsAny<Guid?>(),
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<List<SigneeContext>>(),
+                    CancellationToken.None
+                )
+            )
+            .ReturnsAsync((signeeContexts, false));
+
+        List<SigneeContext> result = await _signingService.InitializeSignees(
+            cachedInstanceMutator.Object,
+            signeeContexts,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        Assert.Same(signeeContexts, result);
+        cachedInstanceMutator.VerifyAll();
+        _appMetadata.VerifyAll();
+    }
+
+    [Fact]
     public async Task GetInstanceOwnerParty_WithTtdOrganization_UsesDigitaliseringsdirektoratetOrgNumber()
     {
         // Arrange
@@ -692,7 +771,9 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd" });
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827")))
+            .Setup(x =>
+                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827"), It.IsAny<StorageAuthenticationMethod?>())
+            )
             .ReturnsAsync(
                 new Party
                 {
@@ -777,7 +858,7 @@ public sealed class SigningServiceTests : IDisposable
         // Setup to throw exception during party lookup
         _altinnPartyClient.Reset();
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ThrowsAsync(new Exception("Party lookup failed"));
 
         // Act & Assert

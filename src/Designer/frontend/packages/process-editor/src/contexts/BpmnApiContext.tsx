@@ -18,7 +18,6 @@ export type BpmnApiContextProps = {
   existingCustomReceiptLayoutSetId: string | undefined;
   addLayoutSet: (
     data: {
-      layoutSetIdToUpdate: string;
       taskType?: BpmnTaskType;
       layoutSetConfig: LayoutSetConfig;
     },

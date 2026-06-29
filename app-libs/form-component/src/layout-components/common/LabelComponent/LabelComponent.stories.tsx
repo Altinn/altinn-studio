@@ -18,8 +18,7 @@ const meta = {
   ],
   args: {
     htmlFor: 'example',
-    componentId: 'example',
-    title: 'First name',
+    title: 'Fornavn',
   },
 } satisfies Meta<typeof LabelComponent>;
 
@@ -43,7 +42,7 @@ export const Optional: Story = {
 
 export const WithHelpAndDescription: Story = {
   args: {
-    help: 'Enter the name exactly as written in your passport.',
-    description: 'We use this to address you.',
+    help: 'Skriv navnet nøyaktig slik det står i passet ditt.',
+    description: 'Vi bruker dette for å henvende oss til deg.',
   },
 };

@@ -1,7 +1,7 @@
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Features.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -59,9 +59,12 @@ internal sealed class FiksArkivServiceTask : IServiceTask
         {
             _logger.LogError(e, "Error occurred while executing FiksArkivServiceTask: {ErrorMessage}", e.Message);
 
-            return _fiksArkivSettings.ErrorHandling?.MoveToNextTask is true
-                ? ServiceTaskResult.FailedContinueProcessNext(_fiksArkivSettings.ErrorHandling?.GetActionOrDefault())
-                : ServiceTaskResult.FailedAbortProcessNext();
+            if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is true)
+            {
+                return ServiceTaskResult.Success(action: _fiksArkivSettings.ErrorHandling.GetActionOrDefault());
+            }
+
+            return ServiceTaskResult.FailedRetryable(e.Message);
         }
     }
 }

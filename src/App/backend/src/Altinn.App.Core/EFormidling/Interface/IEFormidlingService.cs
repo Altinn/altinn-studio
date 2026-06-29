@@ -9,21 +9,10 @@ namespace Altinn.App.Core.EFormidling.Interface;
 public interface IEFormidlingService
 {
     /// <summary>
-    /// Send the eFormidling shipment
-    /// </summary>
-    /// <param name="instance">Instance data</param>
-    /// <returns></returns>
-    public Task SendEFormidlingShipment(Instance instance);
-
-    /// <summary>
     /// Send the eFormidling shipment with explicit configuration context.
     /// </summary>
     /// <param name="instance">Instance data</param>
     /// <param name="configuration">A valid config for eFormidling.</param>
     /// <returns></returns>
-    public Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration)
-    {
-        // Default implementation for backward compatibility - calls legacy method. Only meant to avoid forcing implementers to implement the new method.
-        return SendEFormidlingShipment(instance);
-    }
+    public Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration);
 }

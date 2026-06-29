@@ -148,7 +148,9 @@
         { "$ref": "#/definitions/func-stringLength" },
         { "$ref": "#/definitions/func-stringIndexOf" },
         { "$ref": "#/definitions/func-countDataElements" },
-        { "$ref": "#/definitions/func-jmespath" }
+        { "$ref": "#/definitions/func-jmespath" },
+        { "$ref": "#/definitions/func-sum" },
+        { "$ref": "#/definitions/func-average" }
       ]
     },
     "list": {
@@ -745,6 +747,27 @@
         { "const": "jmespath" },
         { "$ref": "#/definitions/any" },
         { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-sum": {
+      "title": "Sum a list of numbers",
+      "description": "This function returns the sum of a list of numbers.",
+      "type": "array",
+      "items": [
+        { "const": "sum" },
+        { "$ref": "#/definitions/list" }
+      ],
+      "additionalItems": false
+    },
+    "func-average": {
+      "title": "Calculate the average of a list of numbers",
+      "description": "This function returns the average of a list of numbers.",
+      "type": "array",
+      "items": [
+        { "const": "average" },
+        { "$ref": "#/definitions/list" },
+        { "$ref": "#/definitions/number" }
       ],
       "additionalItems": false
     },
