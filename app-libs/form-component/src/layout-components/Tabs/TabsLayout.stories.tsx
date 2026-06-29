@@ -59,7 +59,7 @@ export const WithIcon: Story = {
       {
         id: 'tab1',
         title: 'Tab with icon',
-        icon: 'https://example.com/icon.svg',
+        icon: 'https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg',
         content: <ParagraphText>Content with icon</ParagraphText>,
       },
       {
