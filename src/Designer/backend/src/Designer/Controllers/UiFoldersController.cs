@@ -78,7 +78,7 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        LayoutSetConfig layoutSetConfig = layoutSetPayload.LayoutSetConfig.ToLayoutSetConfig();
+        LayoutSetConfig layoutSetConfig = layoutSetPayload.LayoutSetConfigDto.ToLayoutSetConfig();
         if (!IsV9App(editingContext))
         {
             await _appDevelopmentService.AddLayoutSet(

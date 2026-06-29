@@ -82,7 +82,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         var payload = new LayoutSetPayload
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
         };
 
         string url = VersionPrefix(org, targetRepository);
@@ -127,7 +127,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         const string NewLayoutSetName = "newSubform";
         var payload = new LayoutSetPayload
         {
-            LayoutSetConfig = new LayoutSetConfigDto { Id = NewLayoutSetName, Type = "subform" },
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, Type = "subform" },
         };
 
         string url = VersionPrefix(org, targetRepository);
@@ -168,7 +168,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        var payload = new LayoutSetPayload { LayoutSetConfig = new LayoutSetConfigDto { Id = "form" } };
+        var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "form" } };
 
         string url = VersionPrefix(org, targetRepository);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
@@ -194,7 +194,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        var payload = new LayoutSetPayload { LayoutSetConfig = new LayoutSetConfigDto { Id = "invalid name!" } };
+        var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "invalid name!" } };
 
         string url = VersionPrefix(org, targetRepository);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)

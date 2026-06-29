@@ -36,7 +36,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
@@ -75,7 +75,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
@@ -110,7 +110,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
@@ -139,7 +139,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
@@ -168,7 +168,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = null,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
@@ -197,7 +197,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Payment,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
@@ -239,7 +239,11 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
-        var layoutSetPayload = new LayoutSetPayload() { TaskType = TaskType.Pdf, LayoutSetConfig = newLayoutSetConfig };
+        var layoutSetPayload = new LayoutSetPayload()
+        {
+            TaskType = TaskType.Pdf,
+            LayoutSetConfigDto = newLayoutSetConfig,
+        };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
@@ -277,7 +281,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";

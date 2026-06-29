@@ -10,5 +10,5 @@ public class LayoutSetPayload
     public TaskType? TaskType { get; set; }
 
     [JsonPropertyName("LayoutSetConfig")]
-    public LayoutSetConfigDto LayoutSetConfig { get; set; }
+    public LayoutSetConfigDto LayoutSetConfigDto { get; set; }
 }
