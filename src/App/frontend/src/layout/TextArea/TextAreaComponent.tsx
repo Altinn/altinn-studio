@@ -13,7 +13,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
 export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAreaProps) {
-  const { id, readOnly, dataModelBindings, saveWhileTyping, autocomplete, maxLength, grid } = useItemWhenType(
+  const { readOnly, dataModelBindings, saveWhileTyping, autocomplete, maxLength, grid } = useItemWhenType(
     baseComponentId,
     'TextArea',
   );
@@ -29,7 +29,6 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
 
   return (
     <TextAreaLayout
-      id={id}
       componentId={componentId}
       value={formData.simpleBinding}
       onChange={(v) => setValue('simpleBinding', v)}

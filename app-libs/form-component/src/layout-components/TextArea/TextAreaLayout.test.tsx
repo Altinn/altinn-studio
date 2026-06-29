@@ -9,7 +9,8 @@ import { TextAreaLayout } from './TextAreaLayout';
 const render = (
   props?: Partial<ComponentProps<typeof TextAreaLayout>>,
   options?: Parameters<typeof renderWithTranslations>[1],
-) => renderWithTranslations(<TextAreaLayout id='my-textarea' value='' {...props} />, options);
+) =>
+  renderWithTranslations(<TextAreaLayout componentId='my-textarea' value='' {...props} />, options);
 
 describe('TextAreaLayout', () => {
   it('renders a textarea with the provided value', () => {
@@ -122,10 +123,5 @@ describe('TextAreaLayout', () => {
   it('renders form-content wrapper with componentId', () => {
     render({ componentId: 'ta-1' });
     expect(document.getElementById('form-content-ta-1')).toBeInTheDocument();
-  });
-
-  it('does not render form-content wrapper when componentId is undefined', () => {
-    const { container } = render();
-    expect(container.querySelector('[id^="form-content-"]')).not.toBeInTheDocument();
   });
 });

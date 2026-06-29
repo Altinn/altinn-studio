@@ -9,10 +9,8 @@ import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { FieldCounterProps } from '@digdir/designsystemet-react';
 
 export interface TextAreaLayoutProps {
-  /** Component ID, used as the input's `id` and label's `htmlFor`. */
-  id: string;
-  /** The indexed component ID used for form-content wrapper. */
-  componentId?: string;
+  /** Component ID, used as the input's `id`, label's `htmlFor` and the form-content wrapper. */
+  componentId: string;
   /** Current value of the textarea. */
   value: string;
   /** Called when the user changes the textarea value. */
@@ -45,14 +43,7 @@ export interface TextAreaLayoutProps {
   validationMessages?: ReactNode;
 }
 
-/**
- * Presentational TextArea layout component. Owns all of the presentational logic — the label wrapper,
- * the character-limit counter, the read-only styling, the description association and the
- * `ComponentStructure` grid/validation layout. Fully controlled: the runtime wrapper resolves the
- * data-model value and commits updates via `onChange`/`onBlur`.
- */
 export function TextAreaLayout({
-  id,
   componentId,
   value,
   onChange,
@@ -83,11 +74,11 @@ export function TextAreaLayout({
 
   // Associate the description with the textarea only when there is a visible label, mirroring the
   // previous `buildAriaDescribedBy` gating on the presence of a title.
-  const ariaDescribedBy = title && description ? getDescriptionId(id) : undefined;
+  const ariaDescribedBy = title && description ? getDescriptionId(componentId) : undefined;
 
   return (
     <LabelComponent
-      htmlFor={id}
+      htmlFor={componentId}
       title={title}
       help={help}
       description={description}
@@ -103,13 +94,13 @@ export function TextAreaLayout({
         validationMessages={validationMessages}
       >
         <TextArea
-          id={id}
+          id={componentId}
           value={value}
           onChange={(newValue) => onChange?.(newValue)}
           onBlur={onBlur}
           readOnly={readOnly}
           characterLimit={!readOnly ? characterLimit : undefined}
-          dataTestId={id}
+          dataTestId={componentId}
           ariaDescribedBy={ariaDescribedBy}
           autoComplete={autoComplete}
           style={{ minHeight: '150px', height: '150px', width: '100%' }}

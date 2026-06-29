@@ -10,14 +10,10 @@ import type { TextAreaLayoutProps } from './TextAreaLayout';
  * Sorts each prop into a Storybook docs group
  */
 export const TEXT_AREA_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section (textResourceBindings)
   title: 'text',
   description: 'text',
   help: 'text',
-  // Data model binding — Studio "Datamodeller" section (dataModelBindings.simpleBinding)
   value: 'data',
-  // Configurable options — Studio "Innhold" section
-  id: 'content',
   componentId: 'content',
   readOnly: 'content',
   required: 'content',
@@ -27,7 +23,6 @@ export const TEXT_AREA_PROP_CATEGORIES = {
   labelGrid: 'content',
   innerGrid: 'content',
   validationGrid: 'content',
-  // Injected by the runtime wrapper — not part of the Studio configuration
   onChange: 'runtime',
   onBlur: 'runtime',
   validationMessages: 'runtime',
@@ -36,11 +31,9 @@ export const TEXT_AREA_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/TextArea',
   component: TextAreaLayout,
-  // TEXT_AREA_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['TEXT_AREA_PROP_CATEGORIES'],
   parameters: { layout: 'padded' },
   args: {
-    id: 'textarea-preview',
     componentId: 'textarea-preview',
     value: '',
     onChange: fn(),

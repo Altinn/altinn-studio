@@ -29,9 +29,6 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
-// Global stylesheet: @media print font-size overrides (used for PDF rendering) and global
-// input focus/hover/disabled/validation rules. Loaded here at the app entry point so its
-// presence no longer depends on any single layout component importing it as a side effect.
 import 'src/styles/shared.css';
 
 const queryClient = createAppQueryClient();
