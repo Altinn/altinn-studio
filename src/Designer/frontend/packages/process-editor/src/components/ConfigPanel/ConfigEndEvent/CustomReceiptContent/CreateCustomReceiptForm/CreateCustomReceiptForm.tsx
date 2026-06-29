@@ -64,7 +64,7 @@ export const CreateCustomReceiptForm = ({
     const customReceiptLayoutSetConfig: LayoutSetConfig = {
       id: customReceipt.layoutSetId,
       dataType: customReceipt.dataModelId,
-      tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
+      taskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
     };
     addLayoutSet(
       {

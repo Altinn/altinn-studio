@@ -175,6 +175,6 @@ const renderPdfAutomaticTaskSelection = (taskIds: string[] = []) => {
 
   return renderWithProviders(<PdfAutomaticTaskSelection />, {
     bpmnContextProps: { bpmnDetails },
-    bpmnApiContextProps: { layoutSets: { sets: [] } },
+    bpmnApiContextProps: { layoutSets: [] },
   });
 };

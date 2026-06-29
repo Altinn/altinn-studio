@@ -117,9 +117,7 @@ export const environment: Environment = {
   type: '',
 };
 
-export const layoutSets: LayoutSets = {
-  sets: [],
-};
+export const layoutSets: LayoutSets = [];
 
 export const newsList: NewsList = {
   news: [],

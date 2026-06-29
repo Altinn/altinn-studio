@@ -11,7 +11,7 @@ import { app, org } from '@studio/testing/testids';
 const taskType = 'data';
 const layoutSetConfig: LayoutSetConfig = {
   id: 'newLayoutSetName',
-  tasks: ['task_2'],
+  taskId: 'task_2',
 };
 
 describe('useAddLayoutSetMutation', () => {
