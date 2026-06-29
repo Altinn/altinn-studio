@@ -1,4 +1,4 @@
-import { useArgs } from 'storybook/preview-api';
+import { useState } from 'react';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -48,14 +48,14 @@ const meta = {
     onChange: fn(),
   },
   render: function Render(args) {
-    const [{ value }, updateArgs] = useArgs();
+    const [value, setValue] = useState(args.value);
     return (
       <TimePickerLayout
         {...args}
         value={value}
         onChange={(newValue) => {
           args.onChange?.(newValue);
-          updateArgs({ value: newValue });
+          setValue(newValue);
         }}
       />
     );
