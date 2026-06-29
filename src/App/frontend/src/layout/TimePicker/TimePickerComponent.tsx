@@ -10,7 +10,7 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function TimePickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'TimePicker'>) {
-  const { minTime, maxTime, format, readOnly, required, id, dataModelBindings, grid } = useItemWhenType(
+  const { minTime, maxTime, format, readOnly, required, dataModelBindings, grid } = useItemWhenType(
     baseComponentId,
     'TimePicker',
   );
@@ -27,7 +27,6 @@ export function TimePickerComponent({ baseComponentId, overrideDisplay }: PropsF
 
   return (
     <TimePickerLayout
-      id={id}
       componentId={componentId}
       value={value}
       onChange={(v) => setValue('simpleBinding', v)}

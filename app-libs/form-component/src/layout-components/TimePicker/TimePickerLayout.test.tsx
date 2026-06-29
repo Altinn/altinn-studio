@@ -10,7 +10,7 @@ const render = (
   options?: Parameters<typeof renderWithTranslations>[1],
 ) =>
   renderWithTranslations(
-    <TimePickerLayout id='my-timepicker' value='' onChange={() => {}} {...props} />,
+    <TimePickerLayout componentId='my-timepicker' value='' onChange={() => {}} {...props} />,
     options,
   );
 
@@ -71,11 +71,6 @@ describe('TimePickerLayout', () => {
   it('renders form-content wrapper when componentId is set', () => {
     render({ componentId: 'tp-1' });
     expect(document.getElementById('form-content-tp-1')).toBeInTheDocument();
-  });
-
-  it('does not render form-content wrapper when componentId is undefined', () => {
-    const { container } = render();
-    expect(container.querySelector('[id^="form-content-"]')).not.toBeInTheDocument();
   });
 
   it('disables inputs when readOnly is true', () => {

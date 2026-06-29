@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -7,14 +8,11 @@ import { TimePickerLayout } from './TimePickerLayout';
 import type { TimePickerLayoutProps } from './TimePickerLayout';
 
 export const TIMEPICKER_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
   title: 'text',
   help: 'text',
   description: 'text',
-  // Data model binding — Studio "Datamodeller" section
   value: 'data',
-  // Configurable options — Studio "Innhold" section
-  id: 'content',
+  componentId: 'content',
   format: 'content',
   minTime: 'content',
   maxTime: 'content',
@@ -22,8 +20,6 @@ export const TIMEPICKER_PROP_CATEGORIES = {
   required: 'content',
   showOptionalMarking: 'content',
   labelGrid: 'content',
-  // Runtime-injected props
-  componentId: 'runtime',
   onChange: 'runtime',
   innerGrid: 'runtime',
   validationGrid: 'runtime',
@@ -42,7 +38,7 @@ const meta = {
     },
   },
   args: {
-    id: 'timepicker-preview',
+    componentId: 'timepicker-preview',
     value: '',
     format: 'HH:mm',
     onChange: fn(),

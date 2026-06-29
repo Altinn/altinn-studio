@@ -9,10 +9,8 @@ import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { TimeFormat } from '@app/form-component/app-components/Timepicker';
 
 export interface TimePickerLayoutProps {
-  /** The component id used as the input's `id` and label's `htmlFor`. */
-  id: string;
-  /** The indexed component ID for the form-content wrapper. */
-  componentId?: string;
+  /** The configured component id. Rendered as the input's `id`, the label's `htmlFor`, and the form-content wrapper id. */
+  componentId: string;
   /** The current time value string. */
   value: string;
   /** Called when the user changes the time. */
@@ -46,7 +44,6 @@ export interface TimePickerLayoutProps {
 }
 
 export function TimePickerLayout({
-  id,
   componentId,
   value,
   onChange,
@@ -75,7 +72,7 @@ export function TimePickerLayout({
 
   return (
     <LabelComponent
-      htmlFor={id}
+      htmlFor={componentId}
       title={title}
       help={help}
       description={description}
@@ -92,7 +89,7 @@ export function TimePickerLayout({
       >
         <Flex container item size={{ xs: 12 }}>
           <TimePickerControl
-            id={id}
+            id={componentId}
             value={value}
             onChange={onChange ?? (() => {})}
             format={format}
