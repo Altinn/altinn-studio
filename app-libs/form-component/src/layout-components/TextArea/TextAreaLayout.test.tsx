@@ -113,6 +113,16 @@ describe('TextAreaLayout', () => {
     expect(screen.getByText('Error')).toBeInTheDocument();
   });
 
+  it('marks the textarea as invalid when error is set', () => {
+    render({ error: true });
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('does not mark the textarea as invalid when error is unset', () => {
+    render();
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
+  });
+
   it('does not render validation area when validationMessages is undefined', () => {
     render({ componentId: 'ta-1' });
     const formContent = document.getElementById('form-content-ta-1');

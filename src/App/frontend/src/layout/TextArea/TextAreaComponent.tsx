@@ -5,6 +5,7 @@ import { TextAreaLayout } from '@app/form-component';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useLabelData } from 'src/utils/layout/useLabelData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -20,6 +21,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
 
   const { setValue, formData } = useDataModelBindings(dataModelBindings, saveWhileTyping);
   const debounce = FormStore.data.useDebounceImmediately();
+  const isValid = useIsValid(baseComponentId);
 
   const { title, help, description, required, showOptionalMarking } = useLabelData({
     baseComponentId,
@@ -35,6 +37,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
       onBlur={() => debounce('blur')}
       readOnly={readOnly}
       required={required}
+      error={!isValid}
       maxLength={maxLength}
       autoComplete={autocomplete}
       title={title}

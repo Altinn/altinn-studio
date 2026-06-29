@@ -21,6 +21,8 @@ export interface TextAreaLayoutProps {
   readOnly?: boolean;
   /** Whether the field is required. */
   required?: boolean;
+  /** Whether the field is in an invalid state (drives invalid styling and `aria-invalid`). */
+  error?: boolean;
   /** Max character count. When set, renders a counter. */
   maxLength?: number;
   /** HTML autocomplete attribute value. */
@@ -50,6 +52,7 @@ export function TextAreaLayout({
   onBlur,
   readOnly,
   required,
+  error,
   maxLength,
   autoComplete,
   title,
@@ -99,6 +102,7 @@ export function TextAreaLayout({
           onChange={(newValue) => onChange?.(newValue)}
           onBlur={onBlur}
           readOnly={readOnly}
+          error={error}
           characterLimit={!readOnly ? characterLimit : undefined}
           dataTestId={componentId}
           ariaDescribedBy={ariaDescribedBy}

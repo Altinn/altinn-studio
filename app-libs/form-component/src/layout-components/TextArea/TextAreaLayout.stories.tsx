@@ -25,6 +25,7 @@ export const TEXT_AREA_PROP_CATEGORIES = {
   validationGrid: 'content',
   onChange: 'runtime',
   onBlur: 'runtime',
+  error: 'runtime',
   validationMessages: 'runtime',
 } satisfies PropCategories<TextAreaLayoutProps>;
 
