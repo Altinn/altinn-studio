@@ -98,12 +98,13 @@ internal sealed record AppCommandTestFixture(
     public static AppWorkflowContext DefaultContext =>
         new()
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
+            Actor = new Actor { OrgId = "test-user-123" },
             LockToken = "test-lock-key",
             Org = "ttd",
             App = "test-app",
             InstanceOwnerPartyId = 12345,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            CallbackToken = "test-callback-token",
         };
 
     public static JsonElement DefaultWorkflowContext => JsonSerializer.SerializeToElement(DefaultContext);

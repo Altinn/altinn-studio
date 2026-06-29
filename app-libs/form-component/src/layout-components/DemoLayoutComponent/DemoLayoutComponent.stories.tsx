@@ -37,7 +37,7 @@ const meta = {
   },
   args: {
     id: 'demo-preview',
-    content: 'This is a plain text',
+    content: 'Dette er ren tekst',
   },
 } satisfies Meta<typeof DemoLayoutComponent>;
 
@@ -49,37 +49,37 @@ export const Preview: Story = {};
 
 export const WithTitle: Story = {
   args: {
-    title: 'A configurable heading',
+    title: 'En konfigurerbar overskrift',
   },
 };
 
 export const Warning: Story = {
   args: {
     variant: 'warning',
-    title: 'Heads up',
-    content: 'This variant draws attention with a coloured accent.',
+    title: 'Vær oppmerksom',
+    content: 'Denne varianten fanger oppmerksomheten med en annen farge.',
   },
 };
 
 export const WithHtml: Story = {
   args: {
-    content: `<h3>This is content set with props a html, but can be html or mark down</h3>
-      <p>And this is a <strong>paragraph</strong></p>
+    content: `<h3>Dette er innhold satt med props som html, men kan være html eller markdown</h3>
+      <p>Og dette er et <strong>avsnitt</strong></p>
       <ul>
-        <li>And this is a list item</li>
-        <li>And this is another list item</li>
+        <li>Og dette er et listeelement</li>
+        <li>Og dette er enda et listeelement</li>
       </ul>`,
   },
 };
 
 export const WithMarkdown: Story = {
   args: {
-    content: `### This is content set with props a text, but can be **html** or **mark down**
+    content: `### Dette er innhold satt med props som tekst, men kan være **html** eller **markdown**
 
-And this is a **paragraph**
+Og dette er et **avsnitt**
 
-- And this is a list item
-- And this is another list item`,
+- Og dette er et listeelement
+- Og dette er enda et listeelement`,
   },
 };
 
@@ -87,13 +87,13 @@ And this is a **paragraph**
 
 export const RuntimeBoundValue: Story = {
   args: {
-    dataValue: 'a value injected by the runtime wrapper',
+    dataValue: 'en verdi injisert av runtime-wrapperen',
   },
 };
 
 export const RenderedInTable: Story = {
   args: {
-    title: 'Title is suppressed when rendered in a table',
+    title: 'Tittelen skjules når den vises i en tabell',
     renderedInTable: true,
   },
 };

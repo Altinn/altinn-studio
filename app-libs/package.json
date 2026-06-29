@@ -1,0 +1,15 @@
+{
+  "name": "app-libs",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "yarn@4.16.0",
+  "scripts": {
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "typecheck": "yarn workspaces foreach -A --include '@app/*' run typecheck",
+    "lint": "yarn workspaces foreach -A --include '@app/*' run lint"
+  },
+  "devDependencies": {
+    "vitest": "4.1.8"
+  }
+}

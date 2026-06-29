@@ -1,0 +1,622 @@
+{
+  "Accepted": {
+    "Name": "Accepted",
+    "Fields": [
+      {
+        "Name": "workflows",
+        "Kind": "array<object<WorkflowResult>>",
+        "Nullable": false
+      }
+    ]
+  },
+  "Actor": {
+    "Name": "Actor",
+    "Fields": [
+      {
+        "Name": "authenticationLevel",
+        "Kind": "int",
+        "Nullable": true
+      },
+      {
+        "Name": "language",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "nationalIdentityNumber",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "orgId",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "systemUserId",
+        "Kind": "guid",
+        "Nullable": true
+      },
+      {
+        "Name": "systemUserName",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "systemUserOwnerOrgNo",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "userId",
+        "Kind": "int",
+        "Nullable": true
+      }
+    ]
+  },
+  "AppCallbackPayload": {
+    "Name": "AppCallbackPayload",
+    "Fields": [
+      {
+        "Name": "actor",
+        "Kind": "object<Actor>",
+        "Nullable": false
+      },
+      {
+        "Name": "commandKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "lockToken",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "payload",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "state",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "workflowId",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
+  "AppCallbackResponse": {
+    "Name": "AppCallbackResponse",
+    "Fields": [
+      {
+        "Name": "state",
+        "Kind": "string",
+        "Nullable": true
+      }
+    ]
+  },
+  "AppCommandData": {
+    "Name": "AppCommandData",
+    "Fields": [
+      {
+        "Name": "commandKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "payload",
+        "Kind": "string",
+        "Nullable": true
+      }
+    ]
+  },
+  "AppWorkflowContext": {
+    "Name": "AppWorkflowContext",
+    "Fields": [
+      {
+        "Name": "actor",
+        "Kind": "object<Actor>",
+        "Nullable": false
+      },
+      {
+        "Name": "app",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "callbackToken",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "instanceGuid",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "instanceOwnerPartyId",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "lockToken",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "org",
+        "Kind": "string",
+        "Nullable": false
+      }
+    ]
+  },
+  "CancelWorkflowResponse": {
+    "Name": "CancelWorkflowResponse",
+    "Fields": [
+      {
+        "Name": "canceledImmediately",
+        "Kind": "bool",
+        "Nullable": false
+      },
+      {
+        "Name": "cancellationRequestedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "workflowId",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
+  "CollectionHeadStatus": {
+    "Name": "CollectionHeadStatus",
+    "Fields": [
+      {
+        "Name": "databaseId",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "status",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}",
+        "Nullable": false
+      }
+    ]
+  },
+  "CommandDefinition": {
+    "Name": "CommandDefinition",
+    "Fields": [
+      {
+        "Name": "data",
+        "Kind": "json",
+        "Nullable": true
+      },
+      {
+        "Name": "maxExecutionTime",
+        "Kind": "timespan",
+        "Nullable": true
+      },
+      {
+        "Name": "type",
+        "Kind": "string",
+        "Nullable": false
+      }
+    ]
+  },
+  "CommandDetails": {
+    "Name": "CommandDetails",
+    "Fields": [
+      {
+        "Name": "type",
+        "Kind": "string",
+        "Nullable": false
+      }
+    ]
+  },
+  "ErrorEntry": {
+    "Name": "ErrorEntry",
+    "Fields": [
+      {
+        "Name": "httpStatusCode",
+        "Kind": "int",
+        "Nullable": true
+      },
+      {
+        "Name": "message",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "timestamp",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "wasRetryable",
+        "Kind": "bool",
+        "Nullable": false
+      }
+    ]
+  },
+  "PaginatedResponse<WorkflowStatusResponse>": {
+    "Name": "PaginatedResponse<WorkflowStatusResponse>",
+    "Fields": [
+      {
+        "Name": "data",
+        "Kind": "array<object<WorkflowStatusResponse>>",
+        "Nullable": false
+      },
+      {
+        "Name": "nextCursor",
+        "Kind": "guid",
+        "Nullable": true
+      },
+      {
+        "Name": "pageSize",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "totalCount",
+        "Kind": "int",
+        "Nullable": false
+      }
+    ]
+  },
+  "ResumeWorkflowResponse": {
+    "Name": "ResumeWorkflowResponse",
+    "Fields": [
+      {
+        "Name": "cascadeResumed",
+        "Kind": "array<guid>",
+        "Nullable": false
+      },
+      {
+        "Name": "resumedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "workflowId",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
+  "RetryStrategy": {
+    "Name": "RetryStrategy",
+    "Fields": [
+      {
+        "Name": "backoffType",
+        "Kind": "enum<string>{Constant=0,Linear=1,Exponential=2}",
+        "Nullable": false
+      },
+      {
+        "Name": "baseInterval",
+        "Kind": "timespan",
+        "Nullable": false
+      },
+      {
+        "Name": "maxDelay",
+        "Kind": "timespan",
+        "Nullable": true
+      },
+      {
+        "Name": "maxDuration",
+        "Kind": "timespan",
+        "Nullable": true
+      },
+      {
+        "Name": "maxRetries",
+        "Kind": "int",
+        "Nullable": true
+      },
+      {
+        "Name": "nonRetryableHttpStatusCodes",
+        "Kind": "array<int>",
+        "Nullable": true
+      }
+    ]
+  },
+  "StepRequest": {
+    "Name": "StepRequest",
+    "Fields": [
+      {
+        "Name": "command",
+        "Kind": "object<CommandDefinition>",
+        "Nullable": false
+      },
+      {
+        "Name": "labels",
+        "Kind": "map<string,string>",
+        "Nullable": true
+      },
+      {
+        "Name": "operationId",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "retryStrategy",
+        "Kind": "object<RetryStrategy>",
+        "Nullable": true
+      }
+    ]
+  },
+  "StepStatusResponse": {
+    "Name": "StepStatusResponse",
+    "Fields": [
+      {
+        "Name": "command",
+        "Kind": "object<CommandDetails>",
+        "Nullable": false
+      },
+      {
+        "Name": "databaseId",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "errorHistory",
+        "Kind": "array<object<ErrorEntry>>",
+        "Nullable": true
+      },
+      {
+        "Name": "labels",
+        "Kind": "map<string,string>",
+        "Nullable": true
+      },
+      {
+        "Name": "operationId",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "processingOrder",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "retryCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "retryStrategy",
+        "Kind": "object<RetryStrategy>",
+        "Nullable": true
+      },
+      {
+        "Name": "stateOut",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "status",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}",
+        "Nullable": false
+      },
+      {
+        "Name": "updatedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      }
+    ]
+  },
+  "WorkflowCollectionDetailResponse": {
+    "Name": "WorkflowCollectionDetailResponse",
+    "Fields": [
+      {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "heads",
+        "Kind": "array<object<CollectionHeadStatus>>",
+        "Nullable": false
+      },
+      {
+        "Name": "key",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "updatedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      }
+    ]
+  },
+  "WorkflowEnqueueRequest": {
+    "Name": "WorkflowEnqueueRequest",
+    "Fields": [
+      {
+        "Name": "context",
+        "Kind": "json",
+        "Nullable": true
+      },
+      {
+        "Name": "labels",
+        "Kind": "map<string,string>",
+        "Nullable": true
+      },
+      {
+        "Name": "workflows",
+        "Kind": "array<object<WorkflowRequest>>",
+        "Nullable": false
+      }
+    ]
+  },
+  "WorkflowRequest": {
+    "Name": "WorkflowRequest",
+    "Fields": [
+      {
+        "Name": "dependsOn",
+        "Kind": "array<string>",
+        "Nullable": true
+      },
+      {
+        "Name": "dependsOnHeads",
+        "Kind": "bool",
+        "Nullable": false
+      },
+      {
+        "Name": "isHead",
+        "Kind": "bool",
+        "Nullable": true
+      },
+      {
+        "Name": "links",
+        "Kind": "array<string>",
+        "Nullable": true
+      },
+      {
+        "Name": "operationId",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "ref",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "startAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "state",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "steps",
+        "Kind": "array<object<StepRequest>>",
+        "Nullable": false
+      }
+    ]
+  },
+  "WorkflowResult": {
+    "Name": "WorkflowResult",
+    "Fields": [
+      {
+        "Name": "databaseId",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "ref",
+        "Kind": "string",
+        "Nullable": true
+      }
+    ]
+  },
+  "WorkflowStatusResponse": {
+    "Name": "WorkflowStatusResponse",
+    "Fields": [
+      {
+        "Name": "backoffUntil",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "cancellationRequestedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "collectionKey",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "databaseId",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "dependencies",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}>",
+        "Nullable": true
+      },
+      {
+        "Name": "dependents",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}>",
+        "Nullable": true
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "initialState",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "labels",
+        "Kind": "map<string,string>",
+        "Nullable": true
+      },
+      {
+        "Name": "links",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}>",
+        "Nullable": true
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "operationId",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "overallStatus",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}",
+        "Nullable": false
+      },
+      {
+        "Name": "startAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "steps",
+        "Kind": "array<object<StepStatusResponse>>",
+        "Nullable": false
+      },
+      {
+        "Name": "updatedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      }
+    ]
+  }
+}

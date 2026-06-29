@@ -75,7 +75,7 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
         string formattedScopes = MaskinportenClient.GetFormattedScopes(request.Scopes);
         string url =
-            $"{_localtestBaseUrl}/Home/GetTestOrgToken?org={appMetadata.Org}&orgNumber=405003309&authenticationLevel=3&scopes={Uri.EscapeDataString(formattedScopes)}";
+            $"{_localtestBaseUrl}/Home/GetTestOrgToken?org={appMetadata.Org}&orgNumber=991825827&authenticationLevel=3&scopes={Uri.EscapeDataString(formattedScopes)}";
 
         using var client = _httpClientFactory.CreateClient();
         var response = await client.GetAsync(url, cancellationToken);

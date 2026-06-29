@@ -1,5 +1,3 @@
-using Altinn.Platform.Storage.Interface.Models;
-
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <summary>
@@ -11,20 +9,11 @@ public class NullTypeProcessTask : IProcessTask
     public string Type => "NullType";
 
     /// <inheritdoc/>
-    public async Task Start(string taskId, Instance instance)
-    {
-        await Task.CompletedTask;
-    }
+    public Task Start(ProcessTaskContext context) => Task.CompletedTask;
 
     /// <inheritdoc/>
-    public async Task End(string taskId, Instance instance)
-    {
-        await Task.CompletedTask;
-    }
+    public Task End(ProcessTaskContext context) => Task.CompletedTask;
 
     /// <inheritdoc/>
-    public async Task Abandon(string taskId, Instance instance)
-    {
-        await Task.CompletedTask;
-    }
+    public Task Abandon(ProcessTaskContext context) => Task.CompletedTask;
 }

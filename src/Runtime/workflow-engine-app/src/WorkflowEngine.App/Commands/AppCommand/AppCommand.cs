@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Commands.Extensions;
@@ -58,9 +59,16 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         if (workflowContext is null)
             return new CommandValidationResult.Invalid("AppCommand requires workflow context");
 
-        if (string.IsNullOrWhiteSpace(workflowContext.Actor?.UserIdOrOrgNumber))
+        if (workflowContext.Actor is null)
+            return new CommandValidationResult.Invalid("AppCommand requires an 'actor' in workflow context");
+
+        if (
+            workflowContext.Actor.UserId is null
+            && workflowContext.Actor.SystemUserId is null
+            && string.IsNullOrWhiteSpace(workflowContext.Actor.OrgId)
+        )
             return new CommandValidationResult.Invalid(
-                "AppCommand requires an 'actor' with 'userIdOrOrgNumber' in workflow context"
+                "AppCommand requires an 'actor' with at least one identity (userId, systemUserId, or orgId) in workflow context"
             );
 
         if (string.IsNullOrWhiteSpace(workflowContext.Org) || string.IsNullOrWhiteSpace(workflowContext.App))
@@ -78,6 +86,9 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
         if (string.IsNullOrWhiteSpace(workflowContext.LockToken))
             return new CommandValidationResult.Invalid("AppCommand requires a 'lockToken' in workflow context");
+
+        if (string.IsNullOrWhiteSpace(workflowContext.CallbackToken))
+            return new CommandValidationResult.Invalid("AppCommand requires a 'callbackToken' in workflow context");
 
         return new CommandValidationResult.Valid();
     }
@@ -113,7 +124,13 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
 
-        _logger.SendingAppCommand(endpoint, payload);
+        _logger.SendingAppCommand(
+            commandData.CommandKey,
+            endpoint,
+            context.Workflow.DatabaseId,
+            workflowContext.InstanceOwnerPartyId,
+            workflowContext.InstanceGuid
+        );
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
@@ -168,16 +185,33 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
 
+        // Replay the app-minted token as a bearer token so the callback controller can authenticate the
+        // engine. The app's selector auth scheme routes callback requests to the WorkflowEngineCallback
+        // scheme, so this does not collide with the default platform (cookie/bearer) authentication.
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            workflowContext.CallbackToken
+        );
+
         return client;
     }
 }
 
 internal static partial class AppCommandDescriptorLogs
 {
-    [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
+    // Routing fields only. Never log the AppCallbackPayload: it carries actor identifiers (incl. national
+    // identity number), the lock token, the command payload body, and the unencrypted state envelope
+    // (instance + form data).
+    [LoggerMessage(
+        LogLevel.Information,
+        "Sending AppCommand '{CommandKey}' to {Endpoint} (workflowId: {WorkflowId}, instance: {InstanceOwnerPartyId}/{InstanceGuid})"
+    )]
     internal static partial void SendingAppCommand(
         this ILogger<AppCommand> logger,
+        string commandKey,
         Uri endpoint,
-        AppCallbackPayload payload
+        Guid workflowId,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
     );
 }

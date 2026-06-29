@@ -27,12 +27,13 @@
 
   <!--
     NOTE:
-    InternalsVisibleTo messes with PolySharp, which we use to support newer C# features in analyzer code (such as records)
-    So it is disabled currently and relevant members sin analyzer code is public instead
+    Unlike Altinn.App.Internal.Analyzers, this project does not use PolySharp (it polyfills init-only/records
+    via PolyFills.cs instead), so InternalsVisibleTo does not conflict here. Enabling it lets analyzer
+    implementation details stay 'internal' while remaining reachable from the test assembly.
    -->
-  <!-- <ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Altinn.App.Analyzers.Tests" />
-  </ItemGroup> -->
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" VersionOverride="4.10.0" />
