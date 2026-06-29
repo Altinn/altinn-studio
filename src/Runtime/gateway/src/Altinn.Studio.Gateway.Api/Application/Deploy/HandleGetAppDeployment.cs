@@ -45,7 +45,15 @@ internal static class HandleGetAppDeployment
             logger,
             cancellationToken
         );
-        deployment = AppDeploymentMapping.WithGitOpsMetadata(deployment, helmReleaseMetadata);
+        if (helmReleaseMetadata.Failed && includeNonGitOps != true)
+        {
+            return Results.Problem(
+                title: "Failed to get GitOps deployment metadata.",
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+
+        deployment = AppDeploymentMapping.WithGitOpsMetadata(deployment, helmReleaseMetadata.Metadata);
 
         if (includeNonGitOps != true && !deployment.IsGitOpsManaged)
         {
@@ -55,7 +63,7 @@ internal static class HandleGetAppDeployment
         return Results.Ok(deployment);
     }
 
-    private static async Task<HelmReleaseMapping.DeploymentMetadata?> GetHelmReleaseMetadata(
+    private static async Task<HelmReleaseMetadataResult> GetHelmReleaseMetadata(
         string helmReleaseName,
         HelmReleaseClient helmReleaseClient,
         ILogger logger,
@@ -74,20 +82,28 @@ internal static class HandleGetAppDeployment
                 "Failed to get HelmRelease metadata for {HelmReleaseName}. Returning runtime deployment without GitOps metadata.",
                 helmReleaseName
             );
-            return null;
+            return HelmReleaseMetadataResult.Failure();
         }
 
         if (helmRelease is null)
         {
-            return null;
+            return HelmReleaseMetadataResult.Success(null);
         }
 
         if (!HelmReleaseMapping.TryGetDeploymentMetadata(helmRelease, out var metadata, out var error))
         {
             logger.LogWarning("Invalid HelmRelease metadata for {HelmReleaseName}: {Error}", helmReleaseName, error);
-            return null;
+            return HelmReleaseMetadataResult.Success(null);
         }
 
-        return metadata;
+        return HelmReleaseMetadataResult.Success(metadata);
+    }
+
+    private sealed record HelmReleaseMetadataResult(HelmReleaseMapping.DeploymentMetadata? Metadata, bool Failed)
+    {
+        public static HelmReleaseMetadataResult Success(HelmReleaseMapping.DeploymentMetadata? metadata) =>
+            new(metadata, Failed: false);
+
+        public static HelmReleaseMetadataResult Failure() => new(Metadata: null, Failed: true);
     }
 }

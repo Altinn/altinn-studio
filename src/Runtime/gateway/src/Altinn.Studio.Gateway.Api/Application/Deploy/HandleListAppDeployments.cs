@@ -30,6 +30,13 @@ internal static class HandleListAppDeployments
             logger,
             cancellationToken
         );
+        if (helmReleaseMetadata.Failed && includeNonGitOps != true)
+        {
+            return Results.Problem(
+                title: "Failed to get GitOps deployment metadata.",
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
 
         var deployments = new List<AppDeployment>();
 
@@ -41,7 +48,7 @@ internal static class HandleListAppDeployments
                 runtimeDeployment
             );
 
-            helmReleaseMetadata.TryGetValue(runtimeDeployment.App, out var metadata);
+            helmReleaseMetadata.Metadata.TryGetValue(runtimeDeployment.App, out var metadata);
             deployment = AppDeploymentMapping.WithGitOpsMetadata(deployment, metadata);
             if (includeNonGitOps != true && !deployment.IsGitOpsManaged)
             {
@@ -54,7 +61,7 @@ internal static class HandleListAppDeployments
         return Results.Ok(deployments);
     }
 
-    private static async Task<Dictionary<string, HelmReleaseMapping.DeploymentMetadata>> GetHelmReleaseMetadata(
+    private static async Task<HelmReleaseMetadataResult> GetHelmReleaseMetadata(
         string org,
         string originEnvironment,
         HelmReleaseClient helmReleaseClient,
@@ -80,7 +87,7 @@ internal static class HandleListAppDeployments
                 org,
                 originEnvironment
             );
-            return [];
+            return HelmReleaseMetadataResult.Failure();
         }
 
         var result = new Dictionary<string, HelmReleaseMapping.DeploymentMetadata>(StringComparer.Ordinal);
@@ -107,6 +114,18 @@ internal static class HandleListAppDeployments
             }
         }
 
-        return result;
+        return HelmReleaseMetadataResult.Success(result);
+    }
+
+    private sealed record HelmReleaseMetadataResult(
+        Dictionary<string, HelmReleaseMapping.DeploymentMetadata> Metadata,
+        bool Failed
+    )
+    {
+        public static HelmReleaseMetadataResult Success(
+            Dictionary<string, HelmReleaseMapping.DeploymentMetadata> metadata
+        ) => new(metadata, Failed: false);
+
+        public static HelmReleaseMetadataResult Failure() => new(Metadata: [], Failed: true);
     }
 }

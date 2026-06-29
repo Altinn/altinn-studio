@@ -91,8 +91,12 @@ internal sealed class DeploymentClient(IKubernetes _kubernetes)
             return null;
         }
 
-        var lastColonIndex = image.LastIndexOf(':');
-        return lastColonIndex >= 0 && lastColonIndex < image.Length - 1 ? image[(lastColonIndex + 1)..] : null;
+        var imageWithoutDigest = image.Split('@', 2)[0];
+        var lastSlashIndex = imageWithoutDigest.LastIndexOf('/');
+        var lastColonIndex = imageWithoutDigest.LastIndexOf(':');
+        return lastColonIndex > lastSlashIndex && lastColonIndex < imageWithoutDigest.Length - 1
+            ? imageWithoutDigest[(lastColonIndex + 1)..]
+            : null;
     }
 
     private static string? TryParseAppName(string org, string? release)
@@ -107,15 +111,16 @@ internal sealed class DeploymentClient(IKubernetes _kubernetes)
 
     private static bool IsUpdateInProgress(V1Deployment deployment)
     {
-        var desiredReplicas = deployment.Spec.Replicas ?? 0;
+        var desiredReplicas = deployment.Spec?.Replicas ?? 0;
         var status = deployment.Status;
+        var generation = deployment.Metadata?.Generation ?? 0;
 
-        return status.ObservedGeneration < deployment.Metadata.Generation
-            || (status.Replicas ?? 0) != (status.UpdatedReplicas ?? 0)
-            || (status.UpdatedReplicas ?? 0) < desiredReplicas
-            || (status.ReadyReplicas ?? 0) < desiredReplicas
-            || (status.AvailableReplicas ?? 0) < desiredReplicas
-            || (status.UnavailableReplicas ?? 0) > 0;
+        return (status?.ObservedGeneration ?? 0) < generation
+            || (status?.Replicas ?? 0) != (status?.UpdatedReplicas ?? 0)
+            || (status?.UpdatedReplicas ?? 0) < desiredReplicas
+            || (status?.ReadyReplicas ?? 0) < desiredReplicas
+            || (status?.AvailableReplicas ?? 0) < desiredReplicas
+            || (status?.UnavailableReplicas ?? 0) > 0;
     }
 
     internal sealed record RuntimeDeployment(
