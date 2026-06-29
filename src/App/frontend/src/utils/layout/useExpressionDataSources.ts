@@ -113,6 +113,7 @@ export type ExpressionRuntimeOverrides = {
   runtime?: Partial<ExpressionDataSources>;
   unsupportedDataSources?: Set<ExpressionDataSource>;
   errorSuffix?: string;
+  subscribeToFormStore?: boolean; // Can be toggled off, for example if you already have a subscription
 };
 
 /**
@@ -237,10 +238,13 @@ function useExpressionDataSourcesRuntime(overrides: ExpressionRuntimeOverrides |
   observerRef.current.beginCollect();
 
   useLayoutEffect(() => {
-    const observer = observerRef.current!;
-    observer.commitCollect();
-    return observer.subscribe();
+    observerRef.current!.commitCollect();
   });
+
+  useLayoutEffect(() => {
+    const observer = observerRef.current!;
+    return observer.subscribe(overrides?.subscribeToFormStore !== false);
+  }, [overrides?.subscribeToFormStore, queryCacheObserver, store]);
 
   const { runtime: runtimeOverridesFromProps, unsupportedDataSources, errorSuffix } = overrides ?? {};
   const runtimeOverrides = useShallowMemo(runtimeOverridesFromProps ?? emptyRuntimeOverrides);
@@ -388,7 +392,7 @@ class ExpressionObserver {
     return [...this.active.values()];
   }
 
-  subscribe() {
+  subscribe(subscribeToFormStore: boolean) {
     this.unsubscribeStore?.();
     this.unsubscribeQuery?.();
     this.subscribed = false;
@@ -399,7 +403,9 @@ class ExpressionObserver {
     }
 
     this.unsubscribeStore =
-      inputs.store !== ContextNotProvided ? inputs.store.subscribe(() => this.checkForChanges()) : null;
+      subscribeToFormStore && inputs.store !== ContextNotProvided
+        ? inputs.store.subscribe(() => this.checkForChanges())
+        : null;
 
     this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
       this.checkForChanges();

@@ -85,11 +85,13 @@ interface ErrorReportListProps {
   taskErrors: BaseValidation<'error'>[];
 }
 
+type InfectedFileError = NodeRefValidation & { dataElementId: string };
+
 export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps) {
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const allAttachments = useAllAttachments();
 
-  const infectedFileErrors: NodeRefValidation[] = Object.entries(allAttachments || {}).flatMap(
+  const infectedFileErrors: InfectedFileError[] = Object.entries(allAttachments || {}).flatMap(
     ([nodeId, attachments]) => {
       const { baseComponentId } = splitDashedKey(nodeId);
 
@@ -127,7 +129,7 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
       ))}
       {infectedFileErrors.map((error) => (
         <ErrorWithLink
-          key={`infected-${error.nodeId}`}
+          key={`infected-${error.nodeId}-${error.dataElementId}`}
           error={error}
         />
       ))}

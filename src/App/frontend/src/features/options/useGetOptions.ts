@@ -100,12 +100,15 @@ export function useSetOptions(
     [setValue, valueType],
   );
 
-  return {
-    rawData: value,
-    selectedValues,
-    unsafeSelectedValues: currentValues,
-    setData,
-  };
+  return useMemo(
+    () => ({
+      rawData: value,
+      selectedValues,
+      unsafeSelectedValues: currentValues,
+      setData,
+    }),
+    [currentValues, selectedValues, setData, value],
+  );
 }
 
 function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {

@@ -24,7 +24,7 @@ type BindingEntry = {
 type AttachmentEffectsSnapshot = {
   readOnly: boolean;
   bindings: BindingEntry[];
-  currentData: Record<string, unknown>;
+  currentValues: Record<string, unknown>;
 };
 
 const emptyArray = [];
@@ -56,7 +56,7 @@ export function AttachmentEffects() {
         continue;
       }
 
-      const currentValue = dot.pick(binding.reference.field, snapshot.currentData[binding.reference.dataType]);
+      const currentValue = snapshot.currentValues[key];
       const uploadedIds = selectCurrentCanonicalAttachmentIds(
         binding.node,
         currentValue,
@@ -90,11 +90,15 @@ export function AttachmentEffects() {
 }
 
 function makeAttachmentEffectsSnapshot(state: FormStoreState): AttachmentEffectsSnapshot {
+  const bindings = getUploaderBindings(state);
   return {
     readOnly: state.readOnly,
-    bindings: getUploaderBindings(state),
-    currentData: Object.fromEntries(
-      Object.entries(state.data.models).map(([dataType, model]) => [dataType, model.currentData]),
+    bindings,
+    currentValues: Object.fromEntries(
+      bindings.map((binding) => [
+        getBindingKey(binding.reference),
+        dot.pick(binding.reference.field, state.data.models[binding.reference.dataType]?.currentData),
+      ]),
     ),
   };
 }
