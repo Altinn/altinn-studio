@@ -1,7 +1,7 @@
 /* Card rendering — shared by live, recent, and query views */
 
-import { stepSubLabel, state, workflowData } from '../core/state.js';
-import { esc, formatElapsed, fmtTime } from '../core/helpers.js';
+import { stepSubLabel, state, workflowData, parseTransition } from '../core/state.js';
+import { esc, formatElapsed, fmtTime, fmtNamespace, abbrevGuids } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
 /** @param {string} text @param {string} [title] */
@@ -93,38 +93,103 @@ const buildTimestampsHTML = (wf, isStatic) => {
 /* ── Label segments (namespace + labels) ─────────────────── */
 
 /**
- * Build clickable label segments for a workflow card header.
- * Shows namespace first, then label key=value pairs.
+ * Label keys whose information is surfaced elsewhere in the header (the task
+ * transition shown as the workflow name, plus the instance chip), so they are
+ * not dumped again as raw value segments.
+ */
+const HANDLED_LABEL_KEYS = new Set([
+    'processNextId',
+    'processNextSourceId',
+    'processNextTargetId',
+    'processNextInstanceGuid',
+]);
+
+/**
+ * Display name for a workflow: the parsed BPMN transition ("from → to") when the
+ * operationId encodes one, otherwise the raw operationId. The full operationId is
+ * preserved in the title for reference.
+ * @param {import('../core/state.js').Workflow} wf
+ * @returns {{ text: string, title: string }}
+ */
+const wfDisplayName = (wf) => {
+    const tx = parseTransition(wf);
+    return {
+        text: tx ? `${tx.from} → ${tx.to}` : wf.operationId,
+        title: wf.operationId,
+    };
+};
+
+/** @param {import('../core/state.js').Workflow} wf @param {string} cls @returns {string} */
+const nameSpanHTML = (wf, cls) => {
+    const n = wfDisplayName(wf);
+    return `<span class="${cls}" title="${esc(n.title)}">${esc(n.text)}</span>`;
+};
+
+/** Filter-funnel icon shown on the collection chip to signal it filters connected workflows. */
+const COLLECTION_ICON =
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>';
+
+/**
+ * Build clickable label segments for a workflow card header, ordered by debugging
+ * value: namespace, the instance id, then the collection key (groups connected
+ * workflows). Remaining labels render as readable `key=value` segments.
  * @param {import('../core/state.js').Workflow} wf
  * @param {boolean} interactive - true adds onclick filter handlers
  * @returns {string}
  */
 const buildLabelsHTML = (wf, interactive) => {
-    let html = '';
-    if (interactive) {
-        html += `<span class="seg key" onclick="toggleLabelFilter('namespace','${esc(wf.namespace)}')" title="Filter by namespace">${esc(wf.namespace)}</span>`;
-    } else {
-        html += `<span class="seg key">${esc(wf.namespace)}</span>`;
-    }
-    if (wf.collectionKey) {
-        html += `<span class="seg-sep">/</span>`;
-        if (interactive) {
-            html += `<span class="seg key" onclick="toggleLabelFilter('collectionKey','${esc(wf.collectionKey)}')" title="Filter by collectionKey">${esc(wf.collectionKey)}</span>`;
-        } else {
-            html += `<span class="seg key" title="collectionKey">${esc(wf.collectionKey)}</span>`;
-        }
+    /**
+     * @param {string} key @param {string} value @param {string} display @param {string} cls
+     */
+    const seg = (key, value, display, cls) =>
+        interactive
+            ? `<span class="${cls}" onclick="toggleLabelFilter('${esc(key)}','${esc(value)}')" title="Filter by ${esc(key)}=${esc(display)}">${esc(display)}</span>`
+            : `<span class="${cls}" title="${esc(key)}">${esc(display)}</span>`;
+    const sep = `<span class="seg-sep">/</span>`;
+
+    let html = seg('namespace', wf.namespace, fmtNamespace(wf.namespace), 'seg key');
+    const instance = wf.labels?.processNextInstanceGuid;
+    if (instance) {
+        html += sep + seg('processNextInstanceGuid', instance, instance, 'seg instance');
+        html += copyIconHTML(instance, 'Copy instance id');
     }
     if (wf.labels) {
         for (const [key, value] of Object.entries(wf.labels)) {
-            html += `<span class="seg-sep">/</span>`;
-            if (interactive) {
-                html += `<span class="seg" onclick="toggleLabelFilter('${esc(key)}','${esc(value)}')" title="Filter by ${esc(key)}">${esc(value)}</span>`;
-            } else {
-                html += `<span class="seg" title="${esc(key)}">${esc(value)}</span>`;
-            }
+            if (HANDLED_LABEL_KEYS.has(key)) continue;
+            html += sep + seg(key, value, `${key}=${value}`, 'seg');
         }
     }
     return html;
+};
+
+/**
+ * Fallback copy affordance for the card action cluster. Workflows with an app
+ * instance get an inline copy button next to the instance id, so here we only
+ * offer the idempotency key as a handle for workflows that carry no instance.
+ * @param {import('../core/state.js').Workflow} wf
+ * @returns {string}
+ */
+const primaryCopyHTML = (wf) =>
+    wf.labels?.processNextInstanceGuid
+        ? ''
+        : copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
+
+/**
+ * De-emphasized collection filter control for the card header's right cluster.
+ * Renders a gray funnel chip that filters to the workflows sharing this
+ * collection key (the full key is preserved in the title). Returns '' when the
+ * workflow has no collection.
+ * @param {import('../core/state.js').Workflow} wf
+ * @param {boolean} interactive - true adds the onclick filter handler
+ * @returns {string}
+ */
+const collectionButtonHTML = (wf, interactive) => {
+    if (!wf.collectionKey) return '';
+    if (!interactive) {
+        return `<span class="seg collection" title="${esc(wf.collectionKey)}">collection</span>`;
+    }
+    const title = esc(`Filter by collection (${abbrevGuids(wf.collectionKey)})`);
+    return `<span class="seg collection" onclick="toggleLabelFilter('collectionKey','${esc(wf.collectionKey)}')" title="${title}">${COLLECTION_ICON}collection</span>`;
 };
 
 /**
@@ -136,12 +201,13 @@ export const buildCardHTML = (wf, isStatic) => {
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
     let html = `<div class="card-header">`;
     html += buildLabelsHTML(wf, true);
-    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
+    html += nameSpanHTML(wf, 'wf-name');
     html += `<span class="header-spacer"></span>`;
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
     html += buildTimestampsHTML(wf, isStatic);
-    html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
+    html += primaryCopyHTML(wf);
+    html += collectionButtonHTML(wf, true);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
     html += `</div>`;
@@ -160,7 +226,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
     let html = `<div class="compact-row">`;
     html += buildLabelsHTML(wf, true);
-    html += `<span class="compact-name">${esc(wf.operationId)}</span>`;
+    html += nameSpanHTML(wf, 'compact-name');
 
     html += `<div class="compact-pipeline">`;
     for (const step of wf.steps) {
@@ -175,7 +241,8 @@ export const buildCompactCardHTML = (wf, isStatic) => {
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
     html += `<span class="status-pill ${wf.status} compact-pill">${wf.status}</span>`;
     html += buildTimestampsHTML(wf, isStatic);
-    html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
+    html += primaryCopyHTML(wf);
+    html += collectionButtonHTML(wf, true);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
     html += `</div>`;
@@ -191,13 +258,14 @@ export const buildCompactCardHTML = (wf, isStatic) => {
 export const buildScheduledCardHTML = (wf) => {
     let html = `<div class="card-header">`;
     html += buildLabelsHTML(wf, false);
-    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
+    html += nameSpanHTML(wf, 'wf-name');
     html += `<span class="header-spacer"></span>`;
     if (wf.startAt) {
         html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
     }
     html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
-    html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
+    html += primaryCopyHTML(wf);
+    html += collectionButtonHTML(wf, false);
     html += `</div>`;
     html += buildPipelineHTML(wf, true);
     return html;
@@ -211,7 +279,7 @@ export const buildScheduledCardHTML = (wf) => {
 export const buildCompactScheduledCardHTML = (wf) => {
     let html = `<div class="compact-row">`;
     html += buildLabelsHTML(wf, false);
-    html += `<span class="compact-name">${esc(wf.operationId)}</span>`;
+    html += nameSpanHTML(wf, 'compact-name');
     html += `<div class="compact-pipeline">`;
     for (const step of wf.steps) {
         html += `<span class="compact-dot ${step.status}" title="${esc(step.commandDetail)} (${step.status})"></span>`;
@@ -221,7 +289,8 @@ export const buildCompactScheduledCardHTML = (wf) => {
         html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
     }
     html += `<span class="status-pill scheduled compact-pill" style="animation:none">Scheduled</span>`;
-    html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
+    html += primaryCopyHTML(wf);
+    html += collectionButtonHTML(wf, false);
     html += `</div>`;
     return html;
 };

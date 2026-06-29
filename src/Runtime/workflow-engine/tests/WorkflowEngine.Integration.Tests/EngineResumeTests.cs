@@ -209,6 +209,93 @@ public sealed class EngineResumeTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Resume_WithoutCascade_DependentSelfHealsViaMaintenanceSweep()
+    {
+        // Even without cascade, a dependent left in DependencyFailed must recover on its own once the
+        // parent it depends on completes — the DbMaintenanceService dependency-recovery sweep re-enqueues it.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-parent-heal").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        // Run the maintenance sweep aggressively so the test does not wait a full minute.
+        await using var factory = new EngineWebApplicationFactory<Program>(
+            _postgres.GetConnectionString(),
+            builder =>
+            {
+                builder.UseSetting("EngineSettings:Concurrency:MaxWorkers", "5");
+                builder.UseSetting("EngineSettings:DefaultStepRetryStrategy:MaxRetries", "0");
+                builder.UseSetting("EngineSettings:MaintenanceInterval", "00:00:00.2500000");
+            }
+        );
+
+        using var client = factory.CreateClient();
+        var request = new WorkflowEnqueueRequest
+        {
+            Context = JsonSerializer.SerializeToElement(new { test = "self-heal" }),
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    Ref = "parent",
+                    OperationId = "parent-op",
+                    Steps = [CreateWebhookStep("/fail-parent-heal")],
+                },
+                new WorkflowRequest
+                {
+                    Ref = "child",
+                    OperationId = "child-op",
+                    Steps = [CreateWebhookStep("/child-step")],
+                    DependsOn = ["parent"],
+                },
+            ],
+        };
+
+        using var enqueueMsg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
+        {
+            Content = JsonContent.Create(request),
+        };
+        enqueueMsg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
+
+        var enqueueResponse = await client.SendAsync(enqueueMsg, TestContext.Current.CancellationToken);
+        enqueueResponse.EnsureSuccessStatusCode();
+
+        var enqueueBody = await enqueueResponse.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(enqueueBody);
+
+        var parentId = enqueueBody.Workflows.Single(w => w.Ref == "parent").DatabaseId;
+        var childId = enqueueBody.Workflows.Single(w => w.Ref == "child").DatabaseId;
+
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Failed);
+        await WaitForTerminalStatus(childId, PersistentItemStatus.DependencyFailed);
+
+        // Reconfigure WireMock to succeed, then resume the parent WITHOUT cascade.
+        _wireMock.Reset();
+        SetupWireMock();
+
+        using var resumeResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{parentId}/resume?cascade=false",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
+
+        var resumeBody = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(resumeBody);
+        Assert.Empty(resumeBody.CascadeResumed);
+
+        // Parent completes from the resume; the child recovers only because the maintenance sweep
+        // re-enqueues it once the parent dependency is Completed.
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Completed);
+        await WaitForTerminalStatus(childId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
     public async Task Resume_CompletedWorkflow_Returns409()
     {
         SetupWireMock();

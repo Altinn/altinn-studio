@@ -8,92 +8,49 @@ namespace Altinn.App.PlatformServices.Tests.Helpers;
 public class ProcessHelperTests
 {
     [Fact]
-    public void GetValidStartEventOrError_returns_start_event_and_no_error_when_null_proposed_and_one_StartEvent()
+    public void GetValidStartEventOrError_returns_start_event_when_null_proposed_and_one_StartEvent()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent" };
-        string? actual = ProcessHelper.GetValidStartEventOrError(
-            null,
-            possibleStartEvents,
-            out ProcessError? processError
-        );
+        string actual = ProcessHelper.GetValidStartEventOrError(null, possibleStartEvents);
         actual.Should().Be("StartEvent");
-        processError.Should().BeNull();
     }
 
     [Fact]
-    public void GetValidStartEventOrError_returns_start_event_and_no_error_when_proposed_in_possibleStartEvents()
+    public void GetValidStartEventOrError_returns_start_event_when_proposed_in_possibleStartEvents()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent", "StartEvent2" };
-        string? actual = ProcessHelper.GetValidStartEventOrError(
-            "StartEvent",
-            possibleStartEvents,
-            out ProcessError? processError
-        );
+        string actual = ProcessHelper.GetValidStartEventOrError("StartEvent", possibleStartEvents);
         actual.Should().Be("StartEvent");
-        processError.Should().BeNull();
     }
 
     [Fact]
-    public void GetValidStartEventOrError_returns_null_and_error_when_proposed_and_single_StartEvent_not_matches()
+    public void GetValidStartEventOrError_throws_when_proposed_and_single_StartEvent_not_matches()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent" };
-        string? actual = ProcessHelper.GetValidStartEventOrError(
-            "NotPossibleStart",
-            possibleStartEvents,
-            out ProcessError? processError
-        );
-        actual.Should().BeNull();
-        processError
-            .Should()
-            .BeEquivalentTo(
-                new ProcessError()
-                {
-                    Code = "Conflict",
-                    Text = "There is no such start event as 'NotPossibleStart' in the process definition.",
-                }
-            );
+        var act = () => ProcessHelper.GetValidStartEventOrError("NotPossibleStart", possibleStartEvents);
+        act.Should()
+            .Throw<ProcessException>()
+            .WithMessage("There is no such start event as 'NotPossibleStart' in the process definition.");
     }
 
     [Fact]
-    public void GetValidStartEventOrError_returns_null_and_error_when_proposed_null_and_multiple_possibleStartEvents()
+    public void GetValidStartEventOrError_throws_when_proposed_null_and_multiple_possibleStartEvents()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent", "StartEvent2" };
-        string? actual = ProcessHelper.GetValidStartEventOrError(
-            null,
-            possibleStartEvents,
-            out ProcessError? processError
-        );
-        actual.Should().BeNull();
-        processError
-            .Should()
-            .BeEquivalentTo(
-                new ProcessError()
-                {
-                    Code = "Conflict",
-                    Text = "There are more than one start events available. Chose one: [StartEvent, StartEvent2]",
-                }
-            );
+        var act = () => ProcessHelper.GetValidStartEventOrError(null, possibleStartEvents);
+        act.Should()
+            .Throw<ProcessException>()
+            .WithMessage("There are more than one start events available. Chose one: [StartEvent, StartEvent2]");
     }
 
     [Fact]
-    public void GetValidStartEventOrError_returns_null_and_error_when_possibleStartEvents_is_empty()
+    public void GetValidStartEventOrError_throws_when_possibleStartEvents_is_empty()
     {
         List<string> possibleStartEvents = new List<string>();
-        string? actual = ProcessHelper.GetValidStartEventOrError(
-            null,
-            possibleStartEvents,
-            out ProcessError? processError
-        );
-        actual.Should().BeNull();
-        processError
-            .Should()
-            .BeEquivalentTo(
-                new ProcessError()
-                {
-                    Code = "Conflict",
-                    Text = "There is no start events in process definition. Cannot start process!",
-                }
-            );
+        var act = () => ProcessHelper.GetValidStartEventOrError(null, possibleStartEvents);
+        act.Should()
+            .Throw<ProcessException>()
+            .WithMessage("There is no start events in process definition. Cannot start process!");
     }
 
     [Fact]

@@ -4,13 +4,36 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 internal sealed class InstanceLockerMock : IInstanceLocker
 {
-    public IInstanceLock InitLock() => NoOpLock.Instance;
+    private string? _externalLockToken;
+    private string? _currentLockToken;
 
-    public Task<IInstanceLock> Lock() => Task.FromResult<IInstanceLock>(NoOpLock.Instance);
+    public IInstanceLock InitLock()
+    {
+        _currentLockToken ??= "mock-lock-token";
+        return NoOpLock.Instance;
+    }
 
-    public Task<IInstanceLock> Lock(TimeSpan ttl) => Task.FromResult<IInstanceLock>(NoOpLock.Instance);
+    public IInstanceLock InitLock(int instanceOwnerPartyId, Guid instanceGuid)
+    {
+        _currentLockToken ??= "mock-lock-token";
+        return NoOpLock.Instance;
+    }
 
-    public string? CurrentLockToken => null;
+    public Task<IInstanceLock> Lock()
+    {
+        _currentLockToken ??= "mock-lock-token";
+        return Task.FromResult<IInstanceLock>(NoOpLock.Instance);
+    }
+
+    public Task<IInstanceLock> Lock(TimeSpan ttl)
+    {
+        _currentLockToken ??= "mock-lock-token";
+        return Task.FromResult<IInstanceLock>(NoOpLock.Instance);
+    }
+
+    public string? CurrentLockToken => _externalLockToken ?? _currentLockToken;
+
+    public void UseExternalLockToken(string lockToken) => _externalLockToken = lockToken;
 
     private sealed class NoOpLock : IInstanceLock
     {

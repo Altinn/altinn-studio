@@ -42,11 +42,12 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
 
-    // Register custom implementations for this application
-    RegisterCustomAppServices(services, config, builder.Environment);
-
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
+
+    // Register custom implementations after the default app services so
+    // test scenarios can replace built-in registrations when needed.
+    RegisterCustomAppServices(services, config, builder.Environment);
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>

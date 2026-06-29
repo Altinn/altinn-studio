@@ -184,6 +184,9 @@ public static class OptionsBuilderExtensions
                 if (config.CancellationWatcherInterval <= TimeSpan.Zero)
                     config.CancellationWatcherInterval = Defaults.EngineSettings.CancellationWatcherInterval;
 
+                if (config.MaintenanceInterval <= TimeSpan.Zero)
+                    config.MaintenanceInterval = Defaults.EngineSettings.MaintenanceInterval;
+
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
 

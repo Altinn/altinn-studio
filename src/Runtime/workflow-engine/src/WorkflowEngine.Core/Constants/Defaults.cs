@@ -30,6 +30,7 @@ internal static class Defaults
         StaleWorkflowThreshold = TimeSpan.FromSeconds(30),
         MaxReclaimCount = 5,
         CancellationWatcherInterval = TimeSpan.FromSeconds(2),
+        MaintenanceInterval = TimeSpan.FromMinutes(1),
         Concurrency = new ConcurrencySettings()
         {
             MaxWorkers = 400,

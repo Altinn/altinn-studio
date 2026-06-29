@@ -6,6 +6,7 @@ interface DecimalFacade {
   multiply(factor1: number, factor2: number): number;
   divide(dividend: number, divisor: number): number;
   sum(numbers: number[]): number;
+  average(numbers: [number, ...number[]]): number;
 }
 
 export const Decimal: DecimalFacade = class {
@@ -27,5 +28,11 @@ export const Decimal: DecimalFacade = class {
 
   static sum(numbers: number[]): number {
     return Decimaljs.sum(...numbers, 0).toNumber();
+  }
+
+  static average(numbers: [number, ...number[]]): number {
+    const total = Decimaljs.sum(...numbers);
+    const count = numbers.length;
+    return Decimaljs.div(total, count).toNumber();
   }
 };

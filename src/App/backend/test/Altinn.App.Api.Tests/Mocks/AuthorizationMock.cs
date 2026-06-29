@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
@@ -9,12 +10,16 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 public class AuthorizationMock : IAuthorizationClient
 {
-    public Task<List<Party>?> GetPartyList(int userId)
+    public Task<List<Party>?> GetPartyList(int userId, StorageAuthenticationMethod? authenticationMethod = null)
     {
         return Task.FromResult<List<Party>?>([]);
     }
 
-    public Task<bool?> ValidateSelectedParty(int userId, int partyId)
+    public Task<bool?> ValidateSelectedParty(
+        int userId,
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null
+    )
     {
         bool? isvalid = userId != 1;
 

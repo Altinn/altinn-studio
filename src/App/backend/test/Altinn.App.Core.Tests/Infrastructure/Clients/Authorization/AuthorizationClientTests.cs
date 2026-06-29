@@ -2,13 +2,18 @@ using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -27,13 +32,10 @@ public class AuthorizationClientTests
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
         var pdpResponse = GetXacmlJsonRespons("one-action-denied");
         pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(pdpResponse);
-        AuthorizationClient client = new(
-            Options.Create(new PlatformSettings()),
+        AuthorizationClient client = CreateClient(
+            pdpMock.Object,
             httpContextAccessorMock.Object,
             httpClientMock.Object,
-            appSettingsMock.Object,
-            pdpMock.Object,
-            NullLogger<AuthorizationClient>.Instance,
             telemetrySink.Object
         );
 
@@ -73,17 +75,13 @@ public class AuthorizationClientTests
         Mock<IPDP> pdpMock = new();
         Mock<HttpContextAccessor> httpContextAccessorMock = new();
         Mock<HttpClient> httpClientMock = new();
-        Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
         pdpMock
             .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(new XacmlJsonResponse());
-        AuthorizationClient client = new AuthorizationClient(
-            Options.Create(new PlatformSettings()),
+        AuthorizationClient client = CreateClient(
+            pdpMock.Object,
             httpContextAccessorMock.Object,
             httpClientMock.Object,
-            appSettingsMock.Object,
-            pdpMock.Object,
-            NullLogger<AuthorizationClient>.Instance,
             telemetry.Object
         );
 
@@ -106,6 +104,34 @@ public class AuthorizationClientTests
         var actions = new List<string>() { "read", "write", "complete", "lookup" };
         var actual = await client.AuthorizeActions(instance, claimsPrincipal, actions);
         actual.Should().BeEquivalentTo(expected);
+    }
+
+    private static AuthorizationClient CreateClient(
+        IPDP pdp,
+        IHttpContextAccessor httpContextAccessor,
+        HttpClient httpClient,
+        Telemetry? telemetry = null
+    )
+    {
+        // Valid JWT format required by JwtToken.Parse
+        const string validJwtToken =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        var authTokenResolver = new Mock<IAuthenticationTokenResolver>();
+        authTokenResolver
+            .Setup(s => s.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(validJwtToken));
+
+        var services = new ServiceCollection();
+        services.AddSingleton(httpContextAccessor);
+        services.AddSingleton(authTokenResolver.Object);
+        services.AddSingleton(pdp);
+        services.AddSingleton<ILogger<AuthorizationClient>>(NullLogger<AuthorizationClient>.Instance);
+        services.AddSingleton(Options.Create(new PlatformSettings()));
+        if (telemetry != null)
+            services.AddSingleton(telemetry);
+        var serviceProvider = services.BuildServiceProvider();
+
+        return new AuthorizationClient(httpClient, serviceProvider);
     }
 
     private static ClaimsPrincipal GetClaims(string partyId)

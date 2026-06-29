@@ -19,7 +19,7 @@ internal sealed class DbMaintenanceService(
     IConcurrencyLimiter concurrencyLimiter
 ) : BackgroundService
 {
-    private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan _fallbackInterval = TimeSpan.FromMinutes(1);
 
     /// <summary>
     /// Backoff strategy used when database operations fail. Exponential from 1s up to 2min.
@@ -55,6 +55,7 @@ internal sealed class DbMaintenanceService(
 
                 await AbandonStaleWorkflows(now, settings, stoppingToken);
                 await ReclaimStaleWorkflows(now, settings, stoppingToken);
+                await RecoverDependencyResolvedWorkflows(now, stoppingToken);
 
                 consecutiveFailures = 0;
                 Metrics.SetMaintenanceConsecutiveFailures(0);
@@ -77,7 +78,8 @@ internal sealed class DbMaintenanceService(
                 continue;
             }
 
-            await Task.Delay(_interval, timeProvider, stoppingToken);
+            var interval = options.Value.MaintenanceInterval;
+            await Task.Delay(interval > TimeSpan.Zero ? interval : _fallbackInterval, timeProvider, stoppingToken);
         }
 
         logger.ShuttingDown();
@@ -373,6 +375,36 @@ internal sealed class DbMaintenanceService(
         }
     }
 
+    /// <summary>
+    /// Re-enqueues workflows stuck in <see cref="PersistentItemStatus.DependencyFailed"/> whose
+    /// dependencies have since all reached <see cref="PersistentItemStatus.Completed"/>. The status
+    /// is purely derived — a workflow lands there because a dependency was in a failed state when it
+    /// was evaluated — so once every dependency completes (typically after the upstream was resumed
+    /// without cascade) the original reason no longer holds and the workflow should run.
+    /// A still-Canceled or still-Failed dependency keeps the workflow parked, which preserves the
+    /// intent expressed by those terminal states. Deep chains heal one layer per sweep as each
+    /// intermediate completes. Idempotent: re-enqueued rows no longer match the predicate.
+    /// </summary>
+    internal async Task RecoverDependencyResolvedWorkflows(DateTimeOffset now, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.RecoverDependencyResolvedWorkflows");
+
+        int recovered;
+        using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+        {
+            await using var cmd = dataSource.CreateCommand(Sql.RecoverDependencyResolvedWorkflows);
+            cmd.Parameters.AddWithValue("now", now);
+
+            recovered = await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        if (recovered > 0)
+        {
+            Metrics.WorkflowsDependencyRecovered.Add(recovered);
+            logger.RecoveredDependencyResolvedWorkflows(recovered);
+        }
+    }
+
     internal static class Sql
     {
         internal const string SelectExpiredWorkflowCandidatesCommand = """
@@ -498,6 +530,31 @@ internal sealed class DbMaintenanceService(
               AND heartbeat_at < @staleDeadline
               AND reclaim_count < @maxReclaimCount
             """;
+
+        // Reset matches the resume path's column set (LeaseToken cleared to preserve the
+        // "NOT NULL iff Processing" invariant). Steps are left untouched: a DependencyFailed
+        // workflow short-circuits before its steps run, so they remain pristine Enqueued.
+        internal static readonly string RecoverDependencyResolvedWorkflows = $"""
+            UPDATE engine.workflows w
+            SET status = {(int)PersistentItemStatus.Enqueued},
+                cancellation_requested_at = NULL,
+                backoff_until = NULL,
+                heartbeat_at = NULL,
+                lease_token = NULL,
+                reclaim_count = 0,
+                updated_at = @now
+            WHERE w.status = {(int)PersistentItemStatus.DependencyFailed}
+              AND EXISTS (
+                  SELECT 1 FROM engine.workflow_dependency wd
+                  WHERE wd.workflow_id = w.id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM engine.workflow_dependency wd
+                  JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
+                  WHERE wd.workflow_id = w.id
+                    AND dep.status <> {(int)PersistentItemStatus.Completed}
+              )
+            """;
     }
 }
 
@@ -529,6 +586,15 @@ internal static partial class DbMaintenanceServiceLogs
 
     [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
     internal static partial void ReclaimedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "Recovered {Count} dependency-failed workflow(s) whose dependencies have since completed"
+    )]
+    internal static partial void RecoveredDependencyResolvedWorkflows(
+        this ILogger<DbMaintenanceService> logger,
+        int count
+    );
 
     [LoggerMessage(
         LogLevel.Error,

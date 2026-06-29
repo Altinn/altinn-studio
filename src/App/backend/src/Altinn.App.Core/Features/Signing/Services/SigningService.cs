@@ -71,7 +71,7 @@ internal sealed class SigningService(
                 "SigneeStatesDataTypeId is not set in the signature configuration."
             );
 
-        //TODO: Can be removed when AddBinaryDataElement supports setting generatedFromTask, because then it will be automatically deleted in ProcessTaskInitializer.
+        // Replace any stale signee state so the recreated data element is tied to the current task lifecycle.
         RemoveSigneeState(instanceDataMutator, signeeStateDataTypeId);
 
         string instanceIdCombo = instanceDataMutator.Instance.Id;
@@ -151,7 +151,8 @@ internal sealed class SigningService(
             dataTypeId: signeeStateDataTypeId,
             contentType: ApplicationJsonContentType,
             filename: null,
-            bytes: JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions)
+            bytes: JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions),
+            generatedFromTask: taskId
         );
 
         return signeeContexts;

@@ -13,19 +13,10 @@ public static class ProcessHelper
     /// </summary>
     /// <param name="proposedStartEvent">The name of the start event the process should start from.</param>
     /// <param name="possibleStartEvents">List of possible start events <see cref="IProcessReader.GetStartEventIds"/></param>
-    /// <param name="startEventError">Any error preventing the process from starting.</param>
-    /// <returns>The name of the start event or null if start event wasn't found.</returns>
-    // TODO: improve implementation of this so that we help out nullability flow analysis in the compiler
-    // i.e. startEventError is non-null when the function returns null
-    // this should probably also be internal...
-    public static string? GetValidStartEventOrError(
-        string? proposedStartEvent,
-        List<string> possibleStartEvents,
-        out ProcessError? startEventError
-    )
+    /// <returns>The name of the start event.</returns>
+    /// <exception cref="ProcessException">Thrown when the start event cannot be determined.</exception>
+    public static string GetValidStartEventOrError(string? proposedStartEvent, List<string> possibleStartEvents)
     {
-        startEventError = null;
-
         if (!string.IsNullOrEmpty(proposedStartEvent))
         {
             if (possibleStartEvents.Contains(proposedStartEvent))
@@ -33,10 +24,9 @@ public static class ProcessHelper
                 return proposedStartEvent;
             }
 
-            startEventError = Conflict(
+            throw new ProcessException(
                 $"There is no such start event as '{proposedStartEvent}' in the process definition."
             );
-            return null;
         }
 
         if (possibleStartEvents.Count == 1)
@@ -46,14 +36,13 @@ public static class ProcessHelper
 
         if (possibleStartEvents.Count > 1)
         {
-            startEventError = Conflict(
+            throw new ProcessException(
                 $"There are more than one start events available. Chose one: [{string.Join(", ", possibleStartEvents)}]"
             );
-            return null;
         }
 
-        startEventError = Conflict($"There is no start events in process definition. Cannot start process!");
-        return null;
+        // No start events in process definition - this is an invalid process configuration
+        throw new ProcessException("There is no start events in process definition. Cannot start process!");
     }
 
     /// <summary>

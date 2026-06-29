@@ -14,6 +14,31 @@ export const esc = (s) => {
 /** @param {string} s */
 export const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/**
+ * Decode a namespace for display. Namespaces are URL-encoded for use as routing
+ * path segments (e.g. `ttd%2fworkflow-engine-test`), so decode for human display.
+ * Keep the raw value for filtering, data attributes, and API calls.
+ * @param {string} ns
+ */
+export const fmtNamespace = (ns) => {
+    if (!ns) return ns;
+    try {
+        return decodeURIComponent(ns);
+    } catch {
+        return ns;
+    }
+};
+
+/**
+ * Abbreviate any 32-char hex GUID ("N" format) runs to their first 8 chars for
+ * compact display. Works on bare GUIDs and on strings that embed them (e.g. a
+ * collection key like `process-next:<guid>:Form:2`). Keep the full value for
+ * filtering, data attributes, and titles.
+ * @param {string|null|undefined} s
+ */
+export const abbrevGuids = (s) =>
+    s == null ? s : String(s).replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
+
 /** @param {number} seconds */
 export const formatElapsed = (seconds) => {
     if (seconds < 60) return `${seconds.toFixed(1)}s`;
