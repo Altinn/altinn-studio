@@ -1,15 +1,10 @@
 import { BasePage } from '../helpers/BasePage';
-import type { Environment } from '../helpers/StudioEnvironment';
-import type { Locator, Page } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 const BRANCH_OPERATION_TIMEOUT_MS: number = 10000;
 
 export class BranchDropdown extends BasePage {
-  constructor(page: Page, environment?: Environment) {
-    super(page, environment);
-  }
-
   public async clickOnBranchDropdownTrigger(): Promise<void> {
     await this.getTriggerButton().click();
   }

@@ -7,6 +7,8 @@ import { Gitea } from '../../helpers/Gitea';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { BranchDropdown } from '../../components/BranchDropdown';
 
+test.describe.configure({ mode: 'serial' });
+
 const DEFAULT_BRANCH: string = 'master';
 const FEATURE_BRANCH: string = 'playwright-branch';
 const LAYOUT_SET: string = 'form';
@@ -61,7 +63,7 @@ test('That creating a new branch with uncommitted changes triggers dialog', asyn
 
   await branchDropdown.clickOnBranchDropdownTrigger();
   await branchDropdown.clickOnNewBranchButton();
-  await branchDropdown.writeNewBranchName('alert-create-branch');
+  await branchDropdown.writeNewBranchName('new-branch-name');
   await branchDropdown.clickOnCreateBranchButton();
 
   await branchDropdown.verifyUncommittedChangesAlertIsVisible();
