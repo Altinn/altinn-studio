@@ -2,7 +2,7 @@
 # Based on the upstream veraPDF container build, adapted for pdf3.
 #
 
-FROM eclipse-temurin:11-jdk-alpine@sha256:e74e7b1a34c5a0cf79771028b994f3c4c5b70cd66b55d32f0914aa825ac8e69d AS app-installer
+FROM eclipse-temurin:11.0.31_11-jdk-alpine@sha256:7ab5b720f367e4bb4da17cd9cd71e761572d14138d4b846d110af49f3ea116a0 AS app-installer
 ARG VERAPDF_VERSION=1.28.2
 ARG VERAPDF_SIGNING_KEY=13DD102B4DD69354D12DE5A83184863278B17FE7
 
@@ -22,7 +22,7 @@ RUN verapdf_series="${VERAPDF_VERSION%.*}" \
 RUN unzip verapdf-installer.zip \
 	&& java -jar "./verapdf-greenfield-${VERAPDF_VERSION}/verapdf-izpack-installer-${VERAPDF_VERSION}.jar" docker-install.xml
 
-FROM eclipse-temurin:11-jdk-alpine@sha256:e74e7b1a34c5a0cf79771028b994f3c4c5b70cd66b55d32f0914aa825ac8e69d AS jre-builder
+FROM eclipse-temurin:11.0.31_11-jdk-alpine@sha256:7ab5b720f367e4bb4da17cd9cd71e761572d14138d4b846d110af49f3ea116a0 AS jre-builder
 
 RUN "$JAVA_HOME/bin/jlink" \
 	--add-modules java.base,java.compiler,java.logging,java.xml,jdk.crypto.ec,java.desktop,jdk.management \
