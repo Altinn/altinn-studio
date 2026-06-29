@@ -21,6 +21,11 @@ internal sealed class InstanceLocker(
             GetInstanceIdentifiers(httpContext)
             ?? throw new InvalidOperationException("Unable to extract instance identifiers.");
 
+        return InitLock(instanceOwnerPartyId, instanceGuid);
+    }
+
+    public IInstanceLock InitLock(int instanceOwnerPartyId, Guid instanceGuid)
+    {
         var holder = _currentLock.Value;
         if (holder?.LockToken is not null)
         {
@@ -72,6 +77,18 @@ internal sealed class InstanceLocker(
     }
 
     public string? CurrentLockToken => _currentLock.Value?.LockToken;
+
+    public void UseExternalLockToken(string lockToken)
+    {
+        var holder = _currentLock.Value;
+        if (holder is null)
+        {
+            holder = new InstanceLockHolder();
+            _currentLock.Value = holder;
+        }
+
+        holder.LockToken = lockToken;
+    }
 
     private static (int instanceOwnerPartyId, Guid instanceGuid)? GetInstanceIdentifiers(HttpContext httpContext)
     {

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.Model2;
 using Altinn.Platform.Storage.Interface.Models;
@@ -32,7 +32,7 @@ public class FailServiceTask : IServiceTask
             && formDataModel2.fail.Value
         )
         {
-            return ServiceTaskResult.FailedAbortProcessNext();
+            return ServiceTaskResult.FailedPermanent("Form data requested the service task to fail.");
         }
 
         return ServiceTaskResult.Success();

@@ -4,6 +4,7 @@ using Altinn.App.Api.Controllers.Attributes;
 using Altinn.App.Api.Controllers.Conventions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Helpers.Patch;
+using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Lifetime;
@@ -23,6 +24,7 @@ using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -557,25 +559,47 @@ public static class ServiceCollectionExtensions
     )
     {
         services
-            .AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-            .AddJwtCookie(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            // The default scheme is a selector: it forwards authentication/challenge to the
+            // WorkflowEngineCallback scheme for workflow callback requests, and to the JwtCookie
+            // scheme for everything else. This lets workflow callbacks use a standard
+            // "Authorization: Bearer" header without the JwtCookie handler (which also reads bearer
+            // tokens) attempting to validate the app-minted callback token as a platform token during
+            // UseAuthentication()'s automatic authentication of the default scheme.
+            .AddAuthentication(options => options.DefaultScheme = WorkflowEngineCallbackDefaults.SelectorScheme)
+            .AddPolicyScheme(
+                WorkflowEngineCallbackDefaults.SelectorScheme,
+                WorkflowEngineCallbackDefaults.SelectorScheme,
+                options =>
+                    options.ForwardDefaultSelector = static context =>
+                        WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(context.GetEndpoint())
+                            ? WorkflowEngineCallbackDefaults.AuthenticationScheme
+                            : JwtCookieDefaults.AuthenticationScheme
+            )
+            .AddJwtCookie(
+                JwtCookieDefaults.AuthenticationScheme,
+                options =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero,
-                };
-                options.JwtCookieName = Altinn.App.Core.Constants.General.RuntimeCookieName;
-                options.MetadataAddress = config["AppSettings:OpenIdWellKnownEndpoint"];
-                if (env.IsDevelopment())
-                {
-                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
+                    };
+                    options.JwtCookieName = Altinn.App.Core.Constants.General.RuntimeCookieName;
+                    options.MetadataAddress = config["AppSettings:OpenIdWellKnownEndpoint"];
+                    if (env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 }
-            });
+            )
+            .AddScheme<AuthenticationSchemeOptions, WorkflowEngineCallbackAuthenticationHandler>(
+                WorkflowEngineCallbackDefaults.AuthenticationScheme,
+                _ => { }
+            );
     }
 
     private static void AddAntiforgery(IServiceCollection services)

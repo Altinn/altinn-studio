@@ -6,7 +6,7 @@
     "instanceOwnerPartyId": 12345,
     "instanceGuid": "f13f515d-17b2-4f86-9c7a-a955583c4a1c",
     "actor": {
-      "userIdOrOrgNumber": "1337",
+      "orgId": "1337",
       "language": "nb"
     },
     "lockToken": "k6-load-test-lock-token"

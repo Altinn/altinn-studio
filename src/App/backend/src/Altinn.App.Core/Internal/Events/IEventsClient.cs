@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Events;
@@ -10,5 +11,9 @@ public interface IEventsClient
     /// <summary>
     /// Adds a new event to the events published by the Events component.
     /// </summary>
-    Task<string> AddEvent(string eventType, Instance instance);
+    Task<string> AddEvent(
+        string eventType,
+        Instance instance,
+        StorageAuthenticationMethod? authenticationMethod = null
+    );
 }

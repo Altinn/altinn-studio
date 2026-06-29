@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.Platform.Profile.Models;
 using Microsoft.Extensions.Caching.Memory;
@@ -35,7 +36,7 @@ public class ProfileClientCachingDecorator : IProfileClient
     }
 
     /// <inheritdoc/>
-    public async Task<UserProfile?> GetUserProfile(int userId)
+    public async Task<UserProfile?> GetUserProfile(int userId, StorageAuthenticationMethod? authenticationMethod = null)
     {
         string uniqueCacheKey = "User_UserId_" + userId;
 
@@ -44,7 +45,7 @@ public class ProfileClientCachingDecorator : IProfileClient
             return user;
         }
 
-        user = await _decoratedService.GetUserProfile(userId);
+        user = await _decoratedService.GetUserProfile(userId, authenticationMethod);
 
         if (user != null)
         {
@@ -55,7 +56,7 @@ public class ProfileClientCachingDecorator : IProfileClient
     }
 
     /// <inheritdoc/>
-    public async Task<UserProfile?> GetUserProfile(string ssn)
+    public async Task<UserProfile?> GetUserProfile(string ssn, StorageAuthenticationMethod? authenticationMethod = null)
     {
         string uniqueCacheKey = "User_SSN_" + ssn;
 
@@ -64,7 +65,7 @@ public class ProfileClientCachingDecorator : IProfileClient
             return user;
         }
 
-        user = await _decoratedService.GetUserProfile(ssn);
+        user = await _decoratedService.GetUserProfile(ssn, authenticationMethod);
 
         if (user != null)
         {
