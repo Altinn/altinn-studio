@@ -3,14 +3,12 @@ import {
   getEnvLabel,
   mapKeywordStringToKeywordTypeArray,
   validateResource,
-  getMigrationErrorMessage,
   getAvailableEnvironments,
   getResourcePolicyRules,
   getResourceSubjects,
 } from './';
 import { createAccessListSubject, type EnvId } from './resourceUtils';
-import type { Resource, ResourceError, ResourceFormError } from 'app-shared/types/ResourceAdm';
-import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import type { Resource, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   emptyPolicyRule,
@@ -343,48 +341,6 @@ describe('deepCompare', () => {
       const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
-  });
-});
-
-describe('getMigrationErrorMessage', () => {
-  it('returns no error', () => {
-    const error = getMigrationErrorMessage(null, null, true);
-    expect(error).toBeNull();
-  });
-
-  it('returns error when start migration status is forbidden', () => {
-    const migrateError = { response: { status: ServerCodes.Forbidden } };
-    const error = getMigrationErrorMessage(null, migrateError as ResourceError, true);
-    expect(error.errorMessage).toEqual('resourceadm.migration_no_migration_access');
-  });
-
-  it('returns error when start migration failed', () => {
-    const migrateError = { response: { status: ServerCodes.InternalServerError } };
-    const error = getMigrationErrorMessage(null, migrateError as ResourceError, true);
-    expect(error.errorMessage).toEqual('resourceadm.migration_post_migration_failed');
-  });
-
-  it('returns error when service is not found', () => {
-    const loadDelegationCountError = { response: { status: ServerCodes.NotFound } };
-    const error = getMigrationErrorMessage(loadDelegationCountError as ResourceError, null, true);
-    expect(error.errorMessage).toEqual('resourceadm.migration_service_not_found');
-  });
-
-  it('returns error when service cannot be migrated in environment', () => {
-    const loadDelegationCountError = { response: { status: ServerCodes.Forbidden } };
-    const error = getMigrationErrorMessage(loadDelegationCountError as ResourceError, null, true);
-    expect(error.errorMessage).toEqual('resourceadm.migration_cannot_migrate_in_env');
-  });
-
-  it('returns error when unknown error occurs', () => {
-    const loadDelegationCountError = { response: { status: ServerCodes.InternalServerError } };
-    const error = getMigrationErrorMessage(loadDelegationCountError as ResourceError, null, true);
-    expect(error.errorMessage).toEqual('resourceadm.migration_technical_error');
-  });
-
-  it('returns error when resource is not published', () => {
-    const error = getMigrationErrorMessage(null, null, false);
-    expect(error.errorMessage).toEqual('resourceadm.migration_not_published');
   });
 });
 

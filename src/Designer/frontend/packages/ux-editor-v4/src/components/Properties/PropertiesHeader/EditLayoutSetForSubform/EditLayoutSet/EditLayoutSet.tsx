@@ -14,7 +14,7 @@ export const EditLayoutSet = <T extends ComponentType>({
   const [showCreateSubformCard, setShowCreateSubformCard] = useState<boolean>(false);
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const subformUtils = new SubformUtilsImpl(layoutSets.sets);
+  const subformUtils = new SubformUtilsImpl(layoutSets);
   const hasSubforms = subformUtils.hasSubforms;
 
   const handleUpdateComponent = (subform: string) => {

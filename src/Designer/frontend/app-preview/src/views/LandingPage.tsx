@@ -43,7 +43,7 @@ export const LandingPage = () => {
     isPending: instanceIsPending,
   } = useCreatePreviewInstanceMutation(org, app);
 
-  const currentLayoutSet = layoutSets?.sets?.find((set) => set.id === layoutSet);
+  const currentLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
   const isSubform = currentLayoutSet?.type === 'subform';
 
   useEffect(() => {
