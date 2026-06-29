@@ -96,9 +96,3 @@ export const WithSeconds: Story = {
     value: '14:30:45',
   },
 };
-
-export const WithValidationMessages: Story = {
-  args: {
-    validationMessages: 'Du må oppgi et gyldig tidspunkt.',
-  },
-};
