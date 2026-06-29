@@ -18,11 +18,29 @@ namespace WorkflowEngine.Data.Services;
 internal sealed class DbMigrationService
 {
     private const long MigrationLockId = 0x4D6967726174; // "Migrat" in hex
+    private readonly NpgsqlDataSource? _dataSource;
     private static ILogger<DbMigrationService>? _logger { get; set; }
 
-    public DbMigrationService(ILogger<DbMigrationService> logger)
+    public DbMigrationService(ILogger<DbMigrationService> logger, NpgsqlDataSource? dataSource = null)
     {
+        _dataSource = dataSource;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Applies any pending migrations using the configured data source.
+    /// </summary>
+    public async Task Migrate(CancellationToken cancellationToken = default)
+    {
+        if (_dataSource is null)
+            throw new InvalidOperationException(
+                "Workflow engine database migrations require a configured data source."
+            );
+
+        using var activity = Metrics.Source.StartActivity("DbMigrationService.Migrate");
+
+        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await Migrate(connection, cancellationToken);
     }
 
     /// <summary>
@@ -34,6 +52,11 @@ internal sealed class DbMigrationService
 
         await using var connection = new NpgsqlConnection(dbConnectionString);
         await connection.OpenAsync(cancellationToken);
+        await Migrate(connection, cancellationToken);
+    }
+
+    private static async Task Migrate(NpgsqlConnection connection, CancellationToken cancellationToken)
+    {
         await using var dbLock = await AdvisoryLockScope.Acquire(MigrationLockId, connection, cancellationToken);
 
         var options = new DbContextOptionsBuilder<EngineDbContext>()
