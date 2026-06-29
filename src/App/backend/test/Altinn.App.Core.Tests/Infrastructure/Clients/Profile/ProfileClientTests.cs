@@ -1,14 +1,15 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Profile;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -32,13 +33,6 @@ public class ProfileClientTests
 
         userProfileFactory ??= () => new UserProfile { UserId = 1234 };
 
-        var httpContextMock = new Mock<HttpContext>();
-        httpContextMock.Setup(x => x.Request.Cookies["AltinnStudioRuntime"]).Returns("");
-        var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext).Returns(httpContextMock.Object);
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Headers["Authorization"]).Returns("Bearer token");
-        services.AddSingleton(httpContextAccessor.Object);
-
         var appMetadataMock = new Mock<IAppMetadata>();
         ApplicationMetadata appMetadata = new("ttd/test")
         {
@@ -60,10 +54,17 @@ public class ProfileClientTests
         tokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test")).Returns("access-token");
         services.AddSingleton(tokenGenerator.Object);
 
+        const string validJwtToken =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        var authTokenResolver = new Mock<IAuthenticationTokenResolver>();
+        authTokenResolver
+            .Setup(s => s.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(validJwtToken));
+        services.AddSingleton(authTokenResolver.Object);
+
         services.AddTelemetrySink();
         services.AddSingleton<ILogger<ProfileClient>>(NullLogger<ProfileClient>.Instance);
         services.Configure<PlatformSettings>(_ => { });
-        services.Configure<AppSettings>(o => o.RuntimeCookieName = "AltinnStudioRuntime");
         services.Configure<CacheSettings>(o => o.ProfileCacheLifetimeSeconds = 1);
 
         var handler = new Mock<HttpMessageHandler>();
@@ -84,10 +85,13 @@ public class ProfileClientTests
                 };
             })
             .Verifiable();
-        var httpClient = new HttpClient(handler.Object);
         services.AddMemoryCache();
-        services.AddSingleton(_ => httpClient);
-        services.AddProfileClient();
+        services.AddHttpClient<ProfileClient>().ConfigurePrimaryHttpMessageHandler(() => handler.Object);
+        services.AddTransient<IProfileClient>(sp => new ProfileClientCachingDecorator(
+            sp.GetRequiredService<ProfileClient>(),
+            sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>(),
+            sp.GetRequiredService<IOptions<CacheSettings>>()
+        ));
         return new(services.BuildStrictServiceProvider(), handler);
     }
 

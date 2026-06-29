@@ -379,7 +379,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
         "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
     },
     "context": {
-        "actor": { "userIdOrOrgNumber": "12345678901" },
+        "actor": { "orgId": "12345678901" },
         "lockToken": "lock-token-from-app",
         "org": "ttd",
         "app": "my-app",
@@ -845,3 +845,15 @@ AppCommand reads `{ "state": "..." }` from the response body and stores it as `s
 ```
 
 Placeholders are expanded from `AppWorkflowContext` at execution time.
+
+### Callback Authentication
+
+Callbacks into an Altinn app are secured with a JWT that the **app** mints and the **engine** relays — the engine never issues credentials of its own:
+
+1. **At enqueue time**, the app mints a short-lived JWT signed with a `WorkflowEngineCallback` app-code. The `jti` claim is set to the instance guid, and the token's lifetime is bound to the signing code's expiry.
+2. The token rides through the engine opaquely in `AppWorkflowContext.CallbackToken`. The engine stores it and **replays it on every callback** in the `Authorization: Bearer` header.
+3. **On each callback**, the app validates the token's signature and lifetime against its `WorkflowEngineCallback` codes, and checks that `jti` matches the `instanceGuid` in the route — so a token can only act on its own instance.
+
+Because the callback bearer token shares the `Authorization` header with platform (JwtCookie) auth, a selector-policy scheme routes only callback requests to the `WorkflowEngineCallback` scheme and everything else to the default scheme, avoiding collisions.
+
+Data writes performed during callbacks run as `StorageAuthenticationMethod.ServiceOwner()`. This is why an app's `policy.xml` must grant ServiceOwner write rights on all tasks.
