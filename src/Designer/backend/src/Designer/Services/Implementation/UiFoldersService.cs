@@ -822,30 +822,30 @@ public class UiFoldersService : IUiFoldersService
     {
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
-        List<LayoutSetConfig> layoutSetConfigs;
+        List<LayoutSetConfigDto> layoutSetDtos;
         if (altinnAppGitRepository.AppUsesLayoutSets())
         {
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            layoutSetConfigs = layoutSets.Sets;
+            layoutSetDtos = layoutSets.Sets.Select(LayoutSetConfigDto.From).ToList();
         }
         else
         {
-            // v9 apps have no layout-sets.json, uses UI folders directly instead.
             IEnumerable<string> folderNames;
             try
             {
                 folderNames = await altinnAppGitRepository.GetUiFolders(cancellationToken);
             }
-            catch
+            catch (DirectoryNotFoundException)
             {
                 return false;
             }
-            layoutSetConfigs = folderNames.Select(layoutSetName => new LayoutSetConfig { Id = layoutSetName }).ToList();
+            // For v9, task ID equals the layout set name (folder name), so TaskId = Id.
+            layoutSetDtos = folderNames.Select(name => new LayoutSetConfigDto { Id = name, TaskId = name }).ToList();
         }
 
         return await UpdateLayoutReferences(
             altinnAppGitRepository,
-            layoutSetConfigs,
+            layoutSetDtos,
             referencesToUpdate,
             cancellationToken
         );
@@ -853,7 +853,7 @@ public class UiFoldersService : IUiFoldersService
 
     private async Task<bool> UpdateLayoutReferences(
         AltinnAppGitRepository altinnAppGitRepository,
-        List<LayoutSetConfig>? layoutSets,
+        List<LayoutSetConfigDto>? layoutSets,
         List<Reference> referencesToUpdate,
         CancellationToken cancellationToken
     )
@@ -876,7 +876,7 @@ public class UiFoldersService : IUiFoldersService
         var updatedLayouts = updatedReferences.Where(item => item.Type == ReferenceType.Layout).ToList();
         var updatedComponents = updatedReferences.Where(item => item.Type == ReferenceType.Component).ToList();
 
-        foreach (LayoutSetConfig layoutSet in layoutSets ?? [])
+        foreach (LayoutSetConfigDto layoutSet in layoutSets ?? [])
         {
             bool isLayoutSetDeleted = deletedLayoutsSetIds.Contains(layoutSet.Id);
 
@@ -989,9 +989,7 @@ public class UiFoldersService : IUiFoldersService
                                     string? taskId = target["taskId"]?.GetValue<string>();
                                     string? layoutSetId = string.IsNullOrEmpty(taskId)
                                         ? layoutSet.Id
-                                        : layoutSets
-                                            ?.FirstOrDefault(item => item.Tasks?.Contains(taskId!) ?? false)
-                                            ?.Id;
+                                        : layoutSets?.FirstOrDefault(item => item.TaskId == taskId)?.Id;
 
                                     if (
                                         (
