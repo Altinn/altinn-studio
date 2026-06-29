@@ -1,4 +1,5 @@
 import { ParagraphText } from '@app/form-component/app-components';
+import fileTextIcon from '@navikt/aksel-icons/svg/FileText.svg';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -59,7 +60,7 @@ export const WithIcon: Story = {
       {
         id: 'tab1',
         title: 'Tab with icon',
-        icon: 'https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg',
+        icon: fileTextIcon,
         content: <ParagraphText>Content with icon</ParagraphText>,
       },
       {

@@ -107,18 +107,38 @@ export function TabsLayout({
   );
 }
 
+const SUPPORTED_IMAGE_TYPES = ['svg', 'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'];
+
+/**
+ * Resolves the image type from an icon source. Supports both file URLs (by extension, ignoring any
+ * query string or hash) and `data:` URIs such as bundler-inlined SVGs, where the type lives in the
+ * mime instead of an extension. Returns `undefined` when no type can be determined.
+ */
+function getImageType(icon: string): string | undefined {
+  const dataUriMatch = icon.match(/^data:image\/([\w.+-]+)[;,]/i);
+  if (dataUriMatch) {
+    // e.g. `image/svg+xml` -> `svg`, `image/jpeg` -> `jpeg`
+    return dataUriMatch[1].toLowerCase().split('+')[0];
+  }
+
+  // Strip any query string or hash, then isolate the filename so domain dots (e.g. `cdn.example.com`)
+  // don't leak into the extension. A filename without a `.` yields `undefined` so callers can flag it.
+  const filename = icon.split(/[?#]/)[0].split('/').at(-1) ?? '';
+  return filename.includes('.') ? filename.split('.').at(-1)?.toLowerCase() : undefined;
+}
+
 function TabHeader({ id, title, icon }: { id: string; title: string; icon?: string }) {
   const { lang } = useTranslation();
 
   if (icon) {
-    const imgType = icon.split('.').at(-1);
+    const imgType = getImageType(icon);
 
     if (!imgType) {
       throw new Error(
         'Image source is missing file type. Are you sure the image source is correct?',
       );
     }
-    if (!['svg', 'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'].includes(imgType.toLowerCase())) {
+    if (!SUPPORTED_IMAGE_TYPES.includes(imgType)) {
       throw new Error(
         'Only images of the types: .svg, .png, .jpg, .jpeg, .gif, .bmp, .tiff, are supported',
       );
