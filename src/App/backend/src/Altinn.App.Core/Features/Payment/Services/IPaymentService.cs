@@ -55,9 +55,4 @@ internal interface IPaymentService
     /// Get our internal payment status. Will only check the local status and will not get updated status from the payment provider.
     /// </summary>
     Task<PaymentStatus> GetPaymentStatus(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration);
-
-    /// <summary>
-    /// Cancel payment with payment processor and delete internal payment information.
-    /// </summary>
-    Task CancelAndDeleteAnyExistingPayment(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration);
 }

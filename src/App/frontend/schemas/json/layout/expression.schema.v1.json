@@ -149,7 +149,8 @@
         { "$ref": "#/definitions/func-stringIndexOf" },
         { "$ref": "#/definitions/func-countDataElements" },
         { "$ref": "#/definitions/func-jmespath" },
-        { "$ref": "#/definitions/func-sum" }
+        { "$ref": "#/definitions/func-sum" },
+        { "$ref": "#/definitions/func-average" }
       ]
     },
     "list": {
@@ -756,6 +757,17 @@
       "items": [
         { "const": "sum" },
         { "$ref": "#/definitions/list" }
+      ],
+      "additionalItems": false
+    },
+    "func-average": {
+      "title": "Calculate the average of a list of numbers",
+      "description": "This function returns the average of a list of numbers.",
+      "type": "array",
+      "items": [
+        { "const": "average" },
+        { "$ref": "#/definitions/list" },
+        { "$ref": "#/definitions/number" }
       ],
       "additionalItems": false
     },

@@ -867,6 +867,22 @@ body {
     font-weight: 700;
     color: var(--cyan);
 }
+.seg.instance {
+    color: var(--cyan);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.seg.collection {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+.seg.collection svg {
+    width: 11px;
+    height: 11px;
+}
 .seg-sep {
     color: var(--text-dim);
     opacity: 0.3;

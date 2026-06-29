@@ -269,6 +269,23 @@ public partial class AppFixture : IAsyncDisposable
             return new ApiResponse(_fixture, response);
         }
 
+        public async Task<ApiResponse> ResumeCurrentTask(string token, ReadApiResponse<Instance> instanceData)
+        {
+            var client = _fixture.GetAppClient();
+            if (instanceData.Data.Model is null)
+                throw new InvalidOperationException(CreateNullInstanceMessage(instanceData));
+            var instance = instanceData.Data.Model;
+            var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+            var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/resume";
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.SendAsync(request);
+            return new ApiResponse(_fixture, response);
+        }
+
         public async Task<ApiResponse> PostData(
             string token,
             ReadApiResponse<Instance> instanceData,

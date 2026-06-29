@@ -2,6 +2,7 @@ using Altinn.App.Actions;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.logic;
 using Altinn.App.logic.DataProcessing;
@@ -27,7 +28,7 @@ void RegisterCustomAppServices(
     services.AddTransient<IAppMetadata, CustomMetaData>();
     services.AddTransient<IUserAction, RandomAction>();
     services.AddTransient<IDataListProvider, PersonListProvider>();
-    services.AddTransient<IProcessTaskEnd, PrefillSharedPerson>();
+    services.AddTransient<IOnTaskEndingHandler, PrefillSharedPerson>();
 }
 
 // ###########################################################################
