@@ -23,7 +23,9 @@ data:
       "PlatformFrontendSettings": {
         "PostalCodesUrl": "https://altinncdn.no/postcodes/registry.json",
         "AltinnLogoUrl": "https://altinncdn.no/img/Altinn-logo-blue.svg",
-        "HelpCircleIllustrationUrl": "https://altinncdn.no/img/illustration-help-circle.svg"
+        "HelpCircleIllustrationUrl": "https://altinncdn.no/img/illustration-help-circle.svg",
+        "ArbeidsflateBaseUrl": "https://af.{hostName}/",
+        "AccessManagementBaseUrl": "https://am.ui.{hostName}/"
       }
     }
 ---

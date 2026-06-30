@@ -290,6 +290,10 @@ export interface IPlatformFrontendSettings {
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
   postalCodesUrl: string;
+  /** Base URL (with trailing /) for the Altinn 3 arbeidsflate (inbox/message box, profile), resolved per environment. */
+  arbeidsflateBaseUrl: string;
+  /** Base URL (with trailing /) for the access management UI used to switch party before redirecting to the arbeidsflate. */
+  accessManagementBaseUrl: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

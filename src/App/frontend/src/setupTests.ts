@@ -80,6 +80,8 @@ beforeEach(() => {
       postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json',
       altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
       helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+      arbeidsflateBaseUrl: 'https://af.tt02.altinn.no/',
+      accessManagementBaseUrl: 'https://am.ui.tt02.altinn.no/',
     },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),

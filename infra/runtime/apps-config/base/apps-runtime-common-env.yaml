@@ -13,6 +13,8 @@ data:
   PlatformFrontendSettings__PostalCodesUrl: https://altinncdn.no/postcodes/registry.json
   PlatformFrontendSettings__AltinnLogoUrl: https://altinncdn.no/img/Altinn-logo-blue.svg
   PlatformFrontendSettings__HelpCircleIllustrationUrl: https://altinncdn.no/img/illustration-help-circle.svg
+  PlatformFrontendSettings__ArbeidsflateBaseUrl: https://af.{hostName}/
+  PlatformFrontendSettings__AccessManagementBaseUrl: https://am.ui.{hostName}/
 ---
 apiVersion: v1
 kind: Secret

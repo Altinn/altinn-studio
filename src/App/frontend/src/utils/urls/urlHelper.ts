@@ -1,3 +1,5 @@
+import { GlobalData } from 'src/GlobalData';
+
 const prodStagingRegex = /^\w+\.apps\.((\w+\.)?altinn\.(no|cloud))$/;
 const localRegex = /^local\.altinn\.cloud(:\d+)?$/;
 
@@ -10,20 +12,12 @@ function extractAltinnHost(host: string): string | undefined {
   return match?.[1];
 }
 
-function isProductionEnvironment(altinnHost: string): boolean {
-  return altinnHost === 'altinn.no';
-}
-
-function buildArbeidsflateUrl(altinnHost: string): string {
-  if (isProductionEnvironment(altinnHost)) {
-    return 'https://af.altinn.no/';
-  }
-
-  return `https://af.${altinnHost}/`;
-}
-
-function buildAccessManagementBaseUrl(altinnHost: string): string {
-  return `https://am.ui.${altinnHost}/`;
+/**
+ * Base URL for the Altinn 3 arbeidsflate (inbox/message box, profile), resolved per environment by the
+ * backend and exposed through the runtime config map (PlatformFrontendSettings).
+ */
+function getArbeidsflateBaseUrl(): string {
+  return GlobalData.platformFrontendSettings.arbeidsflateBaseUrl;
 }
 
 function redirectAndChangeParty(goTo: string, partyId: number): string {
@@ -43,12 +37,12 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
     return `http://${host}/`;
   }
 
-  const altinnHost = extractAltinnHost(host);
-  if (!altinnHost) {
+  // Only emit arbeidsflate links for recognized Altinn app environments (not Studio preview etc.)
+  if (!extractAltinnHost(host)) {
     return undefined;
   }
 
-  const arbeidsflateUrl = buildArbeidsflateUrl(altinnHost);
+  const arbeidsflateUrl = getArbeidsflateBaseUrl();
   const targetUrl = dialogId ? `${arbeidsflateUrl.replace(/\/$/, '')}/inbox/${dialogId}` : arbeidsflateUrl;
 
   if (partyId === undefined) {
@@ -56,7 +50,7 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
   }
 
   // Use access management changeandredirect endpoint to switch party and redirect to A3 arbeidsflate
-  const amBaseUrl = buildAccessManagementBaseUrl(altinnHost);
+  const amBaseUrl = GlobalData.platformFrontendSettings.accessManagementBaseUrl;
   return `${amBaseUrl}${redirectAndChangeParty(targetUrl, partyId)}`;
 }
 
@@ -83,12 +77,11 @@ export const returnUrlToProfile = (host: string, _partyId?: number | undefined):
     return `http://${host}/profile`;
   }
 
-  const altinnHost = extractAltinnHost(host);
-  if (!altinnHost) {
+  if (!extractAltinnHost(host)) {
     return undefined;
   }
 
-  const arbeidsflateUrl = buildArbeidsflateUrl(altinnHost);
+  const arbeidsflateUrl = getArbeidsflateBaseUrl();
   return `${arbeidsflateUrl.replace(/\/$/, '')}/profile`;
 };
 
