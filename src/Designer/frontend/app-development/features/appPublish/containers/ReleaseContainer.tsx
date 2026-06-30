@@ -91,9 +91,6 @@ export function ReleaseContainer() {
       );
     }
     if (!masterBranchStatus || !repoStatus) {
-      return null;
-    }
-    if (!masterBranchStatus) {
       return (
         <StudioError>
           <StudioParagraph>

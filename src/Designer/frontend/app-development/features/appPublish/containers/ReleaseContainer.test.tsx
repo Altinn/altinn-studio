@@ -1,4 +1,4 @@
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ReleaseContainer } from './ReleaseContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -327,6 +327,54 @@ describe('ReleaseContainer', () => {
     expect(
       screen.getByText(textMock('app_create_release.local_changes_can_build')),
     ).toBeInTheDocument();
+  });
+
+  it('renders still-building message when latest release is in progress on master commit', async () => {
+    const mockLatestCommit = '123';
+    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        results: [
+          {
+            targetCommitish: mockLatestCommit,
+            tagName: 'v1',
+            build: { status: BuildStatus.inProgress, result: BuildResult.none },
+          },
+        ],
+      }),
+    );
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          textMock('app_create_release.still_building_release', { version: mockLatestCommit }),
+        ),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('renders popover (not StudioError) when master branch query fails with an unrecognised error', async () => {
+    const mockGetBranchStatus = jest.fn().mockRejectedValue({
+      response: { data: { errorCode: 'GT_UnknownError' } },
+    });
+    renderReleaseContainer({ getBranchStatus: mockGetBranchStatus });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    expect(
+      screen.getByRole('button', { name: textMock('app_create_release.status_popover') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('renders a StudioError when master branch is not found', async () => {
