@@ -52,12 +52,14 @@ No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and W
 
 ## Updating the studioctl image tag
 
-`studioctl env up --dev-workflow-engine` pulls a prebuilt engine image from GHCR. The tag is pinned in [`src/cli/internal/config/config.yaml`](../../cli/internal/config/config.yaml):
+`studioctl env up` runs a prebuilt engine image from GHCR as a container. The tag is pinned in [`src/cli/internal/config/config.yaml`](../../cli/internal/config/config.yaml):
 
 ```yaml
 image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
 tag: "5b68c250a0"
 ```
+
+> Passing `--dev-workflow-engine` instead **disables** that container and routes the engine binding to a local host process (so you can run it yourself with `dotnet run`). In that mode the pinned tag is not used — only the default `studioctl env up` consumes it.
 
 ### How the image is built
 
