@@ -10,14 +10,12 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 
 const layoutSet1NameMock = 'test-layout-set';
-const layoutSets = {
-  sets: [
-    {
-      id: layoutSet1NameMock,
-      dataType: 'Task',
-    },
-  ],
-};
+const layoutSets = [
+  {
+    id: layoutSet1NameMock,
+    dataType: 'Task',
+  },
+];
 
 describe('ValidateCardContent', () => {
   it('renders page selector when scope is SelectedPages', () => {

@@ -15,6 +15,7 @@ public static class HttpClientExtension
     /// <param name="requestUri">The request Uri</param>
     /// <param name="content">The http content</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
     public static async Task<HttpResponseMessage> PostAsync(
@@ -23,10 +24,13 @@ public static class HttpClientExtension
         string requestUri,
         HttpContent? content,
         string? platformAccessToken = null,
+        string? lockToken = null,
         CancellationToken cancellationToken = default
     )
     {
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
         using HttpRequestMessage request = new(HttpMethod.Post, requestUri);
+#pragma warning restore S7044
         request.Content = content;
 
         request.Headers.Authorization = new AuthenticationHeaderValue(
@@ -37,6 +41,11 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
+        }
+
+        if (!string.IsNullOrEmpty(lockToken))
+        {
+            request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
         }
 
         return await httpClient.SendAsync(request, cancellationToken);
@@ -50,6 +59,7 @@ public static class HttpClientExtension
     /// <param name="requestUri">The request Uri</param>
     /// <param name="content">The http content</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
     public static async Task<HttpResponseMessage> PutAsync(
@@ -58,6 +68,7 @@ public static class HttpClientExtension
         string requestUri,
         HttpContent? content,
         string? platformAccessToken = null,
+        string? lockToken = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -72,6 +83,11 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
+        }
+
+        if (!string.IsNullOrEmpty(lockToken))
+        {
+            request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
         }
 
         return await httpClient.SendAsync(request, cancellationToken);
@@ -94,7 +110,9 @@ public static class HttpClientExtension
         CancellationToken cancellationToken = default
     )
     {
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
         using HttpRequestMessage request = new(HttpMethod.Get, requestUri);
+#pragma warning restore S7044
 
         request.Headers.Authorization = new AuthenticationHeaderValue(
             Constants.AuthorizationSchemes.Bearer,
@@ -186,6 +204,7 @@ public static class HttpClientExtension
     /// <param name="authorizationToken">the authorization token (jwt)</param>
     /// <param name="requestUri">The request Uri</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
     public static async Task<HttpResponseMessage> DeleteAsync(
@@ -193,6 +212,7 @@ public static class HttpClientExtension
         string authorizationToken,
         string requestUri,
         string? platformAccessToken = null,
+        string? lockToken = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -206,6 +226,11 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
+        }
+
+        if (!string.IsNullOrEmpty(lockToken))
+        {
+            request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
         }
 
         return await httpClient.SendAsync(request, cancellationToken);

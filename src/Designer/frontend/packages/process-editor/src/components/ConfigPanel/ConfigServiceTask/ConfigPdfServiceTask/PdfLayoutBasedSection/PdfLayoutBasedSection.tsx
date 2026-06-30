@@ -44,12 +44,11 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
     if (!newLayoutSetName || !selectedDataModelId || newLayoutSetNameError) return;
 
     addLayoutSet({
-      layoutSetIdToUpdate: newLayoutSetName,
       taskType: 'pdf',
       layoutSetConfig: {
         id: newLayoutSetName,
         dataType: selectedDataModelId,
-        tasks: [bpmnDetails.id],
+        taskId: bpmnDetails.id,
       },
     });
   };

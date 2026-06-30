@@ -5,6 +5,7 @@ import {
   DatePickerDropdownCaption,
   FieldRenderer,
   type FormDataObject,
+  getDatepickerFormat,
   type TableActionButton,
 } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
@@ -20,7 +21,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForTable } from 'src/layout/SimpleTable/config.generated';

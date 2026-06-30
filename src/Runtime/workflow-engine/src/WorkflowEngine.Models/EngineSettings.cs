@@ -119,6 +119,13 @@ public sealed record EngineSettings
     public TimeSpan CancellationWatcherInterval { get; set; }
 
     /// <summary>
+    /// Interval at which the database maintenance sweeps run (stale reclaim, poison abandon,
+    /// and dependency-recovery of workflows whose dependencies have since completed).
+    /// </summary>
+    [JsonPropertyName("maintenanceInterval")]
+    public TimeSpan MaintenanceInterval { get; set; }
+
+    /// <summary>
     /// Concurrency settings.
     /// </summary>
     [JsonPropertyName("concurrency")]

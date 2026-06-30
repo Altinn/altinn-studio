@@ -321,9 +321,10 @@ const render = async ({
     [QueryKey.FormComponent, props.formItem.type],
     componentSchemaMocks[props.formItem.type],
   );
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], {
-    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
-  });
+  queryClientMock.setQueryData(
+    [QueryKey.LayoutSets, org, app],
+    [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
+  );
   queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
     dataTypes: [
       { id: defaultDataModel, maxCount: 1, appLogic: {} },

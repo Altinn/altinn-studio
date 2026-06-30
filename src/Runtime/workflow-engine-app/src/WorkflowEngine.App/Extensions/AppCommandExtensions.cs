@@ -45,12 +45,13 @@ internal static class AppCommandOptionsBuilderExtensions
             const string ns = nameof(AppCommandSettings);
             AppWorkflowContext dummyContext = new()
             {
-                Actor = new Actor { UserIdOrOrgNumber = "501337" },
+                Actor = new Actor { OrgId = "501337" },
                 App = "app",
                 Org = "org",
                 InstanceOwnerPartyId = 12345,
                 InstanceGuid = Guid.NewGuid(),
                 LockToken = "asdf",
+                CallbackToken = "asdf",
             };
 
             builder.Validate(

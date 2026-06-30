@@ -21,7 +21,7 @@ on:
       environments:
         description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
         required: false
-        default: "tt_ring1"
+        default: "at_ring2"
       tag-latest:
         description: 'Tag the GHCR image as "latest"'
         required: false
@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
-      override-default-runtime-environments: tt_ring1
+      override-default-runtime-environments: at_ring2
 
   push-workflow-engine-app-artifact:
     name: Push workflow-engine-app as OCI artifact

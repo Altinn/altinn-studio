@@ -5,6 +5,8 @@ using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -79,37 +81,67 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         parsedToken.Payload.TryGetValue("actual_iss", out var actualIss) && actualIss is "localtest";
                 }
 
-                var isLocaltest = _runtimeEnvironment.IsLocaltestPlatform() && !generalSettings.IsTest;
-                if (isLocaltest && !isNewLocaltestToken)
+                // Workflow-engine callbacks authenticate via their own scheme. Their principal carries no Altinn
+                // user/org claims, so it maps to a dedicated Authenticated.App rather than being run through the
+                // user/org token classification (which the legacy localtest parser would even throw on). The app
+                // identity comes from the running app's metadata; the targeted instance (when the callback is
+                // instance-scoped) is taken from the route, whose instance guid the callback auth handler has
+                // already validated against the token.
+                var isWorkflowCallback = string.Equals(
+                    httpContext.User?.Identity?.AuthenticationType,
+                    WorkflowCallbackAuthentication.Scheme,
+                    StringComparison.Ordinal
+                );
+
+                if (isWorkflowCallback)
                 {
-                    authInfo = Authenticated.FromOldLocalTest(
+                    var appId =
+                        ResolveAppFromRoute(httpContext)
+                        ?? throw new AuthenticationContextException(
+                            "Workflow-engine callback request is missing the org/app route values required to identify the app."
+                        );
+                    authInfo = Authenticated.FromApp(
                         tokenStr: token,
                         parsedToken,
-                        isAuthenticated: !string.IsNullOrWhiteSpace(token),
-                        _appConfigurationCache.ApplicationMetadata,
-                        () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
-                        _profileClient.GetUserProfile,
-                        _altinnPartyClient.GetParty,
-                        (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                        _authorizationClient.GetPartyList,
-                        _authorizationClient.ValidateSelectedParty
+                        appId,
+                        ResolveInstanceFromRoute(httpContext),
+                        _appConfigurationCache.ApplicationMetadata
                     );
                 }
                 else
                 {
-                    var isAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false;
-                    authInfo = Authenticated.From(
-                        tokenStr: token,
-                        parsedToken,
-                        isAuthenticated: isAuthenticated,
-                        _appConfigurationCache.ApplicationMetadata,
-                        () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
-                        _profileClient.GetUserProfile,
-                        _altinnPartyClient.GetParty,
-                        (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                        _authorizationClient.GetPartyList,
-                        _authorizationClient.ValidateSelectedParty
-                    );
+                    var isLocaltest = _runtimeEnvironment.IsLocaltestPlatform() && !generalSettings.IsTest;
+                    if (isLocaltest && !isNewLocaltestToken)
+                    {
+                        authInfo = Authenticated.FromOldLocalTest(
+                            tokenStr: token,
+                            parsedToken,
+                            isAuthenticated: !string.IsNullOrWhiteSpace(token),
+                            _appConfigurationCache.ApplicationMetadata,
+                            () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                            (int userId) => _profileClient.GetUserProfile(userId),
+                            (int partyId) => _altinnPartyClient.GetParty(partyId),
+                            (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
+                            (int userId) => _authorizationClient.GetPartyList(userId),
+                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                        );
+                    }
+                    else
+                    {
+                        var isAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false;
+                        authInfo = Authenticated.From(
+                            tokenStr: token,
+                            parsedToken,
+                            isAuthenticated: isAuthenticated,
+                            _appConfigurationCache.ApplicationMetadata,
+                            () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                            (int userId) => _profileClient.GetUserProfile(userId),
+                            (int partyId) => _altinnPartyClient.GetParty(partyId),
+                            (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
+                            (int userId) => _authorizationClient.GetPartyList(userId),
+                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                        );
+                    }
                 }
 
                 httpContext.Items[ItemsKey] = authInfo;
@@ -124,5 +156,45 @@ internal sealed class AuthenticationContext : IAuthenticationContext
             }
             return authInfo;
         }
+    }
+
+    /// <summary>
+    /// Resolves an <see cref="AppIdentifier"/> from the route values (<c>{org}/{app}</c>).
+    /// Returns <c>null</c> when the route does not carry both values.
+    /// </summary>
+    private static AppIdentifier? ResolveAppFromRoute(HttpContext httpContext)
+    {
+        var routeValues = httpContext.Request.RouteValues;
+        if (
+            routeValues.TryGetValue("org", out var orgValue)
+            && orgValue?.ToString() is { Length: > 0 } org
+            && routeValues.TryGetValue("app", out var appValue)
+            && appValue?.ToString() is { Length: > 0 } app
+        )
+        {
+            return new AppIdentifier(org, app);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Resolves an <see cref="InstanceIdentifier"/> from the route values (<c>{instanceOwnerPartyId}/{instanceGuid}</c>).
+    /// Returns <c>null</c> when the route does not carry a valid instance identifier.
+    /// </summary>
+    private static InstanceIdentifier? ResolveInstanceFromRoute(HttpContext httpContext)
+    {
+        var routeValues = httpContext.Request.RouteValues;
+        if (
+            routeValues.TryGetValue("instanceOwnerPartyId", out var partyValue)
+            && int.TryParse(partyValue?.ToString(), out var instanceOwnerPartyId)
+            && routeValues.TryGetValue("instanceGuid", out var guidValue)
+            && Guid.TryParse(guidValue?.ToString(), out var instanceGuid)
+        )
+        {
+            return new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+        }
+
+        return null;
     }
 }

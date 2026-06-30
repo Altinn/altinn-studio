@@ -1,5 +1,6 @@
-﻿using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -184,7 +185,10 @@ public class EFormidlingServiceTaskTests
         await _serviceTask.Execute(parameters);
 
         // Assert
-        _eFormidlingServiceMock.Verify(x => x.SendEFormidlingShipment(It.IsAny<Instance>()), Times.Never);
+        _eFormidlingServiceMock.Verify(
+            x => x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            Times.Never
+        );
         _loggerMock.Verify(
             x =>
                 x.Log(

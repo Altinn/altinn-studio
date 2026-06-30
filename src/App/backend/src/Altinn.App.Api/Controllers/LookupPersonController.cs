@@ -74,7 +74,7 @@ public class LookupPersonController : ControllerBase
         Person? person;
         try
         {
-            person = await _personClient.GetPerson(ssn, lastName, cancellationToken);
+            person = await _personClient.GetPerson(ssn, lastName, ct: cancellationToken);
         }
         catch (PlatformHttpException e)
         {

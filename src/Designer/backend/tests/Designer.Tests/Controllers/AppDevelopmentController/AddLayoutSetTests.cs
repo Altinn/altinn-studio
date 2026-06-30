@@ -24,7 +24,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/app-development";
+        $"/designer/api/{org}/{repository}/ui-folders";
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
@@ -32,16 +32,16 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
         LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -71,14 +71,14 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["newTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "newTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -106,14 +106,14 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         const string ExistingTaskId = "Task_1";
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = [ExistingTaskId] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = ExistingTaskId };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -130,24 +130,19 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     }
 
     [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-    public async Task AddLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(
-        string org,
-        string app,
-        string developer,
-        string layoutSetId
-    )
+    [InlineData("ttd", "app-with-layoutsets", "testUser")]
+    public async Task AddLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = "" };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = "" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -169,14 +164,14 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = null,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -198,14 +193,14 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Payment,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -243,10 +238,14 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
-        var layoutSetPayload = new LayoutSetPayload() { TaskType = TaskType.Pdf, LayoutSetConfig = newLayoutSetConfig };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
+        var layoutSetPayload = new LayoutSetPayload()
+        {
+            TaskType = TaskType.Pdf,
+            LayoutSetConfigDto = newLayoutSetConfig,
+        };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -268,8 +267,8 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     }
 
     [Theory]
-    [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-    public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(
+    [InlineData("ttd", "app-without-layoutsets", "testUser", "newSet")]
+    public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsOk(
         string org,
         string app,
         string developer,
@@ -278,14 +277,14 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+        var newLayoutSetConfig = new LayoutSetConfigDto() { Id = layoutSetId, TaskId = "NewTask" };
         LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = newLayoutSetConfig,
+            LayoutSetConfigDto = newLayoutSetConfig,
         };
 
-        string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-sets";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -293,7 +292,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)
