@@ -8,6 +8,8 @@ internal static class MetricsEndpoints
     {
         var metricsApi = publicApiV1.MapGroup("/metrics").RequireAuthorization("MaskinportenScope").WithTags("Metrics");
 
+        metricsApi.MapGet("/report", HandleMetrics.GetReportMetrics).WithName("GetReportMetrics");
+
         metricsApi.MapGet("/errors", HandleMetrics.GetErrorMetrics).WithName("GetErrorMetrics");
 
         metricsApi.MapGet("/app", HandleMetrics.GetAppMetrics).WithName("GetAppMetrics");

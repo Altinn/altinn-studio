@@ -82,7 +82,7 @@ EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
   DOTNET_RUNNING_IN_CONTAINER=true
-RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl
+RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
 
 COPY --from=generate-studio-backend /app_output .
 

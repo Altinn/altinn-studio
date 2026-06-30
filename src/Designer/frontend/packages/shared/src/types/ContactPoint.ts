@@ -6,12 +6,15 @@ export type ContactMethod = {
   value: string;
 };
 
+export type ReportFrequency = 'none' | 'daily' | 'weekly' | 'monthly';
+
 export type ContactPoint = {
   id: string;
   name: string;
   isActive: boolean;
   environments: string[];
   methods: ContactMethod[];
+  reportFrequency: ReportFrequency;
 };
 
 export type ContactPointPayload = Omit<ContactPoint, 'id' | 'methods'> & {
