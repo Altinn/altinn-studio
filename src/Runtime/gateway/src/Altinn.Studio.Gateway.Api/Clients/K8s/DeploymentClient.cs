@@ -109,7 +109,7 @@ internal sealed class DeploymentClient(IKubernetes _kubernetes)
         return release[(org.Length + 1)..];
     }
 
-    private static bool IsUpdateInProgress(V1Deployment deployment)
+    internal static bool IsUpdateInProgress(V1Deployment deployment)
     {
         var desiredReplicas = deployment.Spec?.Replicas ?? 0;
         var status = deployment.Status;
