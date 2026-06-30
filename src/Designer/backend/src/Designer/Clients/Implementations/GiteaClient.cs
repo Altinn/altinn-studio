@@ -15,6 +15,7 @@ using System.Web;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.Gitea;
+using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
@@ -508,7 +509,7 @@ public class GiteaClient(
             response.StatusCode
         );
 
-        return null;
+        throw new BranchNotFoundException($"Failed to get branch {branch} for repository {org}/{repository}.", branch);
     }
 
     /// <inheritdoc />
