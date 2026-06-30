@@ -708,10 +708,7 @@
       "title": "Get the number of elements in a list",
       "description": "This function returns the number of elements in a list.",
       "type": "array",
-      "items": [
-        { "const": "count" },
-        { "$ref": "#/definitions/list" }
-      ],
+      "items": [{ "const": "count" }, { "$ref": "#/definitions/list" }],
       "additionalItems": false
     },
     "compare-operator": {
