@@ -14,15 +14,15 @@ namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTaskIdChangedEvent>
 {
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
-    private readonly IUiFoldersService _uiFoldersService;
+    private readonly ILayoutReferenceUpdater _layoutReferenceUpdater;
 
     public ProcessTaskIdChangedLayoutsHandler(
         IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-        IUiFoldersService uiFoldersService
+        ILayoutReferenceUpdater layoutReferenceUpdater
     )
     {
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
-        _uiFoldersService = uiFoldersService;
+        _layoutReferenceUpdater = layoutReferenceUpdater;
     }
 
     public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
                 [
                     new Reference(ReferenceType.Task, null, notification.OldId, notification.NewId),
                 ];
-                return await _uiFoldersService.UpdateLayoutReferences(
+                return await _layoutReferenceUpdater.UpdateLayoutReferences(
                     notification.EditingContext,
                     referencesToUpdate,
                     cancellationToken

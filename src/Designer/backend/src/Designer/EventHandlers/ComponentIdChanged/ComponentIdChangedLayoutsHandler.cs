@@ -17,17 +17,17 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
-    private readonly IUiFoldersService _uiFoldersService;
+    private readonly ILayoutReferenceUpdater _layoutReferenceUpdater;
 
     public ComponentIdChangedLayoutsHandler(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-        IUiFoldersService uiFoldersService
+        ILayoutReferenceUpdater layoutReferenceUpdater
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
-        _uiFoldersService = uiFoldersService;
+        _layoutReferenceUpdater = layoutReferenceUpdater;
     }
 
     public async Task Handle(ComponentIdChangedEvent notification, CancellationToken cancellationToken)
@@ -66,7 +66,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                         notification.NewComponentId
                     ),
                 ];
-                hasChanges |= await _uiFoldersService.UpdateLayoutReferences(
+                hasChanges |= await _layoutReferenceUpdater.UpdateLayoutReferences(
                     notification.EditingContext,
                     referencesToUpdate,
                     cancellationToken

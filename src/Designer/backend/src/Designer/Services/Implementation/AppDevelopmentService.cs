@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
@@ -902,5 +903,31 @@ public class AppDevelopmentService : IAppDevelopmentService
         }
         layoutArray.Add(component);
         await SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateLayoutReferences(
+        AltinnRepoEditingContext editingContext,
+        List<Reference> referencesToUpdate,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer
+        );
+
+        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+        List<LayoutSetConfigDto> layoutSetDtos = layoutSets
+            .Sets.Select((LayoutSetConfig config) => LayoutSetConfigDto.From(config))
+            .ToList();
+
+        return await LayoutReferenceUpdateHelper.UpdateReferences(
+            altinnAppGitRepository,
+            layoutSetDtos,
+            referencesToUpdate,
+            cancellationToken
+        );
     }
 }

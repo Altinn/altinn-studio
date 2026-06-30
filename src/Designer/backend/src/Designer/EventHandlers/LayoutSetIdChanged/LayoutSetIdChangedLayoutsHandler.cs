@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.EventHandlers.LayoutSetIdChanged;
 
 public class LayoutSetIdChangedLayoutsHandler(
     IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-    IUiFoldersService uiFoldersService
+    ILayoutReferenceUpdater layoutReferenceUpdater
 ) : INotificationHandler<LayoutSetIdChangedEvent>
 {
     public async Task Handle(LayoutSetIdChangedEvent notification, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public class LayoutSetIdChangedLayoutsHandler(
                         notification.NewLayoutSetName
                     ),
                 ];
-                return await uiFoldersService.UpdateLayoutReferences(
+                return await layoutReferenceUpdater.UpdateLayoutReferences(
                     notification.EditingContext,
                     referencesToUpdate,
                     cancellationToken
