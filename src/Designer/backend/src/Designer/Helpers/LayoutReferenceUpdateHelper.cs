@@ -32,6 +32,10 @@ public static class LayoutReferenceUpdateHelper
             .Where(item => item.Type == ReferenceType.LayoutSet)
             .Select(item => item.Id)
             .ToList();
+        var deletedTaskIds = deletedReferences
+            .Where(item => item.Type == ReferenceType.Task)
+            .Select(item => item.Id)
+            .ToList();
         var deletedLayouts = deletedReferences.Where(item => item.Type == ReferenceType.Layout).ToList();
         var deletedComponents = deletedReferences.Where(item => item.Type == ReferenceType.Component).ToList();
 
@@ -169,6 +173,7 @@ public static class LayoutReferenceUpdateHelper
                                             )
                                         )
                                         || (layoutSetId is not null && deletedLayoutsSetIds.Contains(layoutSetId))
+                                        || (!string.IsNullOrEmpty(taskId) && deletedTaskIds.Contains(taskId))
                                     )
                                     {
                                         referencesToDelete.Add(

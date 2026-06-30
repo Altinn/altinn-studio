@@ -828,7 +828,7 @@ public class UiFoldersService : IUiFoldersService
         {
             folderNames = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         }
-        catch (DirectoryNotFoundException)
+        catch (LibGit2Sharp.NotFoundException)
         {
             return false;
         }
@@ -837,10 +837,18 @@ public class UiFoldersService : IUiFoldersService
             .Select(name => new LayoutSetConfigDto { Id = name, TaskId = name })
             .ToList();
 
+        List<Reference> referencesIncludingTaskDeletions =
+        [
+            .. referencesToUpdate,
+            .. referencesToUpdate
+                .Where(reference => reference.Type == ReferenceType.LayoutSet && string.IsNullOrEmpty(reference.NewId))
+                .Select(reference => new Reference(ReferenceType.Task, null, reference.Id)),
+        ];
+
         return await LayoutReferenceUpdateHelper.UpdateReferences(
             altinnAppGitRepository,
             layoutSetDtos,
-            referencesToUpdate,
+            referencesIncludingTaskDeletions,
             cancellationToken
         );
     }
