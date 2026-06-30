@@ -8,6 +8,8 @@ import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { getTaskIdForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 import { convertInternalToExternalFormat } from './convertFunctions/convertToExternalFormat';
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
@@ -52,9 +54,10 @@ export const AttachmentListComponent = ({
     });
   };
 
-  const isTaskCustomReceipt = layoutSets?.sets
-    .find((set) => set.id === layoutSet)
-    ?.tasks?.includes('CustomReceipt');
+  const selectedLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
+  const isTaskCustomReceipt =
+    selectedLayoutSet &&
+    getTaskIdForLayoutSet(selectedLayoutSet) === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
 
   const { dataTypeIds = [] } = component || {};
   const internalDataFormat = convertExternalToInternalFormat(availableAttachments, dataTypeIds);
@@ -113,15 +116,17 @@ const filterAttachments = (
   });
 };
 
-const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] =>
-  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)?.tasks;
+const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
+  const selectedLayoutSet = layoutSets.find(
+    (layoutSet) => layoutSet.id === selectedFormLayoutSetName,
+  );
+  return selectedLayoutSet ? [getTaskIdForLayoutSet(selectedLayoutSet)] : [];
+};
 
 const sampleTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
   const tasks = [];
-  for (const layoutSet of layoutSets.sets) {
-    if (layoutSet.tasks) {
-      tasks.push(...layoutSet.tasks);
-    }
+  for (const layoutSet of layoutSets) {
+    tasks.push(getTaskIdForLayoutSet(layoutSet));
     if (layoutSet.id === selectedFormLayoutSetName) {
       break;
     }

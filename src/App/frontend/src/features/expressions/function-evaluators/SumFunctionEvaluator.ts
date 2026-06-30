@@ -1,9 +1,8 @@
-import { exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { FunctionEvaluator } from 'src/features/expressions/function-evaluators/FunctionEvaluator';
-import { ExprVal } from 'src/features/expressions/types';
+import { convertArrayToNumberList } from 'src/features/expressions/function-evaluators/number-list-utils';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
-import type { ValidArray, ValidValue } from 'src/features/expressions/types';
+import type { ValidArray } from 'src/features/expressions/types';
 
 export class SumFunctionEvaluator extends FunctionEvaluator<[ValidArray | null], number> {
   constructor(context: EvaluateExpressionParams<never[]>, argumentList: [ValidArray | null]) {
@@ -15,15 +14,10 @@ export class SumFunctionEvaluator extends FunctionEvaluator<[ValidArray | null],
   }
 
   private get numberList(): number[] {
-    return this.list.map(this.convertValueToNumber);
+    return convertArrayToNumberList(this.list, this.context);
   }
 
   private get list(): ValidArray {
     return this.argumentList[0] || [];
   }
-
-  private convertValueToNumber = (value: ValidValue): number => {
-    const result = exprCastValue<ExprVal.Number>(value, ExprVal.Number, this.context);
-    return result || 0;
-  };
 }

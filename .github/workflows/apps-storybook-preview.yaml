@@ -2,7 +2,7 @@ name: Build and deploy Apps Storybook with preview
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'app-libs/form-component/**'
       - '.github/workflows/apps-storybook-preview.yaml'
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    if: ${{ github.event.action != 'closed' }}
+    if: ${{ github.event.action != 'closed' && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     name: Build and deploy preview
     permissions:

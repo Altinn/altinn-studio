@@ -1,0 +1,130 @@
+{
+  "name": "Average tests",
+  "testCases": [
+    {
+      "name": "Should calculate the average of numbers in the list",
+      "expression": ["average", ["list", 0.1, 0.2, 0.3], 0],
+      "expects": 0.2
+    },
+    {
+      "name": "Should calculate the average of negative numbers in the list",
+      "expression": ["average", ["list", -4, -0.2, -0.1], 0],
+      "expects": -1.4333333333333333
+    },
+    {
+      "name": "Should return 0 when all numbers in the array are null",
+      "expression": ["average", ["list", null, null, null], 0],
+      "expects": 0
+    },
+    {
+      "name": "Should calculate average of all numbers and nulls in the array",
+      "expression": ["average", ["list", 4.3, null, 3.1], 0],
+      "expects": 2.466666666666667
+    },
+    {
+      "name": "Should calculate average of integers in array",
+      "expression": ["average", ["list", 10, 20, 30], 0],
+      "expects": 20
+    },
+    {
+      "name": "Should calculate average of mixed floats and integers in array",
+      "expression": ["average", ["list", 10.5, 20, 5.5], 0],
+      "expects": 12
+    },
+    {
+      "name": "Should calculate average of strings as numbers in array",
+      "expression": ["average", ["list", "10.5", "20", "5.5"], 0],
+      "expects": 12
+    },
+    {
+      "name": "Should calculate average of negative and positive integers in array",
+      "expression": ["average", ["list", 50, -30, 20, -10], 0],
+      "expects": 7.5
+    },
+    {
+      "name": "Should calculate average of numbers in scientific notation in array",
+      "expression": ["average", ["list", 1e3, 2e3, 1e2], 0],
+      "expects": 1033.3333333333333
+    },
+    {
+      "name": "Should calculate average of numbers with negative exponents in array",
+      "expression": ["average", ["list", 1e-3, 2e-3, 3e-3], 0],
+      "expects": 0.002
+    },
+    {
+      "name": "Should calculate average of very small numbers in array",
+      "expression": ["average", ["list", 0.0000001, 0.0000002, 0.0000003], 0],
+      "expects": 0.0000002
+    },
+    {
+      "name": "Should calculate average of string scientific notation in array",
+      "expression": ["average", ["list", "5E2", "1E2", "5e1"], 0],
+      "expects": 216.66666666666666
+    },
+    {
+      "name": "Should calculate average of negative and positive decimal numbers in array",
+      "expression": ["average", ["list", 50.55, -30.66, 10.11], 0],
+      "expects": 10
+    },
+    {
+      "name": "Should return the empty value (0) when the array is empty",
+      "expression": ["average", ["list"], 0],
+      "expects": 0
+    },
+    {
+      "name": "Should return the empty value (42) when the array is empty",
+      "expression": ["average", ["list"], 42],
+      "expects": 42
+    },
+    {
+      "name": "Should return the empty value (null) when the array is empty",
+      "expression": ["average", ["list"], null],
+      "expects": null
+    },
+    {
+      "name": "Should fail with non-numeric empty value",
+      "expression": ["average", ["list", 1, 2], "not a number"],
+      "expectsFailure": "Expected number, got value \"not a number\""
+    },
+    {
+      "name": "Should ignore the empty value when the array is not empty",
+      "expression": ["average", ["list", 10, 20, 30], 999],
+      "expects": 20
+    },
+    {
+      "name": "Should fail with invalid string in array",
+      "expression": ["average", ["list", "10", "not a number", "5"], 0],
+      "expectsFailure": "Expected number, got value \"not a number\""
+    },
+    {
+      "name": "Should fail with boolean in array",
+      "expression": ["average", ["list", 10, true, 5], 0],
+      "expectsFailure": "Expected number, got value true"
+    },
+    {
+      "name": "Should fail when no arguments are provided",
+      "expression": ["average"],
+      "expectsFailure": "Expected 2 argument(s), got 0"
+    },
+    {
+      "name": "Should fail when only the list argument is provided",
+      "expression": ["average", ["list", 1, 2]],
+      "expectsFailure": "Expected 2 argument(s), got 1"
+    },
+    {
+      "name": "Should fail when non-array first argument is provided",
+      "expression": ["average", 10, 0],
+      "expectsFailure": "Expected argument to be list, got number"
+    },
+    {
+      "name": "Should calculate average of single element array",
+      "expression": ["average", ["list", 42], 0],
+      "expects": 42
+    },
+    {
+      "name": "Should calculate average of large numbers in array",
+      "expression": ["average", ["list", 900719925474099, 1, 900719925474099], 0],
+      "expects": 600479950316066.33
+    }
+  ]
+}

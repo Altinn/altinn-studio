@@ -61,26 +61,15 @@ public class ResourceRegistryService : IResourceRegistry
     public async Task<List<ServiceResource>> GetServiceResourceList(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false,
         bool includeMigratedApps = false
     )
     {
-        return await _resourceRegistryRepository.GetServiceResources(
-            env,
-            includeApps,
-            includeAltinn2,
-            includeMigratedApps
-        );
+        return await _resourceRegistryRepository.GetServiceResources(env, includeApps, includeMigratedApps);
     }
 
     public async Task<bool> ServiceResourceExists(string id, string env)
     {
-        var resourceList = await GetServiceResourceList(
-            env,
-            includeApps: false,
-            includeAltinn2: false,
-            includeMigratedApps: false
-        );
+        var resourceList = await GetServiceResourceList(env, includeApps: false, includeMigratedApps: false);
         return resourceList.Any((serviceResource) => serviceResource.Identifier.Equals(id));
     }
 
@@ -215,119 +204,6 @@ public class ResourceRegistryService : IResourceRegistry
         }
 
         return policy;
-    }
-
-    public async Task<ServiceResource> GetServiceResourceFromService(
-        string serviceCode,
-        int serviceEditionCode,
-        string environment
-    )
-    {
-        string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-        string url =
-            $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/resource/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
-
-        HttpResponseMessage response = await _httpClient.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadAsAsync<ServiceResource>();
-    }
-
-    public async Task<XacmlPolicy> GetXacmlPolicy(
-        string serviceCode,
-        int serviceEditionCode,
-        string identifier,
-        string environment
-    )
-    {
-        string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-        string url =
-            $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/policy/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&resourceIdentifier={identifier}";
-
-        HttpResponseMessage response = await _httpClient.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-
-        string contentString = await response.Content.ReadAsStringAsync();
-        XacmlPolicy policy;
-        using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
-        {
-            policy = XacmlParser.ParseXacmlPolicy(reader);
-        }
-
-        return policy;
-    }
-
-    public async Task<DelegationCountOverview> GetDelegationCount(
-        string serviceCode,
-        int serviceEditionCode,
-        string environment
-    )
-    {
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(
-            GetMaskinportenIntegrationSettings(environment)
-        );
-
-        string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-        string url =
-            $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
-
-        using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
-
-        using HttpResponseMessage response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadAsAsync<DelegationCountOverview>();
-    }
-
-    public async Task<ActionResult> StartMigrateDelegations(
-        ExportDelegationsRequestBE delegationRequest,
-        string environment
-    )
-    {
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(
-            GetMaskinportenIntegrationSettings(environment)
-        );
-
-        string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-
-        // set service expired
-        string setServiceEditionExpiredUrl =
-            $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired?externalServiceCode={delegationRequest.ServiceCode}&externalServiceEditionCode={delegationRequest.ServiceEditionCode}";
-
-        using HttpRequestMessage setServiceEditionExpiredRequest = new HttpRequestMessage(
-            HttpMethod.Get,
-            setServiceEditionExpiredUrl
-        );
-        setServiceEditionExpiredRequest.Headers.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            tokenResponse.AccessToken
-        );
-
-        using HttpResponseMessage setServiceEditionExpiredResponse = await _httpClient.SendAsync(
-            setServiceEditionExpiredRequest
-        );
-        setServiceEditionExpiredResponse.EnsureSuccessStatusCode();
-
-        // set batch start time
-        string migrateDelegationsUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
-        delegationRequest.DateTimeForExport = DateTimeOffset.UtcNow.AddMinutes(10); // set batch start time 10 minutes from now
-        string serializedContent = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
-        using HttpRequestMessage migrateDelegationsRequest = new HttpRequestMessage()
-        {
-            RequestUri = new Uri(migrateDelegationsUrl),
-            Method = HttpMethod.Post,
-            Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"),
-        };
-        migrateDelegationsRequest.Headers.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            tokenResponse.AccessToken
-        );
-
-        using HttpResponseMessage migrateDelegationsResponse = await _httpClient.SendAsync(migrateDelegationsRequest);
-        migrateDelegationsResponse.EnsureSuccessStatusCode();
-
-        return new StatusCodeResult(202);
     }
 
     // RRR

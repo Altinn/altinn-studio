@@ -62,14 +62,15 @@ describe('useSelectedTaskId', () => {
     const taskTest = 'Task_Test';
 
     const client = createQueryClientMock();
-    client.setQueryData([QueryKey.LayoutSets, org, app], {
-      sets: [
+    client.setQueryData(
+      [QueryKey.LayoutSets, org, app],
+      [
         {
           id: layoutSet1NameMock,
-          tasks: [taskTest],
+          taskId: taskTest,
         },
       ],
-    });
+    );
 
     const { result } = renderHook(() => useSelectedTaskId(layoutSet1NameMock), {
       wrapper: ({ children }) => {

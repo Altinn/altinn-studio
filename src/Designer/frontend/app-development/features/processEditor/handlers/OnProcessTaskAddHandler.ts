@@ -116,7 +116,7 @@ export class OnProcessTaskAddHandler {
     const elementId = taskMetadata.taskEvent.element.id;
     return {
       taskType: taskMetadata.taskType,
-      layoutSetConfig: { id: elementId, tasks: [elementId] },
+      layoutSetConfig: { id: elementId, taskId: elementId },
     };
   }
 

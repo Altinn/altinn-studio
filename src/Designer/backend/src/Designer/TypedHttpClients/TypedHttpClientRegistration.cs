@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
@@ -84,7 +83,6 @@ public static class TypedHttpClientRegistration
         services.AddKubernetesWrapperTypedHttpClient();
         services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
         services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
-        services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
         services.AddTransient<GiteaWebAuthDelegatingHandler>();
 
         services.AddGiteaUserProvisioningTypedHttpClient(config);

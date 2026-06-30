@@ -12,7 +12,7 @@
     "codeowners:validate": "node .github/scripts/codeowners-generate.mjs --check",
     "lint": "yarn workspace studio-designer-frontend lint && yarn lint:libs",
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix && yarn lint:libs",
-    "lint:libs": "yarn workspace @app/form-engine lint",
+    "lint:libs": "yarn workspace app-libs lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
     "setup": "lefthook install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
@@ -53,6 +53,7 @@
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
+    "app-libs",
     "app-libs/**"
   ],
   "resolutions": {

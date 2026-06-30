@@ -264,6 +264,6 @@ const renderPdfFilenameTextResource = (filenameTextResourceKey?: string) => {
 
   return renderWithProviders(<PdfFilenameTextResource />, {
     bpmnContextProps: { bpmnDetails },
-    bpmnApiContextProps: { layoutSets: { sets: [] } },
+    bpmnApiContextProps: { layoutSets: [] },
   });
 };

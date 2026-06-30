@@ -12,8 +12,7 @@
         "application/pdf"
       ],
       "maxCount": 0,
-      "minCount": 0,
-      "enablePdfCreation": true
+      "minCount": 0
     },
     {
       "id": "Model",
@@ -28,8 +27,7 @@
       },
       "taskId": "Task_1",
       "maxCount": 1,
-      "minCount": 1,
-      "enablePdfCreation": true
+      "minCount": 1
     },
     {
       "id": "Extra",
@@ -44,8 +42,7 @@
       },
       "taskId": "Task_3",
       "maxCount": 1,
-      "minCount": 1,
-      "enablePdfCreation": true
+      "minCount": 1
     },
     {
       "id": "signature",
@@ -54,8 +51,7 @@
       ],
       "taskId": "Task_2",
       "maxCount": 1,
-      "minCount": 0,
-      "enablePdfCreation": false
+      "minCount": 0
     }
   ],
   "partyTypesAllowed": {
