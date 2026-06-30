@@ -54,7 +54,7 @@ public class SourceControlServiceTest : IDisposable
         _sourceControlService = new SourceControlService(
             _settings,
             _giteaClientMock.Object,
-            new Mock<IGitServerAuthHeadersProvider>().Object
+            CreateAuthHeadersProvider()
         );
     }
 
@@ -515,13 +515,17 @@ public class SourceControlServiceTest : IDisposable
                 + Path.DirectorySeparatorChar,
         };
 
-        SourceControlService service = new(
-            repoSettings,
-            giteaMock.Object,
-            new Mock<IGitServerAuthHeadersProvider>().Object
-        );
+        SourceControlService service = new(repoSettings, giteaMock.Object, CreateAuthHeadersProvider());
 
         return service;
+    }
+
+    private static IGitServerAuthHeadersProvider CreateAuthHeadersProvider()
+    {
+        Mock<IGitServerAuthHeadersProvider> authHeadersProvider = new();
+        authHeadersProvider.Setup(provider => provider.GetAuthHeaders()).Returns(new Dictionary<string, string>());
+
+        return authHeadersProvider.Object;
     }
 
     private AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)
