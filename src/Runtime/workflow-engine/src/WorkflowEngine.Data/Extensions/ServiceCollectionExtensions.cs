@@ -1,5 +1,8 @@
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using WorkflowEngine.Data.Constants;
@@ -22,8 +25,13 @@ internal static class ServiceCollectionExtensions
         /// gated by the concurrency limiter's DB semaphore.
         /// </summary>
         /// <param name="enableSensitiveDataLogging">Enable EF Core sensitive data logging.</param>
-        public IServiceCollection AddDbRepository(bool enableSensitiveDataLogging = false)
+        /// <param name="enableAzureWorkloadIdentity">Enable Azure workload identity for passwordless connections.</param>
+        public IServiceCollection AddDbRepository(
+            bool enableSensitiveDataLogging = false,
+            bool enableAzureWorkloadIdentity = true
+        )
         {
+            services.TryAddSingleton<WorkloadIdentityCredential>();
             services.AddSingleton(sp =>
             {
                 var connectionString = sp.GetRequiredService<EngineConnectionString>().Value;
@@ -37,6 +45,26 @@ internal static class ServiceCollectionExtensions
                         KeepAlive = 60,
                     },
                 };
+
+                if (
+                    enableAzureWorkloadIdentity
+                    && string.IsNullOrEmpty(dataSourceBuilder.ConnectionStringBuilder.Password)
+                )
+                {
+                    var credential = sp.GetRequiredService<WorkloadIdentityCredential>();
+                    dataSourceBuilder.UsePeriodicPasswordProvider(
+                        async (_, cancellationToken) =>
+                        {
+                            var accessToken = await credential.GetTokenAsync(
+                                new TokenRequestContext(["https://ossrdbms-aad.database.windows.net/.default"]),
+                                cancellationToken
+                            );
+                            return accessToken.Token;
+                        },
+                        TimeSpan.FromMinutes(55),
+                        TimeSpan.FromSeconds(5)
+                    );
+                }
 
                 return dataSourceBuilder.Build();
             });
