@@ -64,7 +64,7 @@ describe('CreateCustomReceiptForm', () => {
         layoutSetConfig: {
           id: newId,
           dataType: mockAllDataModelIds[0],
-          tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
+          taskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
         },
       },
       {
