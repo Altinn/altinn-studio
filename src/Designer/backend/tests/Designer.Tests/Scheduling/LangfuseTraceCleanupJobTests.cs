@@ -15,11 +15,8 @@ public class LangfuseTraceCleanupJobTests
     public async Task Execute_InvokesTriggerTraceCleanupAsync()
     {
         var agentClientMock = new Mock<IAltinityAgentClient>();
-
         var job = new LangfuseTraceCleanupJob(agentClientMock.Object);
-
         var jobExecutionContextMock = new Mock<IJobExecutionContext>();
-        jobExecutionContextMock.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
 
         await job.Execute(jobExecutionContextMock.Object);
 
@@ -37,7 +34,6 @@ public class LangfuseTraceCleanupJobTests
         var job = new LangfuseTraceCleanupJob(agentClientMock.Object);
 
         var jobExecutionContextMock = new Mock<IJobExecutionContext>();
-        jobExecutionContextMock.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => job.Execute(jobExecutionContextMock.Object));
     }
