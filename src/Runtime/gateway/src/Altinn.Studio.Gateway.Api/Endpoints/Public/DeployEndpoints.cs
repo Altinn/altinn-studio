@@ -12,13 +12,17 @@ internal static class DeployEndpoints
             .MapGet("/origin/{originEnvironment}/apps/", HandleListAppDeployments.ListAppDeploymentsHandler)
             .WithName("ListAppDeployments")
             .WithSummary("List all App deployments.")
-            .WithDescription("Endpoint to list all app deployments.");
+            .WithDescription(
+                "Endpoint to list GitOps-managed app deployments. Set includeNonGitOps=true to include all runtime deployments."
+            );
 
         deployApi
             .MapGet("/apps/{app}/{originEnvironment}", HandleGetAppDeployment.GetAppDeploymentHandler)
             .WithName("GetAppDeployment")
             .WithSummary("Get App deployment.")
-            .WithDescription("Endpoint to get a single app deployment.");
+            .WithDescription(
+                "Endpoint to get a GitOps-managed app deployment. Set includeNonGitOps=true to include a runtime deployment without GitOps metadata."
+            );
 
         deployApi
             .MapGet("/apps/{app}/{originEnvironment}/deployed", HandleIsAppDeployed.IsAppDeployedHandler)
