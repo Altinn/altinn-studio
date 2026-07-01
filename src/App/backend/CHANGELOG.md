@@ -21,13 +21,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Modify `IServiceTask` and `ServiceTaskResult` to support workflow engine integration.
 - Update `Microsoft.OpenApi` to version 2.
 
-### Removed
-
-- Breaking: remove `IProcessTaskStart`, `IProcessTaskEnd`, and `IProcessTaskAbandon` in favor of the new `IOnTaskStartingHandler`, `IOnTaskEndingHandler`, and `IOnTaskAbandonHandler` hooks.
-
 ### Fixed
 
 - Fix PDF generation to respect global page settings.
+
+### Removed
+
+- Breaking: remove `IProcessTaskStart`, `IProcessTaskEnd`, and `IProcessTaskAbandon` in favor of the new `IOnTaskStartingHandler`, `IOnTaskEndingHandler`, and `IOnTaskAbandonHandler` hooks.
 
 ## [9.0.0-preview.1] - 2026-06-08
 
