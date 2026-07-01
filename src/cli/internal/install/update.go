@@ -82,6 +82,25 @@ func newHTTPDownloader(version config.Version) httpDownloader {
 	}
 }
 
+// ResolveUpdateVersion resolves the release version an update would install
+// without downloading any assets. It returns the version tag without the
+// "studioctl/" prefix (for example "v0.1.0-preview.15"). When opts.Version is
+// empty the newest available release is resolved from GitHub.
+func (s *Service) ResolveUpdateVersion(ctx context.Context, opts UpdateOptions) (string, error) {
+	version, err := normalizeReleaseVersion(opts.Version)
+	if err != nil {
+		return "", err
+	}
+	if version == "" {
+		downloads := newHTTPDownloader(s.cfg.Version)
+		version, err = downloads.resolveLatestStudioctlVersion(ctx, defaultUpdateRepo)
+		if err != nil {
+			return "", err
+		}
+	}
+	return strings.TrimPrefix(version, "studioctl/"), nil
+}
+
 // ResolveUpdateBundle downloads an update bundle and returns the current install target.
 func (s *Service) ResolveUpdateBundle(
 	ctx context.Context,
