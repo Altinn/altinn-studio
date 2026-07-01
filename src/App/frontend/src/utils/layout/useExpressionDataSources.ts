@@ -113,7 +113,6 @@ export type ExpressionRuntimeOverrides = {
   runtime?: Partial<ExpressionDataSources>;
   unsupportedDataSources?: Set<ExpressionDataSource>;
   errorSuffix?: string;
-  subscribeToFormStore?: boolean; // Can be toggled off, for example if you already have a subscription
 };
 
 /**
@@ -150,7 +149,24 @@ export function useExpressionDataSourcesBase(overrides?: ExpressionRuntimeOverri
   return useExpressionDataSourcesRuntime({
     ...overrides,
     unsupportedDataSources,
-  });
+  }, 'runtime');
+}
+
+export function useExpressionDataSourcesBaseForStoreSelector(
+  overrides?: ExpressionRuntimeOverrides,
+): ExpressionDataSources {
+  const unsupportedDataSources = useMemo(
+    () => new Set([...(overrides?.unsupportedDataSources ?? []), 'displayValue' as const]),
+    [overrides?.unsupportedDataSources],
+  );
+
+  return useExpressionDataSourcesRuntime(
+    {
+      ...overrides,
+      unsupportedDataSources,
+    },
+    'storeSelector',
+  );
 }
 
 export function useExpressionDataSources(
@@ -163,7 +179,7 @@ export function useExpressionDataSources(
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
   // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
-  const runtime = useExpressionDataSourcesRuntime(overrides);
+  const runtime = useExpressionDataSourcesRuntime(overrides, 'runtime');
 
   return useMemo<ExpressionDataSources>(
     () => ({
@@ -180,7 +196,39 @@ export function useExpressionDataSources(
   );
 }
 
-function useExpressionDataSourcesRuntime(overrides: ExpressionRuntimeOverrides | undefined): ExpressionDataSources {
+export function useExpressionDataSourcesForStoreSelector(
+  toEvaluate: unknown,
+  overrides?: ExpressionRuntimeOverrides,
+): ExpressionDataSources {
+  if (overrides?.unsupportedDataSources?.has('displayValue')) {
+    throw new Error('Use the expressionDataSourcesBase hook instead');
+  }
+  const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
+  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
+  const runtime = useExpressionDataSourcesRuntime(overrides, 'storeSelector');
+
+  return useMemo<ExpressionDataSources>(
+    () => ({
+      ...runtime,
+      displayValue: {
+        get: (componentId) => {
+          runtime.context.assertDataSourceSupported('displayValue');
+          runtime.track({ type: 'displayValue', componentId });
+          return displayValues[componentId];
+        },
+      },
+    }),
+    [displayValues, runtime],
+  );
+}
+
+type ExpressionSubscriptionOwner = 'runtime' | 'storeSelector';
+
+function useExpressionDataSourcesRuntime(
+  overrides: ExpressionRuntimeOverrides | undefined,
+  subscriptionOwner: ExpressionSubscriptionOwner,
+): ExpressionDataSources {
   const applicationSettings = useApplicationSettings();
   const currentLanguage = useCurrentLanguage();
   const { pageKey: currentPage, instanceOwnerPartyId, instanceGuid } = useAllNavigationParams();
@@ -193,7 +241,7 @@ function useExpressionDataSourcesRuntime(overrides: ExpressionRuntimeOverrides |
   const externalApiQueries = useExternalApiQueries();
   const textResourceQueries = useTextResourcesQueries();
 
-  const [, forceRender] = useReducer((n: number) => n + 1, 0);
+  const [runtimeRevision, forceRender] = useReducer((n: number) => n + 1, 0);
   const observerRef = useRef<ExpressionObserver>(undefined);
   if (!observerRef.current) {
     observerRef.current = new ExpressionObserver(() => forceRender());
@@ -243,8 +291,8 @@ function useExpressionDataSourcesRuntime(overrides: ExpressionRuntimeOverrides |
 
   useLayoutEffect(() => {
     const observer = observerRef.current!;
-    return observer.subscribe(overrides?.subscribeToFormStore !== false);
-  }, [overrides?.subscribeToFormStore, queryCacheObserver, store]);
+    return observer.subscribe(subscriptionOwner);
+  }, [queryCacheObserver, store, subscriptionOwner]);
 
   const { runtime: runtimeOverridesFromProps, unsupportedDataSources, errorSuffix } = overrides ?? {};
   const runtimeOverrides = useShallowMemo(runtimeOverridesFromProps ?? emptyRuntimeOverrides);
@@ -348,6 +396,7 @@ function useExpressionDataSourcesRuntime(overrides: ExpressionRuntimeOverrides |
       inputs,
       instanceId,
       instanceQueries,
+      runtimeRevision,
       runtimeOverrides,
       store,
     ],
@@ -392,7 +441,7 @@ class ExpressionObserver {
     return [...this.active.values()];
   }
 
-  subscribe(subscribeToFormStore: boolean) {
+  subscribe(subscriptionOwner: ExpressionSubscriptionOwner) {
     this.unsubscribeStore?.();
     this.unsubscribeQuery?.();
     this.subscribed = false;
@@ -403,12 +452,12 @@ class ExpressionObserver {
     }
 
     this.unsubscribeStore =
-      subscribeToFormStore && inputs.store !== ContextNotProvided
-        ? inputs.store.subscribe(() => this.checkForChanges())
+      subscriptionOwner === 'runtime' && inputs.store !== ContextNotProvided
+        ? inputs.store.subscribe(() => this.checkForChanges(isStoreBackedDependency))
         : null;
 
     this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
-      this.checkForChanges();
+      this.checkForChanges(isQueryBackedDependency);
     });
     this.subscribed = true;
 
@@ -421,16 +470,21 @@ class ExpressionObserver {
     };
   }
 
-  private checkForChanges() {
+  private checkForChanges(shouldCheck: (dependency: ExpressionDependency) => boolean) {
     if (!this.inputs || this.active.size === 0) {
       return;
     }
 
-    const nextValues = this.readValues(this.active);
+    const dependencies = new Map([...this.active].filter(([, dependency]) => shouldCheck(dependency)));
+    if (dependencies.size === 0) {
+      return;
+    }
+
+    const nextValues = this.readValues(dependencies);
     for (const [key, nextValue] of nextValues) {
       const previousValue = this.lastValues.get(key);
       if (!deepEqual(previousValue, nextValue)) {
-        this.lastValues = nextValues;
+        this.lastValues = new Map([...this.lastValues, ...nextValues]);
         this.scheduleRerender();
         return;
       }
@@ -458,6 +512,19 @@ class ExpressionObserver {
     }
     return values;
   }
+}
+
+function isStoreBackedDependency(dependency: ExpressionDependency) {
+  return dependency.type === 'formData' || dependency.type === 'layout' || dependency.type === 'options';
+}
+
+function isQueryBackedDependency(dependency: ExpressionDependency) {
+  return (
+    dependency.type === 'externalApi' ||
+    dependency.type === 'instanceDataSources' ||
+    dependency.type === 'language' ||
+    dependency.type === 'process'
+  );
 }
 
 /**

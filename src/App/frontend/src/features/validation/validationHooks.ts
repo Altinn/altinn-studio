@@ -21,36 +21,26 @@ import {
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { useExpressionDataSources, useExpressionDataSourcesBase } from 'src/utils/layout/useExpressionDataSources';
+import {
+  useExpressionDataSourcesBaseForStoreSelector,
+  useExpressionDataSourcesForStoreSelector,
+} from 'src/utils/layout/useExpressionDataSources';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
   DerivedValidationStateInputs,
   ValidationVisibilityBreakdown as ValidationVisibilityBreakdownType,
 } from 'src/features/validation/deriveValidationState';
-import type { ExpressionRuntimeOverrides } from 'src/utils/layout/useExpressionDataSources';
 
 export type ValidationVisibilityBreakdown = ValidationVisibilityBreakdownType;
 
 const emptyArray: never[] = [];
 
-// Validation derivation below runs inside FormStore.raw.useMemoSelector(), so form-store updates are already
-// observed there. Letting the expression runtime also subscribe to FormStore would force a render before the
-// selector can compare and suppress unchanged validation results.
-const hiddenExpressionRuntimeOverrides: ExpressionRuntimeOverrides = {
-  errorSuffix: 'hidden expressions',
-  subscribeToFormStore: false,
-};
-
-const validationExpressionRuntimeOverrides: ExpressionRuntimeOverrides = {
-  subscribeToFormStore: false,
-};
-
 function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   const pageOrder = useRawPageOrder();
   const pdfLayoutName = usePdfLayoutName();
   const processedLayouts = FormStore.bootstrap.useLayouts();
-  const hiddenDataSources = useExpressionDataSourcesBase(hiddenExpressionRuntimeOverrides);
-  const evalDataSources = useExpressionDataSources(processedLayouts, validationExpressionRuntimeOverrides);
+  const hiddenDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'hidden expressions' });
+  const evalDataSources = useExpressionDataSourcesForStoreSelector(processedLayouts);
   const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
   const taskId = useProcessTaskId();
 
@@ -111,11 +101,8 @@ function useFreshDerivedStateBuilder() {
   const taskOverrides = useTaskOverrides();
   const { instanceOwnerPartyId, instanceGuid, taskId: urlTaskId } = useAllNavigationParams();
   const formState = store.getState();
-  const hiddenDataSources = useExpressionDataSourcesBase(hiddenExpressionRuntimeOverrides);
-  const evalDataSources = useExpressionDataSources(
-    formState.bootstrap.processedLayouts,
-    validationExpressionRuntimeOverrides,
-  );
+  const hiddenDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'hidden expressions' });
+  const evalDataSources = useExpressionDataSourcesForStoreSelector(formState.bootstrap.processedLayouts);
   const snapshotInputs = useCallback((): DerivedValidationStateInputs => {
     const latestState = store.getState();
     const layoutSettings = processLayoutSettings(getUiFolderSettings(latestState.bootstrap.uiFolder));
