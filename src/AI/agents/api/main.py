@@ -23,7 +23,7 @@ config = get_config()
 from api.routes import (
     agent_router,
     register_websocket_routes,
-    tokens_router,
+    token_usage_router,
     traces_router,
 )
 
@@ -116,7 +116,7 @@ app.add_middleware(
 register_websocket_routes(app)
 app.include_router(agent_router)
 app.include_router(traces_router)
-app.include_router(tokens_router)
+app.include_router(token_usage_router)
 
 
 @app.get("/favicon.ico")

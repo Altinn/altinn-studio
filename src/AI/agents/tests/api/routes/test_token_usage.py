@@ -6,8 +6,8 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 
-TOKENS_PATH = "/api/tokens/daily"
-FETCH_TARGET = "services.tokens.usage.fetch_traces_and_observations"
+TOKENS_PATH = "/api/token-usage/daily"
+FETCH_TARGET = "services.token_usage.usage.fetch_traces_and_observations"
 
 
 class TestGetDailyUsage:

@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter
 
-from services.tokens import DailyTokenUsageRow, get_previous_day_token_usage
+from services.token_usage import DailyTokenUsageRow, get_previous_day_token_usage
 
-router = APIRouter(prefix="/api/tokens")
+router = APIRouter(prefix="/api/token-usage")
 
 
 @router.get("/daily")

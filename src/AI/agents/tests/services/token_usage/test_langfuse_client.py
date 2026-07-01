@@ -1,11 +1,11 @@
-"""Tests for services.tokens.langfuse_client helpers."""
+"""Tests for services.token_usage.langfuse_client helpers."""
 
 import base64
 
 import httpx
 import pytest
 
-from services.tokens.langfuse_client import (
+from services.token_usage.langfuse_client import (
     PAGE_SIZE,
     _create_auth_header,
     _fetch_all_pages,
