@@ -1,4 +1,4 @@
-from typing import ClassVar, Optional
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
@@ -11,12 +11,13 @@ router = APIRouter(prefix="/api/traces")
 log = get_logger(__name__)
 
 DEVELOPER_HEADER = "X-Developer"
+FEEDBACK_SCORE_NAME = "user_feedback"
+FEEDBACK_COMMENT_MAX_LENGTH = 10000
 
 
 class FeedbackReq(BaseModel):
     """User feedback (thumbs up/down) on an assistant message, recorded as a Langfuse score."""
 
-    comment_max_length: ClassVar[int] = 10000
     thumbs_up: bool
     comment: Optional[str] = None
 
@@ -25,9 +26,9 @@ class FeedbackReq(BaseModel):
     def _validate_comment(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        if len(v) > cls.comment_max_length:
+        if len(v) > FEEDBACK_COMMENT_MAX_LENGTH:
             raise ValueError(
-                f"comment must not exceed {cls.comment_max_length} characters"
+                f"comment must not exceed {FEEDBACK_COMMENT_MAX_LENGTH} characters"
             )
         return v
 
@@ -48,13 +49,12 @@ async def submit_feedback(trace_id: str, req: FeedbackReq, request: Request):
     if trace_owner != caller:
         raise HTTPException(status_code=403)
 
-    feedback_score_name = "user_feedback"
     score_validation(
-        name=feedback_score_name,
+        name=FEEDBACK_SCORE_NAME,
         passed=req.thumbs_up,
         trace_id=trace_id,
         comment=req.comment,
-        score_id=f"{trace_id}:{feedback_score_name}",
+        score_id=f"{trace_id}:{FEEDBACK_SCORE_NAME}",
     )
     return Response(status_code=204)
 
