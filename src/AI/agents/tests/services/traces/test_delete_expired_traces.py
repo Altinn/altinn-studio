@@ -1,5 +1,3 @@
-"""Tests for services.traces.delete_expired_traces."""
-
 import json
 from datetime import datetime, timezone
 from types import SimpleNamespace

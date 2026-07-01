@@ -1,5 +1,3 @@
-"""Tests for fetching and windowing token usage from Langfuse."""
-
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 

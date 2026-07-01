@@ -1,4 +1,4 @@
-"""Deletes Langfuse traces older than a retention window via the public API."""
+"""Deletes Langfuse traces older than the retention window via the public API."""
 
 import base64
 from datetime import datetime, timedelta, timezone

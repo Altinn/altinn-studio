@@ -1,5 +1,3 @@
-"""Token usage API routes."""
-
 from fastapi import APIRouter
 
 from services.token_usage import DailyTokenUsageRow, get_previous_day_token_usage

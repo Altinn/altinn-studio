@@ -1,5 +1,3 @@
-"""Tests for the trace feedback route."""
-
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient

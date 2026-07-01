@@ -1,5 +1,3 @@
-"""Tests for services.token_usage.langfuse_client helpers."""
-
 import base64
 
 import httpx

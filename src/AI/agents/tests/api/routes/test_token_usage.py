@@ -1,5 +1,3 @@
-"""Tests for the token-usage route."""
-
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient

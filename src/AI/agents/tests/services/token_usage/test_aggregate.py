@@ -1,5 +1,3 @@
-"""Tests for the LLM cost aggregator."""
-
 import logging
 
 import pytest

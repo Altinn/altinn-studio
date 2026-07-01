@@ -1,9 +1,3 @@
-"""Trace API routes: user feedback scores and retention cleanup.
-
-Peripheral to the agent's core function; these endpoints read and maintain
-Langfuse trace data.
-"""
-
 from typing import ClassVar, Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
