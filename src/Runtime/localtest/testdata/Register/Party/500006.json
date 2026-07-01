@@ -1,0 +1,13 @@
+{
+  "partyId": "500006",
+  "partyTypeName": 2,
+  "orgNumber": "991825827",
+  "ssn": null,
+  "unitType": "STAT",
+  "name": "Digitaliseringsdirektoratet",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

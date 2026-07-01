@@ -1,8 +1,7 @@
 import type { ReactElement } from 'react';
 import type { StudioProfileMenuGroup } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { repositoryOwnerPath } from 'app-shared/api/paths';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { repositoryOwnerPath, userLogoutAfterPath } from 'app-shared/api/paths';
 import { useOrganizationsQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import type { Organization } from 'app-shared/types/Organization';
@@ -29,7 +28,6 @@ export const ProfileMenu = ({
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
-  const { mutate: logout } = useLogoutMutation();
 
   if (!owner || !user) {
     return null;
@@ -75,7 +73,7 @@ export const ProfileMenu = ({
     itemName: t('shared.header_go_to_gitea'),
   };
   const logOutMenuItem = {
-    action: { type: 'button' as const, onClick: logout },
+    action: { type: 'link' as const, href: userLogoutAfterPath() },
     itemName: t('shared.header_logout'),
   };
   const navigationItems = navigationMenuItems.map((navigationMenuItem) => ({

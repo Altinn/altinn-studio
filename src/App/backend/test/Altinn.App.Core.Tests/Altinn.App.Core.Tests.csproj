@@ -54,4 +54,16 @@
     <Content Include="secrets.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
 
+  <!--
+    Workflow-engine wire-contract drift guard. The engine owns the contract; these two files are
+    consumed (not copied) directly from the engine host's test project so there is a single source of
+    truth in the monorepo. The shared describer is compiled in; the engine's committed contract
+    description is embedded. Neither affects the shipped Altinn.App.Core NuGet package — this is a
+    test project. See Internal/WorkflowEngine/ContractTests/AppWireContractTests.cs.
+  -->
+  <ItemGroup>
+    <Compile Include="../../../../Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/WireContract.cs" Link="Internal/WorkflowEngine/ContractTests/WireContract.cs" />
+    <EmbeddedResource Include="../../../../Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/wire-contract.verified.json" Link="Internal/WorkflowEngine/ContractTests/wire-contract.verified.json" />
+  </ItemGroup>
+
 </Project>

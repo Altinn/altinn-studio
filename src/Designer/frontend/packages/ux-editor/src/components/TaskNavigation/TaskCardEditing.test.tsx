@@ -1,4 +1,4 @@
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
@@ -21,25 +21,25 @@ jest.mock('app-development/hooks/mutations/useUpdateLayoutSetIdMutation', () => 
 }));
 
 const datamodels = ['datamodell123', 'unuseddatamodel'];
-const dataTaskLayoutSet: LayoutSetModel = {
+const dataTaskLayoutSet: UiFolderLayoutSetModel = {
   id: 'dataTaskLayoutSet1',
   dataType: datamodels[0],
   type: null,
-  task: { id: 'activity-123', type: 'DataTask' },
+  taskType: 'DataTask',
 };
 
-const subformLayoutSet: LayoutSetModel = {
+const subformLayoutSet: UiFolderLayoutSetModel = {
   id: 'test',
   dataType: datamodels[0],
   type: 'subform',
-  task: null,
+  taskType: null,
 };
 
-const customReceiptLayoutSet: LayoutSetModel = {
-  id: 'test',
+const customReceiptLayoutSet: UiFolderLayoutSetModel = {
+  id: 'CustomReceipt',
   dataType: datamodels[0],
   type: '',
-  task: { id: 'CustomReceipt', type: 'CustomReceipt' },
+  taskType: 'CustomReceipt',
 };
 
 describe('taskCard', () => {
@@ -171,7 +171,7 @@ describe('taskCard', () => {
     expect(updateProcessDataTypesMutation).toHaveBeenCalledTimes(1);
     expect(updateProcessDataTypesMutation).toHaveBeenCalledWith(
       {
-        connectedTaskId: customReceiptLayoutSet.task?.id,
+        connectedTaskId: customReceiptLayoutSet.id,
         newDataTypes: [datamodels[1]],
       },
       expect.anything(),

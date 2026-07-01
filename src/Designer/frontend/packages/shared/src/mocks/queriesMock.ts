@@ -1,7 +1,6 @@
 /* istanbul ignore file */
 
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -196,6 +195,7 @@ export const queriesMock: ServicesContextProps = {
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
+  getTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getTextResources: jest
@@ -239,9 +239,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
 
   // Queries - Resourceadm
-  getAltinn2LinkServices: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<Altinn2LinkService[]>([])),
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
@@ -267,7 +264,6 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
   getAccessListMembers: jest.fn().mockImplementation(() => Promise.resolve({ data: [] })),
-  getAltinn2DelegationsCount: jest.fn().mockImplementation(() => Promise.resolve({})),
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
@@ -348,7 +344,6 @@ export const queriesMock: ServicesContextProps = {
   discardChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
-  logout: jest.fn().mockImplementation(() => Promise.resolve()),
   publishCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -358,6 +353,7 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationPageSettings: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -396,7 +392,6 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
-  importResourceFromAltinn2: jest.fn().mockImplementation(() => Promise.resolve<Resource>(null)),
   importResourceFromAltinn3: jest.fn().mockImplementation(() => Promise.resolve({})),
   publishResource: jest.fn().mockImplementation(() => Promise.resolve()),
   updatePolicy: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -408,7 +403,6 @@ export const queriesMock: ServicesContextProps = {
   removeAccessListMember: jest.fn().mockImplementation(() => Promise.resolve()),
   addResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   removeResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
-  migrateDelegations: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Preview
   createPreviewInstance: jest.fn().mockImplementation(() => Promise.resolve()),

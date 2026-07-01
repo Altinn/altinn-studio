@@ -2,7 +2,6 @@ import { get } from 'app-shared/utils/networking';
 import {
   chatThreadsPath,
   chatMessagesPath,
-  altinn2LinkServicesPath,
   appMetadataPath,
   appPolicyPath,
   appVersionPath,
@@ -20,7 +19,7 @@ import {
   formLayoutsPath,
   frontEndSettingsPath,
   layoutSetsPath,
-  layoutSetsExtendedPath,
+  layoutSetsExtendedV4Path,
   layoutSettingsPath,
   validateNavigationLayoutSettingsPath,
   validateNavigationPageSettingsPath,
@@ -58,7 +57,6 @@ import {
   layoutNamesPath,
   appMetadataModelIdsPath,
   processTaskTypePath,
-  altinn2DelegationsCountPath,
   repoDiffPath,
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
@@ -73,7 +71,7 @@ import {
   dataTypePath,
   orgCodeListsPath,
   layoutPagesPath,
-  taskNavigationGroupPath,
+  taskNavigationGroupV4Path,
   validationOnNavigationPath,
   availableResourcesInOrgLibraryPath,
   consentTemplatesPath,
@@ -88,7 +86,9 @@ import {
   contactPointsPath,
   botAccountsPath,
   botAccountApiKeysPath,
-  uiFoldersPath,
+  layoutSetsExtendedPath,
+  validationOnNavigationLayoutSetsPath,
+  taskNavigationGroupPath,
 } from './paths';
 
 import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -113,10 +113,9 @@ import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction } from '../types/PolicyAction';
 import type { PolicySubject } from '../types/PolicySubject';
-import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview, ConsentTemplate } from 'app-shared/types/ResourceAdm';
+import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, ConsentTemplate } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { Policy } from 'app-shared/types/Policy';
@@ -127,6 +126,7 @@ import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
@@ -174,9 +174,9 @@ export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEnd
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
-export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(`${uiFoldersPath(owner, app)}/layout-sets/extended`);
-export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(owner, app)}/validation-on-navigation`);
+export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedV4Path(owner, app));
+export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(validationOnNavigationLayoutSetsPath(owner, app));
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
@@ -193,6 +193,7 @@ export const getRuleConfig = (owner: string, app: string, layoutSetName: string)
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
+export const getTaskNavigationGroupV4 = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupV4Path(org, app));
 export const getTaskNavigationGroup = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app));
 export const getTextResources = (owner: string, app: string, lang: string) => get<ITextResourcesWithLanguage>(textResourcesPath(owner, app, lang));
 export const getUser = () => get<User>(userCurrentPath());
@@ -213,7 +214,6 @@ export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyP
 export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
-export const getAltinn2LinkServices = (org: string, environment: string) => get<Altinn2LinkService[]>(altinn2LinkServicesPath(org, environment));
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
 export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
@@ -231,7 +231,6 @@ export const getAccessListMembers = (org: string, listId: string, environment: s
 export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: string) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));
 export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
-export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<DelegationCountOverview>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
 export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(consentTemplatesPath(org));
 
 // ProcessEditor

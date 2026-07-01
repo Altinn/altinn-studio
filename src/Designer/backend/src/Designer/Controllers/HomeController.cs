@@ -7,11 +7,11 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -26,7 +26,6 @@ public class HomeController : Controller
     private readonly ServiceRepositorySettings _settings;
     private readonly ISourceControl _sourceControl;
     private readonly GeneralSettings _generalSettings;
-    private readonly IFeatureManager _featureManager;
     private readonly StudioOidcLoginSettings _studioOidcLoginSettings;
 
     /// <summary>
@@ -36,14 +35,12 @@ public class HomeController : Controller
     /// <param name="repositorySettings">settings for the repository</param>
     /// <param name="generalSettings">the general settings</param>
     /// <param name="sourceControl">the source control</param>
-    /// <param name="featureManager">the feature manager</param>
     /// <param name="studioOidcLoginSettings">the studio oidc login settings</param>
     public HomeController(
         ILogger<HomeController> logger,
         ServiceRepositorySettings repositorySettings,
         GeneralSettings generalSettings,
         ISourceControl sourceControl,
-        IFeatureManager featureManager,
         StudioOidcLoginSettings studioOidcLoginSettings
     )
     {
@@ -51,7 +48,6 @@ public class HomeController : Controller
         _settings = repositorySettings;
         _generalSettings = generalSettings;
         _sourceControl = sourceControl;
-        _featureManager = featureManager;
         _studioOidcLoginSettings = studioOidcLoginSettings;
     }
 
@@ -62,7 +58,7 @@ public class HomeController : Controller
     [Route("/")]
     [Route("/[controller]")]
     [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
-    public async Task<ActionResult> StartPage()
+    public ActionResult StartPage()
     {
         bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
 
@@ -70,8 +66,6 @@ public class HomeController : Controller
         {
             return LocalRedirect("/dashboard");
         }
-
-        ViewBag.StudioOidc = await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc);
 
         Response.Cookies.Delete(General.DesignerCookieName);
         Response.Cookies.Delete(_settings.GiteaCookieName);
@@ -82,7 +76,7 @@ public class HomeController : Controller
     /// Login
     /// </summary>
     /// <returns>The login page</returns>
-    public async Task<IActionResult> Login([FromQuery(Name = "redirect_to")] string redirectTo = "/")
+    public IActionResult Login([FromQuery(Name = "redirect_to")] string redirectTo = "/")
     {
         if (!Url.IsLocalUrl(redirectTo))
         {
@@ -94,21 +88,15 @@ public class HomeController : Controller
             return LocalRedirect(redirectTo);
         }
 
-        if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
-        {
-            string callbackUrl =
-                "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString(redirectTo);
-            return Challenge(new AuthenticationProperties { RedirectUri = callbackUrl });
-        }
-
-        return Challenge(new AuthenticationProperties { RedirectUri = redirectTo });
+        string callbackUrl = "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString(redirectTo);
+        return Challenge(new AuthenticationProperties { RedirectUri = callbackUrl });
     }
 
     /// <summary>
     /// Logout
     /// </summary>
     /// <returns>The logout page</returns>
-    public async Task<IActionResult> Logout()
+    public IActionResult Logout()
     {
         HttpContext.Response.Cookies.Append(
             _generalSettings.SessionTimeoutCookieName,
@@ -116,8 +104,12 @@ public class HomeController : Controller
             new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) }
         );
 
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return LocalRedirect("/");
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return LocalRedirect("/");
+        }
+
+        return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme);
     }
 
     /// <summary>

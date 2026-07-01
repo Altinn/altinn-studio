@@ -33,6 +33,8 @@ public class ConfigurationManagerStub : IConfigurationManager<OpenIdConnectConfi
     /// <inheritdoc />
     public void RequestRefresh()
     {
-        throw new NotImplementedException();
+        // No-op: the stub serves a static signing key, so there is nothing to refresh. JwtCookie calls this
+        // when validation fails (e.g. a token signed with an unknown key) before re-evaluating; throwing here
+        // would surface as an unhandled exception instead of the expected authentication failure.
     }
 }

@@ -1,15 +1,17 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features.Maskinporten;
 using Altinn.Platform.Storage.Interface.Models;
 using Argon;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Xunit.Abstractions;
 
@@ -28,11 +30,12 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         : base(factory, outputHelper)
     {
         var eFormidlingServiceMock = new Mock<IEFormidlingService>();
-        var eFormidlingConfigurationProviderMock = new Mock<IEFormidlingLegacyConfigurationProvider>();
+        var maskinportenClientMock = new Mock<IMaskinportenClient>();
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(eFormidlingServiceMock.Object);
-            services.AddSingleton(eFormidlingConfigurationProviderMock.Object);
+            services.RemoveAll<IMaskinportenClient>();
+            services.AddSingleton(maskinportenClientMock.Object);
         };
 
         TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, _instanceGuid);
@@ -40,7 +43,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 
     [Fact]
-    public async Task Can_Reject_PdfServiceTask_If_It_Failed_And_Reject_Is_Configured()
+    public async Task Reject_Is_Blocked_When_PdfServiceTask_Failed_And_Resume_Is_Required()
     {
         var sendAsyncCalled = false;
 
@@ -81,12 +84,19 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
             rejectContent
         );
 
-        rejectResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        rejectResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
 
-        // Double check that process moved back to the data task
+        string rejectResponseContent = await rejectResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(rejectResponseContent);
+        JObject rejectProblem = JObject.Parse(rejectResponseContent);
+        rejectProblem["title"]!.Value<string>().Should().Be("Task must be resumed before it can continue.");
+        rejectProblem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.Conflict);
+        rejectProblem["processNextState"]!.Value<string>().Should().Be("resumeRequired");
+
+        // Double check that process stays on the failed service task until resume
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
-        instance.Process.CurrentTask.ElementId.Should().Be("Task_1");
-        instance.Process.CurrentTask.AltinnTaskType.Should().Be(AltinnTaskTypes.Data);
+        instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
+        instance.Process.CurrentTask.AltinnTaskType.Should().Be(AltinnTaskTypes.Pdf);
     }
 
     [Fact]
@@ -156,11 +166,14 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         processNextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
         sendAsyncCalled.Should().BeTrue();
 
-        responseAsString
-            .Should()
-            .Be(
-                "{\"title\":\"Service task failed!\",\"status\":500,\"detail\":\"Service task pdf failed with an exception!\"}"
-            );
+        JObject problem = JObject.Parse(responseAsString);
+        problem["title"]!.Value<string>().Should().Be("Something went wrong while moving to the next task.");
+        problem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.InternalServerError);
+        problem["detail"]!.Value<string>().Should().Be("Pdf generation failed");
+        problem["workflowFailure"]!["kind"]!.Value<string>().Should().Be("stepFailed");
+        problem["workflowFailure"]!["retryAction"]!.Value<string>().Should().Be("resumeWorkflow");
+        problem["processStateChanged"]!.Value<bool>().Should().BeTrue();
+        problem["processState"]!["currentTask"]!["elementId"]!.Value<string>().Should().Be("Task_2");
 
         // Double check that process did not move to the next task
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);

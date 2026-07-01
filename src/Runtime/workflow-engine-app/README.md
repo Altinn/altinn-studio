@@ -50,6 +50,43 @@ dotnet test
 
 No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and WireMock.
 
+## Updating the studioctl image tag
+
+`studioctl env up` runs a prebuilt engine image from GHCR as a container. The tag is pinned in [`src/cli/internal/config/config.yaml`](../../cli/internal/config/config.yaml):
+
+```yaml
+image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
+tag: "5b68c250a0"
+```
+
+> Passing `--dev-workflow-engine` instead **disables** that container and routes the engine binding to a local host process (so you can run it yourself with `dotnet run`). In that mode the pinned tag is not used — only the default `studioctl env up` consumes it.
+
+### How the image is built
+
+The [`deploy-runtime-workflow-engine-app`](../../../.github/workflows/deploy-runtime-workflow-engine-app.yaml) workflow builds and pushes the image on every push to `main` that touches the engine source, `Dockerfile`, packages, or infra paths. **The tag is the first 10 characters of the triggering commit SHA** (`${GITHUB_SHA::10}`).
+
+### Finding the right tag
+
+After your changes land on `main`, find the build and update the pin:
+
+```sh
+# 1. List recent builds (most recent first). Look for event=push, headBranch=main.
+gh run list --workflow deploy-runtime-workflow-engine-app.yaml -L 15 \
+  --json headSha,displayTitle,event,headBranch,conclusion,createdAt,databaseId
+
+# 2. Confirm the image was actually pushed for that run. The overall run may show
+#    "waiting" (deploy/tag jobs gate on environment approval) — that does NOT mean
+#    the image is missing. Check the build job specifically:
+gh run view <databaseId> \
+  --jq '.jobs[] | select(.name | test("Push|OCI")) | {name, status, conclusion}'
+
+# 3. The tag is the first 10 chars of that run's headSha.
+```
+
+Pin to the **latest** successful build on `main` (matches `main` HEAD) unless you deliberately need an older artifact. Note that follow-up infra/chore commits also retrigger the workflow and produce new tags, so the newest tag is not always the PR you have in mind — verify the `headSha`.
+
+> The GHCR org package API requires a `read:packages` token scope, so listing tags directly via `gh api /orgs/altinn/packages/...` will 403 with the default token. Rely on the **build job conclusion** (step 2) as proof the image exists.
+
 ## Further reading
 
 - [Workflow Engine README](../workflow-engine/README.md) — core engine documentation

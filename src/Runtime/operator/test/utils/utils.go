@@ -2,14 +2,10 @@ package utils
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"math/rand/v2"
-	"sync"
 
 	. "github.com/onsi/ginkgo/v2" //nolint:staticcheck // Ginkgo DSL is intentionally dot-imported in test helpers.
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -19,8 +15,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 
+	"altinn.studio/devenv/pkg/projectroot"
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
-	"altinn.studio/operator/internal/config"
 )
 
 const apisPath = "/apis"
@@ -29,7 +25,7 @@ const apisPath = "/apis"
 func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	var err error
 	if dir == "" {
-		dir, err = config.TryFindProjectRootByGoMod()
+		dir, err = projectroot.Find(projectroot.Marker)
 		if err != nil {
 			return nil, fmt.Errorf("find project root: %w", err)
 		}
@@ -167,39 +163,4 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		CNPG:    cnpgClient,
 		Storage: storageClient,
 	}, nil
-}
-
-type deterministicRand struct {
-	prng *rand.Rand
-	mu   sync.Mutex
-}
-
-func NewDeterministicRand() io.Reader {
-	// ChaCha8 with a fixed seed for deterministic output
-	var seed [32]byte
-	seed[0] = 0x13
-	seed[1] = 0x37
-	return &deterministicRand{
-		//nolint:gosec // Test snapshots require deterministic output, not cryptographic randomness.
-		prng: rand.New(rand.NewChaCha8(seed)),
-	}
-}
-
-func (r *deterministicRand) Read(p []byte) (n int, err error) {
-	const byteRange = 256
-
-	if len(p) == 1 {
-		// to work around `randutil.MaybeReadByte`
-		// which is used to enforce non-determinism...
-		// but here we are just unit/snapshot testing stuff so it's fine
-		return 1, nil
-	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	for i := range p {
-		//nolint:gosec // UintN(256) is intentionally bounded to a single byte for deterministic test data.
-		p[i] = byte(r.prng.UintN(byteRange))
-	}
-	return len(p), nil
 }

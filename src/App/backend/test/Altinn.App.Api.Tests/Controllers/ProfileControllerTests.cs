@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Registers;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -54,7 +55,7 @@ public class ProfileControllerTests(WebApplicationFactory<Program> factory, ITes
             services.AddTelemetrySink(additionalActivitySources: source => source.Name == "Microsoft.AspNetCore");
             var partyClientMock = new Mock<IAltinnPartyClient>();
             partyClientMock
-                .Setup(x => x.GetParty(It.Is<int>(n => n == selectedPartyId)))
+                .Setup(x => x.GetParty(It.Is<int>(n => n == selectedPartyId), It.IsAny<StorageAuthenticationMethod?>()))
                 .ThrowsAsync(new ServiceException(HttpStatusCode.Unauthorized, "Unauthorized for party"));
             services.AddSingleton(partyClientMock.Object);
         };

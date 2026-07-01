@@ -12,6 +12,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -34,6 +35,7 @@ public sealed class DataClient : IDataClient
     private readonly ModelSerializationService _modelSerializationService;
     private readonly Telemetry? _telemetry;
     private readonly HttpClient _client;
+    private readonly IInstanceLocker _instanceLocker;
 
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
@@ -52,6 +54,7 @@ public sealed class DataClient : IDataClient
         _platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<DataClient>>();
         _telemetry = serviceProvider.GetService<Telemetry>();
+        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
 
         httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
@@ -166,6 +169,7 @@ public sealed class DataClient : IDataClient
             token,
             apiUrl,
             streamContent,
+            lockToken: _instanceLocker.CurrentLockToken,
             cancellationToken: cts.Token
         );
 
@@ -491,7 +495,12 @@ public sealed class DataClient : IDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: cts.Token);
+        HttpResponseMessage response = await _client.DeleteAsync(
+            token,
+            apiUrl,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -529,7 +538,13 @@ public sealed class DataClient : IDataClient
         );
 
         StreamContent content = request.CreateContentStream();
-        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        HttpResponseMessage response = await _client.PostAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -582,7 +597,13 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        HttpResponseMessage response = await _client.PostAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -627,7 +648,13 @@ public sealed class DataClient : IDataClient
 
         StreamContent content = request.CreateContentStream();
 
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -676,7 +703,13 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content, cancellationToken: cts.Token);
+        HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            content,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
         _logger.LogInformation("Update binary data result: {ResultCode}", response.StatusCode);
         if (response.IsSuccessStatusCode)
         {
@@ -707,7 +740,13 @@ public sealed class DataClient : IDataClient
         );
 
         StringContent jsonString = new(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString, cancellationToken: cts.Token);
+        HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            jsonString,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -750,6 +789,7 @@ public sealed class DataClient : IDataClient
             apiUrl,
             content: null,
             platformAccessToken: null,
+            lockToken: _instanceLocker.CurrentLockToken,
             cts.Token
         );
         if (response.IsSuccessStatusCode)
@@ -792,7 +832,12 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: cts.Token);
+        HttpResponseMessage response = await _client.DeleteAsync(
+            token,
+            apiUrl,
+            lockToken: _instanceLocker.CurrentLockToken,
+            cancellationToken: cts.Token
+        );
         if (response.IsSuccessStatusCode)
         {
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release

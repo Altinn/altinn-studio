@@ -410,3 +410,51 @@ stats.csv
 !.notes/.gitkeep
 
 .cache/
+
+## Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+## Env files (allow examples)
+**/.env.*
+!**/.env.example
+
+## Frontend build / tooling
+**/.npm/
+*.tsbuildinfo
+.vite/
+**/sw.js.map
+**/workbox-*.js.map
+
+## Docker
+docker-compose.override.yml
+
+## Editors
+*.swo
+.history/
+*.code-workspace
+
+## Logs
+logs/
+
+## Fleet stats (src/tools/altinn-fleet-stats)
+/src/tools/altinn-fleet-stats/backend/runtime_config.json
+/src/tools/altinn-fleet-stats/data/
+/src/tools/altinn-fleet-stats/backend/static/
+/src/tools/altinn-fleet-stats/apps-prod/
+/src/tools/altinn-fleet-stats/apps-tt02/
+/src/tools/altinn-fleet-stats/altinn-apps-cloned-*/
+**/fleet-*.sqlite*

@@ -139,6 +139,14 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of DependencyFailed workflows re-enqueued because their dependencies have since completed.
+    /// </summary>
+    public static readonly Counter<long> WorkflowsDependencyRecovered = Meter.CreateCounter<long>(
+        "engine.workflows.execution.dependency_recovered",
+        description: "Number of DependencyFailed workflows re-enqueued because their dependencies have since completed"
+    );
+
+    /// <summary>
     /// Counter of in-flight workflows this host abandoned because their lease was reclaimed by another host.
     /// </summary>
     public static readonly Counter<long> WorkflowsLeaseLost = Meter.CreateCounter<long>(

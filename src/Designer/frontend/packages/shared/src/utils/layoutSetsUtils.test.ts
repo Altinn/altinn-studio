@@ -2,8 +2,9 @@ import {
   getLayoutSetIdValidationErrorKey,
   getLayoutSetNameForCustomReceipt,
   getLayoutSetTypeTranslationKey,
+  getTaskIdForLayoutSet,
 } from 'app-shared/utils/layoutSetsUtils';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from '../constants';
 
@@ -13,21 +14,20 @@ const taskIdCustomReceipt = 'CustomReceipt';
 
 describe('getLayoutSetNameForCustomReceipt', () => {
   it('should return name of layoutSet if layoutSets includes a set with taskId "CustomReceipt"', () => {
-    const layoutSetsWithCustomReceipt: LayoutSets = {
-      sets: [{ id: layoutSetName, tasks: [taskIdCustomReceipt] }],
-    };
+    const layoutSetsWithCustomReceipt: LayoutSets = [
+      { id: layoutSetName, taskId: taskIdCustomReceipt },
+    ];
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithCustomReceipt)).toBe(layoutSetName);
   });
 
   it('should return undefined if layoutSets does not include a set with taskId "CustomReceipt"', () => {
-    const layoutSetsWithoutCustomReceipt: LayoutSets = {
-      sets: [
-        {
-          id: layoutSetName,
-          tasks: ['task_1'],
-        },
-      ],
-    };
+    const layoutSetsWithoutCustomReceipt: LayoutSets = [
+      {
+        id: layoutSetName,
+        taskId: 'task_1',
+      },
+    ];
+
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithoutCustomReceipt)).toBeUndefined();
   });
 
@@ -37,56 +37,66 @@ describe('getLayoutSetNameForCustomReceipt', () => {
   });
 
   it('should return undefined if sets of layoutSets is undefined', () => {
-    const layoutSetsWithUndefinedSets: LayoutSets = {
-      sets: undefined,
-    };
+    const layoutSetsWithUndefinedSets: LayoutSets = undefined;
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithUndefinedSets)).toBeUndefined();
   });
 
   it('should return undefined if layoutSets has an empty list of sets', () => {
-    const layoutSetsWithEmptySets: LayoutSets = {
-      sets: [],
-    };
+    const layoutSetsWithEmptySets: LayoutSets = [];
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithEmptySets)).toBeUndefined();
   });
 
-  it('should return undefined if layoutSets has a set with no task ids', () => {
-    const layoutSetsWithUndefinedTasks: LayoutSets = {
-      sets: [
-        {
-          id: layoutSetName,
-          tasks: null,
-        },
-      ],
-    };
-    expect(getLayoutSetNameForCustomReceipt(layoutSetsWithUndefinedTasks)).toBeUndefined();
+  it('should return undefined if the only set has a taskId that is not "CustomReceipt"', () => {
+    const layoutSetsWithoutCustomReceipt: LayoutSets = [
+      {
+        id: layoutSetName,
+        taskId: 'task_1',
+      },
+    ];
+
+    expect(getLayoutSetNameForCustomReceipt(layoutSetsWithoutCustomReceipt)).toBeUndefined();
+  });
+
+  it('should match the custom receipt set by id when taskId is absent (v9)', () => {
+    const layoutSetsV9: LayoutSets = [{ id: taskIdCustomReceipt }];
+
+    expect(getLayoutSetNameForCustomReceipt(layoutSetsV9)).toBe(taskIdCustomReceipt);
+  });
+});
+
+describe('getTaskIdForLayoutSet', () => {
+  it('should return the taskId when present (v4)', () => {
+    const layoutSet: LayoutSetConfig = { id: layoutSetName, taskId: 'Task_1' };
+    expect(getTaskIdForLayoutSet(layoutSet)).toBe('Task_1');
+  });
+
+  it('should fall back to the layout set id when taskId is absent (v9)', () => {
+    const layoutSet: LayoutSetConfig = { id: layoutSetName };
+    expect(getTaskIdForLayoutSet(layoutSet)).toBe(layoutSetName);
   });
 });
 describe('getLayoutSetIdValidationErrorKey', () => {
   it('should return error message when the user types just one character', () => {
     const newLayoutSetId = 'a';
-    expect(getLayoutSetIdValidationErrorKey(newLayoutSetId, { sets: [] })).toBe(
+    expect(getLayoutSetIdValidationErrorKey(newLayoutSetId, [])).toBe(
       'process_editor.configuration_panel_custom_receipt_layout_set_name_validation',
     );
   });
 
   it('should return error message when the user types whitespace', () => {
     const newLayoutSetId = ' ';
-    expect(getLayoutSetIdValidationErrorKey(newLayoutSetId, { sets: [] })).toBe(
-      'validation_errors.required',
-    );
+    expect(getLayoutSetIdValidationErrorKey(newLayoutSetId, [])).toBe('validation_errors.required');
   });
 
   it('should return error message when the user types an existing layout set name', () => {
     const existingLayoutSetId = 'layoutSetId';
-    const layoutSets: LayoutSets = {
-      sets: [
-        {
-          id: existingLayoutSetId,
-          tasks: ['task_1'],
-        },
-      ],
-    };
+    const layoutSets: LayoutSets = [
+      {
+        id: existingLayoutSetId,
+        taskId: 'task_1',
+      },
+    ];
+
     expect(getLayoutSetIdValidationErrorKey(existingLayoutSetId, layoutSets)).toBe(
       'process_editor.configuration_panel_layout_set_id_not_unique',
     );
@@ -95,14 +105,13 @@ describe('getLayoutSetIdValidationErrorKey', () => {
   it('should return error message when the user types an existing layout set name (case-insensitive)', () => {
     const existingLayoutSetId = 'layoutSetId';
     const existingLayoutSetIdUpperCase = existingLayoutSetId.toUpperCase();
-    const layoutSets: LayoutSets = {
-      sets: [
-        {
-          id: existingLayoutSetId,
-          tasks: ['task_1'],
-        },
-      ],
-    };
+    const layoutSets: LayoutSets = [
+      {
+        id: existingLayoutSetId,
+        taskId: 'task_1',
+      },
+    ];
+
     expect(getLayoutSetIdValidationErrorKey(existingLayoutSetIdUpperCase, layoutSets)).toBe(
       'process_editor.configuration_panel_layout_set_id_not_unique',
     );
@@ -110,9 +119,9 @@ describe('getLayoutSetIdValidationErrorKey', () => {
 
   it('should return null when the user types the same name as the original name', () => {
     const existingLayoutSetId = 'layoutSetId';
-    expect(
-      getLayoutSetIdValidationErrorKey(existingLayoutSetId, { sets: [] }, existingLayoutSetId),
-    ).toBe(null);
+    expect(getLayoutSetIdValidationErrorKey(existingLayoutSetId, [], existingLayoutSetId)).toBe(
+      null,
+    );
   });
 });
 describe('getLayoutSetTypeTranslationKey', () => {

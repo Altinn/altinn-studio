@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Models;
-using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
@@ -362,7 +360,6 @@ public class ResourceAdminController : ControllerBase
                         environmentResources = await _resourceRegistry.GetServiceResourceList(
                             environment,
                             includeApps: true,
-                            includeAltinn2: false,
                             includeMigratedApps: true
                         );
 
@@ -493,7 +490,6 @@ public class ResourceAdminController : ControllerBase
         string repository = GetRepositoryName(org);
         List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
             env.ToLower(),
-            includeAltinn2: false,
             includeApps: true,
             includeMigratedApps: true
         );
@@ -521,95 +517,6 @@ public class ResourceAdminController : ControllerBase
     {
         resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
         return _repository.AddServiceResource(org, resource);
-    }
-
-    [HttpPost]
-    [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}/{env}")]
-    public async Task<ActionResult> ImportResource(
-        string org,
-        string serviceCode,
-        int serviceEdition,
-        string env,
-        [FromBody] string resourceId
-    )
-    {
-        if (!Regex.IsMatch(resourceId, "^[a-z0-9_-]{4,}$"))
-        {
-            return new StatusCodeResult(400);
-        }
-        string repository = GetRepositoryName(org);
-        ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(
-            serviceCode,
-            serviceEdition,
-            env.ToLower()
-        );
-        resource.Identifier = resourceId;
-        StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
-        if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
-        {
-            return statusCodeResult;
-        }
-        XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(
-            serviceCode,
-            serviceEdition,
-            resource.Identifier,
-            env.ToLower()
-        );
-        await _repository.SavePolicy(org, repository, resource.Identifier, policy);
-        return Ok(resource);
-    }
-
-    [HttpGet]
-    [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
-    [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
-    public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
-    {
-        List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
-            env.ToLower(),
-            includeAltinn2: true,
-            includeApps: false,
-            includeMigratedApps: false
-        );
-        bool serviceExists = allResources.Any(x => x.Identifier!.Equals($"se_{serviceCode}_{serviceEdition}"));
-        if (!serviceExists)
-        {
-            return new NotFoundResult();
-        }
-
-        ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(
-            serviceCode,
-            serviceEdition,
-            env.ToLower()
-        );
-        if (!IsServiceOwner(resource, org))
-        {
-            return new UnauthorizedResult();
-        }
-
-        DelegationCountOverview overview = await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
-        return Ok(overview);
-    }
-
-    [HttpPost]
-    [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
-    [Route("designer/api/{org}/resources/altinn2/delegationmigration/{env}")]
-    public async Task<ActionResult> MigrateDelegations(
-        [FromBody] ExportDelegationsRequestBE delegationRequest,
-        string org,
-        string env
-    )
-    {
-        ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(
-            delegationRequest.ServiceCode,
-            delegationRequest.ServiceEditionCode,
-            env.ToLower()
-        );
-        if (!IsServiceOwner(resource, org))
-        {
-            return new UnauthorizedResult();
-        }
-
-        return await _resourceRegistry.StartMigrateDelegations(delegationRequest, env);
     }
 
     [HttpGet]
@@ -692,7 +599,6 @@ public class ResourceAdminController : ControllerBase
             environmentResources = await _resourceRegistry.GetServiceResourceList(
                 env,
                 includeApps: true,
-                includeAltinn2: false,
                 includeMigratedApps: true
             );
 
@@ -732,76 +638,6 @@ public class ResourceAdminController : ControllerBase
             .OrderBy(x => x.Title?["nb"] == null)
             .ThenBy(x => x.Title?["nb"], StringComparer.CurrentCultureIgnoreCase)
             .ToList();
-    }
-
-    [HttpGet]
-    [Route("designer/api/{org}/resources/altinn2linkservices/{env}")]
-    public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string env)
-    {
-        string cacheKey = "availablelinkservices:" + org + env;
-        if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService>? linkServices))
-        {
-            List<AvailableService> unfiltered = new List<AvailableService>();
-            List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
-                env.ToLower(),
-                includeApps: false,
-                includeAltinn2: true,
-                includeMigratedApps: false
-            );
-
-            foreach (ServiceResource resource in allResources)
-            {
-                if (
-                    resource.HasCompetentAuthority!.Orgcode != null
-                    && resource.ResourceReferences != null
-                    && resource.ResourceReferences.Exists(r =>
-                        r.ReferenceType != null && r.ReferenceType.Equals(ResourceReferenceType.ServiceCode)
-                    )
-                    && resource.ResourceType == ResourceType.Altinn2Service
-                )
-                {
-                    AvailableService service = new AvailableService();
-                    if (resource.Title!.ContainsKey("nb"))
-                    {
-                        service.ServiceName = resource.Title["nb"];
-                    }
-
-                    service.ExternalServiceCode = resource
-                        .ResourceReferences.First(r => r.ReferenceType.Equals(ResourceReferenceType.ServiceCode))
-                        .Reference;
-                    service.ExternalServiceEditionCode = Convert.ToInt32(
-                        resource
-                            .ResourceReferences.First(r =>
-                                r.ReferenceType.Equals(ResourceReferenceType.ServiceEditionCode)
-                            )
-                            .Reference
-                    );
-                    service.ServiceOwnerCode = resource.HasCompetentAuthority.Orgcode;
-                    unfiltered.Add(service);
-                }
-            }
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetPriority(CacheItemPriority.High)
-                .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
-
-            if (OrgUtil.IsTestEnv(org))
-            {
-                linkServices = unfiltered
-                    .Where(a =>
-                        a.ServiceOwnerCode.ToLower().Equals(org.ToLower()) || a.ServiceOwnerCode.ToLower().Equals("acn")
-                    )
-                    .ToList();
-            }
-            else
-            {
-                linkServices = unfiltered.Where(a => a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
-            }
-
-            _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);
-        }
-
-        return linkServices!;
     }
 
     private ValidationProblemDetails ValidateResource(ServiceResource resource)
@@ -1004,27 +840,6 @@ public class ResourceAdminController : ControllerBase
         }
 
         return orgList!;
-    }
-
-    private static bool IsServiceOwner(ServiceResource resource, string loggedInOrg)
-    {
-        if (resource?.HasCompetentAuthority == null)
-        {
-            return false;
-        }
-
-        bool isOwnedByOrg = resource.HasCompetentAuthority.Orgcode.Equals(
-            loggedInOrg,
-            StringComparison.InvariantCultureIgnoreCase
-        );
-
-        if (OrgUtil.IsTestEnv(loggedInOrg))
-        {
-            return isOwnedByOrg
-                || resource.HasCompetentAuthority.Orgcode.Equals("acn", StringComparison.InvariantCultureIgnoreCase);
-        }
-
-        return isOwnedByOrg;
     }
 
     private async Task<ResourceVersionInfo> AddEnvironmentResourceStatus(string env, string id)

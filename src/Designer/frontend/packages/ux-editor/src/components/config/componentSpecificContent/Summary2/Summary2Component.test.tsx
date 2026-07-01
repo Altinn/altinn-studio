@@ -43,16 +43,16 @@ describe('Summary2ComponentTargetSelector', () => {
 
     const select = targetTaskIdSelect();
     expect(select).toHaveValue('');
-    expect(select).toHaveTextContent(layoutSetsMock.sets[0].id);
+    expect(select).toHaveTextContent(layoutSetsMock[0].id);
   });
 
   it('should select the task id from the target when the task id of the target is defined', async () => {
     render({
-      component: { ...defaultProps.component, target: { taskId: 'Task_2' } },
+      component: { ...defaultProps.component, target: { taskId: layoutSet2NameMock } },
     });
 
     const select = targetTaskIdSelect();
-    expect(select).toHaveValue(layoutSetsMock.sets[1].tasks[0]);
+    expect(select).toHaveValue(layoutSet2NameMock);
   });
 
   it('should allow selecting a layout set', async () => {
@@ -63,7 +63,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     await user.selectOptions(targetTaskIdSelect(), layoutSet2NameMock);
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { taskId: 'Task_2', type: 'component' } }),
+      expect.objectContaining({ target: { taskId: layoutSet2NameMock, type: 'component' } }),
     );
   });
 

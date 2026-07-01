@@ -58,15 +58,14 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
-        List<LayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetDto>>(content);
+        List<LayoutSetConfigDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetConfigDto>>(content);
 
         Assert.Equal(2, layoutSets.Count);
 
-        LayoutSetDto dataSet = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1");
+        LayoutSetConfigDto dataSet = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1");
         Assert.Equal("model", dataSet.DataType);
-        Assert.Equal("data", dataSet.Task.Type);
 
-        LayoutSetDto subform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "moreInfoSubform");
+        LayoutSetConfigDto subform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "moreInfoSubform");
         Assert.Equal("subform", subform.Type);
     }
 
@@ -81,7 +80,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         var payload = new LayoutSetPayload
         {
             TaskType = TaskType.Data,
-            LayoutSetConfig = new LayoutSetConfig { Id = NewLayoutSetName, DataType = "model" },
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
         };
 
         string url = VersionPrefix(org, targetRepository);
@@ -126,7 +125,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         const string NewLayoutSetName = "newSubform";
         var payload = new LayoutSetPayload
         {
-            LayoutSetConfig = new LayoutSetConfig { Id = NewLayoutSetName, Type = "subform" },
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, Type = "subform" },
         };
 
         string url = VersionPrefix(org, targetRepository);
@@ -143,8 +142,8 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
-        List<LayoutSetDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetDto>>(content);
-        LayoutSetDto created = Assert.Single(layoutSets, layoutSet => layoutSet.Id == NewLayoutSetName);
+        List<LayoutSetConfigDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetConfigDto>>(content);
+        LayoutSetConfigDto created = Assert.Single(layoutSets, layoutSet => layoutSet.Id == NewLayoutSetName);
         Assert.Equal("subform", created.Type);
 
         string savedSettings = TestDataHelper.GetFileFromRepo(
@@ -167,7 +166,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        var payload = new LayoutSetPayload { LayoutSetConfig = new LayoutSetConfig { Id = "form" } };
+        var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "form" } };
 
         string url = VersionPrefix(org, targetRepository);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
@@ -193,7 +192,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        var payload = new LayoutSetPayload { LayoutSetConfig = new LayoutSetConfig { Id = "invalid name!" } };
+        var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "invalid name!" } };
 
         string url = VersionPrefix(org, targetRepository);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)

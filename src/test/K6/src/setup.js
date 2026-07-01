@@ -108,10 +108,6 @@ export function getAltinnTokenForUser() {
   if (__ENV.runtimetoken) {
     return __ENV.runtimetoken;
   }
-  if (environment === 'prod') {
-    var aspxauthCookie = authenticateUser(__ENV.username, __ENV.userpwd);
-    return getAltinnStudioRuntimeToken(aspxauthCookie);
-  }
   return loginWithMockporten(__ENV.pid, __ENV.testidppwd);
 }
 
