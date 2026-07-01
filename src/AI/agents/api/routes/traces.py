@@ -66,5 +66,9 @@ async def clean_up_traces() -> dict[str, int]:
     Triggered nightly by the Designer scheduler. The agents
     service owns the Langfuse credentials, so the deletion happens here.
     """
-    deleted_count = await delete_expired_traces()
+    try:
+        deleted_count = await delete_expired_traces()
+    except Exception:
+        log.exception("Scheduled trace cleanup (delete-expired) failed")
+        raise HTTPException(status_code=500, detail="Trace cleanup failed")
     return {"deleted": deleted_count}
