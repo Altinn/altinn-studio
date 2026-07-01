@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY agents/ ./agents/
 COPY api/ ./api/
-COPY metrics/ ./metrics/
+COPY services/ ./services/
 COPY shared/ ./shared/
 
 EXPOSE 8071

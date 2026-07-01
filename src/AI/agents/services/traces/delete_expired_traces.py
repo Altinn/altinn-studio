@@ -1,21 +1,19 @@
 """Deletes Langfuse traces older than a retention window via the public API."""
 
+import base64
 from datetime import datetime, timedelta, timezone
 
 import httpx
 
-from metrics.langfuse_client import (
-    PAGE_SIZE,
-    REQUEST_TIMEOUT_SECONDS,
-    _create_auth_header,
-)
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
 TRACES_PATH = "/api/public/traces"
-RETENTION_DAYS = 90 # Todo: move to base config, enabling env variable configuration. Default = 90
+PAGE_SIZE = 50
+REQUEST_TIMEOUT_SECONDS = 30
+RETENTION_DAYS = 90  # Todo: move to base config, enabling env variable configuration. Default = 90
 
 
 async def delete_expired_traces() -> int:
@@ -32,6 +30,13 @@ async def delete_expired_traces() -> int:
         timeout=REQUEST_TIMEOUT_SECONDS,
     ) as client:
         return await _delete_traces_before(client, cutoff)
+
+
+def _create_auth_header(public_key: str | None, secret_key: str | None) -> str:
+    if not public_key or not secret_key:
+        raise RuntimeError("Langfuse credentials are not configured")
+    token = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
+    return f"Basic {token}"
 
 
 async def _delete_traces_before(client: httpx.AsyncClient, cutoff: datetime) -> int:
@@ -57,8 +62,6 @@ async def _fetch_oldest_trace_ids(
     return [item["id"] for item in page_items]
 
 
-async def _delete_trace_batch(
-    client: httpx.AsyncClient, trace_ids: list[str]
-) -> None:
+async def _delete_trace_batch(client: httpx.AsyncClient, trace_ids: list[str]) -> None:
     response = await client.request("DELETE", TRACES_PATH, json={"traceIds": trace_ids})
     response.raise_for_status()

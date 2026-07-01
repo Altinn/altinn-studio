@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from metrics import DailyTokenUsageRow, get_previous_day_token_usage
+from services.tokens import DailyTokenUsageRow, get_previous_day_token_usage
 
 router = APIRouter(prefix="/api/tokens")
 

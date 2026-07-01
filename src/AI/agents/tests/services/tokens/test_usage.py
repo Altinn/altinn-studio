@@ -3,8 +3,8 @@
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
-import metrics.token_usage as token_usage
-from metrics.token_usage import (
+import services.tokens.usage as token_usage
+from services.tokens.usage import (
     _token_usage_for_window,
     get_previous_day_token_usage,
 )

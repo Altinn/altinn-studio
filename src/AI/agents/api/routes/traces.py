@@ -9,7 +9,7 @@ from typing import ClassVar, Optional
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
-from metrics.langfuse_cleanup import delete_expired_traces
+from services.traces import delete_expired_traces
 from shared.utils.langfuse_utils import get_trace_developer, score_validation
 from shared.utils.logging_utils import get_logger
 

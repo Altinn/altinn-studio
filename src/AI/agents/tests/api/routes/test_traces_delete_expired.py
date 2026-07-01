@@ -7,7 +7,7 @@ import httpx
 from fastapi.testclient import TestClient
 
 from api.main import app
-from metrics.langfuse_client import PAGE_SIZE
+from services.traces.delete_expired_traces import PAGE_SIZE
 
 TRACE_CLEANUP_PATH = "/api/traces/delete-expired"
 LANGFUSE_CONFIG = SimpleNamespace(
@@ -61,7 +61,10 @@ def _mock_langfuse(handler):
         return real_async_client(*args, **kwargs)
 
     with (
-        patch("metrics.langfuse_cleanup.get_config", return_value=LANGFUSE_CONFIG),
-        patch("metrics.langfuse_cleanup.httpx.AsyncClient", side_effect=with_mock_transport),
+        patch("services.traces.delete_expired_traces.get_config", return_value=LANGFUSE_CONFIG),
+        patch(
+            "services.traces.delete_expired_traces.httpx.AsyncClient",
+            side_effect=with_mock_transport,
+        ),
     ):
         yield

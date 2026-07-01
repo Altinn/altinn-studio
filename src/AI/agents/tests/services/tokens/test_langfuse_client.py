@@ -1,11 +1,15 @@
-"""Tests for metrics.langfuse_client helpers."""
+"""Tests for services.tokens.langfuse_client helpers."""
 
 import base64
 
 import httpx
 import pytest
 
-from metrics.langfuse_client import PAGE_SIZE, _create_auth_header, _fetch_all_pages
+from services.tokens.langfuse_client import (
+    PAGE_SIZE,
+    _create_auth_header,
+    _fetch_all_pages,
+)
 
 
 class TestBasicAuthHeader:

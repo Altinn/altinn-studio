@@ -1,4 +1,4 @@
-"""Tests for metrics.langfuse_cleanup."""
+"""Tests for services.traces.delete_expired_traces."""
 
 import json
 from datetime import datetime, timezone
@@ -8,8 +8,8 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from metrics.langfuse_client import PAGE_SIZE
-from metrics.langfuse_cleanup import (
+from services.traces.delete_expired_traces import (
+    PAGE_SIZE,
     _delete_traces_before,
     _fetch_oldest_trace_ids,
     delete_expired_traces,
@@ -64,7 +64,7 @@ class TestDeleteExpiredTraces:
             LANGFUSE_SECRET_KEY=None,
             LANGFUSE_HOST="https://langfuse.test",
         )
-        with patch("metrics.langfuse_cleanup.get_config", return_value=config):
+        with patch("services.traces.delete_expired_traces.get_config", return_value=config):
             with pytest.raises(RuntimeError, match="credentials are not configured"):
                 await delete_expired_traces()
 
