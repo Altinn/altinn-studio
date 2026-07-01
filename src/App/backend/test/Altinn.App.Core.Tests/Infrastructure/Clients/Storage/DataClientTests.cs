@@ -166,6 +166,47 @@ public class DataClientTests
         );
     }
 
+    [Fact]
+    public async Task InsertBinaryData_WithIdempotencyKey_AddsIdempotencyKeyQueryParam()
+    {
+        // Arrange
+        HttpRequestMessage? platformRequest = null;
+
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                platformRequest = request;
+
+                DataElement dataElement = new DataElement { Id = "DataElement.Id", InstanceGuid = "InstanceGuid" };
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { Content = JsonContent.Create(dataElement) };
+            }
+        );
+
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes("This is not a pdf, but no one here will care."));
+        var instanceIdentifier = new InstanceIdentifier(323413, Guid.NewGuid());
+        Uri expectedUri = new Uri(
+            $"{ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType=catstories&generatedFromTask=Task_1&idempotencyKey=step-7%230",
+            UriKind.RelativeOrAbsolute
+        );
+
+        // Act
+        DataElement actual = await fixture.DataClient.InsertBinaryData(
+            instanceIdentifier.ToString(),
+            "catstories",
+            "application/pdf",
+            "a cats story.pdf",
+            stream,
+            generatedFromTask: "Task_1",
+            idempotencyKey: "step-7#0"
+        );
+
+        // Assert
+        Assert.NotNull(actual);
+        Assert.NotNull(platformRequest);
+        Assert.Equal(expectedUri, platformRequest!.RequestUri);
+    }
+
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]
     public async Task GetFormData_MethodProduceValidPlatformRequest_ReturnedFormIsValid(

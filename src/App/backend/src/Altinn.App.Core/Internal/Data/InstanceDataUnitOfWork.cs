@@ -65,6 +65,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private static readonly StorageAuthenticationMethod _defaultAuthenticationMethod =
         StorageAuthenticationMethod.CurrentUser();
 
+    // Optional workflow-engine step idempotency key. When set, every data element created through this unit of work
+    // is tagged with a deterministic, retry-stable key ("{stepKey}#{dataTypeId}#{ordinal}") that Storage uses to
+    // dedupe inserts, so a replayed callback (at-least-once delivery) cannot create duplicate data elements. Null
+    // outside the workflow engine, where creates behave exactly as before.
+    private string? _idempotencyKeyPrefix;
+    private readonly ConcurrentDictionary<string, int> _idempotencyOrdinalByDataType = new(StringComparer.Ordinal);
+
     public InstanceDataUnitOfWork(
         Instance instance,
         IDataClient dataClient,
@@ -107,6 +114,33 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     public string? TaskId { get; }
 
     public string? Language { get; }
+
+    /// <summary>
+    /// Enables idempotent data element creation for this unit of work. Each subsequently created data element gets a
+    /// deterministic key derived from <paramref name="stepKey"/> and the data type, which is forwarded to Storage so a
+    /// replayed create returns the already-persisted element instead of inserting a duplicate. Used by the workflow
+    /// engine callback path, where the engine delivers callbacks at-least-once.
+    /// </summary>
+    internal void UseIdempotentCreates(string stepKey)
+    {
+        _idempotencyKeyPrefix = stepKey;
+    }
+
+    // Assigns the next deterministic idempotency key for a created data element of the given type, or null when
+    // idempotent creates are not enabled. The data type id is folded into the key so the common case (one create per
+    // type, e.g. AutoCreate / shadow-save) is stable regardless of the order commands enumerate types in. The per-type
+    // ordinal disambiguates the rarer case of multiple creates of the *same* type within one callback; that case alone
+    // relies on a stable creation order across retries.
+    private string? NextIdempotencyKey(string dataTypeId)
+    {
+        if (_idempotencyKeyPrefix is null)
+        {
+            return null;
+        }
+
+        int ordinal = _idempotencyOrdinalByDataType.AddOrUpdate(dataTypeId, 0, (_, current) => current + 1);
+        return $"{_idempotencyKeyPrefix}#{dataTypeId}#{ordinal}";
+    }
 
     /// <inheritdoc />
     public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method)
@@ -268,6 +302,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             currentBinaryData: bytes,
             previousBinaryData: default // empty memory reference
         );
+        change.IdempotencyKey = NextIdempotencyKey(dataType.Id);
         _changesForCreation.Add(change);
         return change;
     }
@@ -302,6 +337,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             generatedFromTask: generatedFromTask,
             metadata: metadata
         );
+        change.IdempotencyKey = NextIdempotencyKey(dataType.Id);
         _changesForCreation.Add(change);
         return change;
     }
@@ -602,6 +638,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             (change as BinaryDataChange)?.FileName,
             new MemoryAsStream(bytes),
             generatedFromTask: (change as BinaryDataChange)?.GeneratedFromTask,
+            idempotencyKey: change.IdempotencyKey,
             authenticationMethod: GetAuthenticationMethod(change.DataType)
         );
 

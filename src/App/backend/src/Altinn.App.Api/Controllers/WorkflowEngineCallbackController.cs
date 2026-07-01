@@ -23,6 +23,7 @@ namespace Altinn.App.Api.Controllers;
 public class WorkflowEngineCallbackController : ControllerBase
 {
     private const string CollectionKeyHeader = "Collection-Key";
+    private const string IdempotencyKeyHeader = "Idempotency-Key";
 
     private readonly IServiceProvider _serviceProvider;
     private readonly WorkflowCallbackStateService _workflowCallbackStateService;
@@ -99,13 +100,19 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
+        // The engine's step idempotency key is stable across retries of the same step. We thread it into the unit of
+        // work so any data elements created by this command are deduped by Storage, making the at-least-once callback
+        // safe to replay (a save that succeeded but whose response was lost won't duplicate form data on retry).
+        string? idempotencyKey = Request.Headers[IdempotencyKeyHeader].ToString() is { Length: > 0 } key ? key : null;
+
         InstanceDataUnitOfWork instanceDataUnitOfWork;
         try
         {
             instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
                 instanceId,
                 payload.State,
-                payload.Actor.Language
+                payload.Actor.Language,
+                idempotencyKey
             );
         }
         catch (WorkflowCallbackStateException e)

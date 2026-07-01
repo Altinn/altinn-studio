@@ -158,6 +158,67 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Contains("cannot be updated", exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task AddDataElement_WithoutIdempotentCreates_DoesNotSetIdempotencyKey()
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(bytes);
+
+        BinaryDataChange change = setup.DataMutator.AddBinaryDataElement(
+            "payment",
+            "application/json",
+            "extra.json",
+            bytes
+        );
+
+        Assert.Null(change.IdempotencyKey);
+    }
+
+    [Fact]
+    public async Task AddDataElement_WithIdempotentCreates_AssignsDeterministicPerTypeKeys()
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(bytes);
+
+        setup.DataMutator.UseIdempotentCreates("step-7");
+
+        BinaryDataChange first = setup.DataMutator.AddBinaryDataElement("payment", "application/json", "a.json", bytes);
+        BinaryDataChange second = setup.DataMutator.AddBinaryDataElement(
+            "payment",
+            "application/json",
+            "b.json",
+            bytes
+        );
+
+        // The data type is folded into the key; the per-type ordinal keeps multiple creates of the same type within
+        // one callback distinct.
+        Assert.Equal("step-7#payment#0", first.IdempotencyKey);
+        Assert.Equal("step-7#payment#1", second.IdempotencyKey);
+    }
+
+    [Fact]
+    public async Task AddDataElement_OnRetry_ProducesSameIdempotencyKey()
+    {
+        // A retried callback restores a fresh unit of work from the same snapshot with the same step key. The create
+        // must produce the same key so Storage dedupes it onto the first persisted element instead of duplicating.
+        byte[] bytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+
+        await using var firstAttempt = await BinaryDataUnitOfWorkSetup.Create(bytes);
+        firstAttempt.DataMutator.UseIdempotentCreates("step-7");
+        string? firstKey = firstAttempt
+            .DataMutator.AddBinaryDataElement("payment", "application/json", "a.json", bytes)
+            .IdempotencyKey;
+
+        await using var retry = await BinaryDataUnitOfWorkSetup.Create(bytes);
+        retry.DataMutator.UseIdempotentCreates("step-7");
+        string? retryKey = retry
+            .DataMutator.AddBinaryDataElement("payment", "application/json", "a.json", bytes)
+            .IdempotencyKey;
+
+        Assert.Equal("step-7#payment#0", firstKey);
+        Assert.Equal(firstKey, retryKey);
+    }
+
     private sealed class BinaryDataUnitOfWorkSetup : IAsyncDisposable
     {
         public required MockedServiceCollection Services { get; init; }

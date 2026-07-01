@@ -716,6 +716,45 @@ public interface IDataClient
     );
 
     /// <summary>
+    /// Insert a binary data element, optionally with an idempotency key.
+    /// </summary>
+    /// <param name="instanceId">instanceId = {instanceOwnerPartyId}/{instanceGuid}</param>
+    /// <param name="dataType">data type</param>
+    /// <param name="contentType">content type</param>
+    /// <param name="filename">filename</param>
+    /// <param name="stream">the stream to stream</param>
+    /// <param name="generatedFromTask">Optional field to set what task the binary data was generated from</param>
+    /// <param name="idempotencyKey">
+    /// Optional idempotency key. When set, Storage returns the data element already created with this key for the
+    /// instance instead of inserting a duplicate, making a replayed create (e.g. a retried workflow-engine callback)
+    /// safe. The default implementation ignores it; <see cref="Altinn.App.Core.Infrastructure.Clients.Storage.DataClient"/>
+    /// forwards it to Storage.
+    /// </param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<DataElement> InsertBinaryData(
+        string instanceId,
+        string dataType,
+        string contentType,
+        string? filename,
+        Stream stream,
+        string? generatedFromTask,
+        string? idempotencyKey,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        InsertBinaryData(
+            instanceId,
+            dataType,
+            contentType,
+            filename,
+            stream,
+            generatedFromTask,
+            authenticationMethod,
+            cancellationToken
+        );
+
+    /// <summary>
     /// Insert a binary data element.
     /// </summary>
     /// <param name="instanceId">instanceId = {instanceOwnerPartyId}/{instanceGuid}</param>
