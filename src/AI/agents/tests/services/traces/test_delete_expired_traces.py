@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import httpx
 
 from services.traces.delete_expired_traces import (
+    DELETE_BATCH_SIZE,
     PAGE_SIZE,
     _delete_traces_before,
     _fetch_trace_id_page,
@@ -28,12 +29,18 @@ class TestDeleteTracesBefore:
 
         assert deleted == PAGE_SIZE + 3
 
-    async def test_chunks_deletions_into_batches_of_page_size(self):
-        client, deleted_batches = _create_client_mock(total_old_traces=PAGE_SIZE * 2 + 7)
+    async def test_chunks_deletions_into_batches(self):
+        client, deleted_batches = _create_client_mock(
+            total_old_traces=DELETE_BATCH_SIZE * 2 + 7
+        )
 
         await _delete_traces_before(client, CUTOFF)
 
-        assert [len(batch) for batch in deleted_batches] == [PAGE_SIZE, PAGE_SIZE, 7]
+        assert [len(batch) for batch in deleted_batches] == [
+            DELETE_BATCH_SIZE,
+            DELETE_BATCH_SIZE,
+            7,
+        ]
 
 
 class TestFetchTraceIdPage:

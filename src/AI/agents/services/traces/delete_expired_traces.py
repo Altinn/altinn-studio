@@ -10,6 +10,8 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+# Langfuse docs advises against more than 30-50 trace ids per DELETE request.
+DELETE_BATCH_SIZE = 30
 TRACES_PATH = "/api/public/traces"
 
 
@@ -24,8 +26,8 @@ async def delete_expired_traces() -> int:
 
 async def _delete_traces_before(client: httpx.AsyncClient, cutoff: datetime) -> int:
     trace_ids = await _fetch_expired_trace_ids(client, cutoff)
-    for start in range(0, len(trace_ids), PAGE_SIZE):
-        await _delete_trace_batch(client, trace_ids[start : start + PAGE_SIZE])
+    for start in range(0, len(trace_ids), DELETE_BATCH_SIZE):
+        await _delete_trace_batch(client, trace_ids[start : start + DELETE_BATCH_SIZE])
     log.info(
         "Requested deletion of %d Langfuse traces older than %s",
         len(trace_ids),
