@@ -1,4 +1,4 @@
-"""Tests for the observability token-usage route."""
+"""Tests for the token-usage route."""
 
 from unittest.mock import AsyncMock, patch
 
@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 
-TOKENS_PATH = "/api/observability/tokens/daily"
+TOKENS_PATH = "/api/tokens/daily"
 FETCH_TARGET = "metrics.token_usage.fetch_traces_and_observations"
 
 

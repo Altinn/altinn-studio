@@ -1,7 +1,7 @@
-"""Observability API routes.
+"""Trace API routes: user feedback scores and retention cleanup.
 
-Peripheral to the agent's core function: these endpoints read and maintain
-Langfuse observability data (user feedback scores, token usage, trace retention).
+Peripheral to the agent's core function; these endpoints read and maintain
+Langfuse trace data.
 """
 
 from typing import ClassVar, Optional
@@ -9,12 +9,11 @@ from typing import ClassVar, Optional
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
-from metrics import DailyTokenUsageRow, get_previous_day_token_usage
 from metrics.langfuse_cleanup import delete_expired_traces
 from shared.utils.langfuse_utils import get_trace_developer, score_validation
 from shared.utils.logging_utils import get_logger
 
-router = APIRouter(prefix="/api/observability")
+router = APIRouter(prefix="/api/traces")
 log = get_logger(__name__)
 
 DEVELOPER_HEADER = "X-Developer"
@@ -39,7 +38,7 @@ class FeedbackReq(BaseModel):
         return v
 
 
-@router.put("/feedback/{trace_id}", status_code=204)
+@router.put("/{trace_id}/feedback", status_code=204)
 async def submit_feedback(trace_id: str, req: FeedbackReq, request: Request):
     """Records user feedback as a Langfuse score on the given trace.
 
@@ -66,13 +65,7 @@ async def submit_feedback(trace_id: str, req: FeedbackReq, request: Request):
     return Response(status_code=204)
 
 
-@router.get("/tokens/daily")
-async def get_daily_usage() -> list[DailyTokenUsageRow]:
-    """Returns token usage per service owner for the previous day."""
-    return await get_previous_day_token_usage()
-
-
-@router.post("/trace-cleanup")
+@router.post("/delete-expired")
 async def clean_up_traces() -> dict[str, int]:
     """Deletes Langfuse traces older than the retention window.
 

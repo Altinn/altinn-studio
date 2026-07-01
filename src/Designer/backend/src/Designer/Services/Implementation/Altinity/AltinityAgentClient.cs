@@ -11,8 +11,8 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 
 public class AltinityAgentClient : IAltinityAgentClient
 {
-    private const string FeedbackPathPrefix = "/api/observability/feedback/";
-    private const string TraceCleanupPath = "/api/observability/trace-cleanup";
+    private const string TracesPath = "/api/traces";
+    private const string TraceCleanupPath = $"{TracesPath}/delete-expired";
     private const string DeveloperHeader = "X-Developer";
 
     private readonly HttpClient _httpClient;
@@ -32,7 +32,7 @@ public class AltinityAgentClient : IAltinityAgentClient
         CancellationToken cancellationToken
     )
     {
-        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{FeedbackPathPrefix}{traceId}");
+        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TracesPath}/{traceId}/feedback");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Put, requestUri)
         {
             Content = JsonContent.Create(new { thumbs_up = thumbsUp, comment }),

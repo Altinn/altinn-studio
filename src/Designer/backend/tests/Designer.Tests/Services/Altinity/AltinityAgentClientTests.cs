@@ -15,7 +15,7 @@ namespace Designer.Tests.Services.Altinity;
 public class AltinityAgentClientTests
 {
     private const string AgentUrl = "http://altinn-altinity-agents";
-    private const string ExpectedCleanupUrl = $"{AgentUrl}/api/observability/trace-cleanup";
+    private const string ExpectedCleanupUrl = $"{AgentUrl}/api/traces/delete-expired";
 
     [Fact]
     public async Task TriggerTraceCleanupAsync_PostsToCleanupEndpoint()

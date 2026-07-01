@@ -15,7 +15,7 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 
 TRACES_PATH = "/api/public/traces"
-RETENTION_DAYS = 90
+RETENTION_DAYS = 90 # Todo: move to base config, enabling env variable configuration. Default = 90
 
 
 async def delete_expired_traces() -> int:

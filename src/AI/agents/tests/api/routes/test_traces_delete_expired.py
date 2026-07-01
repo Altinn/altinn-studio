@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from api.main import app
 from metrics.langfuse_client import PAGE_SIZE
 
-TRACE_CLEANUP_PATH = "/api/observability/trace-cleanup"
+TRACE_CLEANUP_PATH = "/api/traces/delete-expired"
 LANGFUSE_CONFIG = SimpleNamespace(
     LANGFUSE_PUBLIC_KEY="pk-test",
     LANGFUSE_SECRET_KEY="sk-test",
