@@ -1,16 +1,12 @@
 """Fetches raw traces and observations from the Langfuse public API."""
 
 import asyncio
-import base64
 from datetime import datetime
 from typing import Any
 
 import httpx
 
-from shared.config import get_config
-
-PAGE_SIZE = 50
-REQUEST_TIMEOUT_SECONDS = 30
+from shared.utils.langfuse_public_api import PAGE_SIZE, create_public_api_client
 
 
 async def fetch_traces_and_observations(
@@ -18,16 +14,7 @@ async def fetch_traces_and_observations(
     observation_window_start: datetime,
     window_end: datetime,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    config = get_config()
-    auth_header = _create_auth_header(
-        config.LANGFUSE_PUBLIC_KEY, config.LANGFUSE_SECRET_KEY
-    )
-
-    async with httpx.AsyncClient(
-        base_url=config.LANGFUSE_HOST,
-        headers={"Authorization": auth_header},
-        timeout=REQUEST_TIMEOUT_SECONDS,
-    ) as client:
+    async with create_public_api_client() as client:
         traces, observations = await asyncio.gather(
             _fetch_all_pages(
                 client,
@@ -49,13 +36,6 @@ async def fetch_traces_and_observations(
         )
 
     return traces, observations
-
-
-def _create_auth_header(public_key: str | None, secret_key: str | None) -> str:
-    if not public_key or not secret_key:
-        raise RuntimeError("Langfuse credentials are not configured")
-    token = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
-    return f"Basic {token}"
 
 
 async def _fetch_all_pages(
