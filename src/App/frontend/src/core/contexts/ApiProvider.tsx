@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
 import { instanceApi } from 'src/core/api-client/instance.api';
+import { optionsApi } from 'src/core/api-client/options.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { createContext } from 'src/core/contexts/context';
@@ -17,6 +18,7 @@ const defaultApis: ApiClients = {
   partyApi,
   instanceApi,
   textResourcesApi,
+  optionsApi,
 };
 
 const { Provider, useCtx } = createContext<ApiClients>({
@@ -33,3 +35,4 @@ export const usePartyApi = () => useCtx().partyApi;
 export const useTextResourcesApi = () => useCtx().textResourcesApi;
 export const useInstanceApi = () => useCtx().instanceApi;
 export const useBackendValidationApi = () => useCtx().backendValidationApi;
+export const useOptionsApi = () => useCtx().optionsApi;

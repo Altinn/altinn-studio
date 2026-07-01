@@ -149,10 +149,6 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
             },
           };
         }),
-      fetchOptions: (url) =>
-        availableOptions[url]
-          ? Promise.resolve(availableOptions[url])
-          : Promise.reject(new Error(`No options available for ${url}`)),
     },
     apis: {
       instanceApi: {
@@ -162,6 +158,12 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
           }),
           process: getProcessDataMock(),
         }),
+      },
+      optionsApi: {
+        getOptions: (url) =>
+          availableOptions[url]
+            ? Promise.resolve(availableOptions[url])
+            : Promise.reject(new Error(`No options available for ${url}`)),
       },
     },
   });

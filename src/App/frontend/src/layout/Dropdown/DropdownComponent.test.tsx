@@ -2,14 +2,14 @@ import React from 'react';
 
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
-import { queryPromiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { OptionsApi } from 'src/core/api-client/options.api';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -32,6 +32,28 @@ interface Props extends Partial<Omit<RenderGenericComponentTestProps<'Dropdown'>
   options?: IRawOption[];
 }
 
+type GetOptions = OptionsApi['getOptions'];
+type GetOptionsResult = Awaited<ReturnType<GetOptions>>;
+
+function getOptionsPromiseMock() {
+  const mock = jest.fn().mockName('getOptions') as jest.MockedFunction<GetOptions>;
+  const resolve = jest.fn().mockName('getOptions.resolve');
+  const reject = jest.fn().mockName('getOptions.reject');
+  mock.mockImplementation(
+    () =>
+      new Promise<GetOptionsResult>((res, rej) => {
+        resolve.mockImplementation(res);
+        reject.mockImplementation(rej);
+      }),
+  );
+
+  return { mock, resolve, reject } as {
+    mock: jest.MockedFunction<GetOptions>;
+    resolve: (retVal?: GetOptionsResult) => void;
+    reject: (error: Error) => void;
+  };
+}
+
 function MySuperSimpleInput() {
   const { setValue, formData } = useDataModelBindings({
     simpleBinding: { field: 'myInput', dataType: defaultDataTypeMock },
@@ -47,7 +69,7 @@ function MySuperSimpleInput() {
 }
 
 const render = async ({ component, options, ...rest }: Props = {}) => {
-  const fetchOptions = queryPromiseMock('fetchOptions');
+  const getOptions = getOptionsPromiseMock();
   const utils = await renderGenericComponentTest({
     type: 'Dropdown',
     renderer: (props) => (
@@ -73,18 +95,23 @@ const render = async ({ component, options, ...rest }: Props = {}) => {
         getFormBootstrapMock((obj) => {
           obj.dataModels[defaultDataTypeMock].initialData = getFormDataMockForRepGroup();
         }),
-      fetchOptions: (...args) =>
-        options === undefined
-          ? fetchOptions.mock(...args)
-          : Promise.resolve({
-              data: options,
-              headers: {},
-            } as AxiosResponse<IRawOption[]>),
       ...rest.queries,
+    },
+    apis: {
+      optionsApi: {
+        getOptions: (...args) =>
+          options === undefined
+            ? getOptions.mock(...args)
+            : Promise.resolve({
+                data: options,
+                headers: {},
+              }),
+      },
+      ...rest.apis,
     },
   });
 
-  return { ...utils, fetchOptions };
+  return { ...utils, getOptions };
 };
 
 describe('DropdownComponent', () => {
@@ -146,7 +173,7 @@ describe('DropdownComponent', () => {
   });
 
   it('should show spinner', async () => {
-    const { fetchOptions } = await render({
+    const { getOptions } = await render({
       component: {
         optionsId: 'countries',
         mapping: {
@@ -156,12 +183,12 @@ describe('DropdownComponent', () => {
       waitUntilLoaded: false,
     });
 
-    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(1), { timeout: 15000 });
+    await waitFor(() => expect(getOptions.mock).toHaveBeenCalledTimes(1), { timeout: 15000 });
 
-    fetchOptions.resolve({
+    getOptions.resolve({
       data: countries,
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await userEvent.click(await screen.findByRole('combobox'));
     await screen.findByRole('option', { name: /denmark/i });
@@ -170,10 +197,10 @@ describe('DropdownComponent', () => {
     // the component renders a spinner for a while when fetching the options again.
     await userEvent.type(screen.getByTestId('my-input'), 'test');
 
-    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getOptions.mock).toHaveBeenCalledTimes(2));
     await screen.findByTestId('altinn-spinner');
 
-    fetchOptions.resolve({
+    getOptions.resolve({
       data: [
         ...countries,
         {
@@ -182,7 +209,7 @@ describe('DropdownComponent', () => {
         },
       ],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
     await userEvent.click(await screen.findByRole('combobox'));

@@ -2,7 +2,6 @@ import React from 'react';
 
 import { jest } from '@jest/globals';
 import { v4 as uuidv4 } from 'uuid';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
@@ -151,8 +150,6 @@ export const render = async ({
       />
     ),
     queries: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fetchOptions: async () => ({ data: mockOptions, headers: {} }) as AxiosResponse<IRawOption[], any>,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.dataModels[defaultDataTypeMock].initialData = generateMockFormData(mockQuestions);
@@ -165,6 +162,11 @@ export const render = async ({
             },
           };
         }),
+    },
+    apis: {
+      optionsApi: {
+        getOptions: async () => ({ data: mockOptions, headers: {} }),
+      },
     },
   });
 };
