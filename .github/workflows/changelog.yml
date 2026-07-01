@@ -1,0 +1,50 @@
+name: Changelog - validate
+
+# Validates the Keep a Changelog structure of every changed CHANGELOG.md in the
+# repository, regardless of which project or component owns it. Driven entirely
+# by the releaser's `validate-changelogs` command, so any new project's
+# changelog is covered automatically with no changes to this workflow.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - '**/CHANGELOG.md'
+      - 'src/tools/releaser/**'
+      - '.github/workflows/changelog.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-changelogs:
+    name: Validate changelogs
+    if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog'))
+    runs-on: self-hosted-single
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      # On a pull request, validate only the changelogs changed in the PR.
+      # On workflow_dispatch the SHAs are empty, so the command falls back to
+      # validating every tracked CHANGELOG.md.
+      - name: Validate changelogs
+        working-directory: src/tools/releaser
+        run: |
+          go run . validate-changelogs \
+            -base "${{ github.event.pull_request.base.sha }}" \
+            -head "${{ github.event.pull_request.head.sha }}"
