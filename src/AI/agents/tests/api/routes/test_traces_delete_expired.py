@@ -63,8 +63,9 @@ def _mock_langfuse(handler):
 
     with (
         patch("services.traces.delete_expired_traces.get_config", return_value=LANGFUSE_CONFIG),
+        patch("shared.utils.langfuse_public_api.get_config", return_value=LANGFUSE_CONFIG),
         patch(
-            "services.traces.delete_expired_traces.httpx.AsyncClient",
+            "shared.utils.langfuse_public_api.httpx.AsyncClient",
             side_effect=with_mock_transport,
         ),
     ):

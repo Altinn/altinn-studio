@@ -1,16 +1,12 @@
 import json
 from datetime import datetime, timezone
-from types import SimpleNamespace
-from unittest.mock import patch
 
 import httpx
-import pytest
 
 from services.traces.delete_expired_traces import (
     PAGE_SIZE,
     _delete_traces_before,
     _fetch_trace_id_page,
-    delete_expired_traces,
 )
 
 CUTOFF = datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc)
@@ -55,18 +51,6 @@ class TestFetchTraceIdPage:
         assert captured_params["toTimestamp"] == CUTOFF.isoformat()
 
 
-class TestDeleteExpiredTraces:
-    async def test_raises_when_credentials_missing(self):
-        config = SimpleNamespace(
-            LANGFUSE_PUBLIC_KEY=None,
-            LANGFUSE_SECRET_KEY=None,
-            LANGFUSE_HOST="https://langfuse.test",
-        )
-        with patch("services.traces.delete_expired_traces.get_config", return_value=config):
-            with pytest.raises(RuntimeError, match="credentials are not configured"):
-                await delete_expired_traces()
-
-
 def _client_with_handler(handler) -> httpx.AsyncClient:
     return httpx.AsyncClient(
         base_url="https://langfuse.test", transport=httpx.MockTransport(handler)
@@ -76,9 +60,6 @@ def _client_with_handler(handler) -> httpx.AsyncClient:
 def _create_client_mock(
     total_old_traces: int,
 ) -> tuple[httpx.AsyncClient, list[list[str]]]:
-    # Langfuse deletion is asynchronous, so a deleted trace keeps appearing in the
-    # list endpoint. The handler never drops ids on DELETE, which would trap any
-    # implementation that re-fetches between deletions in an endless loop.
     all_trace_ids = [f"trace-{i}" for i in range(total_old_traces)]
     deleted_batches: list[list[str]] = []
 

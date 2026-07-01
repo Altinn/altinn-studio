@@ -1,43 +1,25 @@
 """Deletes Langfuse traces older than the retention window via the public API."""
 
-import base64
 from datetime import datetime, timedelta, timezone
 
 import httpx
 
 from shared.config import get_config
+from shared.utils.langfuse_public_api import PAGE_SIZE, create_public_api_client
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
 TRACES_PATH = "/api/public/traces"
-PAGE_SIZE = 50
-REQUEST_TIMEOUT_SECONDS = 30
 
 
 async def delete_expired_traces() -> int:
     """Deletes every Langfuse trace older than the retention window. Returns the number of traces deleted."""
-    config = get_config()
-    auth_header = _create_auth_header(
-        config.LANGFUSE_PUBLIC_KEY, config.LANGFUSE_SECRET_KEY
-    )
     cutoff = datetime.now(timezone.utc) - timedelta(
-        days=config.LANGFUSE_TRACE_RETENTION_DAYS
+        days=get_config().LANGFUSE_TRACE_RETENTION_DAYS
     )
-
-    async with httpx.AsyncClient(
-        base_url=config.LANGFUSE_HOST,
-        headers={"Authorization": auth_header},
-        timeout=REQUEST_TIMEOUT_SECONDS,
-    ) as client:
+    async with create_public_api_client() as client:
         return await _delete_traces_before(client, cutoff)
-
-
-def _create_auth_header(public_key: str | None, secret_key: str | None) -> str:
-    if not public_key or not secret_key:
-        raise RuntimeError("Langfuse credentials are not configured")
-    token = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
-    return f"Basic {token}"
 
 
 async def _delete_traces_before(client: httpx.AsyncClient, cutoff: datetime) -> int:
