@@ -11,8 +11,8 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 
 public class AltinityAgentClient : IAltinityAgentClient
 {
-    private const string FeedbackPathPrefix = "/api/feedback/";
-    private const string TraceCleanupPath = "/api/maintenance/trace-cleanup";
+    private const string FeedbackPathPrefix = "/api/observability/feedback/";
+    private const string TraceCleanupPath = "/api/observability/trace-cleanup";
     private const string DeveloperHeader = "X-Developer";
 
     private readonly HttpClient _httpClient;
