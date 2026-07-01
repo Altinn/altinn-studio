@@ -62,7 +62,7 @@ export function useIsHidden<Reason extends boolean = false>(
 
   if (reason.hidden && forcedVisible && options.respectDevTools !== false) {
     return (
-      options.includeReason === true ? { reason: 'forcedByDeVTools', hidden: false } : false
+      options.includeReason === true ? forcedVisibleReason : false
     ) as Reason extends true ? HiddenWithReason : boolean;
   }
 
@@ -190,6 +190,9 @@ export type HiddenWithReason =
       reason: HiddenSource['type'] | 'pageOrder';
     };
 
+const visibleReason: HiddenWithReason = { hidden: false, reason: undefined };
+const forcedVisibleReason: HiddenWithReason = { hidden: false, reason: 'forcedByDeVTools' };
+
 function isHidden({
   hiddenSources,
   dataSources,
@@ -224,7 +227,7 @@ function isHidden({
     return { hidden: true, reason: result.reason! };
   }
 
-  return { hidden: false, reason: undefined };
+  return visibleReason;
 }
 
 function useIsForcedVisibleByDevTools() {

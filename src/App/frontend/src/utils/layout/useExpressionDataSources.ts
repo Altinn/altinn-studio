@@ -146,10 +146,13 @@ export function useExpressionDataSourcesBase(overrides?: ExpressionRuntimeOverri
     [overrides?.unsupportedDataSources],
   );
 
-  return useExpressionDataSourcesRuntime({
-    ...overrides,
-    unsupportedDataSources,
-  }, 'runtime');
+  return useExpressionDataSourcesRuntime(
+    {
+      ...overrides,
+      unsupportedDataSources,
+    },
+    'runtime',
+  );
 }
 
 export function useExpressionDataSourcesBaseForStoreSelector(
@@ -249,38 +252,21 @@ function useExpressionDataSourcesRuntime(
 
   const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
   const externalApiIds = getApplicationMetadata().externalApiIds ?? emptyExternalApiIds;
-  const inputs: SnapshotInputs = useMemo(
-    () => ({
-      applicationSettings,
-      currentLanguage,
-      currentPage,
-      currentDataModelPath,
-      externalApiIds,
-      instanceId,
-      store,
-      textResourcesApi,
-      dataModelReaders,
-      instanceQueries,
-      queryCacheObserver,
-      externalApiQueries,
-      textResourceQueries,
-    }),
-    [
-      applicationSettings,
-      currentDataModelPath,
-      currentLanguage,
-      currentPage,
-      dataModelReaders,
-      externalApiIds,
-      externalApiQueries,
-      instanceId,
-      instanceQueries,
-      queryCacheObserver,
-      store,
-      textResourceQueries,
-      textResourcesApi,
-    ],
-  );
+  const inputs: SnapshotInputs = {
+    applicationSettings,
+    currentLanguage,
+    currentPage,
+    currentDataModelPath,
+    externalApiIds,
+    instanceId,
+    store,
+    textResourcesApi,
+    dataModelReaders,
+    instanceQueries,
+    queryCacheObserver,
+    externalApiQueries,
+    textResourceQueries,
+  };
 
   observerRef.current.updateInputs(inputs);
   observerRef.current.beginCollect();
@@ -314,66 +300,73 @@ function useExpressionDataSourcesRuntime(
       currentDataModelPath,
       langToolsSelector: (dataModelPath) => {
         observerRef.current!.track({ type: 'language', dataModelPath });
-        return buildLanguageTools({ inputs, dataModelPath });
+        return buildLanguageTools({ inputs: observerRef.current!.getInputs(), dataModelPath });
       },
       track: (dependency) => observerRef.current!.track(dependency),
       getDependencies: () => observerRef.current!.getDependencies(),
       context: {
         currentLanguage: () => {
           observerRef.current!.track({ type: 'currentLanguage' });
-          return currentLanguage;
+          return observerRef.current!.getInputs().currentLanguage;
         },
         currentPage: () => {
           observerRef.current!.track({ type: 'currentPage' });
-          return currentPage;
+          return observerRef.current!.getInputs().currentPage;
         },
-        currentDataModelPath: () => currentDataModelPath,
+        currentDataModelPath: () => observerRef.current!.getInputs().currentDataModelPath,
         assertDataSourceSupported,
       },
       application: {
         getSettings: () => {
           observerRef.current!.track({ type: 'applicationSettings' });
-          return applicationSettings;
+          return observerRef.current!.getInputs().applicationSettings;
         },
       },
       formData: {
-        defaultDataType: () => getDefaultDataTypeFromStore(store),
-        hasDataType: (dataType) => getReadableDataTypesFromStore(store).includes(dataType),
+        defaultDataType: () => getDefaultDataTypeFromStore(observerRef.current!.getInputs().store),
+        hasDataType: (dataType) =>
+          getReadableDataTypesFromStore(observerRef.current!.getInputs().store).includes(dataType),
         read: (reference) => {
           observerRef.current!.track({ type: 'formData', reference });
-          return readFormDataFromStore(store, reference);
+          return readFormDataFromStore(observerRef.current!.getInputs().store, reference);
         },
       },
       layout: {
         getLookups: () => {
           assertDataSourceSupported('layout');
           observerRef.current!.track({ type: 'layout' });
-          return getLayoutLookupsFromStore(store);
+          return getLayoutLookupsFromStore(observerRef.current!.getInputs().store);
         },
       },
       options: {
         getStaticOptions: (optionsId) => {
           observerRef.current!.track({ type: 'options', optionsId });
-          return getStaticOptionsFromStore(store, optionsId);
+          return getStaticOptionsFromStore(observerRef.current!.getInputs().store, optionsId);
         },
       },
       instance: {
-        countDataElements: (dataType) => instanceQueries.countDataElements(instanceId, dataType),
+        countDataElements: (dataType) => {
+          const latest = observerRef.current!.getInputs();
+          return latest.instanceQueries.countDataElements(latest.instanceId, dataType);
+        },
         getDataSources: () => {
           observerRef.current!.track({ type: 'instanceDataSources' });
-          return getInstanceDataSourcesFromCache(instanceQueries, instanceId);
+          const latest = observerRef.current!.getInputs();
+          return getInstanceDataSourcesFromCache(latest.instanceQueries, latest.instanceId);
         },
         getProcess: () => {
           observerRef.current!.track({ type: 'process' });
-          return getProcessFromCache(instanceQueries, instanceId);
+          const latest = observerRef.current!.getInputs();
+          return getProcessFromCache(latest.instanceQueries, latest.instanceId);
         },
       },
       externalApi: {
         getAll: () => {
           assertDataSourceSupported('externalApi');
           observerRef.current!.track({ type: 'externalApi' });
-          externalApiQueries.ensureLoaded(instanceId, externalApiIds);
-          return externalApiQueries.getCached(instanceId, externalApiIds);
+          const latest = observerRef.current!.getInputs();
+          latest.externalApiQueries.ensureLoaded(latest.instanceId, latest.externalApiIds);
+          return latest.externalApiQueries.getCached(latest.instanceId, latest.externalApiIds);
         },
       },
       displayValue: {
@@ -385,21 +378,7 @@ function useExpressionDataSourcesRuntime(
       },
       ...runtimeOverrides,
     }),
-    [
-      applicationSettings,
-      assertDataSourceSupported,
-      currentDataModelPath,
-      currentLanguage,
-      currentPage,
-      externalApiIds,
-      externalApiQueries,
-      inputs,
-      instanceId,
-      instanceQueries,
-      runtimeRevision,
-      runtimeOverrides,
-      store,
-    ],
+    [assertDataSourceSupported, currentDataModelPath, runtimeRevision, runtimeOverrides],
   );
 }
 
@@ -422,6 +401,13 @@ class ExpressionObserver {
 
   updateInputs(inputs: SnapshotInputs) {
     this.inputs = inputs;
+  }
+
+  getInputs() {
+    if (!this.inputs) {
+      throw new Error('Expression observer inputs are not initialized');
+    }
+    return this.inputs;
   }
 
   beginCollect() {

@@ -16,6 +16,7 @@ import {
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { focusComponentIfMounted, setFocusComponentRequest } from 'src/layout/focusComponent';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
@@ -24,6 +25,7 @@ import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {
   replace?: boolean;
+  preventScrollReset?: boolean;
   skipAutoSave?: boolean;
   resetReturnToView?: boolean;
   searchParams?: URLSearchParams;
@@ -213,7 +215,8 @@ export function useNavigateToPage() {
 
   return useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
-      const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
+      const preventScrollReset =
+        options?.preventScrollReset || options?.searchParams?.has(SearchParams.FocusComponentId);
       const navOptions: NavigateOptions = {
         replace: options?.replace ?? false,
         ...(preventScrollReset ? preventFocusAndScrollResetOptions : undefined),
@@ -450,7 +453,7 @@ export function useNavigateToComponent() {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const navigateToPage = useNavigateToPage();
   const currentPageId = useCurrentView();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   return async (
     indexedId: string,
@@ -458,22 +461,25 @@ export function useNavigateToComponent() {
     options: Omit<NavigateToComponentOptions, 'shouldFocus'> | undefined,
   ) => {
     const targetPage = layoutLookups.componentToPage[baseComponentId];
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set(SearchParams.FocusComponentId, indexedId);
     const errorBindingKey = options?.error?.['bindingKey'];
-    if (errorBindingKey) {
-      newSearchParams.set(SearchParams.FocusErrorBinding, errorBindingKey);
-    }
+    const focusRequest = { nodeId: indexedId, errorBinding: errorBindingKey ?? null };
 
     if (targetPage && targetPage !== currentPageId) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete(SearchParams.FocusComponentId);
+      newSearchParams.delete(SearchParams.FocusErrorBinding);
+      setFocusComponentRequest(focusRequest);
       await navigateToPage(targetPage, {
         ...options?.pageNavOptions,
-        searchParams: newSearchParams,
-        replace:
-          !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
+        preventScrollReset: true,
+        searchParams: newSearchParams.size > 0 ? newSearchParams : undefined,
+        replace: !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      setSearchParams(newSearchParams, preventFocusAndScrollResetOptions);
+      const focused = focusComponentIfMounted(focusRequest);
+      if (!focused) {
+        setFocusComponentRequest(focusRequest);
+      }
     }
   };
 }

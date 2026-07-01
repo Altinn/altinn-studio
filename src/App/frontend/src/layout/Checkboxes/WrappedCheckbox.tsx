@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 
 import { ConditionalWrapper, HelpText } from '@app/form-component';
 import { Checkbox } from '@digdir/designsystemet-react';
@@ -35,7 +35,13 @@ export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProp
 
   // This forces a rerender when checked changes, which is blocked by designsystemet's popover.
   const [_, setRerenderState] = useState({});
+  const hasRendered = useRef(false);
   useEffect(() => {
+    if (!hasRendered.current) {
+      hasRendered.current = true;
+      return;
+    }
+
     setRerenderState({});
   }, [checked]);
 

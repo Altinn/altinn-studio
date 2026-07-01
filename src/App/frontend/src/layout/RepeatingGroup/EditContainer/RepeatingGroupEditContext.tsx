@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { SearchParams } from 'src/core/routing/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { useLatestFocusComponentRequest } from 'src/layout/focusComponent';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useExternalItem } from 'src/utils/layout/hooks';
@@ -83,14 +82,14 @@ export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
   const baseComponentId = useRepeatingGroupComponentId();
   const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(baseComponentId);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const [searchParams] = useSearchParams();
+  const focusRequest = useLatestFocusComponentRequest();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!state.multiPageEnabled) {
       // Nothing to do here. Other navigation handlers will make sure this row is opened for editing.
       return;
     }
-    const targetIndexedId = searchParams.get(SearchParams.FocusComponentId);
+    const targetIndexedId = focusRequest?.nodeId;
     if (!targetIndexedId) {
       return;
     }
@@ -129,7 +128,7 @@ export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
         setMultiPageIndex(parseInt(pageIndex, 10));
       }
     }
-  }, [searchParams, baseComponentId, layoutLookups, state.multiPageEnabled, setMultiPageIndex]);
+  }, [focusRequest, baseComponentId, layoutLookups, state.multiPageEnabled, setMultiPageIndex]);
 
   return <Provider value={state}>{children}</Provider>;
 }
