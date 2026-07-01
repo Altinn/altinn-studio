@@ -20,7 +20,8 @@ import { focusComponentIfMounted, setFocusComponentRequest } from 'src/layout/fo
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
-import { useHiddenPages } from 'src/utils/layout/hidden';
+import { getVisiblePageOrder, useHiddenPages } from 'src/utils/layout/hidden';
+import { useExpressionDataSourcesForStoreSelector } from 'src/utils/layout/useExpressionDataSources';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {
@@ -180,8 +181,7 @@ export function useIsValidTaskId() {
 export function useIsValidPageId() {
   const navParams = useAllNavigationParamsAsRef();
   const getTaskType = useGetTaskTypeById();
-  const order = usePageOrder();
-  const orderRef = useAsRef(order);
+  const getVisibleOrder = useVisiblePageOrderSnapshot();
 
   return useCallback(
     (_pageId: string) => {
@@ -190,9 +190,28 @@ export function useIsValidPageId() {
       if (getTaskType(navParams.current.taskId) !== ProcessTaskType.Data) {
         return false;
       }
-      return orderRef.current.includes(pageId) ?? false;
+      const order = getVisibleOrder();
+      return order.includes(pageId);
     },
-    [getTaskType, navParams, orderRef],
+    [getTaskType, getVisibleOrder, navParams],
+  );
+}
+
+function useVisiblePageOrderSnapshot() {
+  const rawOrder = useRawPageOrder();
+  const rawOrderRef = useAsRef(rawOrder);
+  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
+  const layoutCollectionRef = useAsRef(layoutCollection);
+  const dataSources = useExpressionDataSourcesForStoreSelector(layoutCollection);
+
+  return useCallback(
+    () =>
+      getVisiblePageOrder({
+        dataSources,
+        layoutCollection: layoutCollectionRef.current,
+        pageOrder: rawOrderRef.current,
+      }),
+    [dataSources, layoutCollectionRef, rawOrderRef],
   );
 }
 
@@ -209,12 +228,14 @@ export function useNavigateToPage() {
   const isStateless = useIsStateless();
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
-  const orderRef = useAsRef(usePageOrder());
+  const getVisibleOrder = useVisiblePageOrderSnapshot();
   const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
+  const debounceImmediately = FormStore.data.useDebounceImmediately();
   const [_, setVisitedPages] = useVisitedPages();
 
   return useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
+      debounceImmediately('forced');
       const preventScrollReset =
         options?.preventScrollReset || options?.searchParams?.has(SearchParams.FocusComponentId);
       const navOptions: NavigateOptions = {
@@ -225,7 +246,8 @@ export function useNavigateToPage() {
         window.logWarn('navigateToPage called without page');
         return;
       }
-      if (!orderRef.current.includes(page)) {
+      const order = getVisibleOrder();
+      if (!order.includes(page)) {
         window.logWarn('navigateToPage called with invalid page:', `"${page}"`);
         return;
       }
@@ -259,7 +281,7 @@ export function useNavigateToPage() {
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, navOptions);
     },
-    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, setVisitedPages],
+    [getVisibleOrder, isStateless, navParams, navigate, maybeSaveOnPageChange, debounceImmediately, setVisitedPages],
   );
 }
 

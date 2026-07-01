@@ -154,23 +154,57 @@ export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> =
   const pageOrder = useRawPageOrder();
 
   return useMemo(() => {
-    const pages = Object.keys(layoutCollection || {});
-    const out = new Set<string>();
-    for (const pageKey of pages) {
-      const hidden = isHiddenPage({
-        pageKey,
-        dataSources,
-        pageOrder,
-        layoutCollection: layoutCollection!,
-        ...stableOptions,
-      });
-      if (hidden) {
-        out.add(pageKey);
-      }
-    }
-
-    return out;
+    return getHiddenPages({
+      dataSources,
+      layoutCollection,
+      pageOrder,
+      options: stableOptions,
+    });
   }, [dataSources, layoutCollection, stableOptions, pageOrder]);
+}
+
+export function getVisiblePageOrder({
+  dataSources,
+  layoutCollection,
+  pageOrder,
+  options = {},
+}: {
+  dataSources: ExpressionDataSources;
+  layoutCollection: ILayoutCollection | undefined;
+  pageOrder: string[];
+  options?: Omit<IsHiddenOptions, 'includeReason'>;
+}) {
+  const hiddenPages = getHiddenPages({ dataSources, layoutCollection, pageOrder, options });
+  return pageOrder.filter((page) => !hiddenPages.has(page));
+}
+
+function getHiddenPages({
+  dataSources,
+  layoutCollection,
+  pageOrder,
+  options = {},
+}: {
+  dataSources: ExpressionDataSources;
+  layoutCollection: ILayoutCollection | undefined;
+  pageOrder: string[];
+  options?: Omit<IsHiddenOptions, 'includeReason'>;
+}): Set<string> {
+  const pages = Object.keys(layoutCollection || {});
+  const out = new Set<string>();
+  for (const pageKey of pages) {
+    const hidden = isHiddenPage({
+      pageKey,
+      dataSources,
+      pageOrder,
+      layoutCollection: layoutCollection!,
+      ...options,
+    });
+    if (hidden) {
+      out.add(pageKey);
+    }
+  }
+
+  return out;
 }
 
 interface IsHiddenProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
