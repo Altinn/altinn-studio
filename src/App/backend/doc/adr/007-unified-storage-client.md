@@ -7,8 +7,8 @@
 ## Result
 
 Introduce a single `IStorageClient` / `StorageClient` that replaces `IInstanceClient` and
-`IDataClient`. The new client is organized into resource sub-areas — `Instances`, `Data`,
-`Events`, `Locks` — and is the low-level transport workhorse beneath
+`IDataClient`. The new client is organized into resource sub-areas (`Instances`, `Data`,
+`Events`, `Locks`) and becomes the low-level transport workhorse beneath
 `IInstanceDataMutator` / `IInstanceDataAccessor`. Signing and process remain in their own
 feature clients. The change is a hard cut in v9 (no binary-compatibility shims or `[Obsolete]`
 forwarders), enabled by the move from the external v8 package to the v9 monorepo release.
@@ -16,9 +16,8 @@ forwarders), enabled by the move from the external v8 package to the v9 monorepo
 ## Problem context
 
 `IInstanceClient` and `IDataClient` are the HTTP wrappers over the Altinn Platform **Storage**
-service. Over multiple v8.x releases they accreted layers of cruft that the
-binary-compatibility rules (Core interfaces must never remove a method within a major version)
-prevented us from removing:
+service. Over time they accreted layers of cruft that the binary-compatibility rules prevented
+us from removing:
 
 - **Doubled surface from binary-compat shims.** Nearly every method exists twice — a "full"
   signature `(…, StorageAuthenticationMethod? = null, CancellationToken = default)` plus a
@@ -26,8 +25,7 @@ prevented us from removing:
   `IInstanceClient` is forwarding shims.
 - **Layers of `[Obsolete]` signatures** carrying unused `org`/`app` parameters, a redundant
   `Type` parameter, or `HttpRequest`-based bodies — all superseded by `Instance`- and
-  `Stream`-based overloads. Survey of non-test code confirms **zero production callers** of any
-  obsolete overload.
+  `Stream`-based overloads.
 - **Deferred null hacks.** `GetBinaryData` returns `null!` on 404; `UpdateReadStatus` returns
   `null` on failure via `#nullable disable`; several `JsonConvert.DeserializeObject<…>(…)!`
   null-forgiving casts — all carrying `// TODO: fix in next major` comments.
