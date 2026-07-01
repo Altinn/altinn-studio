@@ -9,7 +9,7 @@ import pytest
 from services.traces.delete_expired_traces import (
     PAGE_SIZE,
     _delete_traces_before,
-    _fetch_oldest_trace_ids,
+    _fetch_trace_id_page,
     delete_expired_traces,
 )
 
@@ -40,7 +40,7 @@ class TestDeleteTracesBefore:
         assert [len(batch) for batch in deleted_batches] == [PAGE_SIZE, PAGE_SIZE, 7]
 
 
-class TestFetchOldestTraceIds:
+class TestFetchTraceIdPage:
     async def test_sends_cutoff_as_to_timestamp(self):
         captured_params: dict[str, str] = {}
 
@@ -50,7 +50,7 @@ class TestFetchOldestTraceIds:
 
         client = _client_with_handler(handler)
 
-        await _fetch_oldest_trace_ids(client, CUTOFF)
+        await _fetch_trace_id_page(client, CUTOFF, page_number=1)
 
         assert captured_params["toTimestamp"] == CUTOFF.isoformat()
 
@@ -76,20 +76,25 @@ def _client_with_handler(handler) -> httpx.AsyncClient:
 def _create_client_mock(
     total_old_traces: int,
 ) -> tuple[httpx.AsyncClient, list[list[str]]]:
-    remaining = [f"trace-{i}" for i in range(total_old_traces)]
+    # Langfuse deletion is asynchronous, so a deleted trace keeps appearing in the
+    # list endpoint. The handler never drops ids on DELETE, which would trap any
+    # implementation that re-fetches between deletions in an endless loop.
+    all_trace_ids = [f"trace-{i}" for i in range(total_old_traces)]
     deleted_batches: list[list[str]] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.method == "DELETE":
-            batch = _read_trace_ids(request)
-            deleted_batches.append(batch)
-            for trace_id in batch:
-                remaining.remove(trace_id)
+            deleted_batches.append(_read_trace_ids(request))
             return httpx.Response(200, json={})
-        page = [{"id": trace_id} for trace_id in remaining[:PAGE_SIZE]]
-        return httpx.Response(200, json={"data": page})
+        page = _page_of(all_trace_ids, int(request.url.params["page"]))
+        return httpx.Response(200, json={"data": [{"id": tid} for tid in page]})
 
     return _client_with_handler(handler), deleted_batches
+
+
+def _page_of(trace_ids: list[str], page_number: int) -> list[str]:
+    start = (page_number - 1) * PAGE_SIZE
+    return trace_ids[start : start + PAGE_SIZE]
 
 
 def _read_trace_ids(request: httpx.Request) -> list[str]:

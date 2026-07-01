@@ -41,22 +41,36 @@ def _create_auth_header(public_key: str | None, secret_key: str | None) -> str:
 
 
 async def _delete_traces_before(client: httpx.AsyncClient, cutoff: datetime) -> int:
-    deleted_count = 0
-    while True:
-        trace_ids = await _fetch_oldest_trace_ids(client, cutoff)
-        if not trace_ids:
-            log.info("Deleted %d Langfuse traces older than %s", deleted_count, cutoff)
-            return deleted_count
-        await _delete_trace_batch(client, trace_ids)
-        deleted_count += len(trace_ids)
+    trace_ids = await _fetch_expired_trace_ids(client, cutoff)
+    for start in range(0, len(trace_ids), PAGE_SIZE):
+        await _delete_trace_batch(client, trace_ids[start : start + PAGE_SIZE])
+    log.info("Deleted %d Langfuse traces older than %s", len(trace_ids), cutoff)
+    return len(trace_ids)
 
 
-async def _fetch_oldest_trace_ids(
+async def _fetch_expired_trace_ids(
     client: httpx.AsyncClient, cutoff: datetime
+) -> list[str]:
+    trace_ids: list[str] = []
+    page_number = 1
+    while True:
+        page_trace_ids = await _fetch_trace_id_page(client, cutoff, page_number)
+        trace_ids.extend(page_trace_ids)
+        if len(page_trace_ids) < PAGE_SIZE:
+            return trace_ids
+        page_number += 1
+
+
+async def _fetch_trace_id_page(
+    client: httpx.AsyncClient, cutoff: datetime, page_number: int
 ) -> list[str]:
     response = await client.get(
         TRACES_PATH,
-        params={"toTimestamp": cutoff.isoformat(), "limit": PAGE_SIZE, "page": 1},
+        params={
+            "toTimestamp": cutoff.isoformat(),
+            "limit": PAGE_SIZE,
+            "page": page_number,
+        },
     )
     response.raise_for_status()
     page_items = response.json().get("data") or []
