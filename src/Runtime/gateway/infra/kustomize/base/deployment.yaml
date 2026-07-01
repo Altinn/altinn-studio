@@ -105,6 +105,8 @@ spec:
                 configMapKeyRef:
                   name: runtime-environment
                   key: environment
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
+              value: "1"
             - name: Gateway__AzureSubscriptionId
               valueFrom:
                 configMapKeyRef:
