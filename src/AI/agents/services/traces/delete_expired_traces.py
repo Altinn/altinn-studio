@@ -13,7 +13,6 @@ log = get_logger(__name__)
 TRACES_PATH = "/api/public/traces"
 PAGE_SIZE = 50
 REQUEST_TIMEOUT_SECONDS = 30
-RETENTION_DAYS = 90  # Todo: move to base config, enabling env variable configuration. Default = 90
 
 
 async def delete_expired_traces() -> int:
@@ -22,7 +21,9 @@ async def delete_expired_traces() -> int:
     auth_header = _create_auth_header(
         config.LANGFUSE_PUBLIC_KEY, config.LANGFUSE_SECRET_KEY
     )
-    cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
+    cutoff = datetime.now(timezone.utc) - timedelta(
+        days=config.LANGFUSE_TRACE_RETENTION_DAYS
+    )
 
     async with httpx.AsyncClient(
         base_url=config.LANGFUSE_HOST,

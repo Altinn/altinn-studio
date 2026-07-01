@@ -14,6 +14,7 @@ LANGFUSE_CONFIG = SimpleNamespace(
     LANGFUSE_PUBLIC_KEY="pk-test",
     LANGFUSE_SECRET_KEY="sk-test",
     LANGFUSE_HOST="https://langfuse.test",
+    LANGFUSE_TRACE_RETENTION_DAYS=90,
 )
 
 
