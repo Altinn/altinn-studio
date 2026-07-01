@@ -5,6 +5,11 @@ on:
     # Keep the Grafana service account token expiry comfortably below the one-year limit.
     - cron: "13 3 1 * *"
   workflow_dispatch:
+    inputs:
+      months:
+        description: "Months ahead for the new expiry. Use a value other than 11 to force a test PR."
+        required: false
+        default: "11"
 
 permissions:
   contents: write
@@ -26,7 +31,12 @@ jobs:
       - name: Update token expiry
         id: update
         run: |
-          expiry="$(date -u -d "$(date -u +%Y-%m-01) +11 months" +%Y-%m-%dT00:00:00Z)"
+          if ! [[ "$MONTHS" =~ ^[0-9]+$ ]] || (( MONTHS < 1 || MONTHS > 11 )); then
+            echo "months must be an integer between 1 and 11, got: $MONTHS" >&2
+            exit 1
+          fi
+
+          expiry="$(date -u -d "$(date -u +%Y-%m-01) +${MONTHS} months" +%Y-%m-%dT00:00:00Z)"
           sed -i -E "s/^([[:space:]]+expires: \").*(\")$/\1${expiry}\2/" "$EXPIRY_FILE"
           grep -q "expires: \"${expiry}\"" "$EXPIRY_FILE"
           echo "expiry=${expiry}" >> "$GITHUB_OUTPUT"
@@ -38,6 +48,7 @@ jobs:
           fi
         env:
           EXPIRY_FILE: infra/runtime/grafana-manifests/service-accounts/altinn-studio-gateway-sa.yaml
+          MONTHS: ${{ github.event.inputs.months || '11' }}
 
       - name: Create or update pull request
         if: steps.update.outputs.changed == 'true'
