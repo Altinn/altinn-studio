@@ -99,7 +99,7 @@ describe('LandingPage', () => {
         getLayoutSets: jest
           .fn()
           .mockImplementation(() =>
-            Promise.resolve({ sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] }),
+            Promise.resolve([{ id: layoutSet3SubformNameMock, type: 'subform' }]),
           ),
       },
       layoutSet3SubformNameMock,

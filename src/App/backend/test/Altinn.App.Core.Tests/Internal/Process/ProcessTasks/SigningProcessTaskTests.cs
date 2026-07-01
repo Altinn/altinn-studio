@@ -1,22 +1,15 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
-using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
-using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
@@ -24,35 +17,23 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
 public class SigningProcessTaskTests
 {
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<ISigneeContextsManager> _signeeContextsManagerMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
-    private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
-    private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
-    private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
     private readonly Mock<IPdfService> _pdfServiceMock = new(MockBehavior.Strict);
-    private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
-    private readonly ServiceCollection _serviceCollection = new();
+    private readonly SigningProcessTask _signingProcessTask;
 
     public SigningProcessTaskTests()
     {
-        _serviceCollection.AddTransient<ModelSerializationService>();
-        _serviceCollection.AddTransient<InstanceDataUnitOfWorkInitializer>();
-        _serviceCollection.AddTransient<SigningProcessTask>();
-        _serviceCollection.AddSingleton(Options.Create(new FrontEndSettings()));
-        _serviceCollection.AddSingleton(_processReaderMock.Object);
-        _serviceCollection.AddSingleton(_signingServiceMock.Object);
-        _serviceCollection.AddSingleton(_signeeContextsManagerMock.Object);
-        _serviceCollection.AddSingleton(_instanceClientMock.Object);
-        _serviceCollection.AddSingleton(_appModelMock.Object);
-        _serviceCollection.AddSingleton(_appMetadataMock.Object);
-        _serviceCollection.AddSingleton(_translationServiceMock.Object);
-        _serviceCollection.AddSingleton(_hostEnvironmentMock.Object);
-        _serviceCollection.AddSingleton(_dataClientMock.Object);
-        _serviceCollection.AddSingleton(_pdfServiceMock.Object);
-        _serviceCollection.AddSingleton(_appResourcesMock.Object);
+        _signingProcessTask = new SigningProcessTask(
+            _signingServiceMock.Object,
+            _processReaderMock.Object,
+            _appMetadataMock.Object,
+            _hostEnvironmentMock.Object,
+            _pdfServiceMock.Object,
+            _signeeContextsManagerMock.Object
+        );
 
         _appMetadataMock
             .Setup(a => a.GetApplicationMetadata())
@@ -82,13 +63,9 @@ public class SigningProcessTaskTests
     [Fact]
     public async Task Start_ShouldDeleteExistingSigningData()
     {
-        // Arrange
         Instance instance = CreateInstance();
-        string taskId = instance.Process.CurrentTask.ElementId;
+        var dataMutator = CreateDataMutator(instance);
         var altinnTaskExtension = new AltinnTaskExtension { SignatureConfiguration = CreateSigningConfiguration() };
-
-        await using var sp = _serviceCollection.BuildStrictServiceProvider();
-        var signingProcessTask = sp.GetRequiredService<SigningProcessTask>();
 
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         _signeeContextsManagerMock
@@ -101,7 +78,6 @@ public class SigningProcessTaskTests
             )
             .ReturnsAsync([])
             .Verifiable(Times.Once);
-
         _signingServiceMock
             .Setup(x =>
                 x.InitializeSignees(
@@ -114,10 +90,8 @@ public class SigningProcessTaskTests
             .ReturnsAsync([])
             .Verifiable(Times.Once);
 
-        // Act
-        await signingProcessTask.Start(taskId, instance);
+        await _signingProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
 
-        // Assert
         _signeeContextsManagerMock.VerifyAll();
         _signingServiceMock.VerifyAll();
     }
@@ -125,13 +99,9 @@ public class SigningProcessTaskTests
     [Fact]
     public async Task Abandon_ShouldDeleteExistingSigningData()
     {
-        // Arrange
         Instance instance = CreateInstance();
-        string taskId = instance.Process.CurrentTask.ElementId;
+        var dataMutator = CreateDataMutator(instance);
         var altinnTaskExtension = new AltinnTaskExtension { SignatureConfiguration = CreateSigningConfiguration() };
-
-        await using var sp = _serviceCollection.BuildStrictServiceProvider();
-        var signingProcessTask = sp.GetRequiredService<SigningProcessTask>();
 
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         _signingServiceMock
@@ -145,14 +115,121 @@ public class SigningProcessTaskTests
             .Returns(Task.CompletedTask)
             .Verifiable(Times.Once);
 
-        // Act
-        await signingProcessTask.Abandon(taskId, instance);
+        await _signingProcessTask.Abandon(CreateProcessTaskContext(dataMutator.Object));
 
-        // Assert
         _signingServiceMock.VerifyAll();
     }
 
-    private static Instance CreateInstance()
+    [Fact]
+    public async Task End_WithSigningPdfDataType_ShouldStorePdfOnMutator()
+    {
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        var altinnTaskExtension = new AltinnTaskExtension
+        {
+            SignatureConfiguration = new AltinnSignatureConfiguration { SigningPdfDataType = "signing-pdf" },
+        };
+
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+        _pdfServiceMock
+            .Setup(x => x.GeneratePdf(instance, "Task_1", false, null, CancellationToken.None))
+            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+        dataMutator
+            .Setup(x =>
+                x.AddBinaryDataElement(
+                    "signing-pdf",
+                    "application/pdf",
+                    "signing-pdf.pdf",
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    "Task_1",
+                    null
+                )
+            )
+            .Returns(
+                new BinaryDataChange(
+                    ChangeType.Created,
+                    new DataType { Id = "signing-pdf" },
+                    "application/pdf",
+                    null,
+                    "signing-pdf.pdf",
+                    ReadOnlyMemory<byte>.Empty,
+                    "Task_1"
+                )
+            );
+
+        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+
+        _pdfServiceMock.VerifyAll();
+        dataMutator.VerifyAll();
+    }
+
+    [Fact]
+    public async Task End_WithExistingTaskGeneratedPdf_ShouldUpdatePdfOnMutator()
+    {
+        DataElement existingSigningPdf = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "signing-pdf",
+            ContentType = "application/pdf",
+            Filename = "signing-pdf.pdf",
+            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_1" }],
+        };
+        Instance instance = CreateInstance(existingSigningPdf);
+        var dataMutator = CreateDataMutator(instance);
+        var altinnTaskExtension = new AltinnTaskExtension
+        {
+            SignatureConfiguration = new AltinnSignatureConfiguration { SigningPdfDataType = "signing-pdf" },
+        };
+
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+        _pdfServiceMock
+            .Setup(x => x.GeneratePdf(instance, "Task_1", false, null, CancellationToken.None))
+            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+        dataMutator
+            .Setup(x =>
+                x.UpdateBinaryDataElement(existingSigningPdf, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())
+            )
+            .Returns(
+                new BinaryDataChange(
+                    ChangeType.Updated,
+                    new DataType { Id = "signing-pdf" },
+                    "application/pdf",
+                    existingSigningPdf,
+                    "signing-pdf.pdf",
+                    ReadOnlyMemory<byte>.Empty
+                )
+            );
+
+        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+
+        _pdfServiceMock.VerifyAll();
+        dataMutator.VerifyAll();
+        dataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<KeyValueEntry>?>()
+                ),
+            Times.Never
+        );
+    }
+
+    private static Mock<IInstanceDataMutator> CreateDataMutator(Instance instance)
+    {
+        var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
+        dataMutator.Setup(x => x.Instance).Returns(instance);
+        dataMutator.Setup(x => x.TaskId).Returns(instance.Process?.CurrentTask?.ElementId);
+        return dataMutator;
+    }
+
+    private static ProcessTaskContext CreateProcessTaskContext(IInstanceDataMutator dataMutator) =>
+        new() { InstanceDataMutator = dataMutator };
+
+    private static Instance CreateInstance(params DataElement[] dataElements)
     {
         return new Instance()
         {
@@ -162,7 +239,7 @@ public class SigningProcessTaskTests
             {
                 CurrentTask = new ProcessElementInfo { AltinnTaskType = "signing", ElementId = "Task_1" },
             },
-            Data = [],
+            Data = [.. dataElements],
         };
     }
 

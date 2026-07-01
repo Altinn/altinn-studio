@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Internal.App;
@@ -9,6 +10,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -18,7 +20,8 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Register;
 
 public class AltinnPartyClientTest
 {
-    private const string UserToken = "user-token";
+    private const string UserToken =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
     private const string PlatformAccessToken = "platform-access-token";
     private const string SubscriptionKey = "subscription-key";
     private const string ApiRegisterEndpoint = "https://localhost/api/v1/";
@@ -153,8 +156,13 @@ public class AltinnPartyClientTest
             var appMetadataMock = new Mock<IAppMetadata>();
             appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
 
-            var userTokenProviderMock = new Mock<IUserTokenProvider>();
-            userTokenProviderMock.Setup(m => m.GetUserToken()).Returns(userToken);
+            // Valid JWT format required by JwtToken.Parse
+            const string validJwtToken =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+            var authenticationTokenResolverMock = new Mock<IAuthenticationTokenResolver>();
+            authenticationTokenResolverMock
+                .Setup(m => m.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(JwtToken.Parse(validJwtToken));
 
             var accessTokenGeneratorMock = new Mock<IAccessTokenGenerator>();
             accessTokenGeneratorMock
@@ -190,19 +198,25 @@ public class AltinnPartyClientTest
                     }
                 );
 
-            var altinnPartyClient = new AltinnPartyClient(
+            var services = new ServiceCollection();
+            services.AddSingleton(loggerMock.Object);
+            services.AddSingleton(appMetadataMock.Object);
+            services.AddSingleton(authenticationTokenResolverMock.Object);
+            services.AddSingleton(accessTokenGeneratorMock.Object);
+            services.AddSingleton(
                 Options.Create(
                     new PlatformSettings
                     {
                         ApiRegisterEndpoint = apiRegisterEndpoint,
                         SubscriptionKey = subscriptionKey,
                     }
-                ),
-                loggerMock.Object,
+                )
+            );
+            var serviceProvider = services.BuildServiceProvider();
+
+            var altinnPartyClient = new AltinnPartyClient(
                 new HttpClient(httpMessageHandlerMock.Object),
-                appMetadataMock.Object,
-                userTokenProviderMock.Object,
-                accessTokenGeneratorMock.Object
+                serviceProvider
             );
 
             return new Fixture(altinnPartyClient, httpMessageHandlerMock, loggerMock);

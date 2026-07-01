@@ -67,7 +67,6 @@ public class UiFoldersService : IUiFoldersService
     )
     {
         List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
-
         return [.. layoutSetInfos.Select(ToLayoutSetDto)];
     }
 
@@ -77,7 +76,6 @@ public class UiFoldersService : IUiFoldersService
     )
     {
         List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
-
         return
         [
             .. layoutSetInfos.Select(info =>

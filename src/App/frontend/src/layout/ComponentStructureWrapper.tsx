@@ -22,11 +22,11 @@ export function ComponentStructureWrapper({
   className,
   style,
 }: PropsWithChildren<ComponentStructureWrapperProps>) {
-  const { id, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
+  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
 
   const componentWithValidations = (
     <ComponentStructure
-      id={id}
+      componentId={componentId}
       innerGrid={innerGrid}
       validationGrid={validationGrid}
       className={className}

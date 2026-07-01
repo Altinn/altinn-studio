@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Acornima" Version="1.6.1" />
+    <PackageVersion Include="Acornima" Version="1.6.2" />
     <PackageVersion Include="AngleSharp" Version="1.4.0" />
     <PackageVersion Include="Jint" Version="4.6.4" />
     <PackageVersion Include="LibGit2Sharp" Version="0.31.0" />

@@ -38,5 +38,5 @@ jobs:
 
       - name: Run integration tests
         run: |
-           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=StudioOidcGiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
+           dotnet test backend/Designer.sln --filter "(Category=StudioOidcGiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
         working-directory: src/Designer

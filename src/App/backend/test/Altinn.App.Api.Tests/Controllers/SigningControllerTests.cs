@@ -617,18 +617,31 @@ public class SigningControllerTests
         await using var sp = _serviceCollection.BuildStrictServiceProvider();
         var controller = sp.GetRequiredService<SigningController>();
 
-        _processReaderMock
-            .Setup(s => s.GetProcessTasks())
-            .Returns([
-                new ProcessTask
+        _instanceClientMock
+            .Setup(x =>
+                x.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new Instance
                 {
-                    Id = "task1",
-                    ExtensionElements = new ExtensionElements()
+                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                    Process = new ProcessState
                     {
-                        TaskExtension = new AltinnTaskExtension() { TaskType = "not-signing" },
+                        CurrentTask = new ProcessElementInfo
+                        {
+                            ElementId = "task-not-signing",
+                            AltinnTaskType = "data",
+                        },
                     },
-                },
-            ]);
+                }
+            );
 
         // Act
         var actionResult = await controller.GetAuthorizedOrganizations(
@@ -783,18 +796,31 @@ public class SigningControllerTests
         await using var sp = _serviceCollection.BuildStrictServiceProvider();
         var controller = sp.GetRequiredService<SigningController>();
 
-        _processReaderMock
-            .Setup(s => s.GetProcessTasks())
-            .Returns([
-                new ProcessTask
+        _instanceClientMock
+            .Setup(x =>
+                x.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new Instance
                 {
-                    Id = "task1",
-                    ExtensionElements = new ExtensionElements()
+                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                    Process = new ProcessState
                     {
-                        TaskExtension = new AltinnTaskExtension() { TaskType = "not-signing" },
+                        CurrentTask = new ProcessElementInfo
+                        {
+                            ElementId = "task-not-signing",
+                            AltinnTaskType = "data",
+                        },
                     },
-                },
-            ]);
+                }
+            );
 
         // Act
         var actionResult = await controller.GetDataElements("tdd", "app", 1337, Guid.NewGuid());
@@ -902,7 +928,7 @@ public class SigningControllerTests
                     It.IsAny<string>(),
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1131,7 +1157,7 @@ public class SigningControllerTests
                     It.IsAny<string>(),
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1387,7 +1413,7 @@ public class SigningControllerTests
                     It.IsAny<string>(),
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

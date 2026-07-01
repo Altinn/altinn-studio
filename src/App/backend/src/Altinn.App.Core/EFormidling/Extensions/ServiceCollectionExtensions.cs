@@ -39,7 +39,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient(typeof(IEFormidlingReceivers), typeof(TR));
         services.AddHttpClient<IEFormidlingClient, Common.EFormidlingClient.EFormidlingClient>();
-        services.AddTransient<IEFormidlingLegacyConfigurationProvider, EFormidlingLegacyConfigurationProvider>();
         services.AddTransient<IEFormidlingService, DefaultEFormidlingService>();
         services.Configure<Common.EFormidlingClient.Configuration.EFormidlingClientSettings>(
             configuration.GetSection("EFormidlingClientSettings")
