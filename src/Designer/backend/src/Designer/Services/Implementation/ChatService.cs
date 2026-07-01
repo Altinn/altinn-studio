@@ -132,6 +132,16 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
     }
 
+    public async Task<bool> ThreadBelongsToDeveloperAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ChatThreadEntity? thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
+        return thread is not null;
+    }
+
     private Task<ChatThreadEntity?> GetOwnedThreadAsync(
         Guid threadId,
         AltinnRepoEditingContext context,

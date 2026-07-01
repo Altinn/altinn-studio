@@ -55,4 +55,10 @@ public interface IChatService
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     );
+
+    Task<bool> ThreadBelongsToDeveloperAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
 }
