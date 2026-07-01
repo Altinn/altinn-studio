@@ -18,25 +18,35 @@ interface Props {
   baseComponentId: string;
 }
 
-export function AllComponentValidations({ baseComponentId: _baseId }: { baseComponentId?: string }) {
-  const currentId = useCurrentComponentId();
-  const baseId = _baseId ?? currentId;
-  if (!baseId) {
+export function AllComponentValidations({ baseComponentId }: { baseComponentId?: string }) {
+  if (baseComponentId) {
+    return <AllComponentValidationsFor baseComponentId={baseComponentId} />;
+  }
+
+  return <AllComponentValidationsFromContext />;
+}
+
+function AllComponentValidationsFromContext() {
+  const baseComponentId = useCurrentComponentId();
+  if (!baseComponentId) {
     throw new Error('No component id provided to AllComponentValidations. Please report this bug.');
   }
-  const validations = useUnifiedValidationsForNode(baseId);
+
+  return <AllComponentValidationsFor baseComponentId={baseComponentId} />;
+}
+
+function AllComponentValidationsFor({ baseComponentId }: { baseComponentId: string }) {
+  const validations = useUnifiedValidationsForNode(baseComponentId);
   return (
     <ComponentValidations
       validations={validations}
-      baseComponentId={baseId}
+      baseComponentId={baseComponentId}
     />
   );
 }
 
 export function ComponentValidations({ validations, baseComponentId }: Props) {
-  const currentId = useCurrentComponentId();
-  const baseId = baseComponentId ?? currentId;
-  const indexedId = useIndexedId(baseId);
+  const indexedId = useIndexedId(baseComponentId);
   const config = useExternalItem(baseComponentId);
   const inputMaxLength = config.type === 'Input' || config.type === 'TextArea' ? config.maxLength : undefined;
 
@@ -59,13 +69,13 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
   const info = validationsOfSeverity(filteredValidations, 'info');
   const success = validationsOfSeverity(filteredValidations, 'success');
 
-  if (!baseId || !filteredValidations?.length) {
+  if (!filteredValidations?.length) {
     return null;
   }
 
   return (
     <div
-      id={`${baseId}-validations`}
+      id={`${baseComponentId}-validations`}
       data-validation={indexedId}
       aria-live='assertive'
     >
