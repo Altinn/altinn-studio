@@ -12,6 +12,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
@@ -20,6 +21,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Reference = Altinn.Studio.Designer.Models.Reference;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -811,5 +813,43 @@ public class UiFoldersService : IUiFoldersService
         globalSettingsFile.TaskNavigation = taskNavigationGroupList.Any() ? taskNavigationGroupList : null;
 
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
+
+    public async Task<bool> UpdateLayoutReferences(
+        AltinnRepoEditingContext editingContext,
+        List<Reference> referencesToUpdate,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        IEnumerable<string> folderNames;
+        try
+        {
+            folderNames = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+        }
+        catch (LibGit2Sharp.NotFoundException)
+        {
+            return false;
+        }
+        // For v9, task ID equals the layout set name (folder name), so TaskId = Id.
+        List<LayoutSetConfigDto> layoutSetDtos = folderNames
+            .Select(name => new LayoutSetConfigDto { Id = name, TaskId = name })
+            .ToList();
+
+        List<Reference> referencesIncludingTaskDeletions =
+        [
+            .. referencesToUpdate,
+            .. referencesToUpdate
+                .Where(reference => reference.Type == ReferenceType.LayoutSet && string.IsNullOrEmpty(reference.NewId))
+                .Select(reference => new Reference(ReferenceType.Task, null, reference.Id)),
+        ];
+
+        return await LayoutReferenceUpdateHelper.UpdateReferences(
+            altinnAppGitRepository,
+            layoutSetDtos,
+            referencesIncludingTaskDeletions,
+            cancellationToken
+        );
     }
 }
