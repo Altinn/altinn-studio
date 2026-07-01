@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
   pull-requests: write
 
 concurrency:
@@ -56,6 +57,11 @@ jobs:
           branch="chore/rotate-grafana-gateway-token-expiry"
           title="chore: rotate Grafana gateway token expiry"
 
+          if ! gh label list --search "$PR_LABEL" --json name --jq '.[].name' | grep -Fx "$PR_LABEL"; then
+            echo "Label does not exist: $PR_LABEL" >&2
+            exit 1
+          fi
+
           cat > pr-body.md <<EOF
           Updates \`spec.tokens[].expires\` for \`external-grafana-altinn-studio-gateway-sa\` to \`${EXPIRY}\`.
 
@@ -72,11 +78,12 @@ jobs:
 
           pr_number="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
           if [[ -n "$pr_number" ]]; then
-            gh pr edit "$pr_number" --title "$title" --body-file pr-body.md
+            gh pr edit "$pr_number" --title "$title" --body-file pr-body.md --add-label "$PR_LABEL"
           else
-            gh pr create --base main --head "$branch" --title "$title" --body-file pr-body.md
+            gh pr create --base main --head "$branch" --title "$title" --body-file pr-body.md --label "$PR_LABEL"
           fi
         env:
           EXPIRY: ${{ steps.update.outputs.expiry }}
           EXPIRY_FILE: infra/runtime/grafana-manifests/service-accounts/altinn-studio-gateway-sa.yaml
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_LABEL: squad/kjøring
