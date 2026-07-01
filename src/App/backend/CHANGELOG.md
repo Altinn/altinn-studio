@@ -12,13 +12,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Add workflow engine integration that runs process tasks and service tasks as idempotent, retryable commands.
-- Add process hook interfaces `IOnTaskStartingHandler`, `IOnTaskEndingHandler`, `IOnTaskAbandonHandler`, and `IOnProcessEndingHandler`, returning a `HookResult` (`Success`, `FailedRetryable`, or `FailedPermanent`).
-- Add `IServiceTask` with `ServiceTaskContext` and `ServiceTaskResult` for implementing custom BPMN service tasks.
+- Add workflow engine integration. Process transitions and service tasks now run as idempotent, retryable commands.
+- Add process hook interfaces `IOnTaskStartingHandler`, `IOnTaskEndingHandler`, `IOnTaskAbandonHandler`, and `IOnProcessEndingHandler`.
 - Add `GlobalPageSettings` model and `IAppResources.GetGlobalUiSettings()` for reading global UI settings in backend code.
 
 ### Changed
 
+- Modify `IServiceTask` and `ServiceTaskResult` to support workflow engine integration.
 - Update `Microsoft.OpenApi` to version 2.
 
 ### Removed
