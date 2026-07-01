@@ -78,13 +78,19 @@ jobs:
 
           pr_number="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
           if [[ -n "$pr_number" ]]; then
-            gh pr edit "$pr_number" --title "$title" --body-file pr-body.md --add-label "$PR_LABEL" --add-reviewer "$PR_REVIEW_TEAM"
+            gh pr edit "$pr_number" --title "$title" --body-file pr-body.md --add-label "$PR_LABEL"
           else
-            gh pr create --base main --head "$branch" --title "$title" --body-file pr-body.md --label "$PR_LABEL" --reviewer "$PR_REVIEW_TEAM"
+            pr_url="$(gh pr create --base main --head "$branch" --title "$title" --body-file pr-body.md --label "$PR_LABEL")"
+            pr_number="${pr_url##*/}"
           fi
+
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}/requested_reviewers" \
+            -f "team_reviewers[]=$PR_REVIEW_TEAM_SLUG"
+          gh api -X GET "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}/requested_reviewers" \
+            --jq ".teams[].slug" | grep -Fx "$PR_REVIEW_TEAM_SLUG"
         env:
           EXPIRY: ${{ steps.update.outputs.expiry }}
           EXPIRY_FILE: infra/runtime/grafana-manifests/service-accounts/altinn-studio-gateway-sa.yaml
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_LABEL: squad/kjøring
-          PR_REVIEW_TEAM: Altinn/team-altinn-studio-kjoring
+          PR_REVIEW_TEAM_SLUG: team-altinn-studio-kjoring

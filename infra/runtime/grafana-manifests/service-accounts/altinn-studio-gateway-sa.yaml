@@ -10,5 +10,5 @@ spec:
     - name: gateway
       # Rotated monthly by .github/workflows/rotate-grafana-gateway-token-expiry.yaml.
       # Keep below Grafana's one-year service account token expiration limit.
-      expires: "2027-06-01T00:00:00Z"
+      expires: "2027-05-01T00:00:00Z"
       secretName: external-grafana-altinn-studio-gateway-token
