@@ -14,7 +14,7 @@ TRACES_PATH = "/api/public/traces"
 
 
 async def delete_expired_traces() -> int:
-    """Deletes every Langfuse trace older than the retention window. Returns the number of traces deleted."""
+    """Requests deletion of every Langfuse trace older than the retention window. Returns the number of traces submitted for deletion."""
     cutoff = datetime.now(timezone.utc) - timedelta(
         days=get_config().LANGFUSE_TRACE_RETENTION_DAYS
     )
@@ -26,7 +26,11 @@ async def _delete_traces_before(client: httpx.AsyncClient, cutoff: datetime) -> 
     trace_ids = await _fetch_expired_trace_ids(client, cutoff)
     for start in range(0, len(trace_ids), PAGE_SIZE):
         await _delete_trace_batch(client, trace_ids[start : start + PAGE_SIZE])
-    log.info("Deleted %d Langfuse traces older than %s", len(trace_ids), cutoff)
+    log.info(
+        "Requested deletion of %d Langfuse traces older than %s",
+        len(trace_ids),
+        cutoff,
+    )
     return len(trace_ids)
 
 
