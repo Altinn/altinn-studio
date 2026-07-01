@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.Elements;
@@ -66,4 +67,12 @@ public class AppProcessElementInfo : ProcessElementInfo
     /// </summary>
     [JsonPropertyName(name: "elementType")]
     public string? ElementType { get; set; }
+
+    /// <summary>
+    /// Present when the current task is a service task whose backing workflow has failed and requires
+    /// resumption. Lets a refreshing or polling client render the failure without having issued the
+    /// failing <c>process/next</c> request. Null when the task has not failed.
+    /// </summary>
+    [JsonPropertyName(name: "workflowFailure")]
+    public WorkflowFailure? WorkflowFailure { get; set; }
 }

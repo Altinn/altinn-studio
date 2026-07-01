@@ -377,6 +377,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IProcessReader, ProcessReader>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
         services.AddTransient<ProcessStateEnricher>();
+        services.AddTransient<ProcessStateEnrichmentService>();
 
         services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
 

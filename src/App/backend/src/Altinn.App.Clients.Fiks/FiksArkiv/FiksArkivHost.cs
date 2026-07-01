@@ -146,7 +146,11 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         return response;
     }
 
-    internal async Task HandleReceivedMessage(Instance instance, FiksIOReceivedMessage message)
+    /// <summary>
+    /// Handles a received Fiks Arkiv message: dispatches to the app's success/error handler and persists any
+    /// receipt on the instance. Returns whether the message was an error response.
+    /// </summary>
+    internal async Task<bool> HandleReceivedMessage(Instance instance, FiksIOReceivedMessage message)
     {
         _logger.LogInformation(
             "Handling received Fiks Arkiv message {MessageType}:{MessageId}",
@@ -184,11 +188,13 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                     FiksArkivConstants.MessageTypes.ArchiveRecordCreationReceipt,
                     payloads
                 );
-                return;
+                return isError;
             }
 
             await SaveArchiveReceipt(instance, receipt);
         }
+
+        return isError;
     }
 
     internal async Task IncomingMessageListener(FiksIOReceivedMessage message)
@@ -218,24 +224,24 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 
             instance = await RetrieveInstance(message);
 
-            if (CurrentTaskIsFiksArkiv(instance))
+            using Activity? innerActivity = _telemetry?.StartFiksMessageHandlerActivity(instance, GetType());
+
+            // Under the parking model the process should be waiting on the Fiks Arkiv service task when the
+            // reply arrives. If it isn't, the task has already advanced (duplicate/late delivery): persist the
+            // receipt idempotently and ack, without touching the process.
+            if (!CurrentTaskIsFiksArkiv(instance))
             {
-                _logger.LogWarning(
-                    "Current task is the Fiks Arkiv service task. This most likely means we are experiencing an order of operation issue with process/next. Deferring processing of message {MessageId} by {DeferralInterval} to give the situation time to resolve itself.",
-                    message.Message.MessageId,
-                    _raceConditionDeferralInterval
+                _logger.LogInformation(
+                    "Current task is no longer the Fiks Arkiv service task; treating message {MessageId} as a duplicate/late delivery. Persisting receipt only.",
+                    message.Message.MessageId
                 );
-
-                await Task.Delay(_raceConditionDeferralInterval);
-                await message.Responder.NackWithRequeue();
-
+                await HandleReceivedMessage(instance, message);
+                await message.Responder.Ack();
                 return;
             }
 
-            using Activity? innerActivity = _telemetry?.StartFiksMessageHandlerActivity(instance, GetType());
-
-            await HandleReceivedMessage(instance, message);
-            await message.Responder.Ack();
+            bool isError = await HandleReceivedMessage(instance, message);
+            await AdvanceParkedProcess(instance, message, isError);
 
             _logger.LogInformation(
                 "Processing completed successfully for message {MessageId}",
@@ -252,19 +258,74 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             mainActivity?.Errored(e);
 
             // Don't ack messages we failed to process in PROD. Let Fiks IO redeliver and/or trigger alarms.
+            // The process stays parked on the service task; the failure is surfaced via process state.
             if (!_env.IsProduction())
                 await message.Responder.Ack();
-
-            // Attempt to move the process forward on error, unless we're still stuck in the service task
-            if (!CurrentTaskIsFiksArkiv(instance))
-                await TryMoveProcessOnError(instance);
         }
     }
 
     /// <summary>
-    /// Checks if the current task on the instance is the Fiks Arkiv service task.
-    /// If so, that means we're experiencing an order of operation issue and should attempt to wait for
-    /// the process/next sequence to finish before proceeding.
+    /// Advances the process that is parked on the Fiks Arkiv service task once a reply has been received.
+    /// On success, moves to the next task. On an error reply, honours the configured
+    /// <see cref="FiksArkivErrorHandlingSettings.MoveToNextTask"/>: when enabled, moves forward with the
+    /// configured action; otherwise the process stays parked and the failure is surfaced via process state
+    /// for a user-driven retry.
+    /// </summary>
+    private async Task AdvanceParkedProcess(Instance instance, FiksIOReceivedMessage message, bool isError)
+    {
+        string? action = null;
+        if (isError)
+        {
+            if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is not true)
+            {
+                _logger.LogWarning(
+                    "Fiks Arkiv returned an error for instance {InstanceId}. Leaving the process parked on the service task; the failure is surfaced for retry.",
+                    instance.Id
+                );
+                await message.Responder.Ack();
+                return;
+            }
+
+            action = _fiksArkivSettings.ErrorHandling?.Action;
+        }
+
+        var instanceIdentifier = new InstanceIdentifier(instance);
+        FiksArkivProcessNextOutcome outcome = await _fiksArkivInstanceClient.ProcessMoveNext(
+            instanceIdentifier,
+            action
+        );
+
+        switch (outcome)
+        {
+            case FiksArkivProcessNextOutcome.Advanced:
+                await message.Responder.Ack();
+                break;
+            case FiksArkivProcessNextOutcome.Retrying:
+                // The parking workflow is still settling (e.g. the reply beat process/next). Requeue and retry.
+                _logger.LogInformation(
+                    "Process for instance {InstanceId} is still being processed by the workflow engine. Requeuing message {MessageId}.",
+                    instance.Id,
+                    message.Message.MessageId
+                );
+                await Task.Delay(_raceConditionDeferralInterval);
+                await message.Responder.NackWithRequeue();
+                break;
+            case FiksArkivProcessNextOutcome.ResumeRequired:
+                // A workflow for the current task failed; self-heal via cascade resume before acking.
+                _logger.LogWarning(
+                    "Process for instance {InstanceId} requires resumption before it can continue. Attempting cascade resume.",
+                    instance.Id
+                );
+                await _fiksArkivInstanceClient.ProcessResume(instanceIdentifier);
+                await message.Responder.Ack();
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Checks if the current task on the instance is the Fiks Arkiv service task. Under the parking model this
+    /// is the expected state when a reply arrives: the process is waiting on the service task until the async
+    /// receipt lets us advance it. If it is NOT the current task, the process has already moved on.
     /// </summary>
     private static bool CurrentTaskIsFiksArkiv(Instance? instance) =>
         instance?.Process?.CurrentTask?.AltinnTaskType?.Equals(
@@ -347,28 +408,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             );
             await _fiksArkivInstanceClient.DeleteBinaryData(instanceIdentifier, Guid.Parse(dataElement.Id));
         }
-    }
-
-    private async Task TryMoveProcessOnError(Instance? instance)
-    {
-        if (instance is null)
-        {
-            _logger.LogError("Unable to move the process forward, because the `instance` object has not been resolved");
-            return;
-        }
-
-        if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is not true)
-        {
-            _logger.LogWarning(
-                "Unable to move the process forward, because the `FiksArkivSettings.AutoSend.ErrorHandling.MoveToNextTask` configuration property has been disabled or not been set"
-            );
-            return;
-        }
-
-        await _fiksArkivInstanceClient.ProcessMoveNext(
-            new InstanceIdentifier(instance),
-            _fiksArkivSettings.ErrorHandling?.Action
-        );
     }
 
     private async Task<Instance> RetrieveInstance(FiksIOReceivedMessage receivedMessage)

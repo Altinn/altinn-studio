@@ -3702,6 +3702,8 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public bool HasWriteAccess { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("userActions")]
         public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.UserAction> UserActions { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("workflowFailure")]
+        public Altinn.App.Core.Models.Process.WorkflowFailure? WorkflowFailure { get; set; }
     }
     public class AppProcessState : Altinn.Platform.Storage.Interface.Models.ProcessState
     {

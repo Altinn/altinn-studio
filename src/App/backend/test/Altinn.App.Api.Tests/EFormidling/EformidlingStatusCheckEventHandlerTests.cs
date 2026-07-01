@@ -36,6 +36,19 @@ public class EformidlingStatusCheckEventHandlerTests
         processStatus.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task ProcessEvent_WithJwkDelivered_WhenProcessNextIsBlocked_ShouldReturnFalse()
+    {
+        // Delivered to KS, but the workflow engine can't advance the parked service task yet (e.g. 409
+        // retrying/resumeRequired). The event must be left unconsumed so the Events system retries later.
+        IEventHandler eventHandler = GetMockedEventHandler(true, processNextStatus: System.Net.HttpStatusCode.Conflict);
+        CloudEvent cloudEvent = GetValidCloudEvent();
+
+        bool processStatus = await eventHandler.ProcessEvent(cloudEvent);
+
+        processStatus.Should().BeFalse();
+    }
+
     private static CloudEvent GetValidCloudEvent()
     {
         return new()
@@ -52,7 +65,10 @@ public class EformidlingStatusCheckEventHandlerTests
         };
     }
 
-    private static IEventHandler GetMockedEventHandler(bool delivered)
+    private static IEventHandler GetMockedEventHandler(
+        bool delivered,
+        System.Net.HttpStatusCode processNextStatus = System.Net.HttpStatusCode.OK
+    )
     {
         var eFormidlingClientMock = new Mock<IEFormidlingClient>();
         Statuses statuses = GetStatues(delivered);
@@ -63,7 +79,7 @@ public class EformidlingStatusCheckEventHandlerTests
         var httpClientMock = new Mock<HttpClient>();
         httpClientMock
             .Setup(s => s.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+            .ReturnsAsync(new HttpResponseMessage(processNextStatus));
 
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         httpClientFactoryMock.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(httpClientMock.Object);

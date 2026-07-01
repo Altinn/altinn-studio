@@ -74,7 +74,10 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
             LogSanitizer.Sanitize(taskId)
         );
 
-        return ServiceTaskResult.Success();
+        // The shipment has been handed off, but delivery to KS is confirmed asynchronously (via the Events
+        // status-check reminder). Park the process on this service task; EformidlingStatusCheckEventHandler2
+        // advances it once delivery is confirmed.
+        return ServiceTaskResult.SuccessWithoutAutoAdvance();
     }
 
     private Task<ValidAltinnEFormidlingConfiguration> GetValidAltinnEFormidlingConfiguration(string taskId)
