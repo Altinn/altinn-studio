@@ -81,7 +81,7 @@ public class InstancesController : ControllerBase
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
-    private readonly ProcessStateEnricher _processStateEnricher;
+    private readonly ProcessStateEnrichmentService _processStateEnrichmentService;
     private readonly IInstanceLocker _instanceLocker;
     private readonly IFileService _fileService;
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
@@ -131,7 +131,7 @@ public class InstancesController : ControllerBase
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
-        _processStateEnricher = serviceProvider.GetRequiredService<ProcessStateEnricher>();
+        _processStateEnrichmentService = serviceProvider.GetRequiredService<ProcessStateEnrichmentService>();
         _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
     }
 
@@ -274,7 +274,12 @@ public class InstancesController : ControllerBase
                 instanceOwnerPartyId,
                 cancellationToken: cancellationToken
             );
-            var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
+            var processStateTask = _processStateEnrichmentService.EnrichWithWorkflowState(
+                instance,
+                instance.Process,
+                User,
+                cancellationToken
+            );
 
             await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 

@@ -58,7 +58,8 @@ internal sealed record ProcessNextWorkflowResult(
 internal sealed record CurrentTaskWorkflowState(
     ProcessNextState? ProcessNextState,
     Guid? WorkflowId = null,
-    string? CollectionKey = null
+    string? CollectionKey = null,
+    WorkflowFailure? WorkflowFailure = null
 );
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
@@ -247,13 +248,16 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             );
             if (resumeRequiredHead is not null)
             {
-                Guid retryTargetWorkflowId =
-                    await GetResumeTargetWorkflowId(collectionKey, resumeRequiredHead.DatabaseId, ct)
-                    ?? resumeRequiredHead.DatabaseId;
+                (Guid? retryTargetWorkflowId, WorkflowFailure? workflowFailure) = await GetResumeTarget(
+                    collectionKey,
+                    resumeRequiredHead.DatabaseId,
+                    ct
+                );
                 return new CurrentTaskWorkflowState(
                     ProcessNextState.ResumeRequired,
-                    retryTargetWorkflowId,
-                    collectionKey
+                    retryTargetWorkflowId ?? resumeRequiredHead.DatabaseId,
+                    collectionKey,
+                    workflowFailure
                 );
             }
         }
@@ -515,7 +519,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 or PersistentItemStatus.Canceled
                 or PersistentItemStatus.DependencyFailed;
 
-    private async Task<Guid?> GetResumeTargetWorkflowId(
+    private async Task<(Guid? RetryTargetWorkflowId, WorkflowFailure? Failure)> GetResumeTarget(
         string collectionKey,
         Guid fallbackWorkflowId,
         CancellationToken ct
@@ -527,7 +531,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ct: ct
         );
         WorkflowFailure? workflowFailure = BuildWorkflowFailure(collectionWorkflows);
-        return workflowFailure?.RetryTargetWorkflowId ?? workflowFailure?.WorkflowId ?? fallbackWorkflowId;
+        Guid retryTargetWorkflowId =
+            workflowFailure?.RetryTargetWorkflowId ?? workflowFailure?.WorkflowId ?? fallbackWorkflowId;
+        return (retryTargetWorkflowId, workflowFailure);
     }
 
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>

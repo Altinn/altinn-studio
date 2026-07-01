@@ -42,6 +42,7 @@ public class ProcessController : ControllerBase
     private readonly IValidationService _validationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly ProcessStateEnricher _processStateEnricher;
+    private readonly ProcessStateEnrichmentService _processStateEnrichmentService;
     private readonly IRegisterClient _registerClient;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
     private readonly IInstanceLocker _instanceLocker;
@@ -69,6 +70,7 @@ public class ProcessController : ControllerBase
         _validationService = validationService;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _processStateEnricher = processStateEnricher;
+        _processStateEnrichmentService = serviceProvider.GetRequiredService<ProcessStateEnrichmentService>();
         _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
         _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
@@ -103,7 +105,12 @@ public class ProcessController : ControllerBase
                 authenticationMethod: null,
                 CancellationToken.None
             );
-            AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User);
+            AppProcessState appProcessState = await _processStateEnrichmentService.EnrichWithWorkflowState(
+                instance,
+                instance.Process,
+                User,
+                HttpContext.RequestAborted
+            );
 
             return Ok(appProcessState);
         }

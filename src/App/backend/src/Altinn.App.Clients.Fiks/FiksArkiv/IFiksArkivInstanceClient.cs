@@ -4,6 +4,28 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Clients.Fiks.FiksArkiv;
 
+/// <summary>
+/// Outcome of an app-side <c>process/next</c> call against a parked service task.
+/// </summary>
+internal enum FiksArkivProcessNextOutcome
+{
+    /// <summary>
+    /// The process advanced to the next task.
+    /// </summary>
+    Advanced,
+
+    /// <summary>
+    /// The current task's workflow is still being processed by the workflow engine (409 <c>retrying</c>).
+    /// The caller should retry later.
+    /// </summary>
+    Retrying,
+
+    /// <summary>
+    /// The current task's workflow has failed and must be resumed before it can continue (409 <c>resumeRequired</c>).
+    /// </summary>
+    ResumeRequired,
+}
+
 internal interface IFiksArkivInstanceClient
 {
     /// <summary>
@@ -17,13 +39,19 @@ internal interface IFiksArkivInstanceClient
     Task<Instance> GetInstance(InstanceIdentifier instanceIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Moves the instance to the next process task, with a given action.
+    /// Moves the instance to the next process task, with a given action. Returns the outcome so callers can
+    /// distinguish a successful advance from the workflow-engine "retrying"/"resumeRequired" conflict states.
     /// </summary>
-    Task ProcessMoveNext(
+    Task<FiksArkivProcessNextOutcome> ProcessMoveNext(
         InstanceIdentifier instanceIdentifier,
         string? action = null,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Resumes the failed workflow that established the instance's current task (cascade resume / self-heal).
+    /// </summary>
+    Task ProcessResume(InstanceIdentifier instanceIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Marks the instance as complete by the service owner.
