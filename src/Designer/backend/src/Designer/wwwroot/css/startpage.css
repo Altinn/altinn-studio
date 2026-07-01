@@ -19,7 +19,7 @@
 }
 
 * {
-    font-family: DIN-reg;
+    font-family: 'Inter', sans-serif;
     padding: 0;
     margin: 0;
     -webkit-font-smoothing: subpixel-antialiased;
@@ -45,6 +45,9 @@ html {
 body {
     background-color: #fff;
     color: #000;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     font-weight: 400;
     font-size: 16px;
     font-size: 1.6rem;
@@ -73,8 +76,8 @@ h1 {
 
 h2 {
     font-size: 3.2rem;
-    font-family: DIN-medium;
-    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
     margin-bottom: 12px;
 }
 
@@ -84,13 +87,13 @@ h3 {
 
 .a-h3,
 h3 {
-    font-family: DIN-bold;
-    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
     margin-bottom: 6px;
 }
 
 p {
-    font-family: DIN-reg;
+    font-family: 'Inter', sans-serif;
     font-weight: 400;
     margin-bottom: 18px;
 }
@@ -130,8 +133,8 @@ img {
 }
 
 .a-fontBold {
-    font-family: DIN-bold;
-    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
 }
 
 a:active,
@@ -197,6 +200,26 @@ img {
     border-bottom: 1px solid #0062ba;
     font-size: 16px;
     margin-left: 22px;
+}
+
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 12px;
+    z-index: 1000;
+    padding: 8px 16px;
+    background: #0062ba;
+    color: #fff;
+    font-size: 1.6rem;
+    border: 0;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.skip-link:focus {
+    top: 8px;
+    border: 0;
+    color: #fff;
 }
 
 .sr-only {
@@ -278,6 +301,93 @@ img {
     margin-top: 24px !important;
 }
 
+.resourcesContainer {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    margin-top: 0;
+    gap: 0;
+    padding-top: 20px;
+    padding-bottom: 32px;
+    border-top: 0;
+    background: #fff;
+}
+
+.resourcesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 20px;
+    align-items: start;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.resourceCard {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 2px solid #adb5bd !important;
+    border-radius: 16px;
+    background: #fff;
+    color: #1f2933;
+    border-bottom: 2px solid #adb5bd !important;
+}
+
+.resourceCard-block {
+    padding: 22px;
+}
+
+.resourceCard-title {
+    display: block;
+    margin-bottom: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    color: #253247;
+    font-size: 2.4rem;
+    line-height: 1.25;
+}
+
+.resourceCard-link {
+    border-bottom: 0;
+    color: #253247;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    text-decoration-skip-ink: none;
+    display: block;
+}
+
+.resourceCard-link:hover,
+.resourceCard-link:focus,
+.resourceCard-link:active {
+    border-bottom: 0;
+    color: #253247;
+}
+
+.resourceCard-link::after {
+    display: none !important;
+    content: none !important;
+}
+
+.resourceCard-description {
+    display: block;
+    margin-bottom: 0;
+    color: #253247;
+    font-size: 1.8rem;
+    line-height: 1.5;
+}
+
+.resourceCard-list {
+    margin: 8px 0 0 20px;
+    color: #2f3d4d;
+    font-size: 1.6rem;
+    line-height: 1.45;
+}
+
+.resourceCard-list li + li {
+    margin-top: 4px;
+}
+
 .col-12,
 .col-lg-10,
 .col-lg-5,
@@ -307,6 +417,29 @@ img {
     background: #fff;
 }
 
+.startHeroRow {
+    align-items: flex-start;
+    justify-content: space-between;
+    row-gap: 24px;
+}
+
+.startHeroText {
+    text-align: center;
+}
+
+.startHeroHeading {
+    margin: 0 auto;
+    max-width: 28ch;
+    font-size: clamp(2.2rem, 4.6vw, 4rem);
+    line-height: 1.2;
+    font-weight: 500;
+}
+
+.startHeroActions {
+    display: flex;
+    justify-content: center;
+}
+
 .a-globalNav .a-globalNav-logo {
     position: relative;
     z-index: 1;
@@ -333,7 +466,7 @@ img {
 }
 
 .pt-3 {
-    padding-top: 36px !important;
+    padding-top: 24px !important;
 }
 
 .pt-5 {
@@ -354,9 +487,9 @@ img {
 }
 
 .a-jumbotron {
-    min-height: 550px;
+    min-height: 500px;
     max-height: 792px;
-    margin-bottom: 36px;
+    margin-bottom: 16px;
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -377,8 +510,41 @@ img {
     background-position: left 120px;
 }
 
+.startHeroSection {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+}
+
+.startHeroSection::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url('/img/Altinn-studio-stor-ny.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center top;
+}
+
+.startHeroSection::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 32%;
+    z-index: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 68%);
+}
+
+.startHeroSection > .container {
+    position: relative;
+    z-index: 1;
+}
+
 .jumbotron.a-jumbotron-header {
-    padding-top: 130px;
+    padding-top: 148px;
     margin-top: -144px;
 }
 
@@ -619,7 +785,7 @@ a.collapsed .a-dropdownCircleArrow {
 
     .a-jumbotron {
         min-height: 600px;
-        margin-bottom: 60px;
+        margin-bottom: 24px;
     }
 
     .a-jumbotron-header {
@@ -634,8 +800,8 @@ a.collapsed .a-dropdownCircleArrow {
 
 @media (min-width: 768px) {
     h2 {
-        font-family: DIN-reg;
-        font-weight: 400;
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
     }
 
     .container {
@@ -673,6 +839,14 @@ a.collapsed .a-dropdownCircleArrow {
     .an-header {
         height: 100px;
         padding-top: 36px;
+    }
+
+    .startHeroRow {
+        align-items: center;
+    }
+
+    .startHeroActions {
+        justify-content: center;
     }
 
     .a-jumbotron {
@@ -757,7 +931,7 @@ a.collapsed .a-dropdownCircleArrow {
     }
 
     .jumbotron.a-jumbotron-header {
-        padding-top: 130px;
+        padding-top: 136px;
     }
 
     .a-jumbotron .a-jumbotron-ingress,
@@ -832,5 +1006,48 @@ a.collapsed .a-dropdownCircleArrow {
     .an-header > .container {
         max-width: none;
         padding: 0 12px;
+    }
+
+    .a-jumbotron {
+        min-height: auto;
+    }
+
+    .jumbotron.a-jumbotron-header {
+        margin-top: 0;
+        padding-top: 44px;
+        padding-bottom: 28px;
+    }
+
+    .startHeroRow {
+        row-gap: 14px;
+    }
+
+    .startHeroHeading {
+        max-width: 22ch;
+        font-size: clamp(1.8rem, 8.8vw, 3.2rem);
+        line-height: 1.2;
+    }
+
+    .startHeroText,
+    .startHeroActions {
+        text-align: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .startHeroSection::before {
+        opacity: 0.15;
+        background-size: cover;
+        background-position: center top;
+    }
+
+    .startHeroSection::after {
+        height: 100%;
+        background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.6),
+            rgba(255, 255, 255, 0.85) 60%
+        );
     }
 }
