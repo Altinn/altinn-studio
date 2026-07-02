@@ -7,8 +7,6 @@ import type { DividerProps } from './Divider';
 export const DIVIDER_PROP_CATEGORIES = {
   componentId: 'content',
   innerGrid: 'content',
-  validationGrid: 'content',
-  validationMessages: 'runtime',
 } satisfies PropCategories<DividerProps>;
 
 const meta = {
