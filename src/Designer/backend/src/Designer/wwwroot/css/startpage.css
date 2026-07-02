@@ -173,7 +173,7 @@ img {
 
 .btn-lg {
     color: #ffffff !important;
-    background-color: #0062ba;
+    background-color: #1e2b3c;
     border: 1px solid transparent;
     border-radius: 4px;
     font-size: 20px;
@@ -183,7 +183,7 @@ img {
 }
 
 .btn-lg:hover {
-    background-color: #004e95;
+    background-color: #4b5563;
 }
 
 .btn-lg:active {
@@ -533,9 +533,9 @@ img {
     left: 0;
     right: 0;
     bottom: 0;
-    height: 32%;
+    height: 0%;
     z-index: 0;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 68%);
+    background: linear-gradient(to bottom, rgba(245, 245, 245, 0), #fff 100%);
 }
 
 .startHeroSection > .container {
