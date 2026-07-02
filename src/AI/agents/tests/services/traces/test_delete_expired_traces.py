@@ -57,6 +57,21 @@ class TestFetchTraceIdPage:
 
         assert captured_params["toTimestamp"] == CUTOFF.isoformat()
 
+    async def test_filters_on_production_environments_only(self):
+        captured_environments: list[str] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            captured_environments.extend(
+                request.url.params.get_list("environment")
+            )
+            return httpx.Response(200, json={"data": []})
+
+        client = _client_with_handler(handler)
+
+        await _fetch_trace_id_page(client, CUTOFF, page_number=1)
+
+        assert captured_environments == ["prod", "production"]
+
 
 def _client_with_handler(handler) -> httpx.AsyncClient:
     return httpx.AsyncClient(

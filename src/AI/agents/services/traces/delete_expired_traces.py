@@ -16,7 +16,7 @@ TRACES_PATH = "/api/public/traces"
 
 
 async def delete_expired_traces() -> int:
-    """Requests deletion of every Langfuse trace older than the retention window. Returns the number of traces submitted for deletion."""
+    """Requests deletion of every production Langfuse trace older than the retention window. Returns the number of traces submitted for deletion."""
     cutoff = datetime.now(timezone.utc) - timedelta(
         days=get_config().LANGFUSE_TRACE_RETENTION_DAYS
     )
@@ -58,6 +58,7 @@ async def _fetch_trace_id_page(
             "toTimestamp": cutoff.isoformat(),
             "limit": PAGE_SIZE,
             "page": page_number,
+            "environment": ["prod", "production"],
         },
     )
     response.raise_for_status()
