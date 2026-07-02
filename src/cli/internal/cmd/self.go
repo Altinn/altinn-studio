@@ -330,14 +330,23 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	c.out.Printlnf("Current version: %s", c.cfg.Version)
-	resolved, err := c.service.ResolveUpdateBundle(
-		ctx,
-		installpkg.UpdateOptions{
-			Version:      version,
-			SkipChecksum: skipChecksum,
-		},
-	)
+	opts := installpkg.UpdateOptions{
+		Version:      version,
+		SkipChecksum: skipChecksum,
+	}
+
+	target, proceed, err := c.resolveUpdateTarget(ctx, opts)
+	if err != nil {
+		return err
+	}
+	if !proceed {
+		return nil
+	}
+
+	// Pin the download to the resolved version so we do not resolve the latest
+	// release a second time.
+	opts.Version = target
+	resolved, err := c.service.ResolveUpdateBundle(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("resolve update bundle: %w", err)
 	}
@@ -348,7 +357,11 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 			}
 			return err
 		}
-		c.out.Successf("%s update started. The replacement will finish after this process exits.", osutil.CurrentBin())
+		c.out.Successf(
+			"%s update to %s started. The replacement will finish after this process exits.",
+			osutil.CurrentBin(),
+			target,
+		)
 		return nil
 	}
 	if resolved.Cleanup != nil {
@@ -367,8 +380,52 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("apply update bundle: %w", err)
 	}
 
-	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
+	c.out.Successf("%s updated successfully to %s.", osutil.CurrentBin(), target)
 	return nil
+}
+
+// resolveUpdateTarget resolves and reports the release version an update would
+// install. It returns proceed=false when the running build is already on the
+// target version, in which case no update is needed.
+func (c *SelfCommand) resolveUpdateTarget(
+	ctx context.Context,
+	opts installpkg.UpdateOptions,
+) (target string, proceed bool, err error) {
+	c.out.Printlnf("Current version: %s", c.cfg.Version)
+
+	target, err = c.service.ResolveUpdateVersion(ctx, opts)
+	if err != nil {
+		return "", false, fmt.Errorf("resolve update version: %w", err)
+	}
+
+	versionLabel := "Latest version"
+	if opts.Version != "" {
+		versionLabel = "Target version"
+	}
+	c.out.Printlnf("%s: %s", versionLabel, target)
+
+	if isSameReleaseVersion(c.cfg.Version.String(), target) {
+		c.out.Successf("%s is already up to date.", osutil.CurrentBin())
+		return target, false, nil
+	}
+
+	c.out.Printlnf("Updating to %s...", target)
+	return target, true, nil
+}
+
+// isSameReleaseVersion reports whether the running build and the resolved
+// release target refer to the same version, tolerating "studioctl/" and "v"
+// prefix differences. An empty current version (unknown/dev build) never
+// matches, so those builds always proceed with the update.
+func isSameReleaseVersion(current, target string) bool {
+	current = normalizeCompareVersion(current)
+	target = normalizeCompareVersion(target)
+	return current != "" && current == target
+}
+
+func normalizeCompareVersion(v string) string {
+	v = strings.TrimPrefix(strings.TrimSpace(v), "studioctl/")
+	return strings.TrimPrefix(v, "v")
 }
 
 func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctlPath string) error {

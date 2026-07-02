@@ -1,0 +1,90 @@
+name: Runtime - rotate Grafana gateway token expiry
+
+on:
+  schedule:
+    # Keep the Grafana service account token expiry comfortably below the one-year limit.
+    - cron: "13 3 1 * *"
+  workflow_dispatch:
+    inputs:
+      months:
+        description: "Months ahead for the new expiry. Use a value other than 11 to force a test PR."
+        required: false
+        default: "11"
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  rotate-expiry:
+    name: Rotate expiry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Update token expiry
+        id: update
+        run: |
+          if ! [[ "$MONTHS" =~ ^[0-9]+$ ]] || (( MONTHS < 1 || MONTHS > 11 )); then
+            echo "months must be an integer between 1 and 11, got: $MONTHS" >&2
+            exit 1
+          fi
+
+          expiry="$(date -u -d "$(date -u +%Y-%m-01) +${MONTHS} months" +%Y-%m-%dT00:00:00Z)"
+          sed -i -E "s/^([[:space:]]+expires: \").*(\")$/\1${expiry}\2/" "$EXPIRY_FILE"
+          grep -q "expires: \"${expiry}\"" "$EXPIRY_FILE"
+          echo "expiry=${expiry}" >> "$GITHUB_OUTPUT"
+
+          if git diff --quiet -- "$EXPIRY_FILE"; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          EXPIRY_FILE: infra/runtime/grafana-manifests/service-accounts/altinn-studio-gateway-sa.yaml
+          MONTHS: ${{ github.event.inputs.months || '11' }}
+
+      - name: Create or update pull request
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          branch="chore/rotate-grafana-gateway-token-expiry"
+          title="chore: rotate Grafana gateway token expiry"
+
+          if ! gh label list --search "$PR_LABEL" --json name --jq '.[].name' | grep -Fx "$PR_LABEL"; then
+            echo "Label does not exist: $PR_LABEL" >&2
+            exit 1
+          fi
+
+          cat > pr-body.md <<EOF
+          Updates \`spec.tokens[].expires\` for \`external-grafana-altinn-studio-gateway-sa\` to \`${EXPIRY}\`.
+
+          Grafana enforces a one-year service account token expiration limit, so this workflow keeps the expiry around 11 months out.
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$branch" || true
+          git checkout -B "$branch"
+          git add "$EXPIRY_FILE"
+          git commit -m "$title"
+          git push --force-with-lease origin "$branch"
+
+          pr_number="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [[ -n "$pr_number" ]]; then
+            gh pr edit "$pr_number" --title "$title" --body-file pr-body.md --add-label "$PR_LABEL" --add-reviewer "$PR_REVIEW_TEAM"
+          else
+            gh pr create --base main --head "$branch" --title "$title" --body-file pr-body.md --label "$PR_LABEL" --reviewer "$PR_REVIEW_TEAM"
+          fi
+        env:
+          EXPIRY: ${{ steps.update.outputs.expiry }}
+          EXPIRY_FILE: infra/runtime/grafana-manifests/service-accounts/altinn-studio-gateway-sa.yaml
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_LABEL: squad/kjøring
+          PR_REVIEW_TEAM: Altinn/team-altinn-studio-kjoring

@@ -105,6 +105,10 @@ spec:
                 configMapKeyRef:
                   name: runtime-environment
                   key: environment
+            # Combination of .NET AddJsonFile (PhysicalFileProvider) and k8s volume mounts
+            # makes us miss updates if we dont poll, since k8s uses symlink shenanigans
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
+              value: "1"
             - name: Gateway__AzureSubscriptionId
               valueFrom:
                 configMapKeyRef:
