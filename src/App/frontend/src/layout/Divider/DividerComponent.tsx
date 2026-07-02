@@ -1,14 +1,22 @@
 import React from 'react';
 
-import { Divider } from '@digdir/designsystemet-react';
+import { Divider } from '@app/form-component';
 
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 
 export function DividerComponent({ baseComponentId }: PropsFromGenericComponent<'Divider'>) {
+  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
+
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <Divider />
-    </ComponentStructureWrapper>
+    <Divider
+      componentId={componentId}
+      innerGrid={innerGrid}
+      validationGrid={validationGrid}
+      validationMessages={
+        showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
+      }
+    />
   );
 }
