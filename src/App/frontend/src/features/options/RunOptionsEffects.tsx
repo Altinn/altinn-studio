@@ -7,6 +7,7 @@ import { EffectSetDownstreamParameters } from 'src/features/options/effects/Effe
 import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel';
 import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -20,6 +21,21 @@ interface RunOptionEffectsProps {
 }
 
 export function RunOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
+  const isHidden = useIsHidden(node.baseId, { respectPageOrder: true });
+
+  if (isHidden) {
+    return null;
+  }
+
+  return (
+    <RunVisibleOptionsEffects
+      node={node}
+      valueType={valueType}
+    />
+  );
+}
+
+function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
   const isReadOnly = FormStore.useIsReadOnly();
   const item = node.intermediateItem as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const lookups = FormStore.bootstrap.useLayoutLookups();
