@@ -7,9 +7,7 @@ using Altinn.App.logic.Pdf;
 using Altinn.App.logic.Validation;
 using Altinn.App.Options;
 using Altinn.App.services.options;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Logic.Instantiation;
-using Altinn.App.logic.MetaData;
 using Altinn.FileAnalyzers.MimeType;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,7 +31,6 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IFormDataValidator, GroupValidator>();
     services.AddTransient<IPdfFormatter, PdfFormatter>();
     services.AddTransient<IDataListProvider, ListCases>();
-    services.AddTransient<IAppMetadata, CustomMetaData>();
     services.AddTransient<IUserAction, FillAction>();
     services.AddTransient<IUserAction, ConflictingOptionsReset>();
     services.AddTransient<IUserAction, ShiftingOptionsAdd>();

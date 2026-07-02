@@ -19,7 +19,6 @@
       "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -29,7 +28,6 @@
       "maxSize": 5,
       "maxCount": 3,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -45,7 +43,6 @@
       "taskId": "Task_2",
       "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -56,7 +53,6 @@
       "maxSize": 5,
       "maxCount": 3,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": ["mimeTypeAnalyser"],
@@ -68,7 +64,6 @@
       "maxSize": 5,
       "maxCount": 3,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -78,7 +73,6 @@
       "maxSize": 5,
       "maxCount": 10,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -88,7 +82,6 @@
       "maxSize": 5,
       "maxCount": 20,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -98,7 +91,6 @@
       "maxSize": 5,
       "maxCount": 20,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -114,7 +106,6 @@
       "taskId": "Task_3",
       "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -130,7 +121,6 @@
       "taskId": "Task_4",
       "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -139,7 +129,6 @@
       "allowedContentTypes": ["application/pdf"],
       "maxCount": 0,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -155,7 +144,6 @@
       "taskId": "Task_5",
       "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     }
@@ -175,4 +163,3 @@
   "lastChanged": "2021-02-06T15:18:12.2062288Z",
   "lastChangedBy": "jeeva"
 }
-
