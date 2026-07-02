@@ -119,15 +119,37 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <FormDataWriteEffects />
       <AttachmentEffects />
       <ValidationEffects />
-      <FormEffectsProvider>
-        <PaymentInformationProvider>
-          <OrderDetailsProvider>
-            <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
-          </OrderDetailsProvider>
-        </PaymentInformationProvider>
-      </FormEffectsProvider>
+      <LayoutRevisionBoundary>
+        <FormEffectsProvider>
+          <PaymentInformationProvider>
+            <OrderDetailsProvider>
+              <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
+            </OrderDetailsProvider>
+          </PaymentInformationProvider>
+        </FormEffectsProvider>
+      </LayoutRevisionBoundary>
     </FormStoreProvider>
   );
+}
+
+function LayoutRevisionBoundary({ children }: PropsWithChildren) {
+  const layoutRevision = useLayoutRevisionKey();
+  return <React.Fragment key={layoutRevision}>{children}</React.Fragment>;
+}
+
+const layoutRevisionKeys = new WeakMap<object, number>();
+let nextLayoutRevisionKey = 0;
+
+function useLayoutRevisionKey() {
+  const layouts = FormStore.bootstrap.useLayouts();
+  return useMemo(() => {
+    let key = layoutRevisionKeys.get(layouts);
+    if (key === undefined) {
+      key = nextLayoutRevisionKey++;
+      layoutRevisionKeys.set(layouts, key);
+    }
+    return key;
+  }, [layouts]);
 }
 
 function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasProcess: boolean }>) {
