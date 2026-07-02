@@ -5,7 +5,6 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
-using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -19,6 +18,22 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Clients.Fiks.FiksArkiv;
+
+/// <summary>
+/// Classification of a received Fiks Arkiv reply.
+/// </summary>
+internal enum FiksArkivMessageOutcome
+{
+    /// <summary>
+    /// The archive request succeeded.
+    /// </summary>
+    Success,
+
+    /// <summary>
+    /// The archive request failed (error response or error payload).
+    /// </summary>
+    Error,
+}
 
 internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 {
@@ -148,9 +163,9 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 
     /// <summary>
     /// Handles a received Fiks Arkiv message: dispatches to the app's success/error handler and persists any
-    /// receipt on the instance. Returns whether the message was an error response.
+    /// receipt on the instance. Returns whether the message was a success or error response.
     /// </summary>
-    internal async Task<bool> HandleReceivedMessage(Instance instance, FiksIOReceivedMessage message)
+    internal async Task<FiksArkivMessageOutcome> HandleReceivedMessage(Instance instance, FiksIOReceivedMessage message)
     {
         _logger.LogInformation(
             "Handling received Fiks Arkiv message {MessageType}:{MessageId}",
@@ -188,13 +203,13 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                     FiksArkivConstants.MessageTypes.ArchiveRecordCreationReceipt,
                     payloads
                 );
-                return isError;
+                return isError ? FiksArkivMessageOutcome.Error : FiksArkivMessageOutcome.Success;
             }
 
             await SaveArchiveReceipt(instance, receipt);
         }
 
-        return isError;
+        return isError ? FiksArkivMessageOutcome.Error : FiksArkivMessageOutcome.Success;
     }
 
     internal async Task IncomingMessageListener(FiksIOReceivedMessage message)
@@ -226,22 +241,8 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 
             using Activity? innerActivity = _telemetry?.StartFiksMessageHandlerActivity(instance, GetType());
 
-            // Under the parking model the process should be waiting on the Fiks Arkiv service task when the
-            // reply arrives. If it isn't, the task has already advanced (duplicate/late delivery): persist the
-            // receipt idempotently and ack, without touching the process.
-            if (!CurrentTaskIsFiksArkiv(instance))
-            {
-                _logger.LogInformation(
-                    "Current task is no longer the Fiks Arkiv service task; treating message {MessageId} as a duplicate/late delivery. Persisting receipt only.",
-                    message.Message.MessageId
-                );
-                await HandleReceivedMessage(instance, message);
-                await message.Responder.Ack();
-                return;
-            }
-
-            bool isError = await HandleReceivedMessage(instance, message);
-            await AdvanceParkedProcess(instance, message, isError);
+            FiksArkivMessageOutcome outcome = await HandleReceivedMessage(instance, message);
+            await AdvanceParkedProcess(instance, message, outcome);
 
             _logger.LogInformation(
                 "Processing completed successfully for message {MessageId}",
@@ -271,10 +272,14 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     /// configured action; otherwise the process stays parked and the failure is surfaced via process state
     /// for a user-driven retry.
     /// </summary>
-    private async Task AdvanceParkedProcess(Instance instance, FiksIOReceivedMessage message, bool isError)
+    private async Task AdvanceParkedProcess(
+        Instance instance,
+        FiksIOReceivedMessage message,
+        FiksArkivMessageOutcome outcome
+    )
     {
         string? action = null;
-        if (isError)
+        if (outcome == FiksArkivMessageOutcome.Error)
         {
             if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is not true)
             {
@@ -290,12 +295,12 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         }
 
         var instanceIdentifier = new InstanceIdentifier(instance);
-        FiksArkivProcessNextOutcome outcome = await _fiksArkivInstanceClient.ProcessMoveNext(
+        FiksArkivProcessNextOutcome processNextOutcome = await _fiksArkivInstanceClient.ProcessMoveNext(
             instanceIdentifier,
             action
         );
 
-        switch (outcome)
+        switch (processNextOutcome)
         {
             case FiksArkivProcessNextOutcome.Advanced:
                 await message.Responder.Ack();
@@ -321,18 +326,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 break;
         }
     }
-
-    /// <summary>
-    /// Checks if the current task on the instance is the Fiks Arkiv service task. Under the parking model this
-    /// is the expected state when a reply arrives: the process is waiting on the service task until the async
-    /// receipt lets us advance it. If it is NOT the current task, the process has already moved on.
-    /// </summary>
-    private static bool CurrentTaskIsFiksArkiv(Instance? instance) =>
-        instance?.Process?.CurrentTask?.AltinnTaskType?.Equals(
-            AltinnTaskTypes.FiksArkiv,
-            StringComparison.OrdinalIgnoreCase
-        )
-            is true;
 
     private async Task<DataElement> SaveArchiveRecord(Instance instance, FiksIOMessageRequest request)
     {
