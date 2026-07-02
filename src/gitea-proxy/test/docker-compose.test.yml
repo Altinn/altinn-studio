@@ -21,31 +21,12 @@ services:
     environment:
       GITEA_HOST: gitea-mock:3000
       DESIGNER_HOST: designer-mock:3000
-      STUDIO_OIDC_ENABLED: "true"
       OTEL_ENDPOINT: "127.0.0.1:4317"
       OTEL_SERVICE_NAME: "test"
       OTEL_TRACE: "off"
     ports:
       - "18080:80"
       - "18081:81"
-    depends_on:
-      - gitea-mock
-      - designer-mock
-
-  proxy-oidc-off:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-    environment:
-      GITEA_HOST: gitea-mock:3000
-      DESIGNER_HOST: designer-mock:3000
-      STUDIO_OIDC_ENABLED: "false"
-      OTEL_ENDPOINT: "127.0.0.1:4317"
-      OTEL_SERVICE_NAME: "test"
-      OTEL_TRACE: "off"
-    ports:
-      - "18090:80"
-      - "18091:81"
     depends_on:
       - gitea-mock
       - designer-mock

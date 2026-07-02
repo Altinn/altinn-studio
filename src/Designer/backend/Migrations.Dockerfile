@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:3ea83f1463983ba8b51babffebb8556f8b94041fbc5eee2190cc77e913cc6325 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:2412b9f7db4aa7ceac5a8c9d41385616cbd7bb8d18c298334cafad22f7647e04 AS build
 
 WORKDIR /app
 
@@ -7,11 +7,9 @@ COPY . .
 RUN dotnet tool install --version 9.0.0 --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 
-ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
-ENV OidcLoginSettings__ClientId=dummyRequired
-ENV OidcLoginSettings__ClientSecret=dummyRequired
-ENV FeatureManagement__StudioOidc=false
 ENV StudioOidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
+ENV StudioOidcLoginSettings__ClientId=dummyRequired
+ENV StudioOidcLoginSettings__ClientSecret=dummyRequired
 
 RUN dotnet restore src/Designer/Designer.csproj && \
     dotnet build src/Designer/Designer.csproj --no-restore && \

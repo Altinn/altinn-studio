@@ -49,8 +49,8 @@ describe('TasksTable', () => {
     renderTasksTable();
 
     await user.click(getHideAllButton());
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, []);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledWith(org, app, []);
   });
 
   it('should add all tasks to navigation table when show all button is clicked', async () => {
@@ -58,8 +58,8 @@ describe('TasksTable', () => {
     renderTasksTable({ isNavigationMode: false });
 
     await user.click(getShowAllButton());
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, allTasksMock);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroupV4).toHaveBeenCalledWith(org, app, allTasksMock);
   });
 
   it('should disable hide all button when there are no tasks to hide', () => {

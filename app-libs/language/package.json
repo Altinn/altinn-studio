@@ -1,0 +1,25 @@
+{
+  "name": "@app/language",
+  "packageManager": "yarn@4.16.0",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ./",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "lint": "eslint \"src/**/*.ts*\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "8.61.0",
+    "@typescript-eslint/parser": "8.61.0",
+    "eslint": "10.5.0",
+    "globals": "17.6.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.8"
+  }
+}

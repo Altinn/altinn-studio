@@ -1,11 +1,12 @@
 {
   "name": "@studio/assistant",
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.16.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "dependencies": {
     "@digdir/designsystemet-theme": "^1.0.8",
     "@studio/components": "workspace:^",
-    "dompurify": "^3.2.6"
+    "dompurify": "^3.2.6",
+    "marked": "^17.0.6"
   }
 }

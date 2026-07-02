@@ -1,17 +1,18 @@
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
+using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 
 internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
     IPdfService pdfService,
-    IDataClient dataClient,
-    IProcessTaskCleaner processTaskCleaner,
     ILogger<SubformPdfServiceTask> logger
 ) : IServiceTask
 {
@@ -31,7 +32,7 @@ internal sealed class SubformPdfServiceTask(
         string subformDataTypeId = config.SubformDataTypeId;
 
         // Clean up any existing PDFs from previous failed attempts
-        await processTaskCleaner.RemoveAllDataElementsGeneratedFromTask(instance, taskId);
+        RemoveDataElementsGeneratedFromTask(context.InstanceDataMutator, taskId);
 
         List<DataElement> subformDataElements = instance.Data.Where(x => x.DataType == subformDataTypeId).ToList();
 
@@ -44,20 +45,19 @@ internal sealed class SubformPdfServiceTask(
                 taskId
             );
 
-            DataElement pdfDataElement = await pdfService.GenerateAndStoreSubformPdf(
-                instance,
-                taskId,
+            var metadata = new List<KeyValueEntry>
+            {
+                new() { Key = "subformComponentId", Value = subformComponentId },
+                new() { Key = "subformDataElementId", Value = dataElement.Id },
+            };
+
+            _ = await pdfService.GenerateAndStoreSubformPdf(
+                context.InstanceDataMutator,
                 filenameTextResourceKey,
                 new SubformPdfContext(subformComponentId, dataElement.Id),
-                context.CancellationToken
-            );
-
-            await AddSubformPdfMetadata(
-                instance,
-                pdfDataElement,
-                subformComponentId,
-                dataElement.Id,
-                context.CancellationToken
+                metadata: metadata,
+                authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
+                ct: context.CancellationToken
             );
 
             logger.LogDebug(
@@ -87,20 +87,18 @@ internal sealed class SubformPdfServiceTask(
         return subformPdfConfiguration.Validate();
     }
 
-    private async Task AddSubformPdfMetadata(
-        Instance instance,
-        DataElement pdfDataElement,
-        string subformComponentId,
-        string subformDataElementId,
-        CancellationToken ct
-    )
+    private static void RemoveDataElementsGeneratedFromTask(IInstanceDataMutator instanceDataMutator, string taskId)
     {
-        pdfDataElement.Metadata = new List<KeyValueEntry>
-        {
-            new() { Key = "subformComponentId", Value = subformComponentId },
-            new() { Key = "subformDataElementId", Value = subformDataElementId },
-        };
+        Instance instance = instanceDataMutator.Instance;
+        var dataElements =
+            instance.Data?.Where(de =>
+                de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
+            )
+            ?? [];
 
-        await dataClient.Update(instance, pdfDataElement, cancellationToken: ct);
+        foreach (var dataElement in dataElements)
+        {
+            instanceDataMutator.RemoveDataElement(dataElement);
+        }
     }
 }

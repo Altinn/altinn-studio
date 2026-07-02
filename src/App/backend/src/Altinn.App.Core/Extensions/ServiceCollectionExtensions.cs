@@ -21,6 +21,7 @@ using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Features.Validation;
@@ -45,6 +46,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
@@ -52,16 +54,14 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Authorization;
-using Altinn.App.Core.Internal.Process.EventHandlers;
-using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Secrets;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
@@ -77,7 +77,6 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 using IProcessReader = Altinn.App.Core.Internal.Process.IProcessReader;
-using ProcessEngine = Altinn.App.Core.Internal.Process.ProcessEngine;
 using ProcessReader = Altinn.App.Core.Internal.Process.ProcessReader;
 
 namespace Altinn.App.Core.Extensions;
@@ -123,7 +122,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IText, TextClient>();
 #pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
-        services.AddHttpClient<InstanceLockClient>();
+        services.AddSingleton<InstanceLockClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();
         services.AddHttpClient<IAccessManagementClient, AccessManagementClient>();
 
@@ -207,6 +206,7 @@ public static class ServiceCollectionExtensions
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
         services.Configure<PlatformFrontendSettings>(configuration.GetSection(nameof(PlatformFrontendSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
+        services.AddTransient<IFileService, FileService>();
 
         services.AddRuntimeEnvironment();
         if (env.IsDevelopment())
@@ -222,6 +222,7 @@ public static class ServiceCollectionExtensions
         AddEventServices(services);
         AddNotificationServices(services);
         AddProcessServices(services);
+        services.AddWorkflowEngineIntegration();
         AddFileAnalyserServices(services);
         AddFileValidatorServices(services);
 
@@ -299,7 +300,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddPdfServices(IServiceCollection services)
     {
-        services.TryAddTransient<IPdfGeneratorClient, PdfGeneratorClient>();
+        services.AddHttpClient<IPdfGeneratorClient, PdfGeneratorClient>();
         services.TryAddTransient<IPdfService, PdfService>();
 #pragma warning disable CS0618 // Type or member is obsolete
         services.TryAddTransient<IPdfFormatter, NullPdfFormatter>();
@@ -370,25 +371,16 @@ public static class ServiceCollectionExtensions
     private static void AddProcessServices(IServiceCollection services)
     {
         services.AddTransient<IProcessExclusiveGateway, ExpressionsExclusiveGateway>();
-        services.TryAddTransient<IProcessEngine, ProcessEngine>();
+        services.TryAddTransient<IProcessEngine, Internal.Process.ProcessEngine>();
         services.TryAddTransient<IProcessEngineAuthorizer, ProcessEngineAuthorizer>();
         services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
         services.TryAddSingleton<IProcessReader, ProcessReader>();
-        services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
-        services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
         services.AddTransient<ProcessStateEnricher>();
 
-        services.AddTransient<IProcessTaskInitializer, ProcessTaskInitializer>();
-        services.AddTransient<IProcessTaskFinalizer, ProcessTaskFinalizer>();
         services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
-        services.AddTransient<IProcessTaskCleaner, ProcessTaskCleaner>();
-        services.AddTransient<IStartTaskEventHandler, StartTaskEventHandler>();
-        services.AddTransient<IEndTaskEventHandler, EndTaskEventHandler>();
-        services.AddTransient<IAbandonTaskEventHandler, AbandonTaskEventHandler>();
-        services.AddTransient<IEndEventEventHandler, EndEventEventHandler>();
 
-        services.AddScoped<IInstanceLocker, InstanceLocker>();
+        services.AddSingleton<IInstanceLocker, InstanceLocker>();
 
         // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();
@@ -398,9 +390,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IProcessTask, NullTypeProcessTask>();
 
         // Service tasks
-        services.AddTransient<IPdfServiceTaskLegacy, PdfServiceTaskLegacy>();
-        services.AddTransient<IEFormidlingServiceTaskLegacy, EformidlingServiceTaskLegacy>();
-
         services.AddTransient<IServiceTask, PdfServiceTask>();
         services.AddTransient<IServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();

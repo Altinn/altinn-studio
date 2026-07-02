@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -66,7 +67,7 @@ const (
 
 // Renderer observes resource events and renders them to the configured output.
 type Renderer interface {
-	resource.Observer
+	executor.Observer
 	Start()
 	Stop()
 	FailAll(message string)
@@ -81,6 +82,7 @@ var (
 	stateCanceledStyle = ui.ColorStyle(ui.ColorGray)
 	footerLabelStyle   = ui.ColorStyle(ui.ColorGray)
 	footerReadyStyle   = ui.ColorStyle(ui.ColorGreen)
+	footerPartialStyle = ui.ColorStyle(ui.ColorYellow)
 	footerFailedStyle  = ui.ColorStyle(ui.ColorRed)
 	progressStatsStyle = ui.ColorStyle(ui.ColorGray)
 )

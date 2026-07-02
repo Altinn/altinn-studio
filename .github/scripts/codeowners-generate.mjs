@@ -35,23 +35,16 @@ const SOURCE_TYPES = [
 ];
 const GROUPS = [
   {
-    title: 'Team Core',
-    owner: '@altinn/team-core',
-    roots: ['src/test/K6'],
-  },
-  {
     title: 'Team Utforming',
     owner: '@altinn/team-altinn-studio-utforming',
-    roots: ['src/App/frontend', 'src/Designer/frontend'],
+    roots: ['app-libs', 'src/App/frontend', 'src/Designer/frontend'],
     extraPaths: [
       '.github/workflows/app-frontend-codeql.yml',
-      '.github/workflows/app-frontend-compare-repos.yml',
       '.github/workflows/app-frontend-cypress.yml',
       '.github/workflows/app-frontend-k6-browser.yml',
       '.github/workflows/app-frontend-lighthouse-ci.yml',
       '.github/workflows/app-frontend-unit-tests.yml',
       '.github/workflows/designer-frontend-codeql.yml',
-      '.github/workflows/designer-frontend-config-coverage.yml',
       '.github/workflows/designer-frontend-playwright-staging.yml',
       '.github/workflows/designer-frontend-run-playwright-on-pr.yaml',
       '.github/workflows/designer-frontend-unit-tests.yml',
@@ -65,8 +58,8 @@ const GROUPS = [
     owner: '@altinn/team-access-info',
     roots: ['src/Designer/frontend/resourceadm'],
     extraPaths: [
-      '.github/workflows/playwright-resourceadm.yml',
-      '.github/workflows/run-playwright-resourceadm-on-pr.yml',
+      '.github/workflows/designer-frontend-resourceadm-playwright-staging.yml',
+      '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml',
     ],
   },
   {
@@ -95,6 +88,8 @@ const GROUPS = [
       'src/Runtime/pdf3',
       'src/Runtime/gateway',
       'src/Runtime/devenv',
+      'src/Designer/development/fake-ansattporten',
+      'src/test/K6',
       'src/tools/health',
       'src/tools/releaser',
       'charts/altinn-loadbalancer',
@@ -106,6 +101,7 @@ const GROUPS = [
       '.github/workflows/cli-build-test.yaml',
       '.github/workflows/construct-environments-script-test.yaml',
       '.github/workflows/deploy-gitea-runners.yaml',
+      '.github/workflows/deploy-github-runners.yaml',
       '.github/workflows/deploy-lhci-server.yaml',
       '.github/workflows/deploy-loadbalancer.yaml',
       '.github/workflows/deploy-repositories.yaml',

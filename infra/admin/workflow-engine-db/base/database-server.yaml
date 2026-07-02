@@ -1,0 +1,48 @@
+apiVersion: storage.dis.altinn.cloud/v1alpha1
+kind: DatabaseServer
+metadata:
+  name: workflow-engine-db-server
+  namespace: studio-admin
+spec:
+  version: 18
+  serverType: dev
+  enableExtensions:
+    - pg_stat_statements
+  serverParams:
+    - name: pg_stat_statements.track
+      value: "all"
+    - name: pg_stat_statements.track_planning
+      value: "on"
+    - name: log_min_duration_statement
+      value: "500"
+    - name: log_statement
+      value: "ddl"
+    - name: log_checkpoints
+      value: "on"
+    - name: log_lock_waits
+      value: "on"
+    - name: log_autovacuum_min_duration
+      value: "0"
+    - name: random_page_cost
+      value: "1.1"
+    - name: wal_compression
+      value: "lz4"
+    - name: checkpoint_completion_target
+      value: "0.9"
+    - name: checkpoint_timeout
+      value: "900"
+    - name: autovacuum_vacuum_cost_limit
+      value: "2400"
+    - name: effective_io_concurrency
+      value: "200"
+    - name: tcp_keepalives_idle
+      value: "120"
+    - name: tcp_keepalives_interval
+      value: "30"
+    - name: tcp_keepalives_count
+      value: "3"
+  auth:
+    admin:
+      identity:
+        identityRef:
+          name: workflow-engine-db-admin

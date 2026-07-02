@@ -112,7 +112,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         ITestOutputHelper output,
         string app = TestApps.Basic,
         string scenario = "default",
-        bool isClassFixture = false
+        bool isClassFixture = false,
+        IReadOnlyDictionary<string, string>? environmentVariables = null
     )
     {
         var timer = Stopwatch.StartNew();
@@ -134,10 +135,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         string? generatedAppDirectory = null;
         try
         {
-            await Task.WhenAll(
-                EnsureLibrariesPacked(logger, cancellationToken),
-                EnsureFrontendBuilt(logger, cancellationToken)
-            );
+            await EnsureFrontendBuilt(logger, cancellationToken);
+            await EnsureLibrariesPacked(logger, cancellationToken);
             var originalAppId = GetAppId(app);
             var appIdentity = AppIdentity.Create(originalAppId);
             var effectiveApp = $"{appIdentity.App}-f{fixtureInstance:0000}";
@@ -166,11 +165,18 @@ public sealed partial class AppFixture : IAsyncDisposable
                 fixtureConfigurationPath,
                 _nugetPackagesDirectory,
                 appFrontendAssetBaseUrl,
+                environmentVariables,
                 logger,
                 cancellationToken
             );
             // studioctl run performs readiness checks. This only catches an immediate post-start crash.
             await EnsureAppStillRunning(appProcess, cancellationToken);
+            // ...and it only validates the app's own port. localtest reaches the app through its
+            // host bridge (container -> studioctl-server -> host app process), which is wired up
+            // separately and can briefly 404/502 right after start. The workflow engine drives the app
+            // through that same route via callbacks, so wait until localtest can actually route a
+            // request through to the app before handing the fixture to a test.
+            await WaitForLocaltestRoutingReady(appId, logger, cancellationToken);
 
             logger.LogInformation("Fixture created in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.00"));
             return new AppFixture(
@@ -207,6 +213,67 @@ public sealed partial class AppFixture : IAsyncDisposable
         {
             var appLogs = await GetAppLogs(appProcess, cancellationToken);
             throw new InvalidOperationException($"App process exited after studioctl reported it ready.\n{appLogs}");
+        }
+    }
+
+    private static async Task WaitForLocaltestRoutingReady(
+        string appId,
+        ILogger logger,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = new HttpClient
+        {
+            BaseAddress = new Uri($"http://local.altinn.cloud:{StudioctlLocaltestHostPort}"),
+            Timeout = TimeSpan.FromSeconds(10),
+        };
+        client.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
+
+        // This endpoint is served by the app itself (TestingApis), so a 200 proves localtest's host
+        // bridge can actually route a request through to the app process - unlike platform/storage
+        // routes that localtest answers itself. It is anonymous and returns 200 whenever the app
+        // handles the request, which is exactly the signal we need.
+        var probePath = $"/{appId}/api/testing/connectivity/localtest";
+        var deadline = TimeSpan.FromSeconds(60);
+        var timer = Stopwatch.StartNew();
+        var attempts = 0;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            attempts++;
+            var lastStatus = "connection failure";
+            try
+            {
+                using var response = await client.GetAsync(probePath, cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    logger.LogInformation(
+                        "localtest routing to app ready after {ElapsedSeconds}s ({Attempts} attempts)",
+                        timer.Elapsed.TotalSeconds.ToString("0.00"),
+                        attempts
+                    );
+                    return;
+                }
+
+                // 404/502/503 while localtest discovers the app's host port - retry.
+                lastStatus = $"{(int)response.StatusCode} {response.StatusCode}";
+            }
+            catch (HttpRequestException)
+            {
+                // localtest upstream not reachable yet - retry.
+            }
+            catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Per-request timeout - retry.
+            }
+
+            if (timer.Elapsed > deadline)
+                throw new InvalidOperationException(
+                    $"localtest did not start routing to '{appId}' within {deadline.TotalSeconds:0}s "
+                        + $"(last status: {lastStatus}, probe: {probePath})."
+                );
+
+            await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken);
         }
     }
 
@@ -426,7 +493,7 @@ public sealed partial class AppFixture : IAsyncDisposable
 
         await SyncPackages(generatedDirectory, cancellationToken);
         await SyncShared(generatedDirectory, cancellationToken);
-        await SyncFrontend(generatedDirectory, logger, cancellationToken);
+        Directory.CreateDirectory(Path.Join(generatedDirectory, "App", "wwwroot"));
         CopyScenarioOverrides(name, scenario, generatedDirectory);
 
         foreach (
@@ -488,7 +555,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var relativePath = Path.GetRelativePath(sourceDirectory, directory);
             if (skip(relativePath))
                 continue;
-
             Directory.CreateDirectory(Path.Join(targetDirectory, relativePath));
         }
 
@@ -497,7 +563,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var relativePath = Path.GetRelativePath(sourceDirectory, file);
             if (skip(relativePath))
                 continue;
-
             var targetPath = Path.Join(targetDirectory, relativePath);
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             File.Copy(file, targetPath, overwrite: true);
@@ -565,7 +630,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             _logger.LogError("Test errored, logging app output");
             await LogAppLogs();
         }
-
         await _appProcess.DisposeAsync();
         await DeleteDirectoryBestEffort(_logger, _generatedAppDirectory);
         await _studioctlEnvironmentLease.DisposeAsync();
@@ -715,6 +779,14 @@ public sealed partial class AppFixture : IAsyncDisposable
             await EnsureYarnAvailable(logger, cancellationToken);
 
             var frontendDirectory = Path.Join(_repoSourceDirectory, "App", "frontend");
+            logger.LogInformation("Installing frontend dependencies");
+            await new Command(
+                "yarn",
+                "install --immutable",
+                frontendDirectory,
+                logger,
+                CancellationToken: cancellationToken
+            );
             await new Command("yarn", "build", frontendDirectory, logger, CancellationToken: cancellationToken);
 
             VerifyFrontendBuilt(logger);
@@ -789,47 +861,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var fileName = Path.GetFileName(file);
             var destFile = Path.Join(appSharedDirectory, fileName);
             await using var source = File.OpenRead(file);
-            await using var destination = File.Create(destFile);
-            await source.CopyToAsync(destination, cancellationToken);
-        }
-    }
-
-    private static async Task SyncFrontend(
-        string generatedDirectory,
-        ILogger logger,
-        CancellationToken cancellationToken
-    )
-    {
-        var frontendBuildDirectory = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
-
-        const string missingFilesErrorMessage =
-            "The frontend should have been built during test setup. Install yarn and run "
-            + "'cd src/App/frontend && yarn build', or set SKIP_FRONTEND_BUILD=true to use pre-built files.";
-        if (!Directory.Exists(frontendBuildDirectory))
-        {
-            throw new DirectoryNotFoundException(
-                $"Expected frontend build directory '{frontendBuildDirectory}' to exist. {missingFilesErrorMessage}"
-            );
-        }
-
-        var appStaticFrontendDirectory = Path.Join(generatedDirectory, "App", "wwwroot", "altinn-app-frontend");
-        if (Directory.Exists(appStaticFrontendDirectory))
-            Directory.Delete(appStaticFrontendDirectory, true);
-        Directory.CreateDirectory(appStaticFrontendDirectory);
-
-        string[] fileNamesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
-        var frontendBuildFiles = Directory.GetFiles(frontendBuildDirectory);
-        foreach (var fileName in fileNamesToCopy)
-        {
-            var sourceFile =
-                frontendBuildFiles.FirstOrDefault(file => Path.GetFileName(file) == fileName)
-                ?? throw new FileNotFoundException(
-                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDirectory}'. {missingFilesErrorMessage}"
-                );
-
-            var destFile = Path.Join(appStaticFrontendDirectory, fileName);
-            logger.LogInformation("Copying {SourceFile} to {DestFile}", sourceFile, destFile);
-            await using var source = File.OpenRead(sourceFile);
             await using var destination = File.Create(destFile);
             await source.CopyToAsync(destination, cancellationToken);
         }

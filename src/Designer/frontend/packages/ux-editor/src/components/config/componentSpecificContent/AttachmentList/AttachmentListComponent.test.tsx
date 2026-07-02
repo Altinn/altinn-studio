@@ -15,30 +15,28 @@ import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
-const defaultLayoutSets: LayoutSets = {
-  sets: [
-    {
-      id: 'layoutSetId1',
-      dataType: 'layoutSetId1',
-      tasks: ['Task_1'],
-    },
-    {
-      id: 'layoutSetId2',
-      dataType: 'layoutSetId2',
-      tasks: ['Task_2'],
-    },
-    {
-      id: 'layoutSetId3',
-      dataType: 'layoutSetId3',
-      tasks: ['Task_3'],
-    },
-    {
-      id: 'layoutSetId4',
-      dataType: 'layoutSetId4',
-      tasks: ['CustomReceipt'],
-    },
-  ],
-};
+const defaultLayoutSets: LayoutSets = [
+  {
+    id: 'layoutSetId1',
+    dataType: 'layoutSetId1',
+    taskId: 'Task_1',
+  },
+  {
+    id: 'layoutSetId2',
+    dataType: 'layoutSetId2',
+    taskId: 'Task_2',
+  },
+  {
+    id: 'layoutSetId3',
+    dataType: 'layoutSetId3',
+    taskId: 'Task_3',
+  },
+  {
+    id: 'layoutSetId4',
+    dataType: 'layoutSetId4',
+    taskId: 'CustomReceipt',
+  },
+];
 
 const defaultDataTypes: DataTypeElement[] = [
   { id: 'test1', taskId: 'Task_1' },

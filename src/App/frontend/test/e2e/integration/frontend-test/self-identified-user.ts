@@ -1,17 +1,22 @@
-import { CyHttpMessages } from 'cypress/types/net-stubbing';
+import type { CyHttpMessages } from 'cypress/types/net-stubbing';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import IncomingHttpResponse = CyHttpMessages.IncomingHttpResponse;
+import { Tenor } from 'test/e2e/support/users';
+
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+
+type IncomingHttpResponse<T> = CyHttpMessages.IncomingHttpResponse<T>;
 
 const appFrontend = new AppFrontend();
 
+// TODO: We should enable these tests again when we find out how to log in to tt02 with a self-identified user. It broke when sunsetting A2.
+
 describe('Self identified user', () => {
-  it('should be able to log in and create an instance', () => {
+  it.skip('should be able to log in and create an instance', () => {
     testSelfIdentifiedUser();
   });
 
-  it('should be able to log in and create an instance when only persons are allowed', () => {
+  it.skip('should be able to log in and create an instance when only persons are allowed', () => {
     cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
       req.on('response', (res: IncomingHttpResponse<ApplicationMetadata>) => {
         res.body.partyTypesAllowed = {
@@ -34,5 +39,6 @@ function testSelfIdentifiedUser() {
   cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
   cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
 
-  cy.assertUser('selfIdentified');
+  // TODO: We probably have to do something else here to make the Tenor/tt02 variant work
+  cy.assertUser('selfIdentified', Tenor.users.dypsindigLoddsnor);
 }

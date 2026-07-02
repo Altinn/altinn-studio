@@ -29,7 +29,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 // This file should be as close to the Program.cs file in the app template
 // as possible to ensure we test the configuration of the dependency injection
@@ -70,6 +70,13 @@ builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltes
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
+
+// Provide a WorkflowEngineCallback app-code so the enqueue path can mint callback tokens and the
+// always-on WorkflowEngineCallback startup validation passes for every test host.
+builder.Configuration["AppCodes:WorkflowEngineCallback:0:Id"] = "test";
+builder.Configuration["AppCodes:WorkflowEngineCallback:0:Code"] = "test-workflow-engine-callback-secret-long-enough";
+builder.Configuration["AppCodes:WorkflowEngineCallback:0:IssuedAt"] = "2020-01-01T00:00:00Z";
+builder.Configuration["AppCodes:WorkflowEngineCallback:0:ExpiresAt"] = "2999-01-01T00:00:00Z";
 
 // AppConfigurationCache.Disable = true;
 
@@ -120,7 +127,7 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IAppModel, AppModelMock<Program>>();
     services.AddTransient<IEventsClient, EventsClientMock>();
     services.AddTransient<ISignClient, SignClientMock>();
-    services.AddScoped<IInstanceLocker, InstanceLockerMock>();
+    services.AddSingleton<IInstanceLocker, InstanceLockerMock>();
 
     services.PostConfigureAll<JwtCookieOptions>(options =>
     {

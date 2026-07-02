@@ -6,13 +6,13 @@ images:
   core:
     localtest:
       image: ghcr.io/altinn/altinn-studio/runtime-localtest
-      tag: "4863756293"
+      tag: "94897eff31"
     pdf3:
       image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
-      tag: "b885f9a75f"
+      tag: "694406e93c"
     workflow-engine:
       image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
-      tag: "87caf8f862"
+      tag: "5b68c250a0"
     workflow-engine-db:
       image: postgres
       tag: "18.3"

@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
-using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -29,6 +28,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly ISchemaModelService _schemaModelService;
+    private readonly IAppVersionService _appVersionService;
     private readonly string _layoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
 
     /// <summary>
@@ -36,13 +36,16 @@ public class AppDevelopmentService : IAppDevelopmentService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="schemaModelService">ISchemaModelService</param>
+    /// <param name="appVersionService">IAppVersionService</param>
     public AppDevelopmentService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        ISchemaModelService schemaModelService
+        ISchemaModelService schemaModelService,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _schemaModelService = schemaModelService;
+        _appVersionService = appVersionService;
     }
 
     /// <inheritdoc />
@@ -290,14 +293,15 @@ public class AppDevelopmentService : IAppDevelopmentService
         CancellationToken cancellationToken = default
     )
     {
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
         if (string.IsNullOrEmpty(layoutSetName))
         {
             // Fallback to first model in app metadata if no layout set is provided
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo,
-                altinnRepoEditingContext.Developer
-            );
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
                 cancellationToken
             );
@@ -309,8 +313,17 @@ public class AppDevelopmentService : IAppDevelopmentService
                 ?? string.Empty;
         }
 
+        if (_appVersionService.GetAppLibVersion(altinnRepoEditingContext)?.Major >= 9 == true)
+        {
+            Designer.Models.LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
+                layoutSetName,
+                cancellationToken
+            );
+            return layoutSettings.DefaultDataType ?? string.Empty;
+        }
+
         LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
-        var foundLayoutSet = layoutSets.Sets.Find(set => set.Id == layoutSetName);
+        LayoutSetConfig foundLayoutSet = layoutSets.Sets.Find(set => set.Id == layoutSetName);
 
         return foundLayoutSet.DataType;
     }
@@ -843,36 +856,6 @@ public class AppDevelopmentService : IAppDevelopmentService
         }
 
         await altinnAppGitRepository.SaveRuleConfiguration(layoutSetName, ruleConfig, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
-    {
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
-
-        var csprojFiles = altinnAppGitRepository.FindFiles(new[] { "*.csproj" });
-
-        string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
-
-        foreach (string csprojFile in csprojFiles)
-        {
-            if (
-                PackageVersionHelper.TryGetPackageVersionFromCsprojFile(
-                    csprojFile,
-                    packageNames,
-                    out SemanticVersion version
-                )
-            )
-            {
-                return version;
-            }
-        }
-
-        throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
     }
 
     public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version)

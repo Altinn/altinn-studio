@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Platform.Authorization.Services.Interface;
 using Authorization.Interface.Models;
 using LocalTest.Services.TestData;

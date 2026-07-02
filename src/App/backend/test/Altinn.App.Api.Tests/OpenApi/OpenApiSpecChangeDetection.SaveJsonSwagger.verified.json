@@ -3574,6 +3574,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -3583,7 +3593,7 @@
         "tags": [
           "Instances"
         ],
-        "summary": "Simplified Instanciation with support for fieldprefill",
+        "summary": "Simplified instantiation with support for fieldprefill",
         "parameters": [
           {
             "name": "org",
@@ -3613,7 +3623,7 @@
           }
         ],
         "requestBody": {
-          "description": "instansiation information",
+          "description": "instantiation information",
           "content": {
             "application/json": {
               "schema": {
@@ -3649,6 +3659,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
                 }
               }
             }
@@ -5278,6 +5298,26 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -5529,6 +5569,132 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/resume": {
+      "post": {
+        "tags": [
+          "Process"
+        ],
+        "summary": "Resumes the workflow that established the instance's current task.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
                 }
               }
             }
@@ -7627,6 +7793,97 @@
         },
         "deprecated": true
       }
+    },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}": {
+      "post": {
+        "tags": [
+          "WorkflowEngineCallback"
+        ],
+        "summary": "Executes a command based on the provided command key.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "commandKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCallbackPayload"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCallbackPayload"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCallbackPayload"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCallbackPayload"
+              }
+            },
+            "text/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCallbackPayload"
+              }
+            },
+            "application/*+xml": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCallbackPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7659,6 +7916,47 @@
         ],
         "type": "integer",
         "format": "int32"
+      },
+      "Actor": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "orgId": {
+            "type": "string",
+            "nullable": true
+          },
+          "authenticationLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "nationalIdentityNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "systemUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "systemUserOwnerOrgNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "systemUserName": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "Address": {
         "type": "object",
@@ -7718,6 +8016,41 @@
             "$ref": "#/components/schemas/ApiScopes"
           },
           "errorMessageTextResourceKey": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppCallbackPayload": {
+        "required": [
+          "actor",
+          "commandKey",
+          "lockToken",
+          "workflowId"
+        ],
+        "type": "object",
+        "properties": {
+          "commandKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "actor": {
+            "$ref": "#/components/schemas/Actor"
+          },
+          "lockToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "payload": {
+            "type": "string",
+            "nullable": true
+          },
+          "workflowId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
             "type": "string",
             "nullable": true
           }
@@ -9583,7 +9916,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Specialized model for instansiation of instances"
+        "description": "Specialized model for instantiation of instances"
       },
       "InstantiationNotification": {
         "type": "object",
@@ -11427,7 +11760,307 @@
           }
         },
         "additionalProperties": false
+      },
+      "WorkflowFailure": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WorkflowFailureKind"
+          },
+          "workflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "workflowOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "stepOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "commandType": {
+            "type": "string",
+            "nullable": true
+          },
+          "retryCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "lastError": {
+            "$ref": "#/components/schemas/WorkflowFailureError"
+          },
+          "retryAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "retryTargetWorkflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowFailureError": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "httpStatusCode": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "wasRetryable": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowFailureKind": {
+        "enum": [
+          "stepFailed",
+          "dependencyFailed",
+          "engineFault",
+          "timeout"
+        ],
+        "type": "string"
+      },
+      "WorkflowInitializationProblemDetails": {
+        "required": [
+          "initializationState",
+          "recommendedAction"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          },
+          "initializationState": {
+            "$ref": "#/components/schemas/WorkflowInitializationState"
+          },
+          "recommendedAction": {
+            "$ref": "#/components/schemas/WorkflowRecommendedAction"
+          },
+          "instanceDeleted": {
+            "type": "boolean",
+            "description": "Whether the created instance was deleted (instance creation flow only).",
+            "nullable": true
+          },
+          "resumeEndpoint": {
+            "$ref": "#/components/schemas/WorkflowResumeEndpoint"
+          },
+          "workflowAccepted": {
+            "type": "boolean",
+            "description": "Whether the workflow engine accepted the submission.",
+            "nullable": true
+          },
+          "workflowFailure": {
+            "$ref": "#/components/schemas/WorkflowFailure"
+          },
+          "workflowSubmissionFailureKind": {
+            "$ref": "#/components/schemas/WorkflowSubmissionFailureKind"
+          },
+          "workflowSubmissionStatusCode": {
+            "type": "integer",
+            "description": "The HTTP status code the workflow engine returned when rejecting the submission, if known.",
+            "format": "int32",
+            "nullable": true
+          },
+          "workflowCollectionKey": {
+            "type": "string",
+            "description": "The workflow collection key, if known.",
+            "nullable": true
+          },
+          "processStateChanged": {
+            "type": "boolean",
+            "description": "Whether the process state may have changed in Storage before the failure.",
+            "nullable": true
+          },
+          "instanceId": {
+            "type": "string",
+            "description": "The affected instance id, when an instance exists.",
+            "nullable": true
+          },
+          "instanceOwnerPartyId": {
+            "type": "integer",
+            "description": "The affected instance owner party id, when an instance exists.",
+            "format": "int32",
+            "nullable": true
+          },
+          "instanceGuid": {
+            "type": "string",
+            "description": "The affected instance guid, when an instance exists.",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {},
+        "description": "Structured problem details returned when the workflow engine rejects or fails the initial process\nworkflow, for both instance creation and process start of an existing instance. Extends\nMicrosoft.AspNetCore.Mvc.ProblemDetails so the response remains valid `application/problem+json`; the\nworkflow-specific members are serialized alongside the standard ones and form a stable recovery\ncontract clients can react to."
+      },
+      "WorkflowInitializationState": {
+        "enum": [
+          "workflowNotAccepted",
+          "workflowAcceptanceUnknown",
+          "workflowFailed"
+        ],
+        "type": "string",
+        "description": "The stage an instance/process reached when workflow initialization failed. Part of the wire contract."
+      },
+      "WorkflowRecommendedAction": {
+        "enum": [
+          "retryInstanceCreation",
+          "retryStartProcess",
+          "inspectInstance",
+          "resumeCurrentTask"
+        ],
+        "type": "string",
+        "description": "The action a client should take to recover from a workflow initialization failure. Part of the wire contract."
+      },
+      "WorkflowResumeEndpoint": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "nullable": true
+          },
+          "path": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Hypermedia pointer to the process resume endpoint, surfaced so clients know where to recover\na workflow that failed after the process state may already have changed."
+      },
+      "WorkflowSubmissionFailureKind": {
+        "enum": [
+          "notAccepted",
+          "unknown"
+        ],
+        "type": "string"
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Actions"
+    },
+    {
+      "name": "ApplicationLanguage"
+    },
+    {
+      "name": "ApplicationMetadata"
+    },
+    {
+      "name": "ApplicationSettings"
+    },
+    {
+      "name": "Authentication"
+    },
+    {
+      "name": "Authorization"
+    },
+    {
+      "name": "Data"
+    },
+    {
+      "name": "DataLists"
+    },
+    {
+      "name": "DataTags"
+    },
+    {
+      "name": "EventsReceiver"
+    },
+    {
+      "name": "ExternalApi"
+    },
+    {
+      "name": "FileScan"
+    },
+    {
+      "name": "FormBootstrap"
+    },
+    {
+      "name": "Home"
+    },
+    {
+      "name": "Instances"
+    },
+    {
+      "name": "LookupOrganisation"
+    },
+    {
+      "name": "LookupPerson"
+    },
+    {
+      "name": "Options"
+    },
+    {
+      "name": "Parties"
+    },
+    {
+      "name": "Payment"
+    },
+    {
+      "name": "Pdf"
+    },
+    {
+      "name": "Process"
+    },
+    {
+      "name": "Profile"
+    },
+    {
+      "name": "Redirect"
+    },
+    {
+      "name": "Resource"
+    },
+    {
+      "name": "Signing"
+    },
+    {
+      "name": "StatelessData"
+    },
+    {
+      "name": "Texts"
+    },
+    {
+      "name": "UserDefinedMetadata"
+    },
+    {
+      "name": "Validate"
+    },
+    {
+      "name": "WorkflowEngineCallback"
+    }
+  ]
 }

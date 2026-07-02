@@ -11,7 +11,30 @@
       HasParent: true
     },
     {
-      Name: Process.HandleEvents,
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.event.type: process_EndTask
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.MoveToNext,
       IdFormat: W3C,
       Tags: [
         {
@@ -51,11 +74,31 @@
       HasParent: false
     },
     {
-      Name: Process.StoreEvents,
+      Name: Process.Next,
       IdFormat: W3C,
+      Status: Ok,
       Tags: [
         {
           instance.guid: Guid_1
+        }
+      ],
+      Events: [
+        {
+          Name: change,
+          Timestamp: DateTimeOffset_2,
+          Tags: [
+            {
+              events: [
+                Type=process_EndTask DataId=,
+                Type=process_EndEvent DataId=,
+                Type=Submited DataId=
+              ]
+            },
+            {},
+            {},
+            {},
+            {}
+          ]
         }
       ],
       HasParent: true

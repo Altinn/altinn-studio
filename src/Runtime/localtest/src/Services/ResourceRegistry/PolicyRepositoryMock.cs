@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.ResourceRegistry.Core;
 using System;
 using System.IO;

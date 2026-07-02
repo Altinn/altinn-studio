@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.26.1-trixie@sha256:ce3f1c8d3718a306811d8d5e547073b466b15e85bfa7e1b4f0dc45516c95b72d AS builder
+FROM golang:1.26.1-trixie@sha256:1d414b0376b53ec94b9a2493229adb81df8b90af014b18619732f1ceaaf7234a AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -7,11 +7,6 @@ WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
-
-# Remove the devenv dependency from go.mod as it's not needed for building binaries
-# The test/harness package is only imported by test files, not by cmd/fakes/main.go.
-RUN sed -i '/altinn\.studio\/devenv v/d' go.mod && \
-    sed -i '/replace altinn\.studio\/devenv/d' go.mod
 
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
@@ -29,7 +24,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -o fakes
 
 # Use distroless as minimal base image to package the fakes binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot@sha256:e3f945647ffb95b5839c07038d64f9811adf17308b9121d8a2b87b6a22a80a39
+FROM gcr.io/distroless/static:nonroot@sha256:963fa6c544fe5ce420f1f54fb88b6fb01479f054c8056d0f74cc2c6000df5240
 WORKDIR /
 COPY --from=builder /workspace/fakes .
 COPY --from=builder /workspace/localtest.env .

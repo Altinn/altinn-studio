@@ -3,9 +3,11 @@ using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Medallion.Threading;
@@ -44,6 +46,21 @@ public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase
             var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;
             return new FileDistributedSynchronizationProvider(directoryInfo);
         });
+
+        var apiKeyServiceMock = new Mock<IApiKeyService>();
+        apiKeyServiceMock
+            .Setup(s =>
+                s.CreateAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(("test-api-key", new Altinn.Studio.Designer.Models.ApiKey.ApiKey()));
+        services.AddSingleton(apiKeyServiceMock.Object);
 
         // Use mock logger for Quartz to prevent ObjectDisposedException on LoggerFactory
         var mockLoggerFactory = new Mock<ILoggerFactory>();

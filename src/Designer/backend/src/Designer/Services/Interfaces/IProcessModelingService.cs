@@ -22,6 +22,20 @@ public interface IProcessModelingService
     );
 
     /// <summary>
+    /// Renames a task id in the process definition, updating the task element and every reference to it.
+    /// </summary>
+    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="oldId">The current task id.</param>
+    /// <param name="newId">The new task id.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    Task UpdateTaskId(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string oldId,
+        string newId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the process definition file stream for a given app.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>

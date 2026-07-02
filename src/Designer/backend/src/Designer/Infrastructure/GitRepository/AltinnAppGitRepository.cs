@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -18,6 +19,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
+using Microsoft.AspNetCore.Http;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
@@ -42,7 +44,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     private const string CshtmlPath = "App/views/Home/Index.cshtml";
 
     private const string ServiceConfigFilename = "config.json";
-    private const string LayoutSettingsFilename = "Settings.json";
+    private const string SettingsFilename = "Settings.json";
     private const string AppMetadataFilename = "applicationmetadata.json";
     private const string LayoutSetsFilename = "layout-sets.json";
     private const string FooterFilename = "footer.json";
@@ -74,6 +76,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
         ["$schema"] = LayoutSettingsSchemaUrl,
         ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName]) },
     };
+
+    private static readonly Regex s_layoutSetNameRegex = new(@"^[a-zA-Z0-9_\-]{2,28}$", RegexOptions.Compiled);
+    private static readonly Regex s_layoutNameRegex = new(@"^[a-zA-Z0-9_\-]{1,128}$", RegexOptions.Compiled);
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -600,7 +605,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
             return layoutSetsFile;
         }
 
-        throw new NotFoundException("No layout set was found for this app");
+        throw new NoLayoutSetsFileFoundException("No layout set was found for this app");
     }
 
     public async Task SaveLayoutSets(LayoutSets layoutSets)
@@ -615,6 +620,42 @@ public class AltinnAppGitRepository : AltinnGitRepository
         {
             throw new NoLayoutSetsFileFoundException("No layout set was found for this app.");
         }
+    }
+
+    public Task<IEnumerable<string>> GetUiFolders(CancellationToken cancellationToken = default)
+    {
+        string uiPath = LayoutsFolderName;
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!DirectoryExistsByRelativePath(uiPath))
+        {
+            throw new NotFoundException("No UI folder was found for this app");
+        }
+
+        // The UI folder should only contain folders for layout sets, so we return the folder names
+        IEnumerable<string> folders = GetDirectoriesByRelativeDirectory(uiPath).Select(Path.GetFileName);
+        return Task.FromResult(folders);
+    }
+
+    public async Task<UiSettings> GetGlobalSettingsFile(CancellationToken cancellationToken = default)
+    {
+        string globalSettingsFilePath = GetPathToGlobalSettingsFile();
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!FileExistsByRelativePath(globalSettingsFilePath))
+        {
+            return null;
+        }
+        string fileContent = await ReadTextByRelativePathAsync(globalSettingsFilePath, cancellationToken);
+        UiSettings globalSettingsFile = JsonSerializer.Deserialize<UiSettings>(fileContent, s_jsonOptions);
+        return globalSettingsFile;
+    }
+
+    public async Task SaveGlobalSettingsFile(UiSettings globalSettings)
+    {
+        string globalSettingsFilePath = GetPathToGlobalSettingsFile();
+        string globalSettingsString = JsonSerializer.Serialize(globalSettings, s_jsonOptions);
+        await WriteTextByRelativePathAsync(globalSettingsFilePath, globalSettingsString);
     }
 
     public async Task<FooterFile> GetFooter(CancellationToken cancellationToken = default)
@@ -1001,9 +1042,43 @@ public class AltinnAppGitRepository : AltinnGitRepository
             : Path.Combine(ConfigFolderPath, LanguageResourceFolderName, fileName);
     }
 
+    private static string ValidateLayoutSetName(string layoutSetName)
+    {
+        if (string.IsNullOrEmpty(layoutSetName))
+        {
+            return layoutSetName;
+        }
+        if (
+            layoutSetName.Contains("..", StringComparison.Ordinal)
+            || layoutSetName.Contains('/')
+            || layoutSetName.Contains('\\')
+            || !s_layoutSetNameRegex.IsMatch(layoutSetName)
+        )
+        {
+            throw new BadHttpRequestException("Invalid layout set name.");
+        }
+        return layoutSetName;
+    }
+
+    private static string ValidateLayoutName(string layoutName)
+    {
+        if (
+            string.IsNullOrEmpty(layoutName)
+            || layoutName.Contains("..", StringComparison.Ordinal)
+            || layoutName.Contains('/')
+            || layoutName.Contains('\\')
+            || !s_layoutNameRegex.IsMatch(layoutName)
+        )
+        {
+            throw new BadHttpRequestException("Invalid layout name.");
+        }
+        return layoutName;
+    }
+
     // can be null if app does not use layout set
     private static string GetPathToLayoutSet(string layoutSetName, bool excludeLayoutsFolderName = false)
     {
+        layoutSetName = ValidateLayoutSetName(layoutSetName);
         var layoutFolderName = excludeLayoutsFolderName ? string.Empty : LayoutsInSetFolderName;
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, layoutFolderName)
@@ -1013,6 +1088,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     // can be null if app does not use layout set
     private static string GetPathToLayoutFile(string layoutSetName, string layoutName)
     {
+        layoutSetName = ValidateLayoutSetName(layoutSetName);
+        layoutName = ValidateLayoutName(layoutName);
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, LayoutsInSetFolderName, $"{layoutName}.json")
             : Path.Combine(LayoutsFolderName, layoutSetName, LayoutsInSetFolderName, $"{layoutName}.json");
@@ -1021,14 +1098,20 @@ public class AltinnAppGitRepository : AltinnGitRepository
     // can be null if app does not use layout set
     private static string GetPathToLayoutSettings(string layoutSetName)
     {
+        layoutSetName = ValidateLayoutSetName(layoutSetName);
         return string.IsNullOrEmpty(layoutSetName)
-            ? Path.Combine(LayoutsFolderName, LayoutSettingsFilename)
-            : Path.Combine(LayoutsFolderName, layoutSetName, LayoutSettingsFilename);
+            ? Path.Combine(LayoutsFolderName, SettingsFilename)
+            : Path.Combine(LayoutsFolderName, layoutSetName, SettingsFilename);
     }
 
     private static string GetPathToLayoutSetsFile()
     {
         return Path.Combine(LayoutsFolderName, LayoutSetsFilename);
+    }
+
+    private static string GetPathToGlobalSettingsFile()
+    {
+        return Path.Combine(LayoutsFolderName, SettingsFilename);
     }
 
     private static string GetPathToFooterFile()
@@ -1038,6 +1121,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private static string GetPathToRuleHandler(string layoutSetName)
     {
+        layoutSetName = ValidateLayoutSetName(layoutSetName);
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, RuleHandlerFilename)
             : Path.Combine(LayoutsFolderName, layoutSetName, RuleHandlerFilename);
@@ -1045,6 +1129,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private static string GetPathToRuleConfiguration(string layoutSetName)
     {
+        layoutSetName = ValidateLayoutSetName(layoutSetName);
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, RuleConfigurationFilename)
             : Path.Combine(LayoutsFolderName, layoutSetName, RuleConfigurationFilename);

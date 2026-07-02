@@ -1,0 +1,54 @@
+name: MCP
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/AI/mcp/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test
+    if: ${{ !github.event.pull_request.draft }}
+    permissions:
+      contents: read
+    runs-on: self-hosted-single
+    timeout-minutes: 30
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: pip install uv
+
+    - name: Install dependencies
+      working-directory: src/AI/mcp
+      run: uv pip install --system .[dev]
+
+    - name: Run MCP unit tests
+      working-directory: src/AI/mcp
+      run: python -m pytest
+
+    - name: Start MCP server
+      working-directory: src/AI/mcp
+      run: |
+        uv run -m server.main > server.log 2>&1 &
+        sleep 5
+        curl --retry 6 --retry-delay 5 --retry-connrefused http://localhost:8070/sse
+
+    - name: Output server logs on failure
+      if: failure()
+      working-directory: src/AI/mcp
+      run: cat server.log

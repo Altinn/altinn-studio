@@ -58,5 +58,5 @@ export const getDataTypeFromLayoutSetsWithExistingId = (
   layoutSets: LayoutSets,
   existingId: string,
 ): string | undefined => {
-  return layoutSets.sets.find((layoutSet) => layoutSet.id === existingId)?.dataType;
+  return layoutSets.find((layoutSet) => layoutSet.id === existingId)?.dataType;
 };

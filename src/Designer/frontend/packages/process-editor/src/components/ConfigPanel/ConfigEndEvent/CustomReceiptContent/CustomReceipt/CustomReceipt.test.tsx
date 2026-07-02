@@ -20,14 +20,14 @@ const invalidFormatLayoutSetName: string = 'Receipt/';
 const emptyLayoutSetName: string = '';
 const existingLayoutSetName: string = 'layoutSetName1';
 
-const existingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets.sets[0].id;
+const existingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets[0].id;
 const layoutSetWithCustomReceipt: LayoutSetConfig = {
   id: existingCustomReceiptLayoutSetId,
-  tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
+  taskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
 };
 const layoutSetWithDataTask: LayoutSetConfig = {
   id: existingLayoutSetName,
-  tasks: ['Task_1'],
+  taskId: 'Task_1',
 };
 
 const layoutSetIdTextKeys: Record<string, string> = {
@@ -37,8 +37,8 @@ const layoutSetIdTextKeys: Record<string, string> = {
 };
 
 const mockAllDataModelIds: string[] = [
-  mockBpmnApiContextValue.layoutSets.sets[0].dataType,
-  mockBpmnApiContextValue.layoutSets.sets[1].dataType,
+  mockBpmnApiContextValue.layoutSets[0].dataType,
+  mockBpmnApiContextValue.layoutSets[1].dataType,
 ];
 
 const defaultBpmnContextProps: BpmnApiContextProps = {
@@ -101,7 +101,7 @@ describe('CustomReceipt', () => {
 
     const propertyButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_model', {
-        dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+        dataModelName: mockBpmnApiContextValue.layoutSets[0].dataType,
       }),
     });
     await user.click(propertyButton);
@@ -129,7 +129,7 @@ describe('CustomReceipt', () => {
   ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
     const user = userEvent.setup();
     renderCustomReceipt({
-      layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
+      layoutSets: [layoutSetWithCustomReceipt, layoutSetWithDataTask],
     });
 
     const toggleableTextfieldButton = screen.getByRole('button', {

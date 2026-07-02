@@ -55,8 +55,24 @@
     },
     {
       "matchFileNames": ["src/App/**"],
+      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
+      "groupName": "Design system in App"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
+    },
+    {
+      "description": "Automerge non-major Altinn app template package updates",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/src/App/App.csproj"],
+      "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Altinn app template NuGet packages",
+      "groupSlug": "app-template-nuget",
+      "addLabels": ["approve"],
+      "automerge": true
     },
     {
       "matchFileNames": ["src/Runtime/localtest/**"],
@@ -67,17 +83,6 @@
       "matchFileNames": ["src/Runtime/pdf3/**"],
       "additionalBranchPrefix": "pdf3/",
       "commitMessageSuffix": " (pdf3)"
-    },
-    {
-      "matchFileNames": ["src/App/**"],
-      "matchPackageNames": [
-        "@digdir/designsystemet-react",
-        "@digdir/designsystemet-css",
-        "@digdir/designsystemet-theme"
-      ],
-      "groupName": "Digdir design system",
-      "schedule": ["* 0-7 * * 1-5"],
-      "minimumReleaseAge": "3 days"
     },
     {
       "matchFileNames": ["src/App/**"],
@@ -119,7 +124,6 @@
         "src/Altinn.Platform/**",
         "src/test/**",
         "src/Runtime/localtest/**",
-        "src/App/frontend/**",
         "src/App/backend/**",
         "src/App/fileanalyzers/**",
         "src/App/codelists/**"

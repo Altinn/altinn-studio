@@ -798,6 +798,13 @@ const common = {
           .setDescription('Shows the listed tasks in the sidebar navigation menu'),
       ),
       new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
+      new CG.prop(
+        'hideAppNameInPdf',
+        new CG.expr(ExprVal.Boolean)
+          .setTitle('Hide app name in PDF')
+          .setDescription('Controls whether the app name is hidden in the PDF header and footer.')
+          .optional({ default: false }),
+      ),
     ),
   IPagesBaseSettings: () =>
     new CG.obj(
@@ -817,7 +824,6 @@ const common = {
             'Name of a custom layout file to use for PDF creation instead of the automatically generated PDF.',
           ),
       ),
-      new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
     ),
   INavigationBasePageGroup: () =>
     new CG.obj(
@@ -882,6 +888,15 @@ const common = {
           .setTitle('Default data model')
           .setDescription(
             'The default data model type to be used for bindings not specifying a dataType in these layouts',
+          ),
+      ),
+      new CG.prop(
+        'type',
+        new CG.str()
+          .optional()
+          .setTitle('Subform indicator')
+          .setDescription(
+            'Optional field used only in Altinn Studio Designer for subform layout sets. When set to "subform", the layout set is treated as a subform. For all other layout sets, this field is not required.',
           ),
       ),
     )

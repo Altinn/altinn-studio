@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Implementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
@@ -109,7 +108,9 @@ public static class ServiceRegistration
         services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
+        services.AddTransient<IAppVersionService, AppVersionService>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
+        services.AddTransient<IUiFoldersService, UiFoldersService>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
         services.AddTransient<IDataService, DataService>();

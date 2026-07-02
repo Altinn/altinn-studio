@@ -14,64 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  detect-changelog-change:
-    name: Detect changelog changes
-    if: github.event_name == 'pull_request' && github.event.action != 'closed' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    outputs:
-      changed: ${{ steps.changes.outputs.changed }}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 0
-
-      - name: Detect changelog changes
-        id: changes
-        run: |
-          if git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- src/cli/CHANGELOG.md | grep -q .; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-  validate-changelog:
-    name: Validate changelog
-    if: (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) && needs.detect-changelog-change.outputs.changed == 'true'
-    needs: detect-changelog-change
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 0
-
-      - name: Setup Go for changelog validation
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
-        with:
-          go-version-file: 'src/tools/releaser/go.mod'
-          cache-dependency-path: src/tools/releaser/go.sum
-
-      - name: Validate changelog
-        working-directory: src/tools/releaser
-        run: |
-          go run . validate-changelog -component studioctl -base "${{ github.event.pull_request.base.sha }}" -head "${{ github.event.pull_request.head.sha }}"
-
   verify-release-artifacts:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Verify studioctl release artifacts
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           fetch-tags: true
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
         with:
           global-json-file: src/cli/global.json
 
@@ -99,9 +55,15 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
       matrix:
-        os: [macos-latest,windows-latest,ubuntu-latest]
+        include:
+          - os: macos-latest
+            runner: macos-latest
+          - os: windows-latest
+            runner: windows-latest
+          - os: ubuntu-latest
+            runner: self-hosted-single
     name: Build and test
-    runs-on: ${{ matrix.os}}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -110,12 +72,12 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: git config --system core.longpaths true
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
         with:
           global-json-file: src/cli/global.json
 

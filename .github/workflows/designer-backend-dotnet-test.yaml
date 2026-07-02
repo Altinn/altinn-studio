@@ -21,7 +21,7 @@ jobs:
       matrix:
         os: [ubuntu-latest,windows-latest,macos-latest]
     name: Run dotnet build and test
-    runs-on: ${{ matrix.os}}
+    runs-on: ${{ matrix.os == 'ubuntu-latest' && 'self-hosted-single' || matrix.os }}
     timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -31,11 +31,11 @@ jobs:
         run: git config --system core.longpaths true
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
         with:
           dotnet-version: |
             9.0.x
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
@@ -50,6 +50,6 @@ jobs:
           dotnet test backend/Designer.sln --filter FullyQualifiedName~DataModelsController --no-build || exit 1;
           dotnet test backend/Designer.sln --filter FullyQualifiedName~ResourceAdminController --no-build || exit 1;
           dotnet test backend/Designer.sln --filter FullyQualifiedName~TextController --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=StudioOidcGiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build
+          dotnet test backend/Designer.sln --filter "(Category!=StudioOidcGiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter "(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build
         working-directory: src/Designer

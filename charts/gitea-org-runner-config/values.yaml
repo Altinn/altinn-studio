@@ -2,7 +2,8 @@ chartVersion: ""
 releaseName: ""
 imageTag: ""
 giteaInstanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
-environment: "dev"
+runnerCpu: "500m"
+runnerMemory: 2Gi
 
 runtimeClassName: "kata-vm-isolation"
 dockerInDocker:
@@ -10,43 +11,11 @@ dockerInDocker:
 shareWorkspace:
   enabled: true
 
-# Environment-specific runner configurations
-# dev/staging: only ttd
-# prod: ttd, brg, dsb, ssb, ksdigi, pat, dibk, skm
-runners:
-  dev:
-    - name: ttd
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
-  staging:
-    - name: ttd
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
-  prod:
-    - name: ttd
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
-    - name: brg
-      replicas: 6
-      registrationTokenSecretName: altinn-gitea-runner-brg-secret
-    - name: dsb
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-dsb-secret
-    - name: ssb
-      replicas: 5
-      registrationTokenSecretName: altinn-gitea-runner-ssb-secret
-    - name: ksdigi
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-ksdigi-secret
-    - name: pat
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-pat-secret
-    - name: dibk
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-dibk-secret
-    - name: skm
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-skm-secret
-    - name: sfvt
-      replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-sfvt-secret
+# Per-org concurrency caps applied to KEDA ScaledJobs in the workload chart.
+# `maxConcurrentDefault` applies to every org; `maxConcurrentOverrides` keys
+# named exceptions per org. Overrides for orgs absent from the active
+# environment's runners list are harmlessly ignored.
+maxConcurrentDefault: 2
+maxConcurrentOverrides:
+  brg: 5
+  ssb: 5

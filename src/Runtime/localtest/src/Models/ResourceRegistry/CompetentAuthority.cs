@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Altinn.ResourceRegistry.Core.Models
 {
     /// <summary>

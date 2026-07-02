@@ -1,5 +1,6 @@
-﻿using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -57,6 +58,9 @@ public class EFormidlingServiceTaskTests
             null
         );
 
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
@@ -64,6 +68,34 @@ public class EFormidlingServiceTaskTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ProcessException>(() => serviceTask.Execute(parameters));
+    }
+
+    [Fact]
+    public async Task Execute_Should_SkipExecution_When_BpmnConfigDisabled_AndServiceIsNull()
+    {
+        // Arrange
+        Instance instance = GetInstance();
+
+        var serviceTask = new EFormidlingServiceTask(
+            _loggerMock.Object,
+            _processReaderMock.Object,
+            _hostEnvironmentMock.Object,
+            null
+        );
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig(disabled: true) };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+
+        // Act
+        var result = await serviceTask.Execute(parameters);
+
+        // Assert
+        Assert.IsType<ServiceTaskSuccessResult>(result);
     }
 
     [Fact]
@@ -153,7 +185,10 @@ public class EFormidlingServiceTaskTests
         await _serviceTask.Execute(parameters);
 
         // Assert
-        _eFormidlingServiceMock.Verify(x => x.SendEFormidlingShipment(It.IsAny<Instance>()), Times.Never);
+        _eFormidlingServiceMock.Verify(
+            x => x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            Times.Never
+        );
         _loggerMock.Verify(
             x =>
                 x.Log(

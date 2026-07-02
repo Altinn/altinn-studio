@@ -1,11 +1,11 @@
-import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
+import { useTaskNavigationGroupQuery } from '../../../hooks/queries/useTaskNavigationGroupQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioParagraph, StudioHeading, StudioSpinner, StudioDivider } from '@studio/components';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsNavigation.module.css';
 import { TasksTable } from '../../TasksTable/TasksTable';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from '../../../hooks/queries/useLayoutSetsExtendedQuery';
 import { getHiddenTasks } from '../SettingsUtils';
 import { ValidateNavigation } from './ValidateNavigation/ValidateNavigation';
 
