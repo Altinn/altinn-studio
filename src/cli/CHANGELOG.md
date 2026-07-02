@@ -8,6 +8,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.16] - 2026-07-02
+
 ### Changed
 
 - Show the resolved target version during `studioctl self update` and skip the update when already on the newest version, instead of reinstalling and restarting the local environment.
