@@ -331,6 +331,11 @@ img {
     background: #fff;
     color: #1f2933;
     border-bottom: 2px solid #adb5bd !important;
+    transition: background-color 0.2s ease;
+}
+
+.resourceCard:hover {
+    background: #f2f3f5;
 }
 
 .resourceCard-block {
@@ -362,6 +367,10 @@ img {
 .resourceCard-link:active {
     border-bottom: 0;
     color: #253247;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    text-decoration-skip-ink: none;
 }
 
 .resourceCard-link::after {
@@ -418,12 +427,15 @@ img {
 }
 
 .startHeroRow {
-    align-items: flex-start;
-    justify-content: space-between;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     row-gap: 24px;
 }
 
 .startHeroText {
+    width: 100%;
     text-align: center;
 }
 
@@ -437,6 +449,7 @@ img {
 
 .startHeroActions {
     display: flex;
+    width: 100%;
     justify-content: center;
 }
 
@@ -1003,9 +1016,18 @@ a.collapsed .a-dropdownCircleArrow {
 }
 
 @media (max-width: 991.98px) {
+    body {
+        overflow-x: clip;
+    }
+
     .an-header > .container {
         max-width: none;
         padding: 0 12px;
+    }
+
+    .a-globalNav .a-globalNav-logo::before {
+        left: 0;
+        width: 100%;
     }
 
     .a-jumbotron {
@@ -1015,7 +1037,7 @@ a.collapsed .a-dropdownCircleArrow {
     .jumbotron.a-jumbotron-header {
         margin-top: 0;
         padding-top: 44px;
-        padding-bottom: 28px;
+        padding-bottom: 180px;
     }
 
     .startHeroRow {
@@ -1028,16 +1050,21 @@ a.collapsed .a-dropdownCircleArrow {
         line-height: 1.2;
     }
 
+    .startHeroHeading h1 {
+        margin: 0;
+        font-size: clamp(3.2rem, 10vw, 5.2rem);
+        line-height: 1.15;
+        overflow-wrap: break-word;
+    }
+
     .startHeroText,
     .startHeroActions {
         text-align: center;
         justify-content: center;
     }
-}
 
-@media (max-width: 480px) {
     .startHeroSection::before {
-        opacity: 0.15;
+        inset: 52% 0 0 0;
         background-size: cover;
         background-position: center top;
     }
@@ -1046,8 +1073,34 @@ a.collapsed .a-dropdownCircleArrow {
         height: 100%;
         background: linear-gradient(
             to bottom,
-            rgba(255, 255, 255, 0.6),
-            rgba(255, 255, 255, 0.85) 60%
+            rgba(255, 255, 255, 1),
+            rgba(255, 255, 255, 1) 50%,
+            rgba(255, 255, 255, 0.6) 68%,
+            rgba(255, 255, 255, 0) 82%
+        );
+    }
+}
+
+@media (max-width: 480px) {
+    .startHeroHeading {
+        max-width: 100%;
+    }
+
+    .startHeroSection::before {
+        inset: 68% 0 0 0;
+        opacity: 1;
+        background-size: cover;
+        background-position: center top;
+    }
+
+    .startHeroSection::after {
+        height: 100%;
+        background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 1),
+            rgba(255, 255, 255, 1) 62%,
+            rgba(255, 255, 255, 0.9) 74%,
+            rgba(255, 255, 255, 0) 88%
         );
     }
 }
