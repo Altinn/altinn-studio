@@ -335,7 +335,7 @@ img {
 }
 
 .resourceCard:hover {
-    background: #f2f3f5;
+    background: #d2d5da;
 }
 
 .resourceCard-block {
@@ -350,30 +350,24 @@ img {
     color: #253247;
     font-size: 2.4rem;
     line-height: 1.25;
-}
-
-.resourceCard-link {
-    border-bottom: 0;
-    color: #253247;
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     text-decoration-skip-ink: none;
-    display: block;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
 }
 
-.resourceCard-link:hover,
-.resourceCard-link:focus,
-.resourceCard-link:active {
-    border-bottom: 0;
-    color: #253247;
+.resourceCard:hover .resourceCard-title,
+.resourceCard:focus .resourceCard-title {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     text-decoration-skip-ink: none;
 }
 
-.resourceCard-link::after {
+.resourceCard::after {
     display: none !important;
     content: none !important;
 }
