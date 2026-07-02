@@ -406,6 +406,12 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by_user_account_id");
 
+                    b.Property<int>("ReportFrequency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("report_frequency");
+
                     b.HasKey("Id")
                         .HasName("contact_points_pkey");
 

@@ -9,7 +9,9 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioFormActions,
+  StudioSelect,
 } from '@studio/components';
+import type { ReportFrequency } from 'app-shared/types/ContactPoint';
 import classes from './PersonDialog.module.css';
 import {
   emailRegex,
@@ -30,6 +32,7 @@ export type Person = {
   phone: string;
   isActive: boolean;
   environments: string[];
+  reportFrequency: ReportFrequency;
 };
 
 type PersonDialogProps = {
@@ -150,6 +153,29 @@ export const PersonDialog = ({
             placeholder={phonePlaceholder}
             error={phoneError ?? contactMethodError}
           />
+          <StudioSelect
+            label={t('settings.orgs.contact_points.field_report_frequency')}
+            value={person.reportFrequency}
+            onChange={(e) =>
+              setPerson((prev) => ({
+                ...prev,
+                reportFrequency: e.target.value as ReportFrequency,
+              }))
+            }
+          >
+            <StudioSelect.Option value='none'>
+              {t('settings.orgs.contact_points.report_frequency_none')}
+            </StudioSelect.Option>
+            <StudioSelect.Option value='daily'>
+              {t('settings.orgs.contact_points.report_frequency_daily')}
+            </StudioSelect.Option>
+            <StudioSelect.Option value='weekly'>
+              {t('settings.orgs.contact_points.report_frequency_weekly')}
+            </StudioSelect.Option>
+            <StudioSelect.Option value='monthly'>
+              {t('settings.orgs.contact_points.report_frequency_monthly')}
+            </StudioSelect.Option>
+          </StudioSelect>
           <StudioCheckboxGroup
             legend={t('settings.orgs.contact_points.field_environments')}
             className={classes.environments}

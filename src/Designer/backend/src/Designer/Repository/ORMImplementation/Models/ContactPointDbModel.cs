@@ -18,4 +18,5 @@ public class ContactPointDbModel
 
     public UserAccountDbModel? CreatedByUserAccount { get; set; }
     public UserAccountDbModel? UpdatedByUserAccount { get; set; }
+    public int ReportFrequency { get; set; }
 }
