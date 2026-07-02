@@ -25,6 +25,13 @@ export function createUserMessage(
   };
 }
 
+export function filterCriticalFileNames(filePaths: string[]): string[] {
+  const criticalFileNames: string[] = ['policy.xml', 'applicationmetadata.json'];
+  return filePaths.filter((filePath) =>
+    criticalFileNames.some((criticalFileName) => filePath.toLowerCase().endsWith(criticalFileName)),
+  );
+}
+
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;

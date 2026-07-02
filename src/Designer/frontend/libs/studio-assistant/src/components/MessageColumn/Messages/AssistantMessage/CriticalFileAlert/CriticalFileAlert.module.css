@@ -1,0 +1,8 @@
+.criticalFileAlert {
+  margin-top: var(--ds-size-4);
+}
+
+.fileList {
+  margin: var(--ds-size-3) 0;
+  padding-left: var(--ds-size-5);
+}
