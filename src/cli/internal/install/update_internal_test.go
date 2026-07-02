@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -84,6 +85,35 @@ func TestResolveLatestStudioctlVersion(t *testing.T) {
 				t.Fatalf("resolveLatestStudioctlVersion() = %q, want %q", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestResolveUpdateVersionExplicitVersionSkipsNetwork(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Version: config.NewVersion("studioctl/v1.2.3")}
+	got, err := NewService(cfg).ResolveUpdateVersion(
+		context.Background(),
+		UpdateOptions{Version: "v1.5.0"},
+	)
+	if err != nil {
+		t.Fatalf("ResolveUpdateVersion() error = %v", err)
+	}
+	if got != "v1.5.0" {
+		t.Fatalf("ResolveUpdateVersion() = %q, want %q", got, "v1.5.0")
+	}
+}
+
+func TestResolveUpdateVersionRejectsInvalidVersion(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Version: config.NewVersion("studioctl/v1.2.3")}
+	_, err := NewService(cfg).ResolveUpdateVersion(
+		context.Background(),
+		UpdateOptions{Version: "1.5.0"},
+	)
+	if !errors.Is(err, errInvalidReleaseVersion) {
+		t.Fatalf("ResolveUpdateVersion() error = %v, want errInvalidReleaseVersion", err)
 	}
 }
 
