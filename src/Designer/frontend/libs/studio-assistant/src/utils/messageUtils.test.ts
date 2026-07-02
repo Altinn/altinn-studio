@@ -43,34 +43,22 @@ describe('messageUtils', () => {
   });
 
   describe('filterCriticalFileNames', () => {
-    it('returns the critical files when a policy file is changed', () => {
-      const filePaths = ['App/config/authorization/policy.xml'];
+    const policyPath = 'App/config/authorization/policy.xml';
+    const appMetaDataPath = 'App/config/applicationmetadata.json';
+    const layoutPath = 'App/ui/layouts/layout.json';
 
-      expect(filterCriticalFileNames(filePaths)).toEqual(filePaths);
-    });
-
-    it('returns the critical files when applicationmetadata.json is changed', () => {
-      const filePaths = ['App/config/applicationmetadata.json'];
-
-      expect(filterCriticalFileNames(filePaths)).toEqual(filePaths);
+    it('returns only files defined as critical', () => {
+      const changedFiles = [policyPath, appMetaDataPath, layoutPath];
+      expect(filterCriticalFileNames(changedFiles)).toEqual([policyPath, appMetaDataPath]);
     });
 
     it('returns an empty array when no critical files are changed', () => {
-      expect(filterCriticalFileNames(['App/ui/layouts/layout.json'])).toEqual([]);
-    });
-
-    it('returns only the critical files from a mixed set of changes', () => {
-      const policyPath = 'App/config/authorization/policy.xml';
-
-      expect(filterCriticalFileNames(['App/ui/layouts/layout.json', policyPath])).toEqual([
-        policyPath,
-      ]);
+      expect(filterCriticalFileNames([layoutPath])).toEqual([]);
     });
 
     it('matches critical file names case-insensitively', () => {
-      const filePaths = ['App/config/authorization/Policy.XML'];
-
-      expect(filterCriticalFileNames(filePaths)).toEqual(filePaths);
+      const changedFiles = ['App/config/authorization/Policy.XML'];
+      expect(filterCriticalFileNames(changedFiles)).toEqual(changedFiles);
     });
   });
 
