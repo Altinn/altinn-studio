@@ -1,8 +1,5 @@
-using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Mime;
-using System.Text;
-using Altinn.App.Api.Models;
 using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
@@ -16,7 +13,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Clients.Fiks.FiksArkiv;
 
@@ -87,117 +83,6 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
         response.Dispose();
 
         return deserializeResponse;
-    }
-
-    /// <inheritdoc />
-    public async Task<FiksArkivProcessNextOutcome> ProcessMoveNext(
-        InstanceIdentifier instanceIdentifier,
-        string? action = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = _telemetry?.StartApiProcessNextActivity(instanceIdentifier);
-
-        try
-        {
-            using HttpClient client = await GetAuthenticatedClient(HttpClientTarget.App);
-            using StringContent payload = GetProcessNextAction(action);
-            using HttpResponseMessage response = await client.PutAsync(
-                $"instances/{instanceIdentifier}/process/next",
-                payload,
-                cancellationToken
-            );
-
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Moved instance {InstanceId} to next step.", instanceIdentifier);
-                return FiksArkivProcessNextOutcome.Advanced;
-            }
-
-            string content = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (response.StatusCode == HttpStatusCode.Conflict)
-            {
-                FiksArkivProcessNextOutcome? blockedOutcome = TryGetBlockedOutcome(content);
-                if (blockedOutcome is { } outcome)
-                {
-                    _logger.LogInformation(
-                        "Process/next for instance {InstanceId} is blocked: {Outcome}.",
-                        instanceIdentifier,
-                        outcome
-                    );
-                    return outcome;
-                }
-            }
-
-            throw GetPlatformHttpException(response, content);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError("Failed to move instance {InstanceId} to next step: {Error}", instanceIdentifier, e);
-            throw;
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task ProcessResume(
-        InstanceIdentifier instanceIdentifier,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = _telemetry?.StartApiProcessNextActivity(instanceIdentifier);
-
-        try
-        {
-            using HttpClient client = await GetAuthenticatedClient(HttpClientTarget.App);
-            using StringContent payload = new(string.Empty);
-            HttpResponseMessage response = await client.PostAsync(
-                $"instances/{instanceIdentifier}/process/resume",
-                payload,
-                cancellationToken
-            );
-
-            await EnsureSuccessStatusCode(response);
-            response.Dispose();
-
-            _logger.LogInformation("Resumed the current task workflow for instance {InstanceId}.", instanceIdentifier);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(
-                "Failed to resume the current task workflow for instance {InstanceId}: {Error}",
-                instanceIdentifier,
-                e
-            );
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Reads the <c>processNextState</c> extension from a 409 process/next ProblemDetails body and maps it to
-    /// the corresponding <see cref="FiksArkivProcessNextOutcome"/>. Returns null when the body doesn't carry a
-    /// recognized state (i.e. the conflict was for some other reason).
-    /// </summary>
-    private static FiksArkivProcessNextOutcome? TryGetBlockedOutcome(string content)
-    {
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return null;
-        }
-
-        try
-        {
-            string? processNextState = JObject.Parse(content).Value<string>("processNextState");
-            return processNextState switch
-            {
-                "retrying" => FiksArkivProcessNextOutcome.Retrying,
-                "resumeRequired" => FiksArkivProcessNextOutcome.ResumeRequired,
-                _ => null,
-            };
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
     }
 
     /// <inheritdoc />
@@ -403,15 +288,5 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
     {
         App,
         Storage,
-    }
-
-    private static StringContent GetProcessNextAction(string? action)
-    {
-        if (string.IsNullOrWhiteSpace(action))
-            return new StringContent(string.Empty);
-
-        var payload = new ProcessNext { Action = action };
-
-        return new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
     }
 }

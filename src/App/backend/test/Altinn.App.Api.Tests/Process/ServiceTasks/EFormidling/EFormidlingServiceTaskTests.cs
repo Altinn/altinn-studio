@@ -72,7 +72,7 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
     }
 
     [Fact]
-    public async Task Can_Execute_EFormidlingServiceTask_And_Move_To_Next_Task()
+    public async Task Can_Execute_EFormidlingServiceTask_And_Park()
     {
         // Make sure a request to eFormidling is made
         SendAsync = message =>
@@ -102,9 +102,12 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
         OutputHelper.WriteLine(nextResponseContent);
         processNextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        // Check that the process has been moved to end task
+        // The eFormidling service task now parks instead of auto-advancing: the process stays on it until the
+        // status-check handler confirms delivery and advances it. So the process has not ended, and the current
+        // task is still the eFormidling service task.
         var processState = JsonConvert.DeserializeObject<ProcessState>(nextResponseContent);
-        processState.Ended.Should().NotBeNull();
+        processState!.Ended.Should().BeNull();
+        processState.CurrentTask!.AltinnTaskType.Should().Be("eFormidling");
     }
 
     [Fact]

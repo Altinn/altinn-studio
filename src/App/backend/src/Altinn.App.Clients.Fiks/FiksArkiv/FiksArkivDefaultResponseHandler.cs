@@ -1,8 +1,11 @@
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,16 +15,19 @@ internal sealed class FiksArkivDefaultResponseHandler : IFiksArkivResponseHandle
 {
     private readonly FiksArkivSettings _fiksArkivSettings;
     private readonly IFiksArkivInstanceClient _fiksArkivInstanceClient;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<FiksArkivDefaultResponseHandler> _logger;
 
     public FiksArkivDefaultResponseHandler(
         IOptions<FiksArkivSettings> fiksArkivSettings,
         IFiksArkivInstanceClient fiksArkivInstanceClient,
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<FiksArkivDefaultResponseHandler> logger
     )
     {
         _fiksArkivSettings = fiksArkivSettings.Value;
         _fiksArkivInstanceClient = fiksArkivInstanceClient;
+        _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
 
@@ -66,11 +72,7 @@ internal sealed class FiksArkivDefaultResponseHandler : IFiksArkivResponseHandle
 
         // Move the instance process forward if configured
         if (_fiksArkivSettings.SuccessHandling.MoveToNextTask)
-            await _fiksArkivInstanceClient.ProcessMoveNext(
-                instanceIdentifier,
-                action: _fiksArkivSettings.SuccessHandling.GetActionOrDefault(),
-                cancellationToken: cancellationToken
-            );
+            await MoveProcessNext(instance, _fiksArkivSettings.SuccessHandling.GetActionOrDefault(), cancellationToken);
 
         // Mark the instance as completed if configured
         if (_fiksArkivSettings.SuccessHandling.MarkInstanceComplete)
@@ -102,10 +104,25 @@ internal sealed class FiksArkivDefaultResponseHandler : IFiksArkivResponseHandle
 
         // Move the instance process forward if configured
         if (_fiksArkivSettings.ErrorHandling.MoveToNextTask)
-            await _fiksArkivInstanceClient.ProcessMoveNext(
-                new InstanceIdentifier(instance),
-                action: _fiksArkivSettings.ErrorHandling.GetActionOrDefault(),
-                cancellationToken: cancellationToken
-            );
+            await MoveProcessNext(instance, _fiksArkivSettings.ErrorHandling.GetActionOrDefault(), cancellationToken);
+    }
+
+    /// <summary>
+    /// Advances the instance parked on the Fiks Arkiv service task by enqueuing a process-next directly on the
+    /// in-process <see cref="IProcessEngine"/> as the service owner — no self HTTP call, no Maskinporten. The
+    /// engine auto-appends the workflow onto the collection's current heads (running it immediately when idle,
+    /// or chaining after an in-flight advance), so there is nothing to gate on here; it returns as soon as the
+    /// engine has durably accepted the enqueue.
+    /// </summary>
+    private async Task MoveProcessNext(Instance instance, string? action, CancellationToken cancellationToken)
+    {
+        await using AsyncServiceScope scope = _serviceScopeFactory.CreateAsyncScope();
+        var processEngine = scope.ServiceProvider.GetRequiredService<IProcessEngine>();
+        await processEngine.EnqueueProcessNextNoWait(
+            instance,
+            new Actor { OrgId = instance.Org },
+            action,
+            cancellationToken
+        );
     }
 }

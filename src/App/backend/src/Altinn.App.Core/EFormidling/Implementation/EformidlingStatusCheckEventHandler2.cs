@@ -7,10 +7,14 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -27,7 +31,7 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly PlatformSettings _platformSettings;
-    private readonly GeneralSettings _generalSettings;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EformidlingStatusCheckEventHandler2"/> class.
@@ -38,7 +42,7 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
         ILogger<EformidlingStatusCheckEventHandler2> logger,
         IAuthenticationTokenResolver authenticationTokenResolver,
         IOptions<PlatformSettings> platformSettings,
-        IOptions<GeneralSettings> generalSettings
+        IServiceScopeFactory serviceScopeFactory
     )
     {
         _eFormidlingClient = eFormidlingClient;
@@ -46,7 +50,7 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
         _httpClientFactory = httpClientFactory;
         _authenticationTokenResolver = authenticationTokenResolver;
         _platformSettings = platformSettings.Value;
-        _generalSettings = generalSettings.Value;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     /// <inheritDoc/>
@@ -67,15 +71,10 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
         Statuses statusesForShipment = await GetStatusesForShipment(id);
         if (MessageDeliveredToKS(statusesForShipment))
         {
-            // Delivery to KS is confirmed. The process is parked on the eFormidling service task, so advance it.
-            // If the engine can't advance yet (still processing, or a workflow needs resumption) we leave the
-            // event unconsumed so the Events system retries later; the current task is unchanged, so re-running
-            // this handler is safe.
-            bool advanced = await ProcessMoveNext(appIdentifier, instanceIdentifier);
-            if (!advanced)
-            {
-                return false;
-            }
+            // Delivery to KS is confirmed. The process is parked on the eFormidling service task, so advance it
+            // by enqueuing a process-next directly on the in-process engine. The engine auto-appends onto the
+            // collection's current heads, so there is nothing to gate on here.
+            await ProcessMoveNext(appIdentifier, instanceIdentifier);
 
             _ = await AddCompleteConfirmation(instanceIdentifier);
 
@@ -106,33 +105,27 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
     }
 
     /// <summary>
-    /// Advances the process parked on the eFormidling service task. Returns true when the process advanced;
-    /// false when the workflow engine could not advance yet (e.g. still processing or a workflow requires
-    /// resumption), in which case the caller should let the Events system retry later.
+    /// Advances the process parked on the eFormidling service task by enqueuing a process-next directly on the
+    /// in-process <see cref="IProcessEngine"/> as the service owner — no self HTTP call, no Maskinporten. The
+    /// engine auto-appends the workflow onto the collection's current heads (running it immediately when idle,
+    /// or chaining after an in-flight advance), so it returns as soon as the engine has durably accepted it.
     /// </summary>
-    private async Task<bool> ProcessMoveNext(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier)
+    private async Task ProcessMoveNext(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier)
     {
-        string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(appIdentifier);
-        string url = $"{baseUrl}instances/{instanceIdentifier}/process/next";
+        await using AsyncServiceScope scope = _serviceScopeFactory.CreateAsyncScope();
+        var instanceClient = scope.ServiceProvider.GetRequiredService<IInstanceClient>();
+        var processEngine = scope.ServiceProvider.GetRequiredService<IProcessEngine>();
 
-        string altinnToken = await GetOrganizationToken();
-        HttpClient httpClient = _httpClientFactory.CreateClient();
-
-        HttpResponseMessage response = await httpClient.PutAsync(altinnToken, url, new StringContent(string.Empty));
-
-        if (response.IsSuccessStatusCode)
-        {
-            _logger.LogInformation("Moved instance {instanceId} to next step.", instanceIdentifier);
-            return true;
-        }
-
-        _logger.LogError(
-            "Failed moving instance {instanceId} to next step. Received error: {errorCode}. Received content: {content}",
-            instanceIdentifier,
-            response.StatusCode,
-            await response.Content.ReadAsStringAsync()
+        Instance instance = await instanceClient.GetInstance(
+            appIdentifier.App,
+            appIdentifier.Org,
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            StorageAuthenticationMethod.ServiceOwner()
         );
-        return false;
+
+        await processEngine.EnqueueProcessNextNoWait(instance, new Actor { OrgId = appIdentifier.Org });
+        _logger.LogInformation("Enqueued process-next for instance {instanceId}.", instanceIdentifier);
     }
 
     /// This is basically a duplicate of the method in <see cref="InstanceClient"/>

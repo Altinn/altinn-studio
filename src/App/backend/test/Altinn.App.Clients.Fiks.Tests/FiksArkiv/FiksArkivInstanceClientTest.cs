@@ -82,63 +82,6 @@ public class FiksArkivInstanceClientTest
         Assert.Equal(statusCode, ((PlatformHttpException)record).Response.StatusCode);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("some-action")]
-    public async Task ProcessMoveNext_CallsCorrectEndpoint(string? action)
-    {
-        // Arrange
-        await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        var appMetadata = await fixture.AppMetadata.GetApplicationMetadata();
-        var expectedPayload = action is null
-            ? ""
-            : $$"""
-                {"Action":"{{action}}","ActionOnBehalfOf":null}
-                """;
-
-        List<CapturedHttpRequest<string>> requests = [];
-        var httpClient = TestHelpers.GetHttpClientWithMockedHandlerFactory(
-            HttpStatusCode.OK,
-            requestCallback: request =>
-                requests.Add(new CapturedHttpRequest<string>(request, GetRequestContent(request.Content).Result))
-        );
-        fixture.HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
-
-        // Act
-        await fixture.FiksArkivInstanceClient.ProcessMoveNext(_defaultInstanceIdentifier, action);
-
-        // Assert
-        CapturedHttpRequest<string> processNextRequest = requests.Last();
-
-        Assert.True(action is null ? expectedPayload == string.Empty : expectedPayload.Contains(action));
-        Assert.True(expectedPayload == processNextRequest.Content);
-
-        Assert.Equal(HttpMethod.Put, processNextRequest.Request.Method);
-        Assert.Equal($"Bearer {TestHelpers.DummyToken}", processNextRequest.Request.Headers.Authorization!.ToString());
-        Assert.Equal(
-            $"http://local.altinn.cloud/{appMetadata.AppIdentifier}/instances/{_defaultInstanceIdentifier}/process/next",
-            processNextRequest.Request.RequestUri!.ToString()
-        );
-    }
-
-    [Fact]
-    public async Task ProcessMoveNext_ThrowsException_ForInvalidResponse()
-    {
-        // Arrange
-        await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        var httpClient = TestHelpers.GetHttpClientWithMockedHandlerFactory(HttpStatusCode.Forbidden);
-        fixture.HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
-
-        // Act
-        var record = await Record.ExceptionAsync(() =>
-            fixture.FiksArkivInstanceClient.ProcessMoveNext(_defaultInstanceIdentifier)
-        );
-
-        // Assert
-        Assert.IsType<PlatformHttpException>(record);
-        Assert.Equal(HttpStatusCode.Forbidden, ((PlatformHttpException)record).Response.StatusCode);
-    }
-
     [Fact]
     public async Task MarkInstanceComplete_CallsCorrectEndpoint()
     {

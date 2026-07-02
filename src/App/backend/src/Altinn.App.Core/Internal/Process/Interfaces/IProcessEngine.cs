@@ -55,4 +55,18 @@ internal interface IProcessEngine
         string? action = null,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    /// Enqueues a process-next workflow on behalf of a system actor (e.g. an async service-task callback) and
+    /// returns as soon as the engine accepts it — no synchronous wait and no "current task workflow" gate.
+    /// The workflow auto-appends onto the collection's current heads, so the engine runs it immediately when
+    /// the collection is idle, or chains it after the active head. Computes the transition and captures the
+    /// callback state internally; does not mutate the <paramref name="instance"/>.
+    /// </summary>
+    Task EnqueueProcessNextNoWait(
+        Instance instance,
+        Actor actor,
+        string? action = null,
+        CancellationToken ct = default
+    );
 }

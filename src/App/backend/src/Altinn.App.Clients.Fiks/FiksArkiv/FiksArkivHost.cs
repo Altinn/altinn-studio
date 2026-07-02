@@ -19,22 +19,6 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Clients.Fiks.FiksArkiv;
 
-/// <summary>
-/// Classification of a received Fiks Arkiv reply.
-/// </summary>
-internal enum FiksArkivMessageOutcome
-{
-    /// <summary>
-    /// The archive request succeeded.
-    /// </summary>
-    Success,
-
-    /// <summary>
-    /// The archive request failed (error response or error payload).
-    /// </summary>
-    Error,
-}
-
 internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 {
     private readonly ILogger<FiksArkivHost> _logger;
@@ -47,8 +31,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     private readonly IAppModel _appModelResolver;
     private readonly IFiksArkivConfigResolver _fiksArkivConfigResolver;
     private readonly AppImplementationFactory _appImplementationFactory;
-
-    private static readonly TimeSpan _raceConditionDeferralInterval = TimeSpan.FromSeconds(1);
 
     private IFiksArkivPayloadGenerator _fiksArkivPayloadGenerator =>
         _appImplementationFactory.GetRequired<IFiksArkivPayloadGenerator>();
@@ -162,10 +144,10 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     }
 
     /// <summary>
-    /// Handles a received Fiks Arkiv message: dispatches to the app's success/error handler and persists any
-    /// receipt on the instance. Returns whether the message was a success or error response.
+    /// Handles a received Fiks Arkiv message: dispatches to the app's success/error handler (which is
+    /// responsible for advancing the process per its configuration) and persists any receipt on the instance.
     /// </summary>
-    internal async Task<FiksArkivMessageOutcome> HandleReceivedMessage(Instance instance, FiksIOReceivedMessage message)
+    internal async Task HandleReceivedMessage(Instance instance, FiksIOReceivedMessage message)
     {
         _logger.LogInformation(
             "Handling received Fiks Arkiv message {MessageType}:{MessageId}",
@@ -203,13 +185,11 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                     FiksArkivConstants.MessageTypes.ArchiveRecordCreationReceipt,
                     payloads
                 );
-                return isError ? FiksArkivMessageOutcome.Error : FiksArkivMessageOutcome.Success;
+                return;
             }
 
             await SaveArchiveReceipt(instance, receipt);
         }
-
-        return isError ? FiksArkivMessageOutcome.Error : FiksArkivMessageOutcome.Success;
     }
 
     internal async Task IncomingMessageListener(FiksIOReceivedMessage message)
@@ -241,8 +221,10 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 
             using Activity? innerActivity = _telemetry?.StartFiksMessageHandlerActivity(instance, GetType());
 
-            FiksArkivMessageOutcome outcome = await HandleReceivedMessage(instance, message);
-            await AdvanceParkedProcess(instance, message, outcome);
+            // The response handler dispatched here is responsible for advancing the process (per its
+            // SuccessHandling/ErrorHandling configuration). The host just persists the receipt and acks.
+            await HandleReceivedMessage(instance, message);
+            await message.Responder.Ack();
 
             _logger.LogInformation(
                 "Processing completed successfully for message {MessageId}",
@@ -262,68 +244,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             // The process stays parked on the service task; the failure is surfaced via process state.
             if (!_env.IsProduction())
                 await message.Responder.Ack();
-        }
-    }
-
-    /// <summary>
-    /// Advances the process that is parked on the Fiks Arkiv service task once a reply has been received.
-    /// On success, moves to the next task. On an error reply, honours the configured
-    /// <see cref="FiksArkivErrorHandlingSettings.MoveToNextTask"/>: when enabled, moves forward with the
-    /// configured action; otherwise the process stays parked and the failure is surfaced via process state
-    /// for a user-driven retry.
-    /// </summary>
-    private async Task AdvanceParkedProcess(
-        Instance instance,
-        FiksIOReceivedMessage message,
-        FiksArkivMessageOutcome outcome
-    )
-    {
-        string? action = null;
-        if (outcome == FiksArkivMessageOutcome.Error)
-        {
-            if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is not true)
-            {
-                _logger.LogWarning(
-                    "Fiks Arkiv returned an error for instance {InstanceId}. Leaving the process parked on the service task; the failure is surfaced for retry.",
-                    instance.Id
-                );
-                await message.Responder.Ack();
-                return;
-            }
-
-            action = _fiksArkivSettings.ErrorHandling?.Action;
-        }
-
-        var instanceIdentifier = new InstanceIdentifier(instance);
-        FiksArkivProcessNextOutcome processNextOutcome = await _fiksArkivInstanceClient.ProcessMoveNext(
-            instanceIdentifier,
-            action
-        );
-
-        switch (processNextOutcome)
-        {
-            case FiksArkivProcessNextOutcome.Advanced:
-                await message.Responder.Ack();
-                break;
-            case FiksArkivProcessNextOutcome.Retrying:
-                // The parking workflow is still settling (e.g. the reply beat process/next). Requeue and retry.
-                _logger.LogInformation(
-                    "Process for instance {InstanceId} is still being processed by the workflow engine. Requeuing message {MessageId}.",
-                    instance.Id,
-                    message.Message.MessageId
-                );
-                await Task.Delay(_raceConditionDeferralInterval);
-                await message.Responder.NackWithRequeue();
-                break;
-            case FiksArkivProcessNextOutcome.ResumeRequired:
-                // A workflow for the current task failed; self-heal via cascade resume before acking.
-                _logger.LogWarning(
-                    "Process for instance {InstanceId} requires resumption before it can continue. Attempting cascade resume.",
-                    instance.Id
-                );
-                await _fiksArkivInstanceClient.ProcessResume(instanceIdentifier);
-                await message.Responder.Ack();
-                break;
         }
     }
 

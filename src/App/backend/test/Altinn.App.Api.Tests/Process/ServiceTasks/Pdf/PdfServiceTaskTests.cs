@@ -132,9 +132,11 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         processNextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
         sendAsyncCalled.Should().BeTrue();
 
-        // Check that the process has been moved to the next task that is not a service task.
+        // The PDF service task auto-advances, but the subsequent eFormidling service task parks, so the process
+        // stops on it rather than reaching the end.
         var processState = JsonConvert.DeserializeObject<ProcessState>(responseAsString);
-        processState.Ended.Should().NotBeNull();
+        processState!.Ended.Should().BeNull();
+        processState.CurrentTask!.AltinnTaskType.Should().Be("eFormidling");
     }
 
     [Fact]

@@ -2,10 +2,15 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -36,19 +41,6 @@ public class EformidlingStatusCheckEventHandlerTests
         processStatus.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task ProcessEvent_WithJwkDelivered_WhenProcessNextIsBlocked_ShouldReturnFalse()
-    {
-        // Delivered to KS, but the workflow engine can't advance the parked service task yet (e.g. 409
-        // retrying/resumeRequired). The event must be left unconsumed so the Events system retries later.
-        IEventHandler eventHandler = GetMockedEventHandler(true, processNextStatus: System.Net.HttpStatusCode.Conflict);
-        CloudEvent cloudEvent = GetValidCloudEvent();
-
-        bool processStatus = await eventHandler.ProcessEvent(cloudEvent);
-
-        processStatus.Should().BeFalse();
-    }
-
     private static CloudEvent GetValidCloudEvent()
     {
         return new()
@@ -65,10 +57,7 @@ public class EformidlingStatusCheckEventHandlerTests
         };
     }
 
-    private static IEventHandler GetMockedEventHandler(
-        bool delivered,
-        System.Net.HttpStatusCode processNextStatus = System.Net.HttpStatusCode.OK
-    )
+    private static IEventHandler GetMockedEventHandler(bool delivered)
     {
         var eFormidlingClientMock = new Mock<IEFormidlingClient>();
         Statuses statuses = GetStatues(delivered);
@@ -76,10 +65,12 @@ public class EformidlingStatusCheckEventHandlerTests
             .Setup(e => e.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(statuses);
 
+        // The process advance runs in-process via IProcessEngine (resolved from a scope); AddCompleteConfirmation
+        // still calls Storage over HTTP, so the HttpClient mock returns OK for that.
         var httpClientMock = new Mock<HttpClient>();
         httpClientMock
             .Setup(s => s.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new HttpResponseMessage(processNextStatus));
+            .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
 
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         httpClientFactoryMock.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(httpClientMock.Object);
@@ -88,6 +79,37 @@ public class EformidlingStatusCheckEventHandlerTests
         authenticationTokenResolverMock
             .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod.AltinnToken>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(JwtToken.Parse(TestAuthentication.GetOrgToken()));
+
+        var instanceClientMock = new Mock<IInstanceClient>();
+        instanceClientMock
+            .Setup(c =>
+                c.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new Instance());
+        var processEngineMock = new Mock<IProcessEngine>();
+        processEngineMock
+            .Setup(e =>
+                e.EnqueueProcessNextNoWait(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        var scopeFactory = new ServiceCollection()
+            .AddSingleton(instanceClientMock.Object)
+            .AddSingleton(processEngineMock.Object)
+            .BuildServiceProvider()
+            .GetRequiredService<IServiceScopeFactory>();
 
         return new EformidlingStatusCheckEventHandler2(
             eFormidlingClientMock.Object,
@@ -101,7 +123,7 @@ public class EformidlingStatusCheckEventHandlerTests
                     SubscriptionKey = "key",
                 }
             ),
-            Options.Create(Mock.Of<GeneralSettings>())
+            scopeFactory
         );
     }
 

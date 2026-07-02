@@ -70,6 +70,23 @@ internal interface IWorkflowEngineService
         Actor actor,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    /// Enqueues a process-next workflow and returns as soon as the engine has accepted it, without waiting
+    /// for the collection to settle. The workflow auto-appends onto the collection's current heads
+    /// (<see cref="Models.Engine.WorkflowRequest.DependsOnHeads"/>), so the engine runs it immediately when the
+    /// collection is idle, or chains it after the active head. Used for system-initiated advances (e.g. async
+    /// service-task callbacks) that must not block on the engine.
+    /// </summary>
+    Task EnqueueProcessNextNoWait(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        string resolvedAction,
+        string lockToken,
+        string state,
+        Actor actor,
+        CancellationToken ct = default
+    );
 }
 
 internal sealed record ProcessNextWorkflowResult(
@@ -296,6 +313,29 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             actor,
             ct
         );
+
+    public async Task EnqueueProcessNextNoWait(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        string resolvedAction,
+        string lockToken,
+        string state,
+        Actor actor,
+        CancellationToken ct = default
+    )
+    {
+        // No dependsOn / collectionKey overrides: the request opts into DependsOnHeads, so the engine
+        // auto-appends onto the collection's current heads (or runs immediately when idle).
+        await CreateAndEnqueueWorkflow(
+            instance,
+            processStateChange,
+            CreateProcessNextIdempotencyKey(instance, processStateChange, resolvedAction),
+            lockToken,
+            state,
+            actor: actor,
+            ct: ct
+        );
+    }
 
     public async Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(
         Instance instance,

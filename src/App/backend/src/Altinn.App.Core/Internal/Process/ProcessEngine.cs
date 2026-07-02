@@ -888,6 +888,49 @@ internal class ProcessEngine : IProcessEngine
         );
     }
 
+    /// <inheritdoc/>
+    public async Task EnqueueProcessNextNoWait(
+        Instance instance,
+        Actor actor,
+        string? action = null,
+        CancellationToken ct = default
+    )
+    {
+        await using var instanceLock = _instanceLocker.InitLock();
+        await instanceLock.Lock();
+        string lockToken =
+            _instanceLocker.CurrentLockToken
+            ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock");
+
+        string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
+        string? altinnTaskType = instance.Process?.CurrentTask?.AltinnTaskType;
+
+        // Capture the callback state from the task being left before computing the transition (which does not
+        // mutate instance.Process). The engine transitions the state via its MutateProcessState command.
+        InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            currentTaskId,
+            language: null,
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+        string state = await _workflowCallbackStateService.CaptureState(unitOfWork);
+
+        PlatformUser user = CreatePlatformUser(actor);
+        ProcessStateChange processStateChange = await ComputeNextTransition(instance, action, user);
+
+        string resolvedAction =
+            action ?? (altinnTaskType is { } taskType ? ConvertTaskTypeToAction(taskType) : "write");
+        await _workflowEngineService.EnqueueProcessNextNoWait(
+            instance,
+            processStateChange,
+            resolvedAction,
+            lockToken,
+            state,
+            actor,
+            ct
+        );
+    }
+
     private static InstanceEvent CreateInstanceEvent(
         string eventType,
         Instance instance,

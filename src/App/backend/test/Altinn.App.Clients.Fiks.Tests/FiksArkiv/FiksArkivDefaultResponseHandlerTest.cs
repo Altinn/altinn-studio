@@ -2,6 +2,8 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
@@ -107,6 +109,7 @@ public class FiksArkivDefaultResponseHandlerTest
         var instance = InstanceFactory();
         var message = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering);
         var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>();
+        var processEngineMock = new Mock<IProcessEngine>();
         var fiksArkivSettingsOverride = new FiksArkivSettings
         {
             SuccessHandling = new FiksArkivSuccessHandlingSettings
@@ -122,13 +125,22 @@ public class FiksArkivDefaultResponseHandlerTest
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
                 services.AddSingleton(fiksArkivInstanceClientMock.Object);
+                services.AddSingleton(processEngineMock.Object);
             },
             [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
             useDefaultFiksArkivSettings: false
         );
 
-        fiksArkivInstanceClientMock
-            .Setup(x => x.ProcessMoveNext(It.IsAny<InstanceIdentifier>(), "the-action", It.IsAny<CancellationToken>()))
+        processEngineMock
+            .Setup(x =>
+                x.EnqueueProcessNextNoWait(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Actor>(),
+                    "the-action",
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask)
             .Verifiable(moveToNextTask ? Times.Once : Times.Never);
         fiksArkivInstanceClientMock
             .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
@@ -138,6 +150,8 @@ public class FiksArkivDefaultResponseHandlerTest
         await fixture.FiksArkivResponseHandler.HandleSuccess(instance, message, null);
 
         // Assert
+        processEngineMock.Verify();
+        processEngineMock.VerifyNoOtherCalls();
         fiksArkivInstanceClientMock.Verify();
         fiksArkivInstanceClientMock.VerifyNoOtherCalls();
     }
@@ -204,7 +218,7 @@ public class FiksArkivDefaultResponseHandlerTest
         // Arrange
         var instance = InstanceFactory();
         var message = ReceivedMessageFactory(FiksArkivMeldingtype.Ugyldigforespørsel);
-        var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>();
+        var processEngineMock = new Mock<IProcessEngine>();
         var fiksArkivSettingsOverride = new FiksArkivSettings
         {
             ErrorHandling = new FiksArkivErrorHandlingSettings
@@ -218,22 +232,30 @@ public class FiksArkivDefaultResponseHandlerTest
             services =>
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(fiksArkivInstanceClientMock.Object);
+                services.AddSingleton(processEngineMock.Object);
             },
             [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
             useDefaultFiksArkivSettings: false
         );
 
-        fiksArkivInstanceClientMock
-            .Setup(x => x.ProcessMoveNext(It.IsAny<InstanceIdentifier>(), "the-action", It.IsAny<CancellationToken>()))
+        processEngineMock
+            .Setup(x =>
+                x.EnqueueProcessNextNoWait(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Actor>(),
+                    "the-action",
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask)
             .Verifiable(moveToNextTask ? Times.Once : Times.Never);
 
         // Act
         await fixture.FiksArkivResponseHandler.HandleError(instance, message, null);
 
         // Assert
-        fiksArkivInstanceClientMock.Verify();
-        fiksArkivInstanceClientMock.VerifyNoOtherCalls();
+        processEngineMock.Verify();
+        processEngineMock.VerifyNoOtherCalls();
     }
 
     private static Instance InstanceFactory() => new() { Id = $"12345/{Guid.NewGuid()}" };
