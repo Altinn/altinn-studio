@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { StudioAlert, StudioHeading, StudioErrorSummary } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioErrorSummary, StudioLink } from '@studio/components';
 import type {
   Resource,
   ResourceTypeOption,
@@ -21,7 +21,7 @@ import {
   resourceTypeMap,
   convertMetadataStringToConsentMetadata,
 } from '../../utils/resourceUtils';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   ResourceCheckboxGroup,
   ResourceLanguageTextField,
@@ -155,7 +155,22 @@ export const AboutResourcePage = ({
           <ResourceRadioGroup
             id='resourceType'
             label={t('resourceadm.about_resource_resource_type')}
-            description={t('resourceadm.about_resource_resource_type_label')}
+            description={
+              <Trans
+                i18nKey={'resourceadm.about_resource_resource_type_label'}
+                components={{
+                  a: (
+                    <StudioLink
+                      href='https://docs.altinn.studio/nb/authorization/what-do-you-get/resourceadministration/#ressurstypene'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      {' '}
+                    </StudioLink>
+                  ),
+                }}
+              />
+            }
             value={resourceData.resourceType}
             options={resourceTypeOptions}
             onChange={(selected: ResourceTypeOption) =>
