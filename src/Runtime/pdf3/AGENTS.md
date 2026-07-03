@@ -13,7 +13,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 ### Prerequisites
 
 - **OS**: Linux or macOS only
-- **Go**: 1.26.1 or later
+- **Go**: 1.26.4 or later
 - **Container runtime**: Docker or Podman
 
 ### Common Commands
