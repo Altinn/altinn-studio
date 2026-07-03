@@ -1,6 +1,5 @@
 export * from './useDebounce';
 export * from './useForwardedRef';
-export * from './useLocalStorage';
 export * from './usePropState';
 export * from './useUniqueKeys';
 export * from './useMediaQuery';

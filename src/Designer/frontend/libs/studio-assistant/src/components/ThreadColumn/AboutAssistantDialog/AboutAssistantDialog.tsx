@@ -2,7 +2,6 @@ import type { ReactElement } from 'react';
 import { useEffect, useRef } from 'react';
 import { StudioDialog, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
 import { ExternalLinkIcon, InformationIcon } from '@studio/icons';
-import { useLocalStorage } from '@studio/hooks';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 
 const branchDocsUrl =
@@ -16,15 +15,15 @@ type AboutAssistantDialogProps = {
 
 export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): ReactElement {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [hasSeenDialog, setHasSeenDialog] = useLocalStorage<boolean>(hasSeenDialogStorageKey);
 
   useEffect(() => {
+    const hasSeenDialog = localStorage.getItem(hasSeenDialogStorageKey) === 'true';
     if (!hasSeenDialog) {
       dialogRef.current?.showModal();
     }
-  }, [hasSeenDialog]);
+  }, []);
 
-  const handleClose = (): void => setHasSeenDialog(true);
+  const handleClose = (): void => localStorage.setItem(hasSeenDialogStorageKey, 'true');
 
   return (
     <StudioDialog.TriggerContext>
