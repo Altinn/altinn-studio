@@ -12,6 +12,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
@@ -488,6 +489,12 @@ public class UiFoldersService : IUiFoldersService
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
+        // Order layout sets by their task's position in the process flow, with subforms (no task) last.
+        List<string> orderedTaskIds = definitions.Process.OrderTaskIdsByFlow();
+        Dictionary<string, int> taskOrderById = orderedTaskIds
+            .Select((taskId, index) => (taskId, index))
+            .ToDictionary(entry => entry.taskId, entry => entry.index);
+
         List<LayoutSetInfo> layoutSets = [];
 
         foreach (string layoutSetName in uiFolders)
@@ -504,7 +511,7 @@ public class UiFoldersService : IUiFoldersService
             }
 
             bool isSubform = layoutSettings.Type == "subform";
-            bool hasMatchingTask = definitions.Process.Tasks.Any(task => task.Id == layoutSetName);
+            bool hasMatchingTask = taskOrderById.ContainsKey(layoutSetName);
 
             if (!isSubform && !hasMatchingTask)
             {
@@ -516,7 +523,12 @@ public class UiFoldersService : IUiFoldersService
             layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
         }
 
-        return layoutSets;
+        return
+        [
+            .. layoutSets.OrderBy(layoutSet =>
+                taskOrderById.TryGetValue(layoutSet.LayoutSetName, out int order) ? order : int.MaxValue
+            ),
+        ];
     }
 
     private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
