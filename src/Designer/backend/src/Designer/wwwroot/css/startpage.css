@@ -436,9 +436,17 @@ img {
 .startHeroHeading {
     margin: 0 auto;
     max-width: 28ch;
-    font-size: clamp(2.2rem, 4.6vw, 4rem);
-    line-height: 1.2;
+    font-size: clamp(3.2rem, 6vw, 6rem);
+    line-height: 1.15;
     font-weight: 500;
+}
+
+.startHeroIngress {
+    margin: 10px auto 0;
+    max-width: 52ch;
+    color: #022f51;
+    font-size: clamp(1.6rem, 1.6vw, 2.4rem);
+    line-height: 1.4;
 }
 
 .startHeroActions {
@@ -964,6 +972,20 @@ a.collapsed .a-dropdownCircleArrow {
     .a-text > h3 {
         margin: 36px 0 12px 0;
     }
+
+    .startHeroText {
+        -webkit-box-flex: 0;
+        -ms-flex: 0 0 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .startHeroHeading {
+        max-width: none;
+        white-space: nowrap;
+        overflow-wrap: normal;
+        font-size: clamp(3.2rem, 4vw, 5.2rem);
+    }
 }
 
 @media (min-width: 1200px) {
@@ -1056,14 +1078,16 @@ a.collapsed .a-dropdownCircleArrow {
 
     .startHeroHeading {
         max-width: 22ch;
-        font-size: clamp(1.8rem, 8.8vw, 3.2rem);
+        font-size: clamp(2.4rem, 7vw, 4.2rem);
         line-height: 1.2;
     }
 
-    .startHeroHeading h1 {
-        margin: 0;
-        font-size: clamp(3.2rem, 10vw, 5.2rem);
-        line-height: 1.15;
+    .startHeroIngress {
+        max-width: 40ch;
+        font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+    }
+
+    .startHeroHeading {
         overflow-wrap: break-word;
     }
 
@@ -1093,6 +1117,10 @@ a.collapsed .a-dropdownCircleArrow {
 
 @media (max-width: 480px) {
     .startHeroHeading {
+        max-width: 100%;
+    }
+
+    .startHeroIngress {
         max-width: 100%;
     }
 
