@@ -76,6 +76,8 @@ export function evalExpr<V extends ExprVal = ExprVal>(
     return expr as ExprValToActual<V>;
   }
 
+  dataSources.markExpressionEvaluated();
+
   const callbacks = {
     onBeforeFunctionCall: options.onBeforeFunctionCall,
     onAfterFunctionCall: options.onAfterFunctionCall,

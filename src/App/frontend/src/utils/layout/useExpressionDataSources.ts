@@ -69,6 +69,7 @@ export type ExpressionDependency =
 export interface ExpressionDataSources {
   currentDataModelPath: IDataModelReference | undefined;
   langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
+  markExpressionEvaluated: () => void;
   track: (dependency: ExpressionDependency) => void;
   getDependencies: () => readonly ExpressionDependency[];
   context: {
@@ -302,6 +303,7 @@ function useExpressionDataSourcesRuntime(
         observerRef.current!.track({ type: 'language', dataModelPath });
         return buildLanguageTools({ inputs: observerRef.current!.getInputs(), dataModelPath });
       },
+      markExpressionEvaluated: () => observerRef.current!.markEvaluated(),
       track: (dependency) => observerRef.current!.track(dependency),
       getDependencies: () => observerRef.current!.getDependencies(),
       context: {
@@ -392,6 +394,7 @@ class ExpressionObserver {
   private collected = new Map<string, ExpressionDependency>();
   private active = new Map<string, ExpressionDependency>();
   private lastValues = new Map<string, unknown>();
+  private evaluatedDuringCollect = false;
   private unsubscribeStore?: (() => void) | null;
   private unsubscribeQuery?: (() => void) | null;
   private subscribed = false;
@@ -412,6 +415,11 @@ class ExpressionObserver {
 
   beginCollect() {
     this.collected.clear();
+    this.evaluatedDuringCollect = false;
+  }
+
+  markEvaluated() {
+    this.evaluatedDuringCollect = true;
   }
 
   track(dependency: ExpressionDependency) {
@@ -419,6 +427,13 @@ class ExpressionObserver {
   }
 
   commitCollect() {
+    // The runtime hook starts a collection during render, but dependency collection is only meaningful if evalExpr()
+    // actually ran in that same collection pass. If no expression ran, an empty collection only means "nothing was
+    // evaluated now", not "the previous expression no longer depends on anything".
+    if (!this.evaluatedDuringCollect) {
+      return;
+    }
+
     this.active = new Map(this.collected);
     this.lastValues = this.readValues(this.active);
   }

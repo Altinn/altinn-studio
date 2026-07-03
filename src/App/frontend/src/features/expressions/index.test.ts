@@ -14,6 +14,7 @@ describe('Expressions', () => {
           langToolsSelector: () => {
             throw new Error('not used');
           },
+          markExpressionEvaluated: () => {},
           track: () => {},
           getDependencies: () => [],
           context: {
