@@ -24,8 +24,8 @@ const (
 
 	postgresHealthInterval    = 10 * time.Second
 	postgresHealthTimeout     = 5 * time.Second
-	postgresHealthRetries     = 5
-	postgresHealthStartPeriod = 5 * time.Second
+	postgresHealthRetries     = 9
+	postgresHealthStartPeriod = 30 * time.Second
 
 	postgresUser     = "postgres"
 	postgresPassword = "postgres"
