@@ -1,4 +1,4 @@
-//nolint:goconst,err113,errcheck // Tests use repeated fixtures, sentinel fixture errors, and httptest writes.
+//nolint:err113,errcheck // Tests use repeated fixtures, sentinel fixture errors, and httptest writes.
 package reconcile
 
 import (

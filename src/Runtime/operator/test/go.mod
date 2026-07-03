@@ -1,6 +1,6 @@
 module altinn.studio/operator/test
 
-go 1.26.1
+go 1.26.4
 
 replace altinn.studio/devenv => ../../devenv
 
