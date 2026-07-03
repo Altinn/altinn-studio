@@ -28,6 +28,15 @@
       "minimumReleaseAge": null
     },
     {
+      "description": "Kubernetes Go client/runtime dependencies are updated manually after checking target cluster compatibility",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "/^k8s\\.io\\//",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api)$/"
+      ],
+      "enabled": false
+    },
+    {
       "matchManagers": ["gomod", "pep621"],
       "groupName": "{{manager}} non-major dependencies",
       "matchPackageNames": ["*"],
