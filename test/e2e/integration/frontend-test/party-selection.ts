@@ -1,6 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { cyMockResponses, CyPartyMocks, removeAllButKeepOrg } from 'test/e2e/pageobjects/party-mocks';
+import { cyMockResponses, CyPartyMocks, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
 import { cyUserCredentials } from 'test/e2e/support/auth';
 import { Tenor } from 'test/e2e/support/users';
 import type { CyUser } from 'test/e2e/support/auth';
@@ -8,13 +8,6 @@ import type { CyUser } from 'test/e2e/support/auth';
 import type { IParty } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
-
-// Org numbers the accountant test user only represents as accountant — no instantiate rights, so
-// instantiation returns 403.
-const NonInstantiableOrgForAccountant = {
-  DdgFitness: '897069650',
-  StabilSmulApe: '313252698',
-} as const;
 
 describe('Party selection', () => {
   it('Party selection filtering and search', () => {
@@ -261,22 +254,15 @@ describe('Party selection', () => {
 
   it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
-    // Pin a specific org by number instead of taking the first one — the tt02 party list order is
-    // not stable, and an org the user *can* instantiate for may otherwise end up first.
+    cy.intercept({ method: 'POST', url: '**/instances?instanceOwnerPartyId*', times: 1 }, { statusCode: 403 });
     cyMockResponses({
       allowedToInstantiate: (parties) => {
         const userToKeep =
           Cypress.env('type') === 'localtest'
             ? cyUserCredentials.accountant.displayName
             : Tenor.users.humanAndrefiolin.name.toUpperCase();
-        const orgToKeep =
-          Cypress.env('type') === 'localtest'
-            ? NonInstantiableOrgForAccountant.DdgFitness
-            : NonInstantiableOrgForAccountant.StabilSmulApe;
         // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
-        return removeAllButKeepOrg(parties, orgToKeep).filter(
-          (party) => party.orgNumber || party.name.includes(userToKeep),
-        );
+        return removeAllButOneOrg(parties).filter((party) => party.orgNumber || party.name.includes(userToKeep));
       },
       doNotPromptForParty: false,
     });

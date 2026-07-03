@@ -16,6 +16,9 @@ import { ProcessTaskType } from 'src/types';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 jest.mock('src/utils/layout/useNodeItem');
+jest.mock('src/utils/layout/DataModelLocation', () => ({
+  useIndexedId: (baseId: string) => baseId,
+}));
 jest.mock('react-router-dom');
 jest.mock('src/features/language/useLanguage');
 jest.mock('src/features/language/Lang');
@@ -99,12 +102,17 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        baseComponentId='whatever'
+        baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
 
+    screen.getByRole('heading', { name: /Signee List/ });
+    screen.getByText('description');
+    expect(screen.queryByRole('caption')).not.toBeInTheDocument();
+
     screen.getByRole('table', { name: /Signee List/ });
+    expect(screen.getByTestId('signee-list')).toHaveAttribute('aria-label', 'Signee List');
     screen.getByRole('columnheader', { name: 'signee_list.header_name' });
     screen.getByRole('columnheader', { name: 'signee_list.header_on_behalf_of' });
     screen.getByRole('columnheader', { name: 'signee_list.header_status' });
@@ -126,7 +134,7 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        baseComponentId='whatever'
+        baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
@@ -143,12 +151,13 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        baseComponentId='whatever'
+        baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
 
     screen.getByRole('table', { name: /Signee List/ });
+    expect(screen.getByTestId('signee-list')).toHaveAttribute('aria-label', 'Signee List');
     screen.getByRole('columnheader', { name: 'signee_list.header_name' });
     screen.getByRole('columnheader', { name: 'signee_list.header_on_behalf_of' });
     screen.getByRole('columnheader', { name: 'signee_list.header_status' });
