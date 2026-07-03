@@ -488,6 +488,15 @@ public class UiFoldersService : IUiFoldersService
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
+        // The position of each task in the process definition determines the display order of its layout set.
+        // Folder enumeration alone is alphabetical, which does not reflect the order tasks were added to the
+        // process, so we sort by task position and place subforms (which have no task) after the task-connected
+        // layout sets. This is displayed i.e. in the task cards bar of the form designer, where subforms are always last.
+        List<ProcessTask> tasks = definitions.Process.Tasks;
+        Dictionary<string, int> taskOrderById = tasks
+            .Select((task, index) => (task.Id, index))
+            .ToDictionary(entry => entry.Id, entry => entry.index);
+
         List<LayoutSetInfo> layoutSets = [];
 
         foreach (string layoutSetName in uiFolders)
@@ -504,7 +513,7 @@ public class UiFoldersService : IUiFoldersService
             }
 
             bool isSubform = layoutSettings.Type == "subform";
-            bool hasMatchingTask = definitions.Process.Tasks.Any(task => task.Id == layoutSetName);
+            bool hasMatchingTask = taskOrderById.ContainsKey(layoutSetName);
 
             if (!isSubform && !hasMatchingTask)
             {
@@ -516,7 +525,12 @@ public class UiFoldersService : IUiFoldersService
             layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
         }
 
-        return layoutSets;
+        return
+        [
+            .. layoutSets.OrderBy(layoutSet =>
+                taskOrderById.TryGetValue(layoutSet.LayoutSetName, out int order) ? order : int.MaxValue
+            ),
+        ];
     }
 
     private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);

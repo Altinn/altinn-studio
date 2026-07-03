@@ -21,6 +21,7 @@ public class UiFoldersServiceTests : IDisposable
     private const string Org = "ttd";
     private const string Developer = "testUser";
     private const string Repo = "app-with-ui-folders";
+    private const string OrderedRepo = "app-with-ordered-ui-folders";
     private string _testRepoPath;
 
     [Fact]
@@ -74,10 +75,29 @@ public class UiFoldersServiceTests : IDisposable
         Assert.Equal(2, layoutSet.PageCount);
     }
 
-    private async Task<(AltinnRepoEditingContext editingContext, UiFoldersService service)> CreateTestContext()
+    [Fact]
+    public async Task GetLayoutSetsExtended_OrdersByProcessTaskAndPlacesSubformsLast()
+    {
+        // Arrange: the process defines Task_2 before Task_1, so the result must follow that order rather
+        // than the alphabetical folder order, and the subform (which has no task) must come last.
+        (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext(OrderedRepo);
+
+        // Act
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(["Task_2", "Task_1", "subformSet"], result.Select(dto => dto.Id));
+    }
+
+    private async Task<(AltinnRepoEditingContext editingContext, UiFoldersService service)> CreateTestContext(
+        string repo = Repo
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
             Org,
             targetRepository,
