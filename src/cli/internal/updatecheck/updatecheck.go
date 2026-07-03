@@ -23,8 +23,11 @@ const (
 	EnvDisable = "STUDIOCTL_NO_UPDATE_CHECK"
 
 	// defaultInterval is how long a cached result is trusted before the registry
-	// is queried again.
-	defaultInterval = 24 * time.Hour
+	// is queried again. It governs how quickly a new release is noticed, not how
+	// often the notice is shown (that happens on every command while a newer
+	// version is cached). A few hours picks up new releases same-day while
+	// staying far below GitHub's unauthenticated rate limit.
+	defaultInterval = 3 * time.Hour
 
 	// defaultTimeout bounds the registry lookup so a slow or unreachable network
 	// never noticeably delays the command that triggered the check.
