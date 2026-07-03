@@ -119,6 +119,9 @@ func ConfigureOTel(ctx context.Context, serviceName string) (func(context.Contex
 	}
 	mp := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
+		// Preserve pre-1.44 SDK behavior; our low-cardinality metric set is
+		// controlled at call sites rather than by the provider default.
+		sdkmetric.WithCardinalityLimit(0),
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExp,
 			sdkmetric.WithInterval(metricExportInterval),
 		)),

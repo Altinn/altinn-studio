@@ -29,6 +29,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
+import 'src/styles/shared.css';
 
 const queryClient = createAppQueryClient();
 const apiClients: ApiClients = {

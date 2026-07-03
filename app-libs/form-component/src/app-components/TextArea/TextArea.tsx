@@ -25,6 +25,7 @@ export const TextArea: React.FC<TextAreaWithLabelProps> = ({
   onBlur,
   readOnly = false,
   characterLimit,
+  error,
   dataTestId,
   ariaDescribedBy,
   ariaLabel,
@@ -38,6 +39,7 @@ export const TextArea: React.FC<TextAreaWithLabelProps> = ({
       onBlur={onBlur}
       readOnly={readOnly}
       value={value}
+      aria-invalid={!!error}
       data-testid={dataTestId}
       aria-describedby={ariaDescribedBy}
       aria-label={ariaLabel}
