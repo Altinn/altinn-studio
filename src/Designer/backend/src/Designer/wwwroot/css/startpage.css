@@ -999,6 +999,13 @@ a.collapsed .a-dropdownCircleArrow {
     }
 }
 
+@media (min-width: 1280px) {
+    .resourcesContainer .container {
+        max-width: 1200px;
+        padding: 0 12px;
+    }
+}
+
 @media (min-width: 1600px) {
     .a-jumbotron {
         min-height: calc(100vh - 200px);
@@ -1006,6 +1013,15 @@ a.collapsed .a-dropdownCircleArrow {
 
     .jumbotron.a-jumbotron-header {
         padding-top: 9%;
+    }
+
+    .resourcesContainer .container {
+        max-width: 1320px;
+        padding: 0 12px;
+    }
+
+    .resourcesGrid {
+        gap: 24px;
     }
 }
 
