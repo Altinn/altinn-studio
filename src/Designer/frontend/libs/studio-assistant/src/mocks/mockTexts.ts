@@ -44,7 +44,6 @@ export const mockTexts: AssistantTexts = {
   showThreads: 'showThreads',
   newThread: 'newThread',
   previousThreads: 'previousThreads',
-  aboutAssistant: 'aboutAssistant',
   aboutAssistantDialog: aboutAssistantDialogTexts,
   emptyThread: emptyThreadTexts,
   textarea: textAreaTexts,

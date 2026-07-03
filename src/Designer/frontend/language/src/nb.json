@@ -76,7 +76,6 @@
   "admin.metrics.failed_process_next_requests": "feilende process/next",
   "admin.metrics.heading": "Statistikk fra siste",
   "admin.metrics.ready_pods": "av podene er klare",
-  "ai_assistant.about_assistant": "Om assistenten",
   "ai_assistant.about_assistant_branch_docs_link": "dokumentasjonen",
   "ai_assistant.about_assistant_branch_info": "Alle endringene lagres i en egen gren, som må flettes inn i <strong>master</strong>-grenen før endringene kan publiseres. Du kan lese mer om fletting av grener i ",
   "ai_assistant.about_assistant_data_storage": "Vi lagrer data du sender inn i 90 dager. Dataene brukes som grunnlag for fakturering, og til å feilsøke og forbedre assistenten.",

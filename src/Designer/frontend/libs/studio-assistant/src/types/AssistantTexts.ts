@@ -8,7 +8,6 @@ export type AssistantTexts = {
   showThreads: string;
   newThread: string;
   previousThreads: string;
-  aboutAssistant: string;
   aboutAssistantDialog: AboutAssistantDialogTexts;
   emptyThread: EmptyThreadTexts;
   textarea: TextAreaTexts;

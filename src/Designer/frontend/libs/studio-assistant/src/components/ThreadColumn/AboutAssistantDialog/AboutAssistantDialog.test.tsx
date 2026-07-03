@@ -1,10 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AboutAssistantDialog } from './AboutAssistantDialog';
+import { AboutAssistantDialog, hasSeenDialogStorageKey } from './AboutAssistantDialog';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
-
-const triggerText = 'Om assistenten';
-const hasSeenDialogStorageKey = 'hasSeenAboutAssistantDialog';
 
 const mockDialogTexts: AboutAssistantDialogTexts = {
   heading: 'Om assistenten',
@@ -23,7 +20,7 @@ describe('AboutAssistantDialog', () => {
 
   it('should render the trigger button', () => {
     renderAboutAssistantDialog();
-    const triggerButton = screen.getByRole('button', { name: triggerText });
+    const triggerButton = screen.getByRole('button', { name: mockDialogTexts.heading });
 
     expect(triggerButton).toBeInTheDocument();
   });
@@ -41,10 +38,11 @@ describe('AboutAssistantDialog', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('should set the has-seen flag in local storage when the dialog is closed', () => {
+  it('should set the has-seen flag in local storage when closing the dialog', async () => {
+    const user = userEvent.setup();
     renderAboutAssistantDialog();
 
-    fireEvent(screen.getByRole('dialog'), new Event('close'));
+    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
 
     expect(window.localStorage.getItem(hasSeenDialogStorageKey)).toBe('true');
   });
@@ -53,7 +51,7 @@ describe('AboutAssistantDialog', () => {
     const user = userEvent.setup();
     setHasSeenDialogFlag();
     renderAboutAssistantDialog();
-    const triggerButton = screen.getByRole('button', { name: triggerText });
+    const triggerButton = screen.getByRole('button', { name: mockDialogTexts.heading });
 
     await user.click(triggerButton);
     const dialog = screen.getByRole('dialog');
@@ -67,5 +65,5 @@ const setHasSeenDialogFlag = (): void => {
 };
 
 const renderAboutAssistantDialog = (): void => {
-  render(<AboutAssistantDialog triggerText={triggerText} texts={mockDialogTexts} />);
+  render(<AboutAssistantDialog texts={mockDialogTexts} />);
 };
