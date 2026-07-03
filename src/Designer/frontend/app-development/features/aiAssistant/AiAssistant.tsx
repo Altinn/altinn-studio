@@ -58,6 +58,7 @@ function AiAssistant(): ReactElement {
       ),
       branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
       disclaimer: t('ai_assistant.about_assistant_disclaimer'),
+      dataStorage: t('ai_assistant.about_assistant_data_storage'),
     },
     emptyThread: {
       welcome: t('ai_assistant.empty_thread_welcome'),

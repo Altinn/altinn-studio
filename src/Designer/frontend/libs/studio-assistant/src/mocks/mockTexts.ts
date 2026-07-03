@@ -12,6 +12,7 @@ const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   branchInfo: 'aboutAssistantBranchInfo',
   branchDocsLink: 'aboutAssistantBranchDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
+  dataStorage: 'aboutAssistantDataStorage',
 };
 
 const emptyThreadTexts: EmptyThreadTexts = {

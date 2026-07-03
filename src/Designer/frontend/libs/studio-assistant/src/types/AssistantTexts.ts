@@ -36,6 +36,7 @@ export type AboutAssistantDialogTexts = {
   branchInfo: ReactNode;
   branchDocsLink: string;
   disclaimer: string;
+  dataStorage: string;
 };
 
 export type EmptyThreadTexts = {
