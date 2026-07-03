@@ -35,6 +35,9 @@ import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { ConsentPreview } from '../../components/ConsentPreview';
 import { useUrlParams } from '../../hooks/useUrlParams';
 
+const RESOURCE_TYPE_DOCUMENTATION_URL =
+  'https://docs.altinn.studio/nb/authorization/what-do-you-get/resourceadministration/#ressurstypene';
+
 export type AboutResourcePageProps = {
   resourceData: Resource;
   validationErrors: ResourceFormError[];
@@ -161,7 +164,7 @@ export const AboutResourcePage = ({
                 components={{
                   a: (
                     <StudioLink
-                      href='https://docs.altinn.studio/nb/authorization/what-do-you-get/resourceadministration/#ressurstypene'
+                      href={RESOURCE_TYPE_DOCUMENTATION_URL}
                       target='_blank'
                       rel='noopener noreferrer'
                     >
