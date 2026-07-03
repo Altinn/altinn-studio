@@ -12,6 +12,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
@@ -488,14 +489,11 @@ public class UiFoldersService : IUiFoldersService
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
-        // The position of each task in the process definition determines the display order of its layout set.
-        // Folder enumeration alone is alphabetical, which does not reflect the order tasks were added to the
-        // process, so we sort by task position and place subforms (which have no task) after the task-connected
-        // layout sets. This is displayed i.e. in the task cards bar of the form designer, where subforms are always last.
-        List<ProcessTask> tasks = definitions.Process.Tasks;
-        Dictionary<string, int> taskOrderById = tasks
-            .Select((task, index) => (task.Id, index))
-            .ToDictionary(entry => entry.Id, entry => entry.index);
+        // Order layout sets by their task's position in the process flow, with subforms (no task) last.
+        List<string> orderedTaskIds = definitions.Process.OrderTaskIdsByFlow();
+        Dictionary<string, int> taskOrderById = orderedTaskIds
+            .Select((taskId, index) => (taskId, index))
+            .ToDictionary(entry => entry.taskId, entry => entry.index);
 
         List<LayoutSetInfo> layoutSets = [];
 

@@ -4,16 +4,7 @@
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>Flow_1</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:task id="Task_2" name="Andre steg">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>data</altinn:taskType>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_2</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:task id="Task_1" name="Fyrste steg">
+    <bpmn:task id="Task_1" name="Andre steg">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>data</altinn:taskType>
@@ -21,6 +12,15 @@
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_2</bpmn:incoming>
       <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Fyrste steg">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
     </bpmn:task>
     <bpmn:endEvent id="EndEvent_1">
       <bpmn:incoming>Flow_3</bpmn:incoming>

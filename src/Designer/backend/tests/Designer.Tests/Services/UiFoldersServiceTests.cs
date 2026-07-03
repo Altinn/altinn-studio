@@ -76,10 +76,11 @@ public class UiFoldersServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetLayoutSetsExtended_OrdersByProcessTaskAndPlacesSubformsLast()
+    public async Task GetLayoutSetsExtended_OrdersByProcessFlowAndPlacesSubformsLast()
     {
-        // Arrange: the process defines Task_2 before Task_1, so the result must follow that order rather
-        // than the alphabetical folder order, and the subform (which has no task) must come last.
+        // Arrange: the process flows StartEvent -> Task_2 -> Task_1 -> EndEvent, while the BPMN file lists
+        // the Task_1 element before Task_2. The result must follow the flow order (Task_2, Task_1), not the
+        // element/alphabetical order, and the subform (which has no task) must come last.
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext(OrderedRepo);
 
         // Act
