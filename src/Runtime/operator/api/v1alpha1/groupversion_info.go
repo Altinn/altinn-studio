@@ -13,9 +13,6 @@ var (
 	// This name is used by applyconfiguration generators (e.g. controller-gen).
 	SchemeGroupVersion = schema.GroupVersion{Group: "resources.altinn.studio", Version: "v1alpha1"}
 
-	// GroupVersion is an alias for SchemeGroupVersion, for backward compatibility.
-	GroupVersion = SchemeGroupVersion
-
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme.
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 
