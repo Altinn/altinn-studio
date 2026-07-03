@@ -28,20 +28,34 @@
       "minimumReleaseAge": null
     },
     {
-      "description": "Kubernetes Go client/runtime dependencies are updated manually after checking target cluster compatibility",
-      "matchManagers": ["gomod"],
-      "matchPackageNames": [
-        "/^k8s\\.io\\//",
-        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api)$/"
-      ],
-      "enabled": false
-    },
-    {
       "matchManagers": ["gomod", "pep621"],
       "groupName": "{{manager}} non-major dependencies",
       "matchPackageNames": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupSlug": "{{manager}}-minor-patch"
+    },
+    {
+      "description": "Group Kubernetes and Flux runtime Go dependency patches so related release trains move together",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "/^k8s\\.io\\//",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api)$/",
+        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api)$/"
+      ],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "Kubernetes and Flux runtime Go dependency patches",
+      "groupSlug": "k8s-flux-runtime-go-patches"
+    },
+    {
+      "description": "Kubernetes and Flux runtime Go dependency minor/major updates are done manually after checking target cluster compatibility",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "/^k8s\\.io\\//",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api)$/",
+        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api)$/"
+      ],
+      "matchUpdateTypes": ["minor", "major"],
+      "enabled": false
     },
     {
       "groupName": "LibGit2Sharp dependency",
