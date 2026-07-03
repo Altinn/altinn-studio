@@ -44,6 +44,8 @@ function AiAssistant(): ReactElement {
     previousThreads: t('ai_assistant.threads'),
     aboutAssistantDialog: {
       heading: t('ai_assistant.about_assistant_heading'),
+      intro: t('ai_assistant.about_assistant_intro'),
+      howToHeading: t('ai_assistant.about_assistant_how_to_heading'),
       description: (
         <Trans
           i18nKey='ai_assistant.about_assistant_description'
@@ -58,7 +60,8 @@ function AiAssistant(): ReactElement {
       ),
       branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
       disclaimer: t('ai_assistant.about_assistant_disclaimer'),
-      dataStorage: t('ai_assistant.about_assistant_data_storage'),
+      privacyHeading: t('ai_assistant.about_assistant_privacy_heading'),
+      privacyDataHandling: t('ai_assistant.about_assistant_privacy_data_handling'),
     },
     emptyThread: {
       welcome: t('ai_assistant.empty_thread_welcome'),

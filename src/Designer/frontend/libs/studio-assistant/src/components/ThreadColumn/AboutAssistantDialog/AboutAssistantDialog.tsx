@@ -35,6 +35,10 @@ export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): Reac
           <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
+          <StudioParagraph spacing>{texts.intro}</StudioParagraph>
+          <StudioHeading level={3} data-size='xs'>
+            {texts.howToHeading}
+          </StudioHeading>
           <StudioParagraph spacing>{texts.description}</StudioParagraph>
           <StudioParagraph spacing>
             {texts.branchInfo}
@@ -44,7 +48,10 @@ export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): Reac
             </StudioLink>
           </StudioParagraph>
           <StudioParagraph spacing>{texts.disclaimer}</StudioParagraph>
-          <StudioParagraph>{texts.dataStorage}</StudioParagraph>
+          <StudioHeading level={3} data-size='xs'>
+            {texts.privacyHeading}
+          </StudioHeading>
+          <StudioParagraph>{texts.privacyDataHandling}</StudioParagraph>
         </StudioDialog.Block>
       </StudioDialog>
     </StudioDialog.TriggerContext>

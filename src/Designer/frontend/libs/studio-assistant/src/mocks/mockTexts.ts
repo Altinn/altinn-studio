@@ -8,11 +8,14 @@ import type {
 
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   heading: 'aboutAssistantHeading',
+  intro: 'aboutAssistantIntro',
+  howToHeading: 'aboutAssistantHowToHeading',
   description: 'aboutAssistantDescription',
   branchInfo: 'aboutAssistantBranchInfo',
   branchDocsLink: 'aboutAssistantBranchDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
-  dataStorage: 'aboutAssistantDataStorage',
+  privacyHeading: 'aboutAssistantPrivacyHeading',
+  privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
 };
 
 const emptyThreadTexts: EmptyThreadTexts = {

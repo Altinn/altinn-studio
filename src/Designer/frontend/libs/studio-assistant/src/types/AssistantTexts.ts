@@ -31,11 +31,14 @@ export type MessageFeedbackTexts = {
 
 export type AboutAssistantDialogTexts = {
   heading: string;
+  intro: string;
+  howToHeading: string;
   description: ReactNode;
   branchInfo: ReactNode;
   branchDocsLink: string;
   disclaimer: string;
-  dataStorage: string;
+  privacyHeading: string;
+  privacyDataHandling: string;
 };
 
 export type EmptyThreadTexts = {

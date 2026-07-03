@@ -5,11 +5,14 @@ import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 
 const mockDialogTexts: AboutAssistantDialogTexts = {
   heading: 'Om assistenten',
+  intro: 'Assistenten er en KI-agent.',
+  howToHeading: 'Hvordan bruke assistenten',
   description: 'Beskrivelse av assistenten.',
   branchInfo: 'Grener info',
   branchDocsLink: 'dokumentasjonen',
   disclaimer: 'Assistenten er under utvikling.',
-  dataStorage: 'Vi lagrer data i 90 dager.',
+  privacyHeading: 'Personvern',
+  privacyDataHandling: 'Ikke send sensitiv informasjon. Alt lagres i 90 dager.',
 };
 
 describe('AboutAssistantDialog', () => {
@@ -57,6 +60,15 @@ describe('AboutAssistantDialog', () => {
     const dialog = screen.getByRole('dialog');
 
     expect(dialog).toBeInTheDocument();
+  });
+
+  it('should render the privacy section', () => {
+    renderAboutAssistantDialog();
+
+    expect(
+      screen.getByRole('heading', { name: mockDialogTexts.privacyHeading }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(mockDialogTexts.privacyDataHandling)).toBeInTheDocument();
   });
 });
 
