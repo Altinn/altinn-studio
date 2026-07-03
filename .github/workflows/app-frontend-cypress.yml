@@ -1,6 +1,8 @@
 name: App Frontend - Cypress
 
 on:
+  schedule:
+    - cron: '0 3 * * 1-5'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
