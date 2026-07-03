@@ -20,6 +20,13 @@ function getArbeidsflateBaseUrl(): string {
   return GlobalData.platformFrontendSettings.arbeidsflateBaseUrl;
 }
 
+function arbeidsflateEnvironment(host: string): 'local' | 'app' | 'none' {
+  if (isLocalEnvironment(host)) {
+    return 'local';
+  }
+  return extractAltinnHost(host) ? 'app' : 'none';
+}
+
 function redirectAndChangeParty(goTo: string, partyId: number): string {
   return `accessmanagement/api/v1/reportee/changeandredirect?partyId=${partyId}&goTo=${encodeURIComponent(goTo)}`;
 }
@@ -33,13 +40,13 @@ export const returnBaseUrlToAltinn = (host: string): string | undefined => {
 };
 
 function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
-  if (isLocalEnvironment(host)) {
-    return `http://${host}/`;
-  }
-
-  // Only emit arbeidsflate links for recognized Altinn app environments (not Studio preview etc.)
-  if (!extractAltinnHost(host)) {
+  const environment = arbeidsflateEnvironment(host);
+  if (environment === 'none') {
     return undefined;
+  }
+  if (environment === 'local') {
+    // Localtest is a stub homepage; party switching and dialogs are not simulated locally.
+    return `http://${host}/`;
   }
 
   const arbeidsflateUrl = getArbeidsflateBaseUrl();
@@ -73,15 +80,12 @@ export const returnUrlToArchive = (host: string, partyId?: number, dialogId?: st
   buildArbeidsflateRedirectUrl(host, partyId, dialogId);
 
 export const returnUrlToProfile = (host: string, _partyId?: number | undefined): string | undefined => {
-  if (isLocalEnvironment(host)) {
-    return `http://${host}/profile`;
-  }
-
-  if (!extractAltinnHost(host)) {
+  const environment = arbeidsflateEnvironment(host);
+  if (environment === 'none') {
     return undefined;
   }
 
-  const arbeidsflateUrl = getArbeidsflateBaseUrl();
+  const arbeidsflateUrl = environment === 'local' ? `http://${host}/` : getArbeidsflateBaseUrl();
   return `${arbeidsflateUrl.replace(/\/$/, '')}/profile`;
 };
 
