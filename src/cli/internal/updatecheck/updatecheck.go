@@ -112,6 +112,10 @@ func (c *Checker) enabled() bool {
 	switch {
 	case c.cachePath == "":
 		return false
+	case !install.IsReleaseVersion(c.current):
+		// Development or unknown builds can never resolve to a newer release, so
+		// skip the registry lookup entirely rather than querying it for nothing.
+		return false
 	case config.IsCI():
 		return false
 	case config.IsTruthyEnv(os.Getenv(EnvDisable)):

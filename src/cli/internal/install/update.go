@@ -358,6 +358,15 @@ func IsNewerReleaseVersion(current, candidate string) bool {
 	return cand.preview > cur.preview
 }
 
+// IsReleaseVersion reports whether version parses as a studioctl release version
+// (for example "0.1.0-preview.15" or "studioctl/v0.1.0"). Development or unknown
+// builds such as "dev" return false, so callers can skip work that only makes
+// sense for a real release.
+func IsReleaseVersion(version string) bool {
+	_, ok := parseStudioctlTagVersion(toStudioctlTag(version))
+	return ok
+}
+
 // toStudioctlTag normalizes a bare or partially-prefixed version into the
 // "studioctl/vX.Y.Z" form expected by parseStudioctlTagVersion.
 func toStudioctlTag(version string) string {

@@ -220,6 +220,31 @@ func TestResolveLatestStudioctlVersion_MaxPagesBound(t *testing.T) {
 	}
 }
 
+func TestIsReleaseVersion(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		version string
+		want    bool
+	}{
+		{version: "0.1.0-preview.0", want: true},
+		{version: "v0.1.0", want: true},
+		{version: "studioctl/v0.1.0-preview.15", want: true},
+		{version: "dev", want: false},
+		{version: "", want: false},
+		{version: "not-a-version", want: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.version, func(t *testing.T) {
+			t.Parallel()
+			if got := IsReleaseVersion(tc.version); got != tc.want {
+				t.Fatalf("IsReleaseVersion(%q) = %v, want %v", tc.version, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestIsNewerReleaseVersion(t *testing.T) {
 	t.Parallel()
 

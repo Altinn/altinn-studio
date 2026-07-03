@@ -208,6 +208,15 @@ func TestRun_Disabled(t *testing.T) {
 				c.cachePath = ""
 			},
 		},
+		{
+			name: "development build",
+			prepare: func(t *testing.T, c *Checker) {
+				t.Helper()
+				t.Setenv(config.EnvCI, "")
+				t.Setenv(EnvDisable, "")
+				c.current = "dev"
+			},
+		},
 	}
 
 	for _, tc := range tests {
