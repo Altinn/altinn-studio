@@ -16,16 +16,31 @@ public static class ProcessExtensions
     /// </summary>
     public static List<string> OrderTaskIdsByFlow(this Process process)
     {
-        List<ProcessTask> tasks = process.Tasks ?? [];
-        HashSet<string> taskIds = [.. tasks.Select(task => task.Id)];
+        List<string> taskIds = (process.Tasks ?? []).Select(task => task.Id).ToList();
 
         ILookup<string, string> outgoingTargets = (process.SequenceFlow ?? [])
             .Where(flow => flow.SourceRef is not null && flow.TargetRef is not null)
             .ToLookup(flow => flow.SourceRef, flow => flow.TargetRef);
 
+        IEnumerable<string> startIds = (process.StartEvents ?? []).Select(startEvent => startEvent.Id);
+        List<string> orderedTaskIds = TraverseTaskIdsFromStart(startIds, outgoingTargets, [.. taskIds]);
+
+        // Tasks not reachable from a start event still need a defined position, appended in declared order.
+        HashSet<string> reachedTaskIds = [.. orderedTaskIds];
+        orderedTaskIds.AddRange(taskIds.Where(taskId => !reachedTaskIds.Contains(taskId)));
+
+        return orderedTaskIds;
+    }
+
+    private static List<string> TraverseTaskIdsFromStart(
+        IEnumerable<string> startIds,
+        ILookup<string, string> outgoingTargets,
+        HashSet<string> taskIds
+    )
+    {
         List<string> orderedTaskIds = [];
         HashSet<string> visited = [];
-        Queue<string> toVisit = new((process.StartEvents ?? []).Select(startEvent => startEvent.Id));
+        Queue<string> toVisit = new(startIds);
 
         while (toVisit.Count > 0)
         {
@@ -43,8 +58,6 @@ public static class ProcessExtensions
                 toVisit.Enqueue(target);
             }
         }
-
-        orderedTaskIds.AddRange(tasks.Select(task => task.Id).Where(taskId => !visited.Contains(taskId)));
 
         return orderedTaskIds;
     }
