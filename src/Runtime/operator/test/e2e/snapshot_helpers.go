@@ -68,29 +68,6 @@ func parseKeyIndex(keyId string) (int, error) {
 	return index, nil
 }
 
-// CaptureConsistency records initial values from the first successful reconciliation.
-func CaptureConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
-	if consistencyState != nil || client == nil {
-		return // Already captured or no client
-	}
-	if client.Status.ClientId == "" {
-		return // Not yet reconciled
-	}
-
-	maxIdx := -1
-	for _, keyId := range client.Status.KeyIds {
-		if idx, err := parseKeyIndex(keyId); err == nil && idx > maxIdx {
-			maxIdx = idx
-		}
-	}
-
-	consistencyState = &ConsistencyState{
-		ClientID:    client.Status.ClientId,
-		KeyIDs:      client.Status.KeyIds,
-		MaxKeyIndex: maxIdx,
-	}
-}
-
 // AssertConsistency verifies key rotation invariants:
 // - ClientID never changes
 // - Max 2 keys (newest + previous)
@@ -102,27 +79,59 @@ func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 }
 
 func CheckConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
-	if consistencyState == nil || client == nil {
+	if client == nil {
 		return nil // Nothing to verify
 	}
 
-	newMaxIdx, err := checkClientConsistency(client)
+	state := consistencyState
+	if state == nil {
+		candidate, ready, err := newConsistencyState(client)
+		if err != nil {
+			return err
+		}
+		if !ready {
+			return nil // Not yet reconciled
+		}
+		state = candidate
+	}
+
+	newMaxIdx, err := checkClientConsistency(state, client)
 	if err != nil {
 		return err
 	}
-	if err := checkSecretConsistency(client, secret); err != nil {
+	if err := checkSecretConsistency(state, client, secret); err != nil {
 		return err
 	}
 
+	if consistencyState == nil {
+		consistencyState = state
+	}
 	consistencyState.KeyIDs = client.Status.KeyIds
 	consistencyState.MaxKeyIndex = newMaxIdx
 	return nil
 }
 
-func checkClientConsistency(client *resourcesv1alpha1.MaskinportenClient) (int, error) {
-	if client.Status.ClientId != consistencyState.ClientID {
+func newConsistencyState(client *resourcesv1alpha1.MaskinportenClient) (*ConsistencyState, bool, error) {
+	if client.Status.ClientId == "" {
+		return nil, false, nil
+	}
+
+	indices, err := keyIndices(client.Status.KeyIds)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return &ConsistencyState{
+		ClientID:    client.Status.ClientId,
+		KeyIDs:      client.Status.KeyIds,
+		MaxKeyIndex: maxKeyIndex(indices),
+	}, true, nil
+}
+
+func checkClientConsistency(state *ConsistencyState, client *resourcesv1alpha1.MaskinportenClient) (int, error) {
+	if client.Status.ClientId != state.ClientID {
 		return 0, fmt.Errorf("%w: got %q want %q",
-			errConsistencyClientIDChanged, client.Status.ClientId, consistencyState.ClientID)
+			errConsistencyClientIDChanged, client.Status.ClientId, state.ClientID)
 	}
 	if len(client.Status.KeyIds) > 2 {
 		return 0, fmt.Errorf("%w: got %d", errConsistencyTooManyKeys, len(client.Status.KeyIds))
@@ -132,35 +141,35 @@ func checkClientConsistency(client *resourcesv1alpha1.MaskinportenClient) (int, 
 	if err != nil {
 		return 0, err
 	}
-	if err := checkKeyContinuity(client.Status.KeyIds, currentIndices); err != nil {
+	if err := checkKeyContinuity(state, client.Status.KeyIds, currentIndices); err != nil {
 		return 0, err
 	}
-	return updatedMaxKeyIndex(currentIndices), nil
+	return updatedMaxKeyIndex(state, currentIndices), nil
 }
 
-func checkKeyContinuity(keyIDs []string, indices []int) error {
-	if len(consistencyState.KeyIDs) == 0 {
+func checkKeyContinuity(state *ConsistencyState, keyIDs []string, indices []int) error {
+	if len(state.KeyIDs) == 0 {
 		return nil
 	}
 	if len(keyIDs) == 0 {
-		return fmt.Errorf("%w: got empty want to retain %v", errConsistencyKeyRetention, consistencyState.KeyIDs)
+		return fmt.Errorf("%w: got empty want to retain %v", errConsistencyKeyRetention, state.KeyIDs)
 	}
 
 	newestIndex := indices[0]
-	if newestIndex < consistencyState.MaxKeyIndex {
+	if newestIndex < state.MaxKeyIndex {
 		return fmt.Errorf("%w: got newest %d want at least %d",
-			errConsistencyKeyRegression, newestIndex, consistencyState.MaxKeyIndex)
+			errConsistencyKeyRegression, newestIndex, state.MaxKeyIndex)
 	}
-	if newestIndex == consistencyState.MaxKeyIndex {
-		if !sameStringSlice(keyIDs, consistencyState.KeyIDs) {
-			return fmt.Errorf("%w: got %v want %v", errConsistencyKeyRetention, keyIDs, consistencyState.KeyIDs)
+	if newestIndex == state.MaxKeyIndex {
+		if !sameStringSlice(keyIDs, state.KeyIDs) {
+			return fmt.Errorf("%w: got %v want %v", errConsistencyKeyRetention, keyIDs, state.KeyIDs)
 		}
 		return nil
 	}
 
-	if len(keyIDs) < 2 || keyIDs[1] != consistencyState.KeyIDs[0] {
+	if len(keyIDs) < 2 || keyIDs[1] != state.KeyIDs[0] {
 		return fmt.Errorf("%w: got %v want previous newest %q",
-			errConsistencyKeyRetention, keyIDs, consistencyState.KeyIDs[0])
+			errConsistencyKeyRetention, keyIDs, state.KeyIDs[0])
 	}
 	return nil
 }
@@ -183,17 +192,31 @@ func keyIndices(keyIDs []string) ([]int, error) {
 	return currentIndices, nil
 }
 
-func updatedMaxKeyIndex(currentIndices []int) int {
-	newMaxIdx := consistencyState.MaxKeyIndex
+func updatedMaxKeyIndex(state *ConsistencyState, currentIndices []int) int {
+	newMaxIdx := state.MaxKeyIndex
 	for _, idx := range currentIndices {
-		if idx > consistencyState.MaxKeyIndex && idx > newMaxIdx {
+		if idx > state.MaxKeyIndex && idx > newMaxIdx {
 			newMaxIdx = idx
 		}
 	}
 	return newMaxIdx
 }
 
-func checkSecretConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
+func maxKeyIndex(indices []int) int {
+	maxIdx := -1
+	for _, idx := range indices {
+		if idx > maxIdx {
+			maxIdx = idx
+		}
+	}
+	return maxIdx
+}
+
+func checkSecretConsistency(
+	state *ConsistencyState,
+	client *resourcesv1alpha1.MaskinportenClient,
+	secret *corev1.Secret,
+) error {
 	if secret == nil || secret.Data == nil {
 		return nil
 	}
@@ -209,7 +232,7 @@ func checkSecretConsistency(client *resourcesv1alpha1.MaskinportenClient, secret
 	}
 
 	settings = unwrapMaskinportenSettings(settings)
-	if err := checkSecretClientID(settings); err != nil {
+	if err := checkSecretClientID(state, settings); err != nil {
 		return err
 	}
 	return checkSecretKeyIDs(settings, client.Status.KeyIds)
@@ -222,16 +245,16 @@ func unwrapMaskinportenSettings(settings map[string]any) map[string]any {
 	return settings
 }
 
-func checkSecretClientID(settings map[string]any) error {
+func checkSecretClientID(state *ConsistencyState, settings map[string]any) error {
 	secretClientID, ok := settings["ClientId"].(string)
 	if !ok || secretClientID == "" {
 		return fmt.Errorf("%w: missing ClientId want %q",
-			errConsistencySecretClientID, consistencyState.ClientID)
+			errConsistencySecretClientID, state.ClientID)
 	}
 
-	if secretClientID != consistencyState.ClientID {
+	if secretClientID != state.ClientID {
 		return fmt.Errorf("%w: got %q want %q",
-			errConsistencySecretClientID, secretClientID, consistencyState.ClientID)
+			errConsistencySecretClientID, secretClientID, state.ClientID)
 	}
 	return nil
 }
@@ -239,17 +262,11 @@ func checkSecretClientID(settings map[string]any) error {
 func checkSecretKeyIDs(settings map[string]any, expected []string) error {
 	jwks, ok := settings["Jwks"].(map[string]any)
 	if !ok {
-		if len(expected) == 0 {
-			return nil
-		}
 		return fmt.Errorf("%w: missing Jwks.keys want %v", errConsistencySecretKeyIDs, expected)
 	}
 
 	keys, ok := jwks["keys"].([]any)
 	if !ok {
-		if len(expected) == 0 {
-			return nil
-		}
 		return fmt.Errorf("%w: missing Jwks.keys want %v", errConsistencySecretKeyIDs, expected)
 	}
 
@@ -769,11 +786,8 @@ func EventuallyWithSnapshot(
 		if err := condition(client, secret); err != nil {
 			return err
 		}
-		CaptureConsistency(lastClient, lastSecret)
 		return CheckConsistency(lastClient, lastSecret)
 	}, timeout, interval).Should(gomega.Succeed())
-
-	CaptureConsistency(lastClient, lastSecret)
 
 	AssertConsistency(lastClient, lastSecret)
 
