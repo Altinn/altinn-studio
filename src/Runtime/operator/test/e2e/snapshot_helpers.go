@@ -35,6 +35,8 @@ var errNoPodsFound = errors.New("no pods found for label")
 var errConsistencyClientIDChanged = errors.New("clientId changed unexpectedly - client may have been recreated")
 var errConsistencyTooManyKeys = errors.New("expected at most 2 keys")
 var errConsistencyKeyOrder = errors.New("keys not ordered from newest to oldest")
+var errConsistencyKeyRegression = errors.New("key index regressed")
+var errConsistencyKeyRetention = errors.New("previous key was not retained")
 var errConsistencySecretJSON = errors.New("decode secret maskinporten settings")
 var errConsistencySecretClientID = errors.New("secret clientId doesn't match CR clientId")
 var errConsistencySecretKeyIDs = errors.New("secret keyIds don't match CR keyIds")
@@ -130,7 +132,37 @@ func checkClientConsistency(client *resourcesv1alpha1.MaskinportenClient) (int, 
 	if err != nil {
 		return 0, err
 	}
+	if err := checkKeyContinuity(client.Status.KeyIds, currentIndices); err != nil {
+		return 0, err
+	}
 	return updatedMaxKeyIndex(currentIndices), nil
+}
+
+func checkKeyContinuity(keyIDs []string, indices []int) error {
+	if len(consistencyState.KeyIDs) == 0 {
+		return nil
+	}
+	if len(keyIDs) == 0 {
+		return fmt.Errorf("%w: got empty want to retain %v", errConsistencyKeyRetention, consistencyState.KeyIDs)
+	}
+
+	newestIndex := indices[0]
+	if newestIndex < consistencyState.MaxKeyIndex {
+		return fmt.Errorf("%w: got newest %d want at least %d",
+			errConsistencyKeyRegression, newestIndex, consistencyState.MaxKeyIndex)
+	}
+	if newestIndex == consistencyState.MaxKeyIndex {
+		if !sameStringSlice(keyIDs, consistencyState.KeyIDs) {
+			return fmt.Errorf("%w: got %v want %v", errConsistencyKeyRetention, keyIDs, consistencyState.KeyIDs)
+		}
+		return nil
+	}
+
+	if len(keyIDs) < 2 || keyIDs[1] != consistencyState.KeyIDs[0] {
+		return fmt.Errorf("%w: got %v want previous newest %q",
+			errConsistencyKeyRetention, keyIDs, consistencyState.KeyIDs[0])
+	}
+	return nil
 }
 
 func keyIndices(keyIDs []string) ([]int, error) {
@@ -192,8 +224,9 @@ func unwrapMaskinportenSettings(settings map[string]any) map[string]any {
 
 func checkSecretClientID(settings map[string]any) error {
 	secretClientID, ok := settings["ClientId"].(string)
-	if !ok {
-		return nil
+	if !ok || secretClientID == "" {
+		return fmt.Errorf("%w: missing ClientId want %q",
+			errConsistencySecretClientID, consistencyState.ClientID)
 	}
 
 	if secretClientID != consistencyState.ClientID {
@@ -206,12 +239,18 @@ func checkSecretClientID(settings map[string]any) error {
 func checkSecretKeyIDs(settings map[string]any, expected []string) error {
 	jwks, ok := settings["Jwks"].(map[string]any)
 	if !ok {
-		return nil
+		if len(expected) == 0 {
+			return nil
+		}
+		return fmt.Errorf("%w: missing Jwks.keys want %v", errConsistencySecretKeyIDs, expected)
 	}
 
 	keys, ok := jwks["keys"].([]any)
 	if !ok {
-		return nil
+		if len(expected) == 0 {
+			return nil
+		}
+		return fmt.Errorf("%w: missing Jwks.keys want %v", errConsistencySecretKeyIDs, expected)
 	}
 
 	secretKeyIDs := make([]string, 0, len(keys))
@@ -244,6 +283,18 @@ func sameStringMultiset(actual []string, expected []string) bool {
 	for _, value := range actual {
 		counts[value]--
 		if counts[value] < 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func sameStringSlice(actual []string, expected []string) bool {
+	if len(actual) != len(expected) {
+		return false
+	}
+	for i, value := range actual {
+		if value != expected[i] {
 			return false
 		}
 	}
