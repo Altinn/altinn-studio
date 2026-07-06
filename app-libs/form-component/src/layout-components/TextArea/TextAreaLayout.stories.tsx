@@ -27,6 +27,7 @@ export const TEXT_AREA_PROP_CATEGORIES = {
   onChange: 'runtime',
   onBlur: 'runtime',
   error: 'runtime',
+  ariaLabel: 'runtime',
   validationMessages: 'runtime',
 } satisfies PropCategories<TextAreaLayoutProps>;
 

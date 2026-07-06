@@ -55,6 +55,11 @@ describe('TextAreaLayout', () => {
     expect(screen.queryByText('My Label')).not.toBeInTheDocument();
   });
 
+  it('uses ariaLabel as the accessible name when no visible label is rendered', () => {
+    render({ ariaLabel: 'My hidden label' });
+    expect(screen.getByRole('textbox', { name: 'My hidden label' })).toBeInTheDocument();
+  });
+
   it('renders a description when provided', () => {
     render(
       { title: 'my.label', description: 'my.desc' },

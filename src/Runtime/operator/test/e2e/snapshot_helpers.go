@@ -32,6 +32,14 @@ var errInvalidKeyIDFormat = errors.New("invalid key ID format")
 var errFakesDBStatus = errors.New("fakes db returned unexpected status")
 var errFakesResetStatus = errors.New("fakes reset returned unexpected status")
 var errNoPodsFound = errors.New("no pods found for label")
+var errConsistencyClientIDChanged = errors.New("clientId changed unexpectedly - client may have been recreated")
+var errConsistencyTooManyKeys = errors.New("expected at most 2 keys")
+var errConsistencyKeyOrder = errors.New("keys not ordered from newest to oldest")
+var errConsistencyKeyRegression = errors.New("key index regressed")
+var errConsistencyKeyRetention = errors.New("previous key was not retained")
+var errConsistencySecretJSON = errors.New("decode secret maskinporten settings")
+var errConsistencySecretClientID = errors.New("secret clientId doesn't match CR clientId")
+var errConsistencySecretKeyIDs = errors.New("secret keyIds don't match CR keyIds")
 
 // ConsistencyState tracks values that should remain consistent across test steps.
 type ConsistencyState struct {
@@ -60,29 +68,6 @@ func parseKeyIndex(keyId string) (int, error) {
 	return index, nil
 }
 
-// CaptureConsistency records initial values from the first successful reconciliation.
-func CaptureConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
-	if consistencyState != nil || client == nil {
-		return // Already captured or no client
-	}
-	if client.Status.ClientId == "" {
-		return // Not yet reconciled
-	}
-
-	maxIdx := -1
-	for _, keyId := range client.Status.KeyIds {
-		if idx, err := parseKeyIndex(keyId); err == nil && idx > maxIdx {
-			maxIdx = idx
-		}
-	}
-
-	consistencyState = &ConsistencyState{
-		ClientID:    client.Status.ClientId,
-		KeyIDs:      client.Status.KeyIds,
-		MaxKeyIndex: maxIdx,
-	}
-}
-
 // AssertConsistency verifies key rotation invariants:
 // - ClientID never changes
 // - Max 2 keys (newest + previous)
@@ -90,70 +75,167 @@ func CaptureConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *co
 // - New keys have higher index suffix than previous max
 // - Secret matches CR state.
 func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
-	if consistencyState == nil || client == nil {
-		return // Nothing to verify
+	gomega.Expect(CheckConsistency(client, secret)).To(gomega.Succeed())
+}
+
+func CheckConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
+	if client == nil {
+		return nil // Nothing to verify
 	}
 
-	assertClientConsistency(client)
-	currentIndices := keyIndices(client.Status.KeyIds)
-	newMaxIdx := updatedMaxKeyIndex(currentIndices)
+	state := consistencyState
+	if state == nil {
+		candidate, ready, err := newConsistencyState(client)
+		if err != nil {
+			return err
+		}
+		if !ready {
+			return nil // Not yet reconciled
+		}
+		state = candidate
+	}
+
+	newMaxIdx, err := checkClientConsistency(state, client)
+	if err != nil {
+		return err
+	}
+	if err := checkSecretConsistency(state, client, secret); err != nil {
+		return err
+	}
+
+	if consistencyState == nil {
+		consistencyState = state
+	}
 	consistencyState.KeyIDs = client.Status.KeyIds
 	consistencyState.MaxKeyIndex = newMaxIdx
-
-	assertSecretConsistency(client, secret)
+	return nil
 }
 
-func assertClientConsistency(client *resourcesv1alpha1.MaskinportenClient) {
-	gomega.Expect(client.Status.ClientId).To(gomega.Equal(consistencyState.ClientID),
-		"clientId changed unexpectedly - client may have been recreated")
-	gomega.Expect(len(client.Status.KeyIds)).To(gomega.BeNumerically("<=", 2),
-		"expected at most 2 keys, got %d", len(client.Status.KeyIds))
+func newConsistencyState(client *resourcesv1alpha1.MaskinportenClient) (*ConsistencyState, bool, error) {
+	if client.Status.ClientId == "" {
+		return nil, false, nil
+	}
+
+	indices, err := keyIndices(client.Status.KeyIds)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return &ConsistencyState{
+		ClientID:    client.Status.ClientId,
+		KeyIDs:      client.Status.KeyIds,
+		MaxKeyIndex: maxKeyIndex(indices),
+	}, true, nil
 }
 
-func keyIndices(keyIDs []string) []int {
+func checkClientConsistency(state *ConsistencyState, client *resourcesv1alpha1.MaskinportenClient) (int, error) {
+	if client.Status.ClientId != state.ClientID {
+		return 0, fmt.Errorf("%w: got %q want %q",
+			errConsistencyClientIDChanged, client.Status.ClientId, state.ClientID)
+	}
+	if len(client.Status.KeyIds) > 2 {
+		return 0, fmt.Errorf("%w: got %d", errConsistencyTooManyKeys, len(client.Status.KeyIds))
+	}
+
+	currentIndices, err := keyIndices(client.Status.KeyIds)
+	if err != nil {
+		return 0, err
+	}
+	if err := checkKeyContinuity(state, client.Status.KeyIds, currentIndices); err != nil {
+		return 0, err
+	}
+	return updatedMaxKeyIndex(state, currentIndices), nil
+}
+
+func checkKeyContinuity(state *ConsistencyState, keyIDs []string, indices []int) error {
+	if len(state.KeyIDs) == 0 {
+		return nil
+	}
+	if len(keyIDs) == 0 {
+		return fmt.Errorf("%w: got empty want to retain %v", errConsistencyKeyRetention, state.KeyIDs)
+	}
+
+	newestIndex := indices[0]
+	if newestIndex < state.MaxKeyIndex {
+		return fmt.Errorf("%w: got newest %d want at least %d",
+			errConsistencyKeyRegression, newestIndex, state.MaxKeyIndex)
+	}
+	if newestIndex == state.MaxKeyIndex {
+		if !sameStringSlice(keyIDs, state.KeyIDs) {
+			return fmt.Errorf("%w: got %v want %v", errConsistencyKeyRetention, keyIDs, state.KeyIDs)
+		}
+		return nil
+	}
+
+	if len(keyIDs) < 2 || keyIDs[1] != state.KeyIDs[0] {
+		return fmt.Errorf("%w: got %v want previous newest %q",
+			errConsistencyKeyRetention, keyIDs, state.KeyIDs[0])
+	}
+	return nil
+}
+
+func keyIndices(keyIDs []string) ([]int, error) {
 	currentIndices := make([]int, 0, len(keyIDs))
 	for _, keyID := range keyIDs {
 		idx, err := parseKeyIndex(keyID)
-		gomega.Expect(err).NotTo(gomega.HaveOccurred(),
-			"failed to parse key index from "+keyID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse key index from %s: %w", keyID, err)
+		}
 		currentIndices = append(currentIndices, idx)
 	}
 	for i := 1; i < len(currentIndices); i++ {
-		gomega.Expect(currentIndices[i]).To(gomega.BeNumerically("<", currentIndices[i-1]),
-			"keys not ordered from newest to oldest: index %d should be < %d",
-			currentIndices[i], currentIndices[i-1])
+		if currentIndices[i] >= currentIndices[i-1] {
+			return nil, fmt.Errorf("%w: index %d should be < %d",
+				errConsistencyKeyOrder, currentIndices[i], currentIndices[i-1])
+		}
 	}
-	return currentIndices
+	return currentIndices, nil
 }
 
-func updatedMaxKeyIndex(currentIndices []int) int {
-	newMaxIdx := consistencyState.MaxKeyIndex
+func updatedMaxKeyIndex(state *ConsistencyState, currentIndices []int) int {
+	newMaxIdx := state.MaxKeyIndex
 	for _, idx := range currentIndices {
-		if idx > consistencyState.MaxKeyIndex && idx > newMaxIdx {
+		if idx > state.MaxKeyIndex && idx > newMaxIdx {
 			newMaxIdx = idx
 		}
 	}
 	return newMaxIdx
 }
 
-func assertSecretConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
+func maxKeyIndex(indices []int) int {
+	maxIdx := -1
+	for _, idx := range indices {
+		if idx > maxIdx {
+			maxIdx = idx
+		}
+	}
+	return maxIdx
+}
+
+func checkSecretConsistency(
+	state *ConsistencyState,
+	client *resourcesv1alpha1.MaskinportenClient,
+	secret *corev1.Secret,
+) error {
 	if secret == nil || secret.Data == nil {
-		return
+		return nil
 	}
 
 	settingsJSON, ok := secret.Data["maskinporten-settings.json"]
 	if !ok {
-		return
+		return nil
 	}
 
 	var settings map[string]any
-	if json.Unmarshal(settingsJSON, &settings) != nil {
-		return
+	if jsonErr := json.Unmarshal(settingsJSON, &settings); jsonErr != nil {
+		return fmt.Errorf("%w: %w", errConsistencySecretJSON, jsonErr)
 	}
 
 	settings = unwrapMaskinportenSettings(settings)
-	assertSecretClientID(settings)
-	assertSecretKeyIDs(settings, client.Status.KeyIds)
+	if err := checkSecretClientID(state, settings); err != nil {
+		return err
+	}
+	return checkSecretKeyIDs(settings, client.Status.KeyIds)
 }
 
 func unwrapMaskinportenSettings(settings map[string]any) map[string]any {
@@ -163,25 +245,29 @@ func unwrapMaskinportenSettings(settings map[string]any) map[string]any {
 	return settings
 }
 
-func assertSecretClientID(settings map[string]any) {
+func checkSecretClientID(state *ConsistencyState, settings map[string]any) error {
 	secretClientID, ok := settings["ClientId"].(string)
-	if !ok {
-		return
+	if !ok || secretClientID == "" {
+		return fmt.Errorf("%w: missing ClientId want %q",
+			errConsistencySecretClientID, state.ClientID)
 	}
 
-	gomega.Expect(secretClientID).To(gomega.Equal(consistencyState.ClientID),
-		"Secret clientId doesn't match CR clientId")
+	if secretClientID != state.ClientID {
+		return fmt.Errorf("%w: got %q want %q",
+			errConsistencySecretClientID, secretClientID, state.ClientID)
+	}
+	return nil
 }
 
-func assertSecretKeyIDs(settings map[string]any, expected []string) {
+func checkSecretKeyIDs(settings map[string]any, expected []string) error {
 	jwks, ok := settings["Jwks"].(map[string]any)
 	if !ok {
-		return
+		return fmt.Errorf("%w: missing Jwks.keys want %v", errConsistencySecretKeyIDs, expected)
 	}
 
 	keys, ok := jwks["keys"].([]any)
 	if !ok {
-		return
+		return fmt.Errorf("%w: missing Jwks.keys want %v", errConsistencySecretKeyIDs, expected)
 	}
 
 	secretKeyIDs := make([]string, 0, len(keys))
@@ -196,8 +282,40 @@ func assertSecretKeyIDs(settings map[string]any, expected []string) {
 		}
 	}
 
-	gomega.Expect(secretKeyIDs).To(gomega.ConsistOf(expected),
-		"Secret keyIds don't match CR keyIds")
+	if !sameStringMultiset(secretKeyIDs, expected) {
+		return fmt.Errorf("%w: got %v want %v", errConsistencySecretKeyIDs, secretKeyIDs, expected)
+	}
+	return nil
+}
+
+func sameStringMultiset(actual []string, expected []string) bool {
+	if len(actual) != len(expected) {
+		return false
+	}
+
+	counts := make(map[string]int, len(expected))
+	for _, value := range expected {
+		counts[value]++
+	}
+	for _, value := range actual {
+		counts[value]--
+		if counts[value] < 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func sameStringSlice(actual []string, expected []string) bool {
+	if len(actual) != len(expected) {
+		return false
+	}
+	for i, value := range actual {
+		if value != expected[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // marshalJSONNoEscape marshals JSON without escaping HTML characters like < and >.
@@ -665,10 +783,11 @@ func EventuallyWithSnapshot(
 		}
 		lastClient = client
 		lastSecret = secret
-		return condition(client, secret)
+		if err := condition(client, secret); err != nil {
+			return err
+		}
+		return CheckConsistency(lastClient, lastSecret)
 	}, timeout, interval).Should(gomega.Succeed())
-
-	CaptureConsistency(lastClient, lastSecret)
 
 	AssertConsistency(lastClient, lastSecret)
 

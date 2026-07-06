@@ -4,6 +4,7 @@ import { TextAreaLayout } from '@app/form-component';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
@@ -14,10 +15,9 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
 export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAreaProps) {
-  const { readOnly, dataModelBindings, saveWhileTyping, autocomplete, maxLength, grid } = useItemWhenType(
-    baseComponentId,
-    'TextArea',
-  );
+  const { langAsString } = useLanguage();
+  const { readOnly, dataModelBindings, saveWhileTyping, autocomplete, maxLength, grid, textResourceBindings } =
+    useItemWhenType(baseComponentId, 'TextArea');
 
   const { setValue, formData } = useDataModelBindings(dataModelBindings, saveWhileTyping);
   const debounce = FormStore.data.useDebounceImmediately();
@@ -41,6 +41,11 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
       maxLength={maxLength}
       autoComplete={autocomplete}
       title={title}
+      ariaLabel={
+        overrideDisplay?.renderedInTable === true && textResourceBindings?.title
+          ? langAsString(textResourceBindings.title)
+          : undefined
+      }
       help={help}
       description={description}
       showOptionalMarking={showOptionalMarking}
