@@ -162,6 +162,7 @@ public static partial class ExpressionEvaluator
             ExpressionFunction.jmespath => Jmespath(args),
             ExpressionFunction.sum => Sum(args),
             ExpressionFunction.average => Average(args),
+            ExpressionFunction.count => Count(args),
             ExpressionFunction.INVALID => throw new ExpressionEvaluatorTypeErrorException(
                 $"Function {expr.Args.FirstOrDefault()} not implemented in backend {expr}"
             ),
@@ -1092,6 +1093,23 @@ public static partial class ExpressionEvaluator
         var doubles = arrayExpressionValue.JsonArray.Select(PrepareNumericArg).ToArray();
         var aggregatedSum = PerformArithmeticWithReducer(doubles, (x, y) => x + y);
         return (double)(aggregatedSum / doubles.Length);
+    }
+
+    private static int Count(ExpressionValue[] args)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument(s), got {args.Length}");
+        }
+
+        var expressionValue = args[0];
+        if (expressionValue.ValueKind != JsonValueKind.Array)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected argument to be list, got {expressionValue.ValueKind}"
+            );
+        }
+        return expressionValue.JsonArray.Count;
     }
 
     /// <summary>

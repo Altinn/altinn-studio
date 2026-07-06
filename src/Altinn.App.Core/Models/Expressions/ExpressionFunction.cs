@@ -251,4 +251,9 @@ public enum ExpressionFunction
     /// The mandatory second argument is the value (a number or null) returned when the list is empty.
     /// </summary>
     average,
+
+    /// <summary>
+    /// Counts the number of elements in a list
+    /// </summary>
+    count,
 }

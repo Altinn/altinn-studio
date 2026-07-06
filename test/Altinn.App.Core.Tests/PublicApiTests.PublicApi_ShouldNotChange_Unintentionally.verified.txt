@@ -4772,6 +4772,7 @@ namespace Altinn.App.Core.Models.Expressions
         jmespath = 43,
         sum = 44,
         average = 45,
+        count = 46,
     }
 }
 namespace Altinn.App.Core.Models.Layout.Components.Base
