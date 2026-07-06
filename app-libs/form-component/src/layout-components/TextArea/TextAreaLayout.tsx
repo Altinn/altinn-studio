@@ -29,6 +29,8 @@ export interface TextAreaLayoutProps {
   autoComplete?: string;
   /** Text-resource key for the label. */
   title?: string;
+  /** Accessible name for the textarea when no visible label is rendered (e.g. in tables). */
+  ariaLabel?: string;
   /** Text-resource key for the description. */
   description?: string;
   /** Text-resource key for the help text. */
@@ -56,6 +58,7 @@ export function TextAreaLayout({
   maxLength,
   autoComplete,
   title,
+  ariaLabel,
   description,
   help,
   showOptionalMarking,
@@ -105,6 +108,7 @@ export function TextAreaLayout({
           error={error}
           characterLimit={!readOnly ? characterLimit : undefined}
           dataTestId={componentId}
+          ariaLabel={ariaLabel}
           ariaDescribedBy={ariaDescribedBy}
           autoComplete={autoComplete}
           style={{ minHeight: '150px', height: '150px', width: '100%' }}
