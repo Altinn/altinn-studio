@@ -1575,12 +1575,32 @@ internal sealed partial class EngineRepository
                     // Compare-and-set from the unsuccessful terminal states only. A concurrent resume
                     // moves the row out of the source set and this becomes a no-op — the caller must
                     // re-read and re-decide rather than write off a workflow that is running again.
+                    //
+                    // The released_keys CTE atomically releases the enqueue fingerprint: abandoned
+                    // means the action may be retried, so replaying the request that created this
+                    // workflow must enqueue a fresh one instead of deduplicating onto the write-off.
+                    // For a batch enqueue the key covers the whole batch — abandoning any member
+                    // releases the fingerprint for all of them. The DELETE joins the CAS result, so
+                    // it only fires when this statement performed the transition (concurrent abandons
+                    // race on the CAS, exactly one releases the key). The unindexed @> containment
+                    // scan is fine: abandon is a rare operator/supersede action and the key table is
+                    // bounded by retention.
                     const string sql = """
-                    UPDATE engine.workflows
-                    SET status = @abandoned, updated_at = @now
-                    WHERE id = @id
-                      AND namespace = @ns
-                      AND status IN (@failed, @canceled, @depFailed)
+                    WITH abandoned AS (
+                        UPDATE engine.workflows
+                        SET status = @abandoned, updated_at = @now
+                        WHERE id = @id
+                          AND namespace = @ns
+                          AND status IN (@failed, @canceled, @depFailed)
+                        RETURNING id, namespace
+                    ),
+                    released_keys AS (
+                        DELETE FROM engine.idempotency_keys ik
+                        USING abandoned a
+                        WHERE ik.namespace = a.namespace
+                          AND ik.workflow_ids @> ARRAY[a.id]
+                    )
+                    SELECT count(*)::int FROM abandoned
                     """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
@@ -1592,7 +1612,7 @@ internal sealed partial class EngineRepository
                         new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
                     );
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", abandonedAt));
-                    rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
+                    rowsAffected = (int)(await cmd.ExecuteScalarAsync(ct) ?? 0);
 
                     if (rowsAffected > 0)
                     {

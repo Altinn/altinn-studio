@@ -101,6 +101,11 @@ internal static class EngineEndpoints
                 workflows may depend on it and run. Dependents already in DependencyFailed stay put as
                 historical record. An abandoned workflow can still be resumed.
 
+                Abandoning also releases the idempotency key of the enqueue request that created the workflow:
+                the action may be retried, so replaying the same fingerprint (even with an identical body)
+                creates and runs a fresh workflow instead of deduplicating onto the write-off. For batch
+                enqueues the key covers the whole batch — abandoning any member releases it for all.
+
                 The transition is a compare-and-set: 409 Conflict when the workflow is in any other state —
                 including when a concurrent resume revived it first — and 404 Not Found when it does not exist.
                 Abandoning an already-abandoned workflow is an idempotent 200.

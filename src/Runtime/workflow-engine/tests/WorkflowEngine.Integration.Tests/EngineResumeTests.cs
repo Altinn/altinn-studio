@@ -465,6 +465,102 @@ public sealed class EngineResumeTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Abandon_ReleasesIdempotencyKey_SameKeyDifferentBodyCreatesFreshWorkflow()
+    {
+        // Abandoned means the action may be retried: abandoning releases the enqueue fingerprint,
+        // so a corrected request reusing the same idempotency key creates a fresh workflow instead
+        // of conflicting with the write-off.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-key-release").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var idempotencyKey = $"idem-{Guid.NewGuid()}";
+        using var enqueueResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-release"), idempotencyKey);
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+        var workflowId = await ReadSingleWorkflowId(enqueueResponse);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
+
+        // Sanity: while the failure stands, the same key with a different body is a 409 conflict.
+        using var conflictResponse = await PostEnqueue(client, CreateWebhookStep("/corrected-step"), idempotencyKey);
+        Assert.Equal(HttpStatusCode.Conflict, conflictResponse.StatusCode);
+
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{workflowId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+
+        // The fingerprint is released: the corrected request now creates and runs a fresh workflow.
+        using var retryResponse = await PostEnqueue(client, CreateWebhookStep("/corrected-step"), idempotencyKey);
+        Assert.Equal(HttpStatusCode.Created, retryResponse.StatusCode);
+        var freshWorkflowId = await ReadSingleWorkflowId(retryResponse);
+        Assert.NotEqual(workflowId, freshWorkflowId);
+
+        await WaitForTerminalStatus(freshWorkflowId, PersistentItemStatus.Completed);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Abandoned);
+    }
+
+    [Fact]
+    public async Task Abandon_ReleasesIdempotencyKey_ReplaySameBodyReExecutes()
+    {
+        // Replaying the exact same request after an abandon intentionally re-executes it: the
+        // write-off invalidates the dedup guarantee for that fingerprint, so an identical body
+        // creates a fresh workflow (201) rather than returning the abandoned one (200).
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-key-replay").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var idempotencyKey = $"idem-{Guid.NewGuid()}";
+        using var enqueueResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-replay"), idempotencyKey);
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+        var workflowId = await ReadSingleWorkflowId(enqueueResponse);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
+
+        // Sanity: before the abandon, an identical replay deduplicates onto the existing workflow.
+        using var dedupResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-replay"), idempotencyKey);
+        Assert.Equal(HttpStatusCode.OK, dedupResponse.StatusCode);
+        Assert.Equal(workflowId, await ReadSingleWorkflowId(dedupResponse));
+
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{workflowId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+
+        // Reconfigure WireMock so the re-execution succeeds this time.
+        _wireMock.Reset();
+        SetupWireMock();
+
+        using var replayResponse = await PostEnqueue(client, CreateWebhookStep("/fail-key-replay"), idempotencyKey);
+        Assert.Equal(HttpStatusCode.Created, replayResponse.StatusCode);
+        var freshWorkflowId = await ReadSingleWorkflowId(replayResponse);
+        Assert.NotEqual(workflowId, freshWorkflowId);
+        await WaitForTerminalStatus(freshWorkflowId, PersistentItemStatus.Completed);
+
+        // The write-off itself is untouched by the key release, and replaying the abandon is
+        // still an idempotent 200.
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Abandoned);
+        using var abandonReplayResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{workflowId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, abandonReplayResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task Abandon_NonExistentWorkflow_Returns404()
     {
         await using var factory = CreateFactory();
@@ -668,6 +764,43 @@ public sealed class EngineResumeTests : IAsyncLifetime
                 DependsOn = [dependsOnId.ToString()],
             }
         );
+
+    /// <summary>
+    /// Posts a single-workflow enqueue request with an explicit idempotency key and returns the
+    /// raw response, so tests can assert on 201 Created vs 200 Existing vs 409 Conflict.
+    /// </summary>
+    private static async Task<HttpResponseMessage> PostEnqueue(
+        HttpClient client,
+        StepRequest step,
+        string idempotencyKey
+    )
+    {
+        var request = new WorkflowEnqueueRequest
+        {
+            Context = JsonSerializer.SerializeToElement(new { test = "abandon-key-release" }),
+            Workflows = [new WorkflowRequest { OperationId = "key-release-op", Steps = [step] }],
+        };
+
+        using var msg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
+        {
+            Content = JsonContent.Create(request),
+        };
+        msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey);
+
+        return await client.SendAsync(msg, TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Reads the single workflow database ID from an accepted enqueue response.
+    /// </summary>
+    private static async Task<Guid> ReadSingleWorkflowId(HttpResponseMessage response)
+    {
+        var body = await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(body);
+        return body.Workflows.Single().DatabaseId;
+    }
 
     private static async Task<Guid> EnqueueSingle(HttpClient client, WorkflowRequest workflow)
     {
