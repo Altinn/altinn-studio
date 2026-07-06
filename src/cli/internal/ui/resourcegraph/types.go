@@ -82,6 +82,7 @@ var (
 	stateCanceledStyle = ui.ColorStyle(ui.ColorGray)
 	footerLabelStyle   = ui.ColorStyle(ui.ColorGray)
 	footerReadyStyle   = ui.ColorStyle(ui.ColorGreen)
+	footerPartialStyle = ui.ColorStyle(ui.ColorYellow)
 	footerFailedStyle  = ui.ColorStyle(ui.ColorRed)
 	progressStatsStyle = ui.ColorStyle(ui.ColorGray)
 )

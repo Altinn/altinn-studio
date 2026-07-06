@@ -350,6 +350,11 @@ export const ExprFunctionDefinitions = {
     returns: ExprVal.Number,
     needs: noSources,
   },
+  count: {
+    args: args(required(ExprVal.List)),
+    returns: ExprVal.Number,
+    needs: noSources,
+  },
   _experimentalSelectAndMap: {
     args: args(
       required(ExprVal.String),
@@ -834,6 +839,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   },
   average(...argumentList): number | null {
     return new AverageFunctionEvaluator(this, argumentList).evaluate();
+  },
+  count(list): number {
+    return list?.length || 0;
   },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
