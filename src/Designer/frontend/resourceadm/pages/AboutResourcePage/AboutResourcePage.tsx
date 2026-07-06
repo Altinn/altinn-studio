@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { StudioAlert, StudioHeading, StudioErrorSummary } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioErrorSummary, StudioLink } from '@studio/components';
 import type {
   Resource,
   ResourceTypeOption,
@@ -21,7 +21,7 @@ import {
   resourceTypeMap,
   convertMetadataStringToConsentMetadata,
 } from '../../utils/resourceUtils';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   ResourceCheckboxGroup,
   ResourceLanguageTextField,
@@ -34,6 +34,9 @@ import { ResourceReferenceFields } from '../../components/ResourceReferenceField
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { ConsentPreview } from '../../components/ConsentPreview';
 import { useUrlParams } from '../../hooks/useUrlParams';
+
+const RESOURCE_TYPE_DOCUMENTATION_URL =
+  'https://docs.altinn.studio/nb/authorization/what-do-you-get/resourceadministration/#ressurstypene';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -155,7 +158,22 @@ export const AboutResourcePage = ({
           <ResourceRadioGroup
             id='resourceType'
             label={t('resourceadm.about_resource_resource_type')}
-            description={t('resourceadm.about_resource_resource_type_label')}
+            description={
+              <Trans
+                i18nKey={'resourceadm.about_resource_resource_type_label'}
+                components={{
+                  a: (
+                    <StudioLink
+                      href={RESOURCE_TYPE_DOCUMENTATION_URL}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      {' '}
+                    </StudioLink>
+                  ),
+                }}
+              />
+            }
             value={resourceData.resourceType}
             options={resourceTypeOptions}
             onChange={(selected: ResourceTypeOption) =>

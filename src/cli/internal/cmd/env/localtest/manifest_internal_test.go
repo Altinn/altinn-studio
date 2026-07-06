@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
@@ -86,6 +87,27 @@ func assertWorkflowEngineDbContainerConfig(t *testing.T, workflowEngineDb compon
 	t.Helper()
 	if got := workflowEngineDb.Ports; got != nil {
 		t.Fatalf("workflowEngineDb.Ports = %v, want nil", got)
+	}
+	if workflowEngineDb.HealthCheck == nil {
+		t.Fatal("workflowEngineDb.HealthCheck = nil, want postgres healthcheck")
+	}
+	if !slices.Equal(
+		workflowEngineDb.HealthCheck.Test,
+		[]string{"CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U postgres"},
+	) {
+		t.Fatalf("workflowEngineDb.HealthCheck.Test = %v, want pg_isready", workflowEngineDb.HealthCheck.Test)
+	}
+	if got := workflowEngineDb.HealthCheck.Interval; got != 10*time.Second {
+		t.Fatalf("workflowEngineDb.HealthCheck.Interval = %s, want 10s", got)
+	}
+	if got := workflowEngineDb.HealthCheck.Timeout; got != 5*time.Second {
+		t.Fatalf("workflowEngineDb.HealthCheck.Timeout = %s, want 5s", got)
+	}
+	if got := workflowEngineDb.HealthCheck.Retries; got != 9 {
+		t.Fatalf("workflowEngineDb.HealthCheck.Retries = %d, want 9", got)
+	}
+	if got := workflowEngineDb.HealthCheck.StartPeriod; got != 30*time.Second {
+		t.Fatalf("workflowEngineDb.HealthCheck.StartPeriod = %s, want 30s", got)
 	}
 	wantDbVolume := containertypes.VolumeMount{
 		HostPath:      "localtest-workflow-engine-db-data",
