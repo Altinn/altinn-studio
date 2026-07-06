@@ -314,7 +314,7 @@ public class AppDevelopmentService : IAppDevelopmentService
                 ?? string.Empty;
         }
 
-        if (_appVersionService.GetAppLibVersion(altinnRepoEditingContext)?.Major >= 9 == true)
+        if (_appVersionService.IsV9App(altinnRepoEditingContext))
         {
             Designer.Models.LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
                 layoutSetName,

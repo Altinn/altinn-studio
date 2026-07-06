@@ -11,4 +11,10 @@ public interface IAppVersionService
     /// Callers must guard against a null return value.
     /// </summary>
     SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext);
+
+    /// <summary>
+    /// Returns whether the given app targets app-lib v9 or newer. An app whose version cannot be
+    /// resolved (e.g. no matching package reference) is treated as not being v9.
+    /// </summary>
+    bool IsV9App(AltinnRepoEditingContext altinnRepoEditingContext);
 }
