@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioList, StudioParagraph } from '@studio/components';
 import type { CriticalFileAlertTexts } from '../../../../../types/AssistantTexts';
 import classes from './CriticalFileAlert.module.css';
 
@@ -11,15 +11,15 @@ export type CriticalFileAlertProps = {
 export function CriticalFileAlert({ criticalFiles, texts }: CriticalFileAlertProps): ReactElement {
   return (
     <StudioAlert data-color='warning' className={classes.criticalFileAlert}>
-      <StudioHeading data-size='2xs' level={4} spacing>
+      <StudioHeading data-size='2xs' level={4}>
         {texts.heading}
       </StudioHeading>
       <StudioParagraph>{texts.description}</StudioParagraph>
-      <ul className={classes.fileList}>
+      <StudioList.Unordered>
         {criticalFiles.map((filePath) => (
-          <li key={filePath}>{filePath}</li>
+          <StudioList.Item key={filePath}>{filePath}</StudioList.Item>
         ))}
-      </ul>
+      </StudioList.Unordered>
     </StudioAlert>
   );
 }

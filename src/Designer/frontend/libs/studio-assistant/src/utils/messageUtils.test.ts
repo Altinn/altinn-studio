@@ -45,11 +45,18 @@ describe('messageUtils', () => {
   describe('filterCriticalFileNames', () => {
     const policyPath = 'App/config/authorization/policy.xml';
     const appMetaDataPath = 'App/config/applicationmetadata.json';
+    const projectPath = 'App/App.csproj';
+    const packageJsonPath = 'App/ui/package.json';
     const layoutPath = 'App/ui/layouts/layout.json';
 
     it('returns only files defined as critical', () => {
-      const changedFiles = [policyPath, appMetaDataPath, layoutPath];
-      expect(filterCriticalFileNames(changedFiles)).toEqual([policyPath, appMetaDataPath]);
+      const changedFiles = [policyPath, appMetaDataPath, projectPath, packageJsonPath, layoutPath];
+      expect(filterCriticalFileNames(changedFiles)).toEqual([
+        policyPath,
+        appMetaDataPath,
+        projectPath,
+        packageJsonPath,
+      ]);
     });
 
     it('returns an empty array when no critical files are changed', () => {
