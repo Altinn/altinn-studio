@@ -1,4 +1,19 @@
 {
+  "AbandonWorkflowResponse": {
+    "Name": "AbandonWorkflowResponse",
+    "Fields": [
+      {
+        "Name": "abandonedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "workflowId",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
   "Accepted": {
     "Name": "Accepted",
     "Fields": [
