@@ -366,15 +366,17 @@ internal sealed class Engine(
             return new AbandonWorkflowResult.Abandoned(workflowId, now);
         }
 
-        var status = await repository.GetWorkflowStatus(workflowId, ns, cancellationToken);
-        if (status is null)
+        var info = await repository.GetWorkflowStatusInfo(workflowId, ns, cancellationToken);
+        if (info is null)
             return new AbandonWorkflowResult.NotFound();
 
         // Idempotent replay: the write-off already exists, report success rather than conflict.
-        if (status == PersistentItemStatus.Abandoned)
-            return new AbandonWorkflowResult.Abandoned(workflowId, now);
+        // The abandon CAS stamped UpdatedAt with the abandonment time, so the replay reports the
+        // original timestamp instead of the replay time.
+        if (info.Status == PersistentItemStatus.Abandoned)
+            return new AbandonWorkflowResult.Abandoned(workflowId, info.UpdatedAt ?? now);
 
-        return new AbandonWorkflowResult.NotAbandonable(status.Value);
+        return new AbandonWorkflowResult.NotAbandonable(info.Status);
     }
 
     /// <summary>

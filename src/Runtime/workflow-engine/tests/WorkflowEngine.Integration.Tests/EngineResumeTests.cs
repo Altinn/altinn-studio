@@ -241,13 +241,20 @@ public sealed class EngineResumeTests : IAsyncLifetime
         Assert.Equal(parentId, abandonBody.WorkflowId);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
 
-        // Replaying the abandon is an idempotent success, not a conflict.
+        // Replaying the abandon is an idempotent success, not a conflict, and reports the
+        // original abandonment time — not the replay time. (Millisecond tolerance covers the
+        // microsecond truncation of the timestamptz round-trip.)
         using var replayResponse = await client.PostAsync(
             $"{WorkflowsPath}/{parentId}/abandon",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
         Assert.Equal(HttpStatusCode.OK, replayResponse.StatusCode);
+        var replayBody = await replayResponse.Content.ReadFromJsonAsync<AbandonWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(replayBody);
+        Assert.Equal(abandonBody.AbandonedAt, replayBody.AbandonedAt, TimeSpan.FromMilliseconds(1));
 
         // Successor enqueued after the marking, depending on the abandoned workflow by database ID.
         var successorId = await EnqueueDependentWorkflow(client, parentId, "/successor-step");

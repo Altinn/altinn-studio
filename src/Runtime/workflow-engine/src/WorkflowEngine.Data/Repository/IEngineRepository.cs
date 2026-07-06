@@ -106,6 +106,17 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Gets the status of a workflow together with the timestamp of the transition that produced
+    /// it (<c>UpdatedAt</c>), or null if not found. Used by the abandon endpoint's idempotent
+    /// replay path to report the original abandonment time rather than the replay time.
+    /// </summary>
+    Task<WorkflowStatusInfo?> GetWorkflowStatusInfo(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the full workflow (with steps) by database ID and namespace, or null if not found.
     /// </summary>
     Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
