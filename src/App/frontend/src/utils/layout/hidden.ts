@@ -61,9 +61,9 @@ export function useIsHidden<Reason extends boolean = false>(
   });
 
   if (reason.hidden && forcedVisible && options.respectDevTools !== false) {
-    return (
-      options.includeReason === true ? forcedVisibleReason : false
-    ) as Reason extends true ? HiddenWithReason : boolean;
+    return (options.includeReason === true ? forcedVisibleReason : false) as Reason extends true
+      ? HiddenWithReason
+      : boolean;
   }
 
   return (options.includeReason === true ? reason : reason.hidden) as Reason extends true ? HiddenWithReason : boolean;
@@ -153,14 +153,16 @@ export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> =
   const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
 
-  return useMemo(() => {
-    return getHiddenPages({
-      dataSources,
-      layoutCollection,
-      pageOrder,
-      options: stableOptions,
-    });
-  }, [dataSources, layoutCollection, stableOptions, pageOrder]);
+  return useMemo(
+    () =>
+      getHiddenPages({
+        dataSources,
+        layoutCollection,
+        pageOrder,
+        options: stableOptions,
+      }),
+    [dataSources, layoutCollection, stableOptions, pageOrder],
+  );
 }
 
 export function getVisiblePageOrder({

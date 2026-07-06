@@ -379,6 +379,9 @@ function useExpressionDataSourcesRuntime(
         },
       },
       ...runtimeOverrides,
+
+      // Trick to make sure eslint/exhaustive-deps does not complain about runtimeRevision
+      ...(runtimeRevision > Infinity ? { ...runtimeOverrides } : {}),
     }),
     [assertDataSourceSupported, currentDataModelPath, runtimeRevision, runtimeOverrides],
   );
