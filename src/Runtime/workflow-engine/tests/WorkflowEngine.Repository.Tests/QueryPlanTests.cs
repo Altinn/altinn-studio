@@ -143,8 +143,11 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             ct
         );
 
-        // The retention query should use the UpdatedAt filtered index on terminal statuses
+        // The retention query must range-scan the UpdatedAt partial index on terminal statuses.
+        // AssertNoSeqScan alone is not enough: when the index filter fell out of sync with the
+        // query's status list, the plan silently degraded to a bitmap scan over ix_workflows_status.
         QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "workflows", "ix_workflows_updated_at");
         await VerifyJson(plan.GetRawText());
     }
 
