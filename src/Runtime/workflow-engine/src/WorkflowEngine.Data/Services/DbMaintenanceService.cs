@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
@@ -410,25 +411,36 @@ internal sealed class DbMaintenanceService(
 
     internal static class Sql
     {
-        internal const string SelectExpiredWorkflowCandidatesCommand = """
+        // Status lists interpolated as literals below all derive from PersistentItemStatusMap so
+        // the candidate SELECT, the DELETE, and the ix_workflows_updated_at partial index filter
+        // (see EngineDbContext) can never disagree about which statuses are terminal.
+        private static readonly string _finishedStatuses = PersistentItemStatusMap.ToSqlList(
+            PersistentItemStatusMap.Finished
+        );
+
+        private static readonly string _incompleteStatuses = PersistentItemStatusMap.ToSqlList(
+            PersistentItemStatusMap.Incomplete
+        );
+
+        internal static readonly string SelectExpiredWorkflowCandidatesCommand = $"""
             SELECT w.id, w.collection_key, w.namespace
             FROM engine.workflows w
             WHERE w.id IN (
                 SELECT candidate.id
                 FROM engine.workflows candidate
-                WHERE candidate.status IN (3, 4, 5, 6, 7)
+                WHERE candidate.status IN ({_finishedStatuses})
                   AND candidate.updated_at < @cutoff
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_dependency dep
                       JOIN engine.workflows d ON dep.workflow_id = d.id
                       WHERE dep.depends_on_workflow_id = candidate.id
-                        AND (d.status IN (0, 1, 2) OR d.updated_at >= @cutoff)
+                        AND (d.status IN ({_incompleteStatuses}) OR d.updated_at >= @cutoff)
                   )
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_link lnk
                       JOIN engine.workflows l ON lnk.workflow_id = l.id
                       WHERE lnk.linked_workflow_id = candidate.id
-                        AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
+                        AND (l.status IN ({_incompleteStatuses}) OR l.updated_at >= @cutoff)
                   )
                 LIMIT @batchSize
             )
@@ -475,25 +487,25 @@ internal sealed class DbMaintenanceService(
               )
             """;
 
-        internal const string DeleteExpiredWorkflowsCommand = """
+        internal static readonly string DeleteExpiredWorkflowsCommand = $"""
             DELETE FROM engine.workflows
             WHERE id IN (
                 SELECT w.id
                 FROM engine.workflows w
                 WHERE w.id = ANY(@workflowIds)
-                  AND w.status IN (3, 4, 5, 6)
+                  AND w.status IN ({_finishedStatuses})
                   AND w.updated_at < @cutoff
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_dependency dep
                       JOIN engine.workflows d ON dep.workflow_id = d.id
                       WHERE dep.depends_on_workflow_id = w.id
-                        AND (d.status IN (0, 1, 2) OR d.updated_at >= @cutoff)
+                        AND (d.status IN ({_incompleteStatuses}) OR d.updated_at >= @cutoff)
                   )
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_link lnk
                       JOIN engine.workflows l ON lnk.workflow_id = l.id
                       WHERE lnk.linked_workflow_id = w.id
-                        AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
+                        AND (l.status IN ({_incompleteStatuses}) OR l.updated_at >= @cutoff)
                   )
                 FOR UPDATE SKIP LOCKED
             )
