@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Implementation.Altinity;
@@ -19,6 +20,18 @@ namespace Altinn.Studio.Designer.Controllers;
 public class AltinityAttachmentController : ControllerBase
 {
     private const long MaxAttachmentBytes = 20 * 1024 * 1024; // 20 MB
+
+    private static readonly HashSet<string> s_allowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".pdf",
+        ".md",
+        ".txt",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+    };
 
     private readonly AltinityAttachmentBuffer _store;
 
@@ -44,6 +57,12 @@ public class AltinityAttachmentController : ControllerBase
         if (file.Length > MaxAttachmentBytes)
         {
             return BadRequest($"File exceeds the {MaxAttachmentBytes / 1024 / 1024} MB limit.");
+        }
+
+        var extension = Path.GetExtension(file.FileName);
+        if (!s_allowedExtensions.Contains(extension))
+        {
+            return BadRequest($"File type '{extension}' is not allowed.");
         }
 
         using var memoryStream = new MemoryStream();
