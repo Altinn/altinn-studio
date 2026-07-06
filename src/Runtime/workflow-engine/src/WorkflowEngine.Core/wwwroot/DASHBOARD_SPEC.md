@@ -390,7 +390,7 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
-- **Recent**: All, Completed, Failed
+- **Recent**: All, Completed, Failed, Abandoned
 - **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Completed, Failed, Canceled
 
 ### Text Filter
