@@ -46,12 +46,10 @@ internal sealed class EngineDbContext : DbContext
 
             entity.HasIndex(e => e.HeartbeatAt).HasFilter($"status = {(int)PersistentItemStatus.Processing}");
 
-            // Backs the retention candidate scan (DbMaintenanceService). Deriving the filter from
-            // the map keeps it aligned with the terminal-status lists interpolated into that SQL —
+            // Backs the retention candidate scan (DbMaintenanceService). Using the same constant
+            // keeps it aligned with the terminal-status lists interpolated into that SQL —
             // if the sets diverge, Postgres can no longer use this partial index.
-            entity
-                .HasIndex(e => e.UpdatedAt)
-                .HasFilter($"status IN ({PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Finished)})");
+            entity.HasIndex(e => e.UpdatedAt).HasFilter($"status IN ({PersistentItemStatusMap.FinishedSqlList})");
             entity.HasIndex(e => e.Labels).HasMethod("gin");
             entity
                 .Property(e => e.Labels)

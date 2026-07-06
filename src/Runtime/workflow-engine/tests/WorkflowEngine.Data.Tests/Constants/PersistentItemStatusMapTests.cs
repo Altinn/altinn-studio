@@ -24,6 +24,21 @@ public class PersistentItemStatusMapTests
     }
 
     [Fact]
+    public void SqlListConstants_MatchTheMapProperties()
+    {
+        // The consts exist so raw SQL command texts stay compile-time constant (CA2100);
+        // this pin is what makes interpolating them drift-safe.
+        Assert.Equal(
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Finished),
+            PersistentItemStatusMap.FinishedSqlList
+        );
+        Assert.Equal(
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Incomplete),
+            PersistentItemStatusMap.IncompleteSqlList
+        );
+    }
+
+    [Fact]
     public void AllCollections_AreRegistered()
     {
         var declaredCount = typeof(PersistentItemStatusMap)
