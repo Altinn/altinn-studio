@@ -321,6 +321,7 @@ Dependency edges carry two things: sequencing (a dependent waits until its depen
 - **New work can build past it.** A workflow enqueued afterwards with a dependency on the abandoned workflow runs normally — `Abandoned` is terminal but not a failure for dependency evaluation.
 - **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed`. If a written-off casualty should also be built past, abandon it too.
 - **It is not a tombstone.** An abandoned workflow can still be resumed; if it then completes, parked `DependencyFailed` dependents recover via the sweep as usual.
+- **The enqueue fingerprint is released.** Abandoned means the action may be retried: atomically with the transition, the idempotency key of the request that created the workflow is deleted, so replaying the same fingerprint — even with an identical body — creates and runs a fresh workflow (`201 Created`) instead of deduplicating onto the write-off or conflicting. For batch enqueues the key covers the whole batch, so abandoning any member releases the fingerprint for all of them (the surviving members themselves are untouched).
 
 The canonical use is superseding a failed predecessor: mark the failed workflow `Abandoned`, then enqueue its replacement with an ordinary dependency on it (consuming the collection head as usual). The graph stays fully connected — the write-off lives in the node's state, not in special edge semantics.
 
@@ -333,7 +334,7 @@ The canonical use is superseding a failed predecessor: mark the failed workflow 
 }
 ```
 
-The transition is a compare-and-set from the three source states: 404 if the workflow does not exist, 409 if it is in any other state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch.
+The transition is a compare-and-set from the three source states: 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
 
 ## Dependency Graphs
 
@@ -472,7 +473,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
 
 **Response (200 OK — duplicate idempotency key):**
 
-Same shape. The original workflow is returned, no new workflow is created.
+Same shape. The original workflow is returned, no new workflow is created. This dedup guarantee lasts for the key row's lifetime: it ends when retention purges the key, or immediately when a workflow it created is [abandoned](#abandon) — the abandon releases the fingerprint so the request can be retried as new work.
 
 **Response (400 Bad Request — validation failure):**
 
