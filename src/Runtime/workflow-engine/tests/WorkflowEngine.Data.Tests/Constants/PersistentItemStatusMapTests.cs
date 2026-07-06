@@ -26,15 +26,15 @@ public class PersistentItemStatusMapTests
     [Fact]
     public void SqlListConstants_MatchTheMapProperties()
     {
-        // The consts exist so raw SQL command texts stay compile-time constant (CA2100);
-        // this pin is what makes interpolating them drift-safe.
+        // The constants exist so that raw SQL command texts stay compile-time constant, which
+        // rule CA2100 demands of them. This pin is what makes interpolating them drift-safe.
         Assert.Equal(
-            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Finished),
-            PersistentItemStatusMap.FinishedSqlList
+            PersistentItemStatusMap.FinishedSqlList,
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Finished)
         );
         Assert.Equal(
-            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Incomplete),
-            PersistentItemStatusMap.IncompleteSqlList
+            PersistentItemStatusMap.IncompleteSqlList,
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Incomplete)
         );
     }
 
