@@ -1,5 +1,11 @@
 ## Scripts
 
+**These scripts have been removed, as they were not compiling. The scripts do not seem to be
+in use. Leaving this note and readme, in case this was a mistake and someone wants to dig them
+back up. Date of removal: 01.07.2026.**
+
+---
+
 Collection of utility-scripts for Studio frontend.
 
 ### Getting started
