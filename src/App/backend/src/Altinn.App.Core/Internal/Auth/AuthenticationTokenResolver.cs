@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Auth;
 
@@ -14,6 +15,7 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
     private readonly IAppMetadata _appMetadata;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly ILogger<AuthenticationTokenResolver> _logger;
 
     private readonly bool _isDev;
     private readonly string _localtestBaseUrl;
@@ -23,13 +25,15 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
         IMaskinportenClient maskinportenClient,
         IAppMetadata appMetadata,
         IAuthenticationContext authenticationContext,
-        RuntimeEnvironment runtimeEnvironment
+        RuntimeEnvironment runtimeEnvironment,
+        ILogger<AuthenticationTokenResolver> logger
     )
     {
         _maskinportenClient = maskinportenClient;
         _appMetadata = appMetadata;
         _httpClientFactory = httpClientFactory;
         _authenticationContext = authenticationContext;
+        _logger = logger;
         _isDev = runtimeEnvironment.IsLocaltestPlatform();
         _localtestBaseUrl = runtimeEnvironment.GetPlatformBaseUrl();
     }
@@ -40,6 +44,23 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
         CancellationToken cancellationToken = default
     )
     {
+        // In a workflow-engine callback there is no citizen user: the ambient principal is the app's own callback token
+        // (Authenticated.App via the WorkflowEngineCallback scheme). Out-of-band machinery that runs in the callback
+        // need to act as the app itself rather than as a nonexistent user. Until the app gets its own identity,
+        // the best option in this scenario is serviceowner authentication.
+        if (
+            authenticationMethod is AuthenticationMethod.UserToken
+            && _authenticationContext.Current is Authenticated.App
+        )
+        {
+            // Information, not Warning: this is expected steady-state behaviour for every
+            // out-of-band flow the v9 engine runs (auto-PDF, gateway evaluation, receipts, ...).
+            _logger.LogInformation(
+                "Rewriting a CurrentUser() authentication request to ServiceOwner: running under the workflow-engine callback principal, where no user is present."
+            );
+            authenticationMethod = AuthenticationMethod.ServiceOwner();
+        }
+
         return authenticationMethod switch
         {
             AuthenticationMethod.UserToken => GetCurrentUserToken(),
