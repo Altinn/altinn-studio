@@ -521,8 +521,8 @@ Cypress.Commands.add('moveProcessNext', () => {
 Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, _options) => {
   const options = _options ?? { times: 1 };
   cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, ...options }, (req) => {
-    req.reply((res) => {
-      const set = JSON.parse(res.body);
+    req.on('before:response', (res) => {
+      const set = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
       if (mutator) {
         for (const layout of Object.values(set)) {
           (layout as ILayoutFile).data.layout.map(mutator);
@@ -531,7 +531,7 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
       if (wholeLayoutMutator) {
         wholeLayoutMutator(set);
       }
-      res.send(JSON.stringify(set));
+      res.body = JSON.stringify(set);
     });
   }).as(`interceptLayout(${taskName})`);
 });
