@@ -78,12 +78,10 @@
                           Inner Unique: false,
                           Plans: [
                             {
-                              Node Type: Index Scan,
+                              Node Type: Bitmap Heap Scan,
                               Parent Relationship: Outer,
                               Parallel Aware: {Scrubbed},
                               Async Capable: {Scrubbed},
-                              Scan Direction: Forward,
-                              Index Name: ix_workflows_updated_at,
                               Relation Name: workflows,
                               Alias: candidate,
                               Startup Cost: {Scrubbed},
@@ -91,7 +89,23 @@
                               Plan Rows: {Scrubbed},
                               Plan Width: {Scrubbed},
                               Disabled: false,
-                              Index Cond: (updated_at < '2026-02-17 12:00:00+00'::timestamp with time zone)
+                              Recheck Cond: (status = ANY ('{3,4,5,6,7}'::integer[])),
+                              Filter: (updated_at < '2026-02-17 12:00:00+00'::timestamp with time zone),
+                              Plans: [
+                                {
+                                  Node Type: Bitmap Index Scan,
+                                  Parent Relationship: Outer,
+                                  Parallel Aware: {Scrubbed},
+                                  Async Capable: {Scrubbed},
+                                  Index Name: ix_workflows_status,
+                                  Startup Cost: {Scrubbed},
+                                  Total Cost: {Scrubbed},
+                                  Plan Rows: {Scrubbed},
+                                  Plan Width: {Scrubbed},
+                                  Disabled: false,
+                                  Index Cond: (status = ANY ('{3,4,5,6,7}'::integer[]))
+                                }
+                              ]
                             },
                             {
                               Node Type: Nested Loop,

@@ -83,10 +83,27 @@ internal static class EngineEndpoints
             .WithSummary("Resume workflow")
             .WithDescription(
                 """
-                Resumes a terminal workflow (Failed, Canceled, DependencyFailed) back to Enqueued for re-processing.
-                Pass cascade=true to also resume workflows left in DependencyFailed by this one.
+                Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) back to Enqueued
+                for re-processing. Pass cascade=true to also resume workflows left in DependencyFailed by this one.
 
                 409 Conflict when the workflow is not in a resumable state, 404 Not Found when it does not exist.
+                """
+            );
+
+        workflowGroup
+            .MapPost("/{workflowId:guid}/abandon", EngineRequestHandlers.AbandonWorkflow)
+            .WithName("AbandonWorkflow")
+            .WithSummary("Abandon workflow")
+            .WithDescription(
+                """
+                Marks an unsuccessful terminal workflow (Failed, Canceled, DependencyFailed) as Abandoned,
+                writing off its failure: it no longer condemns dependents evaluated after the marking, so new
+                workflows may depend on it and run. Dependents already in DependencyFailed stay put as
+                historical record. An abandoned workflow can still be resumed.
+
+                The transition is a compare-and-set: 409 Conflict when the workflow is in any other state —
+                including when a concurrent resume revived it first — and 404 Not Found when it does not exist.
+                Abandoning an already-abandoned workflow is an idempotent 200.
                 """
             );
 
@@ -335,6 +352,36 @@ internal static class EngineRequestHandlers
                 {
                     Title = "Workflow cannot be resumed",
                     Detail = $"Workflow {workflowId} is in {r.CurrentStatus} state and cannot be resumed.",
+                    Status = StatusCodes.Status409Conflict,
+                }
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<Results<Ok<AbandonWorkflowResponse>, NotFound, Conflict<ProblemDetails>>> AbandonWorkflow(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngine engine,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "abandon"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await engine.AbandonWorkflow(workflowId, ns, cancellationToken);
+
+        return result switch
+        {
+            AbandonWorkflowResult.Abandoned r => TypedResults.Ok(
+                new AbandonWorkflowResponse(r.WorkflowId, r.AbandonedAt)
+            ),
+            AbandonWorkflowResult.NotFound => TypedResults.NotFound(),
+            AbandonWorkflowResult.NotAbandonable r => TypedResults.Conflict(
+                new ProblemDetails
+                {
+                    Title = "Workflow cannot be abandoned",
+                    Detail = $"Workflow {workflowId} is in {r.CurrentStatus} state and cannot be abandoned.",
                     Status = StatusCodes.Status409Conflict,
                 }
             ),

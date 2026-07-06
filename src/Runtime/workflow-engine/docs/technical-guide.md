@@ -17,6 +17,7 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
     - [Cancellation](#cancellation)
     - [Resume](#resume)
+    - [Abandon](#abandon)
     - [Dependency Graphs](#dependency-graphs)
     - [Telemetry \& Observability](#telemetry--observability)
     - [Dashboard](#dashboard)
@@ -128,8 +129,9 @@ Additional states:
 
 - **DependencyFailed** — a dependency workflow failed
 - **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
+- **Abandoned** — an unsuccessful terminal workflow whose failure a caller explicitly wrote off. See [Abandon](#abandon).
 
-Terminal workflows (Failed, Canceled, DependencyFailed) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
 
 ### Processing Loop
 
@@ -305,6 +307,33 @@ When `cascade=true`, all transitively dependent workflows in `DependencyFailed` 
 ```
 
 Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed` or `Processing`).
+
+## Abandon
+
+An unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed`) can be **abandoned** — its failure is explicitly written off by a caller:
+
+```
+POST /api/v1/{namespace}/workflows/{workflowId}/abandon
+```
+
+Dependency edges carry two things: sequencing (a dependent waits until its dependencies are terminal) and outcome gating (a failed dependency condemns dependents to `DependencyFailed`). Abandoning removes only the gating, prospectively:
+
+- **New work can build past it.** A workflow enqueued afterwards with a dependency on the abandoned workflow runs normally — `Abandoned` is terminal but not a failure for dependency evaluation.
+- **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed`. If a written-off casualty should also be built past, abandon it too.
+- **It is not a tombstone.** An abandoned workflow can still be resumed; if it then completes, parked `DependencyFailed` dependents recover via the sweep as usual.
+
+The canonical use is superseding a failed predecessor: mark the failed workflow `Abandoned`, then enqueue its replacement with an ordinary dependency on it (consuming the collection head as usual). The graph stays fully connected — the write-off lives in the node's state, not in special edge semantics.
+
+**Response (200 OK):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "abandonedAt": "2026-03-19T10:02:00+00:00"
+}
+```
+
+The transition is a compare-and-set from the three source states: 404 if the workflow does not exist, 409 if it is in any other state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch.
 
 ## Dependency Graphs
 
@@ -525,7 +554,7 @@ Supports the following optional query parameters (all repeatable params can be s
 
 | Parameter       | Repeatable | Description                                                                                                                                                                                                                    |
 | --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
 | `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
 | `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
 | `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |

@@ -963,6 +963,7 @@ internal sealed partial class EngineRepository
                             AND dep.status <> {PersistentItemStatus.Failed}
                             AND dep.status <> {PersistentItemStatus.DependencyFailed}
                             AND dep.status <> {PersistentItemStatus.Canceled}
+                            AND dep.status <> {PersistentItemStatus.Abandoned}
                       )
                     ORDER BY w.backoff_until NULLS FIRST, w.created_at
                     FOR UPDATE SKIP LOCKED
@@ -1395,7 +1396,7 @@ internal sealed partial class EngineRepository
                         updated_at = @now
                     WHERE id = @id
                       AND namespace = @ns
-                      AND status IN (@failed, @canceled, @depFailed, @requeued)
+                      AND status IN (@failed, @canceled, @depFailed, @requeued, @abandoned)
                     RETURNING id
                     """;
                     await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
@@ -1409,6 +1410,7 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("abandoned", (int)PersistentItemStatus.Abandoned));
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", resumedAt));
 
                         await using var reader = await cmd.ExecuteReaderAsync(ct);
@@ -1547,6 +1549,70 @@ internal sealed partial class EngineRepository
         {
             activity?.Errored(ex);
             logger.FailedToUpdateWorkflow("skip-backoff", workflowId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> AbandonWorkflow(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset abandonedAt,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.AbandonWorkflow");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            int rowsAffected = 0;
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                    // Compare-and-set from the unsuccessful terminal states only. A concurrent resume
+                    // moves the row out of the source set and this becomes a no-op — the caller must
+                    // re-read and re-decide rather than write off a workflow that is running again.
+                    const string sql = """
+                    UPDATE engine.workflows
+                    SET status = @abandoned, updated_at = @now
+                    WHERE id = @id
+                      AND namespace = @ns
+                      AND status IN (@failed, @canceled, @depFailed)
+                    """;
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("abandoned", (int)PersistentItemStatus.Abandoned));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("canceled", (int)PersistentItemStatus.Canceled));
+                    cmd.Parameters.Add(
+                        new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
+                    );
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", abandonedAt));
+                    rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
+
+                    if (rowsAffected > 0)
+                    {
+                        await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
+                        await notifyCmd.ExecuteNonQueryAsync(ct);
+                    }
+                },
+                cancellationToken
+            );
+
+            return rowsAffected > 0;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateWorkflow("abandon", workflowId, ex.Message, ex);
             throw;
         }
     }

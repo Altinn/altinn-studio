@@ -149,14 +149,14 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task AbandonStaleWorkflows_UsesIndexScans()
+    public async Task FailPoisonWorkflows_UsesIndexScans()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var plan = await QueryPlanHelper.ExplainAsync(
             dataSource,
-            DbMaintenanceService.Sql.AbandonStaleWorkflows,
+            DbMaintenanceService.Sql.FailPoisonWorkflows,
             [
                 new NpgsqlParameter<DateTimeOffset>("now", _now),
                 new NpgsqlParameter<DateTimeOffset>("staleDeadline", _now.AddSeconds(-15)),

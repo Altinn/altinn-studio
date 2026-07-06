@@ -42,6 +42,16 @@ internal interface IEngine
         bool cascade = false,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Marks an unsuccessful terminal workflow as Abandoned, writing off its failure so it
+    /// no longer condemns dependents evaluated after the marking.
+    /// </summary>
+    Task<AbandonWorkflowResult> AbandonWorkflow(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
 }
 
 /// <summary>
@@ -338,6 +348,33 @@ internal sealed class Engine(
             return new ResumeWorkflowResult.NotFound();
 
         return new ResumeWorkflowResult.NotResumable(status.Value);
+    }
+
+    /// <inheritdoc/>
+    public async Task<AbandonWorkflowResult> AbandonWorkflow(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = timeProvider.GetUtcNow();
+        var abandoned = await repository.AbandonWorkflow(workflowId, ns, now, cancellationToken);
+
+        if (abandoned)
+        {
+            Metrics.WorkflowsAbandoned.Add(1);
+            return new AbandonWorkflowResult.Abandoned(workflowId, now);
+        }
+
+        var status = await repository.GetWorkflowStatus(workflowId, ns, cancellationToken);
+        if (status is null)
+            return new AbandonWorkflowResult.NotFound();
+
+        // Idempotent replay: the write-off already exists, report success rather than conflict.
+        if (status == PersistentItemStatus.Abandoned)
+            return new AbandonWorkflowResult.Abandoned(workflowId, now);
+
+        return new AbandonWorkflowResult.NotAbandonable(status.Value);
     }
 
     /// <summary>

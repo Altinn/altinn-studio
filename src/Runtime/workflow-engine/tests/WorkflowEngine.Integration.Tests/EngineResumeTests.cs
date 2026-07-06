@@ -209,6 +209,278 @@ public sealed class EngineResumeTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Abandon_FailedWorkflow_SuccessorEnqueuedAfterwardsRuns()
+    {
+        // A caller writing off a failed predecessor (e.g. a process transition abandoning a task whose
+        // workflow failed terminally) marks it Abandoned, then enqueues the successor with an ordinary
+        // dependency on it. Abandoned is terminal but not in the failed set, so the successor runs
+        // instead of becoming DependencyFailed.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-parent-abandoned").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+
+        using var client = factory.CreateClient();
+        var parentId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-parent-abandoned"));
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Failed);
+
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{parentId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+
+        var abandonBody = await abandonResponse.Content.ReadFromJsonAsync<AbandonWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(abandonBody);
+        Assert.Equal(parentId, abandonBody.WorkflowId);
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+
+        // Replaying the abandon is an idempotent success, not a conflict.
+        using var replayResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{parentId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, replayResponse.StatusCode);
+
+        // Successor enqueued after the marking, depending on the abandoned workflow by database ID.
+        var successorId = await EnqueueDependentWorkflow(client, parentId, "/successor-step");
+        await WaitForTerminalStatus(successorId, PersistentItemStatus.Completed);
+
+        // Abandoning is a write-off, not a replacement: the predecessor's state is untouched by the run.
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+    }
+
+    [Fact]
+    public async Task Abandon_DependencyFailedWorkflow_SuccessorEnqueuedAfterwardsRuns()
+    {
+        // Derived casualties can be written off too: when the head of a failed chain is DependencyFailed
+        // (its own parent failed), abandoning that head lets a successor build past it while the root
+        // cause stays Failed as historical record.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-grandparent-abandoned").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+
+        using var client = factory.CreateClient();
+        var request = new WorkflowEnqueueRequest
+        {
+            Context = JsonSerializer.SerializeToElement(new { test = "abandon-dependency-failed" }),
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    Ref = "grandparent",
+                    OperationId = "grandparent-op",
+                    Steps = [CreateWebhookStep("/fail-grandparent-abandoned")],
+                },
+                new WorkflowRequest
+                {
+                    Ref = "parent",
+                    OperationId = "parent-op",
+                    Steps = [CreateWebhookStep("/parent-step")],
+                    DependsOn = ["grandparent"],
+                },
+            ],
+        };
+
+        using var enqueueMsg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
+        {
+            Content = JsonContent.Create(request),
+        };
+        enqueueMsg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
+
+        var enqueueResponse = await client.SendAsync(enqueueMsg, TestContext.Current.CancellationToken);
+        enqueueResponse.EnsureSuccessStatusCode();
+
+        var enqueueBody = await enqueueResponse.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(enqueueBody);
+
+        var grandparentId = enqueueBody.Workflows.Single(w => w.Ref == "grandparent").DatabaseId;
+        var parentId = enqueueBody.Workflows.Single(w => w.Ref == "parent").DatabaseId;
+
+        await WaitForTerminalStatus(grandparentId, PersistentItemStatus.Failed);
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.DependencyFailed);
+
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{parentId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+
+        var successorId = await EnqueueDependentWorkflow(client, parentId, "/successor-step");
+        await WaitForTerminalStatus(successorId, PersistentItemStatus.Completed);
+
+        // The root cause is not part of the write-off.
+        await WaitForTerminalStatus(grandparentId, PersistentItemStatus.Failed);
+    }
+
+    [Fact]
+    public async Task Abandon_DoesNotReleaseExistingDependencyFailedDependent()
+    {
+        // Abandoning a workflow writes off its failure for FUTURE evaluations only. A dependent already
+        // condemned to DependencyFailed expressed a success-required dependency that was never satisfied,
+        // so the maintenance sweep must leave it parked (it only releases when every dependency Completed).
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-parent-parked").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        // Aggressive sweep interval so a wrongful release would be observed within the assertion window.
+        await using var factory = new EngineWebApplicationFactory<Program>(
+            _postgres.GetConnectionString(),
+            builder =>
+            {
+                builder.UseSetting("EngineSettings:Concurrency:MaxWorkers", "5");
+                builder.UseSetting("EngineSettings:DefaultStepRetryStrategy:MaxRetries", "0");
+                builder.UseSetting("EngineSettings:MaintenanceInterval", "00:00:00.2500000");
+            }
+        );
+
+        using var client = factory.CreateClient();
+        var request = new WorkflowEnqueueRequest
+        {
+            Context = JsonSerializer.SerializeToElement(new { test = "abandon-keeps-parked" }),
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    Ref = "parent",
+                    OperationId = "parent-op",
+                    Steps = [CreateWebhookStep("/fail-parent-parked")],
+                },
+                new WorkflowRequest
+                {
+                    Ref = "child",
+                    OperationId = "child-op",
+                    Steps = [CreateWebhookStep("/child-step")],
+                    DependsOn = ["parent"],
+                },
+            ],
+        };
+
+        using var enqueueMsg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
+        {
+            Content = JsonContent.Create(request),
+        };
+        enqueueMsg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
+
+        var enqueueResponse = await client.SendAsync(enqueueMsg, TestContext.Current.CancellationToken);
+        enqueueResponse.EnsureSuccessStatusCode();
+
+        var enqueueBody = await enqueueResponse.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(enqueueBody);
+
+        var parentId = enqueueBody.Workflows.Single(w => w.Ref == "parent").DatabaseId;
+        var childId = enqueueBody.Workflows.Single(w => w.Ref == "child").DatabaseId;
+
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Failed);
+        await WaitForTerminalStatus(childId, PersistentItemStatus.DependencyFailed);
+
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{parentId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
+
+        // Several sweep cycles pass; the child must still be parked.
+        await Task.Delay(TimeSpan.FromSeconds(1.5), TestContext.Current.CancellationToken);
+        await WaitForTerminalStatus(childId, PersistentItemStatus.DependencyFailed);
+    }
+
+    [Fact]
+    public async Task Resume_AbandonedWorkflow_RunsToCompletion()
+    {
+        // Abandonment is a write-off, not a tombstone: the workflow can still be retried.
+        SetupWireMock();
+        _wireMock
+            .Given(Request.Create().WithPath("/fail-then-resume-abandoned").UsingAnyMethod())
+            .AtPriority(1)
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await using var factory = CreateFactory();
+
+        using var client = factory.CreateClient();
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fail-then-resume-abandoned"));
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Failed);
+
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{workflowId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Abandoned);
+
+        // Reconfigure WireMock to succeed, then resume.
+        _wireMock.Reset();
+        SetupWireMock();
+
+        using var resumeResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{workflowId}/resume?cascade=false",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
+
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Completed);
+    }
+
+    [Fact]
+    public async Task Abandon_CompletedWorkflow_Returns409()
+    {
+        SetupWireMock();
+
+        await using var factory = CreateFactory();
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/quick-done-abandon"));
+
+        await WaitForTerminalStatus(workflowId, PersistentItemStatus.Completed);
+
+        using var client = factory.CreateClient();
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{workflowId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(HttpStatusCode.Conflict, abandonResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Abandon_NonExistentWorkflow_Returns404()
+    {
+        await using var factory = CreateFactory();
+        var fakeId = Guid.NewGuid();
+
+        using var client = factory.CreateClient();
+        using var abandonResponse = await client.PostAsync(
+            $"{WorkflowsPath}/{fakeId}/abandon",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, abandonResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task Resume_WithoutCascade_DependentSelfHealsViaMaintenanceSweep()
     {
         // Even without cascade, a dependent left in DependencyFailed must recover on its own once the
@@ -378,6 +650,45 @@ public sealed class EngineResumeTests : IAsyncLifetime
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>();
+        Assert.NotNull(body);
+
+        return body.Workflows.Single().DatabaseId;
+    }
+
+    /// <summary>
+    /// Enqueues a single workflow depending on an already-persisted workflow by database ID.
+    /// </summary>
+    private Task<Guid> EnqueueDependentWorkflow(HttpClient client, Guid dependsOnId, string path) =>
+        EnqueueSingle(
+            client,
+            new WorkflowRequest
+            {
+                OperationId = "successor-op",
+                Steps = [CreateWebhookStep(path)],
+                DependsOn = [dependsOnId.ToString()],
+            }
+        );
+
+    private static async Task<Guid> EnqueueSingle(HttpClient client, WorkflowRequest workflow)
+    {
+        var request = new WorkflowEnqueueRequest
+        {
+            Context = JsonSerializer.SerializeToElement(new { test = "abandon-successor" }),
+            Workflows = [workflow],
+        };
+
+        using var msg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
+        {
+            Content = JsonContent.Create(request),
+        };
+        msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
+
+        var response = await client.SendAsync(msg, TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(body);
 
         return body.Workflows.Single().DatabaseId;
