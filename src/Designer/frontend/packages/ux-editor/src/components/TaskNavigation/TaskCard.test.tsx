@@ -33,9 +33,9 @@ describe('taskCard', () => {
   });
 
   it('should display "not selected" text when no datamodel is selected', async () => {
-    render({ dataType: null });
+    render({ dataType: '' });
     expect(
-      screen.getByText(textMock('ux_editor.task_card.datamodel_not_selected')),
+      screen.getByText(/ux_editor.task_card.datamodel.*ux_editor.task_card.datamodel_not_selected/),
     ).toBeInTheDocument();
   });
 
