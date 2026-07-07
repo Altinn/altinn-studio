@@ -82,7 +82,9 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
     }
   };
 
-  const availableDataModels = [...new Set([...(dataModels ?? []), dataType])].filter(Boolean);
+  const availableDataModels = Array.from(
+    new Set(dataType ? [dataType, ...(dataModels || [])] : dataModels || []),
+  );
 
   return (
     <StudioCard className={classes.editCard}>
@@ -103,16 +105,14 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         selected={dataType}
         emptyText={t('ux_editor.task_card.no_datamodels')}
         className={classes.dataTypeSelect}
-        filter={() => true}
         onSelectedChange={(target) => setDataType(target.value)}
       >
-        {availableDataModels.map((option) => (
+        {availableDataModels?.map((option) => (
           <StudioSuggestion.Option value={option} key={option} label={option}>
             {option}
           </StudioSuggestion.Option>
         ))}
       </StudioSuggestion>
-
       <div className={classes.btnGroup}>
         <StudioButton
           disabled={disableSaveButton}

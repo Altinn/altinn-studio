@@ -32,6 +32,13 @@ describe('taskCard', () => {
     expect(screen.getByText(/ux_editor.task_card.datamodel.*datamodell123/)).toBeInTheDocument();
   });
 
+  it('should display "not selected" text when no datamodel is selected', async () => {
+    render({ dataType: null });
+    expect(
+      screen.getByText(textMock('ux_editor.task_card.datamodel_not_selected')),
+    ).toBeInTheDocument();
+  });
+
   it('should display task type', async () => {
     render();
     expect(screen.getByText(/ux_editor.subform/)).toBeInTheDocument();
@@ -94,12 +101,16 @@ describe('taskCard', () => {
   });
 });
 
-const render = (extendedRenderOptions?: Partial<ExtendedRenderOptions>) => {
+const render = (
+  layoutSetModel?: Partial<UiFolderLayoutSetModel>,
+  extendedRenderOptions?: Partial<ExtendedRenderOptions>,
+) => {
   const layoutSet: UiFolderLayoutSetModel = {
     id: 'test',
     dataType: 'datamodell123',
     type: 'subform',
     taskType: null,
+    ...layoutSetModel,
   };
   renderWithProviders(<TaskCard layoutSetModel={layoutSet} />, extendedRenderOptions);
 };
