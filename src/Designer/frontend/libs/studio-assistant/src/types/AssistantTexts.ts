@@ -18,6 +18,12 @@ export type AssistantTexts = {
   cancel: string;
   assistantFirstMessage: string;
   feedback: MessageFeedbackTexts;
+  criticalFileAlert: CriticalFileAlertTexts;
+};
+
+export type CriticalFileAlertTexts = {
+  heading: string;
+  description: string;
 };
 
 export type MessageFeedbackTexts = {

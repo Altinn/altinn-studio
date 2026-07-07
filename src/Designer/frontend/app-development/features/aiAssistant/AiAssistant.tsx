@@ -82,6 +82,10 @@ function AiAssistant(): ReactElement {
       submit: t('ai_assistant.feedback_submit'),
       cancel: t('general.cancel'),
     },
+    criticalFileAlert: {
+      heading: t('ai_assistant.critical_file_alert_heading'),
+      description: t('ai_assistant.critical_file_alert_description'),
+    },
   };
 
   if (!userHasAccessToAssistant) {
