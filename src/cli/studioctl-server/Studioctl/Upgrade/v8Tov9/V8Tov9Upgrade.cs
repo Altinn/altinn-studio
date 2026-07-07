@@ -80,37 +80,39 @@ internal static class V8Tov9Upgrade
                 returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
         }
 
+        // The migration jobs below are independent of each other: one failing must not silently
+        // skip the rest (e.g. a malformed process.bpmn failing the PDF service task migration must
+        // not deprive the app of the service-owner policy check). Run them all and report the worst
+        // return code.
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await RemoveSwashbucklePackage(projectFile);
+        returnCode = Math.Max(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await MigrateOpenApiNamespace(projectFile);
+        returnCode = Math.Max(returnCode, await MigrateOpenApiNamespace(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await MigrateLaunchSettings(projectFile);
+        returnCode = Math.Max(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await ConvertConditionalRenderingRules(projectFolder);
+        returnCode = Math.Max(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await GenerateDataProcessors(projectFolder);
+        returnCode = Math.Max(returnCode, await GenerateDataProcessors(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await CleanupLegacyRuleFiles(projectFolder);
+        returnCode = Math.Max(returnCode, await CleanupLegacyRuleFiles(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await MigrateLayoutSetsToTaskUi(projectFolder);
+        returnCode = Math.Max(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await MigrateIndexCshtml(projectFolder);
+        returnCode = Math.Max(returnCode, await MigrateIndexCshtml(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = Math.Max(returnCode, await MigratePdfServiceTasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = Math.Max(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
 
         UpgradeConsole.WriteLine(
             returnCode == 0
@@ -481,6 +483,73 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating Index.cshtml: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 8: Migrate the deprecated enablePdfCreation flag to 'pdf' service tasks
+    /// </summary>
+    static async Task<int> MigratePdfServiceTasks(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating enablePdfCreation to PDF service tasks...");
+
+            var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder);
+            var warnings = await migrator.Migrate();
+
+            foreach (var warning in warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync(
+                warnings.Count > 0
+                    ? "PDF service task migration completed with warnings. Review the warnings above."
+                    : "PDF service task migration completed"
+            );
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating PDF service tasks: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 9: Ensure the policy grants the service owner the process-transition rights the v9 workflow
+    /// engine needs (it persists transitions to Storage out-of-band as the service owner)
+    /// </summary>
+    static async Task<int> MigrateServiceOwnerPolicy(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Checking service-owner process-transition rights in policy.xml..."
+            );
+
+            var migrator = new PolicyMigration.ServiceOwnerPolicyMigrator(projectFolder);
+            var warnings = await migrator.Migrate();
+
+            foreach (var warning in warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync(
+                warnings.Count > 0
+                    ? "Service-owner policy migration completed with warnings. Review the warnings above."
+                    : "Service-owner policy migration completed (policy already covered the required actions)"
+            );
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating service-owner policy: {ex.Message}");
             return 1;
         }
     }
