@@ -76,10 +76,12 @@ export function selectUploadedAttachments(
   taskId?: string,
 ): UploadedAttachment[] {
   const bindings = node.dataModelBindings;
-  const simpleValue =
-    bindings && 'simpleBinding' in bindings ? pickDebounced(state, bindings.simpleBinding) : undefined;
-  const listValue = bindings && 'list' in bindings ? pickDebounced(state, bindings.list) : undefined;
+  const hasSimpleBinding = !!bindings && 'simpleBinding' in bindings;
+  const hasListBinding = !!bindings && 'list' in bindings;
+  const simpleValue = hasSimpleBinding ? pickDebounced(state, bindings.simpleBinding) : undefined;
+  const listValue = hasListBinding ? pickDebounced(state, bindings.list) : undefined;
   const nodeIsInRepeatingGroup = node.id !== node.baseId;
+  const nodeIsBound = hasSimpleBinding || hasListBinding;
   const seen = new Set<string>();
 
   return instanceData
@@ -95,7 +97,7 @@ export function selectUploadedAttachments(
         seen.add(data.id);
         return true;
       }
-      const belongsToUnboundNode = !simpleValue && !listValue && !nodeIsInRepeatingGroup;
+      const belongsToUnboundNode = !nodeIsBound && !nodeIsInRepeatingGroup;
       if (belongsToUnboundNode) {
         seen.add(data.id);
       }
