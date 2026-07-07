@@ -60,6 +60,7 @@ public static class HttpClientExtension
     /// <param name="content">The http content</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <param name="lockToken">The instance lock token</param>
+    /// <param name="skipTaskDataCleanup">When true, tells Storage to skip its own cleanup of task-generated data because the caller manages it</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
     public static async Task<HttpResponseMessage> PutAsync(
@@ -69,6 +70,7 @@ public static class HttpClientExtension
         HttpContent? content,
         string? platformAccessToken = null,
         string? lockToken = null,
+        bool skipTaskDataCleanup = false,
         CancellationToken cancellationToken = default
     )
     {
@@ -88,6 +90,11 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(lockToken))
         {
             request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
+        }
+
+        if (skipTaskDataCleanup)
+        {
+            request.Headers.Add(Constants.General.SkipTaskDataCleanupHeaderName, "true");
         }
 
         return await httpClient.SendAsync(request, cancellationToken);

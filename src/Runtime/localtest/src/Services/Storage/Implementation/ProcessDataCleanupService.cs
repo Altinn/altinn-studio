@@ -43,21 +43,7 @@ public class ProcessDataCleanupService : IProcessDataCleanupService
             return 0;
         }
 
-        // Timestamp guard: only delete elements that already existed before the in-flight transition began.
-        // Elements younger than the current task's start were created by the transition itself and must remain.
-        //
-        // Clock note: DataElement.Created is stamped by this service, but the baseline originates in
-        // the app, so this is a cross-clock comparison. This is not ideal, and since v9 performs its own cleanup,
-        // perhaps this guard can be removed eventually.
-        //
-        // A missing baseline means the process never entered a task, so by definition there is nothing stale to clean.
-        DateTime? baseline = instance.Process?.CurrentTask?.Started ?? instance.Process?.Started;
-        if (baseline is null)
-        {
-            return 0;
-        }
-
-        List<DataElement> tagged = instance
+        List<DataElement> stale = instance
             .Data.Where(de =>
                 de.References?.Any(r =>
                     r.Relation == RelationType.GeneratedFrom
@@ -67,21 +53,6 @@ public class ProcessDataCleanupService : IProcessDataCleanupService
                     is true
             )
             .ToList();
-
-        List<DataElement> stale = tagged
-            .Where(de => de.Created is null || de.Created < baseline)
-            .ToList();
-
-        if (stale.Count < tagged.Count)
-        {
-            _logger.LogInformation(
-                "Timestamp guard spared {Spared} data element(s) tagged with task {TaskId} on instance {InstanceId}: created after the transition baseline {Baseline:O}",
-                tagged.Count - stale.Count,
-                taskId,
-                instance.Id,
-                baseline
-            );
-        }
 
         if (stale.Count == 0)
         {
