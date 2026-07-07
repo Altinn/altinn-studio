@@ -54,7 +54,7 @@ describe('Messages', () => {
 
 const defaultProps: MessagesProps = {
   messages: mockMessages,
-  assistantName: mockTexts.heading,
+  texts: mockTexts,
 };
 
 const renderMessages = (props: Partial<MessagesProps> = {}): RenderResult =>

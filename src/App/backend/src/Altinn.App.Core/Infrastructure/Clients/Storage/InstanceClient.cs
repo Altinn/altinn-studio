@@ -179,6 +179,9 @@ internal sealed class InstanceClient : IInstanceClient
             apiUrl,
             httpContent,
             lockToken: _instanceLocker.CurrentLockToken,
+            // This app runs its own task-generated data cleanup at task start, so Storage must not
+            // also prune elements generated from the entered task (which would race our own writes).
+            skipTaskDataCleanup: true,
             cancellationToken: ct
         );
         if (response.StatusCode == HttpStatusCode.OK)
@@ -220,6 +223,9 @@ internal sealed class InstanceClient : IInstanceClient
             apiUrl,
             httpContent,
             lockToken: _instanceLocker.CurrentLockToken,
+            // This app runs its own task-generated data cleanup at task start, so Storage must not
+            // also prune elements generated from the entered task (which would race our own writes).
+            skipTaskDataCleanup: true,
             cancellationToken: ct
         );
         if (response.StatusCode == HttpStatusCode.OK)
