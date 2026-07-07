@@ -8,6 +8,7 @@ from agents.graph.nodes import assistant
 from agents.services.events import sink, AgentEvent
 
 from agents.services.git.repo_manager import get_repo_manager
+from agents.services.rate_limiting import RateLimiter
 from api.dependencies import get_designer_api_key
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
@@ -22,6 +23,13 @@ log = get_logger(__name__)
 config = get_config()
 
 _active_tasks: set = set()
+
+def _developer_key(request: Request) -> str:
+    return request.headers.get("X-Developer", "")
+
+
+rate_limit_start_all_developers = RateLimiter(30, "all-developers")
+rate_limit_start_developer = RateLimiter(5, _developer_key)
 
 
 _SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
@@ -43,7 +51,10 @@ class StartReq(BaseModel):
             raise ValueError("session_id must be 1-128 alphanumeric, hyphen, or underscore characters")
         return v
 
-@router.post("/api/agent/start")
+@router.post(
+    "/api/agent/start",
+    dependencies=[Depends(rate_limit_start_developer), Depends(rate_limit_start_all_developers)],
+)
 async def start_agent(
     req: StartReq,
     request: Request,
