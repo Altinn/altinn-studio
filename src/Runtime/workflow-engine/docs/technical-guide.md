@@ -260,7 +260,7 @@ This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims
 
 ## Cancellation
 
-```
+```http
 POST /api/v1/{namespace}/workflows/{workflowId}/cancel
 ```
 
@@ -284,9 +284,9 @@ In all cases the database flag guarantees the workflow _will_ be canceled; `canc
 
 ## Resume
 
-Terminal workflows (Failed, Canceled, DependencyFailed) can be resumed for re-processing:
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be resumed for re-processing:
 
-```
+```http
 POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 ```
 
@@ -312,7 +312,7 @@ Returns 404 if the workflow does not exist, or 409 if it is not in a resumable s
 
 An unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed`) can be **abandoned** — its failure is explicitly written off by a caller:
 
-```
+```http
 POST /api/v1/{namespace}/workflows/{workflowId}/abandon
 ```
 
@@ -394,7 +394,7 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 
 ### Enqueue Workflows
 
-```
+```http
 POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
@@ -485,7 +485,7 @@ Same shape. The original workflow is returned, no new workflow is created. This 
 
 ### Get Single Workflow
 
-```
+```http
 GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```
 
@@ -620,7 +620,7 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 
 ### Resume Workflow
 
-```
+```http
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
 ```
 
