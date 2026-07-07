@@ -64,6 +64,18 @@ describe('headerMenuUtils', () => {
       const filteredItems = getTopBarMenuItems(RepositoryType.DataModels, true, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
     });
+
+    it('should filter out AiAssistant item when repoOwnerIsOrg is false', () => {
+      const filteredItems = getTopBarMenuItems(RepositoryType.App, false, [
+        FeatureFlag.AiAssistant,
+      ]);
+      expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(false);
+    });
+
+    it('should include AiAssistant item when repoOwnerIsOrg is true', () => {
+      const filteredItems = getTopBarMenuItems(RepositoryType.App, true, [FeatureFlag.AiAssistant]);
+      expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(true);
+    });
   });
 
   describe('groupMenuItemsByGroup', () => {

@@ -95,7 +95,7 @@ export const getTopBarMenuItems = (
     repositoryType,
     activeFeatureFlags,
   );
-  return filterOutDeployItem(filteredMenuItems, repoOwnerIsOrg, repositoryType);
+  return filterOutOrgOnlyItems(filteredMenuItems, repoOwnerIsOrg, repositoryType);
 };
 
 export const isMenuItemEnabledByFeatureFlag = (
@@ -107,13 +107,18 @@ export const isMenuItemEnabledByFeatureFlag = (
   return activeFeatureFlags.includes(menuItem.featureFlagName);
 };
 
-const filterOutDeployItem = (
+const orgOnlyMenuItemKeys: HeaderMenuItemKey[] = [
+  HeaderMenuItemKey.Deploy,
+  HeaderMenuItemKey.AiAssistant,
+];
+
+const filterOutOrgOnlyItems = (
   menuItems: HeaderMenuItem[],
   repoOwnerIsOrg: boolean,
   repositoryType: RepositoryType,
 ): HeaderMenuItem[] => {
   return menuItems.filter((menuItem: HeaderMenuItem) => {
-    if (menuItem.key === HeaderMenuItemKey.Deploy) {
+    if (orgOnlyMenuItemKeys.includes(menuItem.key)) {
       if (!repoOwnerIsOrg || repositoryType === RepositoryType.DataModels) return false;
     }
     return true;
