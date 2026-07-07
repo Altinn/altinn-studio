@@ -76,11 +76,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await selectSuggestionOption({
-      user,
-      selectorLabel: textMock('ux_editor.modal_properties_data_model_binding'),
-      optionLabel: datamodels[1],
-    });
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     expect(confirmSpy.getMockImplementation()).toHaveBeenCalledTimes(0);
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
@@ -94,11 +90,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await selectSuggestionOption({
-      user,
-      selectorLabel: textMock('ux_editor.modal_properties_data_model_binding'),
-      optionLabel: datamodels[1],
-    });
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     expect(confirmSpy.getMockImplementation()).toHaveBeenCalledTimes(0);
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
@@ -174,8 +166,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    const selectorLabel = textMock('ux_editor.modal_properties_data_model_binding');
-    await selectSuggestionOption({ user, selectorLabel, optionLabel: datamodels[1] });
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
     expect(updateProcessDataTypesMutation).toHaveBeenCalledTimes(1);
@@ -223,9 +214,9 @@ const layoutSetNameTextbox = (): Element =>
 const subformNameTextbox = (): Element =>
   screen.getByRole('textbox', { name: /ux_editor.task_card.subform_name_label/ });
 
-export const selectSuggestionOption = async ({ user, selectorLabel, optionLabel }) => {
+export const selectSuggestionOption = async ({ user, optionLabel }) => {
   const selector = await screen.findByRole('combobox', {
-    name: (name) => name.startsWith(selectorLabel),
+    name: (name) => name.startsWith(textMock('ux_editor.modal_properties_data_model_binding')),
   });
   await user.click(selector);
   await user.clear(selector);
