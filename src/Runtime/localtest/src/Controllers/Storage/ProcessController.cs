@@ -33,6 +33,7 @@ public class ProcessController : ControllerBase
     private readonly IProcessAuthorizer _processAuthorizer;
     private readonly IInstanceEventService _instanceEventService;
     private readonly IProcessDataCleanupService _processDataCleanupService;
+    private readonly IProcessBaselineStore _processBaselineStore;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessController"/> class
@@ -44,6 +45,7 @@ public class ProcessController : ControllerBase
     /// <param name="processAuthorizer">the process authorizer</param>
     /// <param name="instanceEventService">the instance event service</param>
     /// <param name="processDataCleanupService">the process data cleanup service</param>
+    /// <param name="processBaselineStore">the process-change baseline store</param>
     public ProcessController(
         IInstanceRepository instanceRepository,
         IInstanceEventRepository instanceEventRepository,
@@ -51,7 +53,8 @@ public class ProcessController : ControllerBase
         IOptions<GeneralSettings> generalsettings,
         IProcessAuthorizer processAuthorizer,
         IInstanceEventService instanceEventService,
-        IProcessDataCleanupService processDataCleanupService
+        IProcessDataCleanupService processDataCleanupService,
+        IProcessBaselineStore processBaselineStore
     )
     {
         _instanceRepository = instanceRepository;
@@ -61,6 +64,7 @@ public class ProcessController : ControllerBase
         _processAuthorizer = processAuthorizer;
         _instanceEventService = instanceEventService;
         _processDataCleanupService = processDataCleanupService;
+        _processBaselineStore = processBaselineStore;
     }
 
     /// <summary>
@@ -107,6 +111,7 @@ public class ProcessController : ControllerBase
             updateProperties,
             cancellationToken
         );
+        _processBaselineStore.StampProcessChange(instanceGuid);
 
         if (processState?.CurrentTask?.AltinnTaskType == "signing")
         {
@@ -207,6 +212,7 @@ public class ProcessController : ControllerBase
             processStateUpdate.Events,
             cancellationToken
         );
+        _processBaselineStore.StampProcessChange(instanceGuid);
 
         updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
         return Ok(updatedInstance);

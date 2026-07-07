@@ -118,6 +118,7 @@ namespace LocalTest
             services.AddTransient<TenorDataRepository>();
             services.AddSingleton<IInstanceLockRepository, InstanceLockRepository>();
             services.AddTransient<IProcessDataCleanupService, ProcessDataCleanupService>();
+            services.AddSingleton<IProcessBaselineStore, ProcessBaselineStore>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
