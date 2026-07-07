@@ -83,7 +83,7 @@
   "ai_assistant.about_assistant_heading": "Om assistenten",
   "ai_assistant.about_assistant_how_to_heading": "Hvordan bruke assistenten",
   "ai_assistant.about_assistant_intro": "Assistenten er en KI-agent som kan hjelpe deg med å bygge apper i Altinn Studio.",
-  "ai_assistant.about_assistant_privacy_data_handling": "Ikke send personopplysninger eller sensitiv informasjon til assistenten. Vi lagrer det du sender inn i 90 dager, og bruker dataene til å feilsøke og forbedre assistenten. Vi bruker dem også til fakturering, men ikke til å trene KI-modeller.",
+  "ai_assistant.about_assistant_privacy_data_handling": "Ikke send personopplysninger eller sensitiv informasjon til assistenten. Vi lagrer meldingene du sender inn i 90 dager, og bruker dataene til å feilsøke og forbedre assistenten. Vi bruker dem også til fakturering, men ikke til å trene KI-modeller.",
   "ai_assistant.about_assistant_privacy_heading": "Personvern",
   "ai_assistant.access_denied": "Du har ikke tilgang. Bare apper under Testdepartementet kan bruke assistenten.",
   "ai_assistant.add_attachment": "Last opp vedlegg",
