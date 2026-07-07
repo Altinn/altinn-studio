@@ -122,8 +122,8 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		restConfig,
 		codecFactory,
 		apisPath,
-		resourcesv1alpha1.GroupVersion.Group,
-		resourcesv1alpha1.GroupVersion.Version,
+		resourcesv1alpha1.SchemeGroupVersion.Group,
+		resourcesv1alpha1.SchemeGroupVersion.Version,
 		"CRD",
 	)
 	if err != nil {

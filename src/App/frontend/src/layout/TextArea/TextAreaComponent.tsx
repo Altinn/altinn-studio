@@ -1,91 +1,60 @@
 import React from 'react';
 
-import { getDescriptionId, Label, TextArea } from '@app/form-component';
+import { TextAreaLayout } from '@app/form-component';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
-import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
-import { useLabel } from 'src/utils/layout/useLabel';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
+import { useLabelData } from 'src/utils/layout/useLabelData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-
-import 'src/styles/shared.css';
 
 export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
 export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAreaProps) {
-  const isValid = useIsValid(baseComponentId);
   const { langAsString } = useLanguage();
-  const {
-    id,
-    readOnly,
-    textResourceBindings,
-    dataModelBindings,
-    saveWhileTyping,
-    autocomplete,
-    maxLength,
-    grid,
-    required,
-  } = useItemWhenType(baseComponentId, 'TextArea');
-  const characterLimit = useCharacterLimit(maxLength);
-  const {
-    formData: { simpleBinding: value },
-    setValue,
-  } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+  const { readOnly, dataModelBindings, saveWhileTyping, autocomplete, maxLength, grid, textResourceBindings } =
+    useItemWhenType(baseComponentId, 'TextArea');
+
+  const { setValue, formData } = useDataModelBindings(dataModelBindings, saveWhileTyping);
   const debounce = FormStore.data.useDebounceImmediately();
+  const isValid = useIsValid(baseComponentId);
 
-  const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId, overrideDisplay });
-
-  const descriptionId = getDescriptionId(id);
-  const validationsId = `${baseComponentId}-validations`;
-  const validations = useUnifiedValidationsForNode(baseComponentId);
-  const hasValidations = validations.length > 0;
-
-  const textAreaDescribedBy = buildAriaDescribedBy({
-    renderedInTable: overrideDisplay?.renderedInTable,
-    hasTitle: !!textResourceBindings?.title,
-    descriptionId,
-    hasDescription: !!textResourceBindings?.description,
-    validationsId,
-    hasValidations,
+  const { title, help, description, required, showOptionalMarking } = useLabelData({
+    baseComponentId,
+    overrideDisplay,
   });
+  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
 
   return (
-    <Label
-      htmlFor={id}
-      label={labelText}
-      grid={grid?.labelGrid}
+    <TextAreaLayout
+      componentId={componentId}
+      value={formData.simpleBinding}
+      onChange={(v) => setValue('simpleBinding', v)}
+      onBlur={() => debounce('blur')}
+      readOnly={readOnly}
       required={required}
-      requiredIndicator={getRequiredComponent()}
-      optionalIndicator={getOptionalComponent()}
-      help={getHelpTextComponent()}
-      description={getDescriptionComponent()}
-    >
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
-        <TextArea
-          id={id}
-          value={value}
-          onChange={(newValue) => setValue('simpleBinding', newValue)}
-          onBlur={() => debounce(`blur`)}
-          readOnly={readOnly}
-          characterLimit={!readOnly ? characterLimit : undefined}
-          error={!isValid}
-          dataTestId={id}
-          ariaDescribedBy={textAreaDescribedBy}
-          ariaLabel={
-            overrideDisplay?.renderedInTable === true && textResourceBindings?.title
-              ? langAsString(textResourceBindings.title)
-              : undefined
-          }
-          autoComplete={autocomplete}
-          style={{ minHeight: '150px', height: '150px', width: '100%' }}
-        />
-      </ComponentStructureWrapper>
-    </Label>
+      error={!isValid}
+      maxLength={maxLength}
+      autoComplete={autocomplete}
+      title={title}
+      ariaLabel={
+        overrideDisplay?.renderedInTable === true && textResourceBindings?.title
+          ? langAsString(textResourceBindings.title)
+          : undefined
+      }
+      help={help}
+      description={description}
+      showOptionalMarking={showOptionalMarking}
+      labelGrid={grid?.labelGrid}
+      innerGrid={innerGrid}
+      validationGrid={validationGrid}
+      validationMessages={
+        showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
+      }
+    />
   );
 }

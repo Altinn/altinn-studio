@@ -169,13 +169,27 @@ img {
 }
 
 .btn-lg {
-    color: #022f51 !important;
-    border: 3px solid #022f51;
-    border-radius: 0;
+    color: #ffffff !important;
+    background-color: #0062ba;
+    border: 1px solid transparent;
+    border-radius: 4px;
     font-size: 20px;
     cursor: pointer;
-    padding: 3px 20px;
+    padding: 8px 24px;
     line-height: 26px;
+}
+
+.btn-lg:hover {
+    background-color: #004e95;
+}
+
+.btn-lg:active {
+    background-color: #00417d;
+}
+
+.btn-lg:focus-visible {
+    outline: 3px solid #292c30;
+    outline-offset: 3px;
 }
 
 .link-new-user {

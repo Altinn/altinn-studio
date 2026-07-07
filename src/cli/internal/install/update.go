@@ -71,15 +71,65 @@ type resolvedUpdate struct {
 }
 
 type httpDownloader struct {
-	client  *http.Client
-	version config.Version
+	client   *http.Client
+	version  config.Version
+	maxPages int
 }
 
 func newHTTPDownloader(version config.Version) httpDownloader {
 	return httpDownloader{
-		version: version,
-		client:  &http.Client{Timeout: httpTimeout},
+		version:  version,
+		client:   &http.Client{Timeout: httpTimeout},
+		maxPages: releaseMaxPages,
 	}
+}
+
+// ResolveUpdateVersion resolves the release version an update would install
+// without downloading any assets. It returns the version tag without the
+// "studioctl/" prefix (for example "v0.1.0-preview.15"). When opts.Version is
+// empty the newest available release is resolved from GitHub.
+func (s *Service) ResolveUpdateVersion(ctx context.Context, opts UpdateOptions) (string, error) {
+	version, err := normalizeReleaseVersion(opts.Version)
+	if err != nil {
+		return "", err
+	}
+	if version == "" {
+		downloads := newHTTPDownloader(s.cfg.Version)
+		version, err = downloads.resolveLatestStudioctlVersion(ctx, defaultUpdateRepo)
+		if err != nil {
+			return "", err
+		}
+	}
+	return strings.TrimPrefix(version, "studioctl/"), nil
+}
+
+// LatestReleaseOptions tunes a newest-release lookup.
+type LatestReleaseOptions struct {
+	// Timeout bounds the total HTTP time for the lookup. Zero uses the default.
+	Timeout time.Duration
+	// MaxPages bounds how many GitHub release pages are scanned. Zero uses the default.
+	MaxPages int
+}
+
+// LatestStudioctlVersion resolves the newest available studioctl release version
+// from GitHub, returning it without the "studioctl/" prefix (for example
+// "v0.1.0-preview.15"). Unlike ResolveUpdateVersion it accepts tuning options so
+// lightweight callers such as the passive update notifier can keep the lookup
+// fast (fewer pages, a shorter timeout) instead of the full self-update scan.
+func (s *Service) LatestStudioctlVersion(ctx context.Context, opts LatestReleaseOptions) (string, error) {
+	downloads := newHTTPDownloader(s.cfg.Version)
+	if opts.Timeout > 0 {
+		downloads.client.Timeout = opts.Timeout
+	}
+	if opts.MaxPages > 0 {
+		downloads.maxPages = opts.MaxPages
+	}
+
+	version, err := downloads.resolveLatestStudioctlVersion(ctx, defaultUpdateRepo)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimPrefix(version, "studioctl/"), nil
 }
 
 // ResolveUpdateBundle downloads an update bundle and returns the current install target.
@@ -279,6 +329,55 @@ func comparePreviewVersion(a, b studioctlTagVersion) int {
 	return compareInt(a.preview, b.preview)
 }
 
+// IsNewerReleaseVersion reports whether candidate is a strictly newer studioctl
+// release than current. Both accept optional "studioctl/" and "v" prefixes (for
+// example "0.1.0-preview.0" or "v0.1.0-preview.15"). It returns false when either
+// version cannot be parsed, so unknown or development builds never trigger a
+// spurious "update available" signal.
+func IsNewerReleaseVersion(current, candidate string) bool {
+	cur, ok := parseStudioctlTagVersion(toStudioctlTag(current))
+	if !ok {
+		return false
+	}
+	cand, ok := parseStudioctlTagVersion(toStudioctlTag(candidate))
+	if !ok {
+		return false
+	}
+
+	if core := compareCoreVersion(cand, cur); core != 0 {
+		return core > 0
+	}
+	// Same core version: a stable release supersedes any preview of that core,
+	// and among previews the higher preview number wins.
+	if cand.isPreview != cur.isPreview {
+		return !cand.isPreview
+	}
+	if !cand.isPreview {
+		return false
+	}
+	return cand.preview > cur.preview
+}
+
+// IsReleaseVersion reports whether version parses as a studioctl release version
+// (for example "0.1.0-preview.15" or "studioctl/v0.1.0"). Development or unknown
+// builds such as "dev" return false, so callers can skip work that only makes
+// sense for a real release.
+func IsReleaseVersion(version string) bool {
+	_, ok := parseStudioctlTagVersion(toStudioctlTag(version))
+	return ok
+}
+
+// toStudioctlTag normalizes a bare or partially-prefixed version into the
+// "studioctl/vX.Y.Z" form expected by parseStudioctlTagVersion.
+func toStudioctlTag(version string) string {
+	version = strings.TrimSpace(version)
+	version = strings.TrimPrefix(version, "studioctl/")
+	if !strings.HasPrefix(version, "v") {
+		version = "v" + version
+	}
+	return "studioctl/" + version
+}
+
 func compareInt(a, b int) int {
 	if a > b {
 		return 1
@@ -296,7 +395,7 @@ func (d httpDownloader) resolveLatestStudioctlVersionFromBase(
 ) (string, error) {
 	var candidates releaseCandidates
 
-	for page := 1; page <= releaseMaxPages; page++ {
+	for page := 1; page <= d.maxPages; page++ {
 		releases, err := d.fetchReleasesPage(ctx, repo, baseURL, page)
 		if err != nil {
 			return "", err
