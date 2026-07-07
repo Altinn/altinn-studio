@@ -70,7 +70,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, resumeResponse.StatusCode);
 
         var body = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(
             TestContext.Current.CancellationToken
@@ -124,7 +124,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, resumeResponse.StatusCode);
 
         await WaitForTerminalStatus(workflowId, PersistentItemStatus.Completed);
     }
@@ -194,7 +194,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, resumeResponse.StatusCode);
 
         var resumeBody = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(
             TestContext.Current.CancellationToken
@@ -232,7 +232,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
 
         var abandonBody = await abandonResponse.Content.ReadFromJsonAsync<AbandonWorkflowResponse>(
             TestContext.Current.CancellationToken
@@ -241,9 +241,9 @@ public sealed class EngineResumeTests : IAsyncLifetime
         Assert.Equal(parentId, abandonBody.WorkflowId);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
 
-        // Replaying the abandon is an idempotent success, not a conflict, and reports the
-        // original abandonment time — not the replay time. (Millisecond tolerance covers the
-        // microsecond truncation of the timestamptz round-trip.)
+        // Replaying the abandon is an idempotent 200 (vs. 202 for the effecting call above), not a
+        // conflict, and reports the original abandonment time — not the replay time. (Millisecond
+        // tolerance covers the microsecond truncation of the timestamptz round-trip.)
         using var replayResponse = await client.PostAsync(
             $"{WorkflowsPath}/{parentId}/abandon",
             content: null,
@@ -325,7 +325,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
 
         var successorId = await EnqueueDependentWorkflow(client, parentId, "/successor-step");
@@ -405,7 +405,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
         await WaitForTerminalStatus(parentId, PersistentItemStatus.Abandoned);
 
         // Several sweep cycles pass; the child must still be parked.
@@ -434,7 +434,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
         await WaitForTerminalStatus(workflowId, PersistentItemStatus.Abandoned);
 
         // Reconfigure WireMock to succeed, then resume.
@@ -446,7 +446,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, resumeResponse.StatusCode);
 
         await WaitForTerminalStatus(workflowId, PersistentItemStatus.Completed);
     }
@@ -501,7 +501,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
 
         // The fingerprint is released: the corrected request now creates and runs a fresh workflow.
         using var retryResponse = await PostEnqueue(client, CreateWebhookStep("/corrected-step"), idempotencyKey);
@@ -544,7 +544,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, abandonResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, abandonResponse.StatusCode);
 
         // Reconfigure WireMock so the re-execution succeeds this time.
         _wireMock.Reset();
@@ -656,7 +656,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, resumeResponse.StatusCode);
 
         var resumeBody = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(
             TestContext.Current.CancellationToken

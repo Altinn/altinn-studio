@@ -766,7 +766,7 @@ public class EngineEndpointTests
     // === CancelWorkflow Handler Tests ===
 
     [Fact]
-    public async Task CancelWorkflow_ActiveWorkflow_Returns200()
+    public async Task CancelWorkflow_ActiveWorkflow_Returns202()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
@@ -785,14 +785,14 @@ public class EngineEndpointTests
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<CancelWorkflowResponse>>(result.Result);
-        Assert.NotNull(ok.Value);
-        Assert.Equal(workflowId, ok.Value.WorkflowId);
-        Assert.True(ok.Value.CanceledImmediately);
+        var accepted = Assert.IsType<Accepted<CancelWorkflowResponse>>(result.Result);
+        Assert.NotNull(accepted.Value);
+        Assert.Equal(workflowId, accepted.Value.WorkflowId);
+        Assert.True(accepted.Value.CanceledImmediately);
     }
 
     [Fact]
-    public async Task CancelWorkflow_NotInTracker_Returns200WithCanceledImmediatelyFalse()
+    public async Task CancelWorkflow_NotInTracker_Returns202WithCanceledImmediatelyFalse()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
@@ -811,9 +811,9 @@ public class EngineEndpointTests
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<CancelWorkflowResponse>>(result.Result);
-        Assert.NotNull(ok.Value);
-        Assert.False(ok.Value.CanceledImmediately);
+        var accepted = Assert.IsType<Accepted<CancelWorkflowResponse>>(result.Result);
+        Assert.NotNull(accepted.Value);
+        Assert.False(accepted.Value.CanceledImmediately);
     }
 
     [Fact]
@@ -863,7 +863,7 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task CancelWorkflow_AlreadyCancelling_ReturnsAcceptedWithOriginalTimestamp()
+    public async Task CancelWorkflow_AlreadyCancelling_ReturnsOkWithOriginalTimestamp()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
@@ -882,17 +882,17 @@ public class EngineEndpointTests
         );
 
         // Assert
-        var accepted = Assert.IsType<Accepted<CancelWorkflowResponse>>(result.Result);
-        Assert.NotNull(accepted.Value);
-        Assert.Equal(workflowId, accepted.Value.WorkflowId);
-        Assert.Equal(originalTimestamp, accepted.Value.CancellationRequestedAt);
-        Assert.False(accepted.Value.CanceledImmediately);
+        var ok = Assert.IsType<Ok<CancelWorkflowResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(workflowId, ok.Value.WorkflowId);
+        Assert.Equal(originalTimestamp, ok.Value.CancellationRequestedAt);
+        Assert.False(ok.Value.CanceledImmediately);
     }
 
     // -- Resume Workflow --
 
     [Fact]
-    public async Task ResumeWorkflow_Succeeded_Returns200()
+    public async Task ResumeWorkflow_Succeeded_Returns202()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
@@ -912,15 +912,15 @@ public class EngineEndpointTests
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<ResumeWorkflowResponse>>(result.Result);
-        Assert.NotNull(ok.Value);
-        Assert.Equal(workflowId, ok.Value.WorkflowId);
-        Assert.Equal(now, ok.Value.ResumedAt);
-        Assert.Empty(ok.Value.CascadeResumed);
+        var accepted = Assert.IsType<Accepted<ResumeWorkflowResponse>>(result.Result);
+        Assert.NotNull(accepted.Value);
+        Assert.Equal(workflowId, accepted.Value.WorkflowId);
+        Assert.Equal(now, accepted.Value.ResumedAt);
+        Assert.Empty(accepted.Value.CascadeResumed);
     }
 
     [Fact]
-    public async Task ResumeWorkflow_WithCascade_Returns200WithCascadeIds()
+    public async Task ResumeWorkflow_WithCascade_Returns202WithCascadeIds()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
@@ -941,10 +941,10 @@ public class EngineEndpointTests
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<ResumeWorkflowResponse>>(result.Result);
-        Assert.NotNull(ok.Value);
-        Assert.Single(ok.Value.CascadeResumed);
-        Assert.Equal(cascadeId, ok.Value.CascadeResumed[0]);
+        var accepted = Assert.IsType<Accepted<ResumeWorkflowResponse>>(result.Result);
+        Assert.NotNull(accepted.Value);
+        Assert.Single(accepted.Value.CascadeResumed);
+        Assert.Equal(cascadeId, accepted.Value.CascadeResumed[0]);
     }
 
     [Fact]
@@ -989,6 +989,106 @@ public class EngineEndpointTests
             DefaultNamespace,
             workflowId,
             cascade: false,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var conflict = Assert.IsType<Conflict<ProblemDetails>>(result.Result);
+        Assert.NotNull(conflict.Value);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.Value.Status);
+    }
+
+    // -- Abandon Workflow --
+
+    [Fact]
+    public async Task AbandonWorkflow_Succeeded_Returns202()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AbandonWorkflowResult.Abandoned(workflowId, now));
+
+        // Act
+        var result = await EngineRequestHandlers.AbandonWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var accepted = Assert.IsType<Accepted<AbandonWorkflowResponse>>(result.Result);
+        Assert.NotNull(accepted.Value);
+        Assert.Equal(workflowId, accepted.Value.WorkflowId);
+        Assert.Equal(now, accepted.Value.AbandonedAt);
+    }
+
+    [Fact]
+    public async Task AbandonWorkflow_AlreadyAbandoned_ReturnsOkWithOriginalTimestamp()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var originalTimestamp = DateTimeOffset.UtcNow.AddMinutes(-1);
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AbandonWorkflowResult.AlreadyAbandoned(workflowId, originalTimestamp));
+
+        // Act
+        var result = await EngineRequestHandlers.AbandonWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var ok = Assert.IsType<Ok<AbandonWorkflowResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(workflowId, ok.Value.WorkflowId);
+        Assert.Equal(originalTimestamp, ok.Value.AbandonedAt);
+    }
+
+    [Fact]
+    public async Task AbandonWorkflow_NotFound_Returns404()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AbandonWorkflowResult.NotFound());
+
+        // Act
+        var result = await EngineRequestHandlers.AbandonWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task AbandonWorkflow_NotAbandonable_Returns409()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.AbandonWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AbandonWorkflowResult.NotAbandonable(PersistentItemStatus.Completed));
+
+        // Act
+        var result = await EngineRequestHandlers.AbandonWorkflow(
+            DefaultNamespace,
+            workflowId,
             engine.Object,
             TestContext.Current.CancellationToken
         );

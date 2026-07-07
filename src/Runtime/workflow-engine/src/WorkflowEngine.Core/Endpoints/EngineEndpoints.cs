@@ -68,12 +68,12 @@ internal static class EngineEndpoints
                 """
                 Requests cancellation of a workflow. The request is idempotent.
 
-                200 OK returns canceledImmediately: true when the workflow was running on the pod that received
-                the request, so its cancellation token fired synchronously; false when it will be canceled via the
-                distributed path instead.
+                202 Accepted when this call requested the cancellation. canceledImmediately: true when the workflow
+                was running on the pod that received the request, so its cancellation token fired synchronously;
+                false when it will be canceled via the distributed path instead.
 
-                202 Accepted when cancellation was already pending, 409 Conflict when the workflow is already
-                terminal, 404 Not Found when it does not exist.
+                200 OK when cancellation was already pending (idempotent replay), 409 Conflict when the workflow is
+                already terminal, 404 Not Found when it does not exist.
                 """
             );
 
@@ -86,6 +86,7 @@ internal static class EngineEndpoints
                 Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) back to Enqueued
                 for re-processing. Pass cascade=true to also resume workflows left in DependencyFailed by this one.
 
+                202 Accepted when the workflow was resumed (the processor picks it up on its next cycle).
                 409 Conflict when the workflow is not in a resumable state, 404 Not Found when it does not exist.
                 """
             );
@@ -106,9 +107,10 @@ internal static class EngineEndpoints
                 creates and runs a fresh workflow instead of deduplicating onto the write-off. For batch
                 enqueues the key covers the whole batch — abandoning any member releases it for all.
 
-                The transition is a compare-and-set: 409 Conflict when the workflow is in any other state —
-                including when a concurrent resume revived it first — and 404 Not Found when it does not exist.
-                Abandoning an already-abandoned workflow is an idempotent 200.
+                The transition is a compare-and-set: 202 Accepted when this call wrote off the workflow, 409 Conflict
+                when the workflow is in any other state — including when a concurrent resume revived it first — and
+                404 Not Found when it does not exist. Abandoning an already-abandoned workflow is an idempotent 200
+                that reports the original abandonedAt.
                 """
             );
 
@@ -313,11 +315,11 @@ internal static class EngineRequestHandlers
 
         return result switch
         {
-            CancelWorkflowResult.Requested r => TypedResults.Ok(
+            CancelWorkflowResult.Requested r => TypedResults.Accepted(
+                (string?)null,
                 new CancelWorkflowResponse(r.WorkflowId, r.CancellationRequestedAt, r.CanceledImmediately)
             ),
-            CancelWorkflowResult.AlreadyRequested r => TypedResults.Accepted(
-                (string?)null,
+            CancelWorkflowResult.AlreadyRequested r => TypedResults.Ok(
                 new CancelWorkflowResponse(r.WorkflowId, r.CancellationRequestedAt, CanceledImmediately: false)
             ),
             CancelWorkflowResult.NotFound => TypedResults.NotFound(),
@@ -333,7 +335,9 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<ResumeWorkflowResponse>, NotFound, Conflict<ProblemDetails>>> ResumeWorkflow(
+    public static async Task<
+        Results<Accepted<ResumeWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
+    > ResumeWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
         [FromQuery] bool cascade,
@@ -348,7 +352,8 @@ internal static class EngineRequestHandlers
 
         return result switch
         {
-            ResumeWorkflowResult.Resumed r => TypedResults.Ok(
+            ResumeWorkflowResult.Resumed r => TypedResults.Accepted(
+                (string?)null,
                 new ResumeWorkflowResponse(r.WorkflowId, r.ResumedAt, r.CascadeResumed)
             ),
             ResumeWorkflowResult.NotFound => TypedResults.NotFound(),
@@ -364,7 +369,9 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<AbandonWorkflowResponse>, NotFound, Conflict<ProblemDetails>>> AbandonWorkflow(
+    public static async Task<
+        Results<Accepted<AbandonWorkflowResponse>, Ok<AbandonWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
+    > AbandonWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
         [FromServices] IEngine engine,
@@ -378,7 +385,11 @@ internal static class EngineRequestHandlers
 
         return result switch
         {
-            AbandonWorkflowResult.Abandoned r => TypedResults.Ok(
+            AbandonWorkflowResult.Abandoned r => TypedResults.Accepted(
+                (string?)null,
+                new AbandonWorkflowResponse(r.WorkflowId, r.AbandonedAt)
+            ),
+            AbandonWorkflowResult.AlreadyAbandoned r => TypedResults.Ok(
                 new AbandonWorkflowResponse(r.WorkflowId, r.AbandonedAt)
             ),
             AbandonWorkflowResult.NotFound => TypedResults.NotFound(),

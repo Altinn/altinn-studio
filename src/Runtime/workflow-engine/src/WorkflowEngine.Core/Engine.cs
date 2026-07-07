@@ -374,7 +374,7 @@ internal sealed class Engine(
         // The abandon CAS stamped UpdatedAt with the abandonment time, so the replay reports the
         // original timestamp instead of the replay time.
         if (info.Status == PersistentItemStatus.Abandoned)
-            return new AbandonWorkflowResult.Abandoned(workflowId, info.UpdatedAt ?? now);
+            return new AbandonWorkflowResult.AlreadyAbandoned(workflowId, info.UpdatedAt ?? now);
 
         return new AbandonWorkflowResult.NotAbandonable(info.Status);
     }

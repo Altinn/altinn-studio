@@ -280,7 +280,7 @@ Setting the database flag always succeeds atomically, but _when_ the workflow ac
     - **running on another pod** — picked up by that pod's `CancellationWatcherService` on its next tick (`CancellationWatcherInterval`, default 2s), or
     - **not yet started** (Enqueued/Requeued) — finalized as `Canceled` the next time the processor fetches it, without executing any step.
 
-In all cases the database flag guarantees the workflow _will_ be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `200` response means the request was accepted and applied; a `202` means cancellation was already pending (idempotent re-request).
+In all cases the database flag guarantees the workflow _will_ be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `202` response means this call requested the cancellation; a `200` means cancellation was already pending (idempotent re-request).
 
 ## Resume
 
@@ -296,7 +296,7 @@ POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 
 When `cascade=true`, all transitively dependent workflows in `DependencyFailed` state are also resumed. This is useful when a parent workflow's failure cascaded to its children — resuming the parent with cascade fixes the entire chain.
 
-**Response (200 OK):**
+**Response (202 Accepted):** the workflow is back in `Enqueued`; the processor picks it up on its next cycle.
 
 ```json
 {
@@ -325,7 +325,7 @@ Dependency edges carry two things: sequencing (a dependent waits until its depen
 
 The canonical use is superseding a failed predecessor: mark the failed workflow `Abandoned`, then enqueue its replacement with an ordinary dependency on it (consuming the collection head as usual). The graph stays fully connected — the write-off lives in the node's state, not in special edge semantics.
 
-**Response (200 OK):**
+**Response (202 Accepted):**
 
 ```json
 {
@@ -334,7 +334,7 @@ The canonical use is superseding a failed predecessor: mark the failed workflow 
 }
 ```
 
-The transition is a compare-and-set from the three source states: 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
+The transition is a compare-and-set from the three source states: 202 Accepted when this call wrote off the workflow, 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
 
 ## Dependency Graphs
 
@@ -606,7 +606,7 @@ Paginate by passing `nextCursor` back as `?cursor=`. A `null` `nextCursor` indic
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 ```
 
-**Response (200 OK):**
+**Response (202 Accepted):**
 
 ```json
 {
@@ -616,7 +616,7 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 }
 ```
 
-`canceledImmediately` reports whether the interrupt was delivered synchronously (the receiving pod was running the workflow) or whether it will be applied via the distributed path — see [Immediate vs. distributed cancellation](#immediate-vs-distributed-cancellation). Returns `202 Accepted` instead when cancellation was already pending, `409 Conflict` when the workflow is already terminal, and `404 Not Found` when it doesn't exist.
+`canceledImmediately` reports whether the interrupt was delivered synchronously (the receiving pod was running the workflow) or whether it will be applied via the distributed path — see [Immediate vs. distributed cancellation](#immediate-vs-distributed-cancellation). Returns `200 OK` instead when cancellation was already pending (idempotent replay), `409 Conflict` when the workflow is already terminal, and `404 Not Found` when it doesn't exist.
 
 ### Resume Workflow
 
@@ -624,7 +624,7 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
 ```
 
-**Response (200 OK):**
+**Response (202 Accepted):**
 
 ```json
 {

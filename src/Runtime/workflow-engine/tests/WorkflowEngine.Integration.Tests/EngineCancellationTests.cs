@@ -66,7 +66,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, cancelResponse.StatusCode);
 
         var cancelBody = await cancelResponse.Content.ReadFromJsonAsync<CancelWorkflowResponse>(
             TestContext.Current.CancellationToken
@@ -175,13 +175,13 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
 
-        // First cancel — should succeed
+        // First cancel — should succeed (202 Accepted: this call requested the cancellation)
         using var firstResponse = await client.PostAsync(
             $"{WorkflowsPath}/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, firstResponse.StatusCode);
 
         var firstBody = await firstResponse.Content.ReadFromJsonAsync<CancelWorkflowResponse>(
             TestContext.Current.CancellationToken
@@ -191,17 +191,16 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         // Wait for the engine to persist the cancellation
         await WaitForTerminalStatus(workflowId);
 
-        // Second cancel — returns 202 (already cancelling) or 409 (already terminal)
+        // Second cancel — idempotent replay: returns 200 (already cancelling) or 409 (already terminal)
         using var secondResponse = await client.PostAsync(
             $"{WorkflowsPath}/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
 
-        Assert.NotEqual(HttpStatusCode.OK, secondResponse.StatusCode);
         Assert.True(
-            secondResponse.StatusCode is HttpStatusCode.Accepted or HttpStatusCode.Conflict,
-            $"Expected 202 or 409, got {(int)secondResponse.StatusCode}"
+            secondResponse.StatusCode is HttpStatusCode.OK or HttpStatusCode.Conflict,
+            $"Expected 200 or 409, got {(int)secondResponse.StatusCode}"
         );
     }
 
