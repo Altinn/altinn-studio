@@ -50,11 +50,8 @@ pre-commit:
       run: yarn prettier -w {staged_files}
       stage_fixed: true
     designer-backend-csharpier:
-      # Runs CSharpier on staged C# files under the Designer backend. The logic
-      # lives in a script (parameterized by project path, so it's reusable for
-      # other dotnet projects) because lefthook 2.1.9 wraps inline `run`
-      # commands in `sh -c "..."` on Windows, where embedded quotes/newlines
-      # truncate the command — so the run line here must stay quote-free.
-      glob: 'src/Designer/backend/**/*.cs'
+      # Passes all staged backend files to CSharpier, which honors
+      # .csharpierignore — matching the MSBuild/`csharpier check .` path.
+      glob: 'src/Designer/backend/**'
       run: sh scripts/csharpier-format-staged src/Designer/backend {staged_files}
       stage_fixed: true
