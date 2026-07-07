@@ -165,6 +165,14 @@ internal sealed class PaymentProcessTask : IProcessTask
         dataMutator.RemoveDataElement(paymentDataElement);
     }
 
+    /// <summary>
+    /// Adds the element, or updates it if one tagged with this task already exists. The update branch
+    /// is retry idempotency, not re-entry protection: a re-run of a partially completed transition
+    /// (this command succeeded and committed the element, a later command in the transition failed)
+    /// finds the earlier attempt's element and overwrites it instead of duplicating it. Stale elements
+    /// from previous visits never reach this point - CleanupGeneratedFromTask removes them when the
+    /// task is entered.
+    /// </summary>
     private static void UpsertTaskGeneratedBinaryDataElement(
         IInstanceDataMutator dataMutator,
         string dataTypeId,
@@ -174,10 +182,15 @@ internal sealed class PaymentProcessTask : IProcessTask
         string taskId
     )
     {
+        // Match Storage's generatedFromTask filter exactly (GeneratedFrom + Task + task id), the
+        // same triple CleanupGeneratedFromTask uses, so the upsert and the cleanup agree on which
+        // elements are task-generated.
         DataElement? existingDataElement = dataMutator.Instance.Data.SingleOrDefault(de =>
             de.DataType == dataTypeId
             && de.References?.Exists(reference =>
-                reference.ValueType == ReferenceType.Task && reference.Value == taskId
+                reference.Relation == RelationType.GeneratedFrom
+                && reference.ValueType == ReferenceType.Task
+                && reference.Value == taskId
             )
                 is true
         );

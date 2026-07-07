@@ -67,4 +67,19 @@ internal interface IWorkflowEngineClient
         bool cascade = false,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    /// Writes off an unsuccessful terminal workflow (failed, canceled, dependency-failed) by marking
+    /// it Abandoned, so it no longer condemns workflows enqueued afterwards that depend on it.
+    /// Idempotent for an already-abandoned workflow.
+    /// </summary>
+    /// <param name="ns">Namespace (URL path segment)</param>
+    /// <param name="workflowId">The workflow database ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>
+    /// <see langword="true"/> when the workflow is abandoned; <see langword="false"/> when the engine
+    /// rejected the compare-and-set because the workflow is in a non-abandonable state - e.g. a
+    /// concurrent resume revived it.
+    /// </returns>
+    Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default);
 }

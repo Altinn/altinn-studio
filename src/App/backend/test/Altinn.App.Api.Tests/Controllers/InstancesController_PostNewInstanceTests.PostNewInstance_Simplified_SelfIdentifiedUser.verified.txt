@@ -30,6 +30,16 @@
       IdFormat: W3C,
       Tags: [
         {
+          numberOfChangedDataElements: 0
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: InstanceDataAccessor.SaveChanges,
+      IdFormat: W3C,
+      Tags: [
+        {
           numberOfChangedDataElements: 1
         }
       ],
@@ -47,6 +57,16 @@
     },
     {
       Name: InstanceDataAccessor.SaveChanges,
+      IdFormat: W3C,
+      Tags: [
+        {
+          numberOfChangedDataElements: 0
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: InstanceDataAccessor.UpdateInstanceData,
       IdFormat: W3C,
       Tags: [
         {
@@ -236,6 +256,20 @@
         },
         {
           process.callback.command: UnlockTaskData
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_2
+        },
+        {
+          process.callback.command: CleanupGeneratedFromTask
         }
       ],
       HasParent: true

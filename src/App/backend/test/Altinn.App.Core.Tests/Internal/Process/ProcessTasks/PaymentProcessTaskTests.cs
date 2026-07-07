@@ -153,7 +153,16 @@ public class PaymentProcessTaskTests
             DataType = "paymentReceiptPdfDataType",
             ContentType = "application/pdf",
             Filename = "Betalingskvittering.pdf",
-            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_1" }],
+            References =
+            [
+                // Storage always stamps generatedFromTask references with the GeneratedFrom relation.
+                new Reference
+                {
+                    Relation = RelationType.GeneratedFrom,
+                    ValueType = ReferenceType.Task,
+                    Value = "Task_1",
+                },
+            ],
         };
         Instance instance = CreateInstance(existingReceipt);
         var dataMutator = CreateDataMutator(instance);

@@ -35,7 +35,14 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// Add a new data element without app logic to the instance.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sent to storage.
+    /// </para>
+    /// <para>
+    /// <c>generatedFromTask</c> marks the element for automatic deletion when the process (re-)enters that task.
+    /// Use it for regenerable artifacts whose lifetime should follow the task, and leave it unset to manage the
+    /// element's lifecycle explicitly/manually.
+    /// </para>
     /// </remarks>
     BinaryDataChange AddBinaryDataElement(
         string dataTypeId,
@@ -50,7 +57,14 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// Add a new data element without app logic to the instance.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sent to storage.
+    /// </para>
+    /// <para>
+    /// <c>generatedFromTask</c> marks the element for automatic deletion when the process (re-)enters that task.
+    /// Use it for regenerable artifacts whose lifetime should follow the task, and leave it unset to manage the
+    /// element's lifecycle explicitly/manually.
+    /// </para>
     /// </remarks>
     BinaryDataChange AddBinaryDataElement(
         DataType dataType,

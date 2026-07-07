@@ -279,6 +279,7 @@ public class ProcessNextRequestFactoryTests
             MutateProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
+            CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
@@ -344,6 +345,7 @@ public class ProcessNextRequestFactoryTests
         {
             // Task start commands only
             UnlockTaskData.Key,
+            CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
@@ -393,6 +395,7 @@ public class ProcessNextRequestFactoryTests
             MutateProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
+            CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,

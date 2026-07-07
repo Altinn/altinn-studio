@@ -172,7 +172,16 @@ public class SigningProcessTaskTests
             DataType = "signing-pdf",
             ContentType = "application/pdf",
             Filename = "signing-pdf.pdf",
-            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_1" }],
+            References =
+            [
+                // Storage always stamps generatedFromTask references with the GeneratedFrom relation.
+                new Reference
+                {
+                    Relation = RelationType.GeneratedFrom,
+                    ValueType = ReferenceType.Task,
+                    Value = "Task_1",
+                },
+            ],
         };
         Instance instance = CreateInstance(existingSigningPdf);
         var dataMutator = CreateDataMutator(instance);

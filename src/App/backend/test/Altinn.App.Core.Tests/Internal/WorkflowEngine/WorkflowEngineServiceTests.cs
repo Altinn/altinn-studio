@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Moq;
 
@@ -53,7 +54,20 @@ public class WorkflowEngineServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([]);
+            .ReturnsAsync([
+                // The anchored wait requires the resumed workflow to be visible and terminal
+                // before the wait concludes.
+                new WorkflowStatusResponse
+                {
+                    DatabaseId = workflowId,
+                    OperationId = "op",
+                    IdempotencyKey = workflowId.ToString(),
+                    Namespace = Namespace,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    OverallStatus = PersistentItemStatus.Completed,
+                    Steps = [],
+                },
+            ]);
 
         var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
         instanceClient
@@ -86,4 +100,107 @@ public class WorkflowEngineServiceTests
             "the resume path must cascade so dependency-failed auto-advance children are reset alongside the parent"
         );
     }
+
+    [Theory]
+    [InlineData(
+        // The engine wraps failed app callbacks as "<prose>: {ProblemDetails json}" - the embedded
+        // detail is the human-readable reason and is what should surface to the end user.
+        "AppCommand failed with client error UnprocessableEntity: "
+            + "{\"title\":\"ServiceTaskFailedException\",\"status\":422,\"detail\":"
+            + "\"Service task 'fail' failed: Form data requested the service task to fail.\",\"nonRetryable\":true}",
+        "Service task 'fail' failed: Form data requested the service task to fail."
+    )]
+    [InlineData(
+        "AppCommand failed with client error BadRequest: <no body content>", // no JSON at all
+        "AppCommand failed with client error BadRequest: <no body content>"
+    )]
+    [InlineData(
+        "AppCommand failed with client error BadRequest: {not valid json", // malformed JSON
+        "AppCommand failed with client error BadRequest: {not valid json"
+    )]
+    [InlineData(
+        "AppCommand failed with client error BadRequest: {\"title\":\"NoDetailHere\"}", // JSON without detail
+        "AppCommand failed with client error BadRequest: {\"title\":\"NoDetailHere\"}"
+    )]
+    [InlineData("Plain engine failure message", "Plain engine failure message")]
+    public void ExtractCallbackErrorDetail_ExtractsEmbeddedProblemDetailsDetail(string engineMessage, string expected)
+    {
+        Assert.Equal(expected, WorkflowEngineService.ExtractCallbackErrorDetail(engineMessage));
+    }
+
+    [Fact]
+    public void ScopeToCurrentChain_ExcludesWorkflowsOlderThanTheAnchor()
+    {
+        var anchorCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-2);
+        var older = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow.AddMinutes(-5));
+        // A stale workflow sharing the anchor's exact timestamp must not leak into the chain -
+        // timestamps are not guaranteed unique, so the anchor is matched by id and everything
+        // else must be strictly newer.
+        var staleSameTimestamp = CreateWorkflowStatus(createdAt: anchorCreatedAt);
+        var anchor = CreateWorkflowStatus(createdAt: anchorCreatedAt);
+        var dependent = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var workflows = new[] { older, staleSameTimestamp, anchor, dependent };
+
+        IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
+            workflows,
+            anchor.DatabaseId
+        );
+
+        Assert.Equal([anchor.DatabaseId, dependent.DatabaseId], scoped.Select(w => w.DatabaseId));
+    }
+
+    [Fact]
+    public void ScopeToCurrentChain_FallsBackToFullListWhenAnchorIsUnknownOrMissing()
+    {
+        var workflows = new[] { CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow) };
+
+        Assert.Same(workflows, WorkflowEngineService.ScopeToCurrentChain(workflows, sinceWorkflowId: null));
+        Assert.Same(workflows, WorkflowEngineService.ScopeToCurrentChain(workflows, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public void BuildWorkflowFailure_ReportsFailureWhenTheNewestWorkflowIsAbandoned()
+    {
+        // A wait that ends on an abandoned workflow must never look like success: the abandoned
+        // workflow was written off without a superseding workflow, so the action never ran.
+        var olderCompleted = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow.AddMinutes(-5));
+        var abandoned = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, status: PersistentItemStatus.Abandoned);
+
+        WorkflowFailure? failure = WorkflowEngineService.BuildWorkflowFailure([olderCompleted, abandoned]);
+
+        Assert.NotNull(failure);
+        Assert.Equal(WorkflowFailureKind.EngineFault, failure.Kind);
+        Assert.Equal(abandoned.DatabaseId, failure.WorkflowId);
+        Assert.NotNull(failure.LastError);
+        Assert.Contains("abandoned", failure.LastError.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void BuildWorkflowFailure_IgnoresAbandonedWorkflowsSupersededByANewerOne()
+    {
+        // An abandoned workflow with a newer (superseding) workflow on top of it is background
+        // noise - the newer workflow's outcome is what counts.
+        var abandoned = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow.AddMinutes(-5),
+            status: PersistentItemStatus.Abandoned
+        );
+        var newerCompleted = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+
+        Assert.Null(WorkflowEngineService.BuildWorkflowFailure([abandoned, newerCompleted]));
+    }
+
+    private static WorkflowStatusResponse CreateWorkflowStatus(
+        DateTimeOffset createdAt,
+        PersistentItemStatus status = PersistentItemStatus.Completed
+    ) =>
+        new()
+        {
+            DatabaseId = Guid.NewGuid(),
+            OperationId = "op",
+            IdempotencyKey = Guid.NewGuid().ToString(),
+            Namespace = Namespace,
+            CreatedAt = createdAt,
+            OverallStatus = status,
+            Steps = [],
+        };
 }
