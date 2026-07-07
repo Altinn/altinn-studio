@@ -60,6 +60,7 @@ export type ExpressionDependency =
   | { type: 'displayValue'; componentId: string }
   | { type: 'externalApi' }
   | { type: 'formData'; reference: IDataModelReference }
+  | { type: 'instanceDataElementCount'; dataType: string }
   | { type: 'instanceDataSources' }
   | { type: 'language'; dataModelPath: IDataModelReference | undefined }
   | { type: 'layout' }
@@ -348,6 +349,7 @@ function useExpressionDataSourcesRuntime(
       },
       instance: {
         countDataElements: (dataType) => {
+          observerRef.current!.track({ type: 'instanceDataElementCount', dataType });
           const latest = observerRef.current!.getInputs();
           return latest.instanceQueries.countDataElements(latest.instanceId, dataType);
         },
@@ -525,6 +527,7 @@ function isStoreBackedDependency(dependency: ExpressionDependency) {
 function isQueryBackedDependency(dependency: ExpressionDependency) {
   return (
     dependency.type === 'externalApi' ||
+    dependency.type === 'instanceDataElementCount' ||
     dependency.type === 'instanceDataSources' ||
     dependency.type === 'language' ||
     dependency.type === 'process'
@@ -549,6 +552,8 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
       return inputs.externalApiQueries.getCached(inputs.instanceId, inputs.externalApiIds);
     case 'formData':
       return readFormDataFromStore(inputs.store, dependency.reference);
+    case 'instanceDataElementCount':
+      return inputs.instanceQueries.countDataElements(inputs.instanceId, dependency.dataType);
     case 'instanceDataSources':
       return getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId);
     case 'language':
@@ -701,6 +706,8 @@ function makeDependencyKey(dependency: ExpressionDependency) {
   switch (dependency.type) {
     case 'formData':
       return `formData:${dependency.reference.dataType}:${dependency.reference.field}`;
+    case 'instanceDataElementCount':
+      return `instanceDataElementCount:${dependency.dataType}`;
     case 'displayValue':
       return `displayValue:${dependency.componentId}`;
     case 'options':
