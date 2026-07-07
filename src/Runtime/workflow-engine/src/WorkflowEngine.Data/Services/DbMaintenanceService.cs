@@ -54,7 +54,7 @@ internal sealed class DbMaintenanceService(
                     await PurgeExpiredWorkflows(now, settings.Retention, stoppingToken);
                 }
 
-                await FailPoisonWorkflows(now, settings, stoppingToken);
+                await FailPoisonedWorkflows(now, settings, stoppingToken);
                 await ReclaimStaleWorkflows(now, settings, stoppingToken);
                 await RecoverDependencyResolvedWorkflows(now, stoppingToken);
 
@@ -316,22 +316,22 @@ internal sealed class DbMaintenanceService(
     private sealed record DeletedWorkflow(Guid Id, string? CollectionKey, string Namespace);
 
     /// <summary>
-    /// Finalizes poison workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
+    /// Finalizes poisoned workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
     /// and whose heartbeat is stale — by marking them as <see cref="PersistentItemStatus.Failed"/>
     /// and clearing LeaseToken. Idempotent across concurrent sweeps from multiple pods:
     /// a zombie worker that completes the row before this sweep lands will transition it out
     /// of Processing, causing the WHERE clause to skip it.
     /// </summary>
-    internal async Task FailPoisonWorkflows(DateTimeOffset now, EngineSettings settings, CancellationToken ct)
+    internal async Task FailPoisonedWorkflows(DateTimeOffset now, EngineSettings settings, CancellationToken ct)
     {
-        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.FailPoisonWorkflows");
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.FailPoisonedWorkflows");
 
         var staleDeadline = now - settings.StaleWorkflowThreshold;
 
         int failed;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
         {
-            await using var cmd = dataSource.CreateCommand(Sql.FailPoisonWorkflows);
+            await using var cmd = dataSource.CreateCommand(Sql.FailPoisonedWorkflows);
             cmd.Parameters.AddWithValue("now", now);
             cmd.Parameters.AddWithValue("staleDeadline", staleDeadline);
             cmd.Parameters.AddWithValue("maxReclaimCount", settings.MaxReclaimCount);
@@ -341,8 +341,8 @@ internal sealed class DbMaintenanceService(
 
         if (failed > 0)
         {
-            Metrics.WorkflowsFailed.Add(failed, ("reason", "poison"));
-            logger.FailedPoisonWorkflows(failed);
+            Metrics.WorkflowsFailed.Add(failed, ("reason", "poisoned"));
+            logger.FailedPoisonedWorkflows(failed);
         }
     }
 
@@ -519,7 +519,7 @@ internal sealed class DbMaintenanceService(
               )
             """;
 
-        internal static readonly string FailPoisonWorkflows = $"""
+        internal static readonly string FailPoisonedWorkflows = $"""
             UPDATE engine.workflows
             SET status = {(int)PersistentItemStatus.Failed},
                 updated_at = @now,
@@ -611,7 +611,7 @@ internal static partial class DbMaintenanceServiceLogs
 
     [LoggerMessage(
         LogLevel.Error,
-        "Failed {Count} poison workflow(s) that exceeded the reclaim limit with a stale heartbeat"
+        "Failed {Count} poisoned workflow(s) that exceeded the reclaim limit with a stale heartbeat"
     )]
-    internal static partial void FailedPoisonWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void FailedPoisonedWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 }

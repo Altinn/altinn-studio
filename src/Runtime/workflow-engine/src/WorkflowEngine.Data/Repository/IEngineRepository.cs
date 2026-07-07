@@ -154,7 +154,7 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Atomically fetches and locks available workflows for processing using FOR UPDATE SKIP LOCKED.
-    /// Stale workflow reclaim and poison finalization run as separate sweeps in
+    /// Stale workflow reclaim and poisoned finalization run as separate sweeps in
     /// <c>DbMaintenanceService</c>; reclaimed rows re-enter this fetch as <c>Enqueued</c>.
     /// </summary>
     Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);

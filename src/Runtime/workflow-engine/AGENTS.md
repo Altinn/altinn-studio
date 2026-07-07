@@ -24,7 +24,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 - **Database-first processing**: `WorkflowProcessor` is a `BackgroundService` that fetches work from PostgreSQL using `FOR UPDATE SKIP LOCKED`. No in-memory queue — the database is the single source of truth.
 - **Concurrency**: `IConcurrencyLimiter` manages three independent semaphore pools: Workers, DB connections, and HTTP calls.
 - **Retry**: Per-step `RetryStrategy` with configurable backoff (exponential, linear, constant). Default: 1s base, 5m max delay, 24h total.
-- **Heartbeat & stale recovery**: `HeartbeatService` proves worker liveness. Stale workflows (expired heartbeat) are automatically reclaimed by another worker. Poison workflow protection after configurable max reclaim attempts.
+- **Heartbeat & stale recovery**: `HeartbeatService` proves worker liveness. Stale workflows (expired heartbeat) are automatically reclaimed by another worker. Poisoned workflow protection after configurable max reclaim attempts.
 - **Cancellation**: Cross-pod cancellation propagation via DB polling. `CancellationWatcherService` detects pending cancellations for in-flight workflows.
 - **Write buffer**: `WorkflowWriteBuffer` batches enqueue operations via a channel-based work queue with configurable batch size, queue depth, and flush concurrency.
 - **Telemetry**: OpenTelemetry via OTLP to Grafana LGTM stack. `Metrics.Source` for activities, counters/histograms/gauges for workflow/step lifecycle and resource utilization.

@@ -944,7 +944,7 @@ internal sealed partial class EngineRepository
 
         await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poison abandonment
+        // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poisoned finalization
         // and stale reclaim run as separate sweeps in DbMaintenanceService — reclaimed rows
         // re-enter here as Enqueued.
         var ids = await context
