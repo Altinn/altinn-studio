@@ -89,6 +89,8 @@
   "ai_assistant.add_attachment": "Last opp vedlegg",
   "ai_assistant.allow_app_changes": "Tillat endringer i appen",
   "ai_assistant.assistant_first_message": "Hva kan jeg hjelpe med?",
+  "ai_assistant.critical_file_alert_description": "Assistenten har endret filer som kan styre tilgang til appen, hvordan den lagrer data, eller som kan legge til kode fra tredjepartsbiblioteker. Kontroller endringene nøye før du publiserer.",
+  "ai_assistant.critical_file_alert_heading": "Viktige filer er endret",
   "ai_assistant.empty_thread_instruction": "Skriv i feltet under for å begynne.",
   "ai_assistant.empty_thread_welcome": "Velkommen til assistenten!",
   "ai_assistant.feedback_details_label": "Fortell oss mer",
