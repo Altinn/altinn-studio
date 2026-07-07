@@ -23,6 +23,7 @@ export interface UseAltinityWebSocketResult {
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
 }
 
+// TODO: rename to useAssistantWebSocket.
 export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [sessionId, setSessionId] = useState<string | null>(null);
