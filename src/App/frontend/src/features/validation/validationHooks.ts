@@ -15,8 +15,8 @@ import { FrontendValidationSource, ValidationMask } from 'src/features/validatio
 import {
   buildDerivedValidationState,
   emptyBreakdown,
-  getDescendantIds,
   getNodeRefValidations,
+  getValidationDescendantIds,
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
@@ -43,19 +43,19 @@ function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData, taskId };
 }
 
-function useDerivedState() {
+function useCompleteValidationSnapshot() {
   const state = FormStore.raw.useSelector((state) => state);
   const inputs = useDerivedValidationStateInputs();
   return buildDerivedValidationState(state, inputs);
 }
 
-function useDerivedPageState(pageKeys: string[]) {
+function usePageScopedValidationSnapshot(pageKeys: string[]) {
   const state = FormStore.raw.useSelector((state) => state);
   const inputs = useDerivedValidationStateInputs();
   return buildDerivedValidationState(state, { ...inputs, includedPageKeys: pageKeys });
 }
 
-function useDerivedStateForBaseComponent<T>(
+function usePageScopedValidationSelection<T>(
   baseComponentId: string,
   select: (derived: ReturnType<typeof buildDerivedValidationState>) => T,
 ) {
@@ -70,7 +70,7 @@ function useDerivedStateForBaseComponent<T>(
   });
 }
 
-function useDerivedStateForNode<T>(
+function usePageScopedNodeValidationSelection<T>(
   baseComponentId: string,
   indexedId: string | undefined,
   select: (derived: ReturnType<typeof buildDerivedValidationState>, indexedId: string | undefined) => T,
@@ -125,30 +125,30 @@ function useFreshDerivedStateBuilder() {
   return useCallback(() => buildDerivedValidationState(store.getState(), snapshotInputs()), [snapshotInputs, store]);
 }
 
-/** Returns validation visibility for one generated node without rerendering when unrelated validations change. */
+/** Selects validation visibility for one generated node from a page-scoped validation snapshot. */
 export function useValidationVisibilityBreakdown(
   baseComponentId: string,
   indexedId: string | undefined,
 ): ValidationVisibilityBreakdownType {
-  return useDerivedStateForNode(baseComponentId, indexedId, (derived, indexedId) =>
+  return usePageScopedNodeValidationSelection(baseComponentId, indexedId, (derived, indexedId) =>
     indexedId ? (derived.visibleBreakdownByNode.get(indexedId) ?? emptyBreakdown) : emptyBreakdown,
   );
 }
 
-/** Returns raw validations for one generated node without rerendering when unrelated validations change. */
+/** Selects raw validations for one generated node from a page-scoped validation snapshot. */
 export function useRawValidations(baseComponentId: string, indexedId: string | undefined): AnyValidation[] {
-  return useDerivedStateForNode(baseComponentId, indexedId, (derived, indexedId) =>
+  return usePageScopedNodeValidationSelection(baseComponentId, indexedId, (derived, indexedId) =>
     indexedId ? (derived.rawValidationsByNode.get(indexedId) ?? emptyArray) : emptyArray,
   );
 }
 
-/** Returns visible validations for one generated node without rerendering when unrelated validations change. */
+/** Selects visible validations for one generated node from a page-scoped validation snapshot. */
 export function useVisibleValidations(
   baseComponentId: string,
   indexedId: string | undefined,
   showAll?: boolean,
 ): AnyValidation[] {
-  return useDerivedStateForNode(baseComponentId, indexedId, (derived, indexedId) =>
+  return usePageScopedNodeValidationSelection(baseComponentId, indexedId, (derived, indexedId) =>
     indexedId ? getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible') : emptyArray,
   );
 }
@@ -162,8 +162,11 @@ export function useVisibleValidationsDeep(
   restriction?: number,
   severity?: ValidationSeverity,
 ): NodeRefValidation[] {
-  return useDerivedStateForBaseComponent(baseComponentId, (derived) => {
-    const nodeIds = [...(includeSelf ? [indexedId] : emptyArray), ...getDescendantIds(derived, indexedId, restriction)];
+  return usePageScopedValidationSelection(baseComponentId, (derived) => {
+    const nodeIds = [
+      ...(includeSelf ? [indexedId] : emptyArray),
+      ...getValidationDescendantIds(derived, indexedId, restriction),
+    ];
     return nodeIds.flatMap((nodeId) => getNodeRefValidations(derived, nodeId, mask, severity));
   });
 }
@@ -185,7 +188,7 @@ export function useVisibleValidationsDeepSelector() {
       const freshDerived = buildFreshDerivedState();
       const nodeIds = [
         ...(includeSelf ? [indexedId] : emptyArray),
-        ...getDescendantIds(freshDerived, indexedId, restriction),
+        ...getValidationDescendantIds(freshDerived, indexedId, restriction),
       ];
       return nodeIds.flatMap((nodeId) => getNodeRefValidations(freshDerived, nodeId, mask, severity));
     },
@@ -208,7 +211,7 @@ export function useAllValidations(
 
 /** Returns validation arrays grouped by page from the current render snapshot. */
 export function usePageValidations(pageKeys: string[]) {
-  const derived = useDerivedPageState(pageKeys);
+  const derived = usePageScopedValidationSnapshot(pageKeys);
   return Object.fromEntries(
     pageKeys.map((pageKey) => {
       const nodeIds = derived.nodeIdsByPage.get(pageKey) ?? emptyArray;
@@ -264,7 +267,7 @@ export function usePageHasVisibleRequiredValidations(pageKey: string | undefined
  * the validations they revealed have been resolved.
  */
 export function usePruneValidationMasks() {
-  const derived = useDerivedState();
+  const derived = useCompleteValidationSnapshot();
   const [formMask, pageMasks, rowMasks] = FormStore.raw.useShallowSelector((state) => [
     state.validation.formMask,
     state.validation.pageMasks,

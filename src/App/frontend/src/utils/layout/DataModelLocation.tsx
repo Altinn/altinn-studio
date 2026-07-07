@@ -4,8 +4,9 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
+import { getCurrentDataModelPath, rowContextsToIdMutators } from 'src/utils/layout/rowContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { RowContext } from 'src/utils/layout/deriveLayoutNodes';
+import type { RowContext } from 'src/utils/layout/rowContext';
 
 export type IdMutator = (id: string) => string;
 
@@ -169,20 +170,22 @@ export function DataModelLocationProviderFromRowContexts({
   rowContexts,
   children,
 }: PropsWithChildren<{ rowContexts: RowContext[] }>) {
+  const parentCtx = useCtx();
+  const value = useMemo(() => {
+    const reference = getCurrentDataModelPath(rowContexts);
+    if (!reference) {
+      return undefined;
+    }
+
+    return {
+      reference,
+      idMutators: [...(parentCtx?.idMutators ?? []), ...rowContextsToIdMutators(rowContexts)],
+    };
+  }, [parentCtx?.idMutators, rowContexts]);
+
   if (rowContexts.length === 0) {
     return children;
   }
 
-  return rowContexts.reduceRight(
-    (child, { groupBinding, rowIndex }) => (
-      <DataModelLocationProvider
-        key={`${groupBinding.dataType}-${groupBinding.field}-${rowIndex}`}
-        groupBinding={groupBinding}
-        rowIndex={rowIndex}
-      >
-        {child}
-      </DataModelLocationProvider>
-    ),
-    children as React.ReactElement,
-  );
+  return <Provider value={value}>{children}</Provider>;
 }

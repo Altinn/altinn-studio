@@ -10,7 +10,8 @@ import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentBehaviors } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { deriveLayoutNodes, getLayoutDescendantIds } from 'src/utils/layout/deriveLayoutNodes';
+import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
+import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
 
 /**
  * When deleting a row in a repeating group, we need to find any attachments that are uploaded
@@ -34,7 +35,7 @@ export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
     async (restriction: number | undefined): Promise<boolean> => {
       const state = formStore.getState();
       const nodes = deriveLayoutNodes(state);
-      const recursiveChildren = new Set<string>(getLayoutDescendantIds(nodes, idRef.current, restriction));
+      const recursiveChildren = new Set<string>(getDerivedNodeDescendantIds(nodes, idRef.current, restriction));
       const instanceData = selectFromInstance((instance) => instance.data) ?? [];
       const uploaderNodes = nodes.filter(
         (node) =>

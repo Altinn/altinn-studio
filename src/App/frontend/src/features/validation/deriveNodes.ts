@@ -1,7 +1,8 @@
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
-import { type DerivedLayoutNode, deriveLayoutNodes, getCurrentDataModelPath } from 'src/utils/layout/deriveLayoutNodes';
+import { type DerivedLayoutNode, deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
+import { getCurrentDataModelPath } from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
@@ -36,8 +37,6 @@ export function withCurrentDataModelPath(
     },
   };
 }
-
-export { getCurrentDataModelPath };
 
 /**
  * Adds validation-only hidden-expression and page-validity state to the

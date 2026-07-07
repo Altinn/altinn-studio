@@ -9,7 +9,7 @@ import {
   ValidationMask,
   type ValidationSeverity,
 } from 'src/features/validation';
-import { deriveNodes, getCurrentDataModelPath, withCurrentDataModelPath } from 'src/features/validation/deriveNodes';
+import { deriveNodes, withCurrentDataModelPath } from 'src/features/validation/deriveNodes';
 import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
 import {
   type CompDef,
@@ -19,6 +19,8 @@ import {
   implementsValidateEmptyField,
   type ValidationFilter,
 } from 'src/layout';
+import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
+import { getCurrentDataModelPath } from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode } from 'src/features/validation/deriveNodes';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -42,7 +44,6 @@ export type DerivedValidationState = {
   nodeById: Map<string, DerivedValidationNode>;
   nodeIdsByPage: Map<string, string[]>;
   nodeIdsByRowId: Map<string, string[]>;
-  childIdsByParent: Map<string, string[]>;
   rawValidationsByNode: Map<string, AnyValidation[]>;
   visibleBreakdownByNode: Map<string, ValidationVisibilityBreakdown>;
 };
@@ -273,16 +274,12 @@ export function buildDerivedValidationState(
   const nodeById = new Map<string, DerivedValidationNode>();
   const nodeIdsByPage = new Map<string, string[]>();
   const nodeIdsByRowId = new Map<string, string[]>();
-  const childIdsByParent = new Map<string, string[]>();
   const rawValidationsByNode = new Map<string, AnyValidation[]>();
   const visibleBreakdownByNode = new Map<string, ValidationVisibilityBreakdown>();
 
   for (const node of nodes) {
     nodeById.set(node.id, node);
     addToIndex(nodeIdsByPage, node.pageKey, node.id);
-    if (node.parentId) {
-      addToIndex(childIdsByParent, node.parentId, node.id);
-    }
     for (const rowId of node.rowIds) {
       addToIndex(nodeIdsByRowId, rowId, node.id);
     }
@@ -299,7 +296,6 @@ export function buildDerivedValidationState(
     nodeById,
     nodeIdsByPage,
     nodeIdsByRowId,
-    childIdsByParent,
     rawValidationsByNode,
     visibleBreakdownByNode,
   };
@@ -360,28 +356,10 @@ export function getNodeRefValidations(
  * Returns generated descendants in traversal order. The optional restriction
  * limits results to one row directly below the requested parent node.
  */
-export function getDescendantIds(derived: DerivedValidationState, nodeId: string, restriction?: number): string[] {
-  const parent = derived.nodeById.get(nodeId);
-  if (!parent) {
-    return emptyArray;
-  }
-
-  const parentRowContextCount = parent.rowContexts.length;
-  const descendants: string[] = [];
-  function visitDescendants(parentId: string) {
-    for (const childId of derived.childIdsByParent.get(parentId) ?? emptyArray) {
-      const child = derived.nodeById.get(childId);
-      if (!child) {
-        throw new Error(`Derived validation node '${childId}' is missing`);
-      }
-
-      if (restriction === undefined || child.rowContexts[parentRowContextCount]?.rowIndex === restriction) {
-        descendants.push(childId);
-      }
-      visitDescendants(childId);
-    }
-  }
-
-  visitDescendants(nodeId);
-  return descendants;
+export function getValidationDescendantIds(
+  derived: DerivedValidationState,
+  nodeId: string,
+  restriction?: number,
+): string[] {
+  return getDerivedNodeDescendantIds(derived.nodes, nodeId, restriction);
 }

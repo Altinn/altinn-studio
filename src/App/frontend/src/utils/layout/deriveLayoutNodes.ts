@@ -1,21 +1,16 @@
 import dot from 'dot-object';
 
-import { FormStore } from 'src/features/form/FormContext';
 import { MissingRowIdException } from 'src/features/formData/MissingRowIdException';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
+import { appendRowContext, applyRowContextToComponentId } from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompIntermediate, CompTypes } from 'src/layout/layout';
+import type { RowContext } from 'src/utils/layout/rowContext';
 import type { BaseRow } from 'src/utils/layout/types';
-
-export type RowContext = {
-  groupBinding: IDataModelReference;
-  rowIndex: number;
-  rowId: string;
-};
 
 export type DerivedLayoutParent =
   | {
@@ -65,22 +60,6 @@ function transposeChildBinding(field: string, groupField: string, rowIndex: numb
   return `${groupField}[${rowIndex}]${field.slice(groupField.length)}`;
 }
 
-/**
- * Returns the data model path for the innermost repeating-group row.
- * Components outside repeating groups do not have a current data model path.
- */
-export function getCurrentDataModelPath(rowContexts: RowContext[]): IDataModelReference | undefined {
-  const current = rowContexts[rowContexts.length - 1];
-  if (!current) {
-    return undefined;
-  }
-
-  return {
-    dataType: current.groupBinding.dataType,
-    field: `${current.groupBinding.field}[${current.rowIndex}]`,
-  };
-}
-
 function toIntermediateItem<T extends CompTypes>(
   component: CompExternal<T>,
   rowContexts: RowContext[],
@@ -111,9 +90,7 @@ function toIntermediateItem<T extends CompTypes>(
     }
   }
 
-  if (rowContexts.length > 0) {
-    clone.id = `${clone.id}-${rowContexts.map((row) => row.rowIndex).join('-')}`;
-  }
+  clone.id = applyRowContextToComponentId(clone.id, rowContexts);
 
   return clone;
 }
@@ -161,10 +138,6 @@ function splitRepeatingChildren(component: CompExternal<'RepeatingGroup'>, child
     repeated: childIds.filter((childId) => repeated.has(childId)),
     staticChildren: childIds.filter((childId) => !repeated.has(childId)),
   };
-}
-
-function appendRowContext(rowContexts: RowContext[], groupBinding: IDataModelReference, row: BaseRow): RowContext[] {
-  return [...rowContexts, { groupBinding, rowIndex: row.index, rowId: row.uuid }];
 }
 
 function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
@@ -256,48 +229,4 @@ export function deriveLayoutNodes(state: FormStoreState, pageKeys?: Iterable<str
   }
 
   return nodes;
-}
-
-export function useDerivedLayoutNodes(): DerivedLayoutNode[] {
-  return FormStore.raw.useMemoSelector((state) => deriveLayoutNodes(state));
-}
-
-/**
- * Returns descendants in traversal order. A restriction limits the immediate
- * child branches to one repeating-group row.
- */
-export function getLayoutDescendantIds(nodes: DerivedLayoutNode[], nodeId: string, restriction?: number): string[] {
-  const childrenByParent = new Map<string, DerivedLayoutNode[]>();
-  for (const node of nodes) {
-    if (!node.parentId) {
-      continue;
-    }
-    const children = childrenByParent.get(node.parentId);
-    if (children) {
-      children.push(node);
-    } else {
-      childrenByParent.set(node.parentId, [node]);
-    }
-  }
-
-  const parentRowContextCount = nodes.find((node) => node.id === nodeId)?.rowContexts.length;
-  if (parentRowContextCount === undefined) {
-    return emptyArray;
-  }
-  const rowContextIndex = parentRowContextCount;
-
-  const descendants: string[] = [];
-  function visit(parentId: string, rowRestriction?: number) {
-    for (const child of childrenByParent.get(parentId) ?? emptyArray) {
-      const currentRow = child.rowContexts[rowContextIndex]?.rowIndex;
-      if (rowRestriction !== undefined && currentRow !== rowRestriction) {
-        continue;
-      }
-      descendants.push(child.id);
-      visit(child.id);
-    }
-  }
-
-  visit(nodeId, restriction);
-  return descendants;
 }
