@@ -38,7 +38,8 @@ fi
 cd "$PROJECT_PATH"
 
 if ! dotnet csharpier --version >/dev/null 2>&1; then
-  echo "Error: CSharpier is not installed. Run 'dotnet tool restore' (from $PROJECT_PATH) or 'dotnet tool install -g csharpier'"
+  echo "Error: unable to run CSharpier in $PROJECT_PATH."
+  echo "Ensure the required .NET SDK (see $PROJECT_PATH/global.json) is installed, then run 'dotnet tool restore' from that directory."
   exit 1
 fi
 
