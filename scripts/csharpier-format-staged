@@ -1,0 +1,53 @@
+#!/usr/bin/env sh
+# Format staged C# files for a given dotnet project with CSharpier.
+# Invoked by lefthook's pre-commit hook.
+#
+# Usage: csharpier-format-staged <project-path> [staged-file ...]
+#   <project-path>  repo-relative path to the project whose
+#                   .config/dotnet-tools.json defines csharpier
+#                   (e.g. src/Designer/backend)
+#   [staged-file]   repo-relative paths of the staged .cs files
+#
+# The logic lives in a script (rather than an inline lefthook `run`) because
+# lefthook 2.1.9 wraps inline commands in `sh -c "..."` on Windows, where
+# embedded quotes or newlines truncate the command.
+#
+# CSharpier is a local dotnet tool. Rather than auto-installing it, fail with a
+# helpful message when dotnet or the restored tool is missing.
+set -e
+
+if [ "$#" -eq 0 ]; then
+  echo "Error: missing <project-path> argument"
+  exit 1
+fi
+
+# First arg is the project path; the rest are the staged files. Trim a trailing
+# slash so the prefix stripping below matches regardless of how it's passed.
+PROJECT_PATH="${1%/}"
+shift
+
+# lefthook only invokes this when staged C# files match, but guard anyway so a
+# stray call never formats the whole project.
+[ "$#" -eq 0 ] && exit 0
+
+if ! command -v dotnet >/dev/null 2>&1; then
+  echo "Error: dotnet CLI is not installed or not in PATH"
+  exit 1
+fi
+
+cd "$PROJECT_PATH"
+
+if ! dotnet csharpier --version >/dev/null 2>&1; then
+  echo "Error: CSharpier is not installed. Run 'dotnet tool restore' (from $PROJECT_PATH) or 'dotnet tool install -g csharpier'"
+  exit 1
+fi
+
+# Reduce repo-relative paths to paths relative to the project (where the dotnet
+# tool manifest lives). Rebuild the positional list in place so paths
+# containing spaces stay as single arguments.
+for file in "$@"; do
+  set -- "$@" "${file#"$PROJECT_PATH/"}"
+  shift
+done
+
+dotnet csharpier format "$@"
