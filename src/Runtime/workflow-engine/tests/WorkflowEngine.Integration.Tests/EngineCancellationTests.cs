@@ -161,7 +161,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Cancel_IdempotentSecondRequest_Returns202OrConflict()
+    public async Task Cancel_IdempotentSecondRequest_Returns200OrConflict()
     {
         SetupWireMock();
         _wireMock

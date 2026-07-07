@@ -17,11 +17,11 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// Integration tests for workflow resume. Each test creates its own
-/// <see cref="EngineWebApplicationFactory{TProgram}"/> because resume timing
-/// is sensitive and tests must not share in-flight state.
+/// Integration tests for the caller-driven terminal transitions — workflow resume and abandon.
+/// Each test creates its own <see cref="EngineWebApplicationFactory{TProgram}"/> because their
+/// timing is sensitive and tests must not share in-flight state.
 /// </summary>
-public sealed class EngineResumeTests : IAsyncLifetime
+public sealed class EngineResumeAndAbandonTests : IAsyncLifetime
 {
     private const string TestNamespace = "ttd:resume-tests";
 
