@@ -3,13 +3,13 @@ import type { PropsWithChildren } from 'react';
 
 import { Loader } from 'src/core/loading/Loader';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
-import { FormEffects } from 'src/features/form/FormEffects';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
 import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 
-export function FormEffectsProvider({ children }: PropsWithChildren) {
+export function FormRuntimeEffects({ children }: PropsWithChildren) {
   const isInTaskTransition = useIsInTaskTransition();
 
   if (isInTaskTransition) {
@@ -19,7 +19,7 @@ export function FormEffectsProvider({ children }: PropsWithChildren) {
   return (
     <>
       <LayoutPropertiesValidation />
-      <FormEffects />
+      <RunOptionsEffects />
       {window.Cypress && <UpdateAttachmentsForCypress />}
       {children}
     </>

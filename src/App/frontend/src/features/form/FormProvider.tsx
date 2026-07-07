@@ -23,7 +23,7 @@ import {
   getRootFormStore,
   processBootstrap,
 } from 'src/features/form/FormContext';
-import { FormEffectsProvider } from 'src/features/form/FormEffectsProvider';
+import { FormRuntimeEffects } from 'src/features/form/FormRuntimeEffects';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
@@ -120,13 +120,13 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <AttachmentEffects />
       <ValidationEffects />
       <LayoutRevisionBoundary>
-        <FormEffectsProvider>
+        <FormRuntimeEffects>
           <PaymentInformationProvider>
             <OrderDetailsProvider>
               <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
             </OrderDetailsProvider>
           </PaymentInformationProvider>
-        </FormEffectsProvider>
+        </FormRuntimeEffects>
       </LayoutRevisionBoundary>
     </FormStoreProvider>
   );
