@@ -1,7 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
 
 import dot from 'dot-object';
-import deepEqual from 'fast-deep-equal';
 import type { StoreApi } from 'zustand';
 
 import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
@@ -23,6 +22,7 @@ import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
+import { ExpressionObserver } from 'src/utils/layout/expressionObserver';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { StaticOptionSet } from 'src/features/formBootstrap/types';
@@ -31,6 +31,7 @@ import type { TextResourceMap } from 'src/features/language/textResources';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
+import type { ExpressionDependency, ExpressionSubscriptionOwner } from 'src/utils/layout/expressionObserver';
 
 /**
  * The coarse categories expression functions can read from.
@@ -48,24 +49,6 @@ export type ExpressionDataSource =
   | 'layout'
   | 'options'
   | 'process';
-
-/**
- * A concrete read that happened while evaluating an expression.
- * Dependencies are finer-grained than data sources, and are what the observer watches for future changes.
- */
-export type ExpressionDependency =
-  | { type: 'applicationSettings' }
-  | { type: 'currentLanguage' }
-  | { type: 'currentPage' }
-  | { type: 'displayValue'; componentId: string }
-  | { type: 'externalApi' }
-  | { type: 'formData'; reference: IDataModelReference }
-  | { type: 'instanceDataElementCount'; dataType: string }
-  | { type: 'instanceDataSources' }
-  | { type: 'language'; dataModelPath: IDataModelReference | undefined }
-  | { type: 'layout' }
-  | { type: 'options'; optionsId: string }
-  | { type: 'process' };
 
 export interface ExpressionDataSources {
   currentDataModelPath: IDataModelReference | undefined;
@@ -228,8 +211,6 @@ export function useExpressionDataSourcesForStoreSelector(
   );
 }
 
-type ExpressionSubscriptionOwner = 'runtime' | 'storeSelector';
-
 function useExpressionDataSourcesRuntime(
   overrides: ExpressionRuntimeOverrides | undefined,
   subscriptionOwner: ExpressionSubscriptionOwner,
@@ -246,11 +227,7 @@ function useExpressionDataSourcesRuntime(
   const externalApiQueries = useExternalApiQueries();
   const textResourceQueries = useTextResourcesQueries();
 
-  const [runtimeRevision, forceRender] = useReducer((n: number) => n + 1, 0);
-  const observerRef = useRef<ExpressionObserver>(undefined);
-  if (!observerRef.current) {
-    observerRef.current = new ExpressionObserver(() => forceRender());
-  }
+  const [observerRevision, forceRender] = useReducer((n: number) => n + 1, 0);
 
   const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
   const externalApiIds = getApplicationMetadata().externalApiIds ?? emptyExternalApiIds;
@@ -270,7 +247,16 @@ function useExpressionDataSourcesRuntime(
     textResourceQueries,
   };
 
-  observerRef.current.updateInputs(inputs);
+  const inputsRef = useRef(inputs);
+  inputsRef.current = inputs;
+  const observerRef = useRef<ExpressionObserver>(undefined);
+  if (!observerRef.current) {
+    observerRef.current = new ExpressionObserver(
+      () => forceRender(),
+      (dependency) => readDependencyValue(inputsRef.current, dependency),
+    );
+  }
+
   observerRef.current.beginCollect();
 
   useLayoutEffect(() => {
@@ -279,7 +265,11 @@ function useExpressionDataSourcesRuntime(
 
   useLayoutEffect(() => {
     const observer = observerRef.current!;
-    return observer.subscribe(subscriptionOwner);
+    return observer.subscribe({
+      owner: subscriptionOwner,
+      subscribeStore: store !== ContextNotProvided ? (onStoreChange) => store.subscribe(onStoreChange) : undefined,
+      subscribeQuery: (onQueryChange) => queryCacheObserver.subscribe(onQueryChange),
+    });
   }, [queryCacheObserver, store, subscriptionOwner]);
 
   const { runtime: runtimeOverridesFromProps, unsupportedDataSources, errorSuffix } = overrides ?? {};
@@ -297,241 +287,116 @@ function useExpressionDataSourcesRuntime(
     [unsupportedDataSources, errorSuffix],
   );
 
-  return useMemo<ExpressionDataSources>(
-    () => ({
+  return useMemo<ExpressionDataSources>(() => {
+    // Publish a new runtime object when the observer schedules a rerender for changed dependencies.
+    void observerRevision;
+
+    return makeExpressionDataSourcesRuntime({
       currentDataModelPath,
-      langToolsSelector: (dataModelPath) => {
-        observerRef.current!.track({ type: 'language', dataModelPath });
-        return buildLanguageTools({ inputs: observerRef.current!.getInputs(), dataModelPath });
-      },
-      markExpressionEvaluated: () => observerRef.current!.markEvaluated(),
-      track: (dependency) => observerRef.current!.track(dependency),
-      getDependencies: () => observerRef.current!.getDependencies(),
-      context: {
-        currentLanguage: () => {
-          observerRef.current!.track({ type: 'currentLanguage' });
-          return observerRef.current!.getInputs().currentLanguage;
-        },
-        currentPage: () => {
-          observerRef.current!.track({ type: 'currentPage' });
-          return observerRef.current!.getInputs().currentPage;
-        },
-        currentDataModelPath: () => observerRef.current!.getInputs().currentDataModelPath,
-        assertDataSourceSupported,
-      },
-      application: {
-        getSettings: () => {
-          observerRef.current!.track({ type: 'applicationSettings' });
-          return observerRef.current!.getInputs().applicationSettings;
-        },
-      },
-      formData: {
-        defaultDataType: () => getDefaultDataTypeFromStore(observerRef.current!.getInputs().store),
-        hasDataType: (dataType) =>
-          getReadableDataTypesFromStore(observerRef.current!.getInputs().store).includes(dataType),
-        read: (reference) => {
-          observerRef.current!.track({ type: 'formData', reference });
-          return readFormDataFromStore(observerRef.current!.getInputs().store, reference);
-        },
-      },
-      layout: {
-        getLookups: () => {
-          assertDataSourceSupported('layout');
-          observerRef.current!.track({ type: 'layout' });
-          return getLayoutLookupsFromStore(observerRef.current!.getInputs().store);
-        },
-      },
-      options: {
-        getStaticOptions: (optionsId) => {
-          observerRef.current!.track({ type: 'options', optionsId });
-          return getStaticOptionsFromStore(observerRef.current!.getInputs().store, optionsId);
-        },
-      },
-      instance: {
-        countDataElements: (dataType) => {
-          observerRef.current!.track({ type: 'instanceDataElementCount', dataType });
-          const latest = observerRef.current!.getInputs();
-          return latest.instanceQueries.countDataElements(latest.instanceId, dataType);
-        },
-        getDataSources: () => {
-          observerRef.current!.track({ type: 'instanceDataSources' });
-          const latest = observerRef.current!.getInputs();
-          return getInstanceDataSourcesFromCache(latest.instanceQueries, latest.instanceId);
-        },
-        getProcess: () => {
-          observerRef.current!.track({ type: 'process' });
-          const latest = observerRef.current!.getInputs();
-          return getProcessFromCache(latest.instanceQueries, latest.instanceId);
-        },
-      },
-      externalApi: {
-        getAll: () => {
-          assertDataSourceSupported('externalApi');
-          observerRef.current!.track({ type: 'externalApi' });
-          const latest = observerRef.current!.getInputs();
-          latest.externalApiQueries.ensureLoaded(latest.instanceId, latest.externalApiIds);
-          return latest.externalApiQueries.getCached(latest.instanceId, latest.externalApiIds);
-        },
-      },
-      displayValue: {
-        get: (componentId) => {
-          assertDataSourceSupported('displayValue');
-          observerRef.current!.track({ type: 'displayValue', componentId });
-          return undefined;
-        },
-      },
-      ...runtimeOverrides,
-
-      // Trick to make sure eslint/exhaustive-deps does not complain about runtimeRevision
-      ...(runtimeRevision > Infinity ? { ...runtimeOverrides } : {}),
-    }),
-    [assertDataSourceSupported, currentDataModelPath, runtimeRevision, runtimeOverrides],
-  );
-}
-
-/**
- * Tracks which dependencies were touched during evaluation and decides when a rerender is needed.
- * It subscribes broadly to the store and query cache, but only compares the concrete dependencies that the
- * current expression actually used.
- */
-class ExpressionObserver {
-  private inputs?: SnapshotInputs;
-  private collected = new Map<string, ExpressionDependency>();
-  private active = new Map<string, ExpressionDependency>();
-  private lastValues = new Map<string, unknown>();
-  private evaluatedDuringCollect = false;
-  private unsubscribeStore?: (() => void) | null;
-  private unsubscribeQuery?: (() => void) | null;
-  private subscribed = false;
-  private rerenderScheduled = false;
-
-  constructor(private readonly onChange: () => void) {}
-
-  updateInputs(inputs: SnapshotInputs) {
-    this.inputs = inputs;
-  }
-
-  getInputs() {
-    if (!this.inputs) {
-      throw new Error('Expression observer inputs are not initialized');
-    }
-    return this.inputs;
-  }
-
-  beginCollect() {
-    this.collected.clear();
-    this.evaluatedDuringCollect = false;
-  }
-
-  markEvaluated() {
-    this.evaluatedDuringCollect = true;
-  }
-
-  track(dependency: ExpressionDependency) {
-    this.collected.set(makeDependencyKey(dependency), dependency);
-  }
-
-  commitCollect() {
-    // The runtime hook starts a collection during render, but dependency collection is only meaningful if evalExpr()
-    // actually ran in that same collection pass. If no expression ran, an empty collection only means "nothing was
-    // evaluated now", not "the previous expression no longer depends on anything".
-    if (!this.evaluatedDuringCollect) {
-      return;
-    }
-
-    this.active = new Map(this.collected);
-    this.lastValues = this.readValues(this.active);
-  }
-
-  getDependencies() {
-    return [...this.active.values()];
-  }
-
-  subscribe(subscriptionOwner: ExpressionSubscriptionOwner) {
-    this.unsubscribeStore?.();
-    this.unsubscribeQuery?.();
-    this.subscribed = false;
-
-    const inputs = this.inputs;
-    if (!inputs) {
-      return () => {};
-    }
-
-    this.unsubscribeStore =
-      subscriptionOwner === 'runtime' && inputs.store !== ContextNotProvided
-        ? inputs.store.subscribe(() => this.checkForChanges(isStoreBackedDependency))
-        : null;
-
-    this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
-      this.checkForChanges(isQueryBackedDependency);
+      getInputs: () => inputsRef.current,
+      observer: observerRef.current!,
+      assertDataSourceSupported,
+      runtimeOverrides,
     });
-    this.subscribed = true;
-
-    return () => {
-      this.subscribed = false;
-      this.unsubscribeStore?.();
-      this.unsubscribeQuery?.();
-      this.unsubscribeStore = null;
-      this.unsubscribeQuery = null;
-    };
-  }
-
-  private checkForChanges(shouldCheck: (dependency: ExpressionDependency) => boolean) {
-    if (!this.inputs || this.active.size === 0) {
-      return;
-    }
-
-    const dependencies = new Map([...this.active].filter(([, dependency]) => shouldCheck(dependency)));
-    if (dependencies.size === 0) {
-      return;
-    }
-
-    const nextValues = this.readValues(dependencies);
-    for (const [key, nextValue] of nextValues) {
-      const previousValue = this.lastValues.get(key);
-      if (!deepEqual(previousValue, nextValue)) {
-        this.lastValues = new Map([...this.lastValues, ...nextValues]);
-        this.scheduleRerender();
-        return;
-      }
-    }
-  }
-
-  private scheduleRerender() {
-    if (this.rerenderScheduled) {
-      return;
-    }
-
-    this.rerenderScheduled = true;
-    queueMicrotask(() => {
-      this.rerenderScheduled = false;
-      if (this.subscribed) {
-        this.onChange();
-      }
-    });
-  }
-
-  private readValues(dependencies: Map<string, ExpressionDependency>) {
-    const values = new Map<string, unknown>();
-    for (const [key, dependency] of dependencies) {
-      values.set(key, readDependencyValue(this.inputs!, dependency));
-    }
-    return values;
-  }
+  }, [assertDataSourceSupported, currentDataModelPath, observerRevision, runtimeOverrides]);
 }
 
-function isStoreBackedDependency(dependency: ExpressionDependency) {
-  return dependency.type === 'formData' || dependency.type === 'layout' || dependency.type === 'options';
-}
-
-function isQueryBackedDependency(dependency: ExpressionDependency) {
-  return (
-    dependency.type === 'externalApi' ||
-    dependency.type === 'instanceDataElementCount' ||
-    dependency.type === 'instanceDataSources' ||
-    dependency.type === 'language' ||
-    dependency.type === 'process'
-  );
+function makeExpressionDataSourcesRuntime({
+  currentDataModelPath,
+  getInputs,
+  observer,
+  assertDataSourceSupported,
+  runtimeOverrides,
+}: {
+  currentDataModelPath: IDataModelReference | undefined;
+  getInputs: () => SnapshotInputs;
+  observer: ExpressionObserver;
+  assertDataSourceSupported: (dataSource: ExpressionDataSource) => void;
+  runtimeOverrides: Partial<ExpressionDataSources>;
+}): ExpressionDataSources {
+  return {
+    currentDataModelPath,
+    langToolsSelector: (dataModelPath) => {
+      observer.track({ type: 'language', dataModelPath });
+      return buildLanguageTools({ inputs: getInputs(), dataModelPath });
+    },
+    markExpressionEvaluated: () => observer.markEvaluated(),
+    track: (dependency) => observer.track(dependency),
+    getDependencies: () => observer.getDependencies(),
+    context: {
+      currentLanguage: () => {
+        observer.track({ type: 'currentLanguage' });
+        return getInputs().currentLanguage;
+      },
+      currentPage: () => {
+        observer.track({ type: 'currentPage' });
+        return getInputs().currentPage;
+      },
+      currentDataModelPath: () => getInputs().currentDataModelPath,
+      assertDataSourceSupported,
+    },
+    application: {
+      getSettings: () => {
+        observer.track({ type: 'applicationSettings' });
+        return getInputs().applicationSettings;
+      },
+    },
+    formData: {
+      defaultDataType: () => getDefaultDataTypeFromStore(getInputs().store),
+      hasDataType: (dataType) => getReadableDataTypesFromStore(getInputs().store).includes(dataType),
+      read: (reference) => {
+        observer.track({ type: 'formData', reference });
+        return readFormDataFromStore(getInputs().store, reference);
+      },
+    },
+    layout: {
+      getLookups: () => {
+        assertDataSourceSupported('layout');
+        observer.track({ type: 'layout' });
+        return getLayoutLookupsFromStore(getInputs().store);
+      },
+    },
+    options: {
+      getStaticOptions: (optionsId) => {
+        observer.track({ type: 'options', optionsId });
+        return getStaticOptionsFromStore(getInputs().store, optionsId);
+      },
+    },
+    instance: {
+      countDataElements: (dataType) => {
+        observer.track({ type: 'instanceDataElementCount', dataType });
+        const latest = getInputs();
+        return latest.instanceQueries.countDataElements(latest.instanceId, dataType);
+      },
+      getDataSources: () => {
+        observer.track({ type: 'instanceDataSources' });
+        const latest = getInputs();
+        return getInstanceDataSourcesFromCache(latest.instanceQueries, latest.instanceId);
+      },
+      getProcess: () => {
+        observer.track({ type: 'process' });
+        const latest = getInputs();
+        return getProcessFromCache(latest.instanceQueries, latest.instanceId);
+      },
+    },
+    externalApi: {
+      getAll: () => {
+        assertDataSourceSupported('externalApi');
+        observer.track({ type: 'externalApi' });
+        const latest = getInputs();
+        latest.externalApiQueries.ensureLoaded(latest.instanceId, latest.externalApiIds);
+        return latest.externalApiQueries.getCached(latest.instanceId, latest.externalApiIds);
+      },
+    },
+    displayValue: {
+      get: (componentId) => {
+        assertDataSourceSupported('displayValue');
+        observer.track({ type: 'displayValue', componentId });
+        return undefined;
+      },
+    },
+    ...runtimeOverrides,
+  };
 }
 
 /**
@@ -698,24 +563,6 @@ function collectDisplayValueLookupsInner(subject: unknown, lookups: Set<string>)
 
   for (const key in subject) {
     collectDisplayValueLookupsInner(subject[key], lookups);
-  }
-}
-
-/** Creates a stable key for deduplicating tracked dependencies. */
-function makeDependencyKey(dependency: ExpressionDependency) {
-  switch (dependency.type) {
-    case 'formData':
-      return `formData:${dependency.reference.dataType}:${dependency.reference.field}`;
-    case 'instanceDataElementCount':
-      return `instanceDataElementCount:${dependency.dataType}`;
-    case 'displayValue':
-      return `displayValue:${dependency.componentId}`;
-    case 'options':
-      return `options:${dependency.optionsId}`;
-    case 'language':
-      return `language:${dependency.dataModelPath?.dataType ?? ''}:${dependency.dataModelPath?.field ?? ''}`;
-    default:
-      return dependency.type;
   }
 }
 
