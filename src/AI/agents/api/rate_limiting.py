@@ -32,7 +32,7 @@ def _reject(hits: deque[float], now: float, group_key: str) -> NoReturn:
 
 
 class RateLimiter:
-    """Sliding-window limit of *requests_per_minute* per group."""
+    """Sliding-window limit of `requests_per_minute` per `group_key`."""
 
     def __init__(
         self,

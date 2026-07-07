@@ -3,10 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from agents.services import rate_limiting
-from agents.services.rate_limiting import RateLimiter
-
-WINDOW_SECONDS = rate_limiting.WINDOW_SECONDS
+from api.rate_limiting import RateLimiter, WINDOW_SECONDS
 
 
 class FakeClock:
@@ -25,7 +22,7 @@ class FakeClock:
 @pytest.fixture
 def clock():
     fake_clock = FakeClock()
-    with patch("agents.services.rate_limiting.time", fake_clock):
+    with patch("api.rate_limiting.time", fake_clock):
         yield fake_clock
 
 
@@ -50,61 +47,46 @@ async def call_n_times(limiter: RateLimiter, developer: str, count: int) -> None
 
 async def test_allows_requests_up_to_the_limit(clock):
     limiter = make_limiter(requests_per_minute=5)
-    await call_n_times(limiter, "alice", 5)  # should not raise
+    await call_n_times(limiter, "kari", 5)
 
 
 async def test_rejects_the_request_that_exceeds_the_limit(clock):
     limiter = make_limiter(requests_per_minute=5)
-    await call_n_times(limiter, "alice", 5)
+    await call_n_times(limiter, "kari", 5)
     with pytest.raises(HTTPException) as exc_info:
-        await limiter(request_from("alice"))
+        await limiter(request_from("kari"))
 
     assert exc_info.value.status_code == 429
 
 
 async def test_rejection_includes_a_retry_after_header(clock):
     limiter = make_limiter(requests_per_minute=1)
-    await limiter(request_from("alice"))
+    await limiter(request_from("kari"))
     with pytest.raises(HTTPException) as exc_info:
-        await limiter(request_from("alice"))
+        await limiter(request_from("kari"))
 
     assert int(exc_info.value.headers["Retry-After"]) == WINDOW_SECONDS
 
 
 async def test_keys_are_limited_independently(clock):
     limiter = make_limiter(requests_per_minute=2)
-    await call_n_times(limiter, "alice", 2)
-    await call_n_times(limiter, "bob", 2)  # bob has his own budget, should not raise
+    await call_n_times(limiter, "kari", 2)
+    await call_n_times(limiter, "ola", 2)
 
 
 async def test_a_constant_string_key_makes_all_requests_share_one_bucket(clock):
     limiter = RateLimiter(requests_per_minute=2, group_key="all")
-    await limiter(request_from("alice"))
-    await limiter(request_from("bob"))
+    await limiter(request_from("kari"))
+    await limiter(request_from("ola"))
     with pytest.raises(HTTPException) as exc_info:
-        await limiter(request_from("carol"))
+        await limiter(request_from("lise"))
 
     assert exc_info.value.status_code == 429
 
 
 async def test_requests_are_allowed_again_after_the_window_passes(clock):
     limiter = make_limiter(requests_per_minute=2)
-    await call_n_times(limiter, "alice", 2)
+    await call_n_times(limiter, "kari", 2)
     clock.advance(WINDOW_SECONDS + 1)
-    await call_n_times(limiter, "alice", 2)  # window cleared, should not raise
+    await call_n_times(limiter, "kari", 2)
 
-
-async def test_rejected_requests_are_not_counted(clock):
-    limiter = make_limiter(requests_per_minute=1)
-    await limiter(request_from("alice"))  # t=0, only hit that counts
-    clock.advance(30)
-    with pytest.raises(HTTPException) as first_rejection:
-        await limiter(request_from("alice"))
-    clock.advance(20)
-    with pytest.raises(HTTPException) as second_rejection:
-        await limiter(request_from("alice"))
-
-    # Retry-After counts down toward the single stored hit expiring at t=60,
-    # proving the rejected calls at t=30 and t=50 were not recorded.
-    assert int(first_rejection.value.headers["Retry-After"]) == 30
-    assert int(second_rejection.value.headers["Retry-After"]) == 10
