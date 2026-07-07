@@ -4,6 +4,7 @@ import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { MissingRowIdException } from 'src/features/formData/MissingRowIdException';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { deriveNodes } from 'src/features/validation/deriveNodes';
+import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
@@ -116,5 +117,64 @@ describe('deriveNodes', () => {
         hiddenDataSources: {} as ExpressionDataSources,
       }),
     ).toThrow(new MissingRowIdException('Group[0]'));
+  });
+
+  it('only transposes child bindings that are descendants of the repeating group binding', () => {
+    const layoutCollection = {
+      Form: {
+        data: {
+          layout: [
+            {
+              id: 'group',
+              type: 'RepeatingGroup',
+              children: ['inside-group', 'same-prefix'],
+              dataModelBindings: {
+                group: { dataType: defaultDataTypeMock, field: 'person' },
+              },
+            },
+            {
+              id: 'inside-group',
+              type: 'Input',
+              dataModelBindings: {
+                simpleBinding: { dataType: defaultDataTypeMock, field: 'person.name' },
+              },
+            },
+            {
+              id: 'same-prefix',
+              type: 'Input',
+              dataModelBindings: {
+                simpleBinding: { dataType: defaultDataTypeMock, field: 'personName' },
+              },
+            },
+          ],
+        },
+      },
+    } satisfies ILayoutCollection;
+    const layouts = processLayouts(layoutCollection, defaultDataTypeMock);
+    const state = {
+      bootstrap: {
+        layoutLookups: makeLayoutLookups(layouts, layoutCollection),
+      },
+      data: {
+        models: {
+          [defaultDataTypeMock]: {
+            debouncedCurrentData: {
+              person: [{ [ALTINN_ROW_ID]: 'row-0', name: 'Ada' }],
+            },
+          },
+        },
+      },
+    } as unknown as FormStoreState;
+
+    const nodes = deriveLayoutNodes(state);
+    const insideGroup = nodes.find((node) => node.id === 'inside-group-0')?.intermediateItem;
+    const samePrefix = nodes.find((node) => node.id === 'same-prefix-0')?.intermediateItem;
+
+    if (insideGroup?.type !== 'Input' || samePrefix?.type !== 'Input') {
+      throw new Error('Expected derived nodes to be Input components');
+    }
+
+    expect(insideGroup.dataModelBindings.simpleBinding.field).toBe('person[0].name');
+    expect(samePrefix.dataModelBindings.simpleBinding.field).toBe('personName');
   });
 });

@@ -56,6 +56,15 @@ type WalkNodesArgs = {
 
 const emptyArray: never[] = [];
 
+function transposeChildBinding(field: string, groupField: string, rowIndex: number): string | undefined {
+  const groupPrefix = `${groupField}.`;
+  if (!field.startsWith(groupPrefix)) {
+    return undefined;
+  }
+
+  return `${groupField}[${rowIndex}]${field.slice(groupField.length)}`;
+}
+
 /**
  * Returns the data model path for the innermost repeating-group row.
  * Components outside repeating groups do not have a current data model path.
@@ -96,7 +105,7 @@ function toIntermediateItem<T extends CompTypes>(
 
         clone.dataModelBindings[key] = {
           dataType: target.dataType,
-          field: target.field.replace(groupBinding.field, `${groupBinding.field}[${rowIndex}]`),
+          field: transposeChildBinding(target.field, groupBinding.field, rowIndex) ?? target.field,
         };
       }
     }
