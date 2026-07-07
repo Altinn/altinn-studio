@@ -10,5 +10,6 @@ export interface HeaderMenuItem {
   repositoryTypes: RepositoryType[];
   featureFlagName?: FeatureFlag;
   isBeta?: boolean;
+  isOrgOnly?: boolean;
   group: HeaderMenuGroupKey;
 }

@@ -56,6 +56,7 @@ export const topBarMenuItems: HeaderMenuItem[] = [
     link: RoutePaths.Deploy,
     icon: UploadIcon,
     repositoryTypes: [RepositoryType.App],
+    isOrgOnly: true,
     group: HeaderMenuGroupKey.Other,
   },
   {
@@ -73,6 +74,7 @@ export const topBarMenuItems: HeaderMenuItem[] = [
     repositoryTypes: [RepositoryType.App],
     group: HeaderMenuGroupKey.Tools,
     featureFlagName: FeatureFlag.AiAssistant,
+    isOrgOnly: true,
     isBeta: true,
   },
 ];
@@ -95,7 +97,7 @@ export const getTopBarMenuItems = (
     repositoryType,
     activeFeatureFlags,
   );
-  return filterOutOrgOnlyItems(filteredMenuItems, repoOwnerIsOrg, repositoryType);
+  return filterOutOrgOnlyItems(filteredMenuItems, repoOwnerIsOrg);
 };
 
 export const isMenuItemEnabledByFeatureFlag = (
@@ -107,22 +109,12 @@ export const isMenuItemEnabledByFeatureFlag = (
   return activeFeatureFlags.includes(menuItem.featureFlagName);
 };
 
-const orgOnlyMenuItemKeys: HeaderMenuItemKey[] = [
-  HeaderMenuItemKey.Deploy,
-  HeaderMenuItemKey.AiAssistant,
-];
-
 const filterOutOrgOnlyItems = (
   menuItems: HeaderMenuItem[],
   repoOwnerIsOrg: boolean,
-  repositoryType: RepositoryType,
 ): HeaderMenuItem[] => {
-  return menuItems.filter((menuItem: HeaderMenuItem) => {
-    if (orgOnlyMenuItemKeys.includes(menuItem.key)) {
-      if (!repoOwnerIsOrg || repositoryType === RepositoryType.DataModels) return false;
-    }
-    return true;
-  });
+  if (repoOwnerIsOrg) return menuItems;
+  return menuItems.filter((menuItem: HeaderMenuItem) => !menuItem.isOrgOnly);
 };
 
 export const groupMenuItemsByGroup = (menuItems: HeaderMenuItem[]): HeaderMenuGroup[] => {
