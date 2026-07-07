@@ -15,7 +15,6 @@ public class ProcessDataCleanupService : IProcessDataCleanupService
 {
     private readonly IDataService _dataService;
     private readonly IApplicationService _applicationService;
-    private readonly IProcessBaselineStore _processBaselineStore;
     private readonly ILogger<ProcessDataCleanupService> _logger;
 
     /// <summary>
@@ -24,13 +23,11 @@ public class ProcessDataCleanupService : IProcessDataCleanupService
     public ProcessDataCleanupService(
         IDataService dataService,
         IApplicationService applicationService,
-        IProcessBaselineStore processBaselineStore,
         ILogger<ProcessDataCleanupService> logger
     )
     {
         _dataService = dataService;
         _applicationService = applicationService;
-        _processBaselineStore = processBaselineStore;
         _logger = logger;
     }
 
@@ -46,27 +43,25 @@ public class ProcessDataCleanupService : IProcessDataCleanupService
             return 0;
         }
 
-        // Note: This is a v8 compatibility layer. V9 apps perform their own cleanup.
-        //
         // Timestamp guard: only delete elements that already existed before the in-flight transition
-        // began. The baseline is when this service applied the instance's previous process change,
-        // so both sides of the comparison come from this service's clock: genuinely stale elements
-        // were created during a previous visit to the entering task, which necessarily ended at or
-        // before the previous process change, while elements created by the transition itself (the
-        // v9 engine runs task-start commands before this save) are necessarily younger than it.
+        // began. The baseline is the stored (pre-update) instance's current-task start - genuinely
+        // stale elements were created during a previous visit to the entering task, which necessarily
+        // ended at or before the moment the task now being left started. Elements younger than the
+        // baseline were created by the transition itself (the v9 engine runs task-start commands
+        // before this save) and must survive the save that completes their own transition.
         //
-        // A missing baseline means either no process change has been recorded for this instance
-        // (nothing stale can exist yet) or this service restarted since the last change - in that
-        // case deleting on a guess risks data loss, so skip and let the next visit clean up.
-        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[^1]);
-        DateTime? baseline = _processBaselineStore.GetLastProcessChange(instanceGuid);
+        // Clock note: DataElement.Created is stamped by this service, but the baseline originates in
+        // the app (ProcessEngine stamps CurrentTask.Started and sends it in the process PUT), so this
+        // is a cross-clock comparison. The direction that must be correct - sparing newborns - has a
+        // margin of the old task's entire duration, so realistic skew cannot flip it. The other
+        // direction (skew causing a stale element to be spared once) is self-healing: v9 apps remove
+        // stale elements themselves at task entry, and task-end producers upsert by tag.
+        //
+        // A missing baseline means the process never entered a task, so no previous visit can exist
+        // and there is nothing stale to clean.
+        DateTime? baseline = instance.Process?.CurrentTask?.Started ?? instance.Process?.Started;
         if (baseline is null)
         {
-            _logger.LogInformation(
-                "No process-change baseline recorded for instance {InstanceId}; skipping task cleanup for {TaskId}",
-                instance.Id,
-                taskId
-            );
             return 0;
         }
 
@@ -81,9 +76,7 @@ public class ProcessDataCleanupService : IProcessDataCleanupService
             )
             .ToList();
 
-        List<DataElement> stale = tagged
-            .Where(de => de.Created is null || de.Created < baseline)
-            .ToList();
+        List<DataElement> stale = tagged.Where(de => de.Created is null || de.Created < baseline).ToList();
 
         if (stale.Count < tagged.Count)
         {
