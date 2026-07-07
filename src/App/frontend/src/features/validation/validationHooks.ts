@@ -21,10 +21,7 @@ import {
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import {
-  useExpressionDataSourcesBaseForStoreSelector,
-  useExpressionDataSourcesForStoreSelector,
-} from 'src/utils/layout/useExpressionDataSources';
+import { useExpressionDataSourcesBaseForStoreSelector } from 'src/utils/layout/useExpressionDataSources';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
   DerivedValidationStateInputs,
@@ -38,9 +35,8 @@ const emptyArray: never[] = [];
 function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   const pageOrder = useRawPageOrder();
   const pdfLayoutName = usePdfLayoutName();
-  const processedLayouts = FormStore.bootstrap.useLayouts();
   const hiddenDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'hidden expressions' });
-  const evalDataSources = useExpressionDataSourcesForStoreSelector(processedLayouts);
+  const evalDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'validation expressions' });
   const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
   const taskId = useProcessTaskId();
 
@@ -100,9 +96,8 @@ function useFreshDerivedStateBuilder() {
   const getCachedInstanceData = useGetCachedInstanceData();
   const taskOverrides = useTaskOverrides();
   const { instanceOwnerPartyId, instanceGuid, taskId: urlTaskId } = useAllNavigationParams();
-  const formState = store.getState();
   const hiddenDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'hidden expressions' });
-  const evalDataSources = useExpressionDataSourcesForStoreSelector(formState.bootstrap.processedLayouts);
+  const evalDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'validation expressions' });
   const snapshotInputs = useCallback((): DerivedValidationStateInputs => {
     const latestState = store.getState();
     const layoutSettings = processLayoutSettings(getUiFolderSettings(latestState.bootstrap.uiFolder));
