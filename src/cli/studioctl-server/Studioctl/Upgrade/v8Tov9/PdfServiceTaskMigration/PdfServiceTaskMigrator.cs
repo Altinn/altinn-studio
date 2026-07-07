@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Xml;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 
@@ -47,6 +49,14 @@ internal sealed class PdfServiceTaskMigrator
             );
             return warnings;
         }
+        catch (JsonException ex)
+        {
+            warnings.Add(
+                $"config/applicationmetadata.json is not valid JSON ({ex.Message}); skipped PDF service task "
+                    + "migration. Fix the file and re-run the upgrade."
+            );
+            return warnings;
+        }
 
         if (tasks.Count > 0)
         {
@@ -71,6 +81,14 @@ internal sealed class PdfServiceTaskMigrator
                     "config/process/process.bpmn is not valid UTF-8 (it may use a legacy encoding such as "
                         + "ISO-8859-1); cannot add PDF service task(s). Left applicationmetadata.json unchanged. "
                         + "Convert the file to UTF-8 and re-run the upgrade."
+                );
+                return warnings;
+            }
+            catch (XmlException ex)
+            {
+                warnings.Add(
+                    $"config/process/process.bpmn is not valid XML ({ex.Message}); cannot add PDF service "
+                        + "task(s). Left applicationmetadata.json unchanged. Fix the file and re-run the upgrade."
                 );
                 return warnings;
             }

@@ -14,6 +14,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 /// </summary>
 internal sealed class ApplicationMetadataPdfRewriter
 {
+    private const string PropertyName = "enablePdfCreation";
+
     private readonly string _metadataFile;
     private readonly List<string> _warnings = new();
 
@@ -49,7 +51,10 @@ internal sealed class ApplicationMetadataPdfRewriter
             if (dataType.ValueKind != JsonValueKind.Object)
                 continue;
 
-            if (!dataType.TryGetProperty("enablePdfCreation", out var flag) || flag.ValueKind != JsonValueKind.True)
+            // Case-insensitive: v8 deserializes applicationmetadata.json with Newtonsoft, which matches
+            // property names case-insensitively, so a hand-edited e.g. "EnablePdfCreation" generated PDFs
+            // under v8 and must not be missed here.
+            if (!TryGetPropertyIgnoreCase(dataType, PropertyName, out var flag) || flag.ValueKind != JsonValueKind.True)
                 continue;
 
             var hasClassRef =
@@ -108,7 +113,7 @@ internal sealed class ApplicationMetadataPdfRewriter
                 // that mentions the property but carries other content too (e.g. compact formatting with
                 // several properties per line) would lose that content if removed wholesale - and the
                 // result could still be valid JSON, defeating the parse check below.
-                if (line.Contains("\"enablePdfCreation\"", StringComparison.Ordinal))
+                if (line.Contains($"\"{PropertyName}\"", StringComparison.OrdinalIgnoreCase))
                 {
                     _warnings.Add(
                         $"Found enablePdfCreation on a line with unexpected formatting in "
@@ -157,15 +162,37 @@ internal sealed class ApplicationMetadataPdfRewriter
         // Match a whole line of the form `"enablePdfCreation": true,` (value true/false, comma optional)
         // and nothing else, so removing the line cannot take any other content with it.
         var trimmed = line.Trim();
-        if (!trimmed.StartsWith("\"enablePdfCreation\"", StringComparison.Ordinal))
+        var quotedName = $"\"{PropertyName}\"";
+        if (!trimmed.StartsWith(quotedName, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        var rest = trimmed["\"enablePdfCreation\"".Length..].TrimStart();
+        var rest = trimmed[quotedName.Length..].TrimStart();
         if (!rest.StartsWith(':'))
             return false;
 
         rest = rest[1..].TrimStart().TrimEnd(',').TrimEnd();
         return rest is "true" or "false";
+    }
+
+    private static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)
+    {
+        // System.Text.Json's TryGetProperty is always ordinal; enumerate to match Newtonsoft's
+        // case-insensitive property binding. Prefer an exact match, then fall back to a case-insensitive
+        // one, mirroring Newtonsoft (exact first, case-insensitive second).
+        if (element.TryGetProperty(name, out value))
+            return true;
+
+        foreach (var property in element.EnumerateObject())
+        {
+            if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                value = property.Value;
+                return true;
+            }
+        }
+
+        value = default;
+        return false;
     }
 
     private static string NextMeaningfulLine(string[] lines, int from)

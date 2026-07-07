@@ -153,10 +153,20 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
-        var rewriter = new ProjectFileRewriter(projectFile);
-        await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
-        await UpgradeConsole.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
-        return 0;
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile);
+            await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
+            await UpgradeConsole.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync(
+                $"Error removing Swashbuckle.AspNetCore package reference: {ex.Message}"
+            );
+            return 1;
+        }
     }
 
     static async Task<int> MigrateOpenApiNamespace(string projectFile)

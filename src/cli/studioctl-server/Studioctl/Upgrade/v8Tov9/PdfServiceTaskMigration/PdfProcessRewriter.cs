@@ -117,6 +117,20 @@ internal sealed class PdfProcessRewriter
 
         var task = matchingTasks[0];
 
+        // Guard against a stale/colliding taskId that names a non-task element (e.g. a gateway or
+        // event left behind by a rename): splicing a pdf service task after it would move PDF
+        // generation to a semantically wrong point. Only genuine bpmn tasks carry it.
+        if (task.Name.LocalName != "task")
+        {
+            _warnings.Add(
+                $"The id '{taskId}' in applicationmetadata.json refers to a <{task.Name.LocalName}>, not a task, "
+                    + "in the process file. Skipped PDF service task insertion - please verify the taskId and add "
+                    + "a 'pdf' service task manually."
+            );
+            _skippedTasks.Add(taskId);
+            return;
+        }
+
         var outgoingFlows = process
             .Elements()
             .Where(e => e.Name.LocalName == "sequenceFlow" && e.Attribute("sourceRef")?.Value == taskId)
