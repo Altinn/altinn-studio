@@ -790,7 +790,7 @@ public sealed class DataClient : IDataClient
             content: null,
             platformAccessToken: null,
             lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
+            cts.Token
         );
         if (response.IsSuccessStatusCode)
         {
