@@ -104,7 +104,6 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         placeholder={t('ux_editor.task_card.choose_datamodel')}
         selected={dataType}
         emptyText={t('ux_editor.task_card.no_datamodels')}
-        className={classes.dataTypeSelect}
         onSelectedChange={(target) => setDataType(target.value)}
       >
         {availableDataModels?.map((option) => (
