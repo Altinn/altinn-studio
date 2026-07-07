@@ -44,4 +44,10 @@ public static class General
     /// Header name for instance lock token
     /// </summary>
     internal const string LockTokenHeaderName = "Altinn-Storage-Lock-Token";
+
+    /// <summary>
+    /// Header that tells Storage the caller manages its own task-generated data cleanup,
+    /// so Storage should skip its own cleanup of elements generated from the entered task.
+    /// </summary>
+    internal const string SkipTaskDataCleanupHeaderName = "Altinn-Storage-Skip-Task-Data-Cleanup";
 }
