@@ -58,7 +58,7 @@ class StartReq(BaseModel):
 
 @router.post(
     "/api/agent/start",
-    dependencies=[Depends(rate_limit_start_developer), Depends(rate_limit_start_all_developers)],
+    dependencies=[Depends(rate_limit_start_all_developers), Depends(rate_limit_start_developer)],
 )
 async def start_agent(
     req: StartReq,
