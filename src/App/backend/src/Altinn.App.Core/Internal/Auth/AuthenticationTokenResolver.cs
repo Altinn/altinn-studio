@@ -53,8 +53,6 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
             && _authenticationContext.Current is Authenticated.App
         )
         {
-            // Information, not Warning: this is expected steady-state behaviour for every
-            // out-of-band flow the v9 engine runs (auto-PDF, gateway evaluation, receipts, ...).
             _logger.LogInformation(
                 "Rewriting a CurrentUser() authentication request to ServiceOwner: running under the workflow-engine callback principal, where no user is present."
             );
