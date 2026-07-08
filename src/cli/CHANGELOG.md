@@ -11,6 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Notify when a newer `studioctl` release is available. The check runs at most once every few hours, caches its result under the studioctl home directory, and prints a hint to run `studioctl self update`. It is skipped in CI, for non-interactive output, and can be disabled with `STUDIOCTL_NO_UPDATE_CHECK=1`.
+- Add `studioctl app vet` for validating an app's configuration (cross-file reference, uniqueness, shape, and process checks plus an optional JSON-schema pass); exits non-zero on error-severity findings for CI use.
+- Add `studioctl app lsp` running an app-config language server over stdio (diagnostics as you type, hover, go-to-definition, find-references, rename, completion, quick-fixes, code lenses), with `studioctl app lsp setup vscode|rider|nvim|helix` for editor wiring and a bundled VS Code extension in the resources archive.
 
 ## [0.1.0-preview.16] - 2026-07-02
 

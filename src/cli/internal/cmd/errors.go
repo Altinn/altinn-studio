@@ -48,4 +48,7 @@ var (
 
 	// ErrInvalidFlagValue is returned when a flag value is invalid.
 	ErrInvalidFlagValue = errors.New("invalid flag value")
+
+	// ErrSilentExit signals a non-zero exit code without printing an error.
+	ErrSilentExit = errors.New("")
 )

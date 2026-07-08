@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="Altinn.Studio.AppConfig/Altinn.Studio.AppConfig.csproj" />
+  <Project Path="Altinn.Studio.AppConfig.Tests/Altinn.Studio.AppConfig.Tests.csproj" />
   <Project Path="Altinn.Studio.AppDist/Altinn.Studio.AppDist.csproj" />
   <Project Path="Altinn.Studio.AppDist.Tests/Altinn.Studio.AppDist.Tests.csproj" />
 </Solution>
