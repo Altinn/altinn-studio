@@ -155,13 +155,41 @@ internal sealed class PdfProcessRewriter
         var pdfTaskId = $"PdfTask_{taskId}";
         var newFlowId = $"Flow_{pdfTaskId}_to_{originalTarget}";
 
-        if (process.Elements().Any(e => e.Attribute("id")?.Value == pdfTaskId))
+        var existingPdfElement = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == pdfTaskId);
+        if (existingPdfElement is not null)
         {
-            // Satisfied, not skipped: the task already has its PDF service task (typically from a
-            // previous migration run), so re-running the migration can safely strip the legacy flag.
+            var isPdfServiceTask =
+                existingPdfElement.Name.LocalName == "serviceTask"
+                && existingPdfElement.Descendants().Any(e => e.Name.LocalName == "taskType" && e.Value == "pdf");
+
+            if (isPdfServiceTask)
+            {
+                // Satisfied, not skipped: the task already has its PDF service task (typically from a
+                // previous migration run), so re-running the migration can safely strip the legacy flag.
+                _warnings.Add(
+                    $"An element with id '{pdfTaskId}' already exists; treating task '{taskId}' as already migrated."
+                );
+                return;
+            }
+
+            // Id collision with an unrelated element: treating it as migrated would strip the flag and
+            // drop PDF generation. Skip so the flag is kept and the developer resolves it manually.
             _warnings.Add(
-                $"An element with id '{pdfTaskId}' already exists; treating task '{taskId}' as already migrated."
+                $"An element with id '{pdfTaskId}' already exists but is not a PDF service task. Skipped PDF "
+                    + "service task insertion - please resolve the id collision and add a 'pdf' service task manually."
             );
+            _skippedTasks.Add(taskId);
+            return;
+        }
+
+        if (process.Elements().Any(e => e.Attribute("id")?.Value == newFlowId))
+        {
+            // Inserting a second element with this id would produce invalid (non-unique-id) BPMN.
+            _warnings.Add(
+                $"A sequence flow id '{newFlowId}' already exists. Skipped PDF service task insertion to avoid a "
+                    + "duplicate id - please resolve the collision and add a 'pdf' service task manually."
+            );
+            _skippedTasks.Add(taskId);
             return;
         }
 
