@@ -46,11 +46,10 @@ export function MessageColumn({
           {hasMessages ? (
             <Messages
               messages={messages}
-              assistantName={texts.heading}
+              texts={texts}
               workflowStatus={workflowStatus}
               currentUser={currentUser}
               assistantAvatarUrl={undefined}
-              feedbackTexts={texts.feedback}
               onMessageFeedback={onMessageFeedback}
             />
           ) : (

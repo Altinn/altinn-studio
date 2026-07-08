@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -15,7 +14,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -57,7 +55,7 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        if (!IsV9App(editingContext))
+        if (!_appVersionService.IsV9App(editingContext))
         {
             return Ok(await GetLegacyLayoutSetConfigs(editingContext, cancellationToken));
         }
@@ -79,7 +77,7 @@ public class UiFoldersController : Controller
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
         LayoutSetConfig layoutSetConfig = layoutSetPayload.LayoutSetConfigDto.ToLayoutSetConfig();
-        if (!IsV9App(editingContext))
+        if (!_appVersionService.IsV9App(editingContext))
         {
             await _appDevelopmentService.AddLayoutSet(
                 editingContext,
@@ -113,7 +111,7 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        if (!IsV9App(editingContext))
+        if (!_appVersionService.IsV9App(editingContext))
         {
             await _appDevelopmentService.UpdateLayoutSetName(
                 editingContext,
@@ -151,7 +149,7 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        if (!IsV9App(editingContext))
+        if (!_appVersionService.IsV9App(editingContext))
         {
             await _publisher.Publish(
                 new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetId },
@@ -289,19 +287,6 @@ public class UiFoldersController : Controller
         catch (ArgumentException exception)
         {
             return BadRequest(exception.Message);
-        }
-    }
-
-    private bool IsV9App(AltinnRepoEditingContext editingContext)
-    {
-        try
-        {
-            SemanticVersion version = _appVersionService.GetAppLibVersion(editingContext);
-            return version != null && version.Major >= 9;
-        }
-        catch (FileNotFoundException)
-        {
-            return true;
         }
     }
 

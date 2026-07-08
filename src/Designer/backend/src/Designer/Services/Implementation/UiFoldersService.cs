@@ -12,6 +12,8 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
@@ -20,6 +22,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Reference = Altinn.Studio.Designer.Models.Reference;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -488,6 +491,12 @@ public class UiFoldersService : IUiFoldersService
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
+        // Order layout sets by their task's position in the process flow, with subforms (no task) last.
+        List<string> orderedTaskIds = definitions.Process.OrderTaskIdsByFlow();
+        Dictionary<string, int> taskOrderById = orderedTaskIds
+            .Select((taskId, index) => (taskId, index))
+            .ToDictionary(entry => entry.taskId, entry => entry.index);
+
         List<LayoutSetInfo> layoutSets = [];
 
         foreach (string layoutSetName in uiFolders)
@@ -504,7 +513,7 @@ public class UiFoldersService : IUiFoldersService
             }
 
             bool isSubform = layoutSettings.Type == "subform";
-            bool hasMatchingTask = definitions.Process.Tasks.Any(task => task.Id == layoutSetName);
+            bool hasMatchingTask = taskOrderById.ContainsKey(layoutSetName);
 
             if (!isSubform && !hasMatchingTask)
             {
@@ -516,7 +525,12 @@ public class UiFoldersService : IUiFoldersService
             layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
         }
 
-        return layoutSets;
+        return
+        [
+            .. layoutSets.OrderBy(layoutSet =>
+                taskOrderById.TryGetValue(layoutSet.LayoutSetName, out int order) ? order : int.MaxValue
+            ),
+        ];
     }
 
     private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
@@ -811,5 +825,43 @@ public class UiFoldersService : IUiFoldersService
         globalSettingsFile.TaskNavigation = taskNavigationGroupList.Any() ? taskNavigationGroupList : null;
 
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
+
+    public async Task<bool> UpdateLayoutReferences(
+        AltinnRepoEditingContext editingContext,
+        List<Reference> referencesToUpdate,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        IEnumerable<string> folderNames;
+        try
+        {
+            folderNames = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+        }
+        catch (LibGit2Sharp.NotFoundException)
+        {
+            return false;
+        }
+        // For v9, task ID equals the layout set name (folder name), so TaskId = Id.
+        List<LayoutSetConfigDto> layoutSetDtos = folderNames
+            .Select(name => new LayoutSetConfigDto { Id = name, TaskId = name })
+            .ToList();
+
+        List<Reference> referencesIncludingTaskDeletions =
+        [
+            .. referencesToUpdate,
+            .. referencesToUpdate
+                .Where(reference => reference.Type == ReferenceType.LayoutSet && string.IsNullOrEmpty(reference.NewId))
+                .Select(reference => new Reference(ReferenceType.Task, null, reference.Id)),
+        ];
+
+        return await LayoutReferenceUpdateHelper.UpdateReferences(
+            altinnAppGitRepository,
+            layoutSetDtos,
+            referencesIncludingTaskDeletions,
+            cancellationToken
+        );
     }
 }

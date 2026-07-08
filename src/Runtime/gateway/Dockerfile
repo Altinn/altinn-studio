@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:ea8bde36c11b6e7eec2656d0e59101d4462f6bd630730f2c8201ed0572b295d5 AS build
 
 # Install native AOT build prerequisites
 RUN apt-get update && apt-get install -y clang zlib1g-dev && rm -rf /var/lib/apt/lists/*
@@ -23,7 +23,7 @@ COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/ Runtime/gateway/src/Al
 WORKDIR /build/Runtime/gateway/src/Altinn.Studio.Gateway.Api/
 RUN dotnet publish -c Release -o /app/publish /p:CSharpier_Bypass=true
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:9cae0b131d058693c8d7496fed4a188380f05f27f34c98dd9a516b4d0331b0c4
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:01bd3f3d617a16705f896962ce26f5c1e1588ea57c71c98908cadb7bdcd0cd4d
 WORKDIR /app
 COPY --from=build /app/publish .
 

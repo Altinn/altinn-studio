@@ -62,11 +62,45 @@ public static class HttpClientExtension
     /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static async Task<HttpResponseMessage> PutAsync(
+    public static Task<HttpResponseMessage> PutAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
         HttpContent? content,
+        string? platformAccessToken = null,
+        string? lockToken = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        httpClient.PutAsync(
+            authorizationToken,
+            requestUri,
+            content,
+            skipTaskDataCleanup: false,
+            platformAccessToken: platformAccessToken,
+            lockToken: lockToken,
+            cancellationToken: cancellationToken
+        );
+
+    /// <summary>
+    /// Extension that adds an authorization header to the request and, when
+    /// <paramref name="skipTaskDataCleanup"/> is set, tells Storage the caller manages its own
+    /// task-generated data cleanup so Storage should skip its own.
+    /// </summary>
+    /// <param name="httpClient">The HttpClient</param>
+    /// <param name="authorizationToken">the authorization token (jwt)</param>
+    /// <param name="requestUri">The request Uri</param>
+    /// <param name="content">The http content</param>
+    /// <param name="skipTaskDataCleanup">When true, adds the header that opts out of Storage's task-generated data cleanup</param>
+    /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="lockToken">The instance lock token</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A HttpResponseMessage</returns>
+    internal static async Task<HttpResponseMessage> PutAsync(
+        this HttpClient httpClient,
+        string authorizationToken,
+        string requestUri,
+        HttpContent? content,
+        bool skipTaskDataCleanup,
         string? platformAccessToken = null,
         string? lockToken = null,
         CancellationToken cancellationToken = default
@@ -88,6 +122,11 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(lockToken))
         {
             request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
+        }
+
+        if (skipTaskDataCleanup)
+        {
+            request.Headers.Add(Constants.General.SkipTaskDataCleanupHeaderName, "true");
         }
 
         return await httpClient.SendAsync(request, cancellationToken);
