@@ -50,7 +50,7 @@ internal static class V8Tov9Upgrade
                 $"Version(s) in project file {projectFile} are not supported for the 'v8Tov9' upgrade. "
                     + "This upgrade is for apps on version 8.x.x. "
                     + "Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
-                exitCode: 2
+                exitCode: ExitUnsupportedVersion
             );
 
         var returnCode = 0;
@@ -85,39 +85,43 @@ internal static class V8Tov9Upgrade
         // not deprive the app of the service-owner policy check). Run them all and report the worst
         // return code.
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await RemoveSwashbucklePackage(projectFile));
+        returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await MigrateOpenApiNamespace(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await MigrateLaunchSettings(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await ConvertConditionalRenderingRules(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await GenerateDataProcessors(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await GenerateDataProcessors(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await CleanupLegacyRuleFiles(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await MigrateIndexCshtml(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await MigratePdfServiceTasks(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = Math.Max(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
 
         UpgradeConsole.WriteLine(
-            returnCode == 0
-                ? "Please verify that the application is still working as expected."
-                : "Upgrade completed with errors. Please check for errors in the log above."
+            returnCode switch
+            {
+                ExitSuccess => "Please verify that the application is still working as expected.",
+                ExitManualActionRequired =>
+                    "Upgrade completed, but some steps need manual follow-up. Please review the warnings above.",
+                _ => "Upgrade completed with errors. Please check for errors in the log above.",
+            }
         );
         return returnCode;
     }
@@ -507,25 +511,33 @@ internal static class V8Tov9Upgrade
             await UpgradeConsole.Out.WriteLineAsync("Migrating enablePdfCreation to PDF service tasks...");
 
             var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder);
-            var warnings = await migrator.Migrate();
+            var result = await migrator.Migrate();
 
-            foreach (var warning in warnings)
+            foreach (var warning in result.Warnings)
             {
                 await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
             }
 
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "PDF service task migration needs manual follow-up. Review the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
             await UpgradeConsole.Out.WriteLineAsync(
-                warnings.Count > 0
+                result.Warnings.Count > 0
                     ? "PDF service task migration completed with warnings. Review the warnings above."
                     : "PDF service task migration completed"
             );
 
-            return 0;
+            return ExitSuccess;
         }
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating PDF service tasks: {ex.Message}");
-            return 1;
+            return ExitError;
         }
     }
 
@@ -542,29 +554,61 @@ internal static class V8Tov9Upgrade
             );
 
             var migrator = new PolicyMigration.ServiceOwnerPolicyMigrator(projectFolder);
-            var warnings = await migrator.Migrate();
+            var result = await migrator.Migrate();
 
-            foreach (var warning in warnings)
+            foreach (var warning in result.Warnings)
             {
                 await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
             }
 
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Service-owner policy migration needs manual follow-up. Review the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
             await UpgradeConsole.Out.WriteLineAsync(
-                warnings.Count > 0
+                result.Warnings.Count > 0
                     ? "Service-owner policy migration completed with warnings. Review the warnings above."
                     : "Service-owner policy migration completed (policy already covered the required actions)"
             );
 
-            return 0;
+            return ExitSuccess;
         }
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating service-owner policy: {ex.Message}");
-            return 1;
+            return ExitError;
         }
     }
 
-    private static int WriteError(string message, int exitCode = 1)
+    // Process exit codes. A job that completes but leaves work for a human (e.g. a legacy flag kept in
+    // place) reports ManualActionRequired so tooling can tell "clean" from "needs manual follow-up".
+    private const int ExitSuccess = 0;
+    private const int ExitError = 1;
+    private const int ExitUnsupportedVersion = 2;
+    private const int ExitManualActionRequired = 3;
+
+    /// <summary>
+    /// Aggregates two job exit codes by severity: a genuine error must never be masked by a
+    /// manual-action or success result, and manual-action outranks success. (Numeric order does not
+    /// track severity, so this cannot be a plain <see cref="Math.Max(int,int)"/>.)
+    /// </summary>
+    private static int CombineExitCodes(int current, int next)
+    {
+        // Any non-zero that isn't the manual-action signal counts as a hard error and dominates, so an
+        // unexpected/future non-zero code can never be swallowed into success.
+        static bool IsError(int code) => code != ExitSuccess && code != ExitManualActionRequired;
+        if (IsError(current) || IsError(next))
+            return ExitError;
+        if (current == ExitManualActionRequired || next == ExitManualActionRequired)
+            return ExitManualActionRequired;
+        return ExitSuccess;
+    }
+
+    private static int WriteError(string message, int exitCode = ExitError)
     {
         UpgradeConsole.WriteErrorLine(message);
         return exitCode;

@@ -27,6 +27,12 @@ internal sealed class ApplicationMetadataPdfRewriter
     public IReadOnlyList<string> GetWarnings() => _warnings;
 
     /// <summary>
+    /// True when <see cref="StripEnablePdfCreation"/> could not remove the flag safely and left it in
+    /// the file, so a human must remove it manually.
+    /// </summary>
+    public bool ManualActionRequired { get; private set; }
+
+    /// <summary>
     /// Returns the distinct taskIds that require a PDF service task, in document order, each paired
     /// with the id of the first qualifying dataType bound to that task. The dataType id is used to
     /// preserve gateway expression evaluation when a PDF task is inserted in front of a gateway
@@ -115,6 +121,7 @@ internal sealed class ApplicationMetadataPdfRewriter
                 // result could still be valid JSON, defeating the parse check below.
                 if (line.Contains($"\"{PropertyName}\"", StringComparison.OrdinalIgnoreCase))
                 {
+                    ManualActionRequired = true;
                     _warnings.Add(
                         $"Found enablePdfCreation on a line with unexpected formatting in "
                             + $"{Path.GetFileName(_metadataFile)} (line {i + 1}); left it in place - please remove "
@@ -146,6 +153,7 @@ internal sealed class ApplicationMetadataPdfRewriter
         }
         catch (JsonException ex)
         {
+            ManualActionRequired = true;
             _warnings.Add(
                 $"Removing enablePdfCreation from {Path.GetFileName(_metadataFile)} would produce invalid JSON "
                     + $"({ex.Message}). Left the file unchanged - please remove the property manually."
