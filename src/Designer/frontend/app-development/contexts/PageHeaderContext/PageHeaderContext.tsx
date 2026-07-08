@@ -7,7 +7,7 @@ import {
   type StudioPageHeaderProps,
   type StudioProfileMenuGroup,
 } from '@studio/components';
-import { getTopBarMenuItems } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { getFilteredTopBarMenu } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +45,7 @@ export const PageHeaderContextProvider = ({
   const returnTo = searchParams.get('returnTo');
 
   const repoType = getRepositoryType(org, app);
-  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg, flags);
+  const menuItems = getFilteredTopBarMenu(repoType, repoOwnerIsOrg, flags);
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl(), openInNewTab: true },

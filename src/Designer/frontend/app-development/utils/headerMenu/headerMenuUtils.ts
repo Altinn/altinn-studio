@@ -56,7 +56,6 @@ export const topBarMenuItems: HeaderMenuItem[] = [
     link: RoutePaths.Deploy,
     icon: UploadIcon,
     repositoryTypes: [RepositoryType.App],
-    isOrgOnly: true,
     group: HeaderMenuGroupKey.Other,
   },
   {
@@ -74,30 +73,19 @@ export const topBarMenuItems: HeaderMenuItem[] = [
     repositoryTypes: [RepositoryType.App],
     group: HeaderMenuGroupKey.Tools,
     featureFlagName: FeatureFlag.AiAssistant,
-    isOrgOnly: true,
     isBeta: true,
   },
 ];
 
 export const getFilteredTopBarMenu = (
   repositoryType: RepositoryType,
+  isRepoOwnerOrg: boolean,
   activeFeatureFlags: FeatureFlag[],
 ): HeaderMenuItem[] => {
   return topBarMenuItems
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
+    .filter((menuItem) => isMenuItemVisibleForOwnerType(menuItem, isRepoOwnerOrg))
     .filter((menuItem) => isMenuItemEnabledByFeatureFlag(menuItem, activeFeatureFlags));
-};
-
-export const getTopBarMenuItems = (
-  repositoryType: RepositoryType,
-  repoOwnerIsOrg: boolean,
-  activeFeatureFlags: FeatureFlag[],
-): HeaderMenuItem[] => {
-  const filteredMenuItems: HeaderMenuItem[] = getFilteredTopBarMenu(
-    repositoryType,
-    activeFeatureFlags,
-  );
-  return filterOutOrgOnlyItems(filteredMenuItems, repoOwnerIsOrg);
 };
 
 export const isMenuItemEnabledByFeatureFlag = (
@@ -109,12 +97,13 @@ export const isMenuItemEnabledByFeatureFlag = (
   return activeFeatureFlags.includes(menuItem.featureFlagName);
 };
 
-const filterOutOrgOnlyItems = (
-  menuItems: HeaderMenuItem[],
+const isMenuItemVisibleForOwnerType = (
+  menuItem: HeaderMenuItem,
   repoOwnerIsOrg: boolean,
-): HeaderMenuItem[] => {
-  if (repoOwnerIsOrg) return menuItems;
-  return menuItems.filter((menuItem: HeaderMenuItem) => !menuItem.isOrgOnly);
+): boolean => {
+  if (repoOwnerIsOrg) return true;
+  const orgOnlyMenuItemKeys = [HeaderMenuItemKey.Deploy, HeaderMenuItemKey.AiAssistant];
+  return !orgOnlyMenuItemKeys.includes(menuItem.key);
 };
 
 export const groupMenuItemsByGroup = (menuItems: HeaderMenuItem[]): HeaderMenuGroup[] => {
@@ -149,8 +138,7 @@ export const getFilteredMenuListForOverviewPage = (
   activeFeatureFlags: FeatureFlag[],
   isRepoOwnerOrg: boolean,
 ): HeaderMenuItem[] => {
-  const menuItems = getFilteredTopBarMenu(RepositoryType.App, activeFeatureFlags).filter(
+  return getFilteredTopBarMenu(RepositoryType.App, isRepoOwnerOrg, activeFeatureFlags).filter(
     (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
   );
-  return filterOutOrgOnlyItems(menuItems, isRepoOwnerOrg);
 };
