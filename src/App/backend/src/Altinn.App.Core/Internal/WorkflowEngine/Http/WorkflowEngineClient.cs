@@ -174,6 +174,24 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             );
     }
 
+    /// <inheritdoc />
+    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    {
+        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/abandon";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+
+        HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            // Compare-and-set lost: the workflow is not in an abandonable state (e.g. a concurrent
+            // resume revived it). The caller must re-read engine state and re-decide.
+            return false;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return true;
+    }
+
     private string BuildListWorkflowsUrl(
         string ns,
         string? collectionKey,

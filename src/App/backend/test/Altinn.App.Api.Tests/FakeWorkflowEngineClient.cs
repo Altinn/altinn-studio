@@ -252,6 +252,54 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []);
     }
 
+    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    {
+        bool abandoned = false;
+        lock (_gate)
+        {
+            if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns)
+            {
+                if (workflow.Status == PersistentItemStatus.Abandoned)
+                {
+                    // Idempotent replay, mirroring the real engine.
+                    abandoned = true;
+                }
+                else if (
+                    workflow.Status
+                    is PersistentItemStatus.Failed
+                        or PersistentItemStatus.Canceled
+                        or PersistentItemStatus.DependencyFailed
+                )
+                {
+                    workflow.Status = PersistentItemStatus.Abandoned;
+                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
+
+                    // The engine releases an abandoned workflow's idempotency key, so a subsequent
+                    // enqueue with the same fingerprint is accepted as a fresh workflow instead of
+                    // deduplicating onto the abandoned one.
+                    string batchKey = CreateBatchKey(ns, workflow.IdempotencyKey);
+                    if (
+                        _workflowsByIdempotencyKey.TryGetValue(batchKey, out Guid[]? batchWorkflowIds)
+                        && batchWorkflowIds.Contains(workflowId)
+                    )
+                    {
+                        _workflowsByIdempotencyKey.TryRemove(batchKey, out _);
+                    }
+
+                    abandoned = true;
+                }
+            }
+        }
+
+        if (abandoned)
+        {
+            // A workflow gated only by the abandoned one may have become runnable.
+            await ProcessAvailableWorkflows(ct);
+        }
+
+        return abandoned;
+    }
+
     private async Task ProcessAvailableWorkflows(CancellationToken cancellationToken)
     {
         lock (_gate)
@@ -298,7 +346,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 .Where(workflow =>
                     workflow.DependencyIds.All(dependencyId =>
                         _workflows.TryGetValue(dependencyId, out StoredWorkflow? dependency)
-                        && dependency.Status == PersistentItemStatus.Completed
+                        // Abandoned satisfies a dependency: terminal, and its failure is written off.
+                        && dependency.Status is PersistentItemStatus.Completed or PersistentItemStatus.Abandoned
                     )
                 )
                 .OrderBy(workflow => workflow.CreatedAt)
