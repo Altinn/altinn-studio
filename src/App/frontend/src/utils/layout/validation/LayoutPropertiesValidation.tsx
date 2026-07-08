@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { FormStore } from 'src/features/form/FormContext';
@@ -22,7 +24,8 @@ import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompExternal } from 'src/layout/layout';
+import type { CompExternal, CompTypes } from 'src/layout/layout';
+import type { AnyComponent } from 'src/layout/LayoutComponent';
 import type { LayoutValidationResult, ValidateFunc } from 'src/utils/layout/validation/LayoutValidationContext';
 
 type LayoutPropertiesValidationContext = {
@@ -40,7 +43,7 @@ type DataModelBindingsValidator = (
   context: ReturnType<typeof makeDataModelBindingValidationContext>,
 ) => string[];
 
-export function LayoutPropertiesValidation() {
+export function LayoutPropertiesValidation({ children }: PropsWithChildren) {
   const enabled = shouldValidateLayoutConfiguration();
   const schemaValidator = useLayoutSchemaValidator(enabled);
   const replaceErrors = FormStore.raw.useStaticSelector((state) => state.layoutDiagnostics.replaceErrors);
@@ -49,26 +52,62 @@ export function LayoutPropertiesValidation() {
   const { langAsString } = useLanguage();
   const hasInstance = useLaxInstanceId() !== undefined;
   const signingTaskMismatch = useSigningTaskMismatch();
+  const validationRun = useMemo<LayoutPropertiesValidationContext>(
+    () => ({
+      application,
+      bootstrap,
+      hasInstance,
+      langAsString,
+      schemaValidator,
+      signingTaskMismatch,
+    }),
+    [application, bootstrap, hasInstance, langAsString, schemaValidator, signingTaskMismatch],
+  );
+  const [completedValidationRun, setCompletedValidationRun] = useState<typeof validationRun | undefined>();
 
   useEffect(() => {
-    if (!enabled) {
-      replaceErrors({});
-      return;
-    }
-
     replaceErrors(
       validateLayoutProperties({
-        bootstrap,
-        schemaValidator,
-        langAsString,
-        hasInstance,
-        application,
-        signingTaskMismatch,
+        bootstrap: validationRun.bootstrap,
+        schemaValidator: validationRun.schemaValidator,
+        langAsString: validationRun.langAsString,
+        hasInstance: validationRun.hasInstance,
+        application: validationRun.application,
+        signingTaskMismatch: validationRun.signingTaskMismatch,
       }),
     );
-  }, [application, bootstrap, enabled, hasInstance, langAsString, replaceErrors, schemaValidator, signingTaskMismatch]);
+    setCompletedValidationRun(validationRun);
+  }, [replaceErrors, validationRun]);
 
-  return null;
+  if (!enabled) {
+    return children;
+  }
+
+  return (
+    <>
+      <ComponentLayoutValidators bootstrap={bootstrap} />
+      {completedValidationRun === validationRun ? children : <Loader reason='layout-validation' />}
+    </>
+  );
+}
+
+function ComponentLayoutValidators({ bootstrap }: { bootstrap: FormBootstrapContextValue }) {
+  return (
+    <>
+      {Object.values(bootstrap.layoutLookups.allComponents)
+        .filter((component): component is CompExternal => component !== undefined)
+        .map((component) => {
+          const def = getComponentDef(component.type) as unknown as AnyComponent<CompTypes>;
+          const Component = def.renderLayoutValidators;
+          return (
+            <Component
+              key={component.id}
+              externalItem={component}
+            />
+          );
+        })}
+    </>
+  );
 }
 
 export function validateLayoutProperties({

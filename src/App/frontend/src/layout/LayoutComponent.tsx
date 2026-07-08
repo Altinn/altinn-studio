@@ -26,10 +26,10 @@ import type {
   CompExternal,
   CompExternalExact,
   CompIntermediateExact,
+  ComponentLayoutValidationProps,
   CompTypes,
   IDataModelBindings,
   ITextResourceBindingsExternal,
-  NodeValidationProps,
 } from 'src/layout/layout';
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -64,7 +64,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
    * Override this if you need to implement specific validators for the layout config, or if you need to
    * validate properties that are not covered by the schema validation.
    */
-  renderLayoutValidators(_props: NodeValidationProps<Type>): JSX.Element | null {
+  renderLayoutValidators(_props: ComponentLayoutValidationProps<Type>): JSX.Element | null {
     return null;
   }
 

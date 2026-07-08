@@ -9,7 +9,7 @@ import { SimpleTableSummary } from 'src/layout/SimpleTable/SimpleTableSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -89,7 +89,7 @@ export class SimpleTable extends SimpleTableDef {
     },
   );
 
-  renderLayoutValidators(props: NodeValidationProps<'SimpleTable'>): React.JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'SimpleTable'>): React.JSX.Element | null {
     return <SimpleTableFeatureFlagLayoutValidator {...props} />;
   }
 

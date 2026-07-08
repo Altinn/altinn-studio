@@ -17,12 +17,11 @@ export function FormRuntimeEffects({ children }: PropsWithChildren) {
   }
 
   return (
-    <>
-      <LayoutPropertiesValidation />
+    <LayoutPropertiesValidation>
       <RunOptionsEffects />
       {window.Cypress && <UpdateAttachmentsForCypress />}
       {children}
-    </>
+    </LayoutPropertiesValidation>
   );
 }
 

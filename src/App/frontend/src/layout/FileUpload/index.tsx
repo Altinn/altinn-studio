@@ -20,7 +20,7 @@ import type {
   PropsFromGenericComponent,
   ValidateComponent,
 } from 'src/layout';
-import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -61,7 +61,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return true;
   }
 
-  renderLayoutValidators(props: NodeValidationProps<'FileUpload'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'FileUpload'>): JSX.Element | null {
     return <FileUploadLayoutValidator {...props} />;
   }
 

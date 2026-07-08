@@ -22,7 +22,7 @@ import type {
   PropsFromGenericComponent,
 } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -93,7 +93,7 @@ export class List extends ListDef {
     return validateGroupIsEmpty(ctx);
   }
 
-  renderLayoutValidators(props: NodeValidationProps<'List'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'List'>): JSX.Element | null {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 
