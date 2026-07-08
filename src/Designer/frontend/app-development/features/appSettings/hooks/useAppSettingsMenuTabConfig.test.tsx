@@ -56,7 +56,7 @@ describe('useAppSettingsMenuTabConfigs', () => {
   });
 
   it('hides the service owner only tabs for personal apps', () => {
-    const { renderHookResult } = renderUseAppSettingsMenuTabConfigs({});
+    const { renderHookResult } = renderUseAppSettingsMenuTabConfigs();
 
     expect(renderHookResult.result.current).toHaveLength(4);
     expect(renderHookResult.result.current).not.toContainEqual(
@@ -68,8 +68,8 @@ describe('useAppSettingsMenuTabConfigs', () => {
   });
 });
 
-const renderUseAppSettingsMenuTabConfigs = (orgList: OrgList) => {
+const renderUseAppSettingsMenuTabConfigs = (orgList?: OrgList) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgList], orgList.orgs);
+  queryClient.setQueryData([QueryKey.OrgList], orgList?.orgs);
   return renderHookWithProviders({}, queryClient)(() => useAppSettingsMenuTabConfigs());
 };
