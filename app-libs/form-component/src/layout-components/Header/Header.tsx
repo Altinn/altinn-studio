@@ -42,7 +42,7 @@ export interface HeaderProps {
 }
 
 export function Header({ componentId, title, help, size, innerGrid }: HeaderProps) {
-  const { lang, langAsString } = useTranslation();
+  const { lang } = useTranslation();
 
   return (
     <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
@@ -50,9 +50,7 @@ export function Header({ componentId, title, help, size, innerGrid }: HeaderProp
         <DsHeading id={componentId} {...getHeaderProps(size)}>
           {lang(title)}
         </DsHeading>
-        {help && (
-          <HelpTextContainer id={componentId} title={langAsString(title)} helpText={lang(help)} />
-        )}
+        {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
       </div>
     </ComponentStructure>
   );
