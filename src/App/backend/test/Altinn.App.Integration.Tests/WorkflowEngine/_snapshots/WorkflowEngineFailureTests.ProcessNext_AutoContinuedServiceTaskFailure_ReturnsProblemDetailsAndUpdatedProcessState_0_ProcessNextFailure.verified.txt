@@ -58,7 +58,7 @@
   Response: {
     Title: Something went wrong while moving to the next task.,
     Status: 500,
-    Detail: AppCommand failed with client error UnprocessableEntity: {"title":"ServiceTaskFailedException","status":422,"detail":"Service task 'failing-service' failed: Scenario service task failed permanently.","nonRetryable":true},
+    Detail: Service task 'failing-service' failed: Scenario service task failed permanently.,
     Extensions: {
       processState: {
         ValueKind: Object

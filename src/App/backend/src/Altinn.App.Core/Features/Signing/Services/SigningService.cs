@@ -71,7 +71,6 @@ internal sealed class SigningService(
                 "SigneeStatesDataTypeId is not set in the signature configuration."
             );
 
-        // Replace any stale signee state so the recreated data element is tied to the current task lifecycle.
         RemoveSigneeState(instanceDataMutator, signeeStateDataTypeId);
 
         string instanceIdCombo = instanceDataMutator.Instance.Id;
@@ -317,6 +316,10 @@ internal sealed class SigningService(
         return (serviceOwnerParty, true);
     }
 
+    /// <summary>
+    /// Stale signee states are normally already gone (via CleanupGeneratedFromTask callback),
+    /// but initialization must be able to start from a clean slate regardless of how it was reached.
+    /// </summary>
     private void RemoveSigneeState(IInstanceDataMutator instanceDataMutator, string? signeeStatesDataTypeId)
     {
         using Activity? activity = telemetry?.StartRemoveSigneeStateActivity();

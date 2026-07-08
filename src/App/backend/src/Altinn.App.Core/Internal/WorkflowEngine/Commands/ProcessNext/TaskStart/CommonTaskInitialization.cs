@@ -3,7 +3,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -44,13 +43,10 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
         CommonTaskInitializationPayload payload
     )
     {
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = instanceDataMutator.Instance;
         string taskId = instance.Process.CurrentTask.ElementId;
-
-        RemoveDataElementsGeneratedFromTask(instanceDataMutator, taskId);
-
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
         foreach (
             DataType dataType in applicationMetadata.DataTypes.Where(dt =>
@@ -74,23 +70,5 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
         }
 
         return new SuccessfulProcessEngineCommandResult();
-    }
-
-    private static void RemoveDataElementsGeneratedFromTask(IInstanceDataMutator instanceDataMutator, string taskId)
-    {
-        Instance instance = instanceDataMutator.Instance;
-        var dataElements =
-            instance
-                .Data?.Where(de =>
-                    de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
-                )
-                .ToList()
-            ?? [];
-
-        foreach (var dataElement in dataElements)
-        {
-            instanceDataMutator.RemoveDataElement(dataElement);
-            instance.Data?.Remove(dataElement);
-        }
     }
 }
