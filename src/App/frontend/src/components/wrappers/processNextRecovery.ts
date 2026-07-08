@@ -1,4 +1,9 @@
-import type { MutationStatus } from '@tanstack/react-query';
+/**
+ * Mirror of @tanstack/react-query's `MutationStatus`, kept local so this pure, unit-tested helper
+ * carries no react-query dependency. The call site passes react-query's own `state.status`, so a
+ * future divergence in that union would surface as a type error there.
+ */
+type MutationStatus = 'idle' | 'pending' | 'error' | 'success';
 
 /**
  * How long after a successful process/next we consider being stranded on the previous task a lost

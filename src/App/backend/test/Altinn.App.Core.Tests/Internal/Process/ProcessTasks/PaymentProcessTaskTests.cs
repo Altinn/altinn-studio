@@ -155,7 +155,6 @@ public class PaymentProcessTaskTests
             Filename = "Betalingskvittering.pdf",
             References =
             [
-                // Storage always stamps generatedFromTask references with the GeneratedFrom relation.
                 new Reference
                 {
                     Relation = RelationType.GeneratedFrom,

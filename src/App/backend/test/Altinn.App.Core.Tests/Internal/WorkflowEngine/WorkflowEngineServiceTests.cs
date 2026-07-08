@@ -101,31 +101,51 @@ public class WorkflowEngineServiceTests
         );
     }
 
-    [Theory]
-    [InlineData(
-        // The engine wraps failed app callbacks as "<prose>: {ProblemDetails json}" - the embedded
-        // detail is the human-readable reason and is what should surface to the end user.
-        "AppCommand failed with client error UnprocessableEntity: "
-            + "{\"title\":\"ServiceTaskFailedException\",\"status\":422,\"detail\":"
-            + "\"Service task 'fail' failed: Form data requested the service task to fail.\",\"nonRetryable\":true}",
-        "Service task 'fail' failed: Form data requested the service task to fail."
-    )]
-    [InlineData(
-        "AppCommand failed with client error BadRequest: <no body content>", // no JSON at all
-        "AppCommand failed with client error BadRequest: <no body content>"
-    )]
-    [InlineData(
-        "AppCommand failed with client error BadRequest: {not valid json", // malformed JSON
-        "AppCommand failed with client error BadRequest: {not valid json"
-    )]
-    [InlineData(
-        "AppCommand failed with client error BadRequest: {\"title\":\"NoDetailHere\"}", // JSON without detail
-        "AppCommand failed with client error BadRequest: {\"title\":\"NoDetailHere\"}"
-    )]
-    [InlineData("Plain engine failure message", "Plain engine failure message")]
-    public void ExtractCallbackErrorDetail_ExtractsEmbeddedProblemDetailsDetail(string engineMessage, string expected)
+    [Fact]
+    public void ExtractCallbackErrorDetail_WhenMessageEmbedsProblemDetails_ReturnsTheDetail()
     {
-        Assert.Equal(expected, WorkflowEngineService.ExtractCallbackErrorDetail(engineMessage));
+        // The engine wraps a failed app callback as "<prose>: {ProblemDetails json}"; the embedded
+        // detail is the human-readable reason and is what should surface to the end user.
+        const string engineMessage =
+            "AppCommand failed with client error UnprocessableEntity: "
+            + "{\"title\":\"ServiceTaskFailedException\",\"status\":422,\"detail\":"
+            + "\"Service task 'fail' failed: Form data requested the service task to fail.\",\"nonRetryable\":true}";
+
+        string detail = WorkflowEngineService.ExtractCallbackErrorDetail(engineMessage);
+
+        Assert.Equal("Service task 'fail' failed: Form data requested the service task to fail.", detail);
+    }
+
+    [Fact]
+    public void ExtractCallbackErrorDetail_WhenMessageHasNoJson_ReturnsMessageUnchanged()
+    {
+        const string engineMessage = "AppCommand failed with client error BadRequest: <no body content>";
+
+        Assert.Equal(engineMessage, WorkflowEngineService.ExtractCallbackErrorDetail(engineMessage));
+    }
+
+    [Fact]
+    public void ExtractCallbackErrorDetail_WhenEmbeddedJsonIsMalformed_ReturnsMessageUnchanged()
+    {
+        const string engineMessage = "AppCommand failed with client error BadRequest: {not valid json";
+
+        Assert.Equal(engineMessage, WorkflowEngineService.ExtractCallbackErrorDetail(engineMessage));
+    }
+
+    [Fact]
+    public void ExtractCallbackErrorDetail_WhenEmbeddedJsonHasNoDetail_ReturnsMessageUnchanged()
+    {
+        const string engineMessage = "AppCommand failed with client error BadRequest: {\"title\":\"NoDetailHere\"}";
+
+        Assert.Equal(engineMessage, WorkflowEngineService.ExtractCallbackErrorDetail(engineMessage));
+    }
+
+    [Fact]
+    public void ExtractCallbackErrorDetail_WhenMessageIsPlainProse_ReturnsMessageUnchanged()
+    {
+        const string engineMessage = "Plain engine failure message";
+
+        Assert.Equal(engineMessage, WorkflowEngineService.ExtractCallbackErrorDetail(engineMessage));
     }
 
     [Fact]

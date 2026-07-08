@@ -182,9 +182,6 @@ internal sealed class PaymentProcessTask : IProcessTask
         string taskId
     )
     {
-        // Match Storage's generatedFromTask filter exactly (GeneratedFrom + Task + task id), the
-        // same triple CleanupGeneratedFromTask uses, so the upsert and the cleanup agree on which
-        // elements are task-generated.
         DataElement? existingDataElement = dataMutator.Instance.Data.SingleOrDefault(de =>
             de.DataType == dataTypeId
             && de.References?.Exists(reference =>
