@@ -46,9 +46,10 @@ internal sealed class TempAppFolder : IDisposable
         {
             Directory.Delete(Root, recursive: true);
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Best-effort cleanup of temp state; leftovers are harmless.
+            // Best-effort cleanup of temp state; leftovers are harmless. A recursive delete can also
+            // hit UnauthorizedAccessException (e.g. a read-only file), which must not fail the run.
         }
     }
 }
