@@ -3,5 +3,6 @@ export * from './Address';
 export * from './ButtonGroup';
 export * from './Datepicker';
 export * from './Divider';
+export * from './Header';
 export * from './Paragraph';
 export * from './TextArea';
