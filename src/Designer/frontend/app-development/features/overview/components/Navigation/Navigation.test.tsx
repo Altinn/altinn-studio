@@ -41,7 +41,7 @@ describe('Navigation', () => {
   });
 
   it('shows AI assistant when the repo owner is an organisation and feature flag is enabled', () => {
-    renderNavigation({ featureFlags: [FeatureFlag.AiAssistant], repoOwnerIsOrg: true });
+    renderNavigation({ featureFlags: [FeatureFlag.AiAssistant], isRepoOwnerOrg: true });
     const assistantLink = screen.getByRole('link', {
       name: textMock(HeaderMenuItemKey.AiAssistant),
     });
@@ -49,7 +49,7 @@ describe('Navigation', () => {
   });
 
   it('hides AI assistant from personal repos, even when feature flag is enabled', () => {
-    renderNavigation({ featureFlags: [FeatureFlag.AiAssistant], repoOwnerIsOrg: false });
+    renderNavigation({ featureFlags: [FeatureFlag.AiAssistant], isRepoOwnerOrg: false });
     const assistantLink = screen.queryByRole('link', {
       name: textMock(HeaderMenuItemKey.AiAssistant),
     });
@@ -73,14 +73,14 @@ describe('Navigation', () => {
 
 type RenderNavigationProps = {
   featureFlags?: FeatureFlag[];
-  repoOwnerIsOrg?: boolean;
+  isRepoOwnerOrg?: boolean;
 };
 
 const renderNavigation = ({
   featureFlags = [],
-  repoOwnerIsOrg = false,
+  isRepoOwnerOrg = false,
 }: RenderNavigationProps = {}) => {
-  mockUseIsRepoOwnerOrg.mockReturnValue(repoOwnerIsOrg);
+  mockUseIsRepoOwnerOrg.mockReturnValue(isRepoOwnerOrg);
   renderWithProviders(<Navigation />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     featureFlags,

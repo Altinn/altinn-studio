@@ -47,12 +47,12 @@ describe('headerMenuUtils', () => {
       ).toHaveLength(topBarMenuItems.length);
     });
 
-    it('should filter out Deploy item when repoOwnerIsOrg is false', () => {
+    it('should filter out Deploy item when isRepoOwnerOrg is false', () => {
       const filteredItems = getFilteredTopBarMenu(RepositoryType.App, false, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
     });
 
-    it('should include Deploy item when repoOwnerIsOrg is true and repositoryType is not DataModels', () => {
+    it('should include Deploy item when isRepoOwnerOrg is true and repositoryType is not DataModels', () => {
       const filteredItems = getFilteredTopBarMenu(RepositoryType.App, true, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(true);
     });
@@ -62,14 +62,14 @@ describe('headerMenuUtils', () => {
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
     });
 
-    it('should filter out AiAssistant item when repoOwnerIsOrg is false', () => {
+    it('should filter out AiAssistant item when isRepoOwnerOrg is false', () => {
       const filteredItems = getFilteredTopBarMenu(RepositoryType.App, false, [
         FeatureFlag.AiAssistant,
       ]);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(false);
     });
 
-    it('should include AiAssistant item when repoOwnerIsOrg is true', () => {
+    it('should include AiAssistant item when isRepoOwnerOrg is true', () => {
       const filteredItems = getFilteredTopBarMenu(RepositoryType.App, true, [
         FeatureFlag.AiAssistant,
       ]);
@@ -166,12 +166,12 @@ describe('headerMenuUtils', () => {
       ]);
     });
 
-    it('should filter out org-only items when repoOwnerIsOrg is false', () => {
+    it('should filter out org-only items when isRepoOwnerOrg is false', () => {
       const filteredMenu = getFilteredMenuListForOverviewPage([FeatureFlag.AiAssistant], false);
       expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(false);
     });
 
-    it('should include org-only items when repoOwnerIsOrg is true', () => {
+    it('should include org-only items when isRepoOwnerOrg is true', () => {
       const filteredMenu = getFilteredMenuListForOverviewPage([FeatureFlag.AiAssistant], true);
       expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(true);
     });

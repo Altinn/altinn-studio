@@ -8,6 +8,7 @@ import {
   type StudioProfileMenuGroup,
 } from '@studio/components';
 import { getFilteredTopBarMenu } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { useIsRepoOwnerOrg } from 'app-development/hooks/useIsRepoOwnerOrg';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +23,6 @@ export type PageHeaderContextProps = {
   menuItems: HeaderMenuItem[];
   profileMenuItems: StudioProfileMenuItem[];
   profileMenuGroups: StudioProfileMenuGroup[];
-  repoOwnerIsOrg: boolean;
   variant: StudioPageHeaderProps['variant'];
   returnTo: string | null;
 };
@@ -36,16 +36,16 @@ export type PageHeaderContextProviderProps = {
 export const PageHeaderContextProvider = ({
   children,
   user,
-  repoOwnerIsOrg,
 }: Partial<PageHeaderContextProviderProps>): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { flags } = useFeatureFlagsContext();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  const isRepoOwnerOrg = useIsRepoOwnerOrg();
 
   const repoType = getRepositoryType(org, app);
-  const menuItems = getFilteredTopBarMenu(repoType, repoOwnerIsOrg, flags);
+  const menuItems = getFilteredTopBarMenu(repoType, isRepoOwnerOrg, flags);
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl(), openInNewTab: true },

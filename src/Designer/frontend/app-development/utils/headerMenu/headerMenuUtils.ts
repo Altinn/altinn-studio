@@ -99,9 +99,9 @@ export const isMenuItemEnabledByFeatureFlag = (
 
 const isMenuItemVisibleForOwnerType = (
   menuItem: HeaderMenuItem,
-  repoOwnerIsOrg: boolean,
+  isRepoOwnerOrg: boolean,
 ): boolean => {
-  if (repoOwnerIsOrg) return true;
+  if (isRepoOwnerOrg) return true;
   const orgOnlyMenuItemKeys = [HeaderMenuItemKey.Deploy, HeaderMenuItemKey.AiAssistant];
   return !orgOnlyMenuItemKeys.includes(menuItem.key);
 };
