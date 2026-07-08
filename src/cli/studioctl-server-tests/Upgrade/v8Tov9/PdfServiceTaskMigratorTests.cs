@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 
@@ -10,7 +11,9 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
-    private async Task<IReadOnlyList<string>> Migrate() => await new PdfServiceTaskMigrator(_app.Root).Migrate();
+    private async Task<MigrationResult> MigrateResult() => await new PdfServiceTaskMigrator(_app.Root).Migrate();
+
+    private async Task<IReadOnlyList<string>> Migrate() => (await MigrateResult()).Warnings;
 
     private XElement ProcessAfter()
     {
@@ -527,6 +530,58 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.Contains(warnings, w => w.Contains("not valid XML", StringComparison.Ordinal));
         Assert.Equal(bpmn, _app.Read("config/process/process.bpmn"));
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CleanMigration_DoesNotRequireManualAction()
+    {
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: true))
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var result = await MigrateResult();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public async Task SkippedTask_RequiresManualAction()
+    {
+        // The task can't be found, so the flag is kept - the developer must finish the migration.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_Ghost", enablePdfCreation: true))
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var result = await MigrateResult();
+
+        Assert.True(result.ManualActionRequired);
+    }
+
+    [Fact]
+    public async Task LegacyNoOp_DoesNotRequireManualAction()
+    {
+        // enablePdfCreation on an attachment was a no-op in v8; stripping it is a clean outcome, not
+        // something needing manual follow-up.
+        _app.Write("config/applicationmetadata.json", Metadata(AttachmentDataType("file", enablePdfCreation: true)));
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var result = await MigrateResult();
+
+        Assert.False(result.ManualActionRequired);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.PolicyMigration;
 using static Studioctl.Tests.Upgrade.v8Tov9.PolicyXmlBuilder;
 
@@ -11,7 +12,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
-    private async Task<IReadOnlyList<string>> Migrate(string policy, string? metadata = Metadata)
+    private async Task<MigrationResult> MigrateResult(string policy, string? metadata = Metadata)
     {
         _app.Write("config/authorization/policy.xml", policy);
         if (metadata is not null)
@@ -20,6 +21,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var migrator = new ServiceOwnerPolicyMigrator(_app.Root);
         return await migrator.Migrate();
     }
+
+    private async Task<IReadOnlyList<string>> Migrate(string policy, string? metadata = Metadata) =>
+        (await MigrateResult(policy, metadata)).Warnings;
 
     private string PolicyAfter() => _app.Read("config/authorization/policy.xml");
 
@@ -58,9 +62,10 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             )
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
 
-        Assert.Empty(warnings);
+        Assert.Empty(result.Warnings);
+        Assert.False(result.ManualActionRequired);
         Assert.Equal(policy, PolicyAfter());
     }
 
@@ -243,7 +248,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var firstWarnings = await Migrate(policy);
         var afterFirst = PolicyAfter();
 
-        var secondWarnings = await new ServiceOwnerPolicyMigrator(_app.Root).Migrate();
+        var secondWarnings = (await new ServiceOwnerPolicyMigrator(_app.Root).Migrate()).Warnings;
 
         Assert.Contains(firstWarnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
         Assert.DoesNotContain(secondWarnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
@@ -338,7 +343,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         _app.Write("config/applicationmetadata.json", Metadata);
         var bytesBefore = _app.ReadBytes("config/authorization/policy.xml");
 
-        var warnings = await new ServiceOwnerPolicyMigrator(_app.Root).Migrate();
+        var warnings = (await new ServiceOwnerPolicyMigrator(_app.Root).Migrate()).Warnings;
 
         Assert.Contains(warnings, w => w.Contains("not valid UTF-8", StringComparison.Ordinal));
         Assert.Equal(bytesBefore, _app.ReadBytes("config/authorization/policy.xml"));
@@ -390,16 +395,17 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             denyRule
         );
 
-        var warnings = await Migrate(policy);
+        var result = await MigrateResult(policy);
 
+        Assert.True(result.ManualActionRequired);
         Assert.Contains(
-            warnings,
+            result.Warnings,
             w =>
                 w.Contains("Deny rule", StringComparison.Ordinal)
                 && w.Contains("inconclusive", StringComparison.Ordinal)
                 && w.Contains("[read, write, complete]", StringComparison.Ordinal)
         );
-        Assert.DoesNotContain(warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
         Assert.Equal(policy, PolicyAfter());
     }
 
