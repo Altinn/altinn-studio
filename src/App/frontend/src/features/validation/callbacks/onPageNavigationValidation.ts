@@ -20,6 +20,7 @@ export function useOnPageNavigationValidation() {
   const validating = useWaitForValidation();
   const pageOrder = usePageOrder();
   const refetchInitialValidations = useRefetchInitialValidations();
+  const store = FormStore.raw.useStore();
 
   /* Ensures the callback will have the latest state */
   const callback = useOurEffectEvent(async (currentPage: string, config: PageValidation): Promise<boolean> => {
@@ -57,7 +58,7 @@ export function useOnPageNavigationValidation() {
         if (!shouldCheckPage(node.pageKey)) {
           continue;
         }
-        if (node.intermediateItem.type === 'Subform') {
+        if (store.getState().bootstrap.layoutLookups.getComponent(node.baseId).type === 'Subform') {
           hasSubform = true;
         }
         const nodes = nodeIdsPerPage.get(node.pageKey) ?? [];

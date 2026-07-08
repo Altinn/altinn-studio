@@ -1,24 +1,24 @@
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
-import { type DerivedLayoutNode, deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
+import { deriveRuntimeNodeRefs, type RuntimeNodeRef } from 'src/utils/layout/deriveRuntimeNodeRefs';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import { getCurrentDataModelPath } from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
-export type DerivedValidationNode = DerivedLayoutNode & {
+export interface DerivedValidationNode extends RuntimeNodeRef {
   hidden: boolean;
   isValid: boolean;
-};
+}
 
-type DeriveNodesInputs = {
+export interface DeriveNodesInputs {
   pageOrder: string[];
   includedPageKeys?: Iterable<string>;
   includedNodeIds?: Iterable<string>;
   pdfLayoutName: string | undefined;
   hiddenDataSources: ExpressionDataSources;
-};
+}
 
 /**
  * Creates expression data sources scoped to the current repeating-group row.
@@ -51,16 +51,19 @@ export function deriveNodes(state: FormStoreState, inputs: DeriveNodesInputs): D
       return cached;
     }
 
-    const hiddenSources = collectHiddenSources(baseId, state.bootstrap.layoutLookups).reverse();
+    const hiddenSources = collectHiddenSources(baseId, state.bootstrap.layoutLookups);
     hiddenSourcesByBaseId.set(baseId, hiddenSources);
     return hiddenSources;
   }
 
-  function evaluateHidden(node: DerivedLayoutNode) {
+  const pageOrderSet = new Set(inputs.pageOrder);
+
+  function evaluateHidden(node: RuntimeNodeRef) {
     const hiddenRuntime = withCurrentDataModelPath(inputs.hiddenDataSources, getCurrentDataModelPath(node.rowContexts));
     return evaluateHiddenSources({
       hiddenSources: getHiddenSources(node.baseId),
       pageOrder: inputs.pageOrder,
+      pageOrderSet,
       pageKey: node.pageKey,
       respectPageOrder: true,
       evalHiddenExpression: (expr, source) =>
@@ -76,13 +79,13 @@ export function deriveNodes(state: FormStoreState, inputs: DeriveNodesInputs): D
   }
 
   const includedNodeIds = inputs.includedNodeIds ? new Set(inputs.includedNodeIds) : undefined;
-  const layoutNodes = deriveLayoutNodes(state, inputs.includedPageKeys).filter(
+  const layoutNodes = deriveRuntimeNodeRefs(state, inputs.includedPageKeys).filter(
     (node) => !includedNodeIds || includedNodeIds.has(node.id),
   );
 
   return layoutNodes.map((node) => ({
     ...node,
     hidden: evaluateHidden(node),
-    isValid: inputs.pageOrder.includes(node.pageKey) || node.pageKey === inputs.pdfLayoutName,
+    isValid: pageOrderSet.has(node.pageKey) || node.pageKey === inputs.pdfLayoutName,
   }));
 }

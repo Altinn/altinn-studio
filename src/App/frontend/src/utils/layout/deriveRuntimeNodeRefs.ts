@@ -4,15 +4,19 @@ import { MissingRowIdException } from 'src/features/formData/MissingRowIdExcepti
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
-import { appendRowContext, applyRowContextToComponentId } from 'src/utils/layout/rowContext';
+import {
+  appendRowContext,
+  applyRowContextToComponentId,
+  getIndexedDataModelReference,
+} from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompExternal, CompIntermediate, CompTypes } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 import type { RowContext } from 'src/utils/layout/rowContext';
 import type { BaseRow } from 'src/utils/layout/types';
 
-export type DerivedLayoutParent =
+export type RuntimeNodeParent =
   | {
       type: 'node';
       id: string;
@@ -24,15 +28,14 @@ export type DerivedLayoutParent =
       baseId: string;
     };
 
-export type DerivedLayoutNode = {
+export type RuntimeNodeRef = {
   id: string;
   baseId: string;
   pageKey: string;
   parentId: string | undefined;
-  parent: DerivedLayoutParent;
+  parent: RuntimeNodeParent;
   rowContexts: RowContext[];
   rowIds: string[];
-  intermediateItem: CompIntermediate;
 };
 
 type DeriveNodesContext = {
@@ -44,56 +47,12 @@ type DeriveNodesContext = {
 type WalkNodesArgs = {
   pageKey: string;
   baseId: string;
-  parent: DerivedLayoutParent;
+  parent: RuntimeNodeParent;
   rowContexts: RowContext[];
-  output: DerivedLayoutNode[];
+  output: RuntimeNodeRef[];
 };
 
 const emptyArray: never[] = [];
-
-function transposeChildBinding(field: string, groupField: string, rowIndex: number): string | undefined {
-  const groupPrefix = `${groupField}.`;
-  if (!field.startsWith(groupPrefix)) {
-    return undefined;
-  }
-
-  return `${groupField}[${rowIndex}]${field.slice(groupField.length)}`;
-}
-
-function toIntermediateItem<T extends CompTypes>(
-  component: CompExternal<T>,
-  rowContexts: RowContext[],
-): CompIntermediate<T> {
-  const clone = structuredClone(component) as CompIntermediate<T>;
-  for (const [markerIndex, { groupBinding, rowIndex }] of rowContexts.entries()) {
-    if ('mapping' in clone && clone.mapping) {
-      for (const key of Object.keys(clone.mapping)) {
-        const value = clone.mapping[key];
-        const newKey = key.replace(`[{${markerIndex}}]`, `[${rowIndex}]`);
-        delete clone.mapping[key];
-        clone.mapping[newKey] = value;
-      }
-    }
-
-    if ('dataModelBindings' in clone && clone.dataModelBindings) {
-      for (const key of Object.keys(clone.dataModelBindings)) {
-        const target = clone.dataModelBindings[key] as IDataModelReference | undefined;
-        if (!target || target.dataType !== groupBinding.dataType || target.field === groupBinding.field) {
-          continue;
-        }
-
-        clone.dataModelBindings[key] = {
-          dataType: target.dataType,
-          field: transposeChildBinding(target.field, groupBinding.field, rowIndex) ?? target.field,
-        };
-      }
-    }
-  }
-
-  clone.id = applyRowContextToComponentId(clone.id, rowContexts);
-
-  return clone;
-}
 
 /**
  * Reads and caches repeating-group rows for one derivation pass.
@@ -141,16 +100,15 @@ function splitRepeatingChildren(component: CompExternal<'RepeatingGroup'>, child
 }
 
 function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
-  const intermediateItem = toIntermediateItem(context.lookups.getComponent(args.baseId), args.rowContexts);
-  const node: DerivedLayoutNode = {
-    id: intermediateItem.id,
+  const component = context.lookups.getComponent(args.baseId);
+  const node: RuntimeNodeRef = {
+    id: applyRowContextToComponentId(component.id, args.rowContexts),
     baseId: args.baseId,
     pageKey: args.pageKey,
     parentId: args.parent.type === 'node' ? args.parent.id : undefined,
     parent: args.parent,
     rowContexts: args.rowContexts,
     rowIds: args.rowContexts.map((row) => row.rowId),
-    intermediateItem,
   };
   args.output.push(node);
 
@@ -159,13 +117,13 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
     return;
   }
 
-  if (node.intermediateItem.type === 'RepeatingGroup') {
-    const { repeated, staticChildren } = splitRepeatingChildren(node.intermediateItem, childBaseIds);
+  if (component.type === 'RepeatingGroup') {
+    const { repeated, staticChildren } = splitRepeatingChildren(component, childBaseIds);
     for (const childId of staticChildren) {
       walkNodes(context, { ...args, baseId: childId, parent: { type: 'node', id: node.id, baseId: args.baseId } });
     }
 
-    const groupBinding = node.intermediateItem.dataModelBindings.group;
+    const groupBinding = getIndexedDataModelReference(component.dataModelBindings.group, args.rowContexts);
     for (const row of getRows(context, groupBinding)) {
       for (const childId of repeated) {
         walkNodes(context, {
@@ -179,10 +137,10 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
     return;
   }
 
-  if (node.intermediateItem.type === 'Likert') {
-    const questionsBinding = node.intermediateItem.dataModelBindings.questions;
+  if (component.type === 'Likert') {
+    const questionsBinding = getIndexedDataModelReference(component.dataModelBindings.questions, args.rowContexts);
     const rows = getRows(context, questionsBinding);
-    const { startIndex, stopIndex } = getLikertStartStopIndex(rows.length - 1, node.intermediateItem.filter);
+    const { startIndex, stopIndex } = getLikertStartStopIndex(rows.length - 1, component.filter);
     const childId = makeLikertChildId(args.baseId);
     for (const row of rows.slice(startIndex, stopIndex + 1)) {
       walkNodes(context, {
@@ -201,15 +159,15 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
 }
 
 /**
- * Expands the current layout synchronously without storing derived node state.
+ * Expands the current layout synchronously into lightweight runtime node references.
  */
-export function deriveLayoutNodes(state: FormStoreState, pageKeys?: Iterable<string>): DerivedLayoutNode[] {
+export function deriveRuntimeNodeRefs(state: FormStoreState, pageKeys?: Iterable<string>): RuntimeNodeRef[] {
   const context: DeriveNodesContext = {
     state,
     lookups: state.bootstrap.layoutLookups,
     rowsByBinding: new Map(),
   };
-  const nodes: DerivedLayoutNode[] = [];
+  const nodes: RuntimeNodeRef[] = [];
   const includedPages = pageKeys ? new Set(pageKeys) : undefined;
 
   for (const [pageKey, topLevel] of Object.entries(context.lookups.topLevelComponents)) {

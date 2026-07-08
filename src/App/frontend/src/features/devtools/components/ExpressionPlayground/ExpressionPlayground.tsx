@@ -14,7 +14,7 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
-import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
+import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { optionFilter } from 'src/utils/options';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -64,7 +64,7 @@ export const ExpressionPlayground = () => {
   const resetOutputHistory = () => setOutputs([]);
 
   const componentOptions = FormStore.raw.useMemoSelector((state) =>
-    deriveLayoutNodes(state).map((node) => ({
+    deriveRuntimeNodeRefs(state).map((node) => ({
       label: node.id,
       value: node.id,
     })),

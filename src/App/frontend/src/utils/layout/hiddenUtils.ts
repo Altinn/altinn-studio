@@ -21,6 +21,7 @@ export type HiddenReason = HiddenSource['type'] | 'pageOrder';
 interface EvaluateHiddenSourcesProps {
   hiddenSources: HiddenSource[];
   pageOrder: string[];
+  pageOrderSet?: Set<string>;
   pageKey: string | undefined;
   respectPageOrder?: boolean;
   evalHiddenExpression: (expr: HiddenExprSource['expr'], source: HiddenExprSource) => boolean;
@@ -71,17 +72,19 @@ export function collectHiddenSources(
     out.push({ type: 'hiddenPage', expr: hiddenExpr, id: page });
   }
 
-  return out;
+  return out.reverse();
 }
 
 export function evaluateHiddenSources({
   hiddenSources,
   pageOrder,
+  pageOrderSet,
   pageKey,
   respectPageOrder = false,
   evalHiddenExpression,
 }: EvaluateHiddenSourcesProps): { hidden: boolean; reason: HiddenReason | undefined } {
-  if (respectPageOrder && pageKey !== undefined && !pageOrder.includes(pageKey)) {
+  const includedPages = pageOrderSet ?? new Set(pageOrder);
+  if (respectPageOrder && pageKey !== undefined && !includedPages.has(pageKey)) {
     return { reason: 'pageOrder', hidden: true };
   }
 
