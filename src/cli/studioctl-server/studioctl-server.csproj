@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Studioctl.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="../../Shared/HostBridge/**/*.cs" LinkBase="HostBridge" />
     <Compile Include="../../Shared/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
   </ItemGroup>
