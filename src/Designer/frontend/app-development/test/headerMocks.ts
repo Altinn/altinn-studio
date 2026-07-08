@@ -35,7 +35,6 @@ export const pageHeaderContextMock: PageHeaderContextProps = {
   menuItems: menuItemsMock,
   profileMenuItems: profileMenuItemsMock,
   profileMenuGroups: profileMenuGroupsMock,
-  repoOwnerIsOrg: true,
   variant: 'regular',
   returnTo: null,
 };
