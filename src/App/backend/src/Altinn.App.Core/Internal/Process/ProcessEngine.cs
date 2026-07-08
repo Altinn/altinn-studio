@@ -265,18 +265,14 @@ internal class ProcessEngine : IProcessEngine
             ct
         );
 
-        if (currentTaskWorkflowState.ProcessNextState == ProcessNextState.Retrying)
+        if (currentTaskWorkflowState is CurrentTaskWorkflowState.Retrying)
         {
             ProcessChangeResult retryingResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
             activity?.SetProcessChangeResult(retryingResult);
             return retryingResult;
         }
 
-        if (
-            currentTaskWorkflowState.ProcessNextState != ProcessNextState.ResumeRequired
-            || currentTaskWorkflowState.WorkflowId is not Guid workflowId
-            || currentTaskWorkflowState.CollectionKey is not { Length: > 0 } collectionKey
-        )
+        if (currentTaskWorkflowState is not CurrentTaskWorkflowState.ResumeRequired failedWorkflow)
         {
             var result = new ProcessChangeResult
             {
@@ -291,8 +287,8 @@ internal class ProcessEngine : IProcessEngine
 
         ProcessNextWorkflowResult workflowResult = await _workflowEngineService.ResumeAndWaitForWorkflow(
             instance,
-            workflowId,
-            collectionKey,
+            failedWorkflow.WorkflowId,
+            failedWorkflow.CollectionKey,
             ct
         );
 
@@ -381,15 +377,66 @@ internal class ProcessEngine : IProcessEngine
         bool isServiceTask = CheckIfServiceTask(altinnTaskType) is not null;
         string? processNextAction = request.Action;
 
+        // A reject abandons the task; it is only honoured when the bpmn allows it for this task.
+        bool rejectAllowedForTask =
+            checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
+
+        Guid? abandonedWorkflowId = null;
         CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
             instance,
             ct
         );
-        if (currentTaskWorkflowState.ProcessNextState is { } blockedState)
+        switch (currentTaskWorkflowState)
         {
-            ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(blockedState);
-            activity?.SetProcessChangeResult(blockedResult);
-            return blockedResult;
+            case CurrentTaskWorkflowState.Unblocked:
+                break;
+
+            case CurrentTaskWorkflowState.Retrying:
+            {
+                ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
+                activity?.SetProcessChangeResult(blockedResult);
+                return blockedResult;
+            }
+
+            // A terminally failed workflow normally requires an explicit resume before the process
+            // can continue. The one exception is a bpmn-allowed 'reject': the user is abandoning
+            // the task (e.g. backing out of a failed service task from its failure screen, which
+            // offers both retry and go-back).
+            case CurrentTaskWorkflowState.ResumeRequired failedWorkflow
+                when request.Action is "reject" && rejectAllowedForTask:
+            {
+                // Write the failed workflow off in the engine (-> Abandoned) before enqueueing the
+                // reject: Abandoned is terminal but no longer condemns dependents, so the reject's
+                // ordinary dependency on it lets the reject run.
+                bool abandoned = await _workflowEngineService.AbandonWorkflow(failedWorkflow.WorkflowId, ct);
+                if (!abandoned)
+                {
+                    // The engine's compare-and-set lost a race with a concurrent resume: the failed
+                    // workflow is running again, so the reject must wait like any other action.
+                    ProcessChangeResult raceLostResult = CreateCurrentTaskWorkflowBlockedResult(
+                        ProcessNextState.Retrying
+                    );
+                    activity?.SetProcessChangeResult(raceLostResult);
+                    return raceLostResult;
+                }
+
+                abandonedWorkflowId = failedWorkflow.WorkflowId;
+                break;
+            }
+
+            case CurrentTaskWorkflowState.ResumeRequired:
+            {
+                ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
+                    ProcessNextState.ResumeRequired
+                );
+                activity?.SetProcessChangeResult(blockedResult);
+                return blockedResult;
+            }
+
+            default:
+                throw new UnreachableException(
+                    $"Unknown current-task workflow state: {currentTaskWorkflowState.GetType().Name}"
+                );
         }
 
         // If the action is 'reject', we should not run any service task and there is no need to check for a user action handler, since 'reject' doesn't have one.
@@ -414,7 +461,7 @@ internal class ProcessEngine : IProcessEngine
         }
 
         // If the action is 'reject' the task is being abandoned, and we should skip validation, but only if reject has been allowed for the task in bpmn.
-        if (checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction))
+        if (rejectAllowedForTask)
         {
             _logger.LogInformation(
                 "Skipping validation during process next because the action is 'reject' and the task is being abandoned."
@@ -457,14 +504,44 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        MoveToNextResult moveToNextResult = await HandleMoveToNext(
-            instance,
-            processNextAction,
-            checkedAction,
-            _instanceLocker.CurrentLockToken
-                ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
-            ct
-        );
+        MoveToNextResult moveToNextResult;
+        try
+        {
+            moveToNextResult = await HandleMoveToNext(
+                instance,
+                processNextAction,
+                checkedAction,
+                _instanceLocker.CurrentLockToken
+                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                ct
+            );
+        }
+        catch (WorkflowSubmissionFailedException exception) when (abandonedWorkflowId is Guid writtenOffWorkflowId)
+        {
+            // The failed workflow was written off, but the superseding reject never made it into
+            // the engine. The write-off is not undone: the abandoned workflow no longer blocks the
+            // task, and the engine released its idempotency key on abandon, so retrying the reject
+            // submits a fresh workflow.
+            _logger.LogWarning(
+                exception,
+                "The reject was not enqueued after workflow {AbandonedWorkflowId} was abandoned. Instance: {InstanceId}. Task: {TaskId}. Action: {ProcessNextAction}. The reject can be retried.",
+                writtenOffWorkflowId,
+                instance.Id,
+                LogSanitizer.Sanitize(currentTaskId),
+                LogSanitizer.Sanitize(request.Action ?? "none")
+            );
+
+            var submissionFailureResult = new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "The reject was not submitted.",
+                ErrorMessage =
+                    "The failed workflow was written off, but the reject was not submitted to the workflow engine. Try the reject again.",
+            };
+            activity?.SetProcessChangeResult(submissionFailureResult);
+            return submissionFailureResult;
+        }
 
         if (moveToNextResult.WorkflowFailure is not null)
         {

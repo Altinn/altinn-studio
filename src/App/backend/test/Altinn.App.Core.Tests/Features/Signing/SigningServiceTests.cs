@@ -616,8 +616,11 @@ public sealed class SigningServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task InitializeSignees_StoresSigneeStatesAsTaskGeneratedData()
+    public async Task InitializeSignees_StoresSigneeStatesTaggedWithGeneratedFromTask()
     {
+        // Signee states are tagged with the signing task so re-entry cleanup owns their lifecycle.
+        // Creating the tagged element during task START is safe: Storage's stale-data cleanup is
+        // timestamp-guarded and spares elements created by the in-flight transition.
         var signatureConfiguration = new AltinnSignatureConfiguration
         {
             SigneeStatesDataTypeId = "signeeStates",
