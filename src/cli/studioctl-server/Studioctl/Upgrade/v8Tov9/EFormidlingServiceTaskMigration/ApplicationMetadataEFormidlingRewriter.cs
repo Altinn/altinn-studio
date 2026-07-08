@@ -18,6 +18,12 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
     private readonly string _metadataFile;
     private readonly List<string> _warnings = new();
 
+    /// <summary>
+    /// True when the rewriter left the legacy block in place because it could not be removed safely
+    /// (unusual formatting, or a result that would not parse), so a human must finish the removal.
+    /// </summary>
+    public bool ManualActionRequired { get; private set; }
+
     private static readonly string[] _knownProperties =
     [
         "serviceId",
@@ -216,6 +222,7 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
         }
         catch (JsonException ex)
         {
+            ManualActionRequired = true;
             _warnings.Add(
                 $"Removing the eFormidling block from {Path.GetFileName(_metadataFile)} would produce invalid "
                     + $"JSON ({ex.Message}). Left the file unchanged - please remove the block manually."
@@ -288,6 +295,7 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
 
     private void WarnUnexpectedFormatting()
     {
+        ManualActionRequired = true;
         _warnings.Add(
             $"Found the eFormidling block on a line with unexpected formatting in "
                 + $"{Path.GetFileName(_metadataFile)}; left it in place - please remove the block manually."

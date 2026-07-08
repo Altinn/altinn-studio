@@ -38,6 +38,13 @@ internal sealed class AppSettingsEFormidlingRewriter
     private readonly string _appFolder;
     private readonly List<string> _warnings = new();
 
+    /// <summary>
+    /// True when the rewriter left an <c>EnableEFormidling</c> setting in place because it could not
+    /// be removed safely (unusual formatting, or a result that would not parse). The setting is inert
+    /// in v9, so this is a lightweight follow-up rather than a functional gap.
+    /// </summary>
+    public bool ManualActionRequired { get; private set; }
+
     // ASPNETCORE_ENVIRONMENT names as they map onto the Altinn hosting environments used by the
     // BPMN 'env' attribute. Keep in sync with AltinnEnvironments in Altinn.App.Core.
     private static readonly Dictionary<string, string> _environmentBuckets = new(StringComparer.OrdinalIgnoreCase)
@@ -149,6 +156,7 @@ internal sealed class AppSettingsEFormidlingRewriter
                 {
                     if (line.Contains("\"EnableEFormidling\"", StringComparison.Ordinal))
                     {
+                        ManualActionRequired = true;
                         _warnings.Add(
                             $"Found EnableEFormidling on a line with unexpected formatting in "
                                 + $"{Path.GetFileName(file)} (line {i + 1}); left it in place - the setting has no "
@@ -179,6 +187,7 @@ internal sealed class AppSettingsEFormidlingRewriter
             }
             catch (JsonException ex)
             {
+                ManualActionRequired = true;
                 _warnings.Add(
                     $"Removing EnableEFormidling from {Path.GetFileName(file)} would produce invalid JSON "
                         + $"({ex.Message}). Left the file unchanged - the setting has no effect in v9 and can be "

@@ -114,6 +114,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
+
         UpgradeConsole.WriteLine(
             returnCode switch
             {
@@ -580,6 +583,47 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating service-owner policy: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Job 10: Migrate the deprecated eFormidling block in applicationmetadata.json to an eFormidling
+    /// process service task
+    /// </summary>
+    static async Task<int> MigrateEFormidlingServiceTasks(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating legacy eFormidling configuration to service tasks...");
+
+            var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
+            var result = await migrator.Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "eFormidling service task migration needs manual follow-up. Review the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync(
+                result.Warnings.Count > 0
+                    ? "eFormidling service task migration completed with warnings. Review the warnings above."
+                    : "eFormidling service task migration completed"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating eFormidling service tasks: {ex.Message}");
             return ExitError;
         }
     }

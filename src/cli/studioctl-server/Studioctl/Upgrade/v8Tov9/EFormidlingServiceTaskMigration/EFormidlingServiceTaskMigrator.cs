@@ -18,18 +18,21 @@ internal sealed class EFormidlingServiceTaskMigrator
     }
 
     /// <summary>
-    /// Runs the migration. Returns the collected warnings; an empty list means a clean migration (or
-    /// nothing to migrate). Throws if a required file is malformed in a way we cannot recover from.
+    /// Runs the migration. The result carries any warnings and whether manual follow-up is required
+    /// (e.g. a task that could not be migrated left the legacy block in place). No warnings and no
+    /// manual action means a clean migration (or nothing to migrate). Throws if a required file is
+    /// malformed in a way we cannot recover from.
     /// </summary>
-    public async Task<IReadOnlyList<string>> Migrate()
+    public async Task<MigrationResult> Migrate()
     {
         var warnings = new List<string>();
 
         var metadataFile = AppFiles.Resolve(_projectFolder, "config/applicationmetadata.json");
         if (metadataFile is null)
         {
+            // Nothing to migrate and no block left behind, so no manual follow-up is implied.
             warnings.Add("Could not find config/applicationmetadata.json; skipped eFormidling migration.");
-            return warnings;
+            return new MigrationResult(ManualActionRequired: false, warnings);
         }
 
         var metadataRewriter = new ApplicationMetadataEFormidlingRewriter(metadataFile);
@@ -37,7 +40,7 @@ internal sealed class EFormidlingServiceTaskMigrator
         if (config is null)
         {
             // No eFormidling block at all - nothing to migrate.
-            return warnings;
+            return new MigrationResult(ManualActionRequired: false, warnings);
         }
 
         if (config.IsEmpty)
@@ -50,7 +53,7 @@ internal sealed class EFormidlingServiceTaskMigrator
                 "Removed an empty legacy eFormidling block from applicationmetadata.json; no eFormidling "
                     + "service task was added."
             );
-            return warnings;
+            return new MigrationResult(metadataRewriter.ManualActionRequired, warnings);
         }
 
         var reportedMetadataWarnings = metadataRewriter.GetWarnings().Count;
@@ -67,7 +70,7 @@ internal sealed class EFormidlingServiceTaskMigrator
                     + "configuration). Left applicationmetadata.json unchanged - add an 'eFormidling' service "
                     + "task manually or remove the eFormidling block."
             );
-            return warnings;
+            return new MigrationResult(ManualActionRequired: true, warnings);
         }
 
         var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
@@ -78,7 +81,7 @@ internal sealed class EFormidlingServiceTaskMigrator
                     + "was not found; cannot add the eFormidling service task. Left applicationmetadata.json "
                     + "unchanged."
             );
-            return warnings;
+            return new MigrationResult(ManualActionRequired: true, warnings);
         }
 
         // applicationmetadata.json lives in {appFolder}/config/, and the appsettings files in {appFolder}.
@@ -107,7 +110,7 @@ internal sealed class EFormidlingServiceTaskMigrator
                     + "service task could not be inserted automatically. Add the service task manually (or fix "
                     + "the process) and re-run the upgrade to strip the block."
             );
-            return warnings;
+            return new MigrationResult(ManualActionRequired: true, warnings);
         }
 
         if (result == EFormidlingInsertResult.Inserted)
@@ -157,7 +160,12 @@ internal sealed class EFormidlingServiceTaskMigrator
             );
         }
 
-        return warnings;
+        // The block was migrated and stripped; the only manual follow-up left is if a strip could not
+        // be applied safely (unusual formatting, or a result that would not parse).
+        return new MigrationResult(
+            metadataRewriter.ManualActionRequired || settingsRewriter.ManualActionRequired,
+            warnings
+        );
     }
 
     /// <summary>
@@ -173,8 +181,8 @@ internal sealed class EFormidlingServiceTaskMigrator
             {
                 var relative = Path.GetRelativePath(appFolder, file);
                 if (
-                    relative.StartsWith("bin", StringComparison.OrdinalIgnoreCase)
-                    || relative.StartsWith("obj", StringComparison.OrdinalIgnoreCase)
+                    relative.StartsWith("bin" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                    || relative.StartsWith("obj" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
                 )
                 {
                     continue;
@@ -184,9 +192,10 @@ internal sealed class EFormidlingServiceTaskMigrator
                     return true;
             }
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // If the scan fails we simply skip the warning; it is advisory only.
+            // The scan runs after the migration has already been applied; if reading the app's files
+            // fails we simply skip this advisory warning rather than fail an otherwise-completed run.
             return true;
         }
 
