@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
 
@@ -78,6 +79,39 @@ public class ProcessStateEnricherTests
         Assert.Equal(WorkflowFailureKind.StepFailed, result.Workflow.Failure.Kind);
     }
 
+    [Fact]
+    public async Task Enrich_WhenEngineThrows_DegradesToIdleAndDoesNotThrow()
+    {
+        var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        engine
+            .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("transient engine error"));
+
+        ProcessStateEnricher enricher = CreateEnricher(engine);
+
+        // The read path must not fail just because the live status lookup hiccuped.
+        AppProcessState result = await enricher.Enrich(new Instance(), new ProcessState(), CreateUser());
+
+        Assert.NotNull(result.Workflow);
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Workflow.Status);
+        Assert.Null(result.Workflow.Failure);
+    }
+
+    [Fact]
+    public async Task Enrich_WhenCancelled_PropagatesCancellation()
+    {
+        var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        engine
+            .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        ProcessStateEnricher enricher = CreateEnricher(engine);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            enricher.Enrich(new Instance(), new ProcessState(), CreateUser())
+        );
+    }
+
     // Isolates the workflow mapping: the flow-element / authorization block is a no-op (no current
     // task flow element, no flow elements), so only the IWorkflowEngineService result is exercised.
     private static ProcessStateEnricher CreateEnricher(Mock<IWorkflowEngineService> engine)
@@ -88,7 +122,12 @@ public class ProcessStateEnricherTests
 
         var serviceProvider = new ServiceCollection().AddSingleton(engine.Object).BuildServiceProvider();
 
-        return new ProcessStateEnricher(processReader.Object, Mock.Of<IAuthorizationService>(), serviceProvider);
+        return new ProcessStateEnricher(
+            processReader.Object,
+            Mock.Of<IAuthorizationService>(),
+            serviceProvider,
+            NullLogger<ProcessStateEnricher>.Instance
+        );
     }
 
     private static ClaimsPrincipal CreateUser() => new(new ClaimsIdentity());

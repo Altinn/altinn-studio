@@ -64,16 +64,18 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
-  it('failed shows the failure detail, suppresses the task, and Retry calls resume', async () => {
+  it('failed shows a generic message (not raw detail), suppresses the task, and Retry calls resume', async () => {
     const user = userEvent.setup();
     jest.mocked(doProcessResume).mockImplementation(async () => new Promise(() => {}));
 
     await renderProcessWrapper({
       status: 'failed',
-      failure: { detail: 'The service task blew up', kind: 'StepFailed' },
+      failure: { detail: 'INTERNAL: the service task blew up', kind: 'StepFailed' },
     });
 
-    expect(screen.getByText('The service task blew up')).toBeInTheDocument();
+    // The citizen sees the localized generic message; the raw backend detail is never rendered.
+    expect(screen.getByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
+    expect(screen.queryByText(/INTERNAL: the service task blew up/)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
 
     const retryButton = screen.getByRole('button', { name: /prøv igjen/i });

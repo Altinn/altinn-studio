@@ -328,6 +328,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ct
         );
 
+        // Collections are scanned newest-first, so the reported status reflects the most recent
+        // transition for the current task (deterministic). If several branches were somehow in flight
+        // at once (e.g. a parallel gateway), they collapse to a single processing/failed signal —
+        // which is all the consumer needs ("wait" vs "retry"); the per-branch detail is not surfaced.
         List<string> collectionKeys = matchingWorkflows
             .OrderByDescending(workflow => workflow.CreatedAt)
             .Select(workflow => workflow.CollectionKey)

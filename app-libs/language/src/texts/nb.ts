@@ -467,6 +467,7 @@ export function nb() {
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Noe gikk galt da skjemaet skulle behandles videre. Prøv igjen om noen minutter.',
+    'process_workflow.taking_longer': 'Dette tar litt lengre tid enn vanlig. Du trenger ikke gjøre noe – vent litt til.',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',
     'taskTypes.data': 'Utfylling',

@@ -44,14 +44,16 @@ describe('Live workflow status', () => {
 
     injectWorkflow('failed', {
       targetTask: 'Task_2',
-      failure: { detail: 'PROOF-workflow-failed-detail', kind: 'stepFailed' },
+      // Raw detail deliberately contains "internal" text — the citizen UI must NOT render it verbatim.
+      failure: { detail: 'INTERNAL-should-not-be-shown', kind: 'stepFailed' },
     });
-    cy.intercept('POST', '**/process/next*', { statusCode: 200, body: {} }).as('nextGuard');
     cy.intercept('POST', '**/process/resume*', { statusCode: 200, body: {} }).as('resume');
 
     cy.reload();
 
-    cy.contains('PROOF-workflow-failed-detail').should('be.visible');
+    // Generic localized message is shown; the raw backend detail is NOT leaked to the citizen
+    cy.contains('Noe gikk galt').should('be.visible');
+    cy.contains('INTERNAL-should-not-be-shown').should('not.exist');
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
 
     // The Retry affordance triggers process/resume (labelled "retry", not "resume")
@@ -60,7 +62,7 @@ describe('Live workflow status', () => {
 
     // Still failed after refresh (fetched-state driven; nothing persisted client-side)
     cy.reload();
-    cy.contains('PROOF-workflow-failed-detail').should('be.visible');
+    cy.contains('Noe gikk galt').should('be.visible');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
   });
 
@@ -71,6 +73,6 @@ describe('Live workflow status', () => {
 
     // idle == render normally: the task's Send inn action is present
     cy.findByRole('button', { name: 'Send inn' }).should('be.visible');
-    cy.contains('PROOF-workflow-failed-detail').should('not.exist');
+    cy.contains('Noe gikk galt').should('not.exist');
   });
 });

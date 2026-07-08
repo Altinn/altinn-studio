@@ -277,6 +277,37 @@ implementation detail it can shed later: `process/next` returns `processing` imm
 frontend converges via polling. The design is deliberately indifferent to whether `next` is
 synchronous or asynchronous — no client change is needed to make that switch.
 
+## Hardening (post-review refinements)
+
+Applied after the first implementation pass, addressing robustness/privacy/UX gaps found in review:
+
+- **Read path never fails on a status hiccup.** `ProcessStateEnricher` wraps the engine lookup and
+  degrades to `Idle` (render normally) on any non-cancellation error, logging a warning. Enriching
+  on every read must not couple basic instance rendering to a transient engine blip; cancellation
+  still propagates. (`Enrich_WhenEngineThrows_DegradesToIdle` / `..._WhenCancelled_Propagates`.)
+- **Raw failure detail is not shown to citizens.** The engine/service-task `failure.detail` can
+  contain internal, non-user-facing text, so the citizen UI renders a localized generic message
+  (`process_workflow.failed_description`), not the raw detail. `detail` stays in the API payload for
+  diagnostics and service-owner tooling, and is logged. A first-class, app-authored *user-safe*
+  failure message is a follow-up.
+- **Polling is jittered.** The `processing` poll uses a jittered ~2–3s interval so many clients
+  waiting on the same engine don't synchronise into a thundering herd — which would otherwise peak
+  exactly when the engine is already slow.
+- **Prolonged processing gets an affordance.** After ~20s in `processing`, the UI adds a reassuring
+  "this is taking longer than usual" line so the user isn't left staring at a bare spinner (workflows
+  can retry for a long time server-side).
+- **Deterministic status.** `ResolveWorkflowTaskStatus` scans collections newest-first, so the
+  reported status reflects the most recent transition; concurrent branches collapse to a single
+  processing/failed signal (all the consumer needs).
+
+### Still open (follow-ups, not blockers)
+
+- Whether the **end user is the right actor** to retry an engine failure at all, vs. a "received,
+  we're processing it" model with ops alerting — a product decision.
+- App-authored **user-safe failure message** channel (so useful, safe detail *can* be shown).
+- `Abandoned → idle` mapping re-confirmed against the reject path.
+- True **backoff** (not just jitter) for very long-running processing, if load warrants.
+
 ## Related
 
 - `src/App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/CLAUDE.md` — workflow engine

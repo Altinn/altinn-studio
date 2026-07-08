@@ -31,8 +31,14 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const isWorkflowProcessing = useIsWorkflowProcessing();
   const { error: instanceDataError, data } = useInstanceDataQuery({
     // Poll while a workflow transition is in flight so we converge on the committed task once it settles;
-    // otherwise fall back to the slower pending-scans poll.
-    refetchInterval: isWorkflowProcessing ? 2000 : hasPendingScans ? 5000 : false,
+    // otherwise fall back to the slower pending-scans poll. The processing poll is jittered (~2-3s) so
+    // many clients waiting on the same engine don't synchronise into a thundering herd — which would
+    // otherwise peak exactly when the engine is already slow.
+    refetchInterval: isWorkflowProcessing
+      ? () => 2000 + Math.floor(Math.random() * 1000)
+      : hasPendingScans
+        ? 5000
+        : false,
   });
 
   if (!instanceOwnerPartyId || !instanceGuid) {

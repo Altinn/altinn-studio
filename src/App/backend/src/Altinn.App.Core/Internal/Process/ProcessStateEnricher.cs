@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
 
 namespace Altinn.App.Core.Internal.Process;
@@ -16,6 +17,7 @@ public sealed class ProcessStateEnricher
 {
     private readonly IProcessReader _processReader;
     private readonly IAuthorizationService _authorization;
+    private readonly ILogger<ProcessStateEnricher> _logger;
 
     // Resolved lazily via the service provider: IWorkflowEngineService is internal, and this type
     // is public because the (public) process controllers inject it, so it cannot appear in a public
@@ -28,15 +30,18 @@ public sealed class ProcessStateEnricher
     /// <param name="processReader"></param>
     /// <param name="authorization"></param>
     /// <param name="serviceProvider"></param>
+    /// <param name="logger"></param>
     public ProcessStateEnricher(
         IProcessReader processReader,
         IAuthorizationService authorization,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        ILogger<ProcessStateEnricher> logger
     )
     {
         _processReader = processReader;
         _authorization = authorization;
         _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     /// <summary>
@@ -93,17 +98,40 @@ public sealed class ProcessStateEnricher
 
         appProcessState.ProcessTasks = processTasks;
 
-        var workflowEngineService = _serviceProvider.GetRequiredService<IWorkflowEngineService>();
-        WorkflowTaskStatus workflowStatus = await workflowEngineService.ResolveWorkflowTaskStatus(instance, ct);
-        appProcessState.Workflow = new AppProcessWorkflowStatus
-        {
-            Status = workflowStatus.Status,
-            TargetTask = workflowStatus.TargetTask,
-            Failure = workflowStatus.Failure is { } failure
-                ? new AppProcessWorkflowFailure { Detail = failure.LastError?.Message, Kind = failure.Kind }
-                : null,
-        };
+        appProcessState.Workflow = await ResolveWorkflowStatus(instance, ct);
 
         return appProcessState;
+    }
+
+    /// <summary>
+    /// Resolves the live workflow status for enrichment. The read path must never fail just because
+    /// the live status lookup hiccuped, so any non-cancellation error degrades to
+    /// <see cref="WorkflowActivityStatus.Idle"/> (render normally) - the next read/poll recovers the
+    /// true status. Cancellation is allowed to propagate (the request was aborted).
+    /// </summary>
+    private async Task<AppProcessWorkflowStatus> ResolveWorkflowStatus(Instance instance, CancellationToken ct)
+    {
+        try
+        {
+            var workflowEngineService = _serviceProvider.GetRequiredService<IWorkflowEngineService>();
+            WorkflowTaskStatus workflowStatus = await workflowEngineService.ResolveWorkflowTaskStatus(instance, ct);
+            return new AppProcessWorkflowStatus
+            {
+                Status = workflowStatus.Status,
+                TargetTask = workflowStatus.TargetTask,
+                Failure = workflowStatus.Failure is { } failure
+                    ? new AppProcessWorkflowFailure { Detail = failure.LastError?.Message, Kind = failure.Kind }
+                    : null,
+            };
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            _logger.LogWarning(
+                e,
+                "Failed to resolve live workflow status for instance {InstanceId}; defaulting to Idle.",
+                instance.Id
+            );
+            return new AppProcessWorkflowStatus { Status = WorkflowActivityStatus.Idle };
+        }
     }
 }

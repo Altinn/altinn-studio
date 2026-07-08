@@ -81,7 +81,17 @@ function NavigationError({ label }: NavigationErrorProps) {
   );
 }
 
+// After this long in the processing state we reassure the user it's still working, rather than
+// leaving them staring at a spinner indefinitely (workflows can retry for a long time server-side).
+const TAKING_LONGER_MS = 20_000;
+
 function WorkflowProcessing({ targetTask }: { targetTask?: string }) {
+  const [takingLonger, setTakingLonger] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setTakingLonger(true), TAKING_LONGER_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Flex
       item
@@ -95,11 +105,20 @@ function WorkflowProcessing({ targetTask }: { targetTask?: string }) {
         />
       </div>
       <Loader reason='workflow-processing' />
+      {takingLonger && (
+        <div>
+          <Lang id='process_workflow.taking_longer' />
+        </div>
+      )}
     </Flex>
   );
 }
 
-function WorkflowFailed({ detail }: { detail?: string }) {
+// We deliberately do NOT render the backend's raw failure detail here: it originates from the
+// workflow engine / a service task and may contain internal, non-user-facing text. Citizens see a
+// localized, generic message; the detail stays in the API payload for diagnostics and service-owner
+// tooling. A future improvement is a first-class, app-authored user-safe message.
+function WorkflowFailed() {
   const resume = useProcessResume();
 
   return (
@@ -114,7 +133,9 @@ function WorkflowFailed({ detail }: { detail?: string }) {
       >
         <Lang id='process_workflow.failed_heading' />
       </Heading>
-      <div>{detail ? detail : <Lang id='process_workflow.failed_description' />}</div>
+      <div>
+        <Lang id='process_workflow.failed_description' />
+      </div>
       <div className={classes.navigationError}>
         <Button
           variant='primary'
@@ -177,7 +198,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   if (workflow?.status === 'failed') {
     return (
       <PresentationComponent showNavigation={false}>
-        <WorkflowFailed detail={workflow.failure?.detail} />
+        <WorkflowFailed />
       </PresentationComponent>
     );
   }

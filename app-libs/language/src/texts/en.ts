@@ -465,6 +465,7 @@ export function en() {
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'Something went wrong while processing the form. Please try again in a few minutes.',
+    'process_workflow.taking_longer': 'This is taking a little longer than usual. You don’t need to do anything – please wait a moment.',
     'pdfPreview.error': 'Could not show PDF preview',
     'pdfPreview.defaultButtonText': 'Preview PDF',
     'taskTypes.data': 'Fill out',

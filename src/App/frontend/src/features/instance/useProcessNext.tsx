@@ -194,8 +194,10 @@ export function useProcessResume() {
       await reFetchInstanceData();
     },
     onError: (error: HttpClientError<ProblemDetails | undefined>) => {
+      // Log the raw detail for diagnostics, but show the citizen a generic message — the backend
+      // detail may contain internal, non-user-facing text (see WorkflowFailed).
       window.logError('Process resume failed:\n', error);
-      toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
+      toast(<Lang id='process_workflow.failed_description' />, {
         type: 'error',
         autoClose: false,
       });
