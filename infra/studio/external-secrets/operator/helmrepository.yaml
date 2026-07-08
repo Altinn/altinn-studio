@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: external-secrets
+  namespace: external-secrets
+spec:
+  # Canonical HTTPS Helm repo (the OCI/ghcr variant can 403 on anonymous pulls,
+  # same rationale as keda).
+  interval: 1h
+  url: https://charts.external-secrets.io
