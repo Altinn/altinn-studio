@@ -465,4 +465,102 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             StringComparison.Ordinal
         );
     }
+
+    [Fact]
+    public async Task TaskIdRefersToNonTaskElement_IsSkippedAndFlagKept()
+    {
+        // A stale/colliding taskId that names a gateway (or event) rather than a task must not have a
+        // pdf service task spliced after it - that would move PDF generation to a wrong point. The
+        // gateway has a single outgoing flow, so without the type guard it would have been rewritten.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Gateway_1", enablePdfCreation: true))
+        );
+        var bpmn = Process(
+            Task("Task_1", "data"),
+            Gateway("Gateway_1"),
+            Flow("Flow_to_gw", "Task_1", "Gateway_1"),
+            Flow("Flow_end", "Gateway_1", "EndEvent_1"),
+            EndEvent("EndEvent_1")
+        );
+        _app.Write("config/process/process.bpmn", bpmn);
+
+        var warnings = await Migrate();
+
+        Assert.Null(ElementById(ProcessAfter(), "PdfTask_Gateway_1"));
+        Assert.Equal(bpmn, _app.Read("config/process/process.bpmn"));
+        Assert.Contains(warnings, w => w.Contains("not a task", StringComparison.Ordinal));
+        Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task MalformedMetadataJson_IsRefused_NothingTouched()
+    {
+        // Invalid JSON must produce an actionable warning, not an unhandled exception (which would
+        // abort the whole upgrade run).
+        var metadata = "{ \"dataTypes\": [ }";
+        _app.Write("config/applicationmetadata.json", metadata);
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var warnings = await Migrate();
+
+        Assert.Contains(warnings, w => w.Contains("not valid JSON", StringComparison.Ordinal));
+        Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
+    }
+
+    [Fact]
+    public async Task MalformedProcessXml_IsRefused_FlagKept()
+    {
+        // Invalid BPMN XML must produce an actionable warning and leave the flag in place, not throw.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: true))
+        );
+        var bpmn = "<root><child></root>";
+        _app.Write("config/process/process.bpmn", bpmn);
+
+        var warnings = await Migrate();
+
+        Assert.Contains(warnings, w => w.Contains("not valid XML", StringComparison.Ordinal));
+        Assert.Equal(bpmn, _app.Read("config/process/process.bpmn"));
+        Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FlagWithUnexpectedCasing_IsDetectedAndMigrated()
+    {
+        // v8 binds applicationmetadata.json with Newtonsoft (case-insensitive), so a hand-edited
+        // "EnablePdfCreation" generated PDFs under v8 and must be migrated, not silently ignored.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(
+                """
+                    {
+                      "id": "model",
+                      "taskId": "Task_1",
+                      "EnablePdfCreation": true,
+                      "appLogic": {
+                        "classRef": "Altinn.App.Models.model"
+                      }
+                    }
+                """
+            )
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        await Migrate();
+
+        Assert.NotNull(ElementById(ProcessAfter(), "PdfTask_Task_1"));
+        Assert.DoesNotContain(
+            "enablePdfCreation",
+            _app.Read("config/applicationmetadata.json"),
+            StringComparison.OrdinalIgnoreCase
+        );
+    }
 }

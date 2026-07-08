@@ -90,6 +90,28 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
     }
 
     [Fact]
+    public async Task FlagWithUnexpectedCasing_IsStripped()
+    {
+        // v8 binds the flag via Newtonsoft (case-insensitive), so an odd-cased "EnablePdfCreation"
+        // was live under v8 and must be removed, not left behind.
+        var json = """
+            {
+              "dataTypes": [
+                {
+                  "id": "model",
+                  "EnablePdfCreation": true
+                }
+              ]
+            }
+            """.ReplaceLineEndings("\n");
+
+        var (_, after) = await Strip(json);
+
+        Assert.DoesNotContain("EnablePdfCreation", after, StringComparison.OrdinalIgnoreCase);
+        using var _ = JsonDocument.Parse(after); // still valid JSON
+    }
+
+    [Fact]
     public async Task FileWithoutTheFlag_IsUntouched()
     {
         var json = """
