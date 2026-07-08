@@ -30,6 +30,18 @@ internal static class BpmnBuilder
                 </bpmn:task>
             """;
 
+    /// <summary>A pdf service task as the migrator emits it (serviceTask carrying taskType `pdf`).</summary>
+    public static string PdfServiceTask(string id) =>
+        $"""
+                <bpmn:serviceTask id="{id}" name="Generate PDF">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>pdf</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                </bpmn:serviceTask>
+            """;
+
     public static string StartEvent(string id) => $"    <bpmn:startEvent id=\"{id}\" />";
 
     public static string EndEvent(string id) => $"    <bpmn:endEvent id=\"{id}\" />";

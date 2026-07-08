@@ -157,7 +157,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             "config/process/process.bpmn",
             Process(
                 Task("Task_1", "data"),
-                "    <bpmn:serviceTask id=\"PdfTask_Task_1\" name=\"Generate PDF\" />",
+                PdfServiceTask("PdfTask_Task_1"),
                 Flow("Flow_end", "Task_1", "PdfTask_Task_1"),
                 Flow("Flow_pdf", "PdfTask_Task_1", "EndEvent_1"),
                 EndEvent("EndEvent_1")
@@ -448,7 +448,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         var bpmn = Process(
             Task("Task_1", "data"),
-            "    <bpmn:serviceTask id=\"PdfTask_Task_1\" name=\"Generate PDF\" />",
+            PdfServiceTask("PdfTask_Task_1"),
             Flow("Flow_end", "Task_1", "PdfTask_Task_1"),
             Flow("Flow_pdf", "PdfTask_Task_1", "EndEvent_1"),
             EndEvent("EndEvent_1")
@@ -526,6 +526,56 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         Assert.Contains(warnings, w => w.Contains("not valid XML", StringComparison.Ordinal));
         Assert.Equal(bpmn, _app.Read("config/process/process.bpmn"));
+        Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ExistingPdfTaskIdCollidesWithNonPdfElement_IsSkippedAndFlagKept()
+    {
+        // The "already migrated" short-circuit must not fire for an unrelated element that merely
+        // shares the id - stripping the flag then would drop PDF generation with no task to replace it.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: true))
+        );
+        var bpmn = Process(
+            Task("Task_1", "data"),
+            Task("PdfTask_Task_1", "data"), // collides with the id the migrator would generate
+            Flow("Flow_end", "Task_1", "EndEvent_1"),
+            EndEvent("EndEvent_1")
+        );
+        _app.Write("config/process/process.bpmn", bpmn);
+
+        var warnings = await Migrate();
+
+        Assert.Equal(bpmn, _app.Read("config/process/process.bpmn"));
+        Assert.Contains(warnings, w => w.Contains("not a PDF service task", StringComparison.Ordinal));
+        Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ExistingNewFlowIdCollision_IsSkippedAndFlagKept()
+    {
+        // The generated flow id (Flow_PdfTask_{taskId}_to_{target}) must not duplicate an existing id,
+        // which would produce invalid BPMN.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: true))
+        );
+        var bpmn = Process(
+            StartEvent("StartEvent_1"),
+            Task("Task_1", "data"),
+            EndEvent("EndEvent_1"),
+            Flow("Flow_start", "StartEvent_1", "Task_1"),
+            Flow("Flow_end", "Task_1", "EndEvent_1"),
+            Flow("Flow_PdfTask_Task_1_to_EndEvent_1", "StartEvent_1", "EndEvent_1") // collides with newFlowId
+        );
+        _app.Write("config/process/process.bpmn", bpmn);
+
+        var warnings = await Migrate();
+
+        Assert.Equal(bpmn, _app.Read("config/process/process.bpmn"));
+        Assert.Contains(warnings, w => w.Contains("already exists", StringComparison.Ordinal));
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
     }
 
