@@ -110,7 +110,7 @@ internal static class AppVersionParser
     )
     {
         var files = new List<(XDocument Document, byte[] Data, string File)> { (appProject, appProjectData, FileRel) };
-        foreach (var file in DirectoryBuildProps(dir))
+        foreach (var file in ProjectImportFiles(dir, "Directory.Build.props"))
         {
             if (ReadProjectFile(dir, file) is { } data && LoadXml(data) is { } doc)
                 files.Add((doc, data, file));
@@ -128,9 +128,9 @@ internal static class AppVersionParser
         return File.Exists(fullPath) ? File.ReadAllBytes(fullPath) : null;
     }
 
-    private static IEnumerable<string> DirectoryBuildProps(IAppDirectory dir)
+    private static IEnumerable<string> ProjectImportFiles(IAppDirectory dir, string fileName)
     {
-        foreach (var file in new[] { "App/Directory.Build.props", "Directory.Build.props" })
+        foreach (var file in new[] { $"App/{fileName}", fileName })
         {
             if (dir.Exists(file))
             {
@@ -151,7 +151,7 @@ internal static class AppVersionParser
         {
             if (string.Equals(current.FullName, root, StringComparison.Ordinal))
                 continue;
-            var path = Path.Combine(current.FullName, "Directory.Build.props");
+            var path = Path.Combine(current.FullName, fileName);
             if (!File.Exists(path))
                 continue;
             var rel = Path.GetRelativePath(root, path).Replace('\\', '/');
@@ -184,9 +184,9 @@ internal static class AppVersionParser
 
     private static string? CentralPackageVersion(string include, IAppDirectory dir)
     {
-        foreach (var file in new[] { "Directory.Packages.props", "App/Directory.Packages.props" })
+        foreach (var file in ProjectImportFiles(dir, "Directory.Packages.props"))
         {
-            if (dir.ReadAllBytes(file) is not { } data || LoadXml(data) is not { } doc)
+            if (ReadProjectFile(dir, file) is not { } data || LoadXml(data) is not { } doc)
                 continue;
             var entry = doc.Descendants()
                 .FirstOrDefault(e =>

@@ -984,6 +984,39 @@ public sealed class RuleFalsePositiveTests
             .ToArray();
         Assert.DoesNotContain(Validate(App(ExprMeta, files)), f => f.RuleId == "APP-VERSION-SUPPORTED");
 
+        var repoRoot = Path.Combine(Path.GetTempPath(), "appconfig-cpm-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var appRoot = Path.Combine(repoRoot, "apps", "my-app");
+            Directory.CreateDirectory(Path.Combine(appRoot, "App", "config"));
+            Directory.CreateDirectory(Path.Combine(appRoot, "App", "ui", "Task_1", "layouts"));
+            Directory.CreateDirectory(Path.Combine(appRoot, "App", "models"));
+            File.WriteAllText(
+                Path.Combine(repoRoot, "Directory.Packages.props"),
+                """<Project><ItemGroup><PackageVersion Include="Altinn.App.Api" Version="9.2.0" /></ItemGroup></Project>"""
+            );
+            foreach (var (path, content) in BrokenAppFiles(cpmCsproj))
+            {
+                var fullPath = Path.Combine(appRoot, path.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(
+                    Path.GetDirectoryName(fullPath)
+                        ?? throw new InvalidOperationException($"missing parent for {fullPath}")
+                );
+                File.WriteAllText(fullPath, content);
+            }
+            File.WriteAllText(Path.Combine(appRoot, "App", "config", "applicationmetadata.json"), ExprMeta);
+
+            Assert.DoesNotContain(
+                AppConfigEngine.Open(appRoot).Validate().Findings,
+                f => f.RuleId == "APP-VERSION-SUPPORTED"
+            );
+        }
+        finally
+        {
+            if (Directory.Exists(repoRoot))
+                Directory.Delete(repoRoot, recursive: true);
+        }
+
         Assert.DoesNotContain(
             Validate(App(ExprMeta, BrokenAppFiles(V8Csproj).Where(f => f.Path != "App/App.csproj").ToArray())),
             f => f.RuleId == "APP-VERSION-SUPPORTED"
