@@ -147,8 +147,10 @@ export const mapHeaderMenuGroupToNavigationMenu = (
 
 export const getFilteredMenuListForOverviewPage = (
   activeFeatureFlags: FeatureFlag[],
+  isRepoOwnerOrg: boolean,
 ): HeaderMenuItem[] => {
-  return getFilteredTopBarMenu(RepositoryType.App, activeFeatureFlags).filter(
+  const menuItems = getFilteredTopBarMenu(RepositoryType.App, activeFeatureFlags).filter(
     (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
   );
+  return filterOutOrgOnlyItems(menuItems, isRepoOwnerOrg);
 };

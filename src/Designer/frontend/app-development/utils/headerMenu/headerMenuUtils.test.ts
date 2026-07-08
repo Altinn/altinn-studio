@@ -148,7 +148,7 @@ describe('headerMenuUtils', () => {
 
   describe('getFilteredMenuListForOverviewPage', () => {
     it('should filter out menu items with keys "About" and "Deploy"', () => {
-      const filteredMenu = getFilteredMenuListForOverviewPage([]);
+      const filteredMenu = getFilteredMenuListForOverviewPage([], true);
 
       // Ensure no item with key 'About' is present
       expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.About)).toBe(false);
@@ -165,6 +165,16 @@ describe('headerMenuUtils', () => {
         HeaderMenuItemKey.ProcessEditor,
         HeaderMenuItemKey.ContentLibrary,
       ]);
+    });
+
+    it('should filter out org-only items when repoOwnerIsOrg is false', () => {
+      const filteredMenu = getFilteredMenuListForOverviewPage([FeatureFlag.AiAssistant], false);
+      expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(false);
+    });
+
+    it('should include org-only items when repoOwnerIsOrg is true', () => {
+      const filteredMenu = getFilteredMenuListForOverviewPage([FeatureFlag.AiAssistant], true);
+      expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(true);
     });
   });
 });
