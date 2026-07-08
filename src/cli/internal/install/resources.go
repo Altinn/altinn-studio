@@ -15,6 +15,8 @@ import (
 const (
 	resourcesArchiveAssetBaseName = "studioctl-resources"
 	resourcesServerDir            = config.StudioctlServerResourcesDirName
+	resourcesVSCodeDir            = config.VSCodeExtensionResourcesDirName
+	resourcesVSCodeVsixName       = config.VSCodeExtensionVsixName
 	resourcesLocaltestDir         = "localtest"
 	resourcesTestdataDir          = "testdata"
 	resourcesInfraDir             = "infra"
@@ -71,6 +73,13 @@ func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (er
 	serverDir := filepath.Join(stagingDir, resourcesServerDir)
 	if _, err := installDir(serverDir, s.cfg.StudioctlServerInstallDir(), s.validatePayloadDir); err != nil {
 		return fmt.Errorf("install %s: %w", resourcesServerDir, err)
+	}
+
+	vscodeStaging := filepath.Join(stagingDir, resourcesVSCodeDir)
+	if _, statErr := os.Stat(vscodeStaging); statErr == nil {
+		if err := copyDir(vscodeStaging, s.cfg.VSCodeExtensionDir()); err != nil {
+			return fmt.Errorf("install %s: %w", resourcesVSCodeDir, err)
+		}
 	}
 
 	if err := copyDir(filepath.Join(stagingDir, resourcesLocaltestDir), s.cfg.DataDir); err != nil {

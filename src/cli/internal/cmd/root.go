@@ -105,7 +105,7 @@ func (c *CLI) Run(ctx context.Context, args []string) int {
 	}
 
 	runErr := cmd.Run(ctx, args[1:])
-	if runErr != nil {
+	if runErr != nil && !errors.Is(runErr, ErrSilentExit) {
 		c.out.Error(runErr.Error())
 	}
 

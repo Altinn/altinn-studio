@@ -34,4 +34,9 @@
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="NuGet.Versioning" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../libs/dotnet/Altinn.Studio.AppConfig/Altinn.Studio.AppConfig.csproj" />
+    <ProjectReference Include="../studioctl-lsp/studioctl-lsp.csproj" />
+  </ItemGroup>
 </Project>
