@@ -9,11 +9,11 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
-import type { DerivedLayoutParent } from 'src/utils/layout/deriveLayoutNodes';
+import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface Props {
   item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
-  parent: DerivedLayoutParent;
+  parent: RuntimeNodeParent;
   valueType: OptionsValueType;
   options: IOptionInternal[];
 }

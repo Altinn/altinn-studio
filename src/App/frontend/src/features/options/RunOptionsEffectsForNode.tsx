@@ -8,16 +8,17 @@ import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel'
 import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
 import { useIsHidden } from 'src/utils/layout/hidden';
+import { getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
-import type { DerivedLayoutNode } from 'src/utils/layout/deriveLayoutNodes';
+import type { RuntimeNodeRef } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface RunOptionEffectsProps {
   valueType: OptionsValueType;
-  node: DerivedLayoutNode;
+  node: RuntimeNodeRef;
 }
 
 export function RunOptionsEffectsForNode({ valueType, node }: RunOptionEffectsProps) {
@@ -37,8 +38,10 @@ export function RunOptionsEffectsForNode({ valueType, node }: RunOptionEffectsPr
 
 function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
   const isReadOnly = FormStore.useIsReadOnly();
-  const item = node.intermediateItem as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const lookups = FormStore.bootstrap.useLayoutLookups();
+  const item = getRuntimeIntermediateItem(lookups.getComponent(node.baseId), node.rowContexts) as CompIntermediate<
+    CompWithBehavior<'canHaveOptions'>
+  >;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const groupBindings = item.dataModelBindings as
     | IDataModelBindingsForGroupCheckbox
