@@ -179,6 +179,14 @@ internal sealed class SigningProcessTask : IProcessTask
         ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException("Process task requires a current task id.");
 
+    /// <summary>
+    /// Adds the element, or updates it if one tagged with this task already exists. The update branch
+    /// is retry idempotency, not re-entry protection: a re-run of a partially completed transition
+    /// (this command succeeded and committed the element, a later command in the transition failed)
+    /// finds the earlier attempt's element and overwrites it instead of duplicating it. Stale elements
+    /// from previous visits never reach this point - CleanupGeneratedFromTask removes them when the
+    /// task is entered.
+    /// </summary>
     private static void UpsertTaskGeneratedBinaryDataElement(
         IInstanceDataMutator dataMutator,
         string dataTypeId,
@@ -191,7 +199,9 @@ internal sealed class SigningProcessTask : IProcessTask
         DataElement? existingDataElement = dataMutator.Instance.Data.SingleOrDefault(de =>
             de.DataType == dataTypeId
             && de.References?.Exists(reference =>
-                reference.ValueType == ReferenceType.Task && reference.Value == taskId
+                reference.Relation == RelationType.GeneratedFrom
+                && reference.ValueType == ReferenceType.Task
+                && reference.Value == taskId
             )
                 is true
         );

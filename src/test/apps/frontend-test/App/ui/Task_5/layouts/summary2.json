@@ -9,7 +9,13 @@
           "type": "layoutSet",
           "taskId": "Task_1"
         },
-        "hideEmptyFields": true
+        "hideEmptyFields": true,
+        "overrides": [
+          {
+            "componentId": "createPdfToggle",
+            "hidden": true
+          }
+        ]
       },
       {
         "id": "summary2-task2",
