@@ -936,6 +936,26 @@ public sealed class RuleFalsePositiveTests
             f => f.RuleId == "APP-VERSION-SUPPORTED"
         );
 
+        const string importedProjectRefCsproj = """<Project Sdk="Microsoft.NET.Sdk.Web" />""";
+        var importedProjectRefFiles = BrokenAppFiles(importedProjectRefCsproj)
+            .Append(
+                (
+                    "Directory.Build.props",
+                    """
+                    <Project>
+                      <ItemGroup>
+                        <ProjectReference Include="../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj" />
+                      </ItemGroup>
+                    </Project>
+                    """
+                )
+            )
+            .ToArray();
+        Assert.DoesNotContain(
+            Validate(App(ExprMeta, importedProjectRefFiles)),
+            f => f.RuleId == "APP-VERSION-SUPPORTED"
+        );
+
         const string propCsproj = """
             <Project Sdk="Microsoft.NET.Sdk.Web">
               <PropertyGroup><AltinnAppVersion>9.1.0</AltinnAppVersion></PropertyGroup>

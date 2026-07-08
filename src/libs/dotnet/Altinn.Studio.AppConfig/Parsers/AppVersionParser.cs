@@ -37,8 +37,11 @@ internal static class AppVersionParser
             return;
         }
 
-        var packageRefs = new List<(XElement Element, string Include)>();
-        foreach (var e in doc.Descendants())
+        var projectFiles = ProjectFiles(doc, data, dir);
+
+        var packageRefs = new List<(XElement Element, string Include, XDocument Document, byte[] Data, string File)>();
+        foreach (var (projectDoc, projectData, projectFile) in projectFiles)
+        foreach (var e in projectDoc.Descendants())
         {
             if (
                 e.Name.LocalName == "PackageReference"
@@ -46,21 +49,21 @@ internal static class AppVersionParser
                 && _altinnPackages.Contains(inc, StringComparer.OrdinalIgnoreCase)
             )
             {
-                packageRefs.Add((e, inc));
+                packageRefs.Add((e, inc, projectDoc, projectData, projectFile));
             }
         }
 
         var resolvedSupported = false;
-        foreach (var (pr, include) in packageRefs)
+        foreach (var (pr, include, projectDoc, projectData, projectFile) in packageRefs)
         {
-            var version = ResolveVersion(pr, include, doc, dir);
+            var version = ResolveVersion(pr, include, projectDoc, dir);
             if (version is null || !TryMajor(version, out var major))
                 continue;
             if (major < SupportedMajor)
             {
                 app.UnsupportedAppVersion = new UnsupportedAppVersion(
                     $"app declares {include} {version}",
-                    PositionOf(pr, data, head)
+                    PositionOf(pr, projectData, projectFile, head)
                 );
                 return;
             }
@@ -71,22 +74,26 @@ internal static class AppVersionParser
 
         if (packageRefs.Count > 0)
         {
+            var first = packageRefs[0];
             app.UnsupportedAppVersion = new UnsupportedAppVersion(
-                $"could not determine the app's Altinn.App version (PackageReference \"{packageRefs[0].Include}\" has no resolvable version)",
-                PositionOf(packageRefs[0].Element, data, head)
+                $"could not determine the app's Altinn.App version (PackageReference \"{first.Include}\" has no resolvable version)",
+                PositionOf(first.Element, first.Data, first.File, new SourceSpan(first.File, "", 1, 1))
             );
             return;
         }
 
-        var sourceBuild = doc.Descendants()
-            .Any(e =>
-                e.Name.LocalName == "ProjectReference"
-                && e.Attribute("Include")?.Value is { } inc
-                && _altinnPackages.Contains(
-                    Path.GetFileNameWithoutExtension(inc.Replace('\\', '/')),
-                    StringComparer.OrdinalIgnoreCase
+        var sourceBuild = projectFiles.Any(project =>
+            project
+                .Document.Descendants()
+                .Any(e =>
+                    e.Name.LocalName == "ProjectReference"
+                    && e.Attribute("Include")?.Value is { } inc
+                    && _altinnPackages.Contains(
+                        Path.GetFileNameWithoutExtension(inc.Replace('\\', '/')),
+                        StringComparer.OrdinalIgnoreCase
+                    )
                 )
-            );
+        );
         if (sourceBuild)
             return;
 
@@ -94,6 +101,63 @@ internal static class AppVersionParser
             "could not determine the app's Altinn.App version (App/App.csproj has no Altinn.App package or project reference)",
             head
         );
+    }
+
+    private static List<(XDocument Document, byte[] Data, string File)> ProjectFiles(
+        XDocument appProject,
+        byte[] appProjectData,
+        IAppDirectory dir
+    )
+    {
+        var files = new List<(XDocument Document, byte[] Data, string File)> { (appProject, appProjectData, FileRel) };
+        foreach (var file in DirectoryBuildProps(dir))
+        {
+            if (ReadProjectFile(dir, file) is { } data && LoadXml(data) is { } doc)
+                files.Add((doc, data, file));
+        }
+        return files;
+    }
+
+    private static byte[]? ReadProjectFile(IAppDirectory dir, string relativePath)
+    {
+        if (dir.ReadAllBytes(relativePath) is { } data)
+            return data;
+        if (!Directory.Exists(dir.Root))
+            return null;
+        var fullPath = Path.GetFullPath(Path.Combine(dir.Root, relativePath));
+        return File.Exists(fullPath) ? File.ReadAllBytes(fullPath) : null;
+    }
+
+    private static IEnumerable<string> DirectoryBuildProps(IAppDirectory dir)
+    {
+        foreach (var file in new[] { "App/Directory.Build.props", "Directory.Build.props" })
+        {
+            if (dir.Exists(file))
+            {
+                yield return file;
+                yield break;
+            }
+        }
+
+        if (!Directory.Exists(dir.Root))
+            yield break;
+
+        var root = Path.GetFullPath(dir.Root);
+        for (
+            var current = Directory.GetParent(Path.Combine(root, "App"));
+            current is not null;
+            current = current.Parent
+        )
+        {
+            if (string.Equals(current.FullName, root, StringComparison.Ordinal))
+                continue;
+            var path = Path.Combine(current.FullName, "Directory.Build.props");
+            if (!File.Exists(path))
+                continue;
+            var rel = Path.GetRelativePath(root, path).Replace('\\', '/');
+            yield return rel;
+            yield break;
+        }
     }
 
     private static string? ResolveVersion(XElement packageRef, string include, XDocument csproj, IAppDirectory dir)
@@ -153,9 +217,9 @@ internal static class AppVersionParser
         return int.TryParse(cut < 0 ? version : version[..cut], out major);
     }
 
-    private static SourceSpan PositionOf(XElement el, byte[] data, SourceSpan fallback)
+    private static SourceSpan PositionOf(XElement el, byte[] data, string file, SourceSpan fallback)
     {
         var (line, col) = XmlPositions.LineCol(el as IXmlLineInfo, data, Spans.LineStarts(data));
-        return line > 0 ? new SourceSpan(FileRel, "", line, col) : fallback;
+        return line > 0 ? new SourceSpan(file, "", line, col) : fallback;
     }
 }
