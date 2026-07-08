@@ -7,13 +7,9 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompExternal } from 'src/layout/layout';
 
 describe('Alert', () => {
-  it('should display title', async () => {
-    await render({ title: 'Title for alert' });
+  it('resolves the title and body bindings through the wrapper', async () => {
+    await render({ title: 'Title for alert', body: 'Body for alert' });
     expect(screen.getByText(/title for alert/i)).toBeInTheDocument();
-  });
-
-  it('should display body', async () => {
-    await render({ body: 'Body for alert' });
     expect(screen.getByText(/body for alert/i)).toBeInTheDocument();
   });
 
