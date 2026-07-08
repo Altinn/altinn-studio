@@ -5,13 +5,15 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { OrgList } from 'app-shared/types/OrgList';
 
-const orgListWithTestOrg: OrgList['orgs'] = {
-  testOrg: {
-    name: { nb: 'Testdepartementet' },
-    logo: '',
-    orgnr: '123456789',
-    homepage: '',
-    environments: [],
+const orgListWithTestOrg: OrgList = {
+  orgs: {
+    testOrg: {
+      name: { nb: 'Testdepartementet' },
+      logo: '',
+      orgnr: '123456789',
+      homepage: '',
+      environments: [],
+    },
   },
 };
 
@@ -66,8 +68,8 @@ describe('useAppSettingsMenuTabConfigs', () => {
   });
 });
 
-const renderUseAppSettingsMenuTabConfigs = (orgs: OrgList['orgs']) => {
+const renderUseAppSettingsMenuTabConfigs = (orgList: OrgList) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgList], orgs);
+  queryClient.setQueryData([QueryKey.OrgList], orgList.orgs);
   return renderHookWithProviders({}, queryClient)(() => useAppSettingsMenuTabConfigs());
 };
