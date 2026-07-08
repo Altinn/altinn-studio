@@ -1,4 +1,51 @@
 {
-  "id": "ttd/frontend-test",
-  "org": "ttd"
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/application/application-metadata.schema.v1.json",
+  "id": "[ORG]/[APP]",
+  "org": "[ORG]",
+  "title": { "nb": "[APP]" },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": ["application/pdf"],
+      "maxCount": 0,
+      "minCount": 0,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "model",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.model.model",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": true,
+    "organisation": true,
+    "person": true,
+    "subUnit": true
+  },
+  "access": {
+    "delegable": true,
+    "visible": true,
+    "rightDescription": {
+      "nb": "Ved å gi tilgang til denne tjenesten gir du en annen person fullmakt til å bruke den på dine vegne. Les beskrivelsen av tjenesten for mer informasjon om hva tilgangen innebærer.",
+      "nn": "Når du gir tilgang til denne tenesta, gir du ein annan person fullmakt til å bruka ho på dine vegner. Les skildringa av tenesta for meir informasjon om kva tilgangen inneber.",
+      "en": "By granting access to this service, you are authorising another person to use it on your behalf. Please read the service description for more information about what this access entails."
+    }
+  },
+  "autoDeleteOnProcessEnd": false
 }

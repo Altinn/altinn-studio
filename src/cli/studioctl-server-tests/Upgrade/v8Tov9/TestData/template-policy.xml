@@ -1,13 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<xacml:Policy PolicyId="urn:altinn:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
+<?xml version="1.0" encoding="utf-8"?>
+<xacml:Policy PolicyId="urn:altinn:resource:app_[ORG]_[APP]:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
   <xacml:Target />
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:1" Effect="Permit">
-    <xacml:Description>A rule giving user with role REGNA, DAGL or SELN and the app owner ttd the right to instantiate a instance of a given app of ttd/frontend-test</xacml:Description>
+  <xacml:Rule RuleId="urn:altinn:resource:app_[ORG]_[APP]:policyid:1:ruleid:1" Effect="Permit">
+    <xacml:Description>Regel for sluttbruker: Gir rettighetene Les, Skriv, Slett og Start til brukere med rollene Privatperson (PRIV) og Daglig leder (DAGL), for hele tjenesten. </xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">priv</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
@@ -17,189 +17,16 @@
             <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">seln</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
       </xacml:AnyOf>
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[ORG]</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[APP]</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">instantiate</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <!-- Allows process next through the custom 'pdfIfRequested' service tasks (unknown task
-               types are authorized against an action of the same name; see ProcessEngineAuthorizer). -->
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">pdfIfRequested</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-    </xacml:Target>
-  </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:2" Effect="Permit">
-    <xacml:Description>Rule that defines that user with role REGNA, DAGL or SELN can read and write for ttd/frontend-test when it is in Task_1</xacml:Description>
-    <xacml:Target>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">seln</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_1</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_2</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_3</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_4</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_5</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_Custom_Confirm</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_Default_Confirm</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">EndEvent_1</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:end-event" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
       </xacml:AnyOf>
@@ -216,228 +43,28 @@
             <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">confirm</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">reject</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-    </xacml:Target>
-  </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:2b" Effect="Permit">
-    <xacml:Description>Rule that defines that user with role REGNA, DAGL or SELN can fill, conflictingOptionsReset, shiftingOptionsAdd, shiftingOptionsRemoveAll for ttd/frontend-test when it is in Task_2</xacml:Description>
-    <xacml:Target>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">seln</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_2</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">fill</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">conflictingOptionsReset</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">shiftingOptionsAdd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">shiftingOptionsRemoveAll</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-    </xacml:Target>
-  </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:2c" Effect="Permit">
-    <xacml:Description>Rule that defines that user with role REGNA, DAGL or SELN can sortPets and generatePets for ttd/frontend-test when it is in Task_3</xacml:Description>
-    <xacml:Target>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">seln</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Task_3</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">sortPets</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">generatePets</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-    </xacml:Target>
-  </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
-    <xacml:Description>Rule that defines that user with role REGNA, DAGL or SELN can delete instances of ttd/frontend-test</xacml:Description>
-    <xacml:Target>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">seln</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">delete</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
-      </xacml:AnyOf>
-    </xacml:Target>
-  </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:4" Effect="Permit">
-    <xacml:Description>Rule that defines that org can write to instances of ttd/frontend-test for any states</xacml:Description>
-    <xacml:Target>
-      <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">instantiate</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:5" Effect="Permit">
-    <xacml:Description>Rule that defines that org can complete an instance of ttd/frontend-test which state is at the end event.</xacml:Description>
+  <xacml:Rule RuleId="urn:altinn:resource:app_[ORG]_[APP]:policyid:1:ruleid:2" Effect="Permit">
+    <xacml:Description>Regel for tjenesteeier: Gir rettighetene Les, Skriv, Start, Bekreft mottatt tjenesteeier til organisasjonen som eier tjenesten ([org]).</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[org]</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
@@ -445,20 +72,34 @@
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[ORG]</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[APP]</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">EndEvent_1</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:end-event" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
           </xacml:Match>
         </xacml:AllOf>
       </xacml:AnyOf>
       <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">instantiate</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">complete</xacml:AttributeValue>
@@ -468,107 +109,10 @@
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:6" Effect="Permit">
-    <xacml:Description>A rule giving user with role REGNA, DAGL or SELN and the app owner ttd the right to read the appresource events of a given app of ttd/frontend-test</xacml:Description>
-    <xacml:Target>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">seln</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">events</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:appresource" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-    </xacml:Target>
-  </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:7" Effect="Permit">
-    <xacml:Description>Grants the service owner (ttd) the confirm/reject process-transition action(s) the v9 workflow engine replays out-of-band for ttd/frontend-test. Only the actions the standard org rules do not already cover are granted here: read, write (any state) and complete (end event) come from the regular org rules in this policy.</xacml:Description>
-    <xacml:Target>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ttd</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">frontend-test</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-      <xacml:AnyOf>
-        <xacml:AllOf>
-          <!-- The v9 workflow engine persists each process transition to Storage out-of-band as the
-               service owner, replaying the action the user performed. The confirmation task transitions
-               with 'confirm' (or 'reject'), so the org must be permitted those actions too. -->
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">confirm</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">reject</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-          </xacml:Match>
-        </xacml:AllOf>
-      </xacml:AnyOf>
-    </xacml:Target>
-  </xacml:Rule>
   <xacml:ObligationExpressions>
     <xacml:ObligationExpression ObligationId="urn:altinn:obligation:authenticationLevel1" FulfillOn="Permit">
       <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation1-assignment1" Category="urn:altinn:minimum-authenticationlevel">
-        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">0</xacml:AttributeValue>
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">2</xacml:AttributeValue>
       </xacml:AttributeAssignmentExpression>
     </xacml:ObligationExpression>
     <xacml:ObligationExpression ObligationId="urn:altinn:obligation:authenticationLevel2" FulfillOn="Permit">

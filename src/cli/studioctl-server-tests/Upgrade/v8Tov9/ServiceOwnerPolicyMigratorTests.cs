@@ -70,30 +70,21 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task RealStudioTemplatePolicy_InsertsNothing()
+    public async Task DefaultStudioTemplatePolicy_NeedsNoMigration()
     {
+        // A freshly-scaffolded app ships with the default Studio template, whose org rule already
+        // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognise
+        // that and leave the file completely untouched. The fixture is a verbatim copy of
+        // src/App/template/src/App/config/authorization/policy.xml.
         var policy = await File.ReadAllTextAsync(
             Path.Combine(AppContext.BaseDirectory, "Upgrade/v8Tov9/TestData/template-policy.xml"),
             TestContext.Current.CancellationToken
         );
-        var metadata = await File.ReadAllTextAsync(
-            Path.Combine(AppContext.BaseDirectory, "Upgrade/v8Tov9/TestData/template-appmetadata.json"),
-            TestContext.Current.CancellationToken
-        );
-        // The template's complete grant is scoped to EndEvent_1; scoped grants only count when the
-        // process really has the element they name.
-        _app.Write(
-            "config/process/process.bpmn",
-            BpmnBuilder.Process(
-                BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Flow("Flow_end", "Task_1", "EndEvent_1"),
-                BpmnBuilder.EndEvent("EndEvent_1")
-            )
-        );
 
-        var warnings = await Migrate(policy, metadata);
+        var result = await MigrateResult(policy, metadata: null);
 
-        Assert.DoesNotContain(warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
+        Assert.Empty(result.Warnings);
+        Assert.False(result.ManualActionRequired);
         Assert.Equal(policy, PolicyAfter());
     }
 

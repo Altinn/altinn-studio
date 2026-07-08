@@ -635,6 +635,26 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
+    public async Task DefaultTemplateMetadata_NeedsNoPdfMigration()
+    {
+        // A freshly-scaffolded app's applicationmetadata.json has no enablePdfCreation, so the
+        // migrator must do nothing and leave the file byte-for-byte untouched. The fixture is a
+        // verbatim copy of src/App/template/src/App/config/applicationmetadata.json; its [ORG]/[APP]
+        // placeholders are valid JSON string values and irrelevant to this migrator.
+        var metadata = await File.ReadAllTextAsync(
+            Path.Combine(AppContext.BaseDirectory, "Upgrade/v8Tov9/TestData/template-appmetadata.json"),
+            TestContext.Current.CancellationToken
+        );
+        _app.Write("config/applicationmetadata.json", metadata);
+
+        var result = await MigrateResult();
+
+        Assert.Empty(result.Warnings);
+        Assert.False(result.ManualActionRequired);
+        Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
+    }
+
+    [Fact]
     public async Task FlagWithUnexpectedCasing_IsDetectedAndMigrated()
     {
         // v8 binds applicationmetadata.json with Newtonsoft (case-insensitive), so a hand-edited
