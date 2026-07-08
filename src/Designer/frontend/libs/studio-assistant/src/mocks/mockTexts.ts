@@ -9,10 +9,14 @@ import type {
 
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   heading: 'aboutAssistantHeading',
+  intro: 'aboutAssistantIntro',
+  howToHeading: 'aboutAssistantHowToHeading',
   description: 'aboutAssistantDescription',
   branchInfo: 'aboutAssistantBranchInfo',
   branchDocsLink: 'aboutAssistantBranchDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
+  privacyHeading: 'aboutAssistantPrivacyHeading',
+  privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
 };
 
 const emptyThreadTexts: EmptyThreadTexts = {
@@ -49,7 +53,6 @@ export const mockTexts: AssistantTexts = {
   showThreads: 'showThreads',
   newThread: 'newThread',
   previousThreads: 'previousThreads',
-  aboutAssistant: 'aboutAssistant',
   aboutAssistantDialog: aboutAssistantDialogTexts,
   emptyThread: emptyThreadTexts,
   textarea: textAreaTexts,

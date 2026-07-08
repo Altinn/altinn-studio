@@ -970,6 +970,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool cascade = false,
             CancellationToken ct = default
         ) => throw new NotSupportedException();
+
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
     }
 
     private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
@@ -1067,6 +1070,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool cascade = false,
             CancellationToken ct = default
         ) => throw new NotSupportedException();
+
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
     }
 }
 

@@ -41,6 +41,7 @@ export interface UseAltinityWorkflowResult {
   messages: Message[];
 }
 
+// TODO: rename to useAssistantWorkflow.
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);

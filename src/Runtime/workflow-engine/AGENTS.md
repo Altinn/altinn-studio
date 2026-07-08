@@ -24,7 +24,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 - **Database-first processing**: `WorkflowProcessor` is a `BackgroundService` that fetches work from PostgreSQL using `FOR UPDATE SKIP LOCKED`. No in-memory queue — the database is the single source of truth.
 - **Concurrency**: `IConcurrencyLimiter` manages three independent semaphore pools: Workers, DB connections, and HTTP calls.
 - **Retry**: Per-step `RetryStrategy` with configurable backoff (exponential, linear, constant). Default: 1s base, 5m max delay, 24h total.
-- **Heartbeat & stale recovery**: `HeartbeatService` proves worker liveness. Stale workflows (expired heartbeat) are automatically reclaimed by another worker. Poison workflow protection after configurable max reclaim attempts.
+- **Heartbeat & stale recovery**: `HeartbeatService` proves worker liveness. Stale workflows (expired heartbeat) are automatically reclaimed by another worker. Poisoned workflow protection after configurable max reclaim attempts.
 - **Cancellation**: Cross-pod cancellation propagation via DB polling. `CancellationWatcherService` detects pending cancellations for in-flight workflows.
 - **Write buffer**: `WorkflowWriteBuffer` batches enqueue operations via a channel-based work queue with configurable batch size, queue depth, and flush concurrency.
 - **Telemetry**: OpenTelemetry via OTLP to Grafana LGTM stack. `Metrics.Source` for activities, counters/histograms/gauges for workflow/step lifecycle and resource utilization.
@@ -33,11 +33,12 @@ Reusable class library for async workflow processing. Provides the core engine, 
 
 - `GET /api/v1/namespaces` — list distinct namespaces
 - `POST /api/v1/{namespace}/workflows` — enqueue workflows, supports batch with dependency graphs
-- `GET /api/v1/{namespace}/workflows` — cursor-paginated list of workflows. Optional filters: `status` (repeatable, case-insensitive — `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`; omitting it returns all statuses), `label` (repeatable, `key:value`), `collectionKey`, `cursor`, `pageSize` (default 25, max 100). Returns a `PaginatedResponse` (`data`, `pageSize`, `totalCount`, `nextCursor`) or `204 No Content` when nothing matches
+- `GET /api/v1/{namespace}/workflows` — cursor-paginated list of workflows. Optional filters: `status` (repeatable, case-insensitive — `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`; omitting it returns all statuses), `label` (repeatable, `key:value`), `collectionKey`, `cursor`, `pageSize` (default 25, max 100). Returns a `PaginatedResponse` (`data`, `pageSize`, `totalCount`, `nextCursor`) or `204 No Content` when nothing matches
 - `GET /api/v1/{namespace}/workflows/{workflowId:guid}` — get single workflow with all steps
 - `GET /api/v1/{namespace}/workflows/{workflowId:guid}/dependency-graph` — get the connected dependency graph reachable from the workflow (nodes + edges)
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/resume` — resume a terminal workflow for re-processing (optional `?cascade=true` to also resume dependents in `DependencyFailed`)
+- `POST /api/v1/{namespace}/workflows/{workflowId:guid}/abandon` — write off an unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed` → `Abandoned`). Abandoned workflows no longer condemn dependents evaluated after the marking; dependents already in `DependencyFailed` stay put. Atomically releases the enqueue idempotency key, so replaying the same fingerprint creates a fresh workflow instead of deduplicating onto the write-off. Compare-and-set: 202 Accepted when this call wrote off the workflow, 409 on any other non-`Abandoned` state (including a concurrently resumed workflow), idempotent 200 with the original `abandonedAt` when already abandoned, 404 when missing
 - `GET /api/v1/{namespace}/collections` — list all collections in the namespace (ordered by most recently updated; heads as bare IDs), or `204 No Content` when none exist
 - `GET /api/v1/{namespace}/collections/{key}` — get a single workflow collection by key, including head workflow statuses
 - Health endpoints: `/health`, `/health/ready`, `/health/live`
