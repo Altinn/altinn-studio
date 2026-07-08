@@ -1,20 +1,21 @@
-import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { repository } from 'app-shared/mocks/mocks';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Org } from 'app-shared/types/OrgList';
 import type { Repository } from 'app-shared/types/Repository';
-import { org } from '@studio/testing/testids';
+import { org, app } from '@studio/testing/testids';
 import { useIsRepoOwnerOrg } from './useIsRepoOwnerOrg';
 
 describe('useIsRepoOwnerOrg', () => {
-  it('returns true when the repository owner is in the organisation list', async () => {
+  it('returns true when the repository owner is in the organisation list', () => {
     const { result } = renderIsRepoOwnerOrg(org);
-    await waitFor(() => expect(result.current).toBe(true));
+    expect(result.current).toBe(true);
   });
 
-  it('returns false when the repository owner is not in the organisation list', async () => {
+  it('returns false when the repository owner is not in the organisation list', () => {
     const { result } = renderIsRepoOwnerOrg('private-user');
-    await waitFor(() => expect(result.current).toBe(false));
+    expect(result.current).toBe(false);
   });
 });
 
@@ -24,10 +25,12 @@ const renderIsRepoOwnerOrg = (repositoryOwner: string) => {
     owner: { ...repository.owner, login: repositoryOwner },
   };
 
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.OrgList], { [org]: {} as Org });
+  queryClient.setQueryData([QueryKey.RepoMetadata, org, app], repositoryWithOwner);
+
   return renderHookWithProviders(() => useIsRepoOwnerOrg(), {
-    queries: {
-      getOrgList: () => Promise.resolve({ orgs: { [org]: {} as Org } }),
-      getRepoMetadata: () => Promise.resolve(repositoryWithOwner),
-    },
+    queryClient,
+    appRouteParams: { org, app },
   });
 };
