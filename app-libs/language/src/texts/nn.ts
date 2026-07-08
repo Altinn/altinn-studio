@@ -460,6 +460,11 @@ export function nn() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noko gjekk gale med innsending, prøv igjen om nokre minutt.',
+    'process_workflow.advancing_to_task': 'Går vidare til {0} …',
+    'process_workflow.retry': 'Prøv igjen',
+    'process_workflow.failed_heading': 'Noko gjekk gale',
+    'process_workflow.failed_description':
+      'Noko gjekk gale då skjemaet skulle handsamast vidare. Prøv igjen om nokre minutt.',
     'pdfPreview.error': 'Kunne ikkje førehandsvise PDF',
     'pdfPreview.defaultButtonText': 'Førehandsvis PDF',
     'taskTypes.data': 'Utfylling',

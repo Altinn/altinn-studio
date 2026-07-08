@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Button, Flex } from '@app/form-component';
+import { Heading } from '@digdir/designsystemet-react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -16,8 +17,12 @@ import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormStore } from 'src/features/form/FormContext';
-import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
-import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import {
+  getProcessNextMutationKey,
+  getTargetTaskFromProcess,
+  useProcessResume,
+} from 'src/features/instance/useProcessNext';
+import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
@@ -76,12 +81,61 @@ function NavigationError({ label }: NavigationErrorProps) {
   );
 }
 
+function WorkflowProcessing({ targetTask }: { targetTask?: string }) {
+  return (
+    <Flex
+      item
+      size={{ xs: 12 }}
+      aria-live='polite'
+    >
+      <div>
+        <Lang
+          id='process_workflow.advancing_to_task'
+          params={[targetTask ?? '']}
+        />
+      </div>
+      <Loader reason='workflow-processing' />
+    </Flex>
+  );
+}
+
+function WorkflowFailed({ detail }: { detail?: string }) {
+  const resume = useProcessResume();
+
+  return (
+    <Flex
+      item
+      size={{ xs: 12 }}
+      aria-live='polite'
+    >
+      <Heading
+        level={2}
+        data-size='sm'
+      >
+        <Lang id='process_workflow.failed_heading' />
+      </Heading>
+      <div>{detail ? detail : <Lang id='process_workflow.failed_description' />}</div>
+      <div className={classes.navigationError}>
+        <Button
+          variant='primary'
+          size='md'
+          disabled={resume.isPending}
+          onClick={() => resume.mutate()}
+        >
+          <Lang id='process_workflow.retry' />
+        </Button>
+      </div>
+    </Flex>
+  );
+}
+
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskId = useNavigationParam('taskId');
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
+  const workflow = useProcessWorkflow();
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
@@ -104,6 +158,26 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     return (
       <PresentationComponent showNavigation={false}>
         <NavigationError label='general.part_of_form_completed' />
+      </PresentationComponent>
+    );
+  }
+
+  // Live workflow-engine state machine, layered on top of the committed-currentTask routing above.
+  // Sourced from the fetched process state so it survives reloads and concurrent sessions. While a
+  // transition is in flight or has failed, we replace the current task's UI entirely (which also
+  // suppresses its Submit/next affordances, since those live inside the task components below).
+  if (workflow?.status === 'processing') {
+    return (
+      <PresentationComponent showNavigation={false}>
+        <WorkflowProcessing targetTask={workflow.targetTask} />
+      </PresentationComponent>
+    );
+  }
+
+  if (workflow?.status === 'failed') {
+    return (
+      <PresentationComponent showNavigation={false}>
+        <WorkflowFailed detail={workflow.failure?.detail} />
       </PresentationComponent>
     );
   }

@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
 
 namespace Altinn.App.Core.Internal.Process;
@@ -15,15 +17,26 @@ public sealed class ProcessStateEnricher
     private readonly IProcessReader _processReader;
     private readonly IAuthorizationService _authorization;
 
+    // Resolved lazily via the service provider: IWorkflowEngineService is internal, and this type
+    // is public because the (public) process controllers inject it, so it cannot appear in a public
+    // constructor signature.
+    private readonly IServiceProvider _serviceProvider;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessStateEnricher"/>
     /// </summary>
     /// <param name="processReader"></param>
     /// <param name="authorization"></param>
-    public ProcessStateEnricher(IProcessReader processReader, IAuthorizationService authorization)
+    /// <param name="serviceProvider"></param>
+    public ProcessStateEnricher(
+        IProcessReader processReader,
+        IAuthorizationService authorization,
+        IServiceProvider serviceProvider
+    )
     {
         _processReader = processReader;
         _authorization = authorization;
+        _serviceProvider = serviceProvider;
     }
 
     /// <summary>
@@ -32,8 +45,14 @@ public sealed class ProcessStateEnricher
     /// <param name="instance">The instance to authorize actions against.</param>
     /// <param name="processState">The process state to enrich.</param>
     /// <param name="user">The current user's claims principal.</param>
+    /// <param name="ct">Cancellation token.</param>
     /// <returns>An enriched <see cref="AppProcessState"/>.</returns>
-    public async Task<AppProcessState> Enrich(Instance instance, ProcessState? processState, ClaimsPrincipal user)
+    public async Task<AppProcessState> Enrich(
+        Instance instance,
+        ProcessState? processState,
+        ClaimsPrincipal user,
+        CancellationToken ct = default
+    )
     {
         var appProcessState = new AppProcessState(processState);
 
@@ -73,6 +92,17 @@ public sealed class ProcessStateEnricher
         }
 
         appProcessState.ProcessTasks = processTasks;
+
+        var workflowEngineService = _serviceProvider.GetRequiredService<IWorkflowEngineService>();
+        WorkflowTaskStatus workflowStatus = await workflowEngineService.ResolveWorkflowTaskStatus(instance, ct);
+        appProcessState.Workflow = new AppProcessWorkflowStatus
+        {
+            Status = workflowStatus.Status,
+            TargetTask = workflowStatus.TargetTask,
+            Failure = workflowStatus.Failure is { } failure
+                ? new AppProcessWorkflowFailure { Detail = failure.LastError?.Message, Kind = failure.Kind }
+                : null,
+        };
 
         return appProcessState;
     }

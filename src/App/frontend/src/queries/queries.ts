@@ -22,6 +22,7 @@ import {
   getPaymentInformationForTaskUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
+  getProcessResumeUrl,
   getUpdateFileTagsUrl,
   refreshJwtTokenUrl,
 } from 'src/utils/urls/appUrlHelper';
@@ -36,10 +37,18 @@ import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
-import type { IActionType, IData, PostalCodesRegistry } from 'src/types/shared';
+import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
+
+/**
+ * Resumes a workflow that failed terminally (`workflow.status === 'failed'`). The backend re-derives
+ * the workflow/collection ids server-side and returns the enriched process state, so the client just
+ * POSTs; callers refetch the instance afterwards to pick up the fresh `workflow.status`.
+ */
+export const doProcessResume = async (instanceId: string, language?: string) =>
+  httpPost<IProcess>(getProcessResumeUrl(instanceId, language));
 
 export const doAttachmentUpload = async (
   instanceId: string,

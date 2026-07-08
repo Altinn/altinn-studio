@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -209,18 +210,184 @@ public class WorkflowEngineServiceTests
         Assert.Null(WorkflowEngineService.BuildWorkflowFailure([abandoned, newerCompleted]));
     }
 
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenCurrentTaskIsNull_ReturnsIdleWithoutQueryingEngine()
+    {
+        // Not started / ended: there is nothing transitioning, so the engine must not be queried.
+        var instance = new Instance { Id = $"1337/{Guid.NewGuid()}" };
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Status);
+        Assert.Null(result.TargetTask);
+        Assert.Null(result.Failure);
+        client.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsActive_ReturnsProcessingWithTargetTaskSuffixStripped()
+    {
+        // A collection head that is Enqueued/Processing/Requeued means the transition is in flight;
+        // the target task is read from the head's own processNextTargetId label ("Task_2:3") with the
+        // ":flow" suffix stripped.
+        Guid headId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        var instance = CreateInstanceOnTask("Task_1");
+        WorkflowStatusResponse workflow = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow,
+            status: PersistentItemStatus.Processing,
+            databaseId: headId,
+            collectionKey: collectionKey,
+            labels: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+            }
+        );
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    It.IsAny<string?>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([workflow]);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads = [new CollectionHeadStatus { DatabaseId = headId, Status = PersistentItemStatus.Enqueued }],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.Null(result.Failure);
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsFailed_ReturnsFailedWithFailureDetail()
+    {
+        // A resume-required head (Failed/Canceled/DependencyFailed) surfaces as Failed with the
+        // failure detail built from the collection's workflows.
+        Guid headId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        var instance = CreateInstanceOnTask("Task_1");
+        WorkflowStatusResponse failedWorkflow = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow,
+            status: PersistentItemStatus.Failed,
+            databaseId: headId,
+            collectionKey: collectionKey,
+            labels: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+            },
+            steps:
+            [
+                new StepStatusResponse
+                {
+                    OperationId = "step-op",
+                    ProcessingOrder = 0,
+                    Command = new StepStatusResponse.CommandDetails { Type = "app" },
+                    Status = PersistentItemStatus.Failed,
+                    RetryCount = 1,
+                    ErrorHistory = [new ErrorEntry(DateTimeOffset.UtcNow, "The service task failed.", 422, false)],
+                },
+            ]
+        );
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    It.IsAny<string?>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([failedWorkflow]);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads = [new CollectionHeadStatus { DatabaseId = headId, Status = PersistentItemStatus.Failed }],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Failed, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.NotNull(result.Failure);
+        Assert.Equal(WorkflowFailureKind.StepFailed, result.Failure.Kind);
+        Assert.Equal("The service task failed.", result.Failure.LastError?.Message);
+    }
+
+    private static Instance CreateInstanceOnTask(string elementId) =>
+        new()
+        {
+            Id = $"1337/{Guid.NewGuid()}",
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = elementId, Flow = 0 },
+            },
+        };
+
     private static WorkflowStatusResponse CreateWorkflowStatus(
         DateTimeOffset createdAt,
-        PersistentItemStatus status = PersistentItemStatus.Completed
+        PersistentItemStatus status = PersistentItemStatus.Completed,
+        Guid? databaseId = null,
+        string? collectionKey = null,
+        Dictionary<string, string>? labels = null,
+        IReadOnlyList<StepStatusResponse>? steps = null
     ) =>
         new()
         {
-            DatabaseId = Guid.NewGuid(),
+            DatabaseId = databaseId ?? Guid.NewGuid(),
             OperationId = "op",
             IdempotencyKey = Guid.NewGuid().ToString(),
             Namespace = Namespace,
+            CollectionKey = collectionKey,
             CreatedAt = createdAt,
             OverallStatus = status,
-            Steps = [],
+            Labels = labels,
+            Steps = steps ?? [],
         };
 }

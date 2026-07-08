@@ -18,7 +18,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { doProcessNext } from 'src/queries/queries';
+import { doProcessNext, doProcessResume } from 'src/queries/queries';
 import { TaskKeys } from 'src/routesBuilder';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IInstance, IProcess, ProblemDetails } from 'src/types/shared';
@@ -68,17 +68,31 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
 
       return doProcessNext(instanceId, language, action)
         .then(({ data: instance }) => [instance, null] as const)
-        .catch((error) => {
+        .catch(async (error) => {
           if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
             // If process next failed due to validation, return validationIssues instead of throwing
             return [null, error.response.data['validationIssues'] as BackendValidationIssue[]] as const;
-          } else if (error.response?.status === 500 && error.response?.data?.['detail'] === 'Pdf generation failed') {
+          }
+
+          // The workflow engine can report a live status synchronously via the process/next error body.
+          // Map it onto the same state machine ProcessWrapper drives off the polled workflow.status, so a
+          // synchronous failure and a polled status render identically: 'retrying' means the transition is
+          // still in flight (processing) and 'resumeRequired' means it failed terminally (failed). In both
+          // cases we refetch the (live-enriched) instance and swallow the error rather than showing a hard
+          // toast — the refetched workflow.status takes over.
+          const processNextState = error.response?.data?.['processNextState'];
+          if (processNextState === 'retrying' || processNextState === 'resumeRequired') {
+            await reFetchInstanceData();
+            return [null, null] as const;
+          }
+
+          if (error.response?.status === 500 && error.response?.data?.['detail'] === 'Pdf generation failed') {
             // If process next fails due to the PDF generator failing, don't show unknown error if the app unlocks data elements
             toast(<Lang id='process_error.submit_error_please_retry' />, { type: 'error', autoClose: false });
             return [null, null];
-          } else {
-            throw error;
           }
+
+          throw error;
         });
     },
     onSuccess: async ([newInstance, validationIssues]) => {
@@ -152,6 +166,41 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
 
 export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps = {}) {
   return useProcessNextInternal({ action });
+}
+
+export function getProcessResumeMutationKey() {
+  return ['processResume'] as const;
+}
+
+/**
+ * Resumes a workflow that failed terminally (`workflow.status === 'failed'`). On success it refetches
+ * the instance so the freshly enriched `workflow.status` (typically back to `processing`) drives
+ * ProcessWrapper's state machine and the poll takes over again.
+ */
+export function useProcessResume() {
+  const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
+  const language = useCurrentLanguage();
+  const instanceId = useLaxInstanceId();
+
+  return useMutation({
+    mutationKey: getProcessResumeMutationKey(),
+    mutationFn: async () => {
+      if (!instanceId) {
+        throw new Error('Missing instance ID. Cannot perform process/resume.');
+      }
+      await doProcessResume(instanceId, language);
+    },
+    onSuccess: async () => {
+      await reFetchInstanceData();
+    },
+    onError: (error: HttpClientError<ProblemDetails | undefined>) => {
+      window.logError('Process resume failed:\n', error);
+      toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
+        type: 'error',
+        autoClose: false,
+      });
+    },
+  });
 }
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {

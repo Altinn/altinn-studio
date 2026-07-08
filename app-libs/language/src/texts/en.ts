@@ -460,6 +460,11 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
+    'process_workflow.advancing_to_task': 'Advancing to {0} …',
+    'process_workflow.retry': 'Try again',
+    'process_workflow.failed_heading': 'Something went wrong',
+    'process_workflow.failed_description':
+      'Something went wrong while processing the form. Please try again in a few minutes.',
     'pdfPreview.error': 'Could not show PDF preview',
     'pdfPreview.defaultButtonText': 'Preview PDF',
     'taskTypes.data': 'Fill out',

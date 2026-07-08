@@ -87,6 +87,11 @@ export const getProcessNextUrl = (instanceId: string, language?: string, returnI
   return `${appPath}/instances/${instanceId}/process/next${queryString}`;
 };
 
+export const getProcessResumeUrl = (instanceId: string, language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${appPath}/instances/${instanceId}/process/resume${queryString}`;
+};
+
 /**
  * Builds the platform authentication URL that triggers a step-up to security level high (`idporten-loa-high`),
  * returning the user to the app (`goTo`) once the higher level has been obtained.

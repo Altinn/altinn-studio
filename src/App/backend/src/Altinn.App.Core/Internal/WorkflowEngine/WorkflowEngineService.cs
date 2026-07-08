@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -30,6 +31,15 @@ internal interface IWorkflowEngineService
     );
 
     Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(Instance instance, CancellationToken ct = default);
+
+    /// <summary>
+    /// Resolves the live status of the current task's transition for read-path enrichment:
+    /// whether a workflow is idle, processing (executing / auto-retrying) or failed, together with
+    /// the task the transition targets and — for the failed case — the failure detail. Unlike
+    /// <see cref="GetCurrentTaskWorkflowState"/> (which the process engine uses for control flow),
+    /// this is a presentation projection and carries no engine ids.
+    /// </summary>
+    Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default);
 
     /// <summary>
     /// Writes off an unsuccessful terminal workflow (Failed -> Abandoned in the engine) so that a
@@ -63,6 +73,13 @@ internal sealed record ProcessNextWorkflowResult(
     WorkflowFailure? WorkflowFailure,
     bool ProcessStateChanged
 );
+
+/// <summary>
+/// Presentation projection of the current task's live workflow status, used to enrich the process
+/// state sent to the frontend. <see cref="Failure"/> is only set when <see cref="Status"/> is
+/// <see cref="WorkflowActivityStatus.Failed"/>.
+/// </summary>
+internal sealed record WorkflowTaskStatus(WorkflowActivityStatus Status, string? TargetTask, WorkflowFailure? Failure);
 
 /// <summary>
 /// The workflow engine's view of the instance's current task, as a closed set of states.
@@ -293,6 +310,76 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
 
         return new CurrentTaskWorkflowState.Unblocked();
+    }
+
+    public async Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default)
+    {
+        string? processNextId = ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask);
+        if (processNextId is null)
+        {
+            // Not started / ended: nothing is transitioning, so don't query the engine.
+            return new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
+        }
+
+        InstanceIdentifier instanceIdentifier = new(instance);
+        IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await ListCurrentTaskProcessNextWorkflows(
+            instanceIdentifier.InstanceGuid,
+            processNextId,
+            ct
+        );
+
+        List<string> collectionKeys = matchingWorkflows
+            .OrderByDescending(workflow => workflow.CreatedAt)
+            .Select(workflow => workflow.CollectionKey)
+            .OfType<string>()
+            .Where(key => key.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        foreach (string collectionKey in collectionKeys)
+        {
+            WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
+                GetNamespace(),
+                collectionKey,
+                ct: ct
+            );
+            if (collection is null || collection.Heads.Count == 0)
+            {
+                continue;
+            }
+
+            CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
+            if (activeHead is not null)
+            {
+                return new WorkflowTaskStatus(
+                    WorkflowActivityStatus.Processing,
+                    ExtractTargetTask(matchingWorkflows, activeHead.DatabaseId),
+                    Failure: null
+                );
+            }
+
+            CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
+                IsResumeRequiredCollectionHeadStatus
+            );
+            if (resumeRequiredHead is not null)
+            {
+                IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
+                    GetNamespace(),
+                    collectionKey: collectionKey,
+                    ct: ct
+                );
+                string? targetTask =
+                    ExtractTargetTask(matchingWorkflows, resumeRequiredHead.DatabaseId)
+                    ?? ExtractTargetTask(collectionWorkflows, resumeRequiredHead.DatabaseId);
+                return new WorkflowTaskStatus(
+                    WorkflowActivityStatus.Failed,
+                    targetTask,
+                    BuildWorkflowFailure(collectionWorkflows)
+                );
+            }
+        }
+
+        return new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
     }
 
     public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
@@ -613,6 +700,30 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             is PersistentItemStatus.Failed
                 or PersistentItemStatus.Canceled
                 or PersistentItemStatus.DependencyFailed;
+
+    /// <summary>
+    /// Reads the target task's element id from the process-next workflow behind a collection head.
+    /// The <c>processNextTargetId</c> label is stored as <c>"{elementId}:{flow}"</c>, so the flow
+    /// suffix is stripped. Prefers the workflow matching the head; falls back to the newest.
+    /// </summary>
+    private static string? ExtractTargetTask(IReadOnlyList<WorkflowStatusResponse> workflows, Guid headDatabaseId)
+    {
+        WorkflowStatusResponse? workflow =
+            workflows.FirstOrDefault(candidate => candidate.DatabaseId == headDatabaseId)
+            ?? workflows.OrderByDescending(candidate => candidate.CreatedAt).FirstOrDefault();
+
+        if (
+            workflow?.Labels is not { } labels
+            || !labels.TryGetValue(ProcessNextRequestFactory.ProcessNextTargetIdLabel, out string? targetLabel)
+            || string.IsNullOrEmpty(targetLabel)
+        )
+        {
+            return null;
+        }
+
+        int flowSeparatorIndex = targetLabel.LastIndexOf(':');
+        return flowSeparatorIndex > 0 ? targetLabel[..flowSeparatorIndex] : targetLabel;
+    }
 
     private async Task<Guid?> GetResumeTargetWorkflowId(
         string collectionKey,

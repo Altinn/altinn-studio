@@ -371,7 +371,8 @@ public class ProcessController : ControllerBase
                 var processStateTask = _processStateEnricher.Enrich(
                     instance,
                     result.ProcessStateChange.NewProcessState,
-                    User
+                    User,
+                    ct
                 );
                 await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 
@@ -387,7 +388,8 @@ public class ProcessController : ControllerBase
             AppProcessState appProcessState = await _processStateEnricher.Enrich(
                 instance,
                 result.ProcessStateChange.NewProcessState,
-                User
+                User,
+                ct
             );
 
             return Ok(appProcessState);
@@ -449,7 +451,8 @@ public class ProcessController : ControllerBase
             AppProcessState appProcessState = await _processStateEnricher.Enrich(
                 freshInstance,
                 freshInstance.Process,
-                User
+                User,
+                ct
             );
 
             return Ok(appProcessState);

@@ -5,11 +5,27 @@ import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/routesBuilder';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import type { LooseAutocomplete } from 'src/types';
-import type { IActionType, IProcess } from 'src/types/shared';
+import type { IActionType, IProcess, IProcessWorkflow, WorkflowActivityStatus } from 'src/types/shared';
 
 export function useProcessQuery() {
   const { data, refetch } = useInstanceDataQuery({ select: (instance) => instance.process });
   return { data, refetch };
+}
+
+/**
+ * The live workflow-engine annotation on the current process state, or undefined when the backend
+ * did not emit one (treated as `idle` by consumers).
+ */
+export function useProcessWorkflow(): IProcessWorkflow | undefined {
+  const { data } = useProcessQuery();
+  return data?.workflow;
+}
+
+/**
+ * The live workflow status, defaulting to `idle` when absent so callers can switch on it directly.
+ */
+export function useWorkflowStatus(): WorkflowActivityStatus {
+  return useProcessWorkflow()?.status ?? 'idle';
 }
 
 export const useIsAuthorized = () => {

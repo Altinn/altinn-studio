@@ -28,7 +28,12 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const navigation = useNavigation();
 
   const hasPendingScans = useHasPendingScans();
-  const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
+  const isWorkflowProcessing = useIsWorkflowProcessing();
+  const { error: instanceDataError, data } = useInstanceDataQuery({
+    // Poll while a workflow transition is in flight so we converge on the committed task once it settles;
+    // otherwise fall back to the slower pending-scans poll.
+    refetchInterval: isWorkflowProcessing ? 2000 : hasPendingScans ? 5000 : false,
+  });
 
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
@@ -117,6 +122,12 @@ export const useInstanceDataElements = (dataType: string | undefined) =>
     select: (instance) =>
       dataType ? instance.data.filter((dataElement) => dataElement.dataType === dataType) : instance.data,
   }).data ?? emptyArray;
+
+export function useIsWorkflowProcessing(): boolean {
+  return (
+    useInstanceDataQuery({ select: (instance) => instance.process?.workflow?.status === 'processing' }).data ?? false
+  );
+}
 
 export function useHasPendingScans(): boolean {
   const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? [];

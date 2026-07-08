@@ -8226,6 +8226,9 @@
               "$ref": "#/components/schemas/AppProcessTaskTypeInfo"
             },
             "nullable": true
+          },
+          "workflow": {
+            "$ref": "#/components/schemas/AppProcessWorkflowStatus"
           }
         },
         "additionalProperties": false
@@ -8244,6 +8247,35 @@
           "elementType": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessWorkflowFailure": {
+        "type": "object",
+        "properties": {
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "kind": {
+            "$ref": "#/components/schemas/WorkflowFailureKind"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessWorkflowStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/WorkflowActivityStatus"
+          },
+          "targetTask": {
+            "type": "string",
+            "nullable": true
+          },
+          "failure": {
+            "$ref": "#/components/schemas/AppProcessWorkflowFailure"
           }
         },
         "additionalProperties": false
@@ -11760,6 +11792,14 @@
           }
         },
         "additionalProperties": false
+      },
+      "WorkflowActivityStatus": {
+        "enum": [
+          "idle",
+          "processing",
+          "failed"
+        ],
+        "type": "string"
       },
       "WorkflowFailure": {
         "type": "object",

@@ -5,6 +5,8 @@ using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using Xunit.Abstractions;
+using CoreProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
+using WorkflowActivityStatus = Altinn.App.Core.Internal.Process.Elements.WorkflowActivityStatus;
 
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
@@ -101,6 +103,55 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
                 sb.Clear();
                 sb.Append(scrubbed);
             });
+    }
+
+    [Fact]
+    public async Task GetProcess_AfterServiceTaskFailure_ReportsWorkflowFailedStatus()
+    {
+        await using var fixtureScope = await classFixture.Get(
+            output,
+            TestApps.Basic,
+            scenario: "workflow-engine-failure"
+        );
+        var fixture = fixtureScope.Fixture;
+        var verifier = fixture.ScopedVerifier;
+        await ResetScenario(fixture);
+
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+
+        using AppFixture.ReadApiResponse<Instance> instance = await CreateInstance(fixture, token);
+        var scrubbers = new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(instance));
+        await PatchValidFormData(fixture, token, instance);
+
+        // Auto-continued service task fails permanently, leaving the transition-into-Task_Service
+        // workflow FAILED while the instance stays committed on Task_Service.
+        using var failedProcessNextResponse = await fixture.Instances.ProcessNext(token, instance);
+        using var failedProcessNext = await failedProcessNextResponse.Read<ProblemDetails>();
+        Assert.Equal(HttpStatusCode.InternalServerError, failedProcessNext.Response.StatusCode);
+
+        using var instanceAfterFailureResponse = await fixture.Instances.Get(token, instance);
+        using var instanceAfterFailure = await instanceAfterFailureResponse.Read<Instance>();
+        Assert.Equal("Task_Service", instanceAfterFailure.Data.Model!.Process.CurrentTask!.ElementId);
+
+        // The live workflow annotation on the read path must surface the failed transition.
+        using var processResponse = await fixture.Instances.GetProcess(token, instanceAfterFailure);
+        using var process = await processResponse.Read<CoreProcessState>();
+        Assert.Equal(HttpStatusCode.OK, process.Response.StatusCode);
+
+        CoreProcessState processState = process.Data.Model!;
+        Assert.Equal("Task_Service", processState.CurrentTask!.ElementId);
+
+        Assert.NotNull(processState.Workflow);
+        Assert.Equal(WorkflowActivityStatus.Failed, processState.Workflow!.Status);
+
+        Assert.NotNull(processState.Workflow.Failure);
+        Assert.False(string.IsNullOrEmpty(processState.Workflow.Failure!.Detail));
+
+        // The transition targeted the committed current task; the engine round-trips the
+        // processNextTargetId label so the annotation resolves it back.
+        Assert.Equal("Task_Service", processState.Workflow.TargetTask);
+
+        await verifier.Verify(process, snapshotName: "ProcessWorkflowStatus", scrubbers: scrubbers);
     }
 
     [Fact]
