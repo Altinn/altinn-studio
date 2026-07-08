@@ -19,7 +19,7 @@
 }
 
 * {
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
     padding: 0;
     margin: 0;
     -webkit-font-smoothing: subpixel-antialiased;
@@ -76,7 +76,7 @@ h1 {
 
 h2 {
     font-size: 3.2rem;
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
     font-weight: 500;
     margin-bottom: 12px;
 }
@@ -87,13 +87,13 @@ h3 {
 
 .a-h3,
 h3 {
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
     font-weight: 700;
     margin-bottom: 6px;
 }
 
 p {
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
     font-weight: 400;
     margin-bottom: 18px;
 }
@@ -133,7 +133,7 @@ img {
 }
 
 .a-fontBold {
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
     font-weight: 700;
 }
 
@@ -345,7 +345,7 @@ img {
 .resourceCard-title {
     display: block;
     margin-bottom: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
     font-weight: 400;
     color: #253247;
     font-size: 2.4rem;
@@ -815,7 +815,7 @@ a.collapsed .a-dropdownCircleArrow {
 
 @media (min-width: 768px) {
     h2 {
-        font-family: 'Inter', sans-serif;
+        font-family: Inter, sans-serif;
         font-weight: 500;
     }
 
