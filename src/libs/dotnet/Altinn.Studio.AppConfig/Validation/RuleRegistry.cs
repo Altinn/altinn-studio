@@ -1,4 +1,4 @@
-using Altinn.Studio.AppConfig.Validation.Rules.Coverage;
+using Altinn.Studio.AppConfig.Validation.Rules.Completeness;
 using Altinn.Studio.AppConfig.Validation.Rules.Cross;
 using Altinn.Studio.AppConfig.Validation.Rules.Meta;
 using Altinn.Studio.AppConfig.Validation.Rules.Ref;
