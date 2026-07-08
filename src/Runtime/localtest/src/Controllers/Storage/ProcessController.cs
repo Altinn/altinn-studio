@@ -37,7 +37,7 @@ public class ProcessController : ControllerBase
     /// <summary>
     /// Header set by callers that manage their own task-generated data cleanup (e.g. v9 apps, which
     /// prune elements generated from the entered task at task start). When present and true, this
-    /// service skips its own cleanup so it does not race the caller's writes.
+    /// controller skips its own cleanup so it does not race the caller's writes.
     /// </summary>
     private const string SkipTaskDataCleanupHeaderName = "Altinn-Storage-Skip-Task-Data-Cleanup";
 
@@ -133,6 +133,13 @@ public class ProcessController : ControllerBase
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance that should have its process updated.</param>
     /// <param name="processStateUpdate">The new process state of the instance (including instance events).</param>
+    /// <param name="skipTaskDataCleanupHeader">
+    /// Value of the <c>Altinn-Storage-Skip-Task-Data-Cleanup</c> header, bound as a nullable boolean. When
+    /// <c>true</c> the caller is declaring it manages its own task-generated data and this controller skips
+    /// its cleanup; absent (<c>null</c>) or <c>false</c> cleans as normal. A non-boolean value is rejected
+    /// with <c>400 Bad Request</c> by model binding - a caller sending this deliberate header is expected
+    /// to encode a valid boolean.
+    /// </param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns></returns>
     [Authorize]
@@ -146,6 +153,7 @@ public class ProcessController : ControllerBase
         int instanceOwnerPartyId,
         Guid instanceGuid,
         [FromBody] ProcessStateUpdate processStateUpdate,
+        [FromHeader(Name = SkipTaskDataCleanupHeaderName)] bool? skipTaskDataCleanupHeader,
         CancellationToken cancellationToken
     )
     {
@@ -189,7 +197,8 @@ public class ProcessController : ControllerBase
         // visits to that same task (e.g. stale PDFs, signatures) - unless the caller manages its own
         // task-generated data cleanup and has opted out via header (see SkipTaskDataCleanupHeaderName).
         string? targetTaskId = processState.CurrentTask?.ElementId;
-        if (!string.IsNullOrWhiteSpace(targetTaskId) && !CallerManagesTaskDataCleanup())
+        bool callerManagesTaskDataCleanup = skipTaskDataCleanupHeader == true;
+        if (!string.IsNullOrWhiteSpace(targetTaskId) && !callerManagesTaskDataCleanup)
         {
             await _processDataCleanupService.CleanupGeneratedFromTask(
                 existingInstance,
@@ -294,11 +303,6 @@ public class ProcessController : ControllerBase
             $"Unable to find instance {instanceOwnerPartyId}/{instanceGuid}: {message}"
         );
     }
-
-    private bool CallerManagesTaskDataCleanup() =>
-        Request.Headers.TryGetValue(SkipTaskDataCleanupHeaderName, out var value)
-        && bool.TryParse(value.ToString(), out bool skip)
-        && skip;
 
     private void UpdateInstance(
         Instance existingInstance,
