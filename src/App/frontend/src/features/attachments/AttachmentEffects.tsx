@@ -9,7 +9,8 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { getComponentBehaviors } from 'src/layout';
-import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
+import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
+import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -105,15 +106,19 @@ function makeAttachmentEffectsSnapshot(state: FormStoreState): AttachmentEffects
 
 function getUploaderBindings(state: FormStoreState): BindingEntry[] {
   const bindings: BindingEntry[] = [];
-  for (const derived of deriveLayoutNodes(state)) {
-    if (!getComponentBehaviors(derived.intermediateItem.type)?.canHaveAttachments) {
+  for (const nodeRef of deriveRuntimeNodeRefs(state)) {
+    const component = state.bootstrap.layoutLookups.getComponent(nodeRef.baseId);
+    if (!getComponentBehaviors(component.type)?.canHaveAttachments) {
       continue;
     }
 
     const node: AttachmentNode = {
-      id: derived.id,
-      baseId: derived.baseId,
-      dataModelBindings: derived.intermediateItem.dataModelBindings as AttachmentNode['dataModelBindings'],
+      id: nodeRef.id,
+      baseId: nodeRef.baseId,
+      dataModelBindings: getIndexedDataModelBindings(
+        component.dataModelBindings,
+        nodeRef.rowContexts,
+      ) as AttachmentNode['dataModelBindings'],
     };
     const dataModelBindings = node.dataModelBindings;
     if (dataModelBindings && 'list' in dataModelBindings && dataModelBindings.list) {

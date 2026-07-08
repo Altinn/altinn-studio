@@ -35,8 +35,9 @@ import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getComponentBehaviors } from 'src/layout';
 import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
+import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
+import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type {
   DataPostResponse,
@@ -147,15 +148,19 @@ export const useAllAttachments = (): IAttachmentsMap => {
   const pendingMutations = usePendingAttachmentMutations();
   return FormStore.raw.useMemoSelector((state) => {
     const attachments: IAttachmentsMap = {};
-    for (const node of deriveLayoutNodes(state)) {
-      if (!getComponentBehaviors(node.intermediateItem.type)?.canHaveAttachments) {
+    for (const node of deriveRuntimeNodeRefs(state)) {
+      const component = state.bootstrap.layoutLookups.getComponent(node.baseId);
+      if (!getComponentBehaviors(component.type)?.canHaveAttachments) {
         continue;
       }
       attachments[node.id] = attachmentSelector(
         {
           id: node.id,
           baseId: node.baseId,
-          dataModelBindings: node.intermediateItem.dataModelBindings as AttachmentNode['dataModelBindings'],
+          dataModelBindings: getIndexedDataModelBindings(
+            component.dataModelBindings,
+            node.rowContexts,
+          ) as AttachmentNode['dataModelBindings'],
         },
         state,
         instanceData,
