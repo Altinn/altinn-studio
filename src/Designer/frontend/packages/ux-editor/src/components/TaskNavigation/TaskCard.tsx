@@ -67,6 +67,9 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
     navigate(getLayoutSetPath(org, app, layoutSetModel.id));
   };
 
+  const dataModelContent =
+    layoutSetModel.dataType || t('ux_editor.task_card.datamodel_not_selected');
+
   return (
     <StudioIconCard
       icon={taskIcon.icon}
@@ -81,7 +84,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
         </div>
         <StudioParagraph title={layoutSetModel.dataType}>
           {t('ux_editor.task_card.datamodel')}
-          {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
+          {dataModelContent}
         </StudioParagraph>
       </div>
       <StudioButton onClick={goToFormEditor} variant='primary'>

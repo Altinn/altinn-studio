@@ -19,6 +19,7 @@ export type StudioSuggestionProps = SuggestionProps &
     className?: string;
     description?: string;
     error?: string | false;
+    placeholder?: string;
   };
 
 function StudioSuggestion(
@@ -31,6 +32,7 @@ function StudioSuggestion(
     className,
     description,
     error,
+    placeholder,
     ...rest
   }: StudioSuggestionProps,
   ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
@@ -52,6 +54,7 @@ function StudioSuggestion(
           required={required}
           aria-required={required}
           aria-invalid={!!error}
+          placeholder={placeholder}
         />
         <Suggestion.Clear />
         <Suggestion.List>

@@ -255,6 +255,35 @@
             />
           </xacml:Match>
         </xacml:AllOf>
+        <xacml:AllOf>
+          <!-- The v9 workflow engine replays process-transition actions out-of-band as the service
+               owner. 'reject' is used when backing out of the failed Task_Fail service task; 'fail'
+               (the custom task type's own action name) when transitioning out of it normally. -->
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"
+              >fail</xacml:AttributeValue
+            >
+            <xacml:AttributeDesignator
+              AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
+              Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action"
+              DataType="http://www.w3.org/2001/XMLSchema#string"
+              MustBePresent="false"
+            />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"
+              >reject</xacml:AttributeValue
+            >
+            <xacml:AttributeDesignator
+              AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
+              Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action"
+              DataType="http://www.w3.org/2001/XMLSchema#string"
+              MustBePresent="false"
+            />
+          </xacml:Match>
+        </xacml:AllOf>
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
