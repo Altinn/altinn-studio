@@ -29,11 +29,13 @@ import (
 const (
 	controlBaseURL = "http://studioctl-server"
 
-	healthPath   = "/api/v1/healthz"
-	statusPath   = "/api/v1/studioctl/status"
-	registerPath = "/api/v1/studioctl/apps"
-	upgradePath  = "/api/v1/studioctl/apps/upgrades"
-	shutdownPath = "/api/v1/studioctl/shutdown"
+	healthPath        = "/api/v1/healthz"
+	statusPath        = "/api/v1/studioctl/status"
+	registerPath      = "/api/v1/studioctl/apps"
+	upgradePath       = "/api/v1/studioctl/apps/upgrades"
+	validatePath      = "/api/v1/studioctl/validate"
+	validateRulesPath = "/api/v1/studioctl/validate/rules"
+	shutdownPath      = "/api/v1/studioctl/shutdown"
 
 	studioctlServerUnixSocketEnv    = "STUDIOCTL_SERVER_UNIX_SOCKET_PATH"
 	studioctlServerHostBridgeURLEnv = "HostBridge__Url"
@@ -44,6 +46,7 @@ const (
 	studioctlServerStartTimeout          = 10 * time.Second
 	studioctlServerRegisterTimeoutMargin = 2 * time.Second
 	studioctlServerUpgradeTimeout        = 30 * time.Second
+	studioctlServerValidateTimeout       = 30 * time.Second
 	studioctlServerShutdownWait          = 3 * time.Second
 	studioctlServerPollInterval          = 100 * time.Millisecond
 	hostBridgeEndpointPath               = "/internal/host-bridge"
@@ -118,6 +121,8 @@ var (
 	errUnexpectedStatusStatus          = errors.New("unexpected studioctl-server status response")
 	errUnexpectedUpgradeStatus         = errors.New("unexpected studioctl-server upgrade response")
 	errUnexpectedShutdownStatus        = errors.New("unexpected studioctl-server shutdown response")
+	errUnexpectedValidateStatus        = errors.New("unexpected studioctl-server validate response")
+	errUnexpectedRulesStatus           = errors.New("unexpected studioctl-server rules response")
 	errStudioctlServerStartTimedOut    = errors.New("studioctl-server start timed out")
 	errInvalidPIDFile                  = errors.New("pid file does not contain a positive pid")
 	errStudioctlServerSocketDir        = errors.New("studioctl-server socket path is a directory")
@@ -445,6 +450,100 @@ func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgrade
 	}
 
 	return result, nil
+}
+
+// ValidateRequest is the request body for the validate endpoint.
+type ValidateRequest struct {
+	Path     string `json:"path"`
+	Severity string `json:"severity,omitempty"`
+}
+
+// ValidateFinding should reflect ValidateFindingJson in studioctl-server's ValidateEndpoint.cs.
+type ValidateFinding struct {
+	RuleID   string `json:"ruleId"`
+	Severity string `json:"severity"`
+	Message  string `json:"message"`
+	File     string `json:"file"`
+	Pointer  string `json:"pointer,omitempty"`
+	Line     int    `json:"line"`
+	Column   int    `json:"column"`
+}
+
+// ValidateSummary should reflect ValidateSummaryJson in studioctl-server's ValidateEndpoint.cs.
+type ValidateSummary struct {
+	Errors   int `json:"errors"`
+	Warnings int `json:"warnings"`
+	Info     int `json:"info"`
+	RulesRun int `json:"rulesRun"`
+}
+
+// ValidateResponse is the response body of POST /validate.
+type ValidateResponse struct {
+	Findings []ValidateFinding `json:"findings"`
+	Summary  ValidateSummary   `json:"summary"`
+}
+
+// ValidateRule is one entry from GET /validate/rules.
+type ValidateRule struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Severity    string `json:"severity"`
+	Description string `json:"description"`
+}
+
+// Validate runs app-config validation via studioctl-server.
+func (c *Client) Validate(ctx context.Context, req ValidateRequest) (ValidateResponse, error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return ValidateResponse{}, fmt.Errorf("encode validate request: %w", err)
+	}
+	ctx, cancel := context.WithTimeout(ctx, studioctlServerValidateTimeout)
+	defer cancel()
+	httpReq, err := c.newRequest(ctx, http.MethodPost, validatePath, bytes.NewReader(body))
+	if err != nil {
+		return ValidateResponse{}, fmt.Errorf("build validate request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(httpReq)
+	if err != nil {
+		return ValidateResponse{}, classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+	if resp.StatusCode != http.StatusOK {
+		if buf, readErr := io.ReadAll(resp.Body); readErr == nil && len(buf) > 0 {
+			return ValidateResponse{}, fmt.Errorf("%w: %s: %s", errUnexpectedValidateStatus, resp.Status, string(buf))
+		}
+		return ValidateResponse{}, fmt.Errorf("%w: %s", errUnexpectedValidateStatus, resp.Status)
+	}
+	var out ValidateResponse
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return ValidateResponse{}, fmt.Errorf("decode validate response: %w", err)
+	}
+	return out, nil
+}
+
+// ListValidationRules returns the registered validation rules.
+func (c *Client) ListValidationRules(ctx context.Context) ([]ValidateRule, error) {
+	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
+	defer cancel()
+	httpReq, err := c.newRequest(ctx, http.MethodGet, validateRulesPath, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build rules request: %w", err)
+	}
+	resp, err := c.http.Do(httpReq)
+	if err != nil {
+		return nil, classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s", errUnexpectedRulesStatus, resp.Status)
+	}
+	var out []ValidateRule
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return nil, fmt.Errorf("decode rules response: %w", err)
+	}
+	return out, nil
 }
 
 func (c *Client) newRequest(

@@ -12,11 +12,12 @@ const releaseNotesFileName = "release-notes.md"
 
 // ResourcesArchiveOptions describes the inputs needed to create a resources archive.
 type ResourcesArchiveOptions struct {
-	GOOS         string
-	GOARCH       string
-	OutputDir    string
-	ServerDir    string
-	LocaltestDir string
+	GOOS                    string
+	GOARCH                  string
+	OutputDir               string
+	ServerDir               string
+	LocaltestDir            string
+	VSCodeExtensionVsixPath string
 }
 
 // CreateResourcesArchive creates a studioctl resources archive for a target platform.
@@ -50,7 +51,23 @@ func CreateResourcesArchive(opts ResourcesArchiveOptions) (path string, err erro
 	); err != nil {
 		return "", err
 	}
-	if err := createTarGz(archivePath, stagingDir, resourcesServerDir, resourcesLocaltestDir); err != nil {
+
+	entries := []string{resourcesServerDir, resourcesLocaltestDir}
+	if opts.VSCodeExtensionVsixPath != "" {
+		vscodeDir := filepath.Join(stagingDir, resourcesVSCodeDir)
+		if err := os.MkdirAll(vscodeDir, osutil.DirPermDefault); err != nil {
+			return "", fmt.Errorf("stage %s: %w", resourcesVSCodeDir, err)
+		}
+		if err := copyFile(
+			opts.VSCodeExtensionVsixPath,
+			filepath.Join(vscodeDir, resourcesVSCodeVsixName),
+		); err != nil {
+			return "", fmt.Errorf("stage %s: %w", resourcesVSCodeDir, err)
+		}
+		entries = append(entries, resourcesVSCodeDir)
+	}
+
+	if err := createTarGz(archivePath, stagingDir, entries...); err != nil {
 		return "", fmt.Errorf("create resources archive: %w", err)
 	}
 	return archivePath, nil

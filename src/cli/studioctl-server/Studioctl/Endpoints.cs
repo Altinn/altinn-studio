@@ -15,6 +15,7 @@ internal static class Endpoints
         studioctl.MapDelete("/apps", UnregisterApp);
         studioctl.MapPost("/shutdown", Shutdown);
         studioctl.MapPost("/apps/upgrades", RunUpgrade);
+        studioctl.MapValidateEndpoints();
         return studioctl;
     }
 
