@@ -137,6 +137,29 @@ internal static class QueryPlanHelper
         }
     }
 
+    /// <summary>
+    /// Asserts that at least one Index Scan (or Index Only Scan) node on the given table uses the
+    /// named index. Stronger than <see cref="AssertNoSeqScan"/>: a plan that degrades to a bitmap
+    /// scan over a different index still fails, which is how a partial-index filter falling out of
+    /// sync with its query predicate gets caught.
+    /// </summary>
+    public static void AssertUsesIndexScan(JsonElement plan, string tableName, string indexName)
+    {
+        var scanNodes = GetScanNodes(plan, tableName);
+        var matching = scanNodes
+            .Where(n => n.NodeType is "Index Scan" or "Index Only Scan" && n.IndexName == indexName)
+            .ToList();
+
+        if (matching.Count == 0)
+        {
+            var actual = string.Join(", ", scanNodes.Select(n => $"{n.NodeType}({n.IndexName ?? "-"})"));
+            throw new Xunit.Sdk.XunitException(
+                $"Expected an Index Scan using \"{indexName}\" on \"{tableName}\" but found none. "
+                    + $"Actual scans on this table: [{actual}]"
+            );
+        }
+    }
+
     private static void CollectNodes(JsonElement node, List<PlanNode> nodes)
     {
         var nodeType = node.GetProperty("Node Type").GetString()!;
