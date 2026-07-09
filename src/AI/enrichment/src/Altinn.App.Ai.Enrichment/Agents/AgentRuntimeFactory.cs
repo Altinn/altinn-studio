@@ -20,6 +20,17 @@ public sealed class AgentRuntimeFactory(
     IRulesLoader rulesLoader,
     ILoggerFactory loggerFactory)
 {
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, AgentRuntime> _cache =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Cached variant of <see cref="Create"/> for steady-state use (agent
+    /// folders are immutable inside a running container). Failed loads are not
+    /// cached, so a config fix followed by task retry recovers.
+    /// </summary>
+    public AgentRuntime GetOrCreate(string agentFolderPath) =>
+        _cache.GetOrAdd(Path.GetFullPath(agentFolderPath), Create);
+
     public AgentRuntime Create(string agentFolderPath)
     {
         var folder = new AgentFolder(agentFolderPath);

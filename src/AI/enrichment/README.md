@@ -9,8 +9,70 @@ The app itself stays thin: a NuGet reference, one DI registration, an `App/agent
 folder, a `<bpmn:serviceTask>` in process.bpmn and a policy action. No custom C# in
 the app.
 
-Status and phase breakdown: see [PLAN.md](PLAN.md). Phase 1 (the engine library) is done;
-the `kiBeriking` `IServiceTask` integration is phase 2.
+Status and phase breakdown: see [PLAN.md](PLAN.md). Phase 1 (the engine library) and
+phase 2 (the `kiBeriking` `IServiceTask`) are done; phase 3 is the demo app.
+
+## Using it in an app
+
+Everything an app needs, in full:
+
+**1. Program.cs** — the only line of custom code:
+
+```csharp
+void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+{
+    services.AddAiEnrichment(config);
+}
+```
+
+**2. process.bpmn** — a service task between the data task and the next step:
+
+```xml
+<bpmn:serviceTask id="Task_KiBeriking" name="KI Beriking">
+  <bpmn:extensionElements>
+    <altinn:taskExtension>
+      <altinn:taskType>kiBeriking</altinn:taskType>
+    </altinn:taskExtension>
+  </bpmn:extensionElements>
+  <bpmn:incoming>Flow_2</bpmn:incoming>
+  <bpmn:outgoing>Flow_3</bpmn:outgoing>
+</bpmn:serviceTask>
+```
+
+**3. App/agents/Task_KiBeriking/** — the agent folder (name = task id, or map it via
+`AiEnrichment:Tasks:<taskId>:Agent`).
+
+**4. policy.xml** — the process engine authorizes `process/next` through an action named
+exactly like the task type; grant `kiBeriking` to the same roles that have `write`.
+
+**5. applicationmetadata.json** — data types for the outputs (no `appLogic`):
+
+```json
+{ "id": "ki-beriking-json", "allowedContentTypes": ["application/json"] },
+{ "id": "ki-beriking-pdf",  "allowedContentTypes": ["application/pdf"] }
+```
+
+**6. appsettings.json / secrets**:
+
+```json
+"AiEnrichment": {
+  "Agent": {
+    "BaseUrl": "https://<gateway-host>/v1",
+    "Model": "<provider:model-name>",
+    "ApiKeySecretName": "<key-vault-secret-name>"
+  }
+}
+```
+
+`ApiKeySecretName` resolves through the app's `ISecretsClient` (Key Vault in
+TT02/prod, `secrets.json` locally); a directly configured `ApiKey` wins for local dev.
+
+When the process enters the task, the service task serializes the instance's form data
+(the single data type with `appLogic`, or `AiEnrichment:Tasks:<taskId>:InputDataType`
+when there are several), runs the agent, and stores every published JSON entry on
+`ki-beriking-json` and every rendered PDF on `ki-beriking-pdf`. On failure the process
+halts on the task and the next `process/next` retries. Steps with a `template` need the
+`typst` binary in the app image; JSON-only agents run in a stock image.
 
 ## Layout
 

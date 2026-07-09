@@ -1,0 +1,131 @@
+using System.Text;
+using System.Text.Json;
+using Altinn.App.Ai.Enrichment.Agents;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Options;
+
+namespace Altinn.App.Ai.Enrichment.ServiceTasks;
+
+/// <summary>
+/// The <c>kiBeriking</c> process step. When the process engine enters a
+/// <c>&lt;bpmn:serviceTask&gt;</c> with <c>&lt;altinn:taskType&gt;kiBeriking&lt;/altinn:taskType&gt;</c>,
+/// this task loads the agent folder mapped to the task id (default:
+/// <c>App/agents/&lt;taskId&gt;/</c>), runs the agent over the instance's form
+/// data, and stores the results on the instance: every published JSON entry as
+/// an <c>application/json</c> data element and every rendered PDF as a binary
+/// data element. The engine saves the mutations and auto-advances on success;
+/// on failure the process halts on this task and the next <c>process/next</c>
+/// retries.
+/// </summary>
+public sealed class KiBerikingServiceTask(
+    AgentRuntimeFactory agentRuntimeFactory,
+    IOptions<KiBerikingOptions> options,
+    IOptions<AppSettings> appSettings,
+    ILogger<KiBerikingServiceTask> logger) : IServiceTask
+{
+    public const string TaskType = "kiBeriking";
+
+    private static readonly JsonSerializerOptions ApplicationJsonOptions = new()
+    {
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    public string Type => TaskType;
+
+    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    {
+        var mutator = context.InstanceDataMutator;
+        var taskId = mutator.Instance.Process?.CurrentTask?.ElementId
+            ?? throw new InvalidOperationException("Instance has no current process task.");
+
+        try
+        {
+            var taskOptions = options.Value.ForTask(taskId);
+            var agentFolderPath = ResolveAgentFolderPath(taskId, taskOptions);
+            var runtime = agentRuntimeFactory.GetOrCreate(agentFolderPath);
+
+            var inputElement = ResolveInputDataElement(mutator, taskOptions.InputDataType, taskId);
+            var model = await mutator.GetFormData(inputElement);
+            using var application = JsonSerializer.SerializeToDocument(model, ApplicationJsonOptions);
+
+            logger.LogInformation(
+                "kiBeriking task {TaskId}: running agent '{AgentName}' over data element {DataElementId} ({DataType})",
+                taskId, runtime.Name, inputElement.Id, inputElement.DataType);
+
+            var result = await runtime.ExecuteAsync(application, context.CancellationToken);
+
+            foreach (var (key, value) in result.Context.Entries)
+            {
+                if (value is not string json)
+                    continue;
+                mutator.AddBinaryDataElement(
+                    taskOptions.JsonOutputDataType, "application/json", $"{key}.json", Encoding.UTF8.GetBytes(json));
+            }
+
+            foreach (var file in result.Files)
+                mutator.AddBinaryDataElement(taskOptions.PdfOutputDataType, file.ContentType, file.Name, file.Data);
+
+            return ServiceTaskResult.Success();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "kiBeriking task {TaskId} failed; process halts on this task for retry", taskId);
+            return ServiceTaskResult.FailedAbortProcessNext();
+        }
+    }
+
+    private string ResolveAgentFolderPath(string taskId, KiBerikingTaskOptions taskOptions)
+    {
+        var agentName = string.IsNullOrWhiteSpace(taskOptions.Agent) ? taskId : taskOptions.Agent;
+        return Path.Combine(appSettings.Value.AppBasePath, options.Value.AgentsRoot, agentName);
+    }
+
+    /// <summary>
+    /// Picks the form-data element the agent evaluates. With an explicit
+    /// <c>InputDataType</c> the choice must be unambiguous on the instance;
+    /// without one, the instance must carry exactly one data element whose
+    /// data type has appLogic (a C# form model).
+    /// </summary>
+    internal static DataElement ResolveInputDataElement(
+        IInstanceDataAccessor accessor,
+        string? configuredDataType,
+        string taskId)
+    {
+        List<DataElement> candidates;
+        if (!string.IsNullOrWhiteSpace(configuredDataType))
+        {
+            candidates = accessor.Instance.Data
+                .Where(d => string.Equals(d.DataType, configuredDataType, StringComparison.Ordinal))
+                .ToList();
+            if (candidates.Count == 0)
+                throw new InvalidOperationException(
+                    $"kiBeriking task '{taskId}': no data element of type '{configuredDataType}' on the instance.");
+        }
+        else
+        {
+            candidates = accessor.Instance.Data
+                .Where(d => accessor.GetDataType(d.DataType).AppLogic?.ClassRef is not null)
+                .ToList();
+            if (candidates.Count == 0)
+                throw new InvalidOperationException(
+                    $"kiBeriking task '{taskId}': the instance has no form-data element (data type with appLogic).");
+        }
+
+        if (candidates.Count > 1)
+        {
+            throw new InvalidOperationException(
+                $"kiBeriking task '{taskId}': ambiguous input — {candidates.Count} candidate data elements " +
+                $"({string.Join(", ", candidates.Select(c => c.DataType))}). " +
+                $"Set {KiBerikingOptions.SectionName}:Tasks:{taskId}:InputDataType.");
+        }
+
+        return candidates[0];
+    }
+}
