@@ -296,9 +296,17 @@ Applied after the first implementation pass, addressing robustness/privacy/UX ga
 - **Prolonged processing gets an affordance.** After ~20s in `processing`, the UI adds a reassuring
   "this is taking longer than usual" line so the user isn't left staring at a bare spinner (workflows
   can retry for a long time server-side).
-- **Deterministic status.** `ResolveWorkflowTaskStatus` scans collections newest-first, so the
-  reported status reflects the most recent transition; concurrent branches collapse to a single
-  processing/failed signal (all the consumer needs).
+- **Deterministic status.** `ResolveWorkflowTaskStatus` resolves off the collection heads; concurrent
+  branches collapse to a single processing/failed signal (all the consumer needs).
+- **Read-path efficiency.** The read path went from 4–5 engine calls per enriched read to **1 for the
+  common (idle) case and 2 for processing/failed**. The process-next collection key is deterministically
+  the instance guid, so instead of issuing 3 label-union `ListWorkflows` calls just to discover the
+  key, the resolver goes straight to `GetCollection(collectionKey)`; it lists the collection's
+  workflows (for the target-task label and failure steps) only when a head is actually processing or
+  failed. This matters because the enriched read runs on every page load and every poll tick.
+- **Single source of truth for the collection key.** The key algorithm lives in
+  `ProcessNextRequestFactory.CreateCollectionKey(...)` and is used by both enqueue and the read-path
+  lookup, so a future change (e.g. a prefix) can't let the two drift apart.
 
 ### Still open (follow-ups, not blockers)
 
@@ -307,6 +315,13 @@ Applied after the first implementation pass, addressing robustness/privacy/UX ga
 - App-authored **user-safe failure message** channel (so useful, safe detail *can* be shown).
 - `Abandoned → idle` mapping re-confirmed against the reject path.
 - True **backoff** (not just jitter) for very long-running processing, if load warrants.
+- **Collapse the read to a single engine call** by extending the engine's collection response:
+  today `CollectionHeadStatus` carries only `{ databaseId, status }`, so processing/failed still need
+  a second `ListWorkflows` for the target-task label (and failure steps). If the engine included the
+  head workflow's `labels` (and a compact last-error/failing-step summary) on the collection head,
+  `ResolveWorkflowTaskStatus` would be a single `GetCollection` for every case. Note this is a
+  *response-shape* enhancement, not a tagging change — the target task is already the
+  `processNextTargetId` label; the only gap is that collection heads don't surface labels.
 
 ## Related
 

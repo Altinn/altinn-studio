@@ -314,76 +314,63 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     public async Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default)
     {
-        string? processNextId = ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask);
-        if (processNextId is null)
+        var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
+
+        if (ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask) is null)
         {
             // Not started / ended: nothing is transitioning, so don't query the engine.
-            return new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
+            return idle;
         }
 
-        InstanceIdentifier instanceIdentifier = new(instance);
-        IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await ListCurrentTaskProcessNextWorkflows(
-            instanceIdentifier.InstanceGuid,
-            processNextId,
-            ct
+        // The process-next collection key is deterministically the instance guid (see
+        // ProcessNextRequestFactory), so the read path goes straight to the collection heads rather
+        // than issuing label queries just to discover the key. The common (idle) case is then a
+        // single engine call; the collection's workflows (labels for the target task, steps for the
+        // failure detail) are fetched only when a head is actually processing or failed. If the key
+        // convention ever drifts, GetCollection returns null and we degrade safely to Idle.
+        string collectionKey = ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance));
+        WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
+            GetNamespace(),
+            collectionKey,
+            ct: ct
+        );
+        if (collection is null || collection.Heads.Count == 0)
+        {
+            return idle;
+        }
+
+        // A head that is active means a transition is in flight (processing); a head that failed
+        // terminally means it needs resuming (failed). Active wins if both are somehow present.
+        // Everything else (completed / abandoned heads) is settled.
+        CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
+        CollectionHeadStatus? resumeRequiredHead = activeHead is null
+            ? collection.Heads.FirstOrDefault(IsResumeRequiredCollectionHeadStatus)
+            : null;
+        if (activeHead is null && resumeRequiredHead is null)
+        {
+            return idle;
+        }
+
+        IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
+            GetNamespace(),
+            collectionKey: collectionKey,
+            ct: ct
         );
 
-        // Collections are scanned newest-first, so the reported status reflects the most recent
-        // transition for the current task (deterministic). If several branches were somehow in flight
-        // at once (e.g. a parallel gateway), they collapse to a single processing/failed signal —
-        // which is all the consumer needs ("wait" vs "retry"); the per-branch detail is not surfaced.
-        List<string> collectionKeys = matchingWorkflows
-            .OrderByDescending(workflow => workflow.CreatedAt)
-            .Select(workflow => workflow.CollectionKey)
-            .OfType<string>()
-            .Where(key => key.Length > 0)
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
-
-        foreach (string collectionKey in collectionKeys)
+        if (activeHead is not null)
         {
-            WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
-                GetNamespace(),
-                collectionKey,
-                ct: ct
+            return new WorkflowTaskStatus(
+                WorkflowActivityStatus.Processing,
+                ExtractTargetTask(collectionWorkflows, activeHead.DatabaseId),
+                Failure: null
             );
-            if (collection is null || collection.Heads.Count == 0)
-            {
-                continue;
-            }
-
-            CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
-            if (activeHead is not null)
-            {
-                return new WorkflowTaskStatus(
-                    WorkflowActivityStatus.Processing,
-                    ExtractTargetTask(matchingWorkflows, activeHead.DatabaseId),
-                    Failure: null
-                );
-            }
-
-            CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
-                IsResumeRequiredCollectionHeadStatus
-            );
-            if (resumeRequiredHead is not null)
-            {
-                IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
-                    GetNamespace(),
-                    collectionKey: collectionKey,
-                    ct: ct
-                );
-                string? targetTask =
-                    ExtractTargetTask(matchingWorkflows, resumeRequiredHead.DatabaseId)
-                    ?? ExtractTargetTask(collectionWorkflows, resumeRequiredHead.DatabaseId);
-                return new WorkflowTaskStatus(
-                    WorkflowActivityStatus.Failed,
-                    targetTask,
-                    BuildWorkflowFailure(collectionWorkflows)
-                );
-            }
         }
 
-        return new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
+        return new WorkflowTaskStatus(
+            WorkflowActivityStatus.Failed,
+            ExtractTargetTask(collectionWorkflows, resumeRequiredHead!.DatabaseId),
+            BuildWorkflowFailure(collectionWorkflows)
+        );
     }
 
     public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(

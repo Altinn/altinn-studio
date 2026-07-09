@@ -114,7 +114,7 @@ internal sealed class ProcessNextRequestFactory
         };
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
-        string? collectionKey = $"{instanceId.InstanceGuid}";
+        string? collectionKey = CreateCollectionKey(instanceId);
         Dictionary<string, string> labels =
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
@@ -137,6 +137,16 @@ internal sealed class ProcessNextRequestFactory
 
         return new WorkflowEnqueueEnvelope(request, ns, effectiveIdempotencyKey, collectionKey);
     }
+
+    /// <summary>
+    /// The collection key that groups every process-next workflow for an instance. This is the
+    /// single source of truth for the key algorithm: any caller that needs to look up an instance's
+    /// workflows (e.g. read-path status enrichment in <c>ResolveWorkflowTaskStatus</c>) must derive
+    /// the key here, so a future change (e.g. adding a prefix) trickles down to enqueue and lookups
+    /// alike and they cannot drift apart.
+    /// </summary>
+    internal static string CreateCollectionKey(InstanceIdentifier instanceIdentifier) =>
+        $"{instanceIdentifier.InstanceGuid}";
 
     internal static string? CreateProcessNextId(ProcessElementInfo? currentTask) =>
         currentTask?.ElementId is { Length: > 0 } taskId ? CreateProcessNextId(taskId, currentTask.Flow ?? 0) : null;

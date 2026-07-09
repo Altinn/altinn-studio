@@ -238,8 +238,9 @@ public class WorkflowEngineServiceTests
         // the target task is read from the head's own processNextTargetId label ("Task_2:3") with the
         // ":flow" suffix stripped.
         Guid headId = Guid.NewGuid();
-        const string collectionKey = "collection-key";
-        var instance = CreateInstanceOnTask("Task_1");
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
         WorkflowStatusResponse workflow = CreateWorkflowStatus(
             createdAt: DateTimeOffset.UtcNow,
             status: PersistentItemStatus.Processing,
@@ -295,8 +296,9 @@ public class WorkflowEngineServiceTests
         // A resume-required head (Failed/Canceled/DependencyFailed) surfaces as Failed with the
         // failure detail built from the collection's workflows.
         Guid headId = Guid.NewGuid();
-        const string collectionKey = "collection-key";
-        var instance = CreateInstanceOnTask("Task_1");
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
         WorkflowStatusResponse failedWorkflow = CreateWorkflowStatus(
             createdAt: DateTimeOffset.UtcNow,
             status: PersistentItemStatus.Failed,
@@ -360,10 +362,54 @@ public class WorkflowEngineServiceTests
         Assert.Equal("The service task failed.", result.Failure.LastError?.Message);
     }
 
-    private static Instance CreateInstanceOnTask(string elementId) =>
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadsAreSettled_ReturnsIdleWithSingleCollectionCall()
+    {
+        // Heads exist but are all terminal-completed: the current task is settled. The common (idle)
+        // read must resolve in a SINGLE GetCollection call — the collection's workflows are only
+        // listed when a head is actually processing or failed.
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = Guid.NewGuid(),
+                            Status = PersistentItemStatus.Completed,
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Status);
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls(); // crucially, ListWorkflows was NOT called for the settled case
+    }
+
+    private static Instance CreateInstanceOnTask(string elementId, Guid? instanceGuid = null) =>
         new()
         {
-            Id = $"1337/{Guid.NewGuid()}",
+            Id = $"1337/{instanceGuid ?? Guid.NewGuid()}",
             Process = new ProcessState
             {
                 CurrentTask = new ProcessElementInfo { ElementId = elementId, Flow = 0 },
