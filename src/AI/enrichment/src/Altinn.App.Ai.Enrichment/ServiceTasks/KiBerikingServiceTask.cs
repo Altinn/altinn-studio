@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Ai.Enrichment.Agents;
+using Altinn.App.Ai.Enrichment.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
@@ -50,7 +51,11 @@ public sealed class KiBerikingServiceTask(
 
             var inputElement = ResolveInputDataElement(mutator, taskOptions.InputDataType, taskId);
             var model = await mutator.GetFormData(inputElement);
-            using var application = JsonSerializer.SerializeToDocument(model, ApplicationJsonOptions);
+            // EnrichmentData.Parse unwraps models whose root is a FlatData
+            // envelope (common in apps generated from flat XSDs) so agent rules
+            // and mappers see the same paths regardless of that wrapper.
+            using var application = EnrichmentData.Parse(
+                JsonSerializer.SerializeToUtf8Bytes(model, ApplicationJsonOptions));
 
             logger.LogInformation(
                 "kiBeriking task {TaskId}: running agent '{AgentName}' over data element {DataElementId} ({DataType})",
