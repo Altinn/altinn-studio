@@ -8,13 +8,13 @@ Observations contain LLM metrics (token usage, model name), and are children of 
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from metrics.aggregate import (
+from services.token_usage.aggregate import (
     DailyTokenUsageRow,
     Observation,
     Trace,
     aggregate_token_usage,
 )
-from metrics.langfuse_client import fetch_traces_and_observations
+from services.token_usage.langfuse_client import fetch_traces_and_observations
 
 # Workflows starting seconds before midnight will create a trace at day 0, and observations at day 1.
 # The trace buffer makes sure we fetch all relevant traces before aggregating.

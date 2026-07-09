@@ -1,19 +1,18 @@
-"""User feedback API routes"""
-
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
+from services.traces import delete_expired_traces
 from shared.utils.langfuse_utils import get_trace_developer, score_validation
 from shared.utils.logging_utils import get_logger
 
-router = APIRouter()
+router = APIRouter(prefix="/api/traces")
 log = get_logger(__name__)
 
+DEVELOPER_HEADER = "X-Developer"
 FEEDBACK_SCORE_NAME = "user_feedback"
 FEEDBACK_COMMENT_MAX_LENGTH = 10000
-DEVELOPER_HEADER = "X-Developer"
 
 
 class FeedbackReq(BaseModel):
@@ -34,7 +33,7 @@ class FeedbackReq(BaseModel):
         return v
 
 
-@router.put("/api/feedback/{trace_id}", status_code=204)
+@router.put("/{trace_id}/feedback", status_code=204)
 async def submit_feedback(trace_id: str, req: FeedbackReq, request: Request):
     """Records user feedback as a Langfuse score on the given trace.
 
@@ -58,3 +57,18 @@ async def submit_feedback(trace_id: str, req: FeedbackReq, request: Request):
         score_id=f"{trace_id}:{FEEDBACK_SCORE_NAME}",
     )
     return Response(status_code=204)
+
+
+@router.post("/delete-expired")
+async def clean_up_traces() -> dict[str, int]:
+    """Deletes Langfuse traces older than the retention window.
+
+    Triggered nightly by the Designer scheduler. The agents
+    service owns the Langfuse credentials, so the deletion happens here.
+    """
+    try:
+        deleted_count = await delete_expired_traces()
+    except Exception:
+        log.exception("Scheduled trace cleanup (delete-expired) failed")
+        raise HTTPException(status_code=500, detail="Trace cleanup failed")
+    return {"deleted": deleted_count}

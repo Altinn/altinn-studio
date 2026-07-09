@@ -1,10 +1,8 @@
-"""Tests for the LLM cost aggregator."""
-
 import logging
 
 import pytest
 
-from metrics.aggregate import Observation, Trace, aggregate_token_usage
+from services.token_usage.aggregate import Observation, Trace, aggregate_token_usage
 
 LOADED_AT = "2026-05-04T02:00:00.000Z"
 SERVICE_OWNER = "ttd"

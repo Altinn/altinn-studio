@@ -24,7 +24,7 @@ export type AssistantProps = {
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
   onMessageFeedback?: (feedback: UserFeedback) => void;
-  workflowStatus: WorkflowStatus;
+  workflowStatusByThread: Record<string, WorkflowStatus>;
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
   currentUser?: User;
@@ -37,7 +37,7 @@ export function Assistant({
   enableCompactInterface = false,
   activeThreadId,
   connectionStatus,
-  workflowStatus,
+  workflowStatusByThread,
   onSubmitMessage,
   onCancelWorkflow,
   cancelledMessageContent,
@@ -59,7 +59,7 @@ export function Assistant({
       messages={messages}
       activeThreadId={activeThreadId}
       connectionStatus={connectionStatus}
-      workflowStatus={workflowStatus}
+      workflowStatusByThread={workflowStatusByThread}
       onSubmitMessage={onSubmitMessage}
       onCancelWorkflow={onCancelWorkflow}
       cancelledMessageContent={cancelledMessageContent}
