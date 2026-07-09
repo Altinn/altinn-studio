@@ -92,14 +92,21 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
   API-nøkkel via `ISecretsClient` (`ApiKeySecretName`) med direkte `ApiKey` som
   lokal-dev-override. Agent-validering skjer ved første kjøring (cachet per mappe) —
   egen oppstartsvalidering utsatt til fase 4 om ønskelig.
-- **Fase 3 — integrasjon i ttd/sjenk** *(eget arbeidspunkt, eget repo)*: i stedet for en
-  demo-app her brukes Oles eksisterende app **ttd/sjenk**. Oppskrift: README «Using it
-  in an app» + NuGet-pakken fra `dotnet pack` (lokal folder-feed i sjenk-repoet inntil
-  pakken evt. publiseres). Innhold: tjenestens egen agent-mappe under `App/agents/`
-  (fagreglene bor i app-repoet — husk at regel-/mapper-paths må valideres mot sjenks
-  faktiske datamodell), serviceTask i process.bpmn, policy-action `kiBeriking`,
-  dataTypes, `AddAiEnrichment()`, Dockerfile med typst.
-  Verifiseres mot app-localtest, ende-til-ende mot KI-gatewayen.
+- **Fase 3 — integrasjon i ttd/soknad-bevillinger** *(ferdig 2026-07-09, eget repo)*:
+  gjennomført på branch `feat/ki-beriking` i appens eget repo (fagreglene og
+  agent-konfigurasjonen bor der, ikke her). Den gamle augmenter-integrasjonen
+  (callback-controller, HTTP-klient, egen service task) er fjernet og erstattet med
+  `kiBeriking` + `AddAiEnrichment()`; app-lib oppgradert 8.9.2 → 8.12.7; lokal
+  NuGet-feed i `packages/`.
+  **E2E verifisert i app-localtest** med LM Studio som lokal OpenAI-kompatibel gateway:
+  prosess `data → kiBeriking → End`, alle 39 punkter fikk ekte LLM-verdicts,
+  verktøybruk bekreftet (registry-lookup), berikelses-JSON + begge PDF-ene lagret som
+  data-elementer, norske tegn intakte.
+  **Kjente forhold**: (1) KI-gatewayen krever nå JWT-bearer — gammel API-nøkkel avvises;
+  ny nøkkel må skaffes før kjøring mot den. (2) Lokale småmodeller trenger
+  `concurrency: 1` i agent.yaml (5-veis parallellitet ga 500/400 fra LM Studio) —
+  vurder appsettings-override av concurrency i fase 4. (3) Appens datamodell har
+  FlatData som rotproperty; service tasken unwrapper (preview.2).
 - **Fase 4 — herding + dokumentasjon**: timeout-/retry-budsjett, telemetri (app-libs
   OpenTelemetry), README med `App/agents`-kontrakten og Dockerfile-oppskrift.
 - **Fase 5 — senere/valgfritt**: Designer-støtte i process-editor; upstreaming til
