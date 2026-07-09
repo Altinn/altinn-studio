@@ -59,7 +59,7 @@ public sealed class SpanByteColumnTests
         Assert.Equal((3, expectedCol), (id.Line, id.Column));
         Assert.Equal(expectedCol + "Soknad".Length, id.EndColumn);
 
-        var prop = Assert.Single(info.Properties.Where(p => p.Name == "Navn"));
+        var prop = Assert.Single(info.Properties, p => p.Name == "Navn");
         var propSpan = prop.Span ?? throw new InvalidOperationException("property span missing");
         var propStart = propPrefix.IndexOf("public", StringComparison.Ordinal);
         Assert.Equal(Encoding.UTF8.GetByteCount(propPrefix.AsSpan(0, propStart)) + 1, propSpan.Column);

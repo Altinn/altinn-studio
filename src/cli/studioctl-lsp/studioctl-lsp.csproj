@@ -14,4 +14,8 @@
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="studioctl-lsp.Tests" />
+  </ItemGroup>
 </Project>

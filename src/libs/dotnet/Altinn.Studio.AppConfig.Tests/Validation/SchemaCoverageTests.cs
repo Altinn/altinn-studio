@@ -22,7 +22,8 @@ public sealed class SchemaCoverageTests
         var report = AppConfigEngine.Open(dir).ValidateSchemas();
 
         var skip = Assert.Single(
-            report.Findings.Where(f => f.Severity == Severity.Info && f.Message.Contains("not schema-checked"))
+            report.Findings,
+            f => f.Severity == Severity.Info && f.Message.Contains("not schema-checked")
         );
         Assert.Equal("JSONSCHEMA-VALID", skip.RuleId);
         Assert.Equal("App/config/applicationmetadata.json", skip.Position.File);
