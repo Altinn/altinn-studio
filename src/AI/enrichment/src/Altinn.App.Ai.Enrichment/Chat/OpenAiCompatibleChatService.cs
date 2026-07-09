@@ -22,6 +22,7 @@ namespace Altinn.App.Ai.Enrichment.Chat;
 public sealed class OpenAiCompatibleChatService(
     IHttpClientFactory httpClientFactory,
     IOptions<AgentOptions> options,
+    IApiKeyProvider apiKeyProvider,
     ILogger<OpenAiCompatibleChatService> logger) : IChatService
 {
     public const string HttpClientName = "ai-enrichment-chat";
@@ -46,11 +47,11 @@ public sealed class OpenAiCompatibleChatService(
     {
         var opts = options.Value;
         if (string.IsNullOrWhiteSpace(opts.BaseUrl))
-            throw new InvalidOperationException("Agent:BaseUrl is required for OpenAiCompatibleChatService.");
-        if (string.IsNullOrWhiteSpace(opts.ApiKey))
-            throw new InvalidOperationException("Agent:ApiKey is required for OpenAiCompatibleChatService.");
+            throw new InvalidOperationException($"{AgentOptions.SectionName}:BaseUrl is required for OpenAiCompatibleChatService.");
         if (string.IsNullOrWhiteSpace(opts.Model) && string.IsNullOrWhiteSpace(request.Model))
-            throw new InvalidOperationException("Either Agent:Model or ChatRequest.Model must be set.");
+            throw new InvalidOperationException($"Either {AgentOptions.SectionName}:Model or ChatRequest.Model must be set.");
+
+        var apiKey = await apiKeyProvider.GetApiKeyAsync(cancellationToken);
 
         var endpoint = new Uri(new Uri(opts.BaseUrl.TrimEnd('/') + "/"), "chat/completions");
         var body = new ChatCompletionsBody
@@ -71,7 +72,7 @@ public sealed class OpenAiCompatibleChatService(
         ChatResponse? lastResponse = null;
         for (var attempt = 0; attempt < MaxRetryAttempts; attempt++)
         {
-            lastResponse = await SendOnceAsync(endpoint, body, opts.ApiKey!, request.Stream, cts.Token);
+            lastResponse = await SendOnceAsync(endpoint, body, apiKey, request.Stream, cts.Token);
 
             var retryable = lastResponse.StatusCode != 0 &&
                             RetryStatusCodes.Contains((HttpStatusCode)lastResponse.StatusCode);

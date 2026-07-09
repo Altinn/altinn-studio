@@ -1,7 +1,8 @@
 # Plan: KI Beriking som 1st-party prosess-steg i Altinn-apper
 
-> Status: fase 1 ferdig (2026-07-09) — biblioteket bygger, 96/96 tester grønne, inkl.
-> ende-til-ende med demo-fixturen og typst-rendring. Neste: fase 2 (service task).
+> Status: fase 1 + 2 ferdig (2026-07-09) — 106/106 tester grønne, inkl. ende-til-ende
+> med demo-fixturen/typst og service task-kjøring mot mocket IInstanceDataMutator.
+> Neste: fase 3 (demo-app + lokal verifisering mot app-localtest).
 > Referanseimplementasjon (v0.4, frittstående mikrotjeneste) ligger på
 > branchen `feat/augmenter-agent-v0.4-direct-tools` (`src/AI/augmenter-agent/`).
 
@@ -83,9 +84,13 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
   Bevisste avvik fra v0.4: steg-feil propagerer (var logg-og-fortsett), `template`
   valgfri for orchestrated-steg (JSON-only mulig), aggregator-rootKey schema-styrt,
   DOCX droppet, `publishTo` defaulter til steg-navnet.
-- **Fase 2 — service task**: `KiBerikingServiceTask : IServiceTask` (`Type => "kiBeriking"`),
-  agent-oppslag fra task-id, instansdata inn, data-elementer ut. `AddAiEnrichment()`-extension
-  med options (BaseUrl, Model, ApiKey via `ISecretsClient`). Oppstartsvalidering.
+- **Fase 2 — service task** *(ferdig)*: `KiBerikingServiceTask : IServiceTask`
+  (`Type => "kiBeriking"`), agent-oppslag fra task-id (overstyrbart via
+  `AiEnrichment:Tasks`), input = eneste dataType med appLogic (ellers config),
+  output = JSON/PDF som binære data-elementer. `AddAiEnrichment()` registrerer alt;
+  API-nøkkel via `ISecretsClient` (`ApiKeySecretName`) med direkte `ApiKey` som
+  lokal-dev-override. Agent-validering skjer ved første kjøring (cachet per mappe) —
+  egen oppstartsvalidering utsatt til fase 4 om ønskelig.
 - **Fase 3 — demo-app + lokal verifisering**: prosess `data → kiBeriking → confirmation`,
   `App/agents/sjekkliste/` portert fra v0.4-config, policy.xml, applicationmetadata,
   Dockerfile med typst. Kjøres mot app-localtest, ende-til-ende mot KI-gatewayen.

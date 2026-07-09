@@ -22,6 +22,14 @@ public sealed class AgentOptions
     public string? ApiKey { get; set; }
 
     /// <summary>
+    /// Name of the secret holding the API key, resolved through the app's
+    /// <c>ISecretsClient</c> (Key Vault in TT02/prod, local secrets.json in dev)
+    /// when <see cref="ApiKey"/> is not set. Only honored by the
+    /// <c>AddAiEnrichment()</c> registration.
+    /// </summary>
+    public string? ApiKeySecretName { get; set; }
+
+    /// <summary>
     /// Model identifier passed in the chat-completions request (e.g.
     /// <c>provider:model-name</c>).
     /// </summary>
