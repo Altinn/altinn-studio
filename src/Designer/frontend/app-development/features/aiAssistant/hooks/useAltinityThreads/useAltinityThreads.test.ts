@@ -62,8 +62,7 @@ describe('useAltinityThreads', () => {
       result.current.selectThread(threadId);
     });
 
-    expect(result.current.currentSessionId).toBe(threadId);
-    expect(result.current.currentSessionIdRef.current).toBe(threadId);
+    expect(result.current.selectedThreadId).toBe(threadId);
   });
 
   it('returns the new thread id from createThread', async () => {
@@ -177,7 +176,7 @@ describe('useAltinityThreads', () => {
     });
 
     expect(deleteThreadMutate).toHaveBeenCalledWith(threadId, expect.any(Object));
-    expect(result.current.currentSessionId).toBeNull();
+    expect(result.current.selectedThreadId).toBeNull();
   });
 });
 

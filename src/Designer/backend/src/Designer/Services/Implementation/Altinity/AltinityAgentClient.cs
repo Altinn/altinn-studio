@@ -11,7 +11,8 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 
 public class AltinityAgentClient : IAltinityAgentClient
 {
-    private const string FeedbackPathPrefix = "/api/feedback/";
+    private const string TracesPath = "/api/traces";
+    private const string TraceCleanupPath = $"{TracesPath}/delete-expired";
     private const string DeveloperHeader = "X-Developer";
 
     private readonly HttpClient _httpClient;
@@ -31,7 +32,7 @@ public class AltinityAgentClient : IAltinityAgentClient
         CancellationToken cancellationToken
     )
     {
-        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{FeedbackPathPrefix}{traceId}");
+        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TracesPath}/{traceId}/feedback");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Put, requestUri)
         {
             Content = JsonContent.Create(new { thumbs_up = thumbsUp, comment }),
@@ -43,6 +44,19 @@ public class AltinityAgentClient : IAltinityAgentClient
         {
             string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new HttpRequestException($"Altinity feedback returned {response.StatusCode}: {responseContent}");
+        }
+    }
+
+    public async Task TriggerTraceCleanupAsync(CancellationToken cancellationToken)
+    {
+        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TraceCleanupPath}");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri);
+
+        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new HttpRequestException($"Altinity trace cleanup returned {response.StatusCode}: {responseContent}");
         }
     }
 }
