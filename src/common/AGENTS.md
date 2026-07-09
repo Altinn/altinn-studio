@@ -15,8 +15,17 @@ The library is intentionally tiny — three source files under `src/`:
 - `Ports.cs` — Kestrel public/internal port configuration and endpoint filters.
 - `Assert.cs` — an always-on assertion helper.
 
+## Build & test
+
+A class library with no standalone solution or tests — it is built as part of each consuming service
+(build/test the workflow-engine or gateway to exercise it). To compile it in isolation:
+
+```bash
+dotnet build Altinn.Studio.Runtime.Common.csproj    # from src/common
+```
+
 ## Working here
 
 - This is shared infrastructure: a change here can affect every Runtime service that references it, so
-  keep the surface small, general, and dependency-light.
-- Follow the .NET build/formatting conventions used across the Runtime services.
+  keep the surface small and dependency-light, and build a consumer (workflow-engine/gateway) to catch
+  breakage.

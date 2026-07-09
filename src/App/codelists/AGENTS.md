@@ -16,10 +16,18 @@ https://docs.altinn.studio/app/development/data/options/
 - Connect a component to a code list via its *Kodeliste-ID* in Studio, or the `optionsId` property in
   `FormLayout.json`.
 
+## Build & test
+
+Run from `src/App/codelists`:
+
+```bash
+dotnet build Altinn.Codelists.slnx    # build (CSharpier.MsBuild formats on build)
+dotnet test                           # run tests (test projects under test/)
+```
+
 ## Working here
 
 - Code lists are grouped by source (e.g. SSB). Each source exposes its own registration extension
   methods and supports custom option IDs and source-specific parameters (level filters, etc.).
 - This is a public, versioned NuGet package — treat the public API as a compatibility surface.
-- See `README.md` for the current provider catalogue and configuration examples; follow the .NET build
-  and formatting conventions used across the App backend.
+- See `README.md` for the current provider catalogue and configuration examples.

@@ -97,10 +97,9 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   exists alongside it, that file just links to the `AGENTS.md` (`@AGENTS.md`) so Claude Code loads it.
   Never leave a directory with only a `CLAUDE.md` — always create the `AGENTS.md` and point `CLAUDE.md`
   at it.
-- **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here. The
-  target framework/toolchain differs per project (e.g. Designer backend is .NET 9; App backend, common,
-  and several Runtime services are .NET 10) — check the project's own `AGENTS.md`, `global.json`,
-  `go.mod`, or `pyproject.toml` before assuming.
+- **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
+  Framework versions differ per project and are documented at the leaf, not here — check the project's
+  own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.
 - **Formatting/linting is enforced at build time** in most projects (CSharpier for .NET, ESLint/Prettier
   for TS, golangci-lint for Go). Follow the commands in the project's `AGENTS.md`/`Makefile`.
 - **Prefer the guidance closest to the code.** More-specific `AGENTS.md` files override this one.

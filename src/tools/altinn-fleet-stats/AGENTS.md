@@ -17,5 +17,5 @@ Full stack packaged in a single Docker container:
 
 ## Working here
 
-- This is an internal analysis tool, not a product service — optimize for insight and iteration speed.
+- Internal analysis tool, not a product service.
 - Keep the parsing logic resilient to the variety of real app structures it clones and reads.

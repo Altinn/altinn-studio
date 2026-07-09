@@ -25,6 +25,5 @@ Run from `src/tools/health` (`go run cmd/main.go <command>` or `make build`):
 
 ## Working here
 
-- Standard Go project — follow the repo's Go conventions (handle errors, keep the linter bar high).
-- Commands can act on production clusters; prefer `--dry-run` and clear confirmations for mutating
-  operations like `set-weight`.
+- Commands act on real (including production) clusters — prefer `--dry-run` and explicit confirmation
+  for mutating operations like `set-weight`.

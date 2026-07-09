@@ -26,4 +26,11 @@ See the root [`/AGENTS.md`](../../AGENTS.md) for how this fits into Altinn 3 as 
 - The backend's process/workflow layer integrates with the Runtime [`workflow-engine`](../Runtime/workflow-engine/AGENTS.md);
   see `backend/src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md`.
 
-Each sub-project owns its own build/test/formatting conventions — open its `AGENTS.md` or `README.md`.
+## Build & test
+
+Each sub-project builds independently — open its `AGENTS.md` for exact commands. The dominant entry
+points:
+
+- `backend`: `dotnet build/test solutions/All.slnx` (CSharpier enforced on build). See [backend/AGENTS.md](backend/AGENTS.md).
+- `frontend`: `yarn build` / `yarn test`. See [frontend/AGENTS.md](frontend/AGENTS.md).
+- `codelists` / `fileanalyzers`: `dotnet build <name>.slnx` + `dotnet test` in each folder.

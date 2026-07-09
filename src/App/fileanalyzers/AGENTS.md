@@ -26,6 +26,15 @@ when adding new analyzers/validators.
 - Enable them per data type via `enabledFileAnalysers` / `enabledFileValidators` in the data type config
   (`applicationmetadata`), alongside `allowedContentTypes`, `maxSize`, etc.
 
+## Build & test
+
+Run from `src/App/fileanalyzers`:
+
+```bash
+dotnet build Altinn.FileAnalyzers.slnx    # build (CSharpier.MsBuild formats on build)
+dotnet test                               # run tests (test projects under test/)
+```
+
 ## Working here
 
 - This is a public, versioned NuGet package — treat the public API as a compatibility surface.

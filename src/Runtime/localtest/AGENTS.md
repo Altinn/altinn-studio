@@ -13,6 +13,18 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
   edit `testdata/authorization/roles/User_{userId}/party_{partyId}/roles.json` and restart Localtest.
 - k6 sample load test (`k6/loadtest.sample.js`) that can be adapted to run against a local app.
 
+## Build & run
+
+`LocalTest.sln` / `src/LocalTest.csproj` is a normal .NET project:
+
+```bash
+dotnet build LocalTest.sln    # from src/Runtime/localtest
+```
+
+Normally you don't run it by hand — `studioctl env up` starts it (Docker/Podman) alongside the other
+local services. The `Makefile` here only holds helpers (`podman-selinux-bind-hack`, `sync-dashboards`),
+not build/test targets.
+
 ## Working here
 
 - Prerequisites: a .NET SDK, Docker or Podman, and `studioctl` (see [`src/cli`](../../cli/AGENTS.md)).

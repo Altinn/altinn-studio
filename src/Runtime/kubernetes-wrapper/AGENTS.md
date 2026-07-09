@@ -11,12 +11,14 @@ Part of the [Runtime services](../AGENTS.md). See [`README.md`](README.md).
 Tested locally against a [kind](https://kind.sigs.k8s.io/) cluster with end-to-end tests. On Linux/macOS:
 
 ```shell
-make test        # unit tests
-make test-e2e    # spins up a kind cluster, builds + loads the image, deploys, port-forwards, asserts
-make clean       # tear down
+make test        # unit tests (dotnet test)
+make test-e2e    # build run-test clean: kind cluster up, build+load image, deploy, assert, then tear down
+make clean       # tear down the kind cluster
 ```
 
-`make test-e2e` leaves a port-forward on `8080` intact so you can hit the API directly after the run.
+`make test-e2e` runs `clean` at the end (`kind delete cluster`), so nothing is left running. To keep a
+port-forward on `8080` for manual API calls, run `make build run-test` *without* `clean` (the
+`run-test` step opens the forward via `integrationtests/curl-test.sh`).
 
 ## Working here
 
