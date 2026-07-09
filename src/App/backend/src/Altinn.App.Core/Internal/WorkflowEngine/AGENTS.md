@@ -11,7 +11,7 @@ The Workflow Engine service (external, .NET, PostgreSQL-backed) orchestrates pro
 3. **Inbound**: The engine calls back to `WorkflowEngineCallbackController` (in the **Altinn.App.Api** project, not this folder) for each app command, one at a time, sequentially.
 4. **Per-callback lifecycle**: The controller restores `InstanceDataUnitOfWork` from the signed state blob, resolves the `IWorkflowEngineCommand` by key, executes it, saves data changes on success, captures the updated (re-signed) state, and returns it to the engine.
 
-```
+```text
 App ProcessNext API
   → ProcessEngine calls IWorkflowEngineService.EnqueueAndWaitForProcessNext()
       → ProcessNextRequestFactory.Create()         (builds WorkflowEnqueueEnvelope from ProcessStateChange)
@@ -44,7 +44,7 @@ WorkflowEngineCallbackController.ExecuteCommand()   (Altinn.App.Api)
 
 ## File Structure
 
-```
+```text
 WorkflowEngine/
 ├── CLAUDE.md
 ├── WorkflowEngineService.cs                  - IWorkflowEngineService: enqueue + poll + refetch + failure classification; reject/resume/abandon ops. Defines ProcessNextWorkflowResult and CurrentTaskWorkflowState (Unblocked/Retrying/ResumeRequired)
@@ -142,7 +142,7 @@ Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSe
 5. Post-commit commands (`PostProcessNextCommittedCommands`)
 
 ### Task-to-Task Transition (e.g., Task_1 → Task_2)
-```
+```text
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → Task_2) ──
@@ -153,7 +153,7 @@ MovedToAltinnEvent → [ExecuteServiceTask if service task]
 ```
 
 ### Task-to-End Transition (e.g., Task_1 → EndEvent)
-```
+```text
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → null, EndEvent set) ──
@@ -163,7 +163,7 @@ EndProcessLegacyHook → DeleteDataElementsIfConfigured → DeleteInstanceIfConf
 ```
 
 ### Initial Task Start (process just created)
-```
+```text
 ── instance.Process.CurrentTask = Task_1 (already set by CreateInitialProcessState) ──
 UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
   ── SaveProcessStateToStorage (persist to Storage) ──
@@ -171,7 +171,7 @@ MovedToAltinnEvent → [ExecuteServiceTask if service task] → [InstanceCreated
 ```
 
 ### Task Abandon (reject → end)
-```
+```text
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 AbandonTask → OnTaskAbandonHook
   ── MutateProcessState (in-memory: CurrentTask → null or next task) ──
@@ -240,7 +240,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 ## Interaction with Workflow Engine Service
 
-The engine service (separate repo at `altinn-studio/src/Runtime/workflow-engine`):
+The engine service (a separately-deployed runtime, built from `src/Runtime/workflow-engine` in this monorepo):
 - .NET service backed by PostgreSQL
 - Receives `WorkflowEnqueueRequest`, stores it, executes steps sequentially
 - Returns `WorkflowEnqueueResponse.Accepted` with `DatabaseId` and `Namespace` per workflow
