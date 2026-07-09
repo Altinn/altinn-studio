@@ -108,9 +108,6 @@ public static class HttpClientExtension
     {
         if (skipTaskDataCleanup)
         {
-            // Opt out of Storage's task-generated data cleanup on the process update (see PutInstanceAndEvents
-            // in altinn-storage): this app prunes those elements itself at task start, so Storage must not
-            // also delete them. Absent/true means Storage cleans as normal, so we only send it when opting out.
             char separator = requestUri.Contains('?', StringComparison.Ordinal) ? '&' : '?';
             requestUri = $"{requestUri}{separator}deleteGeneratedElements=false";
         }
