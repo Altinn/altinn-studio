@@ -232,38 +232,18 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public async Task ResolveWorkflowTaskStatus_WhenHeadIsActive_ReturnsProcessingWithTargetTaskSuffixStripped()
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsActive_ReturnsProcessingFromHeadLabelInSingleCall()
     {
-        // A collection head that is Enqueued/Processing/Requeued means the transition is in flight;
-        // the target task is read from the head's own processNextTargetId label ("Task_2:3") with the
-        // ":flow" suffix stripped.
+        // A collection head that is Enqueued/Processing/Requeued means the transition is in flight.
+        // The target task is read straight from the head's own processNextTargetId label ("Task_2:3",
+        // ":flow" suffix stripped), so processing resolves in a SINGLE GetCollection call - the
+        // collection's workflows must NOT be listed.
         Guid headId = Guid.NewGuid();
         Guid instanceGuid = Guid.NewGuid();
         string collectionKey = instanceGuid.ToString();
         var instance = CreateInstanceOnTask("Task_1", instanceGuid);
-        WorkflowStatusResponse workflow = CreateWorkflowStatus(
-            createdAt: DateTimeOffset.UtcNow,
-            status: PersistentItemStatus.Processing,
-            databaseId: headId,
-            collectionKey: collectionKey,
-            labels: new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
-            }
-        );
 
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    It.IsAny<string?>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([workflow]);
         client
             .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
@@ -271,7 +251,18 @@ public class WorkflowEngineServiceTests
                 {
                     Key = collectionKey,
                     Namespace = Namespace,
-                    Heads = [new CollectionHeadStatus { DatabaseId = headId, Status = PersistentItemStatus.Enqueued }],
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Enqueued,
+                            Labels = new Dictionary<string, string>(StringComparer.Ordinal)
+                            {
+                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                            },
+                        },
+                    ],
                     CreatedAt = DateTimeOffset.UtcNow,
                 }
             );
@@ -288,6 +279,8 @@ public class WorkflowEngineServiceTests
         Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
         Assert.Equal("Task_2", result.TargetTask);
         Assert.Null(result.Failure);
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls(); // ListWorkflows was NOT called for the processing case
     }
 
     [Fact]

@@ -43,10 +43,11 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         string collectionKey,
         IReadOnlyList<WorkflowRequest> workflows,
         string ns = "test-ns",
-        string? idempotencyKey = null
+        string? idempotencyKey = null,
+        Dictionary<string, string>? labels = null
     )
     {
-        var request = new WorkflowEnqueueRequest { Workflows = workflows };
+        var request = new WorkflowEnqueueRequest { Workflows = workflows, Labels = labels };
 
         var metadata = new WorkflowRequestMetadata(
             ns,
@@ -82,6 +83,29 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         var collection = Assert.Single(collections);
         Assert.Equal("my-collection", collection.Key);
         Assert.Single(collection.Heads);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadWorkflowLabels()
+    {
+        // The collection detail exposes each head's labels so a consumer can identify a head by an
+        // application-specific label (e.g. a target task) without a second per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a");
+        var labels = new Dictionary<string, string> { ["processNextTargetId"] = "Task_2:3" };
+
+        await EnqueueWithCollection(repo, "labeled-collection", [wf], labels: labels);
+
+        var collection = await repo.GetCollection(
+            "labeled-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+        Assert.NotNull(head.Labels);
+        Assert.Equal("Task_2:3", head.Labels["processNextTargetId"]);
     }
 
     [Fact]

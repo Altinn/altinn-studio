@@ -54,4 +54,13 @@ internal sealed record CollectionHeadStatus
     /// </summary>
     [JsonPropertyName("status")]
     public required PersistentItemStatus Status { get; init; }
+
+    /// <summary>
+    /// Gets the labels of the head workflow. Lets a consumer read a head's application labels (e.g.
+    /// the process-next target task) directly from the collection, without a second per-workflow
+    /// lookup. Null only when the head workflow carries no labels.
+    /// </summary>
+    [JsonPropertyName("labels")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Labels { get; init; }
 }

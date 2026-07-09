@@ -80,7 +80,12 @@ internal sealed partial class EngineRepository
                 entity.Heads.Length > 0
                     ? await context
                         .Workflows.Where(w => entity.Heads.Contains(w.Id))
-                        .Select(w => new CollectionHeadStatus { DatabaseId = w.Id, Status = w.Status })
+                        .Select(w => new CollectionHeadStatus
+                        {
+                            DatabaseId = w.Id,
+                            Status = w.Status,
+                            Labels = w.Labels,
+                        })
                         .ToListAsync(cancellationToken)
                     : [];
 

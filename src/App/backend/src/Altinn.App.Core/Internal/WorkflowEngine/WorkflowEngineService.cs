@@ -324,10 +324,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         // The process-next collection key is deterministically the instance guid (see
         // ProcessNextRequestFactory), so the read path goes straight to the collection heads rather
-        // than issuing label queries just to discover the key. The common (idle) case is then a
-        // single engine call; the collection's workflows (labels for the target task, steps for the
-        // failure detail) are fetched only when a head is actually processing or failed. If the key
-        // convention ever drifts, GetCollection returns null and we degrade safely to Idle.
+        // than issuing label queries just to discover the key. If the key convention ever drifts,
+        // GetCollection returns null and we degrade safely to Idle.
         string collectionKey = ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance));
         WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
             GetNamespace(),
@@ -351,24 +349,28 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             return idle;
         }
 
+        // A processing transition is fully described by the collection view: the head's labels carry
+        // the target task, so it resolves in the single GetCollection call above.
+        if (activeHead is not null)
+        {
+            return new WorkflowTaskStatus(
+                WorkflowActivityStatus.Processing,
+                ExtractTargetTask(activeHead.Labels),
+                Failure: null
+            );
+        }
+
+        // A failed transition additionally needs its failure detail, which lives in the workflow's
+        // steps - list the collection's workflows once to build it.
         IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
             GetNamespace(),
             collectionKey: collectionKey,
             ct: ct
         );
-
-        if (activeHead is not null)
-        {
-            return new WorkflowTaskStatus(
-                WorkflowActivityStatus.Processing,
-                ExtractTargetTask(collectionWorkflows, activeHead.DatabaseId),
-                Failure: null
-            );
-        }
-
         return new WorkflowTaskStatus(
             WorkflowActivityStatus.Failed,
-            ExtractTargetTask(collectionWorkflows, resumeRequiredHead!.DatabaseId),
+            ExtractTargetTask(resumeRequiredHead!.Labels)
+                ?? ExtractTargetTask(collectionWorkflows, resumeRequiredHead.DatabaseId),
             BuildWorkflowFailure(collectionWorkflows)
         );
     }
@@ -693,18 +695,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 or PersistentItemStatus.DependencyFailed;
 
     /// <summary>
-    /// Reads the target task's element id from the process-next workflow behind a collection head.
-    /// The <c>processNextTargetId</c> label is stored as <c>"{elementId}:{flow}"</c>, so the flow
-    /// suffix is stripped. Prefers the workflow matching the head; falls back to the newest.
+    /// Reads the target task's element id from a set of process-next labels. The
+    /// <c>processNextTargetId</c> label is stored as <c>"{elementId}:{flow}"</c>, so the flow suffix
+    /// is stripped. Returns null when the label is absent.
     /// </summary>
-    private static string? ExtractTargetTask(IReadOnlyList<WorkflowStatusResponse> workflows, Guid headDatabaseId)
+    private static string? ExtractTargetTask(Dictionary<string, string>? labels)
     {
-        WorkflowStatusResponse? workflow =
-            workflows.FirstOrDefault(candidate => candidate.DatabaseId == headDatabaseId)
-            ?? workflows.OrderByDescending(candidate => candidate.CreatedAt).FirstOrDefault();
-
         if (
-            workflow?.Labels is not { } labels
+            labels is null
             || !labels.TryGetValue(ProcessNextRequestFactory.ProcessNextTargetIdLabel, out string? targetLabel)
             || string.IsNullOrEmpty(targetLabel)
         )
@@ -714,6 +712,20 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         int flowSeparatorIndex = targetLabel.LastIndexOf(':');
         return flowSeparatorIndex > 0 ? targetLabel[..flowSeparatorIndex] : targetLabel;
+    }
+
+    /// <summary>
+    /// Reads the target task from the process-next workflow behind a collection head (fallback used
+    /// when the head status did not carry labels). Prefers the workflow matching the head; falls back
+    /// to the newest.
+    /// </summary>
+    private static string? ExtractTargetTask(IReadOnlyList<WorkflowStatusResponse> workflows, Guid headDatabaseId)
+    {
+        WorkflowStatusResponse? workflow =
+            workflows.FirstOrDefault(candidate => candidate.DatabaseId == headDatabaseId)
+            ?? workflows.OrderByDescending(candidate => candidate.CreatedAt).FirstOrDefault();
+
+        return ExtractTargetTask(workflow?.Labels);
     }
 
     private async Task<Guid?> GetResumeTargetWorkflowId(

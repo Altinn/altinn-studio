@@ -91,4 +91,13 @@ public sealed record CollectionHeadStatus
     /// </summary>
     [JsonPropertyName("status")]
     public required PersistentItemStatus Status { get; init; }
+
+    /// <summary>
+    /// Gets the labels of the head workflow. Included so consumers can identify a head (e.g. by an
+    /// application-specific label) directly from the collection view, without a second lookup of the
+    /// individual workflow.
+    /// </summary>
+    [JsonPropertyName("labels")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Labels { get; init; }
 }
