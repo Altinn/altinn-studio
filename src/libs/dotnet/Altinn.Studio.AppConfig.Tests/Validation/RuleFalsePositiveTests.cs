@@ -1006,10 +1006,15 @@ public sealed class RuleFalsePositiveTests
             }
             File.WriteAllText(Path.Combine(appRoot, "App", "config", "applicationmetadata.json"), ExprMeta);
 
-            Assert.DoesNotContain(
-                AppConfigEngine.Open(appRoot).Validate().Findings,
-                f => f.RuleId == "APP-VERSION-SUPPORTED"
+            var engine = AppConfigEngine.Open(appRoot);
+            Assert.DoesNotContain(engine.Validate().Findings, f => f.RuleId == "APP-VERSION-SUPPORTED");
+
+            // Editing the parent import must invalidate the cached version fragment.
+            File.WriteAllText(
+                Path.Combine(repoRoot, "Directory.Packages.props"),
+                """<Project><ItemGroup><PackageVersion Include="Altinn.App.Api" Version="8.12.0" /></ItemGroup></Project>"""
             );
+            Assert.Contains(engine.Validate().Findings, f => f.RuleId == "APP-VERSION-SUPPORTED");
         }
         finally
         {

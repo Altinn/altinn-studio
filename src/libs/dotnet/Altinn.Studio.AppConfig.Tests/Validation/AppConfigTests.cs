@@ -189,6 +189,8 @@ internal sealed class MutableAppDirectory : IAppDirectory
 
     public byte[]? ReadAllBytes(string relativePath) => _files.TryGetValue(relativePath, out var b) ? b : null;
 
+    public byte[]? ReadExternalBytes(string relativePath) => null;
+
     public IEnumerable<string> EnumerateFiles(string relativeDir, string searchPattern, bool recursive)
     {
         foreach (var key in _files.Keys)

@@ -3,18 +3,21 @@ namespace Altinn.Studio.AppConfig.Documents;
 internal sealed class Dependencies
 {
     private readonly Dictionary<string, long> _reads;
+    private readonly Dictionary<string, long> _externalReads;
     private readonly Dictionary<string, bool> _exists;
     private readonly Dictionary<string, bool> _dirs;
     private readonly List<RecordingAppDirectory.EnumQuery> _enums;
 
     public Dependencies(
         Dictionary<string, long> reads,
+        Dictionary<string, long> externalReads,
         Dictionary<string, bool> exists,
         Dictionary<string, bool> dirs,
         List<RecordingAppDirectory.EnumQuery> enums
     )
     {
         _reads = reads;
+        _externalReads = externalReads;
         _exists = exists;
         _dirs = dirs;
         _enums = enums;
@@ -25,6 +28,11 @@ internal sealed class Dependencies
         foreach (var (path, hash) in _reads)
         {
             if (FileHandle.Read(dir, path).Hash != hash)
+                return true;
+        }
+        foreach (var (path, hash) in _externalReads)
+        {
+            if (FileHandle.HashOf(dir.ReadExternalBytes(path)) != hash)
                 return true;
         }
         foreach (var (path, present) in _exists)

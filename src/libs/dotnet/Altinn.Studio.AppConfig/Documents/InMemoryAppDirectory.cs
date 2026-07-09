@@ -22,6 +22,8 @@ public sealed class InMemoryAppDirectory : IWritableAppDirectory
     public byte[]? ReadAllBytes(string relativePath) =>
         _files.TryGetValue(relativePath, out var b) ? Utf8Bom.Strip((byte[])b.Clone()) : null;
 
+    public byte[]? ReadExternalBytes(string relativePath) => null;
+
     public byte[]? ReadRawBytes(string relativePath) =>
         _files.TryGetValue(relativePath, out var b) ? (byte[])b.Clone() : null;
 

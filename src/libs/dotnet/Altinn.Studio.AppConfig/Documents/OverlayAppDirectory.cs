@@ -57,6 +57,8 @@ public sealed class OverlayAppDirectory : IHashingAppDirectory
         return _overlay.TryGetValue(relativePath, out var handle) ? handle.Bytes : _base.ReadAllBytes(relativePath);
     }
 
+    public byte[]? ReadExternalBytes(string relativePath) => _base.ReadExternalBytes(relativePath);
+
     FileHandle IHashingAppDirectory.ReadHandle(string relativePath) => ReadHandle(relativePath);
 
     private FileHandle ReadHandle(string relativePath)
