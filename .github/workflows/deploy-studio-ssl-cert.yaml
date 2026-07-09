@@ -1,7 +1,7 @@
 name: Deploy Studio SSL certificate config
 on:
   push:
-    branches: [main]
+    branches: [main, feat/external-secrets-studio-certs]
     paths:
       - 'infra/studio/ssl-cert/**'
       - '.github/workflows/deploy-studio-ssl-cert.yaml'
@@ -21,6 +21,7 @@ jobs:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-studio-environments: staging
 
   push-artifact:
     name: Push Studio SSL certificate config as OCI artifact
