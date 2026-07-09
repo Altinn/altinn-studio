@@ -9,6 +9,7 @@ from agents.services.events import sink, AgentEvent
 
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
+from api.rate_limiting import RateLimiter
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
 from shared.utils.path_utils import app_name_from_repo_url
@@ -21,10 +22,22 @@ router = APIRouter()
 log = get_logger(__name__)
 config = get_config()
 
+PER_DEVELOPER_LIMIT = 5
+ALL_DEVELOPERS_LIMIT = 30
+_SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
+
 _active_tasks: set = set()
 
 
-_SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
+def _require_developer(request: Request) -> str:
+    developer = request.headers.get("X-Developer")
+    if not developer:
+        raise HTTPException(status_code=400, detail="Missing X-Developer header")
+    return developer
+
+
+rate_limit_start_all_developers = RateLimiter(ALL_DEVELOPERS_LIMIT, "all-developers")
+rate_limit_start_developer = RateLimiter(PER_DEVELOPER_LIMIT, _require_developer)
 
 
 class StartReq(BaseModel):
@@ -43,7 +56,10 @@ class StartReq(BaseModel):
             raise ValueError("session_id must be 1-128 alphanumeric, hyphen, or underscore characters")
         return v
 
-@router.post("/api/agent/start")
+@router.post(
+    "/api/agent/start",
+    dependencies=[Depends(rate_limit_start_all_developers), Depends(rate_limit_start_developer)],
+)
 async def start_agent(
     req: StartReq,
     request: Request,
@@ -54,9 +70,7 @@ async def start_agent(
         session_id = req.session_id
 
         # Extract headers passed by Designer backend
-        developer = request.headers.get("X-Developer")
-        if not developer:
-            raise HTTPException(status_code=400, detail="Missing X-Developer header")
+        developer = _require_developer(request)
 
         sink.register_developer_session(developer, req.session_id)
         log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
