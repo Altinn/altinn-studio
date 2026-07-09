@@ -17,6 +17,7 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
     - [Cancellation](#cancellation)
     - [Resume](#resume)
+    - [Abandon](#abandon)
     - [Dependency Graphs](#dependency-graphs)
     - [Telemetry \& Observability](#telemetry--observability)
     - [Dashboard](#dashboard)
@@ -128,8 +129,9 @@ Additional states:
 
 - **DependencyFailed** — a dependency workflow failed
 - **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
+- **Abandoned** — an unsuccessful terminal workflow whose failure a caller explicitly wrote off. See [Abandon](#abandon).
 
-Terminal workflows (Failed, Canceled, DependencyFailed) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
 
 ### Processing Loop
 
@@ -258,7 +260,7 @@ This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims
 
 ## Cancellation
 
-```
+```http
 POST /api/v1/{namespace}/workflows/{workflowId}/cancel
 ```
 
@@ -278,13 +280,13 @@ Setting the database flag always succeeds atomically, but _when_ the workflow ac
     - **running on another pod** — picked up by that pod's `CancellationWatcherService` on its next tick (`CancellationWatcherInterval`, default 2s), or
     - **not yet started** (Enqueued/Requeued) — finalized as `Canceled` the next time the processor fetches it, without executing any step.
 
-In all cases the database flag guarantees the workflow _will_ be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `200` response means the request was accepted and applied; a `202` means cancellation was already pending (idempotent re-request).
+In all cases the database flag guarantees the workflow _will_ be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `202` response means this call requested the cancellation; a `200` means cancellation was already pending (idempotent re-request).
 
 ## Resume
 
-Terminal workflows (Failed, Canceled, DependencyFailed) can be resumed for re-processing:
+Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be resumed for re-processing:
 
-```
+```http
 POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 ```
 
@@ -294,7 +296,7 @@ POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 
 When `cascade=true`, all transitively dependent workflows in `DependencyFailed` state are also resumed. This is useful when a parent workflow's failure cascaded to its children — resuming the parent with cascade fixes the entire chain.
 
-**Response (200 OK):**
+**Response (202 Accepted):** the workflow is back in `Enqueued`; the processor picks it up on its next cycle.
 
 ```json
 {
@@ -305,6 +307,34 @@ When `cascade=true`, all transitively dependent workflows in `DependencyFailed` 
 ```
 
 Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed` or `Processing`).
+
+## Abandon
+
+An unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed`) can be **abandoned** — its failure is explicitly written off by a caller:
+
+```http
+POST /api/v1/{namespace}/workflows/{workflowId}/abandon
+```
+
+Dependency edges carry two things: sequencing (a dependent waits until its dependencies are terminal) and outcome gating (a failed dependency condemns dependents to `DependencyFailed`). Abandoning removes only the gating, prospectively:
+
+- **New work can build past it.** A workflow enqueued afterwards with a dependency on the abandoned workflow runs normally — `Abandoned` is terminal but not a failure for dependency evaluation.
+- **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed`. If a written-off casualty should also be built past, abandon it too.
+- **It is not a tombstone.** An abandoned workflow can still be resumed; if it then completes, parked `DependencyFailed` dependents recover via the sweep as usual.
+- **The enqueue fingerprint is released.** Abandoned means the action may be retried: atomically with the transition, the idempotency key of the request that created the workflow is deleted, so replaying the same fingerprint — even with an identical body — creates and runs a fresh workflow (`201 Created`) instead of deduplicating onto the write-off or conflicting. For batch enqueues the key covers the whole batch, so abandoning any member releases the fingerprint for all of them (the surviving members themselves are untouched).
+
+The canonical use is superseding a failed predecessor: mark the failed workflow `Abandoned`, then enqueue its replacement with an ordinary dependency on it (consuming the collection head as usual). The graph stays fully connected — the write-off lives in the node's state, not in special edge semantics.
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "abandonedAt": "2026-03-19T10:02:00+00:00"
+}
+```
+
+The transition is a compare-and-set from the three source states: 202 Accepted when this call wrote off the workflow, 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
 
 ## Dependency Graphs
 
@@ -364,7 +394,7 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 
 ### Enqueue Workflows
 
-```
+```http
 POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
@@ -443,7 +473,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
 
 **Response (200 OK — duplicate idempotency key):**
 
-Same shape. The original workflow is returned, no new workflow is created.
+Same shape. The original workflow is returned, no new workflow is created. This dedup guarantee lasts for the key row's lifetime: it ends when retention purges the key, or immediately when a workflow it created is [abandoned](#abandon) — the abandon releases the fingerprint so the request can be retried as new work.
 
 **Response (400 Bad Request — validation failure):**
 
@@ -455,7 +485,7 @@ Same shape. The original workflow is returned, no new workflow is created.
 
 ### Get Single Workflow
 
-```
+```http
 GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```
 
@@ -525,7 +555,7 @@ Supports the following optional query parameters (all repeatable params can be s
 
 | Parameter       | Repeatable | Description                                                                                                                                                                                                                    |
 | --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
 | `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
 | `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
 | `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
@@ -576,7 +606,7 @@ Paginate by passing `nextCursor` back as `?cursor=`. A `null` `nextCursor` indic
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 ```
 
-**Response (200 OK):**
+**Response (202 Accepted):**
 
 ```json
 {
@@ -586,15 +616,15 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 }
 ```
 
-`canceledImmediately` reports whether the interrupt was delivered synchronously (the receiving pod was running the workflow) or whether it will be applied via the distributed path — see [Immediate vs. distributed cancellation](#immediate-vs-distributed-cancellation). Returns `202 Accepted` instead when cancellation was already pending, `409 Conflict` when the workflow is already terminal, and `404 Not Found` when it doesn't exist.
+`canceledImmediately` reports whether the interrupt was delivered synchronously (the receiving pod was running the workflow) or whether it will be applied via the distributed path — see [Immediate vs. distributed cancellation](#immediate-vs-distributed-cancellation). Returns `200 OK` instead when cancellation was already pending (idempotent replay), `409 Conflict` when the workflow is already terminal, and `404 Not Found` when it doesn't exist.
 
 ### Resume Workflow
 
-```
+```http
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
 ```
 
-**Response (200 OK):**
+**Response (202 Accepted):**
 
 ```json
 {

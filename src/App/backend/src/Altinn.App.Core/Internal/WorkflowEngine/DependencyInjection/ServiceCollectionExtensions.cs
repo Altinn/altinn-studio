@@ -37,6 +37,7 @@ internal static class ServiceCollectionExtensions
         );
 
         // Process engine callback handlers - TaskStart
+        services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
         services.AddTransient<IWorkflowEngineCommand, StartTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();

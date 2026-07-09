@@ -1,5 +1,6 @@
 #nullable disable
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -29,6 +30,19 @@ public class AppVersionService : IAppVersionService
         );
 
         return FindVersion(repository.FindFiles(["*.csproj"]));
+    }
+
+    public bool IsV9App(AltinnRepoEditingContext altinnRepoEditingContext)
+    {
+        try
+        {
+            SemanticVersion version = GetAppLibVersion(altinnRepoEditingContext);
+            return version != null && version.Major >= 9;
+        }
+        catch (FileNotFoundException)
+        {
+            return true;
+        }
     }
 
     private static SemanticVersion FindVersion(IEnumerable<string> csprojFiles) =>

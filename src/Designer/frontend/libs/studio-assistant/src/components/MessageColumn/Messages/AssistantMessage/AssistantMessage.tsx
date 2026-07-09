@@ -1,36 +1,39 @@
 import type { ReactElement } from 'react';
 import type { AssistantMessage } from '../../../../types/ChatThread';
-import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
+import type { AssistantTexts } from '../../../../types/AssistantTexts';
 import type { UserFeedback } from '../../../../types/UserFeedback';
-import { formatAssistantMessageContent } from '../../../../utils/messageUtils';
+import {
+  formatAssistantMessageContent,
+  filterCriticalFileNames,
+} from '../../../../utils/messageUtils';
 import { MessageFeedback } from './MessageFeedback';
 import { MessageRow } from '../MessageRow';
 import { SourceList } from './SourceList';
+import { CriticalFileAlert } from './CriticalFileAlert';
 import { FilesChangedList } from './FilesChangedList';
 import classes from './AssistantMessage.module.css';
 
 export type AssistantMessageProps = {
   message: AssistantMessage;
-  assistantName: string;
+  texts: AssistantTexts;
   assistantAvatarUrl?: string;
-  feedbackTexts?: MessageFeedbackTexts;
   onMessageFeedback?: (feedback: UserFeedback) => void;
 };
 
 export function AssistantMessage({
   message,
-  assistantName,
+  texts,
   assistantAvatarUrl,
-  feedbackTexts,
   onMessageFeedback,
 }: AssistantMessageProps): ReactElement {
   const { traceId } = message;
   const sources = message.sources ?? [];
   const filesChanged = message.filesChanged ?? [];
-  const showFeedback = traceId && feedbackTexts && onMessageFeedback;
+  const criticalFiles = filterCriticalFileNames(filesChanged);
+  const showFeedback = traceId && onMessageFeedback;
 
   return (
-    <MessageRow label={assistantName} variant='assistant' avatarSrc={assistantAvatarUrl}>
+    <MessageRow label={texts.heading} variant='assistant' avatarSrc={assistantAvatarUrl}>
       <div className={classes.assistantBody}>
         <div
           className={classes.assistantContent}
@@ -39,9 +42,12 @@ export function AssistantMessage({
       </div>
       {sources.length > 0 && <SourceList sources={sources} />}
       {filesChanged.length > 0 && <FilesChangedList filePaths={filesChanged} />}
+      {criticalFiles.length > 0 && (
+        <CriticalFileAlert criticalFiles={criticalFiles} texts={texts.criticalFileAlert} />
+      )}
       {showFeedback && (
         <MessageFeedback
-          texts={feedbackTexts}
+          texts={texts.feedback}
           onSubmit={(payload) => onMessageFeedback({ traceId, payload })}
         />
       )}

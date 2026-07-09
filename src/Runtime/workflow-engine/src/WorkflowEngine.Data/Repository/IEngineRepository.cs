@@ -106,6 +106,17 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Gets the status of a workflow together with the timestamp of the transition that produced
+    /// it (<c>UpdatedAt</c>), or null if not found. Used by the abandon endpoint's idempotent
+    /// replay path to report the original abandonment time rather than the replay time.
+    /// </summary>
+    Task<WorkflowStatusInfo?> GetWorkflowStatusInfo(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the full workflow (with steps) by database ID and namespace, or null if not found.
     /// </summary>
     Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
@@ -143,7 +154,7 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Atomically fetches and locks available workflows for processing using FOR UPDATE SKIP LOCKED.
-    /// Stale workflow reclaim and poison abandonment run as separate sweeps in
+    /// Stale workflow reclaim and poisoned finalization run as separate sweeps in
     /// <c>DbMaintenanceService</c>; reclaimed rows re-enter this fetch as <c>Enqueued</c>.
     /// </summary>
     Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);
@@ -207,9 +218,9 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed) or a Requeued workflow by resetting it and
-    /// its non-completed steps back to Enqueued. Clears CancellationRequestedAt, BackoffUntil,
-    /// HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
+    /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) or a Requeued workflow
+    /// by resetting it and its non-completed steps back to Enqueued. Clears CancellationRequestedAt,
+    /// BackoffUntil, HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
     /// any transitively dependent workflows that are in DependencyFailed state.
     /// Returns the list of all resumed workflow IDs (primary + cascaded), or empty if
     /// the target workflow was not in a resumable state.
@@ -219,6 +230,24 @@ internal interface IEngineRepository
         string ns,
         DateTimeOffset resumedAt,
         bool cascade = false,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Marks an unsuccessful terminal workflow (Failed, Canceled, DependencyFailed) as Abandoned —
+    /// its failure is written off and it no longer condemns dependents evaluated after the marking.
+    /// Compare-and-set: returns <c>true</c> only when the workflow was in one of the three source
+    /// states; any other status (including non-terminal after a concurrent resume) is a no-op
+    /// returning <c>false</c>.
+    /// Atomically with the transition, releases the idempotency key that created the workflow:
+    /// re-enqueueing with the same fingerprint creates a fresh workflow instead of deduplicating
+    /// onto the write-off. For batch enqueues the key covers the whole batch, so abandoning any
+    /// member releases the fingerprint for all of them.
+    /// </summary>
+    Task<bool> AbandonWorkflow(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset abandonedAt,
         CancellationToken cancellationToken = default
     );
 

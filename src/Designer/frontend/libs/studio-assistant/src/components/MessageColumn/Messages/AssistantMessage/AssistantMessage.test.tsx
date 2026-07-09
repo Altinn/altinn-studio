@@ -2,7 +2,11 @@ import { AssistantMessage, type AssistantMessageProps } from './AssistantMessage
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { MessageAuthor } from '../../../../types/MessageAuthor';
-import { messageFeedbackTexts, mockTexts } from '../../../../mocks/mockTexts';
+import {
+  messageFeedbackTexts,
+  mockTexts,
+  criticalFileAlertTexts,
+} from '../../../../mocks/mockTexts';
 
 const assistantMessageContent = 'Assistant response';
 
@@ -42,6 +46,28 @@ describe('AssistantMessage', () => {
     expect(screen.getByRole('button', { name: new RegExp(fileName) })).toBeInTheDocument();
   });
 
+  it('renders the critical file alert when a critical file is changed', () => {
+    renderAssistantMessage({
+      message: createAssistantMessage({
+        filesChanged: ['App/config/authorization/policy.xml'],
+      }),
+    });
+
+    expect(
+      screen.getByRole('heading', { name: criticalFileAlertTexts.heading }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not render the critical file alert when no critical file is changed', () => {
+    renderAssistantMessage({
+      message: createAssistantMessage({ filesChanged: ['App/ui/layouts/layout.json'] }),
+    });
+
+    expect(
+      screen.queryByRole('heading', { name: criticalFileAlertTexts.heading }),
+    ).not.toBeInTheDocument();
+  });
+
   it('renders feedback buttons when the message has a traceId', () => {
     renderAssistantMessage({ message: createAssistantMessage({ traceId: 'trace-123' }) });
 
@@ -65,8 +91,7 @@ describe('AssistantMessage', () => {
 
 const defaultProps: AssistantMessageProps = {
   message: createAssistantMessage(),
-  assistantName: mockTexts.heading,
-  feedbackTexts: messageFeedbackTexts,
+  texts: mockTexts,
   onMessageFeedback: jest.fn(),
 };
 
