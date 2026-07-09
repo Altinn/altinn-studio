@@ -109,12 +109,14 @@ public sealed class OverlayAppDirectoryTests
         Assert.Contains("a/resource.en.json", ov.EnumerateFiles("a", "resource.*.json", recursive: false));
     }
 
+    private static readonly string[] _nonRecursiveJsonFiles = ["a/one.json", "a/two.json"];
+
     [Fact]
     public void EnumerateFiles_RespectsSearchPatternAndRecursion()
     {
         var ov = new OverlayAppDirectory(BaseDir());
         var nonrec = ov.EnumerateFiles("a", "*.json", recursive: false).ToList();
-        Assert.Equal(new[] { "a/one.json", "a/two.json" }.OrderBy(s => s), nonrec.OrderBy(s => s));
+        Assert.Equal(_nonRecursiveJsonFiles.OrderBy(s => s), nonrec.OrderBy(s => s));
 
         var rec = ov.EnumerateFiles("a", "*.json", recursive: true).ToList();
         Assert.Contains("a/b/three.json", rec);
