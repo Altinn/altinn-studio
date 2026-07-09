@@ -14,7 +14,7 @@ internal sealed class DiagnosticsPublisher(
     LspConversions convert,
     LspTransport transport,
     Logger log
-) : IDisposable
+)
 {
     private const int DebounceMs = 150;
 
@@ -39,7 +39,7 @@ internal sealed class DiagnosticsPublisher(
         Validate();
     }
 
-    public void Dispose() => _timer?.Dispose();
+    public void Stop() => _timer?.Dispose();
 
     private void Debounced()
     {

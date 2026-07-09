@@ -71,7 +71,7 @@ public sealed class LspServer
             {
                 _log.Log(LogLevel.Error, $"final validation flush failed: {ex}");
             }
-            _diagnostics.Dispose();
+            _diagnostics.Stop();
         }
         _log.Log(LogLevel.Info, "exiting");
         return _shutdownRequested ? 0 : 1;
