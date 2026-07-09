@@ -131,6 +131,14 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of unsuccessful terminal workflows marked <c>Abandoned</c> (failure written off by a caller).
+    /// </summary>
+    public static readonly Counter<long> WorkflowsAbandoned = Meter.CreateCounter<long>(
+        "engine.workflows.execution.abandoned",
+        description: "Number of unsuccessful terminal workflows whose failure was written off by a caller"
+    );
+
+    /// <summary>
     /// Counter of stale workflows reclaimed from crashed workers.
     /// </summary>
     public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
@@ -147,11 +155,11 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of in-flight workflows this host abandoned because their lease was reclaimed by another host.
+    /// Counter of in-flight workflows this host gave up processing because their lease was reclaimed by another host.
     /// </summary>
     public static readonly Counter<long> WorkflowsLeaseLost = Meter.CreateCounter<long>(
         "engine.workflows.execution.lease_lost",
-        description: "Number of in-flight workflows this host abandoned because their lease was reclaimed by another host"
+        description: "Number of in-flight workflows this host gave up processing because their lease was reclaimed by another host"
     );
 
     /// <summary>

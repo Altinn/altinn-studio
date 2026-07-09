@@ -3,6 +3,7 @@ import {
   createUserMessage,
   formatAssistantMessageContent,
   formatFileSize,
+  filterCriticalFileNames,
   isUrlSafe,
 } from './messageUtils';
 import { MessageAuthor } from '../types/MessageAuthor';
@@ -38,6 +39,33 @@ describe('messageUtils', () => {
       expect(message.allowAppChanges).toBe(allowAppChanges);
       expect(message.createdAt).toEqual(expect.any(String));
       expect(message.attachments).toEqual(attachments);
+    });
+  });
+
+  describe('filterCriticalFileNames', () => {
+    const policyPath = 'App/config/authorization/policy.xml';
+    const appMetaDataPath = 'App/config/applicationmetadata.json';
+    const projectPath = 'App/App.csproj';
+    const packageJsonPath = 'App/ui/package.json';
+    const layoutPath = 'App/ui/layouts/layout.json';
+
+    it('returns only files defined as critical', () => {
+      const changedFiles = [policyPath, appMetaDataPath, projectPath, packageJsonPath, layoutPath];
+      expect(filterCriticalFileNames(changedFiles)).toEqual([
+        policyPath,
+        appMetaDataPath,
+        projectPath,
+        packageJsonPath,
+      ]);
+    });
+
+    it('returns an empty array when no critical files are changed', () => {
+      expect(filterCriticalFileNames([layoutPath])).toEqual([]);
+    });
+
+    it('matches critical file names case-insensitively', () => {
+      const changedFiles = ['App/config/authorization/Policy.XML'];
+      expect(filterCriticalFileNames(changedFiles)).toEqual(changedFiles);
     });
   });
 

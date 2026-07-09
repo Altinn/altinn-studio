@@ -107,7 +107,7 @@ public sealed record EngineSettings
 
     /// <summary>
     /// Maximum number of times a workflow can be reclaimed before being marked as Failed.
-    /// Protects against poison workflows that crash workers repeatedly.
+    /// Protects against poisoned workflows that crash workers repeatedly.
     /// </summary>
     [JsonPropertyName("maxReclaimCount")]
     public required int MaxReclaimCount { get; set; }
@@ -119,7 +119,7 @@ public sealed record EngineSettings
     public TimeSpan CancellationWatcherInterval { get; set; }
 
     /// <summary>
-    /// Interval at which the database maintenance sweeps run (stale reclaim, poison abandon,
+    /// Interval at which the database maintenance sweeps run (stale reclaim, poisoned finalization,
     /// and dependency-recovery of workflows whose dependencies have since completed).
     /// </summary>
     [JsonPropertyName("maintenanceInterval")]

@@ -3,8 +3,8 @@ import {
   StudioParagraph,
   StudioCard,
   StudioSpinner,
-  StudioSelect,
   StudioTextfield,
+  StudioSuggestion,
 } from '@studio/components';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
@@ -82,6 +82,10 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
     }
   };
 
+  const availableDataModels = Array.from(
+    new Set(dataType ? [dataType, ...(dataModels || [])] : dataModels || []),
+  );
+
   return (
     <StudioCard className={classes.editCard}>
       <StudioParagraph data-size='xs'>{t(taskName)}</StudioParagraph>
@@ -94,26 +98,20 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         }}
         onChange={(event: ChangeEvent<HTMLInputElement>) => setId(event.target.value)}
       ></StudioTextfield>
-      <StudioSelect
+      <StudioSuggestion
+        multiple={false}
         label={t('ux_editor.modal_properties_data_model_binding')}
-        disabled={layoutSetModel.type === 'subform'}
-        value={dataType}
-        onChange={(event) => setDataType(event.target.value)}
+        placeholder={t('ux_editor.task_card.choose_datamodel')}
+        selected={dataType}
+        emptyText={t('ux_editor.task_card.no_datamodels')}
+        onSelectedChange={(target) => setDataType(target.value)}
       >
-        <StudioSelect.Option value='' disabled>
-          {t('ux_editor.task_card.choose_datamodel')}
-        </StudioSelect.Option>
-        {layoutSetModel.dataType && (
-          <StudioSelect.Option value={layoutSetModel.dataType}>
-            {layoutSetModel.dataType}
-          </StudioSelect.Option>
-        )}
-        {dataModels?.map((dataModel) => (
-          <StudioSelect.Option key={dataModel} value={dataModel}>
-            {dataModel}
-          </StudioSelect.Option>
+        {availableDataModels?.map((option) => (
+          <StudioSuggestion.Option value={option} key={option} label={option}>
+            {option}
+          </StudioSuggestion.Option>
         ))}
-      </StudioSelect>
+      </StudioSuggestion>
       <div className={classes.btnGroup}>
         <StudioButton
           disabled={disableSaveButton}

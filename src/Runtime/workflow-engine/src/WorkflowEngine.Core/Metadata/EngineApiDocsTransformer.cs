@@ -36,6 +36,7 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["GetWorkflowDependencyGraph"] = "dependency-graphs",
         ["CancelWorkflow"] = "immediate-vs-distributed-cancellation",
         ["ResumeWorkflow"] = "resume",
+        ["AbandonWorkflow"] = "abandon",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
     };

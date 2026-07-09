@@ -48,6 +48,7 @@ public class EngineWireContractTests
             typeof(WorkflowCollectionDetailResponse),
             typeof(CancelWorkflowResponse),
             typeof(ResumeWorkflowResponse),
+            typeof(AbandonWorkflowResponse),
             // AppCommand callback contract (owned by the engine host)
             typeof(Actor),
             typeof(AppCommandData),
