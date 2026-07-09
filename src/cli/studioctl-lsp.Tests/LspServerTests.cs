@@ -459,7 +459,7 @@ public sealed class LspServerTests
     public void UnchangedDiagnostics_AreNotRepublished()
     {
         var publishes = RunDiagnosticsSession(SettingsJson + "\n"); // trailing newline: no semantic/position change
-        Assert.Equal(1, publishes.Count());
+        Assert.Single(publishes);
     }
 
     // A burst of changes validates once (debounced; the synchronous harness flushes on exit), and a
@@ -471,7 +471,7 @@ public sealed class LspServerTests
         var v3 = SettingsJson.Replace("MissingPage", "FinalMissing");
         var publishes = RunDiagnosticsSession(v2, v3);
 
-        Assert.Equal(2, publishes.Count()); // the initial set + ONE update for the two-change burst
+        Assert.Equal(2, publishes.Count); // the initial set + ONE update for the two-change burst
         var last = publishes[^1].GetProperty("diagnostics").EnumerateArray().ToList();
         Assert.Contains(last, d => (d.GetProperty("message").GetString() ?? "").Contains("FinalMissing"));
         Assert.DoesNotContain(last, d => (d.GetProperty("message").GetString() ?? "").Contains("OtherMissing"));
@@ -655,7 +655,7 @@ public sealed class LspServerTests
             )
             .ToList();
 
-        Assert.Equal(1, publishes.Count()); // the no-op change re-published nothing new
+        Assert.Single(publishes); // the no-op change re-published nothing new
         Assert.Contains(
             publishes[0].GetProperty("diagnostics").EnumerateArray(),
             d => d.GetProperty("code").GetString() == "REF-PAGE-FILE"

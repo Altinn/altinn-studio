@@ -25,6 +25,9 @@ internal sealed class AppVersionSupportedRule : IValidationRule
     public IEnumerable<Finding> Check(AppModel app)
     {
         if (app.UnsupportedAppVersion is { } v)
-            yield return Metadata.Report($"{v.Reason}; this tool supports Altinn.App v9 apps only. To upgrade the app, try `studioctl app upgrade`.", v.Position);
+            yield return Metadata.Report(
+                $"{v.Reason}; this tool supports Altinn.App v9 apps only. To upgrade the app, try `studioctl app upgrade`.",
+                v.Position
+            );
     }
 }
