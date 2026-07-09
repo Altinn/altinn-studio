@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
-import { Button, Flex } from '@app/form-component';
+import { Button, ErrorValidations, Flex } from '@app/form-component';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
-import { EXPERIMENTAL_Suggestion as Suggestion, ValidationMessage } from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
@@ -11,7 +11,6 @@ import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import validationClasses from 'src/features/validation/ComponentValidations.module.css';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
@@ -239,13 +238,11 @@ export function EditWindowComponent({
       </Flex>
       {showMissingTagError ? (
         <div style={{ whiteSpace: 'pre-wrap' }}>
-          <ul className={validationClasses.errorList}>
-            <li>
-              <ValidationMessage
-                data-size='sm'
-                asChild
-              >
-                <span>
+          <ErrorValidations
+            validations={[
+              {
+                id: 'missing-tag',
+                message: (
                   <Lang
                     id='form_filler.file_uploader_validation_error_no_chosen_tag'
                     params={[
@@ -257,10 +254,10 @@ export function EditWindowComponent({
                         : 'tag',
                     ]}
                   />
-                </span>
-              </ValidationMessage>
-            </li>
-          </ul>
+                ),
+              },
+            ]}
+          />
         </div>
       ) : undefined}
     </div>

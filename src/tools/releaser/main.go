@@ -40,6 +40,8 @@ func main() {
 		err = runBackport(os.Args[2:])
 	case "validate-changelog":
 		err = runValidateChangelog(os.Args[2:])
+	case "validate-changelogs":
+		err = runValidateChangelogs(os.Args[2:])
 	case "resolve-version":
 		err = runResolveVersion(os.Args[2:])
 	case "help", "-h", "--help":
@@ -66,7 +68,8 @@ Commands:
   workflow            Run the complete release workflow (for CI)
   prepare             Create a changelog promotion PR for release
   backport            Cherry-pick a commit to a release branch with changelog handling
-  validate-changelog  Validate changelog was modified and release-ready
+  validate-changelog  Validate a component changelog was modified and release-ready
+  validate-changelogs Validate the structure of every changed CHANGELOG.md (any project)
   resolve-version     Print the release version resolved from a component changelog
 
 Notes:
@@ -352,6 +355,46 @@ Options:
 	}
 
 	fmt.Println("changelog validated")
+	return nil
+}
+
+func runValidateChangelogs(args []string) error {
+	fs := flag.NewFlagSet("validate-changelogs", flag.ExitOnError)
+	base := fs.String("base", "", "Base commit SHA (optional; validates all tracked changelogs if omitted)")
+	head := fs.String("head", "", "Head commit SHA (optional; validates all tracked changelogs if omitted)")
+	fs.Usage = func() {
+		fmt.Print(`Usage: releaser validate-changelogs [-base <sha> -head <sha>]
+
+Validates the Keep a Changelog structure of every changed CHANGELOG.md in the
+repository, regardless of component. Component-agnostic: any project's changelog
+is covered automatically with no registry or workflow wiring.
+
+When -base and -head are given, only changelogs changed in that range are
+validated. Otherwise every tracked CHANGELOG.md is validated. Vendored and
+generated changelogs (node_modules, .nuget, _testapps, etc.) are skipped.
+
+Only structural errors fail (category order, invalid categories, version
+ordering, duplicate versions). Release-policy semantics are not enforced here;
+use 'validate-changelog' for a specific component's release readiness.
+
+Options:
+`)
+		fs.PrintDefaults()
+	}
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("parse flags: %w", err)
+	}
+
+	if err := internal.RunStructureValidation(
+		context.Background(),
+		*base,
+		*head,
+		internal.NewConsoleLogger(),
+	); err != nil {
+		return fmt.Errorf("validate changelogs: %w", err)
+	}
+
+	fmt.Println("changelogs validated")
 	return nil
 }
 

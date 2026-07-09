@@ -31,6 +31,61 @@ const tzNewYork = 'America/New_York' as const;
 const tzOslo = 'Europe/Oslo' as const;
 const browserTimezones = [tzNewYork, tzOslo] as const;
 
+/**
+ * The 'Backend' rows (and the raw values the backend localizes when parsing timezone-aware input)
+ * are formatted by the app backend using ITS local timezone. In localtest the app backend runs on
+ * the same machine as Cypress, so the expected values can be computed from the machine timezone
+ * that cypress.config.js exposes for that environment (UTC on CI runners, often not on developer
+ * machines). Against remote environments (tt02) machineTimezone is not set and we fall back to
+ * UTC, which is what those backends run in. The browser timezone cannot be used for any of this -
+ * these tests emulate it via CDP, while the backend keeps its own timezone.
+ */
+const backendTimezone: string = Cypress.env('machineTimezone') ?? 'UTC';
+
+function backendLocalParts(instant: string) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: backendTimezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+    timeZoneName: 'longOffset',
+  }).formatToParts(new Date(instant));
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
+  const gmtOffset = get('timeZoneName'); // e.g. 'GMT+02:00', or plain 'GMT' for UTC
+  const offset = gmtOffset === 'GMT' ? '+00:00' : gmtOffset.replace('GMT', '');
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+    second: get('second'),
+    offset,
+  };
+}
+
+/** '2020-05-17T10:00:00+02:00' - how the backend serializes a (localized) DateTime */
+function backendLocalIso(instant: string) {
+  const p = backendLocalParts(instant);
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}${p.offset}`;
+}
+
+/** '17.05.2020 10:00:00' - the backend formatDate expression with 'dd.MM.yyyy HH:mm:ss' */
+function backendLocalFormatted(instant: string) {
+  const p = backendLocalParts(instant);
+  return `${p.day}.${p.month}.${p.year} ${p.hour}:${p.minute}:${p.second}`;
+}
+
+/** The date part of the instant in the backend's timezone */
+function backendLocalDate(instant: string) {
+  const p = backendLocalParts(instant);
+  return { iso: `${p.year}-${p.month}-${p.day}`, nb: `${p.day}.${p.month}.${p.year}` };
+}
+
 type BrowserTimezone = typeof tzNewYork | typeof tzOslo;
 
 type Test = {
@@ -162,47 +217,49 @@ function testCloseTo2022() {
 function midnightOtherTz(browserTimezone: BrowserTimezone) {
   cy.dsSelect('#datesDate', 'Midnatt i en annen tidssone');
 
+  const instant = '2020-05-17T08:00:00Z'; // == 2020-05-17 00:00:00-08:00
+
   const rawString = '2020-05-17 00:00:00-08:00';
-  const rawDateTime = '2020-05-17T08:00:00+00:00';
-  const rawDateOnly = '2020-05-17';
+  // The backend parses the offset-aware raw string into its own local time before serializing
+  const rawDateTime = backendLocalIso(instant);
+  const { iso: rawDateOnly, nb: backendDate } = backendLocalDate(instant);
 
-  const zeroed = '17.05.2020 00:00:00';
-
-  const inOslo = '17.05.2020 10:00:00';
-  const backendLocal = '17.05.2020 08:00:00';
+  const zeroed = `${backendDate} 00:00:00`;
+  const backendLocal = backendLocalFormatted(instant);
 
   const date = '17.05.2020';
-  const dependsOnTimezone = browserTimezone === tzNewYork ? '17.05.2020 04:00:00' : inOslo;
+  const dependsOnTimezone = browserTimezone === tzNewYork ? '17.05.2020 04:00:00' : '17.05.2020 10:00:00';
 
   testAll({
     Raw: { String: rawString, DateTime: rawDateTime, DateOnly: rawDateOnly },
     Date: { String: dependsOnTimezone, DateTime: dependsOnTimezone, DateOnly: zeroed },
     FormatDate: { String: dependsOnTimezone, DateTime: dependsOnTimezone, DateOnly: zeroed },
     FormatDateBackend: { String: backendLocal, DateTime: backendLocal, DateOnly: zeroed },
-    DatePicker: { String: date, DateTime: date, DateOnly: date },
+    DatePicker: { String: date, DateTime: date, DateOnly: backendDate },
   });
 }
 
 function midnightUtc(browserTimezone: BrowserTimezone) {
   cy.dsSelect('#datesDate', 'Midnatt i UTC');
 
+  const instant = '2020-05-17T00:00:00Z';
+
   const rawString = '2020-05-17T00:00:00Z';
-  const rawDateTime = '2020-05-17T00:00:00+00:00';
-  const rawDateOnly = '2020-05-17';
+  // The backend parses the UTC raw string into its own local time before serializing
+  const rawDateTime = backendLocalIso(instant);
+  const { iso: rawDateOnly, nb: backendDate } = backendLocalDate(instant);
 
-  const date = '17.05.2020';
-  const zeroed = '17.05.2020 00:00:00';
+  const zeroed = `${backendDate} 00:00:00`;
+  const backendLocal = backendLocalFormatted(instant);
 
-  const utcInOslo = '17.05.2020 02:00:00';
-
-  const utcInBrowser = browserTimezone === tzNewYork ? '16.05.2020 20:00:00' : utcInOslo;
-  const dateInUtc = browserTimezone === tzNewYork ? '16.05.2020' : date;
+  const utcInBrowser = browserTimezone === tzNewYork ? '16.05.2020 20:00:00' : '17.05.2020 02:00:00';
+  const dateInUtc = browserTimezone === tzNewYork ? '16.05.2020' : '17.05.2020';
 
   testAll({
     Raw: { String: rawString, DateTime: rawDateTime, DateOnly: rawDateOnly },
     Date: { String: utcInBrowser, DateTime: utcInBrowser, DateOnly: zeroed },
     FormatDate: { String: utcInBrowser, DateTime: utcInBrowser, DateOnly: zeroed },
-    FormatDateBackend: { String: zeroed, DateTime: zeroed, DateOnly: zeroed },
-    DatePicker: { String: dateInUtc, DateTime: dateInUtc, DateOnly: date },
+    FormatDateBackend: { String: backendLocal, DateTime: backendLocal, DateOnly: zeroed },
+    DatePicker: { String: dateInUtc, DateTime: dateInUtc, DateOnly: backendDate },
   });
 }

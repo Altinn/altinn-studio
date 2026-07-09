@@ -82,4 +82,16 @@ public interface IUiFoldersService
         IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Update layout references
+    /// </summary>
+    /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="referencesToUpdate">The references to update.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<bool> UpdateLayoutReferences(
+        AltinnRepoEditingContext editingContext,
+        List<Reference> referencesToUpdate,
+        CancellationToken cancellationToken
+    );
 }

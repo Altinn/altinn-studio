@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Security.Claims;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -14,6 +15,7 @@ using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -1765,7 +1767,572 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task GetCurrentTaskWorkflowState_returns_head_workflow_id_from_collection()
+    public async Task Next_reject_abandons_failed_workflow_and_proceeds()
+    {
+        Guid failedWorkflowId = Guid.NewGuid();
+        Guid rejectWorkflowId = Guid.NewGuid();
+        string collectionKey = _collectionKey;
+        bool failedWorkflowAbandoned = false;
+
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        IsProcessNextLabel(labels, ProcessNextRequestFactory.ProcessNextSourceIdLabel, "Task_1:2")
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    failedWorkflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        MatchesCurrentTaskLookupLabel(labels, "Task_1:2")
+                        && !labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (string _, string key, CancellationToken _) =>
+                    CreateWorkflowCollectionDetailResponse(
+                        key,
+                        failedWorkflowAbandoned
+                            ? CreateCollectionHeadStatus(rejectWorkflowId, PersistentItemStatus.Completed)
+                            : CreateCollectionHeadStatus(failedWorkflowId, PersistentItemStatus.Failed)
+                    )
+            );
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    string _,
+                    string? key,
+                    Dictionary<string, string>? _,
+                    IReadOnlyList<PersistentItemStatus>? _,
+                    CancellationToken _
+                ) =>
+                    failedWorkflowAbandoned
+                        ?
+                        [
+                            CreateWorkflowStatusResponse(
+                                rejectWorkflowId,
+                                "Process next: Task_1 -> Task_2",
+                                PersistentItemStatus.Completed,
+                                key
+                            ),
+                        ]
+                        :
+                        [
+                            CreateWorkflowStatusResponse(
+                                failedWorkflowId,
+                                "Process next: Task_1 -> Task_2",
+                                PersistentItemStatus.Failed,
+                                key
+                            ),
+                        ]
+            );
+        processEngineClientMock
+            .Setup(c => c.AbandonWorkflow(It.IsAny<string>(), failedWorkflowId, It.IsAny<CancellationToken>()))
+            .Callback(() => failedWorkflowAbandoned = true)
+            .ReturnsAsync(true);
+        processEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = rejectWorkflowId, Namespace = "org/app" }],
+                }
+            );
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { AltinnActions = [new AltinnAction("reject")] });
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = "reject",
+                Language = null,
+            }
+        );
+
+        // The failed workflow was written off (-> Abandoned) before the reject was enqueued,
+        // so the reject's ordinary dependency on it lets the reject run.
+        result.Success.Should().BeTrue();
+        processEngineClientMock.Verify(
+            c => c.AbandonWorkflow(It.IsAny<string>(), failedWorkflowId, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        processEngineClientMock.Verify(
+            c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Next_reject_blocks_as_retrying_when_abandon_loses_race_with_concurrent_resume()
+    {
+        Guid failedWorkflowId = Guid.NewGuid();
+        string collectionKey = _collectionKey;
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        IsProcessNextLabel(labels, ProcessNextRequestFactory.ProcessNextSourceIdLabel, "Task_1:2")
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    failedWorkflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        MatchesCurrentTaskLookupLabel(labels, "Task_1:2")
+                        && !labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    collectionKey,
+                    CreateCollectionHeadStatus(failedWorkflowId, PersistentItemStatus.Failed)
+                )
+            );
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    failedWorkflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey
+                ),
+            ]);
+        // A concurrent resume revived the workflow between the state read and the write-off:
+        // the engine's compare-and-set rejects the abandon.
+        processEngineClientMock
+            .Setup(c => c.AbandonWorkflow(It.IsAny<string>(), failedWorkflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { AltinnActions = [new AltinnAction("reject")] });
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = "reject",
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeFalse();
+        result.ErrorType.Should().Be(ProcessErrorType.Conflict);
+        result.ProcessNextState.Should().Be(ProcessNextState.Retrying);
+        result.ErrorTitle.Should().Be("Task is still being processed.");
+        processEngineClientMock.Verify(
+            c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Next_reject_returns_retryable_failure_when_enqueue_fails_after_abandon()
+    {
+        Guid failedWorkflowId = Guid.NewGuid();
+        string collectionKey = _collectionKey;
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        IsProcessNextLabel(labels, ProcessNextRequestFactory.ProcessNextSourceIdLabel, "Task_1:2")
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    failedWorkflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        MatchesCurrentTaskLookupLabel(labels, "Task_1:2")
+                        && !labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    collectionKey,
+                    CreateCollectionHeadStatus(failedWorkflowId, PersistentItemStatus.Failed)
+                )
+            );
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    failedWorkflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c => c.AbandonWorkflow(It.IsAny<string>(), failedWorkflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        // The engine definitively rejects the superseding reject after the abandon succeeded.
+        processEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(
+                new HttpRequestException(
+                    "Engine rejected the workflow.",
+                    inner: null,
+                    statusCode: HttpStatusCode.UnprocessableEntity
+                )
+            );
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { AltinnActions = [new AltinnAction("reject")] });
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = "reject",
+                Language = null,
+            }
+        );
+
+        // The write-off stands (the engine released the abandoned workflow's idempotency key),
+        // so the caller must be told the reject failed to submit but is safe to retry.
+        result.Success.Should().BeFalse();
+        result.ErrorType.Should().Be(ProcessErrorType.Internal);
+        result.ErrorTitle.Should().Be("The reject was not submitted.");
+        result.ErrorMessage.Should().Contain("Try the reject again");
+        processEngineClientMock.Verify(
+            c => c.AbandonWorkflow(It.IsAny<string>(), failedWorkflowId, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        processEngineClientMock.Verify(
+            c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Next_repeated_reject_reuses_fingerprint_after_engine_releases_abandoned_key()
+    {
+        // Scenario: a workflow fails, a reject supersedes it, and that reject workflow ALSO fails
+        // terminally. The user rejects again from the failure screen. The second reject re-enqueues
+        // with the same idempotency fingerprint (instance|flow|task|action is unchanged, since the
+        // failed transitions never committed). The engine releases a workflow's idempotency key
+        // when it is abandoned, so the re-enqueue must be accepted as a fresh workflow instead of
+        // deduplicating onto (or conflicting with) the abandoned one.
+        DateTimeOffset baseTime = DateTimeOffset.UtcNow.AddMinutes(-10);
+        Guid originalFailedWorkflowId = Guid.NewGuid();
+        Guid firstRejectWorkflowId = Guid.NewGuid();
+        Guid secondRejectWorkflowId = Guid.NewGuid();
+        string collectionKey = _collectionKey;
+
+        var workflowStatuses = new Dictionary<Guid, PersistentItemStatus>
+        {
+            [originalFailedWorkflowId] = PersistentItemStatus.Failed,
+        };
+        var workflowCreatedAt = new Dictionary<Guid, DateTimeOffset> { [originalFailedWorkflowId] = baseTime };
+        var enqueuedIdempotencyKeys = new List<string>();
+        var abandonedWorkflowIds = new List<Guid>();
+
+        WorkflowStatusResponse Snapshot(Guid workflowId) =>
+            new()
+            {
+                DatabaseId = workflowId,
+                OperationId = "Process next: Task_1 -> Task_2",
+                IdempotencyKey = "test-idempotency-key",
+                Namespace = "org/app",
+                CollectionKey = collectionKey,
+                CreatedAt = workflowCreatedAt[workflowId],
+                UpdatedAt = workflowCreatedAt[workflowId],
+                OverallStatus = workflowStatuses[workflowId],
+                Steps = [],
+            };
+        IReadOnlyList<WorkflowStatusResponse> SnapshotAll() => workflowStatuses.Keys.Select(Snapshot).ToList();
+
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(SnapshotAll);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(SnapshotAll);
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (string _, string _, CancellationToken _) =>
+                    CreateWorkflowCollectionDetailResponse(
+                        collectionKey,
+                        workflowStatuses.Select(entry => CreateCollectionHeadStatus(entry.Key, entry.Value)).ToArray()
+                    )
+            );
+        processEngineClientMock
+            .Setup(c => c.AbandonWorkflow(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Callback(
+                (string _, Guid workflowId, CancellationToken _) =>
+                {
+                    abandonedWorkflowIds.Add(workflowId);
+                    workflowStatuses[workflowId] = PersistentItemStatus.Abandoned;
+                }
+            )
+            .ReturnsAsync(true);
+        processEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                (string _, string idempotencyKey, string? _, WorkflowEnqueueRequest _, CancellationToken _) =>
+                {
+                    enqueuedIdempotencyKeys.Add(idempotencyKey);
+
+                    // First reject: accepted, but the workflow fails terminally.
+                    // Second reject: same fingerprint, accepted again as a fresh workflow that
+                    // completes - the abandoned workflow's key was released.
+                    bool isFirstReject = enqueuedIdempotencyKeys.Count == 1;
+                    Guid newWorkflowId = isFirstReject ? firstRejectWorkflowId : secondRejectWorkflowId;
+                    workflowStatuses[newWorkflowId] = isFirstReject
+                        ? PersistentItemStatus.Failed
+                        : PersistentItemStatus.Completed;
+                    workflowCreatedAt[newWorkflowId] = baseTime.AddMinutes(enqueuedIdempotencyKeys.Count);
+                    return Task.FromResult<WorkflowEnqueueResponse.Accepted>(
+                        new WorkflowEnqueueResponse.Accepted
+                        {
+                            Workflows = [new WorkflowResult { DatabaseId = newWorkflowId, Namespace = "org/app" }],
+                        }
+                    );
+                }
+            );
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { AltinnActions = [new AltinnAction("reject")] });
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessNextRequest CreateRejectRequest() =>
+            new()
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = "reject",
+                Language = null,
+            };
+
+        // First reject: supersedes the original failure, but the reject workflow itself fails.
+        ProcessChangeResult firstResult = await processEngine.Next(CreateRejectRequest());
+        firstResult.Success.Should().BeFalse();
+        firstResult.WorkflowFailure.Should().NotBeNull();
+
+        // Second reject: supersedes the failed reject workflow and succeeds.
+        ProcessChangeResult secondResult = await processEngine.Next(CreateRejectRequest());
+        secondResult.Success.Should().BeTrue();
+
+        abandonedWorkflowIds.Should().Equal(originalFailedWorkflowId, firstRejectWorkflowId);
+        enqueuedIdempotencyKeys.Should().HaveCount(2);
+        enqueuedIdempotencyKeys[1]
+            .Should()
+            .Be(enqueuedIdempotencyKeys[0], "the retried reject reuses the fingerprint the abandoned workflow held");
+    }
+
+    [Fact]
+    public async Task GetCurrentTaskWorkflowState_returns_unblocked_when_newest_workflow_completed()
     {
         Guid workflowId = Guid.NewGuid();
         string collectionKey = _collectionKey;
@@ -1813,8 +2380,70 @@ public sealed class ProcessEngineTest
             CreateTask1Instance()
         );
 
-        result.ProcessNextState.Should().BeNull();
-        result.WorkflowId.Should().Be(workflowId);
+        result.Should().BeOfType<CurrentTaskWorkflowState.Unblocked>();
+    }
+
+    [Fact]
+    public async Task GetCurrentTaskWorkflowState_fetches_a_shared_collection_key_once()
+    {
+        // Every matching workflow shares the instance's collection key, so the state lookup
+        // must not repeat the identical GetCollection call per workflow.
+        string collectionKey = _collectionKey;
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    Guid.NewGuid(),
+                    "Process next: StartEvent_1 -> Task_1",
+                    PersistentItemStatus.Completed,
+                    collectionKey
+                ),
+                CreateWorkflowStatusResponse(
+                    Guid.NewGuid(),
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Completed,
+                    collectionKey
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    collectionKey,
+                    CreateCollectionHeadStatus(Guid.NewGuid(), PersistentItemStatus.Completed)
+                )
+            );
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        IWorkflowEngineService workflowEngineService =
+            fixture.ServiceProvider.GetRequiredService<IWorkflowEngineService>();
+
+        CurrentTaskWorkflowState result = await workflowEngineService.GetCurrentTaskWorkflowState(
+            CreateTask1Instance()
+        );
+
+        result.Should().BeOfType<CurrentTaskWorkflowState.Unblocked>();
+        processEngineClientMock.Verify(
+            c => c.GetCollection(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
