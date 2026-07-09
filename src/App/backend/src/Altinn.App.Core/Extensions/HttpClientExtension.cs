@@ -90,7 +90,7 @@ public static class HttpClientExtension
     /// <param name="authorizationToken">the authorization token (jwt)</param>
     /// <param name="requestUri">The request Uri</param>
     /// <param name="content">The http content</param>
-    /// <param name="skipTaskDataCleanup">When true, adds the header that opts out of Storage's task-generated data cleanup</param>
+    /// <param name="skipTaskDataCleanup">When true, adds the <c>deleteGeneratedElements=false</c> query parameter that opts out of Storage's task-generated data cleanup</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
@@ -106,6 +106,15 @@ public static class HttpClientExtension
         CancellationToken cancellationToken = default
     )
     {
+        if (skipTaskDataCleanup)
+        {
+            // Opt out of Storage's task-generated data cleanup on the process update (see PutInstanceAndEvents
+            // in altinn-storage): this app prunes those elements itself at task start, so Storage must not
+            // also delete them. Absent/true means Storage cleans as normal, so we only send it when opting out.
+            char separator = requestUri.Contains('?', StringComparison.Ordinal) ? '&' : '?';
+            requestUri = $"{requestUri}{separator}deleteGeneratedElements=false";
+        }
+
         using HttpRequestMessage request = new(HttpMethod.Put, requestUri);
         request.Content = content;
 
@@ -122,11 +131,6 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(lockToken))
         {
             request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
-        }
-
-        if (skipTaskDataCleanup)
-        {
-            request.Headers.Add(Constants.General.SkipTaskDataCleanupHeaderName, "true");
         }
 
         return await httpClient.SendAsync(request, cancellationToken);

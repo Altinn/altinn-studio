@@ -73,6 +73,42 @@ public class HttpClientExtensionTest
         AssertHeaders(capturedHttpRequestMessage, AuthorizationToken, platformAccessToken);
     }
 
+    [Fact]
+    public async Task PutAsync_SkipTaskDataCleanup_AddsDeleteGeneratedElementsQueryParam()
+    {
+        // Arrange
+        HttpRequestMessage? capturedHttpRequestMessage = null;
+        using var fixture = CreateMockedHttpClient(request =>
+        {
+            capturedHttpRequestMessage = request;
+        });
+
+        // Act
+        await fixture.HttpClient.PutAsync(AuthorizationToken, RequestUri, content: null, skipTaskDataCleanup: true);
+
+        // Assert
+        Assert.NotNull(capturedHttpRequestMessage);
+        Assert.Equal($"{RequestUri}?deleteGeneratedElements=false", capturedHttpRequestMessage!.RequestUri!.ToString());
+    }
+
+    [Fact]
+    public async Task PutAsync_WithoutSkipTaskDataCleanup_DoesNotAddQueryParam()
+    {
+        // Arrange
+        HttpRequestMessage? capturedHttpRequestMessage = null;
+        using var fixture = CreateMockedHttpClient(request =>
+        {
+            capturedHttpRequestMessage = request;
+        });
+
+        // Act
+        await fixture.HttpClient.PutAsync(AuthorizationToken, RequestUri, content: null, skipTaskDataCleanup: false);
+
+        // Assert
+        Assert.NotNull(capturedHttpRequestMessage);
+        Assert.Equal(RequestUri, capturedHttpRequestMessage!.RequestUri!.ToString());
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("platform-access-token")]
