@@ -27,6 +27,8 @@ public sealed class BuildOutputExclusionTests
         Assert.False(model.CSharpClasses.ContainsKey("App.Generated.CopiedNoise"));
     }
 
+    private static readonly string[] expected = new[] { "App/models/a.cs" };
+
     [Fact]
     public void InMemoryEnumeration_SkipsBinAndObj()
     {
@@ -39,7 +41,7 @@ public sealed class BuildOutputExclusionTests
             }
         );
 
-        Assert.Equal(new[] { "App/models/a.cs" }, dir.EnumerateFiles("App", "*.cs", recursive: true));
+        Assert.Equal(expected, dir.EnumerateFiles("App", "*.cs", recursive: true));
         Assert.NotNull(dir.ReadAllBytes("App/obj/g.cs"));
     }
 
@@ -54,7 +56,7 @@ public sealed class BuildOutputExclusionTests
             dir.WriteAllBytes("App/obj/Debug/g.cs", new byte[] { 1 });
             dir.WriteAllBytes("App/bin/Debug/b.cs", new byte[] { 1 });
 
-            Assert.Equal(new[] { "App/models/a.cs" }, dir.EnumerateFiles("App", "*.cs", recursive: true));
+            Assert.Equal(expected, dir.EnumerateFiles("App", "*.cs", recursive: true));
         }
         finally
         {

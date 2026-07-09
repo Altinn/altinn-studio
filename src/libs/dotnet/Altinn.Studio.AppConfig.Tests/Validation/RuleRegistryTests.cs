@@ -25,7 +25,7 @@ public sealed class RuleRegistryTests
     public void Registry_RuleIdsAreUniqueAndSorted()
     {
         var ids = ValidationEngine.AllRules.Select(r => r.Metadata.Id).ToList();
-        Assert.Equal(ids.Count(), ids.Distinct().Count());
+        Assert.Equal(ids.Count, ids.Distinct().Count());
         Assert.Equal(ids, ids.OrderBy(x => x, StringComparer.Ordinal));
     }
 }

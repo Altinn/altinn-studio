@@ -38,7 +38,7 @@ public sealed class RepGroupChildIndexRuleTests
             )
             .Validate();
 
-        var finding = Assert.Single(report.Findings.Where(f => f.RuleId == Rule));
+        var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
         Assert.Contains("items[0].subfield", finding.Message);
         Assert.Contains("bind \"items.subfield\"", finding.Message);
     }
@@ -60,7 +60,7 @@ public sealed class RepGroupChildIndexRuleTests
             )
             .Validate();
 
-        Assert.Single(report.Findings.Where(f => f.RuleId == Rule));
+        Assert.Single(report.Findings, f => f.RuleId == Rule);
     }
 
     [Fact]

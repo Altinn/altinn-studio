@@ -106,7 +106,7 @@ public sealed class AppSymbolsTests
         Assert.Single(refs);
         Assert.Equal("/data/layout/1/children/0", refs[0].Pointer);
 
-        Assert.Equal(2, symbols.References(p1, l, c, includeDeclaration: true).Count());
+        Assert.Equal(2, symbols.References(p1, l, c, includeDeclaration: true).Count);
     }
 
     private const string Summary2NavLayout = """
@@ -169,10 +169,7 @@ public sealed class AppSymbolsTests
 
         var (l, c) = At(Summary2NavLayout, "\"target-comp\"", 1);
         var refs = symbols.References(p1, l, c, includeDeclaration: false);
-        Assert.Equal(
-            new[] { "/data/layout/1/target/id", "/data/layout/1/overrides/0/componentId" }.OrderBy(s => s),
-            refs.Select(r => r.Pointer).OrderBy(s => s)
-        );
+        Assert.Equal(_summary2ComponentRefPointers.OrderBy(s => s), refs.Select(r => r.Pointer).OrderBy(s => s));
     }
 
     [Fact]
@@ -196,9 +193,7 @@ public sealed class AppSymbolsTests
         var (l, c) = At(Summary2NavLayout, "\"target-comp\"", 1);
         var edits = symbols.ProposeRename(p1, l, c, "renamed").Cast<ReplaceEdit>().ToList();
         Assert.Equal(
-            new[] { "/data/layout/0/id", "/data/layout/1/target/id", "/data/layout/1/overrides/0/componentId" }.OrderBy(
-                s => s
-            ),
+            _summary2ComponentRenamePointers.OrderBy(s => s),
             edits.Select(e => e.Span.Pointer).OrderBy(s => s)
         );
         Assert.All(edits, e => Assert.True(e.NewValue == "\"renamed\""));
@@ -362,7 +357,7 @@ public sealed class AppSymbolsTests
         var edits = symbols.ProposeRename(p1, l, c, "Task_Renamed").Cast<ReplaceEdit>().ToList();
 
         Assert.All(edits, e => Assert.True(e.NewValue == "\"Task_Renamed\"" && e.OldValue == "\"Task_A\""));
-        Assert.Equal(2, edits.Where(e => e.Span.File == "App/config/process/process.bpmn").Count());
+        Assert.Equal(2, edits.Count(e => e.Span.File == "App/config/process/process.bpmn"));
         Assert.Contains(edits, e => e.Span.File == p1 && e.Span.Pointer == "/data/layout/0/target/taskId");
     }
 
@@ -436,10 +431,7 @@ public sealed class AppSymbolsTests
 
         var (cl, cc) = At(NavLayout, "\"field-a\"", 1);
         var comp = symbols.ProposeRename(p1, cl, cc, "renamed").Cast<ReplaceEdit>().ToList();
-        Assert.Equal(
-            new[] { "/data/layout/0/id", "/data/layout/1/children/0" }.OrderBy(s => s),
-            comp.Select(e => e.Span.Pointer).OrderBy(s => s)
-        );
+        Assert.Equal(_componentRenamePointers.OrderBy(s => s), comp.Select(e => e.Span.Pointer).OrderBy(s => s));
         Assert.All(comp, e => Assert.True(e.NewValue == "\"renamed\""));
         Assert.All(comp, e => Assert.True(e.OldValue == "\"field-a\""));
 
@@ -478,7 +470,7 @@ public sealed class AppSymbolsTests
 
         var (dl, dc) = At(layout, "\"model\"", 1);
         var dataTypes = symbols.Completions(p1, dl, dc);
-        Assert.Equal(new[] { "model", "attachment" }.OrderBy(s => s), dataTypes.Select(s => s.Label).OrderBy(s => s));
+        Assert.Equal(_declaredDataTypes.OrderBy(s => s), dataTypes.Select(s => s.Label).OrderBy(s => s));
         Assert.All(dataTypes, s => Assert.True(s.Kind == SuggestionKind.DataType));
 
         var (fl, fc) = At(layout, "\"project.x\"", 1);
@@ -992,7 +984,7 @@ public sealed class AppSymbolsTests
         var edits = symbols.ProposeRename(settings, l, c, "Front");
 
         var replaces = edits.OfType<ReplaceEdit>().ToList();
-        Assert.Equal(4, replaces.Count());
+        Assert.Equal(4, replaces.Count);
         Assert.All(replaces, r => Assert.True(r.NewValue == "\"Front\""));
         Assert.Equal(
             new[]
@@ -1010,7 +1002,10 @@ public sealed class AppSymbolsTests
         Assert.Equal("App/ui/Task_1/layouts/P1.json", moves[0].OldPath);
         Assert.Equal("App/ui/Task_1/layouts/Front.json", moves[0].NewPath);
 
-        Assert.DoesNotContain(edits.OfType<ReplaceEdit>(), r => r.Span.File.StartsWith("App/ui/Task_2/"));
+        Assert.DoesNotContain(
+            edits.OfType<ReplaceEdit>(),
+            r => r.Span.File.StartsWith("App/ui/Task_2/", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -1109,7 +1104,7 @@ public sealed class AppSymbolsTests
         var symbols = OpenSymbols(NavApp());
         var lenses = symbols.CodeLenses("App/ui/Task_1/layouts/P1.json");
 
-        Assert.Equal(2, lenses.Count());
+        Assert.Equal(2, lenses.Count);
 
         var page = lenses.Single(l => l.Range.Line == 1);
         Assert.Equal("1 reference", page.Title);
@@ -1130,7 +1125,7 @@ public sealed class AppSymbolsTests
         Assert.Equal("1 reference", resourceLens.Title);
 
         var schema = symbols.CodeLenses("App/models/model.schema.json");
-        Assert.Equal(2, schema.Count());
+        Assert.Equal(2, schema.Count);
         Assert.All(schema, l => Assert.True(l.Title == "1 reference"));
     }
 
@@ -1140,7 +1135,7 @@ public sealed class AppSymbolsTests
         var symbols = OpenCSharpModelApp();
         var lenses = symbols.CodeLenses("App/models/Root.cs");
 
-        Assert.Equal(3, lenses.Count());
+        Assert.Equal(3, lenses.Count);
         var (classLine, _) = At(CSharpModelSource, "public class Root", 1);
         var classLens = lenses.Single(l => l.Range.Line == classLine);
         Assert.Equal("1 reference", classLens.Title);
@@ -1172,6 +1167,22 @@ public sealed class AppSymbolsTests
           }
         }
         """;
+    private static readonly string[] _summary2ComponentRefPointers =
+    [
+        "/data/layout/1/target/id",
+        "/data/layout/1/overrides/0/componentId",
+    ];
+
+    private static readonly string[] _summary2ComponentRenamePointers =
+    [
+        "/data/layout/0/id",
+        "/data/layout/1/target/id",
+        "/data/layout/1/overrides/0/componentId",
+    ];
+
+    private static readonly string[] _componentRenamePointers = ["/data/layout/0/id", "/data/layout/1/children/0"];
+
+    private static readonly string[] _declaredDataTypes = ["model", "attachment"];
 
     private static AppSymbols OpenExprCompletionApp() =>
         OpenSymbols(

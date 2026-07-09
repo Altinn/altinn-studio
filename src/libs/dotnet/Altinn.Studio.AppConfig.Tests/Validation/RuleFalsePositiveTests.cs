@@ -1067,7 +1067,7 @@ public sealed class RuleFalsePositiveTests
         );
         var engine = AppConfigEngine.Open(dir);
 
-        Assert.Single(engine.Validate().Findings.Where(f => f.RuleId == "APP-VERSION-SUPPORTED"));
+        Assert.Single(engine.Validate().Findings, f => f.RuleId == "APP-VERSION-SUPPORTED");
 
         dir.Set("App/App.csproj", V8Csproj.Replace("8.12.0", "9.1.0"));
         var after = engine.Validate().Findings;
@@ -1111,7 +1111,7 @@ public sealed class RuleFalsePositiveTests
     {
         var bpmn = ExprBpmn.Replace("EXPR", """["equals",["dataModel","ghostPath","model"],true]""");
         var findings = ValidateBpmnExpr("""["equals",["dataModel","ghostPath","model"],true]""");
-        var f = Assert.Single(findings.Where(x => x.RuleId == "REF-DATAMODEL-PATH"));
+        var f = Assert.Single(findings, x => x.RuleId == "REF-DATAMODEL-PATH");
         Assert.Contains("ghostPath", f.Message);
         Assert.Equal("App/config/process/process.bpmn", f.Position.File);
         var lines = bpmn.Split('\n');

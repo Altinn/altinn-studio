@@ -113,11 +113,11 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(engine.Build());
 
-        var pathFinding = Assert.Single(report.Findings.Where(f => f.RuleId == "REF-DATAMODEL-PATH"));
+        var pathFinding = Assert.Single(report.Findings, f => f.RuleId == "REF-DATAMODEL-PATH");
         Assert.Contains("project.gnre", pathFinding.Message);
         Assert.Contains("\"model\"", pathFinding.Message);
 
-        var typeFinding = Assert.Single(report.Findings.Where(f => f.RuleId == "REF-DATATYPE-ID"));
+        var typeFinding = Assert.Single(report.Findings, f => f.RuleId == "REF-DATATYPE-ID");
         Assert.Contains("modele", typeFinding.Message);
     }
 
@@ -153,9 +153,9 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(engine.Build());
 
         var paths = report.Findings.Where(f => f.RuleId == "REF-DATAMODEL-PATH").ToList();
-        Assert.Equal(1, paths.Count());
-        Assert.Contains("project.address", paths[0].Message);
-        Assert.Contains("\"other\"", paths[0].Message);
+        var path = Assert.Single(paths);
+        Assert.Contains("project.address", path.Message);
+        Assert.Contains("\"other\"", path.Message);
     }
 
     [Fact]
@@ -188,9 +188,9 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(engine.Build());
 
         var paths = report.Findings.Where(f => f.RuleId == "REF-DATAMODEL-PATH").ToList();
-        Assert.Equal(1, paths.Count());
-        Assert.Contains("applicant.fnr", paths[0].Message);
-        Assert.Contains("\"model\"", paths[0].Message);
+        var path = Assert.Single(paths);
+        Assert.Contains("applicant.fnr", path.Message);
+        Assert.Contains("\"model\"", path.Message);
     }
 
     [Fact]
@@ -219,9 +219,9 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var kinds = report.Findings.Where(f => f.RuleId == "BINDING-KIND").ToList();
-        Assert.Equal(1, kinds.Count());
-        Assert.Contains("warns", kinds[0].Message);
-        Assert.Contains("\"model\"", kinds[0].Message);
+        var kind = Assert.Single(kinds);
+        Assert.Contains("warns", kind.Message);
+        Assert.Contains("\"model\"", kind.Message);
     }
 
     [Fact]
@@ -345,7 +345,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        var single = Assert.Single(report.Findings.Where(f => f.RuleId == "REF-DATAMODEL-PATH"));
+        var single = Assert.Single(report.Findings, f => f.RuleId == "REF-DATAMODEL-PATH");
         Assert.Contains("lines[0].missing", single.Message);
     }
 
@@ -363,7 +363,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        var syntax = Assert.Single(report.Findings.Where(f => f.RuleId == "SYNTAX-VALID"));
+        var syntax = Assert.Single(report.Findings, f => f.RuleId == "SYNTAX-VALID");
         Assert.Equal("App/ui/Task_1/layouts/Bad.json", syntax.Position.File);
         Assert.True(syntax.Position.Line > 0);
 
@@ -424,7 +424,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = AppConfigEngine.Open(dir).ValidateSchemas();
 
-        Assert.Equal(report.Findings.Count(), report.Findings.Distinct().Count());
+        Assert.Equal(report.Findings.Count, report.Findings.Distinct().Count());
         Assert.Equal(1, report.Findings.Count(f => f.RuleId == "JSONSCHEMA-VALID" && f.Message.Contains("size")));
     }
 
@@ -481,7 +481,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        var single = Assert.Single(report.Findings.Where(f => f.RuleId == "UNIQUE-PAGE-IN-ORDER"));
+        var single = Assert.Single(report.Findings, f => f.RuleId == "UNIQUE-PAGE-IN-ORDER");
         Assert.Contains("P1", single.Message);
     }
 
@@ -784,7 +784,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        var single = Assert.Single(report.Findings.Where(f => f.RuleId == "PROCESS-TASK-TYPE"));
+        var single = Assert.Single(report.Findings, f => f.RuleId == "PROCESS-TASK-TYPE");
         Assert.True(single.Message.Contains("signign") && single.Severity == Severity.Warning);
     }
 
@@ -816,7 +816,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        var single = Assert.Single(report.Findings.Where(f => f.RuleId == "CROSS-GROUP-CHILD-PAGE"));
+        var single = Assert.Single(report.Findings, f => f.RuleId == "CROSS-GROUP-CHILD-PAGE");
         Assert.Contains("\"b\"", single.Message);
     }
 
@@ -841,7 +841,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        var single = Assert.Single(report.Findings.Where(f => f.RuleId == "SELECTION-OPTIONS"));
+        var single = Assert.Single(report.Findings, f => f.RuleId == "SELECTION-OPTIONS");
         Assert.Contains("dd-bad", single.Message);
     }
 
@@ -887,7 +887,7 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        var single = Assert.Single(report.Findings.Where(f => f.RuleId == "UNUSED-LAYOUT-FOLDER"));
+        var single = Assert.Single(report.Findings, f => f.RuleId == "UNUSED-LAYOUT-FOLDER");
         Assert.Contains("\"Leftover\"", single.Message);
     }
 

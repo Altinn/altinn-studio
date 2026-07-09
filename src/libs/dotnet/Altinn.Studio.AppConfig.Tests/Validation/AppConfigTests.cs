@@ -15,6 +15,8 @@ public sealed class AppConfigTests
         "layoutsets",
         "layout::App/ui/Task_1/layouts/P1.json",
     };
+    private static readonly string[] _reparsedLayoutOnly = ["layout::App/ui/Task_1/layouts/P1.json"];
+    private static readonly string[] _reparsedMetadataAndModel = ["metadata", "datamodel"];
 
     private static Dictionary<string, string> SampleApp() =>
         new()
@@ -77,14 +79,11 @@ public sealed class AppConfigTests
             """{"data":{"layout":[{"id":"a","type":"Input","dataModelBindings":{"simpleBinding":"project.good"}}]}}"""
         );
         engine.Build();
-        Assert.Equal(
-            new[] { "layout::App/ui/Task_1/layouts/P1.json" }.OrderBy(s => s),
-            engine.LastReparsed.OrderBy(s => s)
-        );
+        Assert.Equal(_reparsedLayoutOnly.OrderBy(s => s), engine.LastReparsed.OrderBy(s => s));
 
         dir.Set("App/config/applicationmetadata.json", TestMeta.Json("ttd/inc2", "model"));
         engine.Build();
-        Assert.Equal(new[] { "metadata", "datamodel" }.OrderBy(s => s), engine.LastReparsed.OrderBy(s => s));
+        Assert.Equal(_reparsedMetadataAndModel.OrderBy(s => s), engine.LastReparsed.OrderBy(s => s));
 
         engine.Build();
         Assert.Empty(engine.LastReparsed);
