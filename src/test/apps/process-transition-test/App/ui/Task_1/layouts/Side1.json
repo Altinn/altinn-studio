@@ -1,0 +1,109 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "size": "L",
+        "id": "Task1Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Task1.header.title"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "delayMs",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "delayMs",
+        "type": "Input",
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0,
+            "thousandSeparator": false
+          }
+        },
+        "textResourceBindings": {
+          "title": "delayMs.title"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "failCount",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "failCount",
+        "type": "Input",
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0,
+            "thousandSeparator": false
+          }
+        },
+        "textResourceBindings": {
+          "title": "failCount.title"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "failKind",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "failKind",
+        "type": "RadioButtons",
+        "options": [
+          {
+            "value": "retryable",
+            "label": "failKind.retryable"
+          },
+          {
+            "value": "permanent",
+            "label": "failKind.permanent"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "failKind.title"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "phase",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "phase",
+        "type": "RadioButtons",
+        "options": [
+          {
+            "value": "taskEnding",
+            "label": "phase.taskEnding"
+          },
+          {
+            "value": "postCommit",
+            "label": "phase.postCommit"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "phase.title"
+        }
+      },
+      {
+        "id": "sendinn",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "sendinn.title"
+        }
+      }
+    ]
+  }
+}

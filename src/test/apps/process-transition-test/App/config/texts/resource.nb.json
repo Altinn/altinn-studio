@@ -1,0 +1,53 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "process-transition-test"
+    },
+    {
+      "id": "Task1.header.title",
+      "value": "Task 1 – kontroller prosessovergangen"
+    },
+    {
+      "id": "delayMs.title",
+      "value": "Forsinkelse (ms)"
+    },
+    {
+      "id": "failCount.title",
+      "value": "Antall feil før suksess"
+    },
+    {
+      "id": "failKind.title",
+      "value": "Feiltype"
+    },
+    {
+      "id": "failKind.retryable",
+      "value": "retryable"
+    },
+    {
+      "id": "failKind.permanent",
+      "value": "permanent"
+    },
+    {
+      "id": "phase.title",
+      "value": "Fase"
+    },
+    {
+      "id": "phase.taskEnding",
+      "value": "taskEnding"
+    },
+    {
+      "id": "phase.postCommit",
+      "value": "postCommit"
+    },
+    {
+      "id": "sendinn.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "Task2.header.title",
+      "value": "Task 2"
+    }
+  ]
+}
