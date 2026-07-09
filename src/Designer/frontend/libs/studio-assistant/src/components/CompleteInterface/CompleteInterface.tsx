@@ -25,7 +25,7 @@ export function CompleteInterface({
   onCancelledMessageConsumed,
   activeThreadId,
   connectionStatus,
-  workflowStatus,
+  workflowStatusByThread,
   onSelectThread,
   onDeleteThread,
   onCreateThread,
@@ -37,8 +37,9 @@ export function CompleteInterface({
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
 
-  const currentThreadWorkflowStatus =
-    workflowStatus?.sessionId === activeThreadId ? workflowStatus : undefined;
+  const currentThreadWorkflowStatus = activeThreadId
+    ? workflowStatusByThread?.[activeThreadId]
+    : undefined;
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
