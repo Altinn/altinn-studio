@@ -28,10 +28,11 @@ public sealed class KiBerikingServiceTask(
 {
     public const string TaskType = "kiBeriking";
 
-    private static readonly JsonSerializerOptions ApplicationJsonOptions = new()
-    {
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-    };
+    // Default serialization on purpose: null fields stay present as null, matching
+    // plain JsonSerializer.Serialize(model) — the shape agent rules and mapper
+    // specs are written against. Dropping nulls would silently change what the
+    // path_value tool and mappers see.
+    private static readonly JsonSerializerOptions ApplicationJsonOptions = JsonSerializerOptions.Default;
 
     public string Type => TaskType;
 
