@@ -110,53 +110,42 @@ internal static class AppVersionParser
     )
     {
         var files = new List<(XDocument Document, byte[] Data, string File)> { (appProject, appProjectData, FileRel) };
-        foreach (var file in ProjectImportFiles(dir, "Directory.Build.props"))
+        foreach (var (file, data) in ProjectImportFiles(dir, "Directory.Build.props"))
         {
-            if (ReadProjectFile(dir, file) is { } data && LoadXml(data) is { } doc)
+            if (LoadXml(data) is { } doc)
                 files.Add((doc, data, file));
         }
         return files;
     }
 
-    private static byte[]? ReadProjectFile(IAppDirectory dir, string relativePath)
-    {
-        if (dir.ReadAllBytes(relativePath) is { } data)
-            return data;
-        if (!Directory.Exists(dir.Root))
-            return null;
-        var fullPath = Path.GetFullPath(Path.Combine(dir.Root, relativePath));
-        return File.Exists(fullPath) ? File.ReadAllBytes(fullPath) : null;
-    }
-
-    private static IEnumerable<string> ProjectImportFiles(IAppDirectory dir, string fileName)
+    // MSBuild auto-imports the nearest Directory.*.props: first within the app, then in parent
+    // directories. Parent files live outside the app root, so they go through ReadExternalBytes
+    // and stay part of the recorded dependency snapshot.
+    private static IEnumerable<(string File, byte[] Data)> ProjectImportFiles(IAppDirectory dir, string fileName)
     {
         foreach (var file in new[] { $"App/{fileName}", fileName })
         {
-            if (dir.Exists(file))
+            if (dir.ReadAllBytes(file) is { } data)
             {
-                yield return file;
+                yield return (file, data);
                 yield break;
             }
         }
 
-        if (!Directory.Exists(dir.Root))
-            yield break;
-
-        var root = Path.GetFullPath(dir.Root);
+        var rel = new StringBuilder("../").Append(fileName);
         for (
-            var current = Directory.GetParent(Path.Combine(root, "App"));
-            current is not null;
-            current = current.Parent
+            var current = Path.GetDirectoryName(Path.GetFullPath(dir.Root));
+            !string.IsNullOrEmpty(current);
+            current = Path.GetDirectoryName(current)
         )
         {
-            if (string.Equals(current.FullName, root, StringComparison.Ordinal))
-                continue;
-            var path = Path.Combine(current.FullName, fileName);
-            if (!File.Exists(path))
-                continue;
-            var rel = Path.GetRelativePath(root, path).Replace('\\', '/');
-            yield return rel;
-            yield break;
+            var path = rel.ToString();
+            if (dir.ReadExternalBytes(path) is { } data)
+            {
+                yield return (path, data);
+                yield break;
+            }
+            rel.Insert(0, "../");
         }
     }
 
@@ -184,9 +173,9 @@ internal static class AppVersionParser
 
     private static string? CentralPackageVersion(string include, IAppDirectory dir)
     {
-        foreach (var file in ProjectImportFiles(dir, "Directory.Packages.props"))
+        foreach (var (_, data) in ProjectImportFiles(dir, "Directory.Packages.props"))
         {
-            if (ReadProjectFile(dir, file) is not { } data || LoadXml(data) is not { } doc)
+            if (LoadXml(data) is not { } doc)
                 continue;
             var entry = doc.Descendants()
                 .FirstOrDefault(e =>

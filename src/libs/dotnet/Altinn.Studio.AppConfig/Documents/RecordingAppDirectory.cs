@@ -4,6 +4,7 @@ internal sealed class RecordingAppDirectory : IAppDirectory
 {
     private readonly IAppDirectory _base;
     private readonly Dictionary<string, long> _reads = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, long> _externalReads = new(StringComparer.Ordinal);
     private readonly Dictionary<string, bool> _exists = new(StringComparer.Ordinal);
     private readonly Dictionary<string, bool> _dirs = new(StringComparer.Ordinal);
     private readonly List<EnumQuery> _enums = new();
@@ -33,6 +34,13 @@ internal sealed class RecordingAppDirectory : IAppDirectory
         return handle.Bytes;
     }
 
+    public byte[]? ReadExternalBytes(string relativePath)
+    {
+        var bytes = _base.ReadExternalBytes(relativePath);
+        _externalReads[relativePath] = FileHandle.HashOf(bytes);
+        return bytes;
+    }
+
     public IEnumerable<string> EnumerateFiles(string relativeDir, string searchPattern, bool recursive)
     {
         var result = _base.EnumerateFiles(relativeDir, searchPattern, recursive).ToList();
@@ -40,7 +48,7 @@ internal sealed class RecordingAppDirectory : IAppDirectory
         return result;
     }
 
-    public Dependencies Snapshot() => new(_reads, _exists, _dirs, _enums);
+    public Dependencies Snapshot() => new(_reads, _externalReads, _exists, _dirs, _enums);
 
     internal sealed record EnumQuery(string Dir, string Pattern, bool Recursive, List<string> Result);
 }

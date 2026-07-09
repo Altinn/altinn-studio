@@ -32,6 +32,12 @@ public sealed class FileSystemAppDirectory : IWritableAppDirectory, IHashingAppD
 
     public byte[]? ReadAllBytes(string relativePath) => ReadHandle(relativePath).Bytes;
 
+    public byte[]? ReadExternalBytes(string relativePath)
+    {
+        var full = Path.GetFullPath(Path.Combine(Root, relativePath));
+        return File.Exists(full) ? Utf8Bom.Strip(File.ReadAllBytes(full)) : null;
+    }
+
     FileHandle IHashingAppDirectory.ReadHandle(string relativePath) => ReadHandle(relativePath);
 
     private FileHandle ReadHandle(string rel)
