@@ -40,6 +40,7 @@ export interface UseAltinityWorkflowResult {
   messages: Message[];
 }
 
+// TODO: rename to useAssistantWorkflow.
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
   const [workflowStatusByThread, setWorkflowStatusByThread] = useState<
     Record<string, WorkflowStatus>

@@ -1,4 +1,19 @@
 {
+  "AbandonWorkflowResponse": {
+    "Name": "AbandonWorkflowResponse",
+    "Fields": [
+      {
+        "Name": "abandonedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "workflowId",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
   "Accepted": {
     "Name": "Accepted",
     "Fields": [
@@ -184,7 +199,7 @@
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}",
         "Nullable": false
       }
     ]
@@ -399,7 +414,7 @@
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}",
         "Nullable": false
       },
       {
@@ -559,12 +574,12 @@
       },
       {
         "Name": "dependencies",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}>",
         "Nullable": true
       },
       {
         "Name": "dependents",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}>",
         "Nullable": true
       },
       {
@@ -584,7 +599,7 @@
       },
       {
         "Name": "links",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}>",
         "Nullable": true
       },
       {
@@ -599,7 +614,7 @@
       },
       {
         "Name": "overallStatus",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}",
         "Nullable": false
       },
       {

@@ -28,4 +28,10 @@ internal enum PersistentItemStatus
 
     /// <summary>The item failed because a dependency failed.</summary>
     DependencyFailed = 6,
+
+    /// <summary>
+    /// The workflow ended unsuccessfully and a caller explicitly wrote it off. Terminal, but not a
+    /// failure for dependency evaluation: workflows enqueued afterwards may depend on it and run.
+    /// </summary>
+    Abandoned = 7,
 }

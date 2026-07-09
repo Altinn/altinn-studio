@@ -5,12 +5,14 @@ import { Link } from 'react-router-dom';
 import cn from 'classnames';
 import { studioBetaTagClasses, StudioHeading } from '@studio/components';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
+import { useIsRepoOwnerOrg } from 'app-development/hooks/useIsRepoOwnerOrg';
 
 export const Navigation = () => {
   const { t } = useTranslation();
   const { flags } = useFeatureFlagsContext();
+  const isRepoOwnerOrg = useIsRepoOwnerOrg();
 
-  const menuItems = getFilteredMenuListForOverviewPage(flags);
+  const menuItems = getFilteredMenuListForOverviewPage(flags, isRepoOwnerOrg);
 
   return (
     <div className={classes.navigation}>

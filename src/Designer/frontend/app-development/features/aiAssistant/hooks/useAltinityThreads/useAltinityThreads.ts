@@ -23,6 +23,7 @@ export interface AltinityThreadState {
   ) => Promise<ChatMessage>;
 }
 
+// TODO: rename to useAssistantThreads.
 export const useAltinityThreads = (): AltinityThreadState => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 

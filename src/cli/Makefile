@@ -34,6 +34,7 @@ build: ## Build studioctl binary
 .PHONY: test
 test: ## Run unit tests
 	go test -race -count=1 ./...
+	dotnet test studioctl-server-tests -v m
 
 .PHONY: test-e2e
 test-e2e: ## Run e2e tests

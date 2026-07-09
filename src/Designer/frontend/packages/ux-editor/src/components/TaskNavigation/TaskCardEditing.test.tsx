@@ -6,6 +6,7 @@ import { TaskCardEditing, type TaskCardEditingProps } from './TaskCardEditing';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const updateProcessDataTypesMutation = jest.fn().mockImplementation((params, options) => {
   options.onSettled();
@@ -75,7 +76,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await user.selectOptions(dataModelBindingCombobox(), datamodels[1]);
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     expect(confirmSpy.getMockImplementation()).toHaveBeenCalledTimes(0);
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
@@ -89,7 +90,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await user.selectOptions(dataModelBindingCombobox(), datamodels[1]);
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     expect(confirmSpy.getMockImplementation()).toHaveBeenCalledTimes(0);
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
@@ -165,7 +166,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await user.selectOptions(dataModelBindingCombobox(), datamodels[1]);
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
     expect(updateProcessDataTypesMutation).toHaveBeenCalledTimes(1);
@@ -191,10 +192,10 @@ describe('taskCard', () => {
     expect(screen.getByRole('button', { name: /general.save/ })).toBeDisabled();
   });
 
-  it('should show default "choose model" option if layoutset dataType is null', () => {
+  it('should show placeholder "choose model" if layoutset datamodel is not selected', () => {
     render({ layoutSetModel: { ...dataTaskLayoutSet, dataType: null } });
-
-    expect(dataModelBindingCombobox()).toHaveTextContent('ux_editor.task_card.choose_datamodel');
+    const placeholder = screen.getByPlaceholderText(/ux_editor.task_card.choose_datamodel/);
+    expect(placeholder).toBeInTheDocument();
   });
 });
 
@@ -213,5 +214,12 @@ const layoutSetNameTextbox = (): Element =>
 const subformNameTextbox = (): Element =>
   screen.getByRole('textbox', { name: /ux_editor.task_card.subform_name_label/ });
 
-const dataModelBindingCombobox = (): Element =>
-  screen.getByRole('combobox', { name: /ux_editor.modal_properties_data_model_binding/ });
+export const selectSuggestionOption = async ({ user, optionLabel }) => {
+  const selector = await screen.findByRole('combobox', {
+    name: (name) => name.startsWith(textMock('ux_editor.modal_properties_data_model_binding')),
+  });
+  await user.click(selector);
+  await user.clear(selector);
+  const option = await screen.findByRole('option', { name: optionLabel });
+  await user.click(option);
+};
