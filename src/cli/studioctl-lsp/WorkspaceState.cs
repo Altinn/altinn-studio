@@ -118,13 +118,18 @@ internal sealed class WorkspaceState(LspTransport transport, Logger log)
             return null;
         try
         {
-            return new Uri(uri).LocalPath;
+            return TrimSeparatorBeforeWindowsDrive(new Uri(uri).LocalPath);
         }
         catch (UriFormatException)
         {
             return null;
         }
     }
+
+    private static string TrimSeparatorBeforeWindowsDrive(string path) =>
+        OperatingSystem.IsWindows() && path is ['/' or '\\', var drive, ':', ..] && char.IsAsciiLetter(drive)
+            ? path[1..]
+            : path;
 
     public string? ToRelative(string? uri) => Relativize(LocalPath(uri));
 
