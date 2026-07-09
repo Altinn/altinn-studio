@@ -177,11 +177,15 @@ public class KiBerikingServiceTaskTests
         return mutator;
     }
 
-    /// <summary>The demo booking application, unwrapped — stands in for a real form-data model.</summary>
+    /// <summary>
+    /// The demo booking application, deliberately kept FlatData-wrapped —
+    /// like a real app model whose root property is the FlatData envelope.
+    /// The service task must unwrap it before running the agent.
+    /// </summary>
     private static object SampleFormData()
     {
         var bytes = File.ReadAllBytes(Path.Combine(TestPaths.ApplicationsRoot, "rombooking.json"));
-        using var doc = Models.EnrichmentData.Parse(bytes);
+        using var doc = JsonDocument.Parse(bytes);
         return doc.RootElement.Clone();
     }
 
