@@ -2,7 +2,8 @@
 
 > Status: fase 1 + 2 ferdig (2026-07-09) — 106/106 tester grønne, inkl. ende-til-ende
 > med demo-fixturen/typst og service task-kjøring mot mocket IInstanceDataMutator.
-> Neste: fase 3 (demo-app + lokal verifisering mot app-localtest).
+> Biblioteket pakkes som NuGet (`dotnet pack`) for konsum fra app-repoer.
+> Neste: fase 3 — integrasjon i den eksisterende appen **ttd/sjenk** (eget arbeidspunkt).
 > Referanseimplementasjon (v0.4, frittstående mikrotjeneste) ligger på
 > branchen `feat/augmenter-agent-v0.4-direct-tools` (`src/AI/augmenter-agent/`).
 
@@ -91,9 +92,14 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
   API-nøkkel via `ISecretsClient` (`ApiKeySecretName`) med direkte `ApiKey` som
   lokal-dev-override. Agent-validering skjer ved første kjøring (cachet per mappe) —
   egen oppstartsvalidering utsatt til fase 4 om ønskelig.
-- **Fase 3 — demo-app + lokal verifisering**: prosess `data → kiBeriking → confirmation`,
-  `App/agents/sjekkliste/` portert fra v0.4-config, policy.xml, applicationmetadata,
-  Dockerfile med typst. Kjøres mot app-localtest, ende-til-ende mot KI-gatewayen.
+- **Fase 3 — integrasjon i ttd/sjenk** *(eget arbeidspunkt, eget repo)*: i stedet for en
+  demo-app her brukes Oles eksisterende app **ttd/sjenk**. Oppskrift: README «Using it
+  in an app» + NuGet-pakken fra `dotnet pack` (lokal folder-feed i sjenk-repoet inntil
+  pakken evt. publiseres). Innhold: tjenestens egen agent-mappe under `App/agents/`
+  (fagreglene bor i app-repoet — husk at regel-/mapper-paths må valideres mot sjenks
+  faktiske datamodell), serviceTask i process.bpmn, policy-action `kiBeriking`,
+  dataTypes, `AddAiEnrichment()`, Dockerfile med typst.
+  Verifiseres mot app-localtest, ende-til-ende mot KI-gatewayen.
 - **Fase 4 — herding + dokumentasjon**: timeout-/retry-budsjett, telemetri (app-libs
   OpenTelemetry), README med `App/agents`-kontrakten og Dockerfile-oppskrift.
 - **Fase 5 — senere/valgfritt**: Designer-støtte i process-editor; upstreaming til
