@@ -20,7 +20,6 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
-      inputs: ${{ toJSON(github.event.inputs) }}
       override-default-studio-environments: staging
 
   push-artifact:
