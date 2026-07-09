@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="studioctl-server/studioctl-server.csproj" />
+  <Project Path="studioctl-server-tests/Studioctl.Tests.csproj" />
   <Project Path="studioctl-lsp/studioctl-lsp.csproj" />
   <Project Path="studioctl-lsp.Tests/studioctl-lsp.Tests.csproj" />
 </Solution>

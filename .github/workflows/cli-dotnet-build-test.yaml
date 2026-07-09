@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - "src/cli/studioctl-server/**"
+      - "src/cli/studioctl-server-tests/**"
       - "src/cli/studioctl-lsp/**"
       - "src/cli/studioctl-lsp.Tests/**"
       - "src/cli/studioctl.slnx"
