@@ -460,7 +460,7 @@ export function nn() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noko gjekk gale med innsending, prøv igjen om nokre minutt.',
-    'process_workflow.advancing_to_task': 'Går vidare til {0} …',
+    'process_workflow.advancing': 'Går vidare til neste steg …',
     'process_workflow.retry': 'Prøv igjen',
     'process_workflow.failed_heading': 'Noko gjekk gale',
     'process_workflow.failed_description':

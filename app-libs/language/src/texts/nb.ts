@@ -462,7 +462,7 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
-    'process_workflow.advancing_to_task': 'Går videre til {0} …',
+    'process_workflow.advancing': 'Går videre til neste steg …',
     'process_workflow.retry': 'Prøv igjen',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':

@@ -460,7 +460,7 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
-    'process_workflow.advancing_to_task': 'Advancing to {0} …',
+    'process_workflow.advancing': 'Moving to the next step …',
     'process_workflow.retry': 'Try again',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':

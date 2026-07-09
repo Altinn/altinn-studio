@@ -85,7 +85,7 @@ function NavigationError({ label }: NavigationErrorProps) {
 // leaving them staring at a spinner indefinitely (workflows can retry for a long time server-side).
 const TAKING_LONGER_MS = 20_000;
 
-function WorkflowProcessing({ targetTask }: { targetTask?: string }) {
+function WorkflowProcessing() {
   const [takingLonger, setTakingLonger] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setTakingLonger(true), TAKING_LONGER_MS);
@@ -99,10 +99,7 @@ function WorkflowProcessing({ targetTask }: { targetTask?: string }) {
       aria-live='polite'
     >
       <div>
-        <Lang
-          id='process_workflow.advancing_to_task'
-          params={[targetTask ?? '']}
-        />
+        <Lang id='process_workflow.advancing' />
       </div>
       <Loader reason='workflow-processing' />
       {takingLonger && (
@@ -190,7 +187,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   if (workflow?.status === 'processing') {
     return (
       <PresentationComponent showNavigation={false}>
-        <WorkflowProcessing targetTask={workflow.targetTask} />
+        <WorkflowProcessing />
       </PresentationComponent>
     );
   }

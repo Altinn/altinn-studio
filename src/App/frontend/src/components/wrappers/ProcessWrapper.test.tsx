@@ -57,9 +57,11 @@ describe('ProcessWrapper workflow state machine', () => {
 
   it('processing shows the advancing state and suppresses the task', async () => {
     // waitUntilLoaded is disabled because the blocking state intentionally renders a <Loader />
+    // targetTask is set but deliberately NOT rendered in the message (task ids aren't user-facing).
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
 
-    expect(await screen.findByText(/går videre til task_2/i)).toBeInTheDocument();
+    expect(await screen.findByText(/går videre til neste steg/i)).toBeInTheDocument();
+    expect(screen.queryByText(/task_2/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });

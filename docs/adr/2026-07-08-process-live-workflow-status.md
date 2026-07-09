@@ -232,9 +232,11 @@ Source under `src/App/frontend/src`.
    `workflow.status`, sourced from the **fetched** instance so it survives reload and works
    cross-session:
    - `idle` → render the committed task normally.
-   - `processing` → suppress the task's Submit/next actions; render a blocking "Advancing to
-     {targetTask}…" state; set `refetchInterval` on the instance query (~2s) until `status`
-     leaves `processing` or the committed `currentTask` advances, then route forward.
+   - `processing` → suppress the task's Submit/next actions; render a blocking "moving to the next
+     step…" state; set `refetchInterval` on the instance query (~2s) until `status` leaves
+     `processing` or the committed `currentTask` advances, then route forward. (The message
+     deliberately does NOT name the target task — task ids aren't user-facing and app authors rarely
+     give them meaningful names. `targetTask` stays in the contract for diagnostics/other consumers.)
    - `failed` → suppress actions; show `failure.detail` and a **"Retry"** button (label "retry",
      not "resume") that calls `POST process/resume`, then returns to `processing` + poll.
 
