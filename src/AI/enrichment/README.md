@@ -132,6 +132,27 @@ The engine is a port of the `augmenter-agent` microservice (branch
 - The aggregator root key is schema-driven (`rootKey`, default `sjekkliste`).
 - DOCX/Pandoc output dropped.
 
+## Consuming the library from an app repo
+
+App repos live outside this repository, so they consume the library as a NuGet package:
+
+```bash
+dotnet pack src/Altinn.App.Ai.Enrichment -c Release -o artifacts
+```
+
+In the app repo, drop the `.nupkg` in a `packages/` folder, point a `nuget.config` at it:
+
+```xml
+<configuration>
+  <packageSources>
+    <add key="local" value="packages" />
+  </packageSources>
+</configuration>
+```
+
+then `dotnet add App package Altinn.App.Ai.Enrichment --prerelease`. Replace the local
+feed with a published package when/if the library moves to a real feed.
+
 ## Running tests
 
 ```bash
