@@ -31,7 +31,7 @@ internal class SigningUserAction : IUserAction
     private readonly IProcessReader _processReader;
     private readonly IAppMetadata _appMetadata;
     private readonly ISigningReceiptService _signingReceiptService;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IStorageInstanceClient _instanceClient;
     private readonly ISigningService _signingService;
     private readonly ILogger<SigningUserAction> _logger;
     private readonly ISignClient _signClient;
@@ -45,7 +45,7 @@ internal class SigningUserAction : IUserAction
         ISignClient signClient,
         IAppMetadata appMetadata,
         ISigningReceiptService signingReceiptService,
-        IInstanceClient instanceClient,
+        IStorageInstanceClient instanceClient,
         ILogger<SigningUserAction> logger
     )
     {

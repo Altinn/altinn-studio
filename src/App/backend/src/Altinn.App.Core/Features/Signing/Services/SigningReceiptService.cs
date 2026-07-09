@@ -22,7 +22,7 @@ namespace Altinn.App.Core.Features.Signing.Services;
 
 internal sealed class SigningReceiptService(
     ICorrespondenceClient correspondenceClient,
-    IDataClient dataClient,
+    IStorageDataClient dataClient,
     IHostEnvironment hostEnvironment,
     IAltinnCdnClient altinnCdnClient,
     IAppMetadata appMetadata,
@@ -32,7 +32,7 @@ internal sealed class SigningReceiptService(
 ) : ISigningReceiptService
 {
     private readonly ICorrespondenceClient _correspondenceClient = correspondenceClient;
-    private readonly IDataClient _dataClient = dataClient;
+    private readonly IStorageDataClient _dataClient = dataClient;
     private readonly IHostEnvironment _hostEnvironment = hostEnvironment;
     private readonly IAltinnCdnClient _altinnCdnClient = altinnCdnClient;
     private readonly IAppMetadata _appMetadata = appMetadata;
@@ -188,7 +188,7 @@ internal sealed class SigningReceiptService(
         IEnumerable<DataElementSignature> dataElementSignatures,
         ApplicationMetadata appMetadata,
         UserActionContext context,
-        IDataClient dataClient,
+        IStorageDataClient dataClient,
         CancellationToken cancellationToken
     )
     {

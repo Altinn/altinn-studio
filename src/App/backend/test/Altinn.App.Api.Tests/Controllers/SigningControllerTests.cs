@@ -66,6 +66,12 @@ public class SigningControllerTests
         _serviceCollection.AddSingleton(_signingServiceMock.Object);
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
+        _serviceCollection.AddSingleton(Mock.Of<IStorageDataClient>());
+        _serviceCollection.AddSingleton(Mock.Of<IStorageInstanceClient>());
+        _serviceCollection.AddSingleton<
+            IInstanceDataMutatorStorageAccessGuard,
+            InstanceDataMutatorStorageAccessGuard
+        >();
         _serviceCollection.AddSingleton(_applicationMetadataMock.Object);
         _serviceCollection.AddSingleton(_translationServiceMock.Object);
         _serviceCollection.AddSingleton(_appResourcesMock.Object);

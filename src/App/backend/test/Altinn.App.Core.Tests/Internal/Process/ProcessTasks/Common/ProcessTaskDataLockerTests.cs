@@ -1,6 +1,8 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -179,6 +181,39 @@ public class ProcessTaskDataLockerTests
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task ProcessTaskDataLocker_DirectUseRequiresInactiveUnitOfWorkGuard()
+    {
+        Instance instance = CreateInstance();
+        string taskId = instance.Process.CurrentTask.ElementId;
+        instance.Data = [new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType1" }];
+        var applicationMetadata = new ApplicationMetadata(instance.AppId)
+        {
+            DataTypes = [new DataType { Id = "dataType1", TaskId = taskId }],
+        };
+        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+
+        var storageAccessGuard = new InstanceDataMutatorStorageAccessGuard();
+        var innerDataClient = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        var processTaskDataLocker = new ProcessTaskDataLocker(
+            _appMetadataMock.Object,
+            new DataClient(innerDataClient.Object, storageAccessGuard)
+        );
+
+        using IDisposable activeUnitOfWorkScope = storageAccessGuard.EnterScope();
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            processTaskDataLocker.Lock(taskId, instance)
+        );
+
+        Assert.Contains(
+            "Direct IDataClient Storage access is not allowed",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        innerDataClient.VerifyNoOtherCalls();
     }
 
     private static Instance CreateInstance()

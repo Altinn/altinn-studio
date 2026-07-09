@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Tests.Internal.Process.TestData;
@@ -22,8 +23,8 @@ public class ExpressionsExclusiveGatewayTests
     private readonly Mock<IAppResources> _resources = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
-    private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClient = new(MockBehavior.Strict);
+    private readonly Mock<IStorageDataClient> _dataClient = new(MockBehavior.Strict);
+    private readonly Mock<IStorageInstanceClient> _instanceClient = new(MockBehavior.Strict);
 
     private const string Org = "ttd";
     private const string App = "test";
@@ -270,7 +271,7 @@ public class ExpressionsExclusiveGatewayTests
         {
             _dataClient
                 .Setup(d =>
-                    d.GetDataBytes(
+                    d.GetDataBytesWithStorageMetadata(
                         It.IsAny<int>(),
                         It.IsAny<Guid>(),
                         It.IsAny<Guid>(),
@@ -278,7 +279,12 @@ public class ExpressionsExclusiveGatewayTests
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .ReturnsAsync(modelSerializationService.SerializeToJson(formData).ToArray());
+                .ReturnsAsync(
+                    new DataBytesWithStorageMetadata(
+                        modelSerializationService.SerializeToJson(formData).ToArray(),
+                        new StorageDataElementMetadata()
+                    )
+                );
 
             _appModel.Setup(am => am.GetModelType(_classRef)).Returns(formData.GetType());
         }
@@ -294,6 +300,7 @@ public class ExpressionsExclusiveGatewayTests
             modelSerializationService: modelSerializationService,
             appResources: null!,
             frontEndSettings: null!,
+            storageAccessGuard: new InstanceDataMutatorStorageAccessGuard(),
             taskId: TaskId,
             language: null,
             telemetry: null

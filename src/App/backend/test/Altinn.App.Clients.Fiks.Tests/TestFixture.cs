@@ -54,8 +54,8 @@ internal sealed record TestFixture(
     Mock<IAppMetadata> AppMetadataMock,
     Mock<IMaskinportenClient> MaskinportenClientMock,
     Mock<ILoggerFactory> LoggerFactoryMock,
-    Mock<IDataClient> DataClientMock,
-    Mock<IInstanceClient> InstanceClientMock,
+    Mock<IStorageDataClient> DataClientMock,
+    Mock<IStorageInstanceClient> InstanceClientMock,
     Mock<IAppResources> AppResourcesMock,
     Mock<IAppModel> AppModelMock,
     Mock<IAuthenticationContext> AuthenticationContextMock,
@@ -146,8 +146,8 @@ internal sealed record TestFixture(
         var hostEnvironmentMock = new Mock<IHostEnvironment>();
         var appMetadataMock = new Mock<IAppMetadata>();
         var maskinportenClientMock = new Mock<IMaskinportenClient>();
-        var dataClientMock = new Mock<IDataClient>();
-        var instanceClientMock = new Mock<IInstanceClient>();
+        var dataClientMock = new Mock<IStorageDataClient>();
+        var instanceClientMock = new Mock<IStorageInstanceClient>();
         var appResourcesMock = new Mock<IAppResources>();
         var appModelMock = new Mock<IAppModel>();
         var authenticationContextMock = new Mock<IAuthenticationContext>();
@@ -195,13 +195,16 @@ internal sealed record TestFixture(
         builder.Services.AddSingleton(appMetadataMock.Object);
         builder.Services.AddSingleton(maskinportenClientMock.Object);
         builder.Services.AddSingleton(loggerFactoryMock.Object);
-        builder.Services.AddSingleton(dataClientMock.Object);
+        builder.Services.AddSingleton<IStorageDataClient>(dataClientMock.Object);
+        builder.Services.AddSingleton<IDataClient>(dataClientMock.Object);
         builder.Services.AddSingleton(authenticationContextMock.Object);
         builder.Services.AddSingleton(partyClientMock.Object);
         builder.Services.AddSingleton(layoutStateInitializerMock.Object);
         builder.Services.AddSingleton(emailNotificationClientMock.Object);
         builder.Services.AddSingleton(appResourcesMock.Object);
-        builder.Services.AddSingleton(instanceClientMock.Object);
+        builder.Services.AddSingleton<IStorageInstanceClient>(instanceClientMock.Object);
+        builder.Services.AddSingleton<IInstanceClient>(instanceClientMock.Object);
+        builder.Services.AddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
         builder.Services.AddSingleton(appModelMock.Object);
         builder.Services.AddSingleton(processReaderMock.Object);
         builder.Services.AddSingleton(httpClientFactoryMock.Object);

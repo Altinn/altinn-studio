@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -13,6 +14,11 @@ public interface IEFormidlingService
     /// </summary>
     /// <param name="instance">Instance data</param>
     /// <param name="configuration">A valid config for eFormidling.</param>
+    /// <param name="dataAccessor">The active instance data accessor, when the shipment is sent from a unit of work.</param>
     /// <returns></returns>
-    public Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration);
+    public Task SendEFormidlingShipment(
+        Instance instance,
+        ValidAltinnEFormidlingConfiguration configuration,
+        IInstanceDataAccessor? dataAccessor = null
+    );
 }

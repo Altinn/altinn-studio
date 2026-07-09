@@ -182,10 +182,12 @@ internal sealed class ProcessNextRequestFactory
                 continue;
 
             string? altinnTaskType = instanceEvent.ProcessInfo?.CurrentTask?.AltinnTaskType;
+            ServiceTaskWorkflowDescriptor? serviceTask = GetServiceTask(altinnTaskType);
 
             WorkflowCommandSet? workflowCommands = await GetWorkflowStepsForInstanceEvent(
+                instanceEvent,
                 instanceEventType,
-                altinnTaskType,
+                serviceTask,
                 isInitialTaskStart,
                 isInstantiation,
                 prefill,
@@ -216,15 +218,16 @@ internal sealed class ProcessNextRequestFactory
             commands.Add(CreateMutateProcessStateCommand(processStateChange));
         }
         commands.AddRange(taskStartSteps);
-        commands.Add(CreateSaveProcessStateToStorageCommand(processStateChange));
+        commands.Add(CreateCommitProcessStateCommand(processStateChange));
         commands.AddRange(postCommitSteps);
 
         return commands;
     }
 
     private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(
+        InstanceEvent instanceEvent,
         InstanceEventType eventType,
-        string? altinnTaskType,
+        ServiceTaskWorkflowDescriptor? serviceTask,
         bool isInitialTaskStart,
         bool isInstantiation,
         Dictionary<string, string>? prefill,
@@ -239,7 +242,9 @@ internal sealed class ProcessNextRequestFactory
                 return WorkflowCommandSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
-                        ServiceTaskType = GetServiceTaskType(altinnTaskType),
+                        TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
+                        ServiceTaskType = serviceTask?.Type,
+                        ServiceTaskHasPostCommitStep = serviceTask?.HasPostCommitStep == true,
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -248,7 +253,7 @@ internal sealed class ProcessNextRequestFactory
                     }
                 );
             case InstanceEventType.process_EndTask:
-                return WorkflowCommandSet.GetTaskEndSteps();
+                return WorkflowCommandSet.GetTaskEndSteps(GetRequiredEventTaskId(instanceEvent, eventType));
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps();
             case InstanceEventType.process_EndEvent:
@@ -270,15 +275,26 @@ internal sealed class ProcessNextRequestFactory
         }
     }
 
-    private string? GetServiceTaskType(string? altinnTaskType)
+    private ServiceTaskWorkflowDescriptor? GetServiceTask(string? altinnTaskType)
     {
         if (altinnTaskType is null)
             return null;
 
         IEnumerable<IServiceTask> serviceTasks = _appImplementationFactory.GetAll<IServiceTask>();
-        bool isServiceTask = serviceTasks.Any(x => x.Type.Equals(altinnTaskType, StringComparison.OrdinalIgnoreCase));
-        return isServiceTask ? altinnTaskType : null;
+        IServiceTask? serviceTask = serviceTasks.FirstOrDefault(x =>
+            x.Type.Equals(altinnTaskType, StringComparison.OrdinalIgnoreCase)
+        );
+
+        return serviceTask is null
+            ? null
+            : new ServiceTaskWorkflowDescriptor(altinnTaskType, serviceTask is IPostCommitServiceTask);
     }
+
+    private sealed record ServiceTaskWorkflowDescriptor(string Type, bool HasPostCommitStep);
+
+    private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
+        instanceEvent.ProcessInfo?.CurrentTask?.ElementId
+        ?? throw new InvalidOperationException($"Workflow event {eventType} is missing current task information.");
 
     private async Task<Actor> ExtractActor()
     {
@@ -325,7 +341,7 @@ internal sealed class ProcessNextRequestFactory
 
     private static StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
     {
-        var payload = new SaveProcessStateToStoragePayload(processStateChange);
+        var payload = new ProcessStateChangePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         return new StepRequest
         {
@@ -337,16 +353,16 @@ internal sealed class ProcessNextRequestFactory
         };
     }
 
-    private static StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
+    private static StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange)
     {
-        var payload = new SaveProcessStateToStoragePayload(processStateChange);
+        var payload = new ProcessStateChangePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         return new StepRequest
         {
-            OperationId = SaveProcessStateToStorage.Key,
+            OperationId = CommitProcessState.Key,
             Command = CommandDefinition.Create(
                 "app",
-                new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
+                new AppCommandData { CommandKey = CommitProcessState.Key, Payload = serializedPayload }
             ),
         };
     }

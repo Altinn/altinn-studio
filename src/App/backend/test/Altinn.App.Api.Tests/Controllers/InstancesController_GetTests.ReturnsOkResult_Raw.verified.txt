@@ -77,14 +77,16 @@
         references: null,
         created: null,
         createdBy: null,
-        lastChanged: null,
+        lastChanged: DateTimeOffset_3,
         lastChangedBy: null
       }
     ],
+    presentationTexts: null,
+    dataValues: null,
     created: null,
     createdBy: null,
-    lastChanged: DateTimeOffset_3,
-    lastChangedBy: 
+    lastChanged: DateTimeOffset_4,
+    lastChangedBy: null
   },
   readResponse: {
     id: <instancOwnerPartyId>/<instanceGuid>,
@@ -164,13 +166,15 @@
         references: null,
         created: null,
         createdBy: null,
-        lastChanged: null,
+        lastChanged: DateTimeOffset_3,
         lastChangedBy: null
       }
     ],
+    presentationTexts: null,
+    dataValues: null,
     created: null,
     createdBy: null,
-    lastChanged: DateTimeOffset_3,
-    lastChangedBy: 
+    lastChanged: DateTimeOffset_4,
+    lastChangedBy: null
   }
 }

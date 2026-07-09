@@ -24,6 +24,13 @@ public static class Diagnostics
             "HttpContextAccessor dangerous usage",
             "IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe"
         );
+
+        public static readonly DiagnosticDescriptor MutatorStorageClientUsage = Warning(
+            "ALTINNAPP0501",
+            Category.CodeSmells,
+            "Direct Storage client used during active unit of work",
+            "Avoid using direct Storage client '{0}' in '{1}' because this code can run during an active InstanceDataUnitOfWork. Use the provided IInstanceDataAccessor/IInstanceDataMutator when available, or move direct Storage access outside the active unit of work."
+        );
     }
 
     public static class FormDataWrapperGenerator

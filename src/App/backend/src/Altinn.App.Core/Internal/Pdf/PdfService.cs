@@ -450,6 +450,7 @@ public class PdfService : IPdfService
         IInstanceDataAccessor? dataAccessor
     )
     {
+        InstanceDataUnitOfWork? ownedDataAccessor = null;
         try
         {
             var hideAppName = _resources.GetGlobalUiSettings()?.HideAppNameInPdf;
@@ -472,7 +473,8 @@ public class PdfService : IPdfService
                     return false;
                 }
 
-                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+                ownedDataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
+                dataAccessor = ownedDataAccessor;
             }
 
             var state = dataAccessor.GetLayoutEvaluatorState();
@@ -495,6 +497,10 @@ public class PdfService : IPdfService
         {
             _logger.LogWarning(e, "Failed to evaluate hideAppNameInPdf, defaulting to showing app name");
             return false;
+        }
+        finally
+        {
+            ownedDataAccessor?.Dispose();
         }
     }
 

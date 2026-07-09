@@ -107,7 +107,7 @@ public class SigningUserActionTests
 
             instanceDataMutatorMock.Setup(x => x.Instance).Returns(_instance);
 
-            var instanceClientMock = new Mock<IInstanceClient>();
+            var instanceClientMock = new Mock<IStorageInstanceClient>();
             instanceClientMock
                 .Setup(x =>
                     x.GetInstance(_instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
@@ -546,7 +546,7 @@ public class SigningUserActionTests
         var serviceProvider = services.BuildServiceProvider();
 
         var dummySigningReceiptService = Mock.Of<ISigningReceiptService>();
-        var dummyInstanceClient = Mock.Of<IInstanceClient>();
+        var dummyInstanceClient = Mock.Of<IStorageInstanceClient>();
 
         return (
             new SigningUserAction(
@@ -595,7 +595,7 @@ public class SigningUserActionHandleOnBehalfOfTests
         ISignClient dummySignClient = Mock.Of<ISignClient>();
         var dummyAppMetadata = Mock.Of<IAppMetadata>();
         var dummySigningReceiptService = Mock.Of<ISigningReceiptService>();
-        var dummyInstanceClient = Mock.Of<IInstanceClient>();
+        var dummyInstanceClient = Mock.Of<IStorageInstanceClient>();
 
         return new SigningUserAction(
             serviceProvider,

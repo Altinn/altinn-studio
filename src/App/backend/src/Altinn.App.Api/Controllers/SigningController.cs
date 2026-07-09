@@ -1,6 +1,5 @@
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
@@ -101,11 +100,7 @@ public class SigningController : ControllerBase
             return NotSigningTask();
         }
 
-        IInstanceDataAccessor instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
-            instance,
-            finalTaskId,
-            language
-        );
+        using var instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, finalTaskId, language);
 
         AltinnSignatureConfiguration signingConfiguration =
             (_processReader.GetAltinnTaskExtension(finalTaskId)?.SignatureConfiguration)
@@ -207,11 +202,7 @@ public class SigningController : ControllerBase
             return NotSigningTask();
         }
 
-        IInstanceDataAccessor instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
-            instance,
-            finalTaskId,
-            language
-        );
+        using var instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, finalTaskId, language);
 
         AltinnSignatureConfiguration signingConfiguration =
             (_processReader.GetAltinnTaskExtension(finalTaskId)?.SignatureConfiguration)

@@ -109,9 +109,18 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IApplicationClient, ApplicationClient>();
         services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
         services.AddHttpClient<IAuthorizationClient, AuthorizationClient>();
-        services.AddHttpClient<IDataClient, DataClient>();
+        services.TryAddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
+        services.AddHttpClient<IStorageDataClient, StorageDataClient>();
+        services.AddTransient<IDataClient>(sp => new DataClient(
+            sp.GetRequiredService<IStorageDataClient>(),
+            sp.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>()
+        ));
         services.AddHttpClient<IOrganizationClient, RegisterERClient>();
-        services.AddHttpClient<IInstanceClient, InstanceClient>();
+        services.AddHttpClient<IStorageInstanceClient, InstanceClient>();
+        services.AddTransient<IInstanceClient, GuardedInstanceClient>();
+        services.AddTransient<IInstanceClientWithStorageMetadata>(sp =>
+            sp.GetRequiredService<IStorageInstanceClient>()
+        );
         services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
         services.AddHttpClient<IEventsClient, EventsClient>();
         services.AddProfileClient();

@@ -115,7 +115,11 @@ public abstract class BaseFixture : IDisposable
     protected async Task<(
         CompilationWithAnalyzers Compilation,
         IReadOnlyList<Diagnostic> Diagnostics
-    )> CompileWithAnalyzer(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+    )> CompileWithAnalyzer(
+        DiagnosticAnalyzer analyzer,
+        CancellationToken cancellationToken,
+        AnalyzerOptions? analyzerOptions = null
+    )
     {
         if (!IsInitialized)
             throw new InvalidOperationException("Fixture not initialized");
@@ -127,7 +131,7 @@ public abstract class BaseFixture : IDisposable
             Assert.NotNull(compilation);
 
             var options = new CompilationWithAnalyzersOptions(
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                analyzerOptions ?? new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                 static (ex, analyzer, diagnostic) => Assert.Fail($"Analyzer exception due to {diagnostic.Id}: {ex}"),
                 concurrentAnalysis: true,
                 logAnalyzerExecutionTime: true

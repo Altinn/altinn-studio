@@ -1,42 +1,79 @@
 # Workflow Engine Integration Layer
 
-App-lib integration with the async Workflow Engine service. The engine runs as a separate service; this code handles **sending requests** and **receiving callbacks**.
+App-lib integration with the async Workflow Engine service. The engine runs as a separate service;
+this code handles **sending process-next workflows** and **receiving command callbacks**.
 
 ## Architecture
 
-The Workflow Engine service (external, .NET, PostgreSQL-backed) orchestrates process transitions. This integration layer:
+The Workflow Engine service (external, .NET, PostgreSQL-backed) orchestrates process transitions.
+This integration layer:
 
-1. **Outbound**: `ProcessNextRequestFactory` builds a `WorkflowEnqueueEnvelope` (containing `WorkflowEnqueueRequest` body + metadata) and `WorkflowEngineClient` POSTs it to the engine's enqueue endpoint (`POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows`). Namespace is sent in the URL path, idempotency key and collection key are sent via HTTP headers (`Idempotency-Key`, `Collection-Key`). Context (`AppWorkflowContext`) carries actor, lock token, org/app, and instance identification. `Namespace` = `{org}/{app}` (isolation boundary); the instance guid is sent as the `processNextInstanceGuid` label (for querying all workflows for an instance).
-2. **Inbound**: The engine calls back to `WorkflowEngineCallbackController` for each command, one at a time, sequentially
-3. **Per-callback lifecycle**: Controller restores `InstanceDataUnitOfWork` from the opaque state blob, resolves the `IWorkflowEngineCommand` by key, executes it, commits data changes on success, captures updated state, and returns it to the engine
+1. **Outbound**: `ProcessNextRequestFactory` builds a `WorkflowEnqueueEnvelope` (a
+   `WorkflowEnqueueRequest` body plus metadata) and `WorkflowEngineClient` POSTs it to the
+   engine's enqueue endpoint (`POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows`).
+   `Namespace` is `{org}/{app}`. The enqueue idempotency key and collection key are sent as
+   `Idempotency-Key` and `Collection-Key` headers. The instance guid is sent as the
+   `processNextInstanceGuid` label for querying workflows by instance.
+2. **Inbound**: the engine calls `WorkflowEngineCallbackController` once per command, in order,
+   echoing the current opaque state blob.
+3. **Per-callback lifecycle**: restore the state blob, execute the command, perform one
+   workflow-owned save by the controller when there is anything to save, apply replay semantics,
+   capture the next state blob, and then let service-task auto-advance enqueue the next transition
+   when requested.
 
 ```
 App ProcessNext API
-  → Capture workflow callback state into opaque state blob (WorkflowCallbackStateService)
-  → ProcessNextRequestFactory.Create()     (builds WorkflowEnqueueRequest from ProcessStateChange)
-  → WorkflowEngineClient.EnqueueWorkflow() (HTTP POST to engine, returns WorkflowEnqueueResponse.Accepted)
-  → Extract workflowId from response for status polling
+  -> Capture workflow callback state into an opaque state blob (WorkflowCallbackStateService)
+  -> ProcessNextRequestFactory.Create()     (builds WorkflowEnqueueRequest from ProcessStateChange)
+  -> WorkflowEngineClient.EnqueueWorkflow() (HTTP POST to engine)
+  -> Extract workflowId from response for status polling
 
 Engine (external service)
-  → Executes steps sequentially
-  → For each AppCommand: POST to /workflow-engine-callbacks/{commandKey} (echoes state blob)
+  -> Executes steps sequentially
+  -> For each AppCommand: POST to /workflow-engine-callbacks/{commandKey}
+     with AppCallbackPayload + Idempotency-Key header
 
 WorkflowEngineCallbackController.ExecuteCommand()
-  → Restore workflow callback state from state blob (WorkflowCallbackStateService)
-  → Resolve IWorkflowEngineCommand by key
-  → command.Execute(context)
-  → Save data changes on success, capture updated state blob, return to engine
-  → (Engine uses returned state blob for next callback)
+  -> Restore workflow callback state from state blob (WorkflowCallbackStateService)
+  -> Resolve IWorkflowEngineCommand by key
+  -> command.Execute(context)
+  -> If successful and there is a mutation plan, save once through SaveWorkflowOwnedAggregate()
+  -> If storage reports replay, rebuild UOW state and continue
+  -> Capture updated state blob, return it to the engine, and auto-advance if requested
+  -> Engine uses returned state blob for the next callback
 ```
 
 ## Key Design Constraints
 
-- **ALL commands MUST be idempotent** - the engine retries failed commands with configurable backoff
-- **Commands run in separate HTTP requests** - each callback is independent; state is passed between commands via an opaque JSON blob (see State Passthrough below)
-- **Three command phases**: task-end commands → `MutateProcessState` (in-memory state transition) → task-start commands → `SaveProcessStateToStorage` (persist to Storage) → post-commit commands
-- **Task-start reads get a clean slate.** `CleanupGeneratedFromTask` runs before the task-start hooks and removes elements generated by previous visits to the entering task (mirroring Storage's cleanup contract, but early enough that `OnTaskStartingHook`/`StartTask` never see stale data). An element referencing the entering task that is visible at task start was created by a retried attempt of the same transition.
-- **`generatedFromTask` tagging is safe in any phase, including task start.** Storage's cleanup at `PutInstanceAndEvents` (stale data from previous visits - see altinn-storage#977 / app-lib-dotnet#1750) is timestamp-guarded: it only deletes elements created before the in-flight transition began, so elements created by task-start commands survive the save that completes their own transition. `SigningService` relies on this - signee states are created during task start tagged with the signing task. NOTE: the guard must exist in the Storage backend the app runs against (localtest has it; the altinn-storage PR must be deployed before this app-lib version is released).
-- **Authentication**: Callbacks are authenticated with the `WorkflowEngineCallback` scheme. The app mints a JWT at enqueue time (signed with a `WorkflowEngineCallback` app-code, `jti` = instance guid), carries it opaquely through the engine in `AppWorkflowContext.CallbackToken`, and the engine replays it on every callback in the `Authorization: Bearer` header. A selector policy scheme (the app's default auth scheme) routes callback requests to the `WorkflowEngineCallback` scheme and all other requests to the JwtCookie scheme, so the bearer token does not collide with platform auth. The app validates signature, lifetime, and that `jti` matches the route instance. Data operations use `StorageAuthenticationMethod.ServiceOwner()`
+- **All commands must be idempotent**. The engine retries failed commands with configurable backoff.
+- **Commands run in separate HTTP requests**. Each callback is independent; state is passed between
+  commands via an opaque JSON blob (see State Passthrough).
+- **Commands mutate in memory; the controller owns persistence**. Commands stage work on the
+  `InstanceDataUnitOfWork`; the callback controller performs the workflow-owned Storage save.
+- **Task-start reads get a clean slate.** `CleanupGeneratedFromTask` runs before the task-start
+  hooks and removes elements generated by previous visits to the entering task (mirroring Storage's
+  cleanup contract, but early enough that `OnTaskStartingHook`/`StartTask` never see stale data).
+  An element referencing the entering task that is visible at task start was created by a retried
+  attempt of the same transition.
+- **`generatedFromTask` tagging is safe in any phase, including task start.** Storage's cleanup at
+  `PutInstanceAndEvents` (stale data from previous visits - see altinn-storage#977 /
+  app-lib-dotnet#1750) is timestamp-guarded: it only deletes elements created before the in-flight
+  transition began, so elements created by task-start commands survive the save that completes
+  their own transition. `SigningService` relies on this - signee states are created during task
+  start tagged with the signing task. NOTE: the guard must exist in the Storage backend the app
+  runs against (localtest has it; the altinn-storage PR must be deployed before this app-lib
+  version is released).
+- **The callback `Idempotency-Key` header is required**. Missing keys fail as a non-retryable
+  422 response. When present, the key is forwarded verbatim to Storage as the aggregate mutation
+  idempotency key. The same id is therefore greppable across the engine database, app logs, and
+  Storage's idempotency records.
+- **Authentication**: callbacks are authenticated with the `WorkflowEngineCallback` scheme. The app
+  mints a JWT at enqueue time (signed with a `WorkflowEngineCallback` app-code, `jti` = instance
+  guid), carries it opaquely through the engine in `AppWorkflowContext.CallbackToken`, and the
+  engine replays it on every callback in the `Authorization: Bearer` header. A selector policy
+  scheme routes callback requests to `WorkflowEngineCallback` and all other requests to
+  `JwtCookie`, so the bearer token does not collide with platform auth. Data operations use
+  `StorageAuthenticationMethod.ServiceOwner()`.
 
 ## File Structure
 
@@ -49,11 +86,11 @@ WorkflowEngine/
 │   │   ├── WorkflowEngineCommandBase<T>.cs  - Base class for typed-payload commands
 │   │   ├── ProcessEngineCommandContext.cs   - Context struct (AppId, InstanceId, Mutator, Payload, CT)
 │   │   ├── ProcessEngineCommandResult.cs    - Success/Failed result types
-│   │   ├── CommandPayload.cs                - Polymorphic JSON payload base + serializer + source gen context
+│   │   ├── CommandPayload.cs                - Polymorphic payload base + serializer + source gen
 │   │   └── ProcessTaskResolver.cs           - Resolves IProcessTask/IServiceTask by AltinnTaskType
 │   ├── ProcessNext/
 │   │   ├── TaskStart/
-│   │   │   ├── UnlockTaskData.cs            - Unlock data elements for new task
+│   │   │   ├── UnlockTaskData.cs            - Stage data-type unlock for the new task
 │   │   │   ├── CleanupGeneratedFromTask.cs  - Remove stale elements generated by previous visits to the entering task
 │   │   │   ├── OnTaskStartingHook.cs        - Runs IOnTaskStartingHandler (max 1 per task)
 │   │   │   ├── CommonTaskInitialization.cs   - Auto-create data elements, prefill
@@ -69,165 +106,246 @@ WorkflowEngine/
 │   │   └── ProcessEnd/
 │   │       ├── OnProcessEndingHook.cs       - Runs IOnProcessEndingHandler (pre-commit)
 │   │       ├── EndProcessLegacyHook.cs      - Runs legacy IProcessEnd (post-commit)
-│   │       ├── DeleteDataElements.cs        - Auto-delete data types with AutoDeleteOnProcessEnd (post-commit)
-│   │       └── DeleteInstance.cs            - Hard-delete instance if ApplicationMetadata.AutoDeleteOnProcessEnd (post-commit)
+│   │       ├── DeleteDataElements.cs        - Auto-delete data types with AutoDeleteOnProcessEnd
+│   │       └── DeleteInstance.cs            - Stages hard deletion when AutoDeleteOnProcessEnd is true
 │   ├── AltinnEvents/
 │   │   ├── MovedToAltinnEvent.cs            - Fires movedTo.{taskId} event (post-commit)
 │   │   ├── CompletedAltinnEvent.cs          - Fires process.completed event (post-commit)
 │   │   └── InstanceCreatedAltinnEvent.cs    - Fires instance.created event (post-commit, first task only)
-│   ├── ExecuteServiceTask.cs                - Runs IServiceTask.Execute() (post-commit)
-│   ├── NotifyInstanceOwnerOnInstantiation.cs - Sends instantiation notification (post-commit, first task only)
-│   ├── MutateProcessState.cs                - Mutates in-memory process state between task-end and task-start
-│   └── SaveProcessStateToStorage.cs         - Commits ProcessStateChange to Storage (the commit boundary)
+│   ├── ExecuteServiceTask.cs                - Runs IServiceTask.Execute() / post-commit service hook
+│   ├── NotifyInstanceOwnerOnInstantiation.cs - Sends instantiation notification (first task only)
+│   ├── MutateProcessState.cs                - Mutates in-memory process state between command groups
+│   └── CommitProcessState.cs                - Stages ProcessStateChange for the controller save
 ├── DependencyInjection/
 │   ├── ServiceCollectionExtensions.cs       - Registers all commands + client + helpers
-│   └── WorkflowEngineCommandValidator.cs    - Startup check: all keys in WorkflowCommandSet are registered
+│   └── WorkflowEngineCommandValidator.cs    - Startup check: all command keys are registered
 ├── Http/
-│   ├── IWorkflowEngineClient.cs             - Enqueue, list, collection, cancel, and resume operations
-│   └── WorkflowEngineClient.cs              - HTTP impl (no auth header yet)
+│   ├── IWorkflowEngineClient.cs             - Enqueue, list, collection, cancel, resume, and abandon operations
+│   └── WorkflowEngineClient.cs              - HTTP implementation
 ├── Models/
-│   ├── WorkflowEnqueueRequest.cs            - Batch request body (labels, context, list of WorkflowRequest)
-│   ├── WorkflowRequest.cs                   - Single workflow (operationId, steps, state, dependsOn)
-│   ├── WorkflowEnqueueResponse.cs           - Response: Accepted (with WorkflowResult[])
-│   ├── StepRequest.cs                       - Single step (operationId + command + retryStrategy + metadata)
-│   ├── CommandDefinition.cs                 - CommandDefinition: flat record with type + data (JsonElement)
+│   ├── WorkflowEnqueueRequest.cs            - Batch request body
+│   ├── WorkflowRequest.cs                   - Single workflow
+│   ├── WorkflowEnqueueResponse.cs           - Accepted response with WorkflowResult[]
+│   ├── StepRequest.cs                       - Single step
+│   ├── CommandDefinition.cs                 - Flat record with type + data
 │   ├── AppCommandData.cs                    - Data for "app" commands (commandKey + payload)
-│   ├── AppWorkflowContext.cs                - Context for app commands (actor, lockToken, org, app, party, guid, callbackToken)
-│   ├── AppCallbackPayload.cs                - Payload engine sends back per callback (includes workflowId)
-│   ├── AppCallbackResponse.cs               - Success response with updated state blob (nullable)
+│   ├── AppWorkflowContext.cs                - Context for app commands
+│   ├── AppCallbackPayload.cs                - Payload engine sends back per callback
+│   ├── AppCallbackResponse.cs               - Success response with updated state blob
 │   ├── Actor.cs                             - User/org identity for the request
-│   ├── RetryStrategy.cs                     - Backoff config (Exponential/Linear/Constant + nonRetryableHttpStatusCodes)
+│   ├── RetryStrategy.cs                     - Backoff config
 │   ├── BackoffType.cs                       - Enum
-│   ├── PersistentItemStatus.cs              - Enum (Enqueued/Processing/Requeued/Completed/Failed/Canceled/DependencyFailed/Abandoned)
+│   ├── PersistentItemStatus.cs              - Engine item status enum
 │   ├── PaginatedResponse.cs                 - Paged engine list response
-│   ├── WorkflowCollectionDetailResponse.cs  - Collection status response with active heads
-│   ├── WorkflowStatusResponse.cs            - Full status response (databaseId, operationId, steps as StepStatusResponse)
+│   ├── WorkflowCollectionDetailResponse.cs  - Collection status response
+│   ├── WorkflowStatusResponse.cs            - Full status response
 │   ├── WorkflowRef.cs                       - Dependency reference between workflows
-│   └── WorkflowCallbackState.cs             - Internal DTO for transported instance + form data callback state
-├── WorkflowCallbackStateService.cs          - Captures/restores workflow callback state to/from opaque state blob
-├── ProcessNextRequestFactory.cs             - Maps ProcessStateChange → WorkflowEnqueueRequest
+│   └── WorkflowCallbackState.cs             - Transported instance + form data callback state
+├── WorkflowCallbackStateService.cs          - Captures/restores opaque workflow callback state
+├── ProcessNextRequestFactory.cs             - Maps ProcessStateChange to WorkflowEnqueueRequest
 └── WorkflowCommandSet.cs                    - Defines command sequences per event type
 ```
 
 ## Command Sequences
 
 Defined in `WorkflowCommandSet.cs`. `ProcessNextRequestFactory` assembles the full sequence:
+
 1. Task-end/abandon commands (from `process_EndTask`/`process_AbandonTask` events)
-2. `MutateProcessState` (inserted by factory if there are task-end/abandon commands)
+2. `MutateProcessState` when task-end/abandon commands need the in-memory state transition
 3. Task-start and process-end commands (from `process_StartTask`/`process_EndEvent` events)
-4. `SaveProcessStateToStorage` (always inserted by factory)
-5. Post-commit commands
+4. `CommitProcessState`, which stages the `ProcessStateChange`
+5. Post-commit commands, after the controller save for `CommitProcessState` has committed
 
-### Task-to-Task Transition (e.g., Task_1 → Task_2)
+### Task-to-Task Transition (for example, Task_1 to Task_2)
+
 ```
-── instance.Process.CurrentTask = Task_1 (OLD) ──
-EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
-  ── MutateProcessState (in-memory: CurrentTask → Task_2) ──
-── instance.Process.CurrentTask = Task_2 (NEW) ──
-UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
-  ── SaveProcessStateToStorage (persist to Storage) ──
-MovedToAltinnEvent → [ExecuteServiceTask if service task]
+instance.Process.CurrentTask = Task_1 (old)
+EndTask -> CommonTaskFinalization -> OnTaskEndingHook -> LockTaskData
+  -> MutateProcessState (in memory: CurrentTask = Task_2)
+instance.Process.CurrentTask = Task_2 (new)
+UnlockTaskData -> CleanupGeneratedFromTask -> OnTaskStartingHook -> CommonTaskInitialization -> StartTask
+  -> CommitProcessState (stages process state; controller save commits it)
+MovedToAltinnEvent -> [ExecuteServiceTask if service task]
 ```
 
-### Task-to-End Transition (e.g., Task_1 → EndEvent)
+### Task-to-End Transition (for example, Task_1 to EndEvent)
+
 ```
-── instance.Process.CurrentTask = Task_1 (OLD) ──
-EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
-  ── MutateProcessState (in-memory: CurrentTask → null, EndEvent set) ──
+instance.Process.CurrentTask = Task_1 (old)
+EndTask -> CommonTaskFinalization -> OnTaskEndingHook -> LockTaskData
+  -> MutateProcessState (in memory: CurrentTask = null, EndEvent set)
 OnProcessEndingHook
-  ── SaveProcessStateToStorage (persist to Storage) ──
-EndProcessLegacyHook → DeleteDataElementsIfConfigured → DeleteInstanceIfConfigured → CompletedAltinnEvent
+  -> CommitProcessState (stages process state; controller save commits it)
+EndProcessLegacyHook -> DeleteDataElementsIfConfigured -> DeleteInstanceIfConfigured -> CompletedAltinnEvent
 ```
 
-### Initial Task Start (process just created)
+`DeleteInstanceIfConfigured` stages a hard deletion on the unit of work. If it stages a deletion,
+the controller save in that callback commits the delete mutation through Storage's aggregate
+mutation endpoint.
+
+### Initial Task Start
+
 ```
-── instance.Process.CurrentTask = Task_1 (already set by CreateInitialProcessState) ──
-UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
-  ── SaveProcessStateToStorage (persist to Storage) ──
-MovedToAltinnEvent → [ExecuteServiceTask if service task] → [InstanceCreatedAltinnEvent if first task] → [NotifyInstanceOwnerOnInstantiation if configured]
+instance.Process.CurrentTask = Task_1 (already set by CreateInitialProcessState)
+UnlockTaskData -> CleanupGeneratedFromTask -> OnTaskStartingHook -> CommonTaskInitialization -> StartTask
+  -> CommitProcessState (stages process state; controller save commits it)
+MovedToAltinnEvent -> [ExecuteServiceTask if service task]
+  -> [InstanceCreatedAltinnEvent if first task]
+  -> [NotifyInstanceOwnerOnInstantiation if configured]
 ```
 
-### Task Abandon (reject → end)
+### Task Abandon
+
 ```
-── instance.Process.CurrentTask = Task_1 (OLD) ──
-AbandonTask → OnTaskAbandonHook
-  ── MutateProcessState (in-memory: CurrentTask → null or next task) ──
+instance.Process.CurrentTask = Task_1 (old)
+AbandonTask -> OnTaskAbandonHook
+  -> MutateProcessState (in memory: CurrentTask = null or next task)
 [OnProcessEndingHook if ending] / [task-start commands if moving to next task]
-  ── SaveProcessStateToStorage (persist to Storage) ──
+  -> CommitProcessState (stages process state; controller save commits it)
 [post-commit commands]
 ```
 
+### Task-Start Cleanup Ordering
+
+Task-generated-data cleanup lives in `CleanupGeneratedFromTask`, which runs right after
+`UnlockTaskData` and before `OnTaskStartingHook`, so all task-start logic (including app-supplied
+hooks) reads a clean slate. The unlock runs first because elements generated by a previous visit
+may still be locked from that visit's `LockTaskData`. The full task-start ordering is pinned by
+`ProcessEngineTest` and `ProcessNextRequestFactoryTests`.
+
+## Commit Boundary and Empty Saves
+
+`CommitProcessState` is the commit boundary in the workflow sequence, but it does not write to
+Storage itself. It validates and stages the `ProcessStateChange` on the
+`InstanceDataUnitOfWork`; the controller's workflow-owned save in that same callback commits that
+process-state mutation. Other callbacks use the same controller-owned workflow save for their own
+data changes, pending lock statuses, and derived instance-field updates.
+
+The controller skips Storage when the aggregate mutation plan is empty. The skip is retry-safe
+because it is deterministic: the same input state blob rebuilds the same unit of work, the command
+creates the same plan, and the controller reaches the same save-or-skip decision. An otherwise
+empty command can still save intentionally when the full mutation plan contains derived
+`dataValues` or `presentationTexts` updates.
+
+## Replay Semantics
+
+Storage's aggregate mutation endpoint admits replay by `(instance, previous instance version,
+idempotency key)`. On replay it returns the original response without reading the request body.
+This is required because retried callbacks may regenerate different bytes or JSON ordering while
+still representing the same already-committed workflow step.
+
+When Storage marks the mutation response as replayed, `InstanceDataUnitOfWork` does not remap
+created data element ids onto the current attempt's local changes. Instead it rebuilds from
+Storage's authoritative state, clears local caches and tracked changes, refreshes version and ETag
+metadata, and throws `InstanceMutationReplayedException`.
+
+`WorkflowEngineCallbackController` is the caller that handles this exception. It logs at
+information level and continues to capture state from the rebuilt unit of work. The semantic is
+first-commit-wins: the workflow proceeds with the result committed by the first successful attempt.
+Any other caller that receives `InstanceMutationReplayedException` fails permanently, because a
+retry with the same key would deterministically replay again.
+
 ## How to Add a New Command
 
-1. **Create the command class** in the appropriate `Commands/` subfolder:
-   - Without payload: implement `IWorkflowEngineCommand` directly
-   - With typed payload: extend `WorkflowEngineCommandBase<TPayload>` and create a `record TPayload : CommandRequestPayload`
-
-2. **If using a payload**: register it in `CommandPayload.cs`:
-   - Add `[JsonDerivedType(typeof(MyPayload), typeDiscriminator: "myPayload")]` to `CommandRequestPayload`
-   - Add `[JsonSerializable(typeof(MyPayload))]` to `CommandPayloadJsonContext`
-
-3. **Register in DI**: add `services.AddTransient<IWorkflowEngineCommand, MyCommand>()` in `ServiceCollectionExtensions.cs`
-
-4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddPostProcessNextCommittedCommand` for post-commit)
-
-5. **Startup validation**: `WorkflowEngineCommandValidator` in `WorkflowEngineCommandValidator.cs` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
+1. Create the command class in the appropriate `Commands/` subfolder:
+   - Without payload: implement `IWorkflowEngineCommand` directly.
+   - With typed payload: extend `WorkflowEngineCommandBase<TPayload>` and create a
+     `record TPayload : CommandRequestPayload`.
+2. If using a payload, register it in `CommandPayload.cs`:
+   - Add `[JsonDerivedType(typeof(MyPayload), typeDiscriminator: "myPayload")]` to
+     `CommandRequestPayload`.
+   - Add `[JsonSerializable(typeof(MyPayload))]` to `CommandPayloadJsonContext`.
+   - Payload serialization emits `$type`; `CommitProcessState` uses the
+     `processStateChange` discriminator.
+3. Register the command in DI via `ServiceCollectionExtensions.cs`.
+4. Add it to the sequence in `WorkflowCommandSet.cs` using `AddCommand` for commands before the
+   process-state commit boundary or `AddPostProcessNextCommittedCommand` for commands after it.
+5. Let `WorkflowEngineCommandValidator` catch missing DI registrations at startup.
 
 ## Command Conventions
 
-- Every command has `public static string Key => "..."` and `public string GetKey() => Key`
-- Commands return `SuccessfulProcessEngineCommandResult` or `FailedProcessEngineCommandResult` (never throw from Execute)
-- Commands get instance data through `context.InstanceDataMutator` (an `InstanceDataUnitOfWork`)
-- Commands pass `context.CancellationToken` into app-facing contexts (`ProcessTaskContext`, hook contexts, and `ServiceTaskContext`)
-- The callback controller saves data changes after successful execution - commands don't need to persist data themselves (except `SaveProcessStateToStorage` which writes to the process/events API)
-- Hook commands (`OnTaskStarting`, `OnTaskEnding`, `OnTaskAbandon`, `OnProcessEnding`) enforce max 1 handler per task
-- `ExecuteServiceTask` can request auto-advance by returning `ServiceTaskSuccessResult` with `AutoAdvanceProcess = true`
+- Every command has `public static string Key => "..."` and `public string GetKey() => Key`.
+- Commands return `SuccessfulProcessEngineCommandResult` or `FailedProcessEngineCommandResult`.
+- Commands get instance data through `context.InstanceDataMutator`, typed as
+  `IInstanceDataMutator`. Task data lock/unlock commands deliberately assert that the runtime
+  object is `InstanceDataUnitOfWork`, because data-type lock mutation is workflow-owned and is not
+  part of the app-facing mutator surface.
+- Commands pass `context.CancellationToken` into app-facing contexts (`ProcessTaskContext`, hook
+  contexts, and `ServiceTaskContext`).
+- Commands do not persist directly. They stage work on the unit of work and let the controller save
+  after successful execution.
+- Hook commands (`OnTaskStarting`, `OnTaskEnding`, `OnTaskAbandon`, `OnProcessEnding`) enforce max
+  one handler per task.
+- `ExecuteServiceTask` can request auto-advance by returning `ServiceTaskSuccessResult` with
+  `AutoAdvanceProcess = true`.
 
 ## Interaction with Workflow Engine Service
 
 The engine service (separate repo at `altinn-studio/src/Runtime/workflow-engine`):
-- .NET service backed by PostgreSQL
-- Receives `WorkflowEnqueueRequest`, stores it, executes steps sequentially
-- Returns `WorkflowEnqueueResponse.Accepted` with `DatabaseId` and `Namespace` per workflow
-- Calls back to the app via HTTP POST for each `AppCommand`
-- Retries failed steps with configurable backoff (default: exponential, 1s base, 5min max delay, 24h max duration)
-- `Namespace` = `{org}/{app}` is the primary isolation boundary; idempotency keys are unique within a namespace
-- The `processNextInstanceGuid` label = `instanceGuid` groups workflows per instance for status queries
-- Steps execute in order; previous step must complete before next begins
-- `Context` (`AppWorkflowContext`) is opaque to the engine; passed through to command handlers
-- Commands use `CommandDefinition` with `type: "app"` and `data: AppCommandData { commandKey, payload }`
+
+- Receives `WorkflowEnqueueRequest`, stores it, and executes steps sequentially.
+- Returns `WorkflowEnqueueResponse.Accepted` with `DatabaseId` and `Namespace` per workflow.
+- Calls back to the app via HTTP POST for each `AppCommand`.
+- Sends the step database id in the callback `Idempotency-Key` header.
+- Retries failed steps with configurable backoff (default: exponential, 1s base, 5min max delay,
+  24h max duration).
+- Uses `Namespace` = `{org}/{app}` as the primary isolation boundary.
+- Uses the `processNextInstanceGuid` label to group workflows per instance for status queries.
+- Treats `Context` (`AppWorkflowContext`) as opaque data passed through to command handlers.
+- Uses `CommandDefinition` with `type: "app"` and `data: AppCommandData { commandKey, payload }`.
 
 ### URL Patterns
-- Enqueue: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows` with `Idempotency-Key` header (required) and `Collection-Key` header (optional)
-- Collection detail: `GET {ApiWorkflowEngineEndpoint}/{namespace}/collections/{collectionKey}`
-- List active: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows?label=processNextInstanceGuid:{instanceGuid}` — returns `PaginatedResponse<WorkflowStatusResponse>`
-- Cancel: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/cancel`
-- Resume: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/resume?cascade={bool}`
-- Abandon: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/abandon` — writes off a failed workflow (-> `Abandoned`) so a subsequently enqueued workflow can depend on it and run; used by the reject flow to supersede a terminally failed transition before enqueueing the reject
+
+- Enqueue: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows` with `Idempotency-Key` header
+  and optional `Collection-Key` header.
+- Collection detail: `GET {ApiWorkflowEngineEndpoint}/{namespace}/collections/{collectionKey}`.
+- List active: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows?label=processNextInstanceGuid:{instanceGuid}`.
+- Cancel: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/cancel`.
+- Resume: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/resume?cascade={bool}`.
+- Abandon: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/abandon` - writes off
+  a failed workflow (-> `Abandoned`) so a subsequently enqueued workflow can depend on it and run;
+  used by the reject flow to supersede a terminally failed transition before enqueueing the reject.
 
 ## State Passthrough
 
-Each callback needs the app's workflow callback state (`instance` + `formData`). Rather than fetching from Storage on every callback (which would see stale process state), the app captures that state into an opaque `JsonElement` blob that the engine stores and echoes back with each callback.
+Each callback needs the app's workflow callback state (`instance` + `formData`). Rather than
+fetching from Storage on every callback, the app captures that state into an opaque `JsonElement`
+blob that the engine stores and echoes back with each callback.
 
-**Capture point**: `ProcessEngine.HandleMoveToNext` captures state BEFORE `MoveProcessStateToNextAndGenerateEvents` mutates `instance.Process`. This means the blob carries the OLD process state (CurrentTask = the task being left). `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
+**Capture point**: `ProcessEngine.HandleMoveToNext` captures state before
+`MoveProcessStateToNextAndGenerateEvents` mutates `instance.Process`. The blob therefore carries
+the old process state. `MutateProcessState` transitions the in-memory state between command groups.
 
 **Flow**:
-1. `WorkflowCallbackStateService.CaptureState` → serializes instance + form data into `WorkflowCallbackState` → `JsonElement`
-2. State blob is included in `WorkflowRequest.State`
-3. Engine echoes it back in `AppCallbackPayload.State` for each callback
-4. `WorkflowCallbackStateService.RestoreState` → deserializes, creates `InstanceDataUnitOfWork` with preloaded form data
-5. After command execution, updated state is captured and returned in `AppCallbackResponse.State`
-6. Engine uses the returned state for the next callback — state evolves command by command
 
-**Why commands read from `instance.Process.CurrentTask`**: In the old ProcessEngine, task-end/start handlers received `taskId` as an explicit parameter (extracted from the event's `ProcessInfo`). The new commands read directly from `instance.Process.CurrentTask` instead — simpler, single source of truth. `MutateProcessState` ensures each command group sees the correct CurrentTask.
+1. `WorkflowCallbackStateService.CaptureState` serializes instance + form data into
+   `WorkflowCallbackState`.
+2. The state blob is included in `WorkflowRequest.State`.
+3. The engine echoes it back in `AppCallbackPayload.State`.
+4. `WorkflowCallbackStateService.RestoreState` deserializes the blob and creates an
+   `InstanceDataUnitOfWork` with preloaded form data and storage metadata.
+5. After command execution and the controller save/replay handling, updated state is captured and
+   returned in `AppCallbackResponse.State`.
+6. The engine uses the returned state for the next callback.
 
-## Authorization and Data Saves (current plan)
+**Why commands read from `instance.Process.CurrentTask`**: old ProcessEngine handlers received
+`taskId` as an explicit parameter from the event's `ProcessInfo`. The workflow-engine commands read
+directly from `instance.Process.CurrentTask`; `MutateProcessState` ensures each command group sees
+the correct current task.
 
-All data saves during callbacks use `StorageAuthenticationMethod.ServiceOwner()`. This is a change from the old ProcessEngine where data operations used the end user's token.
+## Authorization and Data Saves
 
-**Current design**: The app (ServiceOwner) performs all data writes during process transitions. The user authorized the action (e.g., "confirm", "reject") at the ProcessNext API entry point. After that, the app executes the transition as ServiceOwner. This means:
-- **policy.xml must grant ServiceOwner write rights on all tasks** — this is a prerequisite for the workflow engine
-- Storage's authorization service checks the ServiceOwner identity (from the token), not the original user
-- The task in Storage's XACML resource comes from `instance.Process.CurrentTask` as persisted in Storage's DB
+All data saves during callbacks use `StorageAuthenticationMethod.ServiceOwner()`. The user
+authorized the action at the ProcessNext API entry point; after that, the app executes the
+transition as ServiceOwner. This means:
 
-**Implication for task-start data saves**: Between `MutateProcessState` and `SaveProcessStateToStorage`, task-start commands create/modify data while Storage still has the OLD task as current. This works because ServiceOwner has write access on all tasks. If Storage ever starts forwarding the real userId to the authorization service (e.g., via a header), we would need to persist the process state between the two command groups instead. The factory already separates `taskEndSteps` and `taskStartSteps`, so moving the `SaveProcessStateToStorage` insert point would be straightforward.
+- `policy.xml` must grant ServiceOwner write rights on all tasks for apps using the workflow
+  engine.
+- Storage's authorization service checks the ServiceOwner identity from the token, not the
+  original user.
+- The task in Storage's XACML resource comes from the process state persisted in Storage.
+
+Between `MutateProcessState` and `CommitProcessState`, task-start commands can create or modify
+data while Storage still has the old task as current. This works because ServiceOwner has write
+access on all tasks. If Storage later starts authorizing these writes as the original user, the
+commit point may need to move between task-end and task-start groups.

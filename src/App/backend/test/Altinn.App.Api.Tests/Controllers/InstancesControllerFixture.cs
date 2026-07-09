@@ -125,6 +125,8 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<IRegisterClient>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IInstanceClient>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IDataClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IStorageDataClient>(MockBehavior.Loose).Object);
+        services.AddSingleton(new Mock<IStorageInstanceClient>(MockBehavior.Loose).Object);
         services.AddSingleton(new Mock<IAppMetadata>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IInstantiationProcessor>(MockBehavior.Loose).Object);
@@ -144,6 +146,7 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IProcessReader>(MockBehavior.Loose).Object);
         services.AddSingleton(new Mock<IAuthorizationService>(MockBehavior.Loose).Object);
+        services.AddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
         services.AddTransient<ProcessStateEnricher>();
         services.AddSingleton(new Mock<INotificationService>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IFileService>(MockBehavior.Loose).Object);

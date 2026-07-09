@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -77,8 +78,8 @@ public sealed class ValidationServiceTests : IDisposable
     };
 
     private readonly Mock<ILogger<ValidationService>> _loggerMock = new();
-    private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IStorageDataClient> _dataClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IStorageInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
     private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
 
@@ -150,13 +151,14 @@ public sealed class ValidationServiceTests : IDisposable
             _modelSerialization,
             null!,
             null!,
+            new InstanceDataMutatorStorageAccessGuard(),
             DefaultTaskId,
             DefaultLanguage,
             null
         );
         _serviceCollection.AddAppImplementationFactory();
         _serviceCollection.AddSingleton(_loggerMock.Object);
-        _serviceCollection.AddSingleton(_dataClientMock.Object);
+        _serviceCollection.AddSingleton<IDataClient>(_dataClientMock.Object);
         _serviceCollection.AddSingleton<IValidationService, ValidationService>();
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _appModelMock.Setup(a => a.GetModelType(typeof(MyModel).FullName!)).Returns(typeof(MyModel));
@@ -298,7 +300,7 @@ public sealed class ValidationServiceTests : IDisposable
     {
         _dataClientMock
             .Setup(d =>
-                d.GetDataBytes(
+                d.GetDataBytesWithStorageMetadata(
                     DefaultPartyId,
                     _defaultInstanceId,
                     _defaultDataElementId,
@@ -306,7 +308,12 @@ public sealed class ValidationServiceTests : IDisposable
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(_modelSerialization.SerializeToXml(data).ToArray())
+            .ReturnsAsync(
+                new DataBytesWithStorageMetadata(
+                    _modelSerialization.SerializeToXml(data).ToArray(),
+                    new StorageDataElementMetadata()
+                )
+            )
             .Verifiable(Times.AtLeastOnce);
     }
 
@@ -440,6 +447,7 @@ public sealed class ValidationServiceTests : IDisposable
             _modelSerialization,
             null!,
             null!,
+            new InstanceDataMutatorStorageAccessGuard(),
             DefaultTaskId,
             DefaultLanguage,
             null
@@ -524,6 +532,7 @@ public sealed class ValidationServiceTests : IDisposable
             _modelSerialization,
             null!,
             null!,
+            new InstanceDataMutatorStorageAccessGuard(),
             DefaultTaskId,
             DefaultLanguage,
             null

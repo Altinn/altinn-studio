@@ -62,7 +62,7 @@ public class InternalPatchService
         using var activity = _telemetry?.StartDataPatchActivity(instance);
         var taskId = instance.Process.CurrentTask.ElementId;
 
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
 
         List<FormDataChange> changesAfterPatch = [];
 
@@ -151,10 +151,7 @@ public class InternalPatchService
 
         // Get all changes to data elements by comparing the serialized values
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
-        // Start saving changes in parallel with validation
-        Task saveChanges = dataAccessor.SaveChanges(changes);
-        // Update instance data to reflect the changes and save created data elements
-        await dataAccessor.UpdateInstanceData(changes);
+        await dataAccessor.SaveChanges(changes);
 
         var validationIssues = await _validationService.ValidateIncrementalFormData(
             dataAccessor,
@@ -163,9 +160,6 @@ public class InternalPatchService
             ignoredValidators,
             language
         );
-
-        // don't await saving until validation is done, so that they run in parallel
-        await saveChanges;
 
         if (_hostingEnvironment.IsDevelopment())
         {

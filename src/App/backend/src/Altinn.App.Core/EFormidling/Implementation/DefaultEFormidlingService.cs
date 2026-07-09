@@ -65,12 +65,11 @@ public class DefaultEFormidlingService : IEFormidlingService
     }
 
     /// <inheritdoc />
-    public async Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration)
-    {
-        await SendEFormidlingShipmentInternal(instance, configuration);
-    }
-
-    private async Task SendEFormidlingShipmentInternal(Instance instance, ValidAltinnEFormidlingConfiguration config)
+    public async Task SendEFormidlingShipment(
+        Instance instance,
+        ValidAltinnEFormidlingConfiguration configuration,
+        IInstanceDataAccessor? dataAccessor = null
+    )
     {
         var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
         if (
@@ -104,17 +103,22 @@ public class DefaultEFormidlingService : IEFormidlingService
 
         string instanceGuid = instance.Id.Split("/")[1];
 
-        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance, config);
+        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(
+            instanceGuid,
+            instance,
+            configuration,
+            dataAccessor
+        );
         await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
 
-        (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance);
+        (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance, dataAccessor);
 
         await using (stream)
         {
             await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataFilename, requestHeaders);
         }
 
-        await SendInstanceData(instance, requestHeaders, metadataFilename, config);
+        await SendInstanceData(instance, requestHeaders, metadataFilename, configuration, dataAccessor);
 
         try
         {
@@ -131,7 +135,8 @@ public class DefaultEFormidlingService : IEFormidlingService
     private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(
         string instanceGuid,
         Instance instance,
-        ValidAltinnEFormidlingConfiguration config
+        ValidAltinnEFormidlingConfiguration config,
+        IInstanceDataAccessor? dataAccessor
     )
     {
         if (_appSettings is null)
@@ -152,7 +157,11 @@ public class DefaultEFormidlingService : IEFormidlingService
         };
 
         var eFormidlingReceivers = _appImplementationFactory.GetRequired<IEFormidlingReceivers>();
-        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(instance, config.Receiver);
+        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(
+            instance,
+            config.Receiver,
+            dataAccessor
+        );
 
         Scope scope = new Scope
         {
@@ -203,7 +212,8 @@ public class DefaultEFormidlingService : IEFormidlingService
         Instance instance,
         Dictionary<string, string> requestHeaders,
         string eformidlingMetadataFilename,
-        ValidAltinnEFormidlingConfiguration config
+        ValidAltinnEFormidlingConfiguration config,
+        IInstanceDataAccessor? dataAccessor
     )
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
@@ -240,13 +250,15 @@ public class DefaultEFormidlingService : IEFormidlingService
             );
             usedFileNames.Add(uniqueFileName);
 
-            await using Stream stream = await _dataClient.GetBinaryData(
-                instanceOwnerPartyId,
-                instanceGuid,
-                new Guid(dataElement.Id),
-                authenticationMethod: null,
-                CancellationToken.None
-            );
+            using Stream stream = dataAccessor is null
+                ? await _dataClient.GetBinaryData(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    new Guid(dataElement.Id),
+                    authenticationMethod: null,
+                    CancellationToken.None
+                )
+                : new MemoryStream((await dataAccessor.GetBinaryData(dataElement)).ToArray(), writable: false);
 
             Debug.Assert(_eFormidlingClient is not null, "This is validated before use");
             bool successful = await _eFormidlingClient.UploadAttachment(

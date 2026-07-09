@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -49,6 +50,7 @@ public class OnTaskEndingHookTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        services.AddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
         foreach (var handler in handlers)
         {
             services.AddSingleton(handler);

@@ -10,7 +10,21 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// Request payload for ExecuteServiceTask command.
 /// Contains the service task type identifier.
 /// </summary>
-internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType) : CommandRequestPayload;
+internal sealed record ExecuteServiceTaskPayload(
+    string ServiceTaskType,
+    ExecuteServiceTaskPhase Phase = ExecuteServiceTaskPhase.Execute
+) : CommandRequestPayload;
+
+internal enum ExecuteServiceTaskPhase
+{
+    Execute,
+    PostCommit,
+}
+
+internal interface IPostCommitServiceTask : IServiceTask
+{
+    Task<ServiceTaskResult> ExecutePostCommit(ServiceTaskContext context);
+}
 
 internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementationFactory, Telemetry? telemetry = null)
     : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
@@ -39,7 +53,14 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
             };
 
             IServiceTask serviceTask = GetServiceTask(serviceTaskType);
-            ServiceTaskResult result = await serviceTask.Execute(serviceTaskContext);
+            ServiceTaskResult result = payload.Phase switch
+            {
+                ExecuteServiceTaskPhase.Execute => await serviceTask.Execute(serviceTaskContext),
+                ExecuteServiceTaskPhase.PostCommit when serviceTask is IPostCommitServiceTask postCommitServiceTask =>
+                    await postCommitServiceTask.ExecutePostCommit(serviceTaskContext),
+                ExecuteServiceTaskPhase.PostCommit => ServiceTaskResult.SuccessWithoutAutoAdvance(),
+                _ => throw new InvalidOperationException($"Unsupported service task phase '{payload.Phase}'."),
+            };
 
             if (result is ServiceTaskFailedResult failedResult)
             {

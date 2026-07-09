@@ -250,7 +250,7 @@ public class DataController : ControllerBase
                     Status = StatusCodes.Status409Conflict,
                 };
             }
-            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+            using var dataMutator = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
 
             // Save data elements with form data
             if (dataType.AppLogic?.ClassRef is { } classRef)
@@ -361,8 +361,7 @@ public class DataController : ControllerBase
             }
 
             var finalChanges = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-            await dataMutator.UpdateInstanceData(finalChanges);
-            var saveTask = dataMutator.SaveChanges(finalChanges);
+            await dataMutator.SaveChanges(finalChanges);
             List<ValidationSourcePair> validationIssues = [];
             if (ignoredValidatorsString is not null)
             {
@@ -379,7 +378,6 @@ public class DataController : ControllerBase
                 );
             }
 
-            await saveTask;
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
             var newDataElement =
@@ -781,7 +779,7 @@ public class DataController : ControllerBase
                 instance.Process?.CurrentTask?.ElementId
                 ?? throw new InvalidOperationException("Instance have no process");
 
-            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+            using var dataMutator = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
 
             dataMutator.RemoveDataElement(dataElement);
 
@@ -795,7 +793,6 @@ public class DataController : ControllerBase
             }
             // Get the updated changes for saving
             changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-            await dataMutator.UpdateInstanceData(changes);
             await dataMutator.SaveChanges(changes);
 
             List<ValidationSourcePair> validationIssues = [];
@@ -1039,7 +1036,7 @@ public class DataController : ControllerBase
             );
         }
 
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        using var dataMutator = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
 
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
@@ -1069,7 +1066,6 @@ public class DataController : ControllerBase
 
         // Save changes
         var changesAfterDataProcessors = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-        await dataMutator.UpdateInstanceData(changesAfterDataProcessors);
         await dataMutator.SaveChanges(changesAfterDataProcessors);
 
         //set self links

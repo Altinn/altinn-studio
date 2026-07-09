@@ -88,7 +88,7 @@ public class ValidateController : ControllerBase
                 );
             }
 
-            var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+            using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
 
             var ignoredSources = ignoredValidators
                 ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -194,7 +194,7 @@ public class ValidateController : ControllerBase
             messages.Add(message);
         }
 
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, dataType.TaskId, language);
+        using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, dataType.TaskId, language);
 
         // Run validations for all data elements, but only return the issues for the specific data element
         var issues = await _validationService.ValidateInstanceAtTask(

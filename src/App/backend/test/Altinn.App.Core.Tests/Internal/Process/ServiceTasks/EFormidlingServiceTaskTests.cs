@@ -117,7 +117,12 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    instance,
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    instanceMutatorMock.Object
+                ),
             Times.Once
         );
     }
@@ -162,7 +167,12 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    instance,
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    instanceMutatorMock.Object
+                ),
             Times.Once
         );
     }
@@ -186,7 +196,12 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<IInstanceDataAccessor?>()
+                ),
             Times.Never
         );
         _loggerMock.Verify(
@@ -227,7 +242,12 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    instance,
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    instanceMutatorMock.Object
+                ),
             Times.Once
         );
     }

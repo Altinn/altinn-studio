@@ -67,21 +67,26 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv
         System.Collections.Generic.IReadOnlyList<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings> AttachmentSettings { get; }
         Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings PrimaryDocumentSettings { get; }
         System.Threading.Tasks.Task<string> GetApplicationTitle(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
         string GetCorrelationId(Altinn.Platform.Storage.Interface.Models.Instance instance);
         System.Threading.Tasks.Task<KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Klassifikasjon> GetInstanceOwnerClassification(Altinn.App.Core.Features.Auth.Authenticated auth, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart?> GetInstanceOwnerParty(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient> GetRecipient(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient> GetRecipient(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
         KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart GetRecipientParty(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient recipient);
     }
     public interface IFiksArkivHost
     {
         System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> GenerateAndSendMessage(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, string messageType, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> SendStagedMessage(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, string messageType, Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task StageArchiveRecordForMessage(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, string messageType, Altinn.App.Core.Features.IInstanceDataMutator dataMutator, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task ValidateConfiguration(System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.DataType> configuredDataTypes, System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Process.Elements.ProcessTask> configuredProcessTasks);
     }
     public interface IFiksArkivPayloadGenerator
     {
-        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessagePayload>> GeneratePayload(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient recipient, string messageType, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessagePayload>> GeneratePayload(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient recipient, string messageType, Altinn.App.Core.Features.IInstanceDataAccessor? dataAccessor = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task ValidateConfiguration(System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.DataType> configuredDataTypes, System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Process.Elements.ProcessTask> configuredProcessTasks);
     }
     public interface IFiksArkivResponseHandler
     {

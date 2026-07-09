@@ -388,6 +388,76 @@ public class FiksArkivConfigResolverTest
     }
 
     [Fact]
+    public async Task GetRecipient_WithDataAccessor_ResolvesBoundValuesFromAccessor()
+    {
+        var account = Guid.NewGuid();
+        var model = new
+        {
+            recipient = new
+            {
+                accountId = account.ToString(),
+                identifier = "accessor-identifier",
+                name = "Accessor Recipient",
+                orgNumber = "998877665",
+            },
+        };
+        var modelDataType = new DataType { Id = "model" };
+        var modelDataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = modelDataType.Id };
+        var instance = new Instance { Data = [modelDataElement] };
+
+        var fiksArkivSettingsOverride = new FiksArkivSettings
+        {
+            Recipient = new FiksArkivRecipientSettings
+            {
+                FiksAccount = TestHelpers.BindableValueFactory<Guid?>(modelDataType.Id, "recipient.accountId"),
+                Identifier = TestHelpers.BindableValueFactory<string>(modelDataType.Id, "recipient.identifier"),
+                Name = TestHelpers.BindableValueFactory<string>(modelDataType.Id, "recipient.name"),
+                OrganizationNumber = TestHelpers.BindableValueFactory<string>(modelDataType.Id, "recipient.orgNumber"),
+            },
+        };
+
+        await using var fixture = TestFixture.Create(
+            services => services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings"),
+            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
+            useDefaultFiksArkivSettings: false
+        );
+
+        var instanceDataAccessorMock = new Mock<IInstanceDataAccessor>();
+        instanceDataAccessorMock.Setup(x => x.Instance).Returns(instance);
+        instanceDataAccessorMock.Setup(x => x.DataTypes).Returns([modelDataType]);
+        instanceDataAccessorMock
+            .Setup(x => x.GetDataElement(It.IsAny<DataElementIdentifier>()))
+            .Returns(modelDataElement);
+        instanceDataAccessorMock
+            .Setup(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync(FormDataWrapperFactory.Create(model, null!, null));
+
+        fixture
+            .LayoutStateInitializerMock.Setup(x =>
+                x.Init(instanceDataAccessorMock.Object, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>())
+            )
+            .ReturnsAsync(
+                new LayoutEvaluatorState(
+                    instanceDataAccessorMock.Object,
+                    null,
+                    fixture.TranslationServiceMock.Object,
+                    new FrontEndSettings()
+                )
+            );
+
+        var resolver = Assert.IsType<FiksArkivConfigResolver>(fixture.FiksArkivConfigResolver);
+
+        var result = await resolver.GetRecipient(instanceDataAccessorMock.Object);
+
+        Assert.NotNull(result);
+        Assert.Equal(account, result.AccountId);
+        Assert.Equal(model.recipient.identifier, result.Identifier);
+        Assert.Equal(model.recipient.name, result.Name);
+        Assert.Equal(model.recipient.orgNumber, result.OrgNumber);
+        fixture.DataClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task GetCorrelationId_ReturnsInstanceUrl()
     {
         // Arrange

@@ -164,28 +164,6 @@ public class SubformPdfServiceTaskTests
         await Assert.ThrowsAsync<ApplicationConfigException>(async () => await _serviceTask.Execute(context));
     }
 
-    // ===== CLEANUP TESTS =====
-
-    [Fact]
-    public async Task Execute_Should_RemoveDataElementsGeneratedFromTask()
-    {
-        // Arrange
-        SetupProcessReader();
-        var instance = CreateInstanceWithSubformDataAndPreviousPdfs();
-        var mutatorMock = new Mock<IInstanceDataMutator>();
-        mutatorMock.Setup(x => x.Instance).Returns(instance);
-        var context = new ServiceTaskContext { InstanceDataMutator = mutatorMock.Object, CancellationToken = default };
-
-        // Act
-        await _serviceTask.Execute(context);
-
-        // Assert - verify RemoveDataElement was called for data elements generated from this task
-        mutatorMock.Verify(
-            x => x.RemoveDataElement(It.Is<DataElementIdentifier>(id => id.Guid == PreviousPdfGuid)),
-            Times.Once
-        );
-    }
-
     // ===== METADATA TESTS =====
 
     [Fact]
@@ -424,40 +402,6 @@ public class SubformPdfServiceTaskTests
     // ===== INTEGRATION SCENARIOS =====
 
     [Fact]
-    public async Task Execute_Should_CleanupBeforePdfGeneration()
-    {
-        // Arrange
-        SetupProcessReader();
-        var instance = CreateInstanceWithSubformDataAndPreviousPdfs();
-        var mutatorMock = new Mock<IInstanceDataMutator>();
-        mutatorMock.Setup(x => x.Instance).Returns(instance);
-        var context = new ServiceTaskContext { InstanceDataMutator = mutatorMock.Object, CancellationToken = default };
-
-        // Act
-        await _serviceTask.Execute(context);
-
-        // Assert - cleanup should remove previously generated data elements
-        mutatorMock.Verify(
-            x => x.RemoveDataElement(It.Is<DataElementIdentifier>(id => id.Guid == PreviousPdfGuid)),
-            Times.Once
-        );
-
-        // And PDFs should be generated
-        _pdfServiceMock.Verify(
-            x =>
-                x.GenerateAndStoreSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Exactly(2)
-        );
-    }
-
-    [Fact]
     public async Task Execute_WithMultipleSubformDataElements_Should_PassCorrectMetadataForEach()
     {
         // Arrange
@@ -681,27 +625,6 @@ public class SubformPdfServiceTaskTests
             Data = new List<DataElement>
             {
                 new() { Id = "single-data-element", DataType = SubformDataTypeId },
-            },
-        };
-    }
-
-    private static readonly Guid PreviousPdfGuid = Guid.Parse("00000000-0000-0000-0000-000000000099");
-
-    private static Instance CreateInstanceWithSubformDataAndPreviousPdfs()
-    {
-        return new Instance
-        {
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "taskId" } },
-            Data = new List<DataElement>
-            {
-                new() { Id = "data-element-1", DataType = SubformDataTypeId },
-                new() { Id = "data-element-2", DataType = SubformDataTypeId },
-                new()
-                {
-                    Id = PreviousPdfGuid.ToString(),
-                    DataType = "ref-data-as-pdf",
-                    References = [new Reference { ValueType = ReferenceType.Task, Value = "taskId" }],
-                },
             },
         };
     }

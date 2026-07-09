@@ -108,7 +108,7 @@ public class ProcessNavigator : IProcessNavigator
                     DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId,
                 };
 
-                IInstanceDataAccessor dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(
                     instance,
                     taskId: null,
                     language: null

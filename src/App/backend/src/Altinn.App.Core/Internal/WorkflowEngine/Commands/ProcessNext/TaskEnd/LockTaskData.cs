@@ -1,30 +1,39 @@
-using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.Platform.Storage.Interface.Models;
+using System.Diagnostics;
+using Altinn.App.Core.Internal.App;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 
-internal sealed class LockTaskData : IWorkflowEngineCommand
+internal sealed class LockTaskData : WorkflowEngineCommandBase<TaskDataLockPayload>
 {
     public static string Key => "LockTaskData";
 
-    public string GetKey() => Key;
+    public override string GetKey() => Key;
 
-    private readonly IProcessTaskDataLocker _processTaskDataLocker;
+    private readonly IAppMetadata _appMetadata;
 
-    public LockTaskData(IProcessTaskDataLocker processTaskDataLocker)
+    public LockTaskData(IAppMetadata appMetadata)
     {
-        _processTaskDataLocker = processTaskDataLocker;
+        _appMetadata = appMetadata;
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public override async Task<ProcessEngineCommandResult> Execute(
+        ProcessEngineCommandContext parameters,
+        TaskDataLockPayload payload
+    )
     {
-        Instance instance = parameters.InstanceDataMutator.Instance;
-        string taskId = instance.Process.CurrentTask.ElementId;
-
         try
         {
-            await _processTaskDataLocker.Lock(taskId, instance);
+            await TaskDataLockStatusHelper.SetLockStatus(
+                _appMetadata,
+                parameters.InstanceDataMutator,
+                payload.TaskId,
+                true
+            );
             return new SuccessfulProcessEngineCommandResult();
+        }
+        catch (UnreachableException ex)
+        {
+            return FailedProcessEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
         }
         catch (Exception ex)
         {

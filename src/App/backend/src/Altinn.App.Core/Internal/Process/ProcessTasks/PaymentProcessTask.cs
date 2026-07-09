@@ -25,7 +25,6 @@ internal sealed class PaymentProcessTask : IProcessTask
 
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
-    private readonly IPaymentService _paymentService;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAppMetadata _appMetadata;
     private readonly IHostEnvironment _hostEnvironment;
@@ -47,7 +46,6 @@ internal sealed class PaymentProcessTask : IProcessTask
     {
         _pdfService = pdfService;
         _processReader = processReader;
-        _paymentService = paymentService;
         _appImplementationFactory = appImplementationFactory;
         _appMetadata = appMetadata;
         _hostEnvironment = hostEnvironment;
@@ -82,7 +80,7 @@ internal sealed class PaymentProcessTask : IProcessTask
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
 
-        PaymentStatus paymentStatus = await _paymentService.GetPaymentStatus(instance, paymentConfiguration.Validate());
+        PaymentStatus paymentStatus = await GetPaymentStatus(dataMutator, paymentConfiguration.Validate());
 
         if (paymentStatus == PaymentStatus.Skipped)
             return;
@@ -119,6 +117,27 @@ internal sealed class PaymentProcessTask : IProcessTask
         dataAccessor.TaskId
         ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException("Process task requires a current task id.");
+
+    private static async Task<PaymentStatus> GetPaymentStatus(
+        IInstanceDataAccessor dataAccessor,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    )
+    {
+        DataElement? paymentDataElement = dataAccessor
+            .GetDataElementsForType(paymentConfiguration.PaymentDataType)
+            .SingleOrDefault();
+        if (paymentDataElement is null)
+        {
+            throw new PaymentException("Payment information not found.");
+        }
+
+        ReadOnlyMemory<byte> paymentData = await dataAccessor.GetBinaryData(paymentDataElement);
+        PaymentInformation paymentInformation =
+            JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
+            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
+
+        return paymentInformation.Status;
+    }
 
     private async Task CleanupAnyExistingPayment(
         IInstanceDataMutator dataMutator,

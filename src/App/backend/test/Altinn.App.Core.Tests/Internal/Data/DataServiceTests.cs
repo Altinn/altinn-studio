@@ -12,13 +12,13 @@ public class DataServiceTests
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
-    private readonly Mock<IDataClient> _mockDataClient;
+    private readonly Mock<IStorageDataClient> _mockDataClient;
     private readonly Mock<IAppMetadata> _mockAppMetadata;
     private readonly DataService _dataService;
 
     public DataServiceTests()
     {
-        _mockDataClient = new Mock<IDataClient>();
+        _mockDataClient = new Mock<IStorageDataClient>();
         _mockAppMetadata = new Mock<IAppMetadata>();
         _dataService = new DataService(_mockDataClient.Object);
     }
@@ -52,6 +52,43 @@ public class DataServiceTests
             .ReturnsAsync(referenceStream);
 
         _mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+
+        // Act
+        (Guid dataElementId, TestModel? model) = await _dataService.GetByType<TestModel>(instance, dataType);
+
+        // Assert
+        Assert.Equal(instance.Data.First().Id, dataElementId.ToString());
+        Assert.Equivalent(expectedModel, model);
+    }
+
+    [Fact]
+    public async Task GetByType_UsesStorageClient_WhenMutatorStorageAccessGuardIsActive()
+    {
+        // Arrange
+        Instance instance = CreateInstance();
+        InstanceIdentifier instanceIdentifier = new(instance);
+        const string dataType = "dataType";
+        instance.Data = [new DataElement { DataType = dataType, Id = Guid.NewGuid().ToString() }];
+
+        TestModel expectedModel = new();
+        using var referenceStream = new MemoryStream();
+        await JsonSerializer.SerializeAsync(referenceStream, expectedModel, _jsonSerializerOptions);
+        referenceStream.Position = 0;
+
+        _mockDataClient
+            .Setup(dc =>
+                dc.GetBinaryData(
+                    instanceIdentifier.InstanceOwnerPartyId,
+                    instanceIdentifier.InstanceGuid,
+                    new Guid(instance.Data.First().Id),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(referenceStream);
+
+        var guard = new InstanceDataMutatorStorageAccessGuard();
+        using var scope = guard.EnterScope();
 
         // Act
         (Guid dataElementId, TestModel? model) = await _dataService.GetByType<TestModel>(instance, dataType);

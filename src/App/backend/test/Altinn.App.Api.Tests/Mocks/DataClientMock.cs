@@ -6,6 +6,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -13,21 +14,24 @@ using DataElement = Altinn.Platform.Storage.Interface.Models.DataElement;
 
 namespace App.IntegrationTests.Mocks.Services;
 
-public class DataClientMock : IDataClient
+internal sealed class DataClientMock : IStorageDataClient
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAppMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerialization;
+    private readonly ApiTestStorageMetadata _storageMetadata;
 
     public DataClientMock(
         IAppMetadata appMetadata,
         ModelSerializationService modelSerialization,
-        IHttpContextAccessor httpContextAccessor
+        IHttpContextAccessor httpContextAccessor,
+        ApiTestStorageMetadata storageMetadata
     )
     {
         _httpContextAccessor = httpContextAccessor;
         _appMetadata = appMetadata;
         _modelSerialization = modelSerialization;
+        _storageMetadata = storageMetadata;
     }
 
     public async Task<bool> DeleteData(
@@ -37,12 +41,33 @@ public class DataClientMock : IDataClient
         bool delay,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
+    ) =>
+        (
+            await ((IDataClientWithStorageMetadata)this).DeleteDataWithStorageMetadata(
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataGuid,
+                delay,
+                authenticationMethod,
+                cancellationToken: cancellationToken
+            )
+        ).Deleted;
+
+    async Task<DeleteDataWithStorageMetadata> IDataClientWithStorageMetadata.DeleteDataWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        bool delay,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
     )
     {
         (string org, string app) = TestData.GetInstanceOrgApp(
             new InstanceIdentifier(instanceOwnerPartyId, instanceGuid)
         );
         string dataElementPath = TestData.GetDataElementPath(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+        bool deleted;
 
         if (delay)
         {
@@ -55,7 +80,7 @@ public class DataClientMock : IDataClient
 
             await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId, cancellationToken);
 
-            return true;
+            deleted = true;
         }
         else
         {
@@ -71,8 +96,16 @@ public class DataClientMock : IDataClient
                 File.Delete(dataBlobPath);
             }
 
-            return true;
+            _storageMetadata.RemoveDataElement(new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), dataGuid);
+            deleted = true;
         }
+
+        StorageVersionMetadata metadata = _storageMetadata.BumpInstance(
+            $"{instanceOwnerPartyId}/{instanceGuid}",
+            processStateChanged: false
+        );
+
+        return new DeleteDataWithStorageMetadata(deleted, metadata);
     }
 
     public async Task<Stream> GetBinaryData(
@@ -139,6 +172,28 @@ public class DataClientMock : IDataClient
         string dataPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
 
         return await File.ReadAllBytesAsync(dataPath, cancellationToken);
+    }
+
+    async Task<DataBytesWithStorageMetadata> IDataClientWithStorageMetadata.GetDataBytesWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken cancellationToken
+    )
+    {
+        byte[] bytes = await GetDataBytes(
+            instanceOwnerPartyId,
+            instanceGuid,
+            dataId,
+            authenticationMethod,
+            cancellationToken
+        );
+        StorageDataElementMetadata metadata = _storageMetadata.GetDataElementMetadata(
+            new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
+            dataId
+        );
+        return new DataBytesWithStorageMetadata(bytes, metadata);
     }
 
     public async Task<List<AttachmentList>> GetBinaryDataList(
@@ -280,6 +335,7 @@ public class DataClientMock : IDataClient
         );
 
         await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId, cancellationToken);
+        _storageMetadata.BumpDataElement(instanceIdentifier, dataGuid);
 
         return dataElement;
     }
@@ -344,6 +400,7 @@ public class DataClientMock : IDataClient
         dataElement.LastChanged = DateTime.UtcNow;
         dataElement.Size = serializedBytes.Length;
         await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId, cancellationToken);
+        _storageMetadata.BumpDataElement(instanceIdentifier, Guid.Parse(dataElement.Id));
 
         return dataElement;
     }
@@ -412,6 +469,7 @@ public class DataClientMock : IDataClient
 
         dataElement.Size = fileData.Length;
         await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId, cancellationToken);
+        _storageMetadata.BumpDataElement(instanceIdentifier, dataGuid);
 
         return dataElement;
     }
@@ -466,8 +524,43 @@ public class DataClientMock : IDataClient
         dataElement.Size = fileData.Length;
 
         await WriteDataElementToFile(dataElement, org, app, instanceOwnerId, cancellationToken);
+        _storageMetadata.BumpDataElement(new InstanceIdentifier(instanceOwnerId, instanceGuid), dataGuid);
 
         return dataElement;
+    }
+
+    async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.InsertBinaryDataWithStorageMetadata(
+        string instanceId,
+        string dataType,
+        string contentType,
+        string? filename,
+        Stream stream,
+        string? generatedFromTask,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
+    )
+    {
+        DataElement dataElement = await InsertBinaryData(
+            instanceId,
+            dataType,
+            contentType,
+            filename,
+            stream,
+            generatedFromTask,
+            authenticationMethod,
+            cancellationToken
+        );
+        var instanceIdentifier = new InstanceIdentifier(instanceId);
+        StorageDataElementMetadata dataElementMetadata = _storageMetadata.GetDataElementMetadata(
+            instanceIdentifier,
+            Guid.Parse(dataElement.Id)
+        );
+        return new DataElementWithStorageMetadata(
+            dataElement,
+            dataElementMetadata,
+            _storageMetadata.GetVersions(instanceIdentifier)
+        );
     }
 
     public Task<DataElement> UpdateBinaryData(
@@ -484,6 +577,37 @@ public class DataClientMock : IDataClient
         throw new NotImplementedException();
     }
 
+    async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.UpdateBinaryDataWithStorageMetadata(
+        InstanceIdentifier instanceIdentifier,
+        string? contentType,
+        string? filename,
+        Guid dataGuid,
+        Stream stream,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
+    )
+    {
+        DataElement dataElement = await UpdateBinaryData(
+            instanceIdentifier,
+            contentType,
+            filename,
+            dataGuid,
+            stream,
+            authenticationMethod,
+            cancellationToken
+        );
+        StorageDataElementMetadata dataElementMetadata = _storageMetadata.GetDataElementMetadata(
+            instanceIdentifier,
+            dataGuid
+        );
+        return new DataElementWithStorageMetadata(
+            dataElement,
+            dataElementMetadata,
+            _storageMetadata.GetVersions(instanceIdentifier)
+        );
+    }
+
     public async Task<DataElement> Update(
         Instance instance,
         DataElement dataElement,
@@ -496,8 +620,30 @@ public class DataClientMock : IDataClient
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
 
         await WriteDataElementToFile(dataElement, org, app, instanceOwnerId, cancellationToken);
+        _storageMetadata.BumpDataElement(new InstanceIdentifier(instance), Guid.Parse(dataElement.Id));
 
         return dataElement;
+    }
+
+    async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.UpdateDataElementWithStorageMetadata(
+        Instance instance,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
+    )
+    {
+        DataElement result = await Update(instance, dataElement, authenticationMethod, cancellationToken);
+        var instanceIdentifier = new InstanceIdentifier(instance);
+        StorageDataElementMetadata dataElementMetadata = _storageMetadata.GetDataElementMetadata(
+            instanceIdentifier,
+            Guid.Parse(result.Id)
+        );
+        return new DataElementWithStorageMetadata(
+            result,
+            dataElementMetadata,
+            _storageMetadata.GetVersions(instanceIdentifier)
+        );
     }
 
     public async Task<DataElement> LockDataElement(
@@ -507,9 +653,8 @@ public class DataClientMock : IDataClient
         CancellationToken cancellationToken = default
     )
     {
-        // 🤬The signature does not take org/app,
-        // but our test data is organized by org/app.
-        (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
+        // The signature does not carry org/app, but the file-backed test data is organized by org/app.
+        (string org, string app) = GetInstanceOrgApp(instanceIdentifier);
         DataElement element = await GetDataElement(
             org,
             app,
@@ -530,9 +675,8 @@ public class DataClientMock : IDataClient
         CancellationToken cancellationToken = default
     )
     {
-        // 🤬The signature does not take org/app,
-        // but our test data is organized by org/app.
-        (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
+        // The signature does not carry org/app, but the file-backed test data is organized by org/app.
+        (string org, string app) = GetInstanceOrgApp(instanceIdentifier);
         DataElement element = await GetDataElement(
             org,
             app,
@@ -545,6 +689,244 @@ public class DataClientMock : IDataClient
         element.Locked = false;
         await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId, cancellationToken);
         return element;
+    }
+
+    async Task<InstanceMutationWithStorageMetadata> IInstanceMutationClient.CommitInstanceMutationWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        StorageInstanceMutationRequest mutation,
+        IReadOnlyDictionary<string, StorageInstanceMutationContent> contentParts,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
+    )
+    {
+        var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+        (string org, string app) = GetInstanceOrgApp(instanceIdentifier);
+        string instancePath = TestData.GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+
+        Instance instance = await InstanceClientMockSi.ReadJsonFile<Instance>(instancePath, cancellationToken);
+        instance.Data = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid, cancellationToken);
+
+        HashSet<Guid> changedDataElementIds = [];
+        HashSet<Guid> deletedDataElementIds = [];
+        List<Guid> createdDataElementIds = [];
+
+        foreach (StorageInstanceMutationCreateDataElement create in mutation.CreateDataElements)
+        {
+            Guid dataGuid = Guid.NewGuid();
+            createdDataElementIds.Add(dataGuid);
+            StorageInstanceMutationContent content = contentParts[create.ContentPartName];
+            await WriteDataBlob(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataGuid,
+                content.Bytes,
+                cancellationToken
+            );
+
+            DataElement dataElement = new()
+            {
+                Id = dataGuid.ToString(),
+                InstanceGuid = instanceGuid.ToString(),
+                DataType = create.DataType,
+                ContentType = create.ContentType ?? content.ContentType,
+                Filename = create.Filename ?? content.Filename,
+                Size = content.Bytes.Length,
+                Locked = create.Locked ?? false,
+                LastChanged = DateTime.UtcNow,
+            };
+
+            await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId, cancellationToken);
+            instance.Data.RemoveAll(element => element.Id == dataElement.Id);
+            instance.Data.Add(dataElement);
+            changedDataElementIds.Add(dataGuid);
+        }
+
+        foreach (StorageInstanceMutationUpdateDataElement update in mutation.UpdateDataElements)
+        {
+            DataElement dataElement = await GetDataElement(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                update.DataElementId.ToString(),
+                cancellationToken
+            );
+
+            if (update.ContentPartName is { } contentPartName)
+            {
+                StorageInstanceMutationContent content = contentParts[contentPartName];
+                await WriteDataBlob(
+                    org,
+                    app,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    update.DataElementId,
+                    content.Bytes,
+                    cancellationToken
+                );
+                dataElement.ContentType = update.ContentType ?? content.ContentType;
+                dataElement.Filename = update.Filename ?? content.Filename;
+                dataElement.Size = content.Bytes.Length;
+                changedDataElementIds.Add(update.DataElementId);
+            }
+
+            if (update.DeleteStatus is not null)
+            {
+                dataElement.DeleteStatus = update.DeleteStatus;
+            }
+
+            if (update.Locked is not null)
+            {
+                dataElement.Locked = update.Locked.Value;
+            }
+
+            dataElement.LastChanged = DateTime.UtcNow;
+            await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId, cancellationToken);
+            instance.Data.RemoveAll(element => element.Id == dataElement.Id);
+            instance.Data.Add(dataElement);
+        }
+
+        foreach (StorageInstanceMutationDeleteDataElement delete in mutation.DeleteDataElements)
+        {
+            string dataElementPath = TestData.GetDataElementPath(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                delete.DataElementId
+            );
+            string dataBlobPath = TestData.GetDataBlobPath(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                delete.DataElementId
+            );
+
+            if (File.Exists(dataElementPath))
+            {
+                File.Delete(dataElementPath);
+            }
+
+            if (File.Exists(dataBlobPath))
+            {
+                File.Delete(dataBlobPath);
+            }
+
+            instance.Data.RemoveAll(element => element.Id == delete.DataElementId.ToString());
+            deletedDataElementIds.Add(delete.DataElementId);
+        }
+
+        ApplyStringDictionaryUpdates(instance.DataValues, mutation.DataValues, values => instance.DataValues = values);
+        ApplyStringDictionaryUpdates(
+            instance.PresentationTexts,
+            mutation.PresentationTexts,
+            values => instance.PresentationTexts = values
+        );
+
+        bool processStateChanged = mutation.ProcessState?.State is not null;
+        if (mutation.ProcessState?.State is { } processState)
+        {
+            instance.Process = processState;
+        }
+
+        instance.LastChanged = DateTime.UtcNow;
+        await InstanceClientMockSi.WriteJsonFile(instancePath, instance, cancellationToken);
+
+        var (versions, dataElementMetadata) = _storageMetadata.BumpAggregate(
+            instanceIdentifier,
+            changedDataElementIds,
+            deletedDataElementIds,
+            processStateChanged
+        );
+        InstanceStorageMetadataRegistry.Set(instance, versions);
+
+        return new InstanceMutationWithStorageMetadata(instance, dataElementMetadata, versions, createdDataElementIds);
+    }
+
+    private static async Task WriteDataBlob(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        ReadOnlyMemory<byte> bytes,
+        CancellationToken cancellationToken
+    )
+    {
+        string dataDirectory = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
+        string blobDirectory = Path.Join(dataDirectory, "blob");
+        Directory.CreateDirectory(blobDirectory);
+        await File.WriteAllBytesAsync(Path.Join(blobDirectory, dataGuid.ToString()), bytes, cancellationToken);
+    }
+
+    private static (string Org, string App) GetInstanceOrgApp(InstanceIdentifier identifier)
+    {
+        try
+        {
+            return TestData.GetInstanceOrgApp(identifier);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            string instanceFileName = identifier.InstanceGuid + ".json";
+            string[] paths = Directory
+                .GetFiles(TestData.GetInstancesDirectory(), instanceFileName, SearchOption.AllDirectories)
+                .Where(path =>
+                    path.Split(Path.DirectorySeparatorChar).Contains(identifier.InstanceOwnerPartyId.ToString())
+                )
+                .ToArray();
+
+            if (paths.Length == 1)
+            {
+                DirectoryInfo partyDirectory =
+                    Directory.GetParent(paths[0])
+                    ?? throw new DirectoryNotFoundException($"No party directory found for {identifier}");
+                DirectoryInfo appDirectory =
+                    partyDirectory.Parent
+                    ?? throw new DirectoryNotFoundException($"No app directory found for {identifier}");
+                DirectoryInfo orgDirectory =
+                    appDirectory.Parent
+                    ?? throw new DirectoryNotFoundException($"No org directory found for {identifier}");
+
+                return (orgDirectory.Name, appDirectory.Name);
+            }
+
+            throw;
+        }
+    }
+
+    private static void ApplyStringDictionaryUpdates(
+        Dictionary<string, string>? current,
+        IReadOnlyDictionary<string, string?> updates,
+        Action<Dictionary<string, string>?> assign
+    )
+    {
+        if (updates.Count == 0)
+        {
+            return;
+        }
+
+        Dictionary<string, string>? values = current is null
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : new Dictionary<string, string>(current, StringComparer.Ordinal);
+
+        foreach ((string key, string? value) in updates)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                values.Remove(key);
+            }
+            else
+            {
+                values[key] = value;
+            }
+        }
+
+        assign(values.Count == 0 ? null : values);
     }
 
     private static async Task WriteDataElementToFile(
@@ -585,10 +967,7 @@ public class DataClientMock : IDataClient
 
         foreach (string file in files)
         {
-            DataElement dataElement = await InstanceClientMockSi.ReadJsonFile<DataElement>(
-                Path.Join(path, file),
-                cancellationToken
-            );
+            DataElement dataElement = await InstanceClientMockSi.ReadJsonFile<DataElement>(file, cancellationToken);
 
             if (
                 dataElement.DeleteStatus?.IsHardDeleted == true

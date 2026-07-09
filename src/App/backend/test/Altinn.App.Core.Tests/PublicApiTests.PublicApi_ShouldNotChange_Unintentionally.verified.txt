@@ -143,12 +143,12 @@ namespace Altinn.App.Core.EFormidling.Implementation
     public class DefaultEFormidlingReceivers : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers
     {
         public DefaultEFormidlingReceivers() { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig, Altinn.App.Core.Features.IInstanceDataAccessor? dataAccessor = null) { }
     }
     public class DefaultEFormidlingService : Altinn.App.Core.EFormidling.Interface.IEFormidlingService
     {
         public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
-        public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
+        public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration, Altinn.App.Core.Features.IInstanceDataAccessor? dataAccessor = null) { }
     }
     public class EformidlingDeliveryException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -164,15 +164,15 @@ namespace Altinn.App.Core.EFormidling.Interface
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "MetadataFilename",
                 "Metadata"})]
-        System.Threading.Tasks.Task<System.ValueTuple<string, System.IO.Stream>> GenerateEFormidlingMetadata(Altinn.Platform.Storage.Interface.Models.Instance instance);
+        System.Threading.Tasks.Task<System.ValueTuple<string, System.IO.Stream>> GenerateEFormidlingMetadata(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.IInstanceDataAccessor? dataAccessor = null);
     }
     public interface IEFormidlingReceivers
     {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig, Altinn.App.Core.Features.IInstanceDataAccessor? dataAccessor = null);
     }
     public interface IEFormidlingService
     {
-        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
+        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration, Altinn.App.Core.Features.IInstanceDataAccessor? dataAccessor = null);
     }
 }
 namespace Altinn.App.Core.Exceptions
@@ -2738,8 +2738,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UnlockDataElement(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Guid dataGuid, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> Update(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? contentType, string? filename, System.Guid dataGuid, System.IO.Stream stream, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
-        [System.Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes " +
-            "a Stream instead")]
+        [System.Obsolete("Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, " +
+            "Stream) instead", false)]
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, Microsoft.AspNetCore.Http.HttpRequest request, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         [System.Obsolete("Use the UpdateFormData method with Instance parameter instead")]
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateData<T>(T dataToSerialize, System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default)

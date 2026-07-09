@@ -10,12 +10,12 @@ internal class DataService : IDataService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
-    private readonly IDataClient _dataClient;
+    private readonly IStorageDataClient _dataClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataService"/> class.
     /// </summary>
-    public DataService(IDataClient dataClient)
+    public DataService(IStorageDataClient dataClient)
     {
         _dataClient = dataClient;
     }

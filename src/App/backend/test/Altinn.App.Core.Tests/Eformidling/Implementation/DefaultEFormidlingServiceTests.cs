@@ -4,6 +4,7 @@ using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
@@ -76,7 +77,8 @@ public class DefaultEFormidlingServiceTests
 
         var userTokenProvider = new Mock<IUserTokenProvider>(MockBehavior.Strict);
         var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
-        var dataClient = new Mock<IDataClient>(MockBehavior.Strict);
+        var storageAccessGuard = new InstanceDataMutatorStorageAccessGuard();
+        var storageDataClient = new Mock<IStorageDataClient>(MockBehavior.Strict);
         var eFormidlingMetadata = new Mock<IEFormidlingMetadata>(MockBehavior.Strict);
         var eFormidlingReceivers = new Mock<IEFormidlingReceivers>(MockBehavior.Strict);
         var eventClient = new Mock<IEventsClient>(MockBehavior.Loose);
@@ -160,15 +162,15 @@ public class DefaultEFormidlingServiceTests
         tokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");
         userTokenProvider.Setup(u => u.GetUserToken()).Returns("authz-token");
         eFormidlingReceivers
-            .Setup(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()))
+            .Setup(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>(), It.IsAny<IInstanceDataAccessor?>()))
             .ReturnsAsync(new List<Receiver>());
         eFormidlingMetadata
-            .Setup(em => em.GenerateEFormidlingMetadata(instance))
+            .Setup(em => em.GenerateEFormidlingMetadata(instance, It.IsAny<IInstanceDataAccessor?>()))
             .ReturnsAsync(() =>
             {
                 return (EFormidlingMetadataFilename, Stream.Null);
             });
-        dataClient
+        storageDataClient
             .Setup(x =>
                 x.GetBinaryData(
                     It.IsAny<int>(),
@@ -184,7 +186,12 @@ public class DefaultEFormidlingServiceTests
 
         services.TryAddTransient(_ => userTokenProvider.Object);
         services.TryAddTransient(_ => appMetadata.Object);
-        services.TryAddTransient(_ => dataClient.Object);
+        services.TryAddSingleton<IInstanceDataMutatorStorageAccessGuard>(storageAccessGuard);
+        services.TryAddTransient<IStorageDataClient>(_ => storageDataClient.Object);
+        services.TryAddTransient<IDataClient>(sp => new DataClient(
+            sp.GetRequiredService<IStorageDataClient>(),
+            sp.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>()
+        ));
         services.TryAddTransient(_ => eFormidlingReceivers.Object);
         services.TryAddTransient(_ => eFormidlingMetadata.Object);
         services.TryAddTransient(_ => eventClient.Object);
@@ -222,8 +229,10 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
         fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
-        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()));
-        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance));
+        fixture
+            .Mock<IEFormidlingReceivers>()
+            .Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>(), null));
+        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance, null));
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
         eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
         eFormidlingClient.Verify(ec =>
@@ -274,6 +283,52 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().VerifyNoOtherCalls();
 
         result.IsCompletedSuccessfully.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SendEFormidlingShipment_ReadsConfiguredInstanceData_WhenAppFacingStorageGuardIsActive()
+    {
+        // Arrange
+        await using var fixture = CreateFixture();
+        var (sp, instance, instanceGuid) = fixture;
+        var defaultEformidlingService = Assert.IsType<DefaultEFormidlingService>(
+            sp.GetRequiredService<IEFormidlingService>()
+        );
+        var appFacingDataClient = sp.GetRequiredService<IDataClient>();
+        var storageAccessGuard = sp.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>();
+        var dataAccessor = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessor
+            .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync(ReadOnlyMemory<byte>.Empty);
+
+        using var guardScope = storageAccessGuard.EnterScope();
+
+        // Act
+        await defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration, dataAccessor.Object);
+
+        // Assert
+        var guardedException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            appFacingDataClient.GetBinaryData(1337, instanceGuid, Guid.Parse(instance.Data[0].Id))
+        );
+        guardedException.Message.Should().Contain("Direct IDataClient Storage access is not allowed");
+
+        dataAccessor.Verify(
+            x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()),
+            Times.Exactly(instance.Data.Count)
+        );
+        fixture
+            .Mock<IStorageDataClient>()
+            .Verify(
+                x =>
+                    x.GetBinaryData(
+                        1337,
+                        instanceGuid,
+                        It.IsAny<Guid>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
+            );
     }
 
     [Theory]
@@ -357,8 +412,10 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
         fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
-        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()));
-        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance));
+        fixture
+            .Mock<IEFormidlingReceivers>()
+            .Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>(), null));
+        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance, null));
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
         eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
         eFormidlingClient.Verify(ec =>

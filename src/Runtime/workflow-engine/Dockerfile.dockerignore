@@ -3,12 +3,13 @@
 **
 !common/**
 !Runtime/workflow-engine/**
-**/bin
-**/obj
 
-# EFCore buggy outputs
-**bin\\Debug
-**bin\\Release
+# Build outputs, including EF/MSBuild-generated literal backslash dirs on macOS
+# such as `bin\Debug`, must stay out of the Docker build context.
+**/bin*
+**/bin*/**
+**/obj*
+**/obj*/**
 
 **/README.md
 **/readme.*

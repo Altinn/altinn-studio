@@ -632,7 +632,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>
             workflow.Steps.Any(step =>
-                step.OperationId == SaveProcessStateToStorage.Key && step.Status == PersistentItemStatus.Completed
+                step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
             )
         );
 

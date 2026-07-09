@@ -1,11 +1,10 @@
 #nullable disable
 
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
@@ -18,6 +17,8 @@ namespace LocalTest.Services.Storage.Implementation
 {
     public class DataRepository : IDataRepository
     {
+        private static readonly PartitionedAsyncLock _dataElementLocks = new PartitionedAsyncLock();
+
         private readonly LocalPlatformSettings _localPlatformSettings;
 
         public DataRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
@@ -25,23 +26,66 @@ namespace LocalTest.Services.Storage.Implementation
             _localPlatformSettings = localPlatformSettings.Value;
         }
 
-        public async Task<DataElement> Create(DataElement dataElement, long instanceInternalId = 0, CancellationToken cancellationToken = default)
+        public async Task<DataElementWriteResult<DataElement>> Create(
+            DataElement dataElement,
+            long instanceInternalId = 0,
+            CancellationToken cancellationToken = default,
+            int? expectedInstanceVersion = null,
+            int? expectedProcessStateVersion = null)
         {
-            string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
+            DataElement createdDataElement = null;
+            Guid instanceGuid = Guid.Parse(dataElement.InstanceGuid);
 
-            Directory.CreateDirectory(GetDataCollectionFolder());
-            Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
+            InstanceVersionResult versions = await InstanceVersionMetadataStore.Mutate(
+                _localPlatformSettings,
+                instanceGuid,
+                expectedInstanceVersion,
+                expectedProcessStateVersion,
+                bumpInstanceVersion: true,
+                bumpProcessStateVersion: false,
+                async () =>
+                {
+                    createdDataElement = await CreateCore(dataElement);
+                },
+                cancellationToken);
 
-            await WriteToFile(path, dataElement.ToString());
-
-            return dataElement;
+            return new DataElementWriteResult<DataElement>(
+                createdDataElement,
+                versions.InstanceVersion,
+                versions.ProcessStateVersion
+            );
         }
 
-        public Task<bool> Delete(DataElement dataElement, CancellationToken cancellationToken = default)
+        internal Task<DataElement> CreateWithoutVersionBump(
+            DataElement dataElement,
+            long instanceInternalId = 0,
+            CancellationToken cancellationToken = default)
         {
-            string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
-            File.Delete(path);
-            return Task.FromResult(true);
+            return CreateCore(dataElement);
+        }
+
+        public async Task<InstanceVersionResult> Delete(
+            DataElement dataElement,
+            CancellationToken cancellationToken = default,
+            int? expectedInstanceVersion = null,
+            int? expectedProcessStateVersion = null)
+        {
+            return await InstanceVersionMetadataStore.Mutate(
+                _localPlatformSettings,
+                Guid.Parse(dataElement.InstanceGuid),
+                expectedInstanceVersion,
+                expectedProcessStateVersion,
+                bumpInstanceVersion: true,
+                bumpProcessStateVersion: false,
+                () => DeleteCore(dataElement),
+                cancellationToken);
+        }
+
+        internal Task DeleteWithoutVersionBump(
+            DataElement dataElement,
+            CancellationToken cancellationToken = default)
+        {
+            return DeleteCore(dataElement);
         }
 
         public Task<bool> DeleteForInstance(string instanceId, CancellationToken cancellationToken = default)
@@ -93,98 +137,356 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElement;
         }
 
-        public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist, CancellationToken cancellationToken = default)
+        public Task<DataElementWriteResult<DataElement>> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist, CancellationToken cancellationToken = default)
+        {
+            return Update(instanceGuid, dataElementId, propertylist, null, cancellationToken);
+        }
+
+        public async Task<DataElementWriteResult<DataElement>> Update(
+            Guid instanceGuid,
+            Guid dataElementId,
+            Dictionary<string, object> propertylist,
+            DataElementUpdateContext context,
+            CancellationToken cancellationToken = default)
+        {
+            DataElement updatedDataElement = null;
+
+            InstanceVersionResult versions = await InstanceVersionMetadataStore.Mutate(
+                _localPlatformSettings,
+                instanceGuid,
+                context?.ExpectedInstanceVersion,
+                context?.ExpectedProcessStateVersion,
+                bumpInstanceVersion: true,
+                bumpProcessStateVersion: false,
+                async () =>
+                {
+                    updatedDataElement = await UpdateMetadata(
+                        instanceGuid,
+                        dataElementId,
+                        propertylist,
+                        context,
+                        cancellationToken);
+                },
+                cancellationToken);
+
+            return new DataElementWriteResult<DataElement>(
+                updatedDataElement,
+                versions.InstanceVersion,
+                versions.ProcessStateVersion
+            );
+        }
+
+        internal Task<DataElement> UpdateWithoutVersionBump(
+            Guid instanceGuid,
+            Guid dataElementId,
+            Dictionary<string, object> propertylist,
+            DataElementUpdateContext context,
+            CancellationToken cancellationToken = default)
+        {
+            return UpdateMetadata(
+                instanceGuid,
+                dataElementId,
+                propertylist,
+                context,
+                cancellationToken);
+        }
+
+        public Task<DataElementWriteResult<DataElement>> UpdateReadStatus(
+            Guid instanceGuid,
+            Guid dataElementId,
+            bool isRead,
+            CancellationToken cancellationToken = default)
+        {
+            return UpdateNoBump(
+                instanceGuid,
+                dataElementId,
+                new Dictionary<string, object>() { { "/isRead", isRead } },
+                cancellationToken,
+                isRead
+                    ? null
+                    : _ => UpdateInstanceReadStatusIfNoReadElementsRemain(
+                        instanceGuid,
+                        dataElementId,
+                        cancellationToken));
+        }
+
+        public Task<DataElementWriteResult<DataElement>> UpdateLockStatus(
+            Guid instanceGuid,
+            Guid dataElementId,
+            bool locked,
+            CancellationToken cancellationToken = default)
+        {
+            return UpdateNoBump(
+                instanceGuid,
+                dataElementId,
+                new Dictionary<string, object>() { { "/locked", locked } },
+                cancellationToken);
+        }
+
+        public Task<DataElementWriteResult<DataElement>> UpdateFileScanStatus(
+            Guid instanceGuid,
+            Guid dataElementId,
+            FileScanStatus fileScanStatus,
+            CancellationToken cancellationToken = default)
+        {
+            return UpdateNoBump(
+                instanceGuid,
+                dataElementId,
+                new Dictionary<string, object>()
+                {
+                    { "/fileScanResult", fileScanStatus.FileScanResult },
+                },
+                cancellationToken);
+        }
+
+        private async Task<DataElementWriteResult<DataElement>> UpdateNoBump(
+            Guid instanceGuid,
+            Guid dataElementId,
+            Dictionary<string, object> propertylist,
+            CancellationToken cancellationToken,
+            Func<DataElement, Task> afterUpdate = null)
+        {
+            DataElement updatedDataElement = null;
+
+            InstanceVersionResult versions = await InstanceVersionMetadataStore.Mutate(
+                _localPlatformSettings,
+                instanceGuid,
+                expectedInstanceVersion: null,
+                expectedProcessStateVersion: null,
+                bumpInstanceVersion: false,
+                bumpProcessStateVersion: false,
+                async () =>
+                {
+                    updatedDataElement = await UpdateMetadata(
+                        instanceGuid,
+                        dataElementId,
+                        propertylist,
+                        null,
+                        cancellationToken);
+                    if (afterUpdate is not null)
+                    {
+                        await afterUpdate(updatedDataElement);
+                    }
+                },
+                cancellationToken);
+
+            return new DataElementWriteResult<DataElement>(
+                updatedDataElement,
+                versions.InstanceVersion,
+                versions.ProcessStateVersion
+            );
+        }
+
+        private async Task<DataElement> CreateCore(DataElement dataElement)
+        {
+            string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
+
+            using IDisposable dataElementLock = await _dataElementLocks.Lock(GetDataElementLockKey(dataElement.InstanceGuid, dataElement.Id));
+
+            Directory.CreateDirectory(GetDataCollectionFolder());
+            Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
+
+            await WriteToFile(path, dataElement.ToString());
+            string blobVersionId = TryGetBlobVersionFromPath(dataElement.BlobStoragePath);
+            if (!string.IsNullOrEmpty(blobVersionId))
+            {
+                await CommitBlobVersion(
+                    dataElement.InstanceGuid,
+                    dataElement.Id,
+                    blobVersionId
+                );
+            }
+
+            return dataElement;
+        }
+
+        private async Task DeleteCore(DataElement dataElement)
+        {
+            using IDisposable dataElementLock = await _dataElementLocks.Lock(GetDataElementLockKey(dataElement.InstanceGuid, dataElement.Id));
+
+            string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
+            File.Delete(path);
+
+            DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(
+                dataElement.InstanceGuid,
+                dataElement.Id
+            );
+            metadata.CurrentBlobVersion = null;
+            await WriteBlobVersionMetadata(dataElement.InstanceGuid, dataElement.Id, metadata);
+        }
+
+        private async Task UpdateInstanceReadStatusIfNoReadElementsRemain(
+            Guid instanceGuid,
+            Guid dataElementId,
+            CancellationToken cancellationToken)
+        {
+            string instancePath = GetInstancePath(instanceGuid);
+            if (instancePath is null)
+            {
+                return;
+            }
+
+            string content = await File.ReadAllTextAsync(instancePath, cancellationToken);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(content);
+            if (instance?.Status?.ReadStatus != ReadStatus.Read)
+            {
+                return;
+            }
+
+            List<DataElement> dataElements = await ReadAll(instanceGuid);
+            bool otherDataElementIsRead = dataElements.Any(d =>
+                !string.Equals(d.Id, dataElementId.ToString(), StringComparison.OrdinalIgnoreCase)
+                && d.IsRead);
+            if (otherDataElementIsRead)
+            {
+                return;
+            }
+
+            instance.Status.ReadStatus = ReadStatus.Unread;
+            await File.WriteAllTextAsync(instancePath, instance.ToString(), cancellationToken);
+        }
+
+        private async Task<DataElement> UpdateMetadata(
+            Guid instanceGuid,
+            Guid dataElementId,
+            Dictionary<string, object> propertylist,
+            DataElementUpdateContext context,
+            CancellationToken cancellationToken)
         {
             string path = GetDataPath($"{instanceGuid}", $"{dataElementId}");
 
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
-                string content = await ReadFileAsString(path);
-                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content);
-
-                foreach (KeyValuePair<string, object> property in propertylist)
-                {
-                    string propName = property.Key.Trim('/');
-                    switch (propName)
-                    {
-                        case "contentType":
-                            {
-                                dataElement.ContentType = (string)property.Value;
-                                break;
-                            }
-                        case "deleteStatus":
-                            {
-                                dataElement.DeleteStatus = (DeleteStatus)property.Value;
-                                break;
-                            }
-                        case "filename":
-                            {
-                                dataElement.Filename = (string)property.Value;
-                                break;
-                            }
-                        case "fileScanResult":
-                            {
-                                dataElement.FileScanResult = (FileScanResult)property.Value;
-                                break;
-                            }
-                        case "isRead":
-                            {
-                                dataElement.IsRead = (bool)property.Value;
-                                break;
-                            }
-                        case "lastChangedBy":
-                            {
-                                dataElement.LastChangedBy = (string)property.Value;
-                                break;
-                            }
-                        case "lastChanged":
-                            {
-                                dataElement.LastChanged = (DateTime)property.Value;
-                                break;
-                            }
-                        case "locked":
-                            {
-                                dataElement.Locked = (bool)property.Value;
-                                break;
-                            }
-                        case "refs":
-                            {
-                                dataElement.Refs = (List<Guid>)property.Value;
-                                break;
-                            }
-                        case "references":
-                            {
-                                dataElement.References = (List<Reference>)property.Value;
-                                break;
-                            }
-                        case "size":
-                            {
-                                dataElement.Size = (long)property.Value;
-                                break;
-                            }
-                        case "tags":
-                            {
-                                dataElement.Tags = (List<string>)property.Value;
-                                break;
-                            }
-                        case "userDefinedMetadata":
-                            {
-                                dataElement.UserDefinedMetadata = (List<KeyValueEntry>)property.Value;
-                                break;
-                            }
-                        case "metadata":
-                            {
-                                dataElement.Metadata = (List<KeyValueEntry>)property.Value;
-                                break;
-                            }
-                    }
-                }
-                await Update(dataElement);
-
-                return dataElement;
+                throw new RepositoryException("Error occured");
             }
 
-            throw new RepositoryException("Error occured");
+            using IDisposable dataElementLock = await _dataElementLocks.Lock(GetDataElementLockKey(instanceGuid.ToString(), dataElementId.ToString()));
+
+            string content = await ReadFileAsString(path);
+            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content);
+            string currentBlobVersion = await ReadCurrentBlobVersion(instanceGuid, dataElementId, cancellationToken);
+
+            if (
+                context?.EnforceLockCheck == true
+                && (dataElement.Locked || dataElement.DeleteStatus?.IsHardDeleted == true)
+            )
+            {
+                throw new RepositoryException("Data element cannot be updated", System.Net.HttpStatusCode.Conflict);
+            }
+
+            if (
+                !string.IsNullOrEmpty(context?.ExpectedCurrentBlobVersion)
+                && !string.Equals(currentBlobVersion, context.ExpectedCurrentBlobVersion, StringComparison.Ordinal)
+            )
+            {
+                throw new DataElementBlobVersionMismatchException(
+                    $"Current blob version for data element {dataElementId} did not match expected blob version."
+                );
+            }
+
+            string newCurrentBlobVersion = null;
+
+            foreach (KeyValuePair<string, object> property in propertylist)
+            {
+                string propName = property.Key.Trim('/');
+                switch (propName)
+                {
+                    case "contentType":
+                        {
+                            dataElement.ContentType = (string)property.Value;
+                            break;
+                        }
+                    case "deleteStatus":
+                        {
+                            dataElement.DeleteStatus = (DeleteStatus)property.Value;
+                            break;
+                        }
+                    case "filename":
+                        {
+                            dataElement.Filename = (string)property.Value;
+                            break;
+                        }
+                    case "fileScanResult":
+                        {
+                            dataElement.FileScanResult = (FileScanResult)property.Value;
+                            break;
+                        }
+                    case "blobStoragePath":
+                        {
+                            dataElement.BlobStoragePath = (string)property.Value;
+                            break;
+                        }
+                    case "currentBlobVersion":
+                        {
+                            newCurrentBlobVersion = (string)property.Value;
+                            break;
+                        }
+                    case "isRead":
+                        {
+                            dataElement.IsRead = (bool)property.Value;
+                            break;
+                        }
+                    case "lastChangedBy":
+                        {
+                            dataElement.LastChangedBy = (string)property.Value;
+                            break;
+                        }
+                    case "lastChanged":
+                        {
+                            dataElement.LastChanged = (DateTime)property.Value;
+                            break;
+                        }
+                    case "locked":
+                        {
+                            dataElement.Locked = (bool)property.Value;
+                            break;
+                        }
+                    case "refs":
+                        {
+                            dataElement.Refs = (List<Guid>)property.Value;
+                            break;
+                        }
+                    case "references":
+                        {
+                            dataElement.References = (List<Reference>)property.Value;
+                            break;
+                        }
+                    case "size":
+                        {
+                            dataElement.Size = (long)property.Value;
+                            break;
+                        }
+                    case "tags":
+                        {
+                            dataElement.Tags = (List<string>)property.Value;
+                            break;
+                        }
+                    case "userDefinedMetadata":
+                        {
+                            dataElement.UserDefinedMetadata = (List<KeyValueEntry>)property.Value;
+                            break;
+                        }
+                    case "metadata":
+                        {
+                            dataElement.Metadata = (List<KeyValueEntry>)property.Value;
+                            break;
+                        }
+                }
+            }
+            Directory.CreateDirectory(GetDataCollectionFolder());
+            Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
+            await WriteToFile(path, dataElement.ToString());
+
+            if (!string.IsNullOrEmpty(newCurrentBlobVersion))
+            {
+                await CommitBlobVersion(
+                    instanceGuid.ToString(),
+                    dataElementId.ToString(),
+                    newCurrentBlobVersion
+                );
+            }
+
+            return dataElement;
         }
 
 
@@ -201,6 +503,22 @@ namespace LocalTest.Services.Storage.Implementation
         private string GetDataCollectionFolder()
         {
             return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.DataCollectionFolder;
+        }
+
+        private string GetInstancePath(Guid instanceGuid)
+        {
+            string instancesPath = GetInstanceCollectionFolder();
+            if (!Directory.Exists(instancesPath))
+            {
+                return null;
+            }
+
+            return Directory.GetFiles(instancesPath, $"*_{instanceGuid}.json").FirstOrDefault();
+        }
+
+        private string GetInstanceCollectionFolder()
+        {
+            return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.InstanceCollectionFolder;
         }
 
         private static async Task<string> ReadFileAsString(string path)
@@ -289,6 +607,184 @@ namespace LocalTest.Services.Storage.Implementation
         public Task<Dictionary<string, List<DataElement>>> ReadAllForMultiple(List<string> instanceGuids)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<string> CreateBlobVersionId(
+            Guid instanceGuid,
+            Guid dataElementId,
+            string appId,
+            string blobStorageOrg,
+            int? storageAccountNumber,
+            CancellationToken cancellationToken = default)
+        {
+            string blobVersionId = BlobVersionId.Encode(Guid.NewGuid());
+            using IDisposable dataElementLock = await _dataElementLocks.Lock(GetDataElementLockKey(instanceGuid.ToString(), dataElementId.ToString()));
+
+            DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(
+                instanceGuid.ToString(),
+                dataElementId.ToString()
+            );
+            metadata.BlobVersions.Add(blobVersionId);
+            await WriteBlobVersionMetadata(instanceGuid.ToString(), dataElementId.ToString(), metadata);
+
+            return blobVersionId;
+        }
+
+        public async Task<bool> DeleteBlobVersion(
+            Guid instanceGuid,
+            Guid dataElementId,
+            string blobVersionId,
+            CancellationToken cancellationToken = default)
+        {
+            using IDisposable dataElementLock = await _dataElementLocks.Lock(GetDataElementLockKey(instanceGuid.ToString(), dataElementId.ToString()));
+
+            DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(
+                instanceGuid.ToString(),
+                dataElementId.ToString()
+            );
+
+            if (string.Equals(metadata.CurrentBlobVersion, blobVersionId, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            bool removed = metadata.BlobVersions.Remove(blobVersionId);
+            if (removed)
+            {
+                await WriteBlobVersionMetadata(instanceGuid.ToString(), dataElementId.ToString(), metadata);
+            }
+
+            return removed;
+        }
+
+        public async Task<IReadOnlyList<string>> ReadDetachedBlobVersions(
+            Guid instanceGuid,
+            Guid dataElementId,
+            CancellationToken cancellationToken = default)
+        {
+            DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(
+                instanceGuid.ToString(),
+                dataElementId.ToString()
+            );
+
+            if (!string.IsNullOrEmpty(metadata.CurrentBlobVersion))
+            {
+                return [];
+            }
+
+            return metadata.BlobVersions.ToList();
+        }
+
+        public async Task<string> ReadCurrentBlobVersion(
+            Guid instanceGuid,
+            Guid dataElementId,
+            CancellationToken cancellationToken = default)
+        {
+            DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(
+                instanceGuid.ToString(),
+                dataElementId.ToString()
+            );
+            return metadata.CurrentBlobVersion;
+        }
+
+        private static string GetDataElementLockKey(string instanceId, string dataId)
+        {
+            return $"{instanceId}/{dataId}";
+        }
+
+        private string GetBlobVersionPath(string instanceId, string dataId)
+        {
+            return Path.Combine(GetBlobVersionForInstanceFolder(instanceId), dataId.Replace("/", "_") + ".json");
+        }
+
+        private string GetBlobVersionForInstanceFolder(string instanceId)
+        {
+            return Path.Combine(GetDataForInstanceFolder(instanceId), ".blobversions/");
+        }
+
+        private async Task<DataElementBlobVersionMetadata> ReadBlobVersionMetadata(string instanceId, string dataId)
+        {
+            string path = GetBlobVersionPath(instanceId, dataId);
+            if (!File.Exists(path))
+            {
+                return new DataElementBlobVersionMetadata();
+            }
+
+            string content = await ReadFileAsString(path);
+            return JsonConvert.DeserializeObject<DataElementBlobVersionMetadata>(content)
+                ?? new DataElementBlobVersionMetadata();
+        }
+
+        private async Task WriteBlobVersionMetadata(
+            string instanceId,
+            string dataId,
+            DataElementBlobVersionMetadata metadata)
+        {
+            Directory.CreateDirectory(GetBlobVersionForInstanceFolder(instanceId));
+
+            if (
+                string.IsNullOrEmpty(metadata.CurrentBlobVersion)
+                && metadata.BlobVersions.Count == 0
+            )
+            {
+                string path = GetBlobVersionPath(instanceId, dataId);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+
+                return;
+            }
+
+            await WriteToFile(
+                GetBlobVersionPath(instanceId, dataId),
+                JsonConvert.SerializeObject(metadata)
+            );
+        }
+
+        private async Task CommitBlobVersion(string instanceId, string dataId, string blobVersionId)
+        {
+            DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(instanceId, dataId);
+            if (!metadata.BlobVersions.Contains(blobVersionId, StringComparer.Ordinal))
+            {
+                metadata.BlobVersions.Add(blobVersionId);
+            }
+
+            metadata.CurrentBlobVersion = blobVersionId;
+            await WriteBlobVersionMetadata(instanceId, dataId, metadata);
+        }
+
+        private static string TryGetBlobVersionFromPath(string blobStoragePath)
+        {
+            if (string.IsNullOrEmpty(blobStoragePath))
+            {
+                return null;
+            }
+
+            string marker = "/data-elements/";
+            int markerIndex = blobStoragePath.LastIndexOf(marker, StringComparison.Ordinal);
+            if (markerIndex < 0)
+            {
+                return null;
+            }
+
+            string blobVersionId = blobStoragePath[(markerIndex + marker.Length)..];
+            try
+            {
+                BlobVersionId.Decode(blobVersionId);
+                return blobVersionId;
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return null;
+            }
+        }
+
+        private sealed class DataElementBlobVersionMetadata
+        {
+            public string CurrentBlobVersion { get; set; }
+
+            public List<string> BlobVersions { get; set; } = new List<string>();
         }
     }
 }

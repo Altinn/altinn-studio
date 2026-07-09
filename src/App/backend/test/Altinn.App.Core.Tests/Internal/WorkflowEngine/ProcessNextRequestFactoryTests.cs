@@ -144,6 +144,60 @@ public class ProcessNextRequestFactoryTests
         };
     }
 
+    private static ProcessStateChange CreateSameTaskLoopRevisit(string taskId = "Task_SubformPdf")
+    {
+        return new ProcessStateChange
+        {
+            OldProcessState = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = taskId,
+                    AltinnTaskType = "subformPdf",
+                    Flow = 4,
+                },
+            },
+            NewProcessState = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = taskId,
+                    AltinnTaskType = "subformPdf",
+                    Flow = 5,
+                },
+            },
+            Events =
+            [
+                new InstanceEvent
+                {
+                    EventType = InstanceEventType.process_EndTask.ToString(),
+                    ProcessInfo = new ProcessState
+                    {
+                        CurrentTask = new ProcessElementInfo
+                        {
+                            ElementId = taskId,
+                            AltinnTaskType = "subformPdf",
+                            Flow = 4,
+                        },
+                    },
+                },
+                new InstanceEvent
+                {
+                    EventType = InstanceEventType.process_StartTask.ToString(),
+                    ProcessInfo = new ProcessState
+                    {
+                        CurrentTask = new ProcessElementInfo
+                        {
+                            ElementId = taskId,
+                            AltinnTaskType = "subformPdf",
+                            Flow = 5,
+                        },
+                    },
+                },
+            ],
+        };
+    }
+
     private static ProcessStateChange CreateTaskToEndTransition(
         string fromTaskId = "Task_1",
         string endEvent = "EndEvent_1"
@@ -256,6 +310,32 @@ public class ProcessNextRequestFactoryTests
             .ToList()!;
     }
 
+    private static List<ExecuteServiceTaskPayload> ExtractExecuteServiceTaskPayloads(WorkflowEnqueueEnvelope bundle)
+    {
+        return bundle
+            .Request.Workflows[0]
+            .Steps.Where(s => s.Command.Type == "app" && s.Command.Data is not null)
+            .Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value))
+            .Where(appData => appData?.CommandKey == ExecuteServiceTask.Key)
+            .Select(appData => CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData!.Payload)!)
+            .ToList();
+    }
+
+    private static List<StepRequest> ExtractExecuteServiceTaskSteps(WorkflowEnqueueEnvelope bundle)
+    {
+        return bundle
+            .Request.Workflows[0]
+            .Steps.Where(s =>
+            {
+                if (s.Command.Type != "app" || s.Command.Data is null)
+                    return false;
+
+                var appData = JsonSerializer.Deserialize<AppCommandData>(s.Command.Data.Value);
+                return appData?.CommandKey == ExecuteServiceTask.Key;
+            })
+            .ToList();
+    }
+
     [Fact]
     public async Task Create_TaskToTaskTransition_ProducesCorrectCommandSequence()
     {
@@ -283,12 +363,80 @@ public class ProcessNextRequestFactoryTests
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // SaveProcessStateToStorage (commit boundary)
-            SaveProcessStateToStorage.Key,
+            // CommitProcessState (commit boundary)
+            CommitProcessState.Key,
             // Post-commit
             MovedToAltinnEvent.Key,
         };
         Assert.Equal(expected, keys);
+    }
+
+    [Fact]
+    public async Task Create_ProcessStateChangeCommands_UseProcessStateChangePayloadDiscriminator()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var processStatePayloads = bundle
+            .Request.Workflows[0]
+            .Steps.Where(s => s.Command.Type == "app" && s.Command.Data is not null)
+            .Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value))
+            .Where(appData =>
+                appData?.CommandKey == MutateProcessState.Key || appData?.CommandKey == CommitProcessState.Key
+            )
+            .Select(appData => appData!.Payload)
+            .ToList();
+
+        Assert.Equal(2, processStatePayloads.Count);
+        foreach (string? payload in processStatePayloads)
+        {
+            Assert.NotNull(payload);
+            using var document = JsonDocument.Parse(payload);
+            Assert.Equal("processStateChange", document.RootElement.GetProperty("$type").GetString());
+        }
+    }
+
+    [Fact]
+    public async Task Create_SameTaskLoopRevisit_RunsCommonTaskInitializationBeforeServiceTaskExecution()
+    {
+        // Arrange
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("subformPdf");
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateSameTaskLoopRevisit();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var keys = ExtractCommandKeys(bundle);
+        var expected = new List<string>
+        {
+            EndTask.Key,
+            CommonTaskFinalization.Key,
+            OnTaskEndingHook.Key,
+            LockTaskData.Key,
+            MutateProcessState.Key,
+            UnlockTaskData.Key,
+            CleanupGeneratedFromTask.Key,
+            OnTaskStartingHook.Key,
+            CommonTaskInitialization.Key,
+            StartTask.Key,
+            CommitProcessState.Key,
+            MovedToAltinnEvent.Key,
+            ExecuteServiceTask.Key,
+        };
+        Assert.Equal(expected, keys);
+
+        var workflow = bundle.Request.Workflows.Single();
+        Assert.Equal("Process next: Task_SubformPdf -> Task_SubformPdf", workflow.OperationId);
+        Assert.Equal("Task_SubformPdf:4", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+        Assert.Equal("Task_SubformPdf:5", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
     }
 
     [Fact]
@@ -314,8 +462,8 @@ public class ProcessNextRequestFactoryTests
             MutateProcessState.Key,
             // Process end commands (pre-commit)
             OnProcessEndingHook.Key,
-            // SaveProcessStateToStorage
-            SaveProcessStateToStorage.Key,
+            // CommitProcessState
+            CommitProcessState.Key,
             // Post-commit
             EndProcessLegacyHook.Key,
             DeleteDataElementsIfConfigured.Key,
@@ -349,8 +497,8 @@ public class ProcessNextRequestFactoryTests
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // SaveProcessStateToStorage
-            SaveProcessStateToStorage.Key,
+            // CommitProcessState
+            CommitProcessState.Key,
             // Post-commit
             MovedToAltinnEvent.Key,
             InstanceCreatedAltinnEvent.Key,
@@ -399,8 +547,8 @@ public class ProcessNextRequestFactoryTests
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // SaveProcessStateToStorage
-            SaveProcessStateToStorage.Key,
+            // CommitProcessState
+            CommitProcessState.Key,
             // Post-commit
             MovedToAltinnEvent.Key,
         };
@@ -427,6 +575,44 @@ public class ProcessNextRequestFactoryTests
         int movedToIndex = keys.IndexOf(MovedToAltinnEvent.Key);
         int executeServiceTaskIndex = keys.IndexOf(ExecuteServiceTask.Key);
         Assert.True(executeServiceTaskIndex > movedToIndex);
+
+        var payload = Assert.Single(ExtractExecuteServiceTaskPayloads(bundle));
+        Assert.Equal(ExecuteServiceTaskPhase.Execute, payload.Phase);
+    }
+
+    [Fact]
+    public async Task Create_PostCommitServiceTask_AddsExecuteAndPostCommitSteps()
+    {
+        // Arrange
+        var serviceTask = new PostCommitServiceTask("signing");
+        var factory = CreateFactory(serviceTasks: serviceTask);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var payloads = ExtractExecuteServiceTaskPayloads(bundle);
+        Assert.Collection(
+            payloads,
+            payload =>
+            {
+                Assert.Equal("signing", payload.ServiceTaskType);
+                Assert.Equal(ExecuteServiceTaskPhase.Execute, payload.Phase);
+            },
+            payload =>
+            {
+                Assert.Equal("signing", payload.ServiceTaskType);
+                Assert.Equal(ExecuteServiceTaskPhase.PostCommit, payload.Phase);
+            }
+        );
+
+        var steps = ExtractExecuteServiceTaskSteps(bundle);
+        Assert.Collection(
+            steps,
+            step => Assert.Equal(ExecuteServiceTask.Key, step.OperationId),
+            step => Assert.Equal($"{ExecuteServiceTask.Key}.{ExecuteServiceTaskPhase.PostCommit}", step.OperationId)
+        );
     }
 
     [Fact]
@@ -477,6 +663,7 @@ public class ProcessNextRequestFactoryTests
             instanceIdentifier.InstanceGuid.ToString("N"),
             bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
         );
+        Assert.Equal(instanceIdentifier.InstanceGuid.ToString(), bundle.CollectionKey);
         var workflow = bundle.Request.Workflows[0];
         Assert.Equal("Process next: Task_1 -> Task_2", workflow.OperationId);
         Assert.Equal("state-blob", workflow.State);
@@ -749,5 +936,16 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractCommandKeys(bundle);
         Assert.Contains(DeleteDataElementsIfConfigured.Key, keys);
         Assert.DoesNotContain(DeleteInstanceIfConfigured.Key, keys);
+    }
+
+    private sealed class PostCommitServiceTask(string type) : IPostCommitServiceTask
+    {
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+
+        public Task<ServiceTaskResult> ExecutePostCommit(ServiceTaskContext context) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 }

@@ -790,7 +790,7 @@ public class InstancesController : ControllerBase
                 var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
                 if (copyInstanceValidator is not null)
                 {
-                    var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+                    using var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Open(
                         source,
                         null,
                         language
@@ -1000,7 +1000,7 @@ public class InstancesController : ControllerBase
         var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
         if (copyInstanceValidator is not null)
         {
-            var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+            using var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Open(
                 sourceInstance,
                 null,
                 language
@@ -1739,7 +1739,7 @@ public class InstancesController : ControllerBase
         string? language
     )
     {
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId: null, language);
+        using var dataMutator = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId: null, language);
 
         for (int partIndex = 0; partIndex < parts.Count; partIndex++)
         {
@@ -1835,7 +1835,6 @@ public class InstancesController : ControllerBase
 
         // Update the changes list if it changed in data processors
         changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-        await dataMutator.UpdateInstanceData(changes);
         await dataMutator.SaveChanges(changes);
 
         return null;

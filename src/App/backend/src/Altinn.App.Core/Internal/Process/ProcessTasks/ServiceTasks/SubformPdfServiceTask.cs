@@ -3,7 +3,6 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
@@ -30,9 +29,6 @@ internal sealed class SubformPdfServiceTask(
         string? filenameTextResourceKey = config.FilenameTextResourceKey;
         string subformComponentId = config.SubformComponentId;
         string subformDataTypeId = config.SubformDataTypeId;
-
-        // Clean up any existing PDFs from previous failed attempts
-        RemoveDataElementsGeneratedFromTask(context.InstanceDataMutator, taskId);
 
         List<DataElement> subformDataElements = instance.Data.Where(x => x.DataType == subformDataTypeId).ToList();
 
@@ -85,20 +81,5 @@ internal sealed class SubformPdfServiceTask(
         }
 
         return subformPdfConfiguration.Validate();
-    }
-
-    private static void RemoveDataElementsGeneratedFromTask(IInstanceDataMutator instanceDataMutator, string taskId)
-    {
-        Instance instance = instanceDataMutator.Instance;
-        var dataElements =
-            instance.Data?.Where(de =>
-                de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
-            )
-            ?? [];
-
-        foreach (var dataElement in dataElements)
-        {
-            instanceDataMutator.RemoveDataElement(dataElement);
-        }
     }
 }

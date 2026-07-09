@@ -3,6 +3,7 @@ using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -12,7 +13,7 @@ namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
 public class FiksArkivServiceTaskTest
 {
     [Fact]
-    public async Task Execute_CallsGenerateAndSendMessage()
+    public async Task ExecutePostCommit_CallsSendStagedMessage()
     {
         // Arrange
         var instance = new Instance
@@ -34,14 +35,14 @@ public class FiksArkivServiceTaskTest
 
         // Act
         var parameters = new ServiceTaskContext { InstanceDataMutator = instanceDataMutatorMock.Object };
-        await fixture.FiksArkivServiceTask.Execute(parameters);
+        await ((IPostCommitServiceTask)fixture.FiksArkivServiceTask).ExecutePostCommit(parameters);
 
         // Assert
         fiksArkivHostMock.Verify();
     }
 
     [Fact]
-    public async Task Execute_SuccessfulSend_ReturnsSuccessResult()
+    public async Task Execute_ReturnsSuccessWithoutAutoAdvance()
     {
         // Arrange
         var instanceDataMutatorMock = InstanceDataMutatorMockFactory(
@@ -63,7 +64,35 @@ public class FiksArkivServiceTaskTest
         var result = await fixture.FiksArkivServiceTask.Execute(parameters);
 
         // Assert
-        Assert.IsType<ServiceTaskSuccessResult>(result);
+        var successResult = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.False(successResult.AutoAdvanceProcess);
+    }
+
+    [Fact]
+    public async Task ExecutePostCommit_SuccessfulSend_ReturnsSuccessResult()
+    {
+        // Arrange
+        var instanceDataMutatorMock = InstanceDataMutatorMockFactory(
+            new Instance
+            {
+                Id = "12345/27fde586-4078-4c16-8c5f-ec406f1b17de",
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            }
+        );
+
+        await using var fixture = TestFixture.Create(services =>
+        {
+            services.AddFiksArkiv();
+            services.AddSingleton(Mock.Of<IFiksArkivHost>());
+        });
+
+        // Act
+        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceDataMutatorMock.Object };
+        var result = await ((IPostCommitServiceTask)fixture.FiksArkivServiceTask).ExecutePostCommit(parameters);
+
+        // Assert
+        var successResult = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(successResult.AutoAdvanceProcess);
     }
 
     [Fact]
@@ -80,7 +109,7 @@ public class FiksArkivServiceTaskTest
         );
 
         // Act
-        var result = await fixture.FiksArkivServiceTask.Execute(null!);
+        var result = await ((IPostCommitServiceTask)fixture.FiksArkivServiceTask).ExecutePostCommit(null!);
 
         // Assert
         var successResult = Assert.IsType<ServiceTaskSuccessResult>(result);
@@ -102,7 +131,7 @@ public class FiksArkivServiceTaskTest
         );
 
         // Act
-        var result = await fixture.FiksArkivServiceTask.Execute(null!);
+        var result = await ((IPostCommitServiceTask)fixture.FiksArkivServiceTask).ExecutePostCommit(null!);
 
         // Assert
         var failedResult = Assert.IsType<ServiceTaskFailedResult>(result);
@@ -122,10 +151,11 @@ public class FiksArkivServiceTaskTest
         var fiksArkivHostMock = new Mock<IFiksArkivHost>(MockBehavior.Strict);
         fiksArkivHostMock
             .Setup(x =>
-                x.GenerateAndSendMessage(
+                x.SendStagedMessage(
                     instance.Process.CurrentTask.ElementId,
                     It.Is<Instance>(i => i.Id == instance.Id),
                     messageType,
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<CancellationToken>()
                 )
             )

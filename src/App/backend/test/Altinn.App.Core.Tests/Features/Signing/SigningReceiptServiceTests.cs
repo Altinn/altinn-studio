@@ -25,7 +25,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
     SigningReceiptService SetupService(
         Mock<ICorrespondenceClient>? correspondenceClientMockOverride = null,
         Mock<IHostEnvironment>? hostEnvironmentMockOverride = null,
-        Mock<IDataClient>? dataClientMockOverride = null,
+        Mock<IStorageDataClient>? dataClientMockOverride = null,
         Mock<IAltinnCdnClient>? altinnCdnClientMockOverride = null,
         Mock<IAppMetadata>? appMetadataMockOverride = null,
         ITranslationService? translationServiceOverride = null
@@ -33,7 +33,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
     {
         Mock<ICorrespondenceClient> correspondenceClientMock = correspondenceClientMockOverride ?? new();
         Mock<IHostEnvironment> hostEnvironmentMock = hostEnvironmentMockOverride ?? new();
-        Mock<IDataClient>? dataClientMock = dataClientMockOverride ?? new();
+        Mock<IStorageDataClient>? dataClientMock = dataClientMockOverride ?? new();
         Mock<IAppMetadata> appMetadataMock = appMetadataMockOverride ?? new();
         Mock<IAltinnCdnClient> altinnCdnClientMock = altinnCdnClientMockOverride ?? new();
         Mock<ITranslationService> translationServiceMock = new();
@@ -123,7 +123,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
 
         using var dataStream = new MemoryStream([1, 2, 3]);
-        var dataClientMock = new Mock<IDataClient>();
+        var dataClientMock = new Mock<IStorageDataClient>();
         dataClientMock
             .Setup(x =>
                 x.GetBinaryDataStream(
@@ -405,7 +405,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         ApplicationMetadata appMetadata = new("org/app");
 
         using var dataStream = new MemoryStream([1, 2, 3]);
-        var dataClientMock = new Mock<IDataClient>();
+        var dataClientMock = new Mock<IStorageDataClient>();
         dataClientMock
             .Setup(x =>
                 x.GetBinaryDataStream(

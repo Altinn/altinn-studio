@@ -46,6 +46,9 @@ public class ValidateControllerTests
         _services.AddSingleton(_appMetadataMock.Object);
         _services.AddSingleton(_validationServiceMock.Object);
         _services.AddSingleton(_dataClientMock.Object);
+        _services.AddSingleton(Mock.Of<IStorageDataClient>());
+        _services.AddSingleton(Mock.Of<IStorageInstanceClient>());
+        _services.AddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
         _services.AddSingleton(_appModelMock.Object);
         _services.AddSingleton(_translationServiceMock.Object);
         _services.AddSingleton(_appResourcesMock.Object);

@@ -289,7 +289,7 @@ public partial class DataTagsController : ControllerBase
     )
     {
         var taskId = instance.Process.CurrentTask.ElementId;
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
 
         List<ValidationSourcePair>? validationIssues = null;

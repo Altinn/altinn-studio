@@ -2,13 +2,14 @@ using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Clients.Fiks.FiksArkiv;
 
-internal sealed class FiksArkivServiceTask : IServiceTask
+internal sealed class FiksArkivServiceTask : IPostCommitServiceTask
 {
     private readonly ILogger<FiksArkivServiceTask> _logger;
     private readonly IFiksArkivHost _fiksArkivHost;
@@ -41,10 +42,42 @@ internal sealed class FiksArkivServiceTask : IServiceTask
                 taskId
             );
 
-            var response = await _fiksArkivHost.GenerateAndSendMessage(
+            await _fiksArkivHost.StageArchiveRecordForMessage(
                 taskId,
                 instance,
-                FiksArkivConstants.MessageTypes.CreateArchiveRecord
+                FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+                context.InstanceDataMutator,
+                context.CancellationToken
+            );
+
+            return ServiceTaskResult.SuccessWithoutAutoAdvance();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error occurred while staging FiksArkivServiceTask: {ErrorMessage}", e.Message);
+            return ServiceTaskResult.FailedRetryable(e.Message);
+        }
+    }
+
+    public async Task<ServiceTaskResult> ExecutePostCommit(ServiceTaskContext context)
+    {
+        try
+        {
+            Instance instance = context.InstanceDataMutator.Instance;
+            string taskId = instance.Process.CurrentTask.ElementId;
+
+            _logger.LogInformation(
+                "FiksArkivServiceTask is sending post-commit for instance {InstanceId} and task {TaskId}",
+                instance.Id,
+                taskId
+            );
+
+            var response = await _fiksArkivHost.SendStagedMessage(
+                taskId,
+                instance,
+                FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+                context.InstanceDataMutator,
+                context.CancellationToken
             );
 
             _logger.LogInformation(

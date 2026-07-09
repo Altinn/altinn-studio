@@ -14,26 +14,28 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 internal class InstanceDataUnitOfWorkInitializer
 {
-    private readonly IDataClient _dataClient;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IStorageDataClient _dataClient;
+    private readonly IStorageInstanceClient _instanceClient;
     private readonly ITranslationService _translationService;
     private readonly ModelSerializationService _modelSerializationService;
     private readonly IAppResources _appResources;
     private readonly IOptions<FrontEndSettings> _frontEndSettings;
     private readonly Telemetry? _telemetry;
     private readonly IAppMetadata _applicationMetadata;
+    private readonly IInstanceDataMutatorStorageAccessGuard _storageAccessGuard;
 
     /// <summary>
     /// Constructor with services from dependency injection
     /// </summary>
     public InstanceDataUnitOfWorkInitializer(
-        IDataClient dataClient,
-        IInstanceClient instanceClient,
+        IStorageDataClient dataClient,
+        IStorageInstanceClient instanceClient,
         IAppMetadata applicationMetadata,
         ITranslationService translationService,
         ModelSerializationService modelSerializationService,
         IAppResources appResources,
         IOptions<FrontEndSettings> frontEndSettings,
+        IInstanceDataMutatorStorageAccessGuard storageAccessGuard,
         Telemetry? telemetry = null
     )
     {
@@ -45,10 +47,13 @@ internal class InstanceDataUnitOfWorkInitializer
         _frontEndSettings = frontEndSettings;
         _telemetry = telemetry;
         _applicationMetadata = applicationMetadata;
+        _storageAccessGuard = storageAccessGuard;
     }
 
     /// <summary>
     /// Initializes an <see cref="InstanceDataUnitOfWork"/> with all the services it needs.
+    /// The returned unit of work is inactive: direct public Storage access is not blocked in the current async
+    /// execution context until <see cref="InstanceDataUnitOfWork.Open"/> is called.
     /// This is marked as internal so that this class can only be used internally. Even if it is public for usage (as a DI service) in public classes.
     /// </summary>
     internal async Task<InstanceDataUnitOfWork> Init(
@@ -68,6 +73,7 @@ internal class InstanceDataUnitOfWorkInitializer
             _modelSerializationService,
             _appResources,
             _frontEndSettings,
+            _storageAccessGuard,
             taskId,
             language,
             _telemetry
@@ -79,5 +85,59 @@ internal class InstanceDataUnitOfWorkInitializer
         }
 
         return uow;
+    }
+
+    /// <summary>
+    /// Opens an <see cref="InstanceDataUnitOfWork"/> for the current async execution context.
+    /// </summary>
+    /// <remarks>
+    /// The direct Storage access guard is activated synchronously when this method is called, before async
+    /// initialization starts. The activation is visible through the current .NET
+    /// <see cref="System.Threading.ExecutionContext"/>, where <see cref="AsyncLocal{T}"/> state flows through async
+    /// continuations, and is not tied to C# lexical scope. Callers must call this method in the execution context they
+    /// want guarded. The returned unit of work owns the activation until
+    /// <see cref="InstanceDataUnitOfWork.Dispose"/>.
+    /// </remarks>
+    internal Task<InstanceDataUnitOfWork> Open(
+        Instance instance,
+        string? taskId,
+        string? language,
+        StorageAuthenticationMethod? authenticationMethodForAllDataTypes = null
+    )
+    {
+        IDisposable scope = _storageAccessGuard.EnterScope();
+        return InitAndTransferStorageAccessGuardScope(
+            instance,
+            taskId,
+            language,
+            authenticationMethodForAllDataTypes,
+            scope
+        );
+    }
+
+    private async Task<InstanceDataUnitOfWork> InitAndTransferStorageAccessGuardScope(
+        Instance instance,
+        string? taskId,
+        string? language,
+        StorageAuthenticationMethod? authenticationMethodForAllDataTypes,
+        IDisposable scope
+    )
+    {
+        try
+        {
+            InstanceDataUnitOfWork unitOfWork = await Init(
+                instance,
+                taskId,
+                language,
+                authenticationMethodForAllDataTypes
+            );
+            unitOfWork.TakeOwnershipOfCurrentExecutionContextActivation(scope);
+            return unitOfWork;
+        }
+        catch
+        {
+            scope.Dispose();
+            throw;
+        }
     }
 }

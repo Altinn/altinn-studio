@@ -8,14 +8,14 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// Inserted between task-end and task-start command groups so that:
 /// - Task-end commands see the OLD CurrentTask (the task being ended)
 /// - Task-start commands see the NEW CurrentTask (the task being started)
-/// The actual persistence happens later via <see cref="SaveProcessStateToStorage"/>.
+/// The actual persistence happens later via <see cref="CommitProcessState"/>.
 ///
 /// Note: After this command runs, Storage still has the OLD process state until
-/// <see cref="SaveProcessStateToStorage"/> persists it. Any data saves by subsequent
+/// <see cref="CommitProcessState"/> persists it. Any data saves by subsequent
 /// task-start commands are authorized by Storage against the OLD current task.
 /// This works because callbacks use ServiceOwner authentication for data operations.
 /// </summary>
-internal sealed class MutateProcessState : WorkflowEngineCommandBase<SaveProcessStateToStoragePayload>
+internal sealed class MutateProcessState : WorkflowEngineCommandBase<ProcessStateChangePayload>
 {
     public static string Key => "MutateProcessState";
 
@@ -23,7 +23,7 @@ internal sealed class MutateProcessState : WorkflowEngineCommandBase<SaveProcess
 
     public override Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
-        SaveProcessStateToStoragePayload toStoragePayload
+        ProcessStateChangePayload toStoragePayload
     )
     {
         ProcessStateChange processStateChange = toStoragePayload.ProcessStateChange;

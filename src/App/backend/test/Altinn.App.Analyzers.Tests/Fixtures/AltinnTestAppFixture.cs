@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -47,12 +48,30 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
         return modification;
     }
 
+    public IDisposable WithCode(string code)
+    {
+        if (!IsInitialized)
+            throw new InvalidOperationException("Fixture not initialized");
+
+        var modification = new ProjectModification(this);
+
+        var doc = Project.AddDocument("Code.cs", SourceText.From(code, Encoding.UTF8));
+        Project = doc.Project;
+
+        return modification;
+    }
+
     public async Task<(CompilationWithAnalyzers Compilation, IReadOnlyList<Diagnostic>)> GetCompilation(
         DiagnosticAnalyzer analyzer,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        bool isAltinnApp = true
     )
     {
-        var (compilation, diagnostics) = await base.CompileWithAnalyzer(analyzer, cancellationToken);
+        var analyzerOptions = new AnalyzerOptions(
+            ImmutableArray<AdditionalText>.Empty,
+            new TestAnalyzerConfigOptionsProvider(isAltinnApp)
+        );
+        var (compilation, diagnostics) = await base.CompileWithAnalyzer(analyzer, cancellationToken, analyzerOptions);
         var errorDiagnostics = diagnostics
             .Where(d =>
                 d.Severity == DiagnosticSeverity.Error

@@ -140,7 +140,7 @@ public class ActionsController : ControllerBase
             return Forbid();
         }
         var taskId = instance.Process?.CurrentTask?.ElementId;
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        using var dataMutator = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
 
         UserActionContext userActionContext = new(
             dataMutator,
@@ -220,9 +220,7 @@ public class ActionsController : ControllerBase
 
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 
-        await dataMutator.UpdateInstanceData(changes);
-
-        var saveTask = dataMutator.SaveChanges(changes);
+        await dataMutator.SaveChanges(changes);
 
         var validationIssues = await GetIncrementalValidations(
             dataMutator,
@@ -230,7 +228,6 @@ public class ActionsController : ControllerBase
             actionRequest.IgnoredValidators,
             language
         );
-        await saveTask;
 
         var updatedDataModels = changes
             .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)

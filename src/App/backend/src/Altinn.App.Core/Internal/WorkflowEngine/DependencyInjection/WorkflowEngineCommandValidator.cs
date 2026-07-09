@@ -43,6 +43,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTaskType = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -54,6 +55,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTaskType = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -66,6 +68,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTaskType = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -79,6 +82,7 @@ internal static class WorkflowEngineCommandValidator
             WorkflowCommandSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
+                    TaskId = "DummyTask",
                     ServiceTaskType = "DummyServiceTask",
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -86,7 +90,7 @@ internal static class WorkflowEngineCommandValidator
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps(), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("DummyTask"), keys);
         CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(), keys);
         CollectCommandKeys(
             WorkflowCommandSet.GetProcessEndSteps(
@@ -100,8 +104,8 @@ internal static class WorkflowEngineCommandValidator
             keys
         );
 
-        // SaveProcessStateToStorage is automatically inserted
-        keys.Add(SaveProcessStateToStorage.Key);
+        // CommitProcessState is automatically inserted
+        keys.Add(CommitProcessState.Key);
 
         return keys;
     }

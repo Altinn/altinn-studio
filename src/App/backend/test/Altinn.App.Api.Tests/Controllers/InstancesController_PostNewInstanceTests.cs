@@ -7,16 +7,24 @@ using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Tests.Common.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
@@ -88,9 +96,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         string filename = "validfile.png";
+        var storage = CreateStorageInterceptor(org, app);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        RouteStorageRequestsToFileBackedInterceptor(org, app, storage, storageInvoker);
 
         OverrideServicesForThisTest = services =>
         {
+            UseHttpStorageDataClient(services);
+            ReplaceProcessEngineForStorePartsTest(services);
             services.AddTransient<IFileAnalyser, FilenameAnalyserStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
@@ -179,6 +192,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string org = "tdd";
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
+        var storage = CreateStorageInterceptor(org, app);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        RouteStorageRequestsToFileBackedInterceptor(org, app, storage, storageInvoker);
+        OverrideServicesForThisTest = services =>
+        {
+            UseHttpStorageDataClient(services);
+            ReplaceProcessEngineForStorePartsTest(services);
+        };
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
@@ -235,6 +256,76 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         Assert.Equal("9edd53de-f46f-40a1-bb4d-3efb93dc113d", pdfElement.DataType);
         var pngContent = await client.GetByteArrayAsync($"/{org}/{app}/instances/{instanceId}/data/{pdfElement.Id}");
         Assert.Equal(new byte[] { 1, 2, 4 }, pngContent);
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstanceWithContent_DataCreationDirectDataClientThrowsAndFrameworkSaveStillSucceeds()
+    {
+        string testName = nameof(
+            PostNewInstanceWithContent_DataCreationDirectDataClientThrowsAndFrameworkSaveStillSucceeds
+        );
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        var storage = CreateStorageInterceptor(org, app);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        RouteStorageRequestsToFileBackedInterceptor(org, app, storage, storageInvoker);
+
+        var storageGuard = new InstanceDataMutatorStorageAccessGuard();
+        var innerDataClient = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        string? guardExceptionMessage = null;
+
+        OverrideServicesForThisTest = services =>
+        {
+            UseHttpStorageDataClient(services);
+            ReplaceProcessEngineForStorePartsTest(services);
+            services.Replace(ServiceDescriptor.Singleton<IInstanceDataMutatorStorageAccessGuard>(storageGuard));
+            services.Replace(
+                ServiceDescriptor.Transient<IDataClient>(_ => new DataClient(innerDataClient.Object, storageGuard))
+            );
+            services.Replace(
+                ServiceDescriptor.Transient<IInstantiationProcessor>(sp => new GuardProbeInstantiationProcessor(
+                    sp.GetRequiredService<IDataClient>(),
+                    instanceOwnerPartyId,
+                    message => guardExceptionMessage = message
+                ))
+            );
+        };
+
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using var content = new MultipartFormDataContent();
+        content.Add(
+            new StringContent(
+                $$$"""<Skjema><melding><name>{{{testName}}}</name></melding></Skjema>""",
+                Encoding.UTF8,
+                "application/xml"
+            ),
+            "default"
+        );
+
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions)!;
+        string instanceId = createResponseParsed.Id;
+        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
+        string dataGuid = createResponseParsed.Data.Single(x => x.DataType == "default").Id;
+
+        guardExceptionMessage.Should().Contain("Direct IDataClient Storage access is not allowed");
+        storageGuard.IsActive.Should().BeFalse();
+        var (_, storedData) = storage.GetInstanceAndData(instanceOwnerPartyId, instanceGuid);
+        Encoding.UTF8.GetString(storedData[dataGuid]).Should().Contain(testName);
+        innerDataClient.VerifyNoOtherCalls();
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
@@ -932,6 +1023,233 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         Assert.Equal(HttpStatusCode.OK, nextResponse.StatusCode);
+    }
+
+    private void RouteStorageRequestsToFileBackedInterceptor(
+        string org,
+        string app,
+        StorageClientInterceptor storage,
+        HttpMessageInvoker storageInvoker
+    )
+    {
+        var seededInstances = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        SendAsync = async message =>
+        {
+            if (TryParseStorageMutationRequest(message.RequestUri, out int partyId, out Guid instanceGuid))
+            {
+                await EnsureStorageInterceptorHasInstance(org, app, storage, seededInstances, partyId, instanceGuid);
+                var response = await storageInvoker.SendAsync(message, CancellationToken.None);
+                if (response.IsSuccessStatusCode)
+                {
+                    await PersistStorageInterceptorData(org, app, storage, partyId, instanceGuid);
+                }
+
+                return response;
+            }
+
+            throw new NotImplementedException(
+                $"Unexpected real HTTP request in test: {message.Method} {message.RequestUri}"
+            );
+        };
+    }
+
+    private static void ReplaceProcessEngineForStorePartsTest(IServiceCollection services)
+    {
+        services.RemoveAll<IProcessEngine>();
+        services.AddSingleton<IProcessEngine, StorePartsTestProcessEngine>();
+    }
+
+    private static void UseHttpStorageDataClient(IServiceCollection services)
+    {
+        services.RemoveAll<IStorageDataClient>();
+        services.AddHttpClient<IStorageDataClient, StorageDataClient>();
+    }
+
+    private static StorageClientInterceptor CreateStorageInterceptor(string org, string app)
+    {
+        var metadataJson = File.ReadAllText(TestData.GetApplicationMetadataPath(org, app));
+        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(metadataJson, JsonSerializerOptions)!;
+        foreach (var dataType in applicationMetadata.DataTypes.Where(dataType => dataType.AllowedContentTypes is null))
+        {
+            dataType.AllowedContentTypes = ["application/octet-stream", "application/pdf", "image/png"];
+        }
+
+        return new StorageClientInterceptor(applicationMetadata);
+    }
+
+    private static bool TryParseStorageMutationRequest(Uri? uri, out int instanceOwnerPartyId, out Guid instanceGuid)
+    {
+        string[]? path = uri?.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (
+            path is ["storage", "api", "v1", "instances", var partyId, var guid, "mutations"]
+            && int.TryParse(partyId, out instanceOwnerPartyId)
+            && Guid.TryParse(guid, out instanceGuid)
+        )
+        {
+            return true;
+        }
+
+        instanceOwnerPartyId = 0;
+        instanceGuid = Guid.Empty;
+        return false;
+    }
+
+    private static async Task EnsureStorageInterceptorHasInstance(
+        string org,
+        string app,
+        StorageClientInterceptor storage,
+        HashSet<string> seededInstances,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
+    {
+        string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+        if (!seededInstances.Add(instanceId))
+        {
+            return;
+        }
+
+        var instance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        instance.Data = ReadDataElementsFromTestFiles(org, app, instanceOwnerPartyId, instanceGuid);
+        storage.AddInstance(instance);
+
+        foreach (var dataElement in instance.Data)
+        {
+            var dataElementGuid = Guid.Parse(dataElement.Id);
+            var blobPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataElementGuid);
+            if (File.Exists(blobPath))
+            {
+                storage.AddDataRaw(dataElementGuid, await File.ReadAllBytesAsync(blobPath), "\"test-etag\"");
+            }
+        }
+    }
+
+    private static List<DataElement> ReadDataElementsFromTestFiles(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
+    {
+        string dataDirectory = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
+        if (!Directory.Exists(dataDirectory))
+        {
+            return [];
+        }
+
+        return Directory
+            .GetFiles(dataDirectory, "*.json")
+            .Where(file => !file.Contains(".pretest", StringComparison.Ordinal))
+            .Select(file => JsonSerializer.Deserialize<DataElement>(File.ReadAllText(file), JsonSerializerOptions)!)
+            .ToList();
+    }
+
+    private static async Task PersistStorageInterceptorData(
+        string org,
+        string app,
+        StorageClientInterceptor storage,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
+    {
+        var (instance, data) = storage.GetInstanceAndData(instanceOwnerPartyId, instanceGuid);
+        string instancePath = TestData.GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        await InstanceClientMockSi.WriteJsonFile(instancePath, instance);
+
+        foreach (var dataElement in instance.Data)
+        {
+            string dataElementPath = TestData.GetDataElementPath(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                Guid.Parse(dataElement.Id)
+            );
+            Directory.CreateDirectory(Path.GetDirectoryName(dataElementPath)!);
+            await InstanceClientMockSi.WriteJsonFile(dataElementPath, dataElement);
+
+            string blobPath = TestData.GetDataBlobPath(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                Guid.Parse(dataElement.Id)
+            );
+            Directory.CreateDirectory(Path.GetDirectoryName(blobPath)!);
+            await File.WriteAllBytesAsync(blobPath, data[dataElement.Id]);
+        }
+    }
+
+    private sealed class GuardProbeInstantiationProcessor(
+        IDataClient dataClient,
+        int instanceOwnerPartyId,
+        Action<string> recordGuardException
+    ) : IInstantiationProcessor
+    {
+        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
+        {
+            await Task.Yield();
+            Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                dataClient.GetDataBytes(instanceOwnerPartyId, instanceGuid, Guid.NewGuid())
+            );
+            recordGuardException(exception.Message);
+        }
+    }
+
+    private sealed class StorePartsTestProcessEngine : IProcessEngine
+    {
+        public Task<ProcessChangeResult> CreateInitialProcessState(ProcessStartRequest request)
+        {
+            ProcessState? oldProcessState = request.Instance.Process;
+            request.Instance.Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+            };
+
+            return Task.FromResult(
+                new ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new ProcessStateChange
+                    {
+                        OldProcessState = oldProcessState,
+                        NewProcessState = request.Instance.Process,
+                        Events = [],
+                    },
+                }
+            );
+        }
+
+        public Task<Instance> SubmitInitialProcessState(
+            Instance instance,
+            ProcessStateChange processStateChange,
+            string lockToken,
+            bool isInstantiation = false,
+            Dictionary<string, string>? prefill = null,
+            InstantiationNotification? notification = null,
+            CancellationToken ct = default
+        ) => Task.FromResult(instance);
+
+        public Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default) =>
+            throw new NotSupportedException();
+
+        public Task<ProcessChangeResult> ResumeCurrentTask(
+            ProcessNextRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task EnqueueProcessNext(
+            Instance instance,
+            Actor actor,
+            string lockToken,
+            Guid dependsOnWorkflowId,
+            string collectionKey,
+            string state,
+            string? action = null,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 
     private sealed class RejectingWorkflowEngineClient(HttpStatusCode statusCode) : IWorkflowEngineClient

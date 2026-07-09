@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Authorization;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
@@ -88,20 +89,23 @@ public class DataLockController : ControllerBase
 
         if (dataElement?.Locked is true)
         {
+            VersionPreconditionHelper.WriteVersionResponseHeaders(
+                Response,
+                await _instanceRepository.ReadVersions(instanceGuid, cancellationToken)
+            );
             return Ok(dataElement);
         }
 
-        Dictionary<string, object> propertyList = new() { { "/locked", true } };
-
         try
         {
-            DataElement updatedDataElement = await _dataRepository.Update(
+            DataElementWriteResult<DataElement> updatedDataElement = await _dataRepository.UpdateLockStatus(
                 instanceGuid,
                 dataGuid,
-                propertyList,
+                true,
                 cancellationToken
             );
-            return Created(updatedDataElement.Id, updatedDataElement);
+            VersionPreconditionHelper.WriteVersionResponseHeaders(Response, updatedDataElement);
+            return Created(updatedDataElement.DataElement.Id, updatedDataElement.DataElement);
         }
         catch (RepositoryException e)
         {
@@ -153,16 +157,16 @@ public class DataLockController : ControllerBase
             return Forbid();
         }
 
-        Dictionary<string, object> propertyList = new() { { "/locked", false } };
         try
         {
-            DataElement updatedDataElement = await _dataRepository.Update(
+            DataElementWriteResult<DataElement> updatedDataElement = await _dataRepository.UpdateLockStatus(
                 instanceGuid,
                 dataGuid,
-                propertyList,
+                false,
                 cancellationToken
             );
-            return Ok(updatedDataElement);
+            VersionPreconditionHelper.WriteVersionResponseHeaders(Response, updatedDataElement);
+            return Ok(updatedDataElement.DataElement);
         }
         catch (RepositoryException e)
         {

@@ -100,7 +100,7 @@ public sealed class FormBootstrapService
         var taskId = instance.Process?.CurrentTask?.ElementId;
         var dataAccessor = await _serviceProvider
             .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
-            .Init(instance, taskId, language);
+            .Open(instance, taskId, language);
         var dataModels = await LoadInstanceDataModels(
             dataAccessor,
             referencedDataTypes,
@@ -604,7 +604,6 @@ public sealed class FormBootstrapService
         var filteredChanges = new DataElementChanges(persistableChanges);
         try
         {
-            await dataAccessor.UpdateInstanceData(filteredChanges);
             await dataAccessor.SaveChanges(filteredChanges);
         }
         catch (PlatformHttpException e) when (e.Response.StatusCode is System.Net.HttpStatusCode.Forbidden)

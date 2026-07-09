@@ -68,7 +68,7 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
             "Calling eFormidlingService for eFormidling Service Task {TaskId}.",
             LogSanitizer.Sanitize(taskId)
         );
-        await _eFormidlingService.SendEFormidlingShipment(instance, configuration);
+        await _eFormidlingService.SendEFormidlingShipment(instance, configuration, context.InstanceDataMutator);
         _logger.LogDebug(
             "Successfully called eFormidlingService for eFormidling Service Task {TaskId}.",
             LogSanitizer.Sanitize(taskId)

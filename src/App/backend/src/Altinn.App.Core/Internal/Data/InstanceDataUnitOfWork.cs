@@ -9,8 +9,10 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
@@ -18,24 +20,43 @@ using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Data;
 
+internal enum WorkflowAggregateSaveOutcome
+{
+    Saved,
+    NothingToSave,
+}
+
 /// <summary>
 /// Class that caches form data to avoid multiple calls to the data service for a single validation
 ///
 /// Do not add this to the DI container, as it should only be created explicitly because of data leak potential.
 /// </summary>
-internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
+internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 {
     /// <inheritdoc />
-    public IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides =>
-        _authenticationMethodOverrides.ToImmutableDictionary(DataTypeComparer.Instance);
+    public IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _authenticationMethodOverrides.ToImmutableDictionary(DataTypeComparer.Instance);
+        }
+    }
 
     // DataClient needs a few arguments to fetch data
     private readonly Guid _instanceGuid;
     private readonly int _instanceOwnerPartyId;
 
     // Services from DI
-    private readonly IDataClient _dataClient;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IStorageDataClient _dataClient;
+    private readonly IStorageInstanceClient _instanceClient;
+    private readonly IInstanceDataMutatorStorageAccessGuard _storageAccessGuard;
+    private readonly Lock _lifecycleLock = new();
+    private readonly List<StorageAccessGuardScopeRegistration> _storageAccessGuardScopes = [];
+    private readonly Instance _instance;
+    private readonly IReadOnlyCollection<DataType> _dataTypes;
+    private readonly string? _taskId;
+    private readonly string? _language;
     private readonly ApplicationMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerializationService;
 
@@ -53,27 +74,41 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
     private readonly ConcurrentBag<DataElementChange> _changesForDeletion = [];
 
-    // Form data not yet saved to storage (thus no dataElementId)
+    // Data elements staged for creation. Staged identifiers are internal and replaced after Storage commit.
     private readonly ConcurrentBag<DataElementChange> _changesForCreation = [];
 
     // Existing binary data elements with updated content that is not yet saved to storage.
     private readonly ConcurrentDictionary<DataElementIdentifier, BinaryDataChange> _changesForBinaryUpdate = [];
+
+    // Pending lock status changes, collapsed to the last requested value for each data element.
+    private readonly ConcurrentDictionary<DataElementIdentifier, bool> _pendingDataElementLockStatuses = [];
+
+    // Pending lock status changes by data type, used for creates staged after the data type was locked or unlocked.
+    private readonly ConcurrentDictionary<string, bool> _pendingDataTypeLockStatuses = new(StringComparer.Ordinal);
+
+    private ProcessStateChange? _stagedProcessStateChange;
+    private bool _stagedInstanceDeletion;
+
+    private readonly ConcurrentDictionary<string, StorageDataElementMetadata> _dataElementStorageMetadata = [];
+    private readonly Lock _storageMetadataLock = new();
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
     );
     private static readonly StorageAuthenticationMethod _defaultAuthenticationMethod =
         StorageAuthenticationMethod.CurrentUser();
+    private bool _disposed;
 
     public InstanceDataUnitOfWork(
         Instance instance,
-        IDataClient dataClient,
-        IInstanceClient instanceClient,
+        IStorageDataClient dataClient,
+        IStorageInstanceClient instanceClient,
         ApplicationMetadata appMetadata,
         ITranslationService translationService,
         ModelSerializationService modelSerializationService,
         IAppResources appResources,
         IOptions<FrontEndSettings> frontEndSettings,
+        IInstanceDataMutatorStorageAccessGuard storageAccessGuard,
         string? taskId,
         string? language,
         Telemetry? telemetry = null
@@ -86,43 +121,189 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _instanceGuid = Guid.Parse(splitId[1]);
         }
 
-        Instance = instance;
-        DataTypes = appMetadata.DataTypes;
+        _instance = instance;
+        _storageVersionMetadata = InstanceStorageMetadataRegistry.Get(instance);
+        _dataTypes = appMetadata.DataTypes;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _translationService = translationService;
         _modelSerializationService = modelSerializationService;
-        TaskId = taskId;
-        Language = language;
+        _taskId = taskId;
+        _language = language;
         _frontEndSettings = frontEndSettings;
         _appResources = appResources;
         _instanceClient = instanceClient;
         _telemetry = telemetry;
+        _storageAccessGuard = storageAccessGuard;
     }
 
-    public Instance Instance { get; }
+    public Instance Instance
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _instance;
+        }
+    }
 
-    public IReadOnlyCollection<DataType> DataTypes { get; }
+    public IReadOnlyCollection<DataType> DataTypes
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _dataTypes;
+        }
+    }
 
-    public string? TaskId { get; }
+    public string? TaskId
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _taskId;
+        }
+    }
 
-    public string? Language { get; }
+    public string? Language
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _language;
+        }
+    }
+
+    private StorageVersionMetadata _storageVersionMetadata = StorageVersionMetadata.Empty;
+
+    internal StorageDataMetadata StorageMetadata
+    {
+        get
+        {
+            ThrowIfDisposed();
+            lock (_storageMetadataLock)
+            {
+                return new StorageDataMetadata(_storageVersionMetadata, _dataElementStorageMetadata.ToDictionary());
+            }
+        }
+    }
+
+    /// <summary>
+    /// Replaces the storage version and data element ETag metadata tracked by this unit of work.
+    /// </summary>
+    /// <remarks>
+    /// Also updates the <see cref="InstanceStorageMetadataRegistry"/> weak-table entry for <see cref="Instance"/>,
+    /// so any later unit of work opened on the same restored instance object keeps the captured versions.
+    /// </remarks>
+    internal void RestoreStorageMetadata(StorageDataMetadata metadata)
+    {
+        ThrowIfCannotMutateOrSave();
+        lock (_storageMetadataLock)
+        {
+            _storageVersionMetadata = metadata.Versions;
+            _dataElementStorageMetadata.Clear();
+            foreach (var (dataElementId, dataElementMetadata) in metadata.DataElements)
+            {
+                _dataElementStorageMetadata[dataElementId] = dataElementMetadata;
+            }
+            InstanceStorageMetadataRegistry.Set(Instance, _storageVersionMetadata);
+        }
+    }
+
+    /// <summary>
+    /// Opens this unit of work by activating the direct Storage guard in the current async execution context.
+    /// </summary>
+    /// <remarks>
+    /// The activation is visible through the current .NET <see cref="System.Threading.ExecutionContext"/>, where
+    /// <see cref="AsyncLocal{T}"/> state flows through async continuations. It is not tied to C# lexical scope, and it
+    /// does not automatically activate unrelated parent or child execution contexts that call this method elsewhere.
+    /// The returned unit of work owns the activation until <see cref="Dispose"/>.
+    /// </remarks>
+    internal InstanceDataUnitOfWork Open()
+    {
+        IDisposable scope = _storageAccessGuard.EnterScope();
+        try
+        {
+            OwnStorageAccessGuardScope(scope);
+        }
+        catch
+        {
+            scope.Dispose();
+            throw;
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Transfers ownership of a direct Storage guard activation that was entered in the caller's current async
+    /// execution context (.NET <see cref="System.Threading.ExecutionContext"/>).
+    /// </summary>
+    internal void TakeOwnershipOfCurrentExecutionContextActivation(IDisposable scope)
+    {
+        OwnStorageAccessGuardScope(scope);
+    }
+
+    private void OwnStorageAccessGuardScope(IDisposable scope)
+    {
+        lock (_lifecycleLock)
+        {
+            if (_disposed)
+            {
+                throw CreateDisposedException();
+            }
+
+            var registration = new StorageAccessGuardScopeRegistration(scope);
+            _storageAccessGuardScopes.Add(registration);
+        }
+    }
+
+    /// <summary>
+    /// Disposes this unit of work terminally and clears all owned direct Storage guard activations.
+    /// </summary>
+    /// <remarks>
+    /// This ends the unit of work for every current async execution context (.NET
+    /// <see cref="System.Threading.ExecutionContext"/>) where this object owns a guard activation. It is not tied to
+    /// C# lexical scope. After this method returns, accessors, mutators, and save methods on this object throw.
+    /// </remarks>
+    public void Dispose()
+    {
+        List<StorageAccessGuardScopeRegistration> scopes;
+        lock (_lifecycleLock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            scopes = [.. _storageAccessGuardScopes];
+            _storageAccessGuardScopes.Clear();
+        }
+
+        foreach (StorageAccessGuardScopeRegistration scope in scopes)
+        {
+            scope.Dispose();
+        }
+    }
 
     /// <inheritdoc />
     public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method)
     {
+        ThrowIfCannotMutateOrSave();
         _authenticationMethodOverrides[dataType] = method;
     }
 
     /// <inheritdoc />
     public async Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
     {
+        ThrowIfDisposed();
         return (await GetFormDataWrapper(dataElementIdentifier)).BackingData<object>();
     }
 
     /// <inheritdoc />
     public async Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier)
     {
+        ThrowIfDisposed();
         return await _formDataCache.GetOrCreate(
             dataElementIdentifier,
             async () =>
@@ -149,6 +330,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption = RowRemovalOption.SetToNull)
     {
+        ThrowIfDisposed();
         return new CleanInstanceDataAccessor(
             this,
             _appResources,
@@ -164,6 +346,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     public IInstanceDataAccessor GetPreviousDataAccessor()
     {
+        ThrowIfDisposed();
         if (_previousDataAccessorCache is not null)
         {
             return _previousDataAccessorCache;
@@ -184,6 +367,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
+        ThrowIfDisposed();
         if (_layoutEvaluatorStateCache is not null)
         {
             return _layoutEvaluatorStateCache;
@@ -206,6 +390,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
     {
+        ThrowIfDisposed();
         // Verify that the data element exists on the instance
         GetDataElement(dataElementIdentifier);
 
@@ -220,6 +405,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
     {
+        ThrowIfDisposed();
         if (_instanceOwnerPartyId == 0 || _instanceGuid == Guid.Empty)
         {
             throw new InvalidOperationException("Cannot access instance data before it has been created");
@@ -234,6 +420,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public FormDataChange AddFormDataElement(string dataTypeId, object model)
     {
+        ThrowIfCannotMutateOrSave();
         ArgumentNullException.ThrowIfNull(model);
         var dataType = GetDataTypeByString(dataTypeId);
         if (dataType.AppLogic?.ClassRef is not { } classRef)
@@ -256,7 +443,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         FormDataChange change = new FormDataChange(
             type: ChangeType.Created,
-            dataElement: null,
+            dataElement: CreateStagedDataElement(dataType, contentType),
             dataType: dataType,
             contentType: contentType,
             currentFormDataWrapper: FormDataWrapperFactory.Create(model, dataType, null),
@@ -282,6 +469,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         List<KeyValueEntry>? metadata = null
     )
     {
+        ThrowIfCannotMutateOrSave();
         var dataType = GetDataTypeByString(dataTypeId);
         if (dataType.AppLogic?.ClassRef is not null)
         {
@@ -294,7 +482,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         BinaryDataChange change = new BinaryDataChange(
             type: ChangeType.Created,
-            dataElement: null, // Not yet saved to storage
+            dataElement: CreateStagedDataElement(dataType, contentType, filename),
             dataType: dataType,
             fileName: filename,
             contentType: contentType,
@@ -313,6 +501,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         ReadOnlyMemory<byte> bytes
     )
     {
+        ThrowIfCannotMutateOrSave();
         var dataElement = GetDataElement(dataElementIdentifier);
         var dataType = this.GetDataType(dataElementIdentifier);
         if (dataType.AppLogic?.ClassRef is not null)
@@ -351,6 +540,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public void RemoveDataElement(DataElementIdentifier dataElementIdentifier)
     {
+        ThrowIfCannotMutateOrSave();
         var dataElement = GetDataElement(dataElementIdentifier);
         var dataType = this.GetDataType(dataElement.DataType);
 
@@ -363,6 +553,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (dataType.AppLogic?.ClassRef is null)
         {
             _changesForBinaryUpdate.TryRemove(dataElementIdentifier, out _);
+            _pendingDataElementLockStatuses.TryRemove(dataElementIdentifier, out _);
             _changesForDeletion.Add(
                 new BinaryDataChange(
                     type: ChangeType.Deleted,
@@ -376,6 +567,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
         else
         {
+            _pendingDataElementLockStatuses.TryRemove(dataElementIdentifier, out _);
             _changesForDeletion.Add(
                 new FormDataChange(
                     type: ChangeType.Deleted,
@@ -404,10 +596,61 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     /// <summary>
+    /// Lock all current and pending data elements for a data type.
+    ///
+    /// Data-type lock mutation is owned by the workflow/process lifecycle and is deliberately not app-facing.
+    /// Actual update in storage is not done until the instance is saved.
+    /// </summary>
+    public void LockDataElementsForDataType(string dataTypeId) => SetDataTypeLockStatus(dataTypeId, locked: true);
+
+    /// <summary>
+    /// Unlock all current and pending data elements for a data type.
+    ///
+    /// Data-type lock mutation is owned by the workflow/process lifecycle and is deliberately not app-facing.
+    /// Actual update in storage is not done until the instance is saved.
+    /// </summary>
+    public void UnlockDataElementsForDataType(string dataTypeId) => SetDataTypeLockStatus(dataTypeId, locked: false);
+
+    private void SetDataTypeLockStatus(string dataTypeId, bool locked)
+    {
+        ThrowIfCannotMutateOrSave();
+        DataType dataType = GetDataTypeByString(dataTypeId);
+        HashSet<DataElementIdentifier> deletedDataElementIdentifiers = _changesForDeletion
+            .Select(change => change.DataElementIdentifier)
+            .ToHashSet();
+
+        _pendingDataTypeLockStatuses[dataType.Id] = locked;
+
+        foreach (DataElement dataElement in Instance.Data.Where(dataElement => dataElement.DataType == dataType.Id))
+        {
+            if (!deletedDataElementIdentifiers.Contains(dataElement))
+            {
+                _pendingDataElementLockStatuses[dataElement] = locked;
+            }
+        }
+
+        foreach (DataElementChange change in _changesForCreation.Where(change => change.DataType.Id == dataType.Id))
+        {
+            _pendingDataElementLockStatuses[change.DataElementIdentifier] = locked;
+        }
+    }
+
+    private DataElement CreateStagedDataElement(DataType dataType, string contentType, string? filename = null) =>
+        new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            InstanceGuid = _instanceGuid == Guid.Empty ? null : _instanceGuid.ToString(),
+            DataType = dataType.Id,
+            ContentType = contentType,
+            Filename = filename,
+        };
+
+    /// <summary>
     /// Preload form data into the cache so that it doesn't need to be fetched from Storage.
     /// </summary>
     internal void PreloadFormData(DataElementIdentifier id, IFormDataWrapper wrapper)
     {
+        ThrowIfCannotMutateOrSave();
         _formDataCache.Set(id, wrapper);
     }
 
@@ -416,7 +659,32 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// </summary>
     internal void PreloadBinaryData(DataElementIdentifier id, ReadOnlyMemory<byte> data)
     {
+        ThrowIfCannotMutateOrSave();
         _binaryCache.Set(id, data);
+    }
+
+    internal void PreloadDataElementStorageMetadata(DataElementIdentifier id, StorageDataElementMetadata metadata)
+    {
+        ThrowIfCannotMutateOrSave();
+        _dataElementStorageMetadata[id.Id] = metadata;
+    }
+
+    internal void StageProcessStateChange(ProcessStateChange processStateChange)
+    {
+        ThrowIfCannotMutateOrSave();
+        ArgumentNullException.ThrowIfNull(processStateChange);
+        if (processStateChange.NewProcessState is null)
+        {
+            throw new InvalidOperationException("Cannot stage a process state change without a new process state.");
+        }
+
+        _stagedProcessStateChange = processStateChange;
+    }
+
+    internal void StageInstanceDeletion()
+    {
+        ThrowIfCannotMutateOrSave();
+        _stagedInstanceDeletion = true;
     }
 
     /// <summary>
@@ -428,6 +696,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         ModelSerializationService modelSerializationService
     )
     {
+        ThrowIfDisposed();
         var result = new List<(string Id, string DataType, System.Text.Json.JsonElement Data)>();
 
         foreach (var dataElement in Instance.Data)
@@ -446,14 +715,31 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         return result;
     }
 
-    internal List<ValidationIssue> AbandonIssues { get; } = [];
+    private readonly List<ValidationIssue> _abandonIssues = [];
 
-    public bool HasAbandonIssues => AbandonIssues.Count > 0;
+    internal IReadOnlyList<ValidationIssue> AbandonIssues
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _abandonIssues.AsReadOnly();
+        }
+    }
+
+    public bool HasAbandonIssues
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _abandonIssues.Count > 0;
+        }
+    }
 
     public void AbandonAllChanges(IEnumerable<ValidationIssue> validationIssues)
     {
-        AbandonIssues.AddRange(validationIssues);
-        if (AbandonIssues.Count == 0)
+        ThrowIfCannotMutateOrSave();
+        _abandonIssues.AddRange(validationIssues);
+        if (_abandonIssues.Count == 0)
         {
             throw new InvalidOperationException("AbandonAllChanges called without any validation issues");
         }
@@ -461,6 +747,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     public DataElementChanges GetDataElementChanges(bool initializeAltinnRowId)
     {
+        ThrowIfDisposed();
         if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
@@ -595,21 +882,30 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _ => throw new UnreachableException("Change must be of type BinaryChange or FormDataChange"),
         };
         // Use the BinaryData because we serialize before saving.
-        var dataElement = await _dataClient.InsertBinaryData(
-            Instance.Id,
+        var dataElementResult = await InsertBinaryDataWithStorageMetadata(
             change.DataType.Id,
             change.ContentType,
             (change as BinaryDataChange)?.FileName,
             new MemoryAsStream(bytes),
             generatedFromTask: (change as BinaryDataChange)?.GeneratedFromTask,
-            authenticationMethod: GetAuthenticationMethod(change.DataType)
+            authenticationMethod: GetAuthenticationMethod(change.DataType),
+            preconditions: GetTaskBoundWritePreconditions()
         );
+        var dataElement = dataElementResult.DataElement;
+        StoreDataElementMetadata(dataElement, dataElementResult.Metadata);
+        StoreVersionMetadata(dataElementResult.Versions);
 
         // Apply metadata if specified
         if (change is BinaryDataChange { Metadata: { Count: > 0 } metadata })
         {
             dataElement.Metadata = metadata;
-            dataElement = await _dataClient.Update(Instance, dataElement);
+            var metadataUpdateResult = await UpdateDataElementMetadataWithStorageMetadata(
+                dataElement,
+                GetAuthenticationMethod(change.DataType),
+                GetTaskBoundWritePreconditions()
+            );
+            dataElement = metadataUpdateResult.DataElement;
+            StoreVersionMetadata(metadataUpdateResult.Versions);
         }
 
         // Update caches
@@ -633,14 +929,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (change.DataElement is null)
             throw new InvalidOperationException("ChangeType.Updated sent to SaveChanges must have a DataElement value");
         ReadOnlyMemory<byte> bytes = change.CurrentBinaryData.Value;
-        await _dataClient.UpdateBinaryData(
-            new InstanceIdentifier(Instance),
+        var result = await UpdateBinaryDataWithStorageMetadata(
             change.DataElement.ContentType,
             change.DataElement.Filename,
             Guid.Parse(change.DataElement.Id),
             new MemoryAsStream(bytes),
-            authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
+            GetAuthenticationMethod(change.DataElementIdentifier),
+            GetTaskBoundContentWritePreconditions(change.DataElementIdentifier)
         );
+        StoreDataElementMetadata(result.DataElement, result.Metadata);
+        StoreVersionMetadata(result.Versions);
     }
 
     private async Task UpdateDataElement(BinaryDataChange change)
@@ -648,20 +946,146 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (change.DataElement is null)
             throw new InvalidOperationException("ChangeType.Updated sent to SaveChanges must have a DataElement value");
 
-        await _dataClient.UpdateBinaryData(
-            new InstanceIdentifier(Instance),
+        var result = await UpdateBinaryDataWithStorageMetadata(
             change.ContentType,
             change.FileName,
             change.DataElementIdentifier.Guid,
             new MemoryAsStream(change.CurrentBinaryData),
-            authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
+            GetAuthenticationMethod(change.DataElementIdentifier),
+            GetTaskBoundContentWritePreconditions(change.DataElementIdentifier)
         );
+        StoreDataElementMetadata(result.DataElement, result.Metadata);
+        StoreVersionMetadata(result.Versions);
     }
 
-    internal async Task UpdateInstanceData(DataElementChanges changes)
+    internal async Task SaveChanges(DataElementChanges changes)
     {
-        using var activity = _telemetry?.StartUpdateInstanceData(changes);
-        if (HasAbandonIssues)
+        using var activity = _telemetry?.StartSaveChanges(changes);
+        ValidateCanSaveChangesOrThrow();
+
+        await Task.WhenAll(
+            changes
+                .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
+                .Select(change => GetPersistedBinaryData(change.DataElementIdentifier))
+        );
+
+        var mutationPlan = BuildAggregateMutationPlan(changes);
+        if (!mutationPlan.HasMutations)
+        {
+            return;
+        }
+
+        if (mutationPlan.RequiresLegacyFanOut)
+        {
+            if (mutationPlan.HasLockStatusMutations)
+            {
+                throw new InvalidOperationException(
+                    "Data element lock status changes require one aggregate Storage mutation client and one authentication method."
+                );
+            }
+
+            await UpdateInstanceDataLegacy(changes);
+            await SaveChangesLegacy(changes);
+            return;
+        }
+
+        IInstanceMutationClient mutationClient = _dataClient;
+        StorageAuthenticationMethod authenticationMethod =
+            mutationPlan.AuthenticationMethods.SingleOrDefault() ?? _defaultAuthenticationMethod;
+        InstanceMutationWithStorageMetadata result = await mutationClient.CommitInstanceMutationWithStorageMetadata(
+            _instanceOwnerPartyId,
+            _instanceGuid,
+            mutationPlan.Request,
+            mutationPlan.ContentParts,
+            authenticationMethod,
+            GetTaskBoundWritePreconditions()
+        );
+
+        ApplyAggregateMutationResult(changes, mutationPlan, result);
+    }
+
+    internal async Task<WorkflowAggregateSaveOutcome> SaveWorkflowOwnedAggregate(
+        DataElementChanges changes,
+        string idempotencyKey,
+        CancellationToken cancellationToken
+    )
+    {
+        ValidateCanSaveChangesOrThrow();
+
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            throw new InvalidOperationException("Workflow-owned aggregate save requires an idempotency key.");
+        }
+
+        await Task.WhenAll(
+            changes
+                .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
+                .Select(change => GetPersistedBinaryData(change.DataElementIdentifier))
+        );
+
+        var mutationPlan = BuildAggregateMutationPlan(changes);
+        ApplyStagedProcessState(mutationPlan.Request);
+        ApplyStagedInstanceDeletion(mutationPlan.Request);
+        if (!mutationPlan.HasMutations)
+        {
+            return WorkflowAggregateSaveOutcome.NothingToSave;
+        }
+
+        if (_storageVersionMetadata.InstanceVersion is null)
+        {
+            throw new InvalidOperationException("Workflow-owned aggregate save requires a captured instance version.");
+        }
+
+        if (mutationPlan.RequiresLegacyFanOut)
+        {
+            throw new InvalidOperationException(
+                "Workflow-owned aggregate save requires one aggregate Storage mutation client and one authentication method."
+            );
+        }
+
+        IInstanceMutationClient mutationClient = _dataClient;
+        StorageAuthenticationMethod authenticationMethod =
+            mutationPlan.AuthenticationMethods.SingleOrDefault() ?? StorageAuthenticationMethod.ServiceOwner();
+        InstanceMutationWithStorageMetadata result = await mutationClient.CommitInstanceMutationWithStorageMetadata(
+            _instanceOwnerPartyId,
+            _instanceGuid,
+            mutationPlan.Request,
+            mutationPlan.ContentParts,
+            authenticationMethod,
+            GetWorkflowOwnedWritePreconditions(idempotencyKey),
+            cancellationToken
+        );
+
+        if (result.Replayed)
+        {
+            await RebuildFromStorageAfterReplay(result, cancellationToken);
+            throw new InstanceMutationReplayedException(
+                "Storage replayed the workflow-owned instance mutation. The unit of work has been rebuilt from Storage state."
+            );
+        }
+
+        ApplyAggregateMutationResult(changes, mutationPlan, result);
+        ClearCommittedAggregateState();
+        return WorkflowAggregateSaveOutcome.Saved;
+    }
+
+    private sealed class StorageAccessGuardScopeRegistration(IDisposable scope) : IDisposable
+    {
+        private int _disposed;
+
+        public void Dispose()
+        {
+            if (System.Threading.Interlocked.Exchange(ref _disposed, 1) == 0)
+            {
+                scope.Dispose();
+            }
+        }
+    }
+
+    private void ValidateCanSaveChangesOrThrow()
+    {
+        ThrowIfCannotMutateOrSave();
+        if (_abandonIssues.Count > 0)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
         }
@@ -669,7 +1093,29 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         {
             throw new InvalidOperationException("Cannot access instance data before it has been created");
         }
+    }
 
+    private void ThrowIfDisposed()
+    {
+        lock (_lifecycleLock)
+        {
+            if (_disposed)
+            {
+                throw CreateDisposedException();
+            }
+        }
+    }
+
+    private void ThrowIfCannotMutateOrSave()
+    {
+        ThrowIfDisposed();
+    }
+
+    private static ObjectDisposedException CreateDisposedException() =>
+        new(nameof(InstanceDataUnitOfWork), "The InstanceDataUnitOfWork has been disposed and can no longer be used.");
+
+    private async Task UpdateInstanceDataLegacy(DataElementChanges changes)
+    {
         var tasks = new List<Task>();
         ConcurrentDictionary<DataElementChange, DataElement> createdDataElements = [];
         // We need to create data elements here, so that we can set them correctly on the instance
@@ -686,13 +1132,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         {
             async Task DeleteData()
             {
-                await _dataClient.DeleteData(
+                DeleteDataWithStorageMetadata result = await DeleteDataWithStorageMetadata(
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     change.DataElementIdentifier.Guid,
                     false,
-                    authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
+                    authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier),
+                    preconditions: GetTaskBoundWritePreconditions()
                 );
+                StoreVersionMetadata(result.Metadata);
+                RemoveDataElementMetadata(change.DataElementIdentifier);
             }
 
             tasks.Add(DeleteData());
@@ -721,14 +1170,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
-    internal async Task SaveChanges(DataElementChanges changes)
+    private async Task SaveChangesLegacy(DataElementChanges changes)
     {
-        using var activity = _telemetry?.StartSaveChanges(changes);
-        if (HasAbandonIssues)
-        {
-            throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
-        }
-
         await Task.WhenAll(
             changes
                 .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
@@ -752,21 +1195,679 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         await Task.WhenAll(tasks);
     }
 
+    private AggregateMutationPlan BuildAggregateMutationPlan(DataElementChanges changes)
+    {
+        var request = new StorageInstanceMutationRequest();
+        var contentParts = new Dictionary<string, StorageInstanceMutationContent>(StringComparer.Ordinal);
+        var createdChanges = new List<DataElementChange>();
+        var pendingLockStatuses = _pendingDataElementLockStatuses.ToDictionary();
+        var pendingDataTypeLockStatuses = new Dictionary<string, bool>(
+            _pendingDataTypeLockStatuses,
+            StringComparer.Ordinal
+        );
+        var plannedDataElementIdentifiers = new HashSet<DataElementIdentifier>();
+        var lockStatusDataElementIdentifiers = new HashSet<DataElementIdentifier>();
+        var lockStatusDataTypeIds = new HashSet<string>(StringComparer.Ordinal);
+        var authenticationMethods = new HashSet<StorageAuthenticationMethod>();
+
+        foreach (var change in changes.AllChanges)
+        {
+            switch (change.Type)
+            {
+                case ChangeType.Created:
+                {
+                    string contentPartName = $"create-{createdChanges.Count}";
+                    createdChanges.Add(change);
+                    AddContentPart(contentParts, contentPartName, change);
+                    bool hasLocked = TryGetPendingLockStatus(
+                        change,
+                        pendingLockStatuses,
+                        pendingDataTypeLockStatuses,
+                        out bool locked
+                    );
+                    if (hasLocked)
+                    {
+                        lockStatusDataElementIdentifiers.Add(change.DataElementIdentifier);
+                        lockStatusDataTypeIds.Add(change.DataType.Id);
+                    }
+                    plannedDataElementIdentifiers.Add(change.DataElementIdentifier);
+
+                    request.CreateDataElements.Add(
+                        new StorageInstanceMutationCreateDataElement
+                        {
+                            DataType = change.DataType.Id,
+                            ContentPartName = contentPartName,
+                            ContentType = change.ContentType,
+                            Filename = (change as BinaryDataChange)?.FileName,
+                            GeneratedFromTask = (change as BinaryDataChange)?.GeneratedFromTask,
+                            Metadata = (change as BinaryDataChange)?.Metadata,
+                            Locked = hasLocked ? locked : null,
+                        }
+                    );
+                    authenticationMethods.Add(GetAuthenticationMethod(change.DataType));
+                    break;
+                }
+                case ChangeType.Updated:
+                {
+                    if (change.DataElement is null)
+                    {
+                        throw new InvalidOperationException(
+                            "ChangeType.Updated sent to SaveChanges must have a DataElement value"
+                        );
+                    }
+
+                    string contentPartName = $"update-{change.DataElementIdentifier.Guid:N}";
+                    AddContentPart(contentParts, contentPartName, change);
+                    bool hasLocked = TryGetPendingLockStatus(
+                        change,
+                        pendingLockStatuses,
+                        pendingDataTypeLockStatuses,
+                        out bool locked
+                    );
+                    if (hasLocked)
+                    {
+                        lockStatusDataElementIdentifiers.Add(change.DataElementIdentifier);
+                        lockStatusDataTypeIds.Add(change.DataType.Id);
+                    }
+                    plannedDataElementIdentifiers.Add(change.DataElementIdentifier);
+
+                    request.UpdateDataElements.Add(
+                        new StorageInstanceMutationUpdateDataElement
+                        {
+                            DataElementId = change.DataElementIdentifier.Guid,
+                            ContentPartName = contentPartName,
+                            ExpectedCurrentBlobVersion = GetDataElementContentETag(change.DataElementIdentifier),
+                            ContentType = change.ContentType,
+                            Filename = change switch
+                            {
+                                BinaryDataChange binaryDataChange => binaryDataChange.FileName,
+                                FormDataChange => change.DataElement.Filename,
+                                _ => throw new UnreachableException(
+                                    "ChangeType.Updated must be a form or binary data change"
+                                ),
+                            },
+                            Locked = hasLocked ? locked : null,
+                        }
+                    );
+                    authenticationMethods.Add(GetAuthenticationMethod(change.DataType));
+                    break;
+                }
+                case ChangeType.Deleted:
+                    bool ignoreLock =
+                        TryGetPendingLockStatus(
+                            change,
+                            pendingLockStatuses,
+                            pendingDataTypeLockStatuses,
+                            out bool deletedElementPendingLocked
+                        ) && !deletedElementPendingLocked;
+                    request.DeleteDataElements.Add(
+                        new StorageInstanceMutationDeleteDataElement
+                        {
+                            DataElementId = change.DataElementIdentifier.Guid,
+                            IgnoreLock = ignoreLock,
+                        }
+                    );
+                    plannedDataElementIdentifiers.Add(change.DataElementIdentifier);
+                    authenticationMethods.Add(GetAuthenticationMethod(change.DataType));
+                    break;
+                default:
+                    throw new UnreachableException($"Unknown data element change type {change.Type}");
+            }
+        }
+
+        foreach (var (dataElementIdentifier, locked) in pendingLockStatuses)
+        {
+            if (plannedDataElementIdentifiers.Contains(dataElementIdentifier))
+            {
+                continue;
+            }
+
+            request.UpdateDataElements.Add(
+                new StorageInstanceMutationUpdateDataElement
+                {
+                    DataElementId = dataElementIdentifier.Guid,
+                    Locked = locked,
+                }
+            );
+            plannedDataElementIdentifiers.Add(dataElementIdentifier);
+            lockStatusDataElementIdentifiers.Add(dataElementIdentifier);
+            lockStatusDataTypeIds.Add(this.GetDataType(dataElementIdentifier).Id);
+            authenticationMethods.Add(GetAuthenticationMethod(dataElementIdentifier));
+        }
+
+        AddDerivedInstanceFieldUpdates(request, changes, authenticationMethods);
+
+        return new AggregateMutationPlan(
+            request,
+            contentParts,
+            createdChanges,
+            lockStatusDataElementIdentifiers,
+            lockStatusDataTypeIds,
+            authenticationMethods
+        );
+    }
+
+    private void ApplyStagedProcessState(StorageInstanceMutationRequest request)
+    {
+        if (_stagedProcessStateChange is not { } processStateChange)
+        {
+            return;
+        }
+
+        request.ProcessState = new StorageInstanceMutationProcessStateUpdate
+        {
+            State = processStateChange.NewProcessState,
+            Events = processStateChange.Events ?? [],
+        };
+    }
+
+    private void ApplyStagedInstanceDeletion(StorageInstanceMutationRequest request)
+    {
+        if (!_stagedInstanceDeletion)
+        {
+            return;
+        }
+
+        request.DeleteInstance = new StorageInstanceMutationDeleteInstance { Hard = true };
+    }
+
+    private async Task RebuildFromStorageAfterReplay(
+        InstanceMutationWithStorageMetadata replayedResult,
+        CancellationToken cancellationToken
+    )
+    {
+        var appIdentifier = GetAppIdentifierForStorageLookup();
+        InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
+            appIdentifier.App,
+            appIdentifier.Org,
+            _instanceOwnerPartyId,
+            _instanceGuid,
+            StorageAuthenticationMethod.ServiceOwner(),
+            cancellationToken
+        );
+
+        ApplyInstanceSnapshot(freshInstance.Instance);
+        RestoreStorageMetadata(new StorageDataMetadata(freshInstance.Metadata, replayedResult.DataElementMetadata));
+        ClearAttemptLocalState();
+    }
+
+    private AppIdentifier GetAppIdentifierForStorageLookup()
+    {
+        string appId = !string.IsNullOrWhiteSpace(_instance.AppId) ? _instance.AppId : _appMetadata.Id;
+        return new AppIdentifier(appId);
+    }
+
+    private void ClearCommittedAggregateState()
+    {
+        ClearTrackedChanges();
+        _stagedProcessStateChange = null;
+        _stagedInstanceDeletion = false;
+    }
+
+    private void ClearAttemptLocalState()
+    {
+        _formDataCache.Clear();
+        _binaryCache.Clear();
+        ClearCommittedAggregateState();
+    }
+
+    private void ClearTrackedChanges()
+    {
+        _changesForCreation.Clear();
+        _changesForDeletion.Clear();
+        _changesForBinaryUpdate.Clear();
+        _pendingDataElementLockStatuses.Clear();
+        _pendingDataTypeLockStatuses.Clear();
+    }
+
+    private static bool TryGetPendingLockStatus(
+        DataElementChange change,
+        IReadOnlyDictionary<DataElementIdentifier, bool> pendingLockStatuses,
+        IReadOnlyDictionary<string, bool> pendingDataTypeLockStatuses,
+        out bool locked
+    )
+    {
+        if (pendingLockStatuses.TryGetValue(change.DataElementIdentifier, out locked))
+        {
+            return true;
+        }
+
+        return pendingDataTypeLockStatuses.TryGetValue(change.DataType.Id, out locked);
+    }
+
+    private static void AddContentPart(
+        Dictionary<string, StorageInstanceMutationContent> contentParts,
+        string contentPartName,
+        DataElementChange change
+    )
+    {
+        var bytes = change switch
+        {
+            BinaryDataChange binaryDataChange => binaryDataChange.CurrentBinaryData,
+            FormDataChange { CurrentBinaryData: { } currentBinaryData } => currentBinaryData,
+            FormDataChange => throw new InvalidOperationException(
+                "Form data changes sent to SaveChanges must have a CurrentBinaryData value"
+            ),
+            _ => throw new UnreachableException("Change must be of type BinaryDataChange or FormDataChange"),
+        };
+
+        contentParts.Add(
+            contentPartName,
+            new StorageInstanceMutationContent(bytes, change.ContentType, (change as BinaryDataChange)?.FileName)
+        );
+    }
+
+    private void AddDerivedInstanceFieldUpdates(
+        StorageInstanceMutationRequest request,
+        DataElementChanges changes,
+        ISet<StorageAuthenticationMethod> authenticationMethods
+    )
+    {
+        var currentPresentationTexts = CopyStringDictionary(Instance.PresentationTexts);
+        var currentDataValues = CopyStringDictionary(Instance.DataValues);
+        var processedFormDataElements = new HashSet<DataElementIdentifier>();
+
+        foreach (var (dataElementIdentifier, formData) in _formDataCache.GetCachedEntries())
+        {
+            if (dataElementIdentifier.DataTypeId is null)
+            {
+                continue;
+            }
+
+            var dataType = GetDataTypeByString(dataElementIdentifier.DataTypeId);
+            AppendDerivedInstanceFieldUpdates(
+                request,
+                dataType,
+                formData,
+                currentPresentationTexts,
+                currentDataValues,
+                authenticationMethods
+            );
+            processedFormDataElements.Add(dataElementIdentifier);
+        }
+
+        foreach (var formDataChange in changes.FormDataChanges)
+        {
+            if (
+                formDataChange.DataElement is not null
+                && processedFormDataElements.Contains(formDataChange.DataElementIdentifier)
+            )
+            {
+                continue;
+            }
+
+            AppendDerivedInstanceFieldUpdates(
+                request,
+                formDataChange.DataType,
+                formDataChange.CurrentFormDataWrapper,
+                currentPresentationTexts,
+                currentDataValues,
+                authenticationMethods
+            );
+        }
+    }
+
+    private void AppendDerivedInstanceFieldUpdates(
+        StorageInstanceMutationRequest request,
+        DataType dataType,
+        IFormDataWrapper dataWrapper,
+        Dictionary<string, string?> currentPresentationTexts,
+        Dictionary<string, string?> currentDataValues,
+        ISet<StorageAuthenticationMethod> authenticationMethods
+    )
+    {
+        var updatedTexts = DataHelper.GetUpdatedDataValues(
+            _appMetadata.PresentationFields,
+            currentPresentationTexts,
+            dataType.Id,
+            dataWrapper.BackingData<object>()
+        );
+        if (updatedTexts.Count > 0)
+        {
+            MergeInstanceFieldUpdates(request.PresentationTexts, currentPresentationTexts, updatedTexts);
+            authenticationMethods.Add(GetAuthenticationMethod(dataType));
+        }
+
+        var updatedValues = DataHelper.GetUpdatedDataValues(
+            _appMetadata.DataFields,
+            currentDataValues,
+            dataType.Id,
+            dataWrapper.BackingData<object>()
+        );
+        if (updatedValues.Count > 0)
+        {
+            MergeInstanceFieldUpdates(request.DataValues, currentDataValues, updatedValues);
+            authenticationMethods.Add(GetAuthenticationMethod(dataType));
+        }
+    }
+
+    private static void MergeInstanceFieldUpdates(
+        Dictionary<string, string?> aggregateUpdates,
+        Dictionary<string, string?> currentValues,
+        Dictionary<string, string?> updates
+    )
+    {
+        foreach (var (key, value) in updates)
+        {
+            aggregateUpdates[key] = value;
+            if (string.IsNullOrEmpty(value))
+            {
+                currentValues.Remove(key);
+            }
+            else
+            {
+                currentValues[key] = value;
+            }
+        }
+    }
+
+    private static Dictionary<string, string?> CopyStringDictionary(Dictionary<string, string?>? source) =>
+        source is null ? [] : new Dictionary<string, string?>(source, StringComparer.Ordinal);
+
+    private string? GetDataElementContentETag(DataElementIdentifier dataElementIdentifier)
+    {
+        lock (_storageMetadataLock)
+        {
+            return _dataElementStorageMetadata.TryGetValue(
+                dataElementIdentifier.Id,
+                out StorageDataElementMetadata? metadata
+            )
+                ? metadata.ETag
+                : null;
+        }
+    }
+
+    private void ApplyAggregateMutationResult(
+        DataElementChanges changes,
+        AggregateMutationPlan mutationPlan,
+        InstanceMutationWithStorageMetadata result
+    )
+    {
+        ApplyInstanceSnapshot(result.Instance);
+
+        if (result.CreatedDataElementIds.Count != mutationPlan.CreatedChanges.Count)
+        {
+            throw new InvalidOperationException(
+                $"Storage mutation response contained {result.CreatedDataElementIds.Count} created data element ids, but {mutationPlan.CreatedChanges.Count} creates were requested"
+            );
+        }
+
+        if (result.CreatedDataElementIds.Distinct().Count() != result.CreatedDataElementIds.Count)
+        {
+            throw new InvalidOperationException(
+                "Storage mutation response contained duplicate created data element ids"
+            );
+        }
+
+        for (int i = 0; i < mutationPlan.CreatedChanges.Count; i++)
+        {
+            DataElementChange change = mutationPlan.CreatedChanges[i];
+            Guid dataElementId = result.CreatedDataElementIds[i];
+            DataElement dataElement =
+                Instance.Data.FirstOrDefault(dataElement => dataElement.Id == dataElementId.ToString())
+                ?? throw new InvalidOperationException(
+                    $"Storage mutation response did not contain created data element {dataElementId}"
+                );
+            change.DataElement = dataElement;
+            StoreCurrentDataElementContent(change, dataElement);
+        }
+
+        foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Updated))
+        {
+            DataElement dataElement =
+                Instance.Data.FirstOrDefault(dataElement => dataElement.Id == change.DataElementIdentifier.Id)
+                ?? throw new InvalidOperationException(
+                    $"Storage mutation response did not contain updated data element {change.DataElementIdentifier.Id}"
+                );
+            change.DataElement = dataElement;
+            StoreContentMetadataFromAggregateResponse(change.DataElementIdentifier, result.DataElementMetadata);
+        }
+
+        foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Deleted))
+        {
+            RemoveDataElementMetadata(change.DataElementIdentifier);
+        }
+
+        foreach (var (dataElementId, metadata) in result.DataElementMetadata)
+        {
+            StoreDataElementMetadata(new DataElementIdentifier(dataElementId), metadata);
+        }
+
+        foreach (DataElementIdentifier dataElementIdentifier in mutationPlan.LockStatusDataElementIdentifiers)
+        {
+            _pendingDataElementLockStatuses.TryRemove(dataElementIdentifier, out _);
+        }
+
+        foreach (string dataTypeId in mutationPlan.LockStatusDataTypeIds)
+        {
+            _pendingDataTypeLockStatuses.TryRemove(dataTypeId, out _);
+        }
+
+        StoreVersionMetadata(result.Metadata);
+    }
+
+    private void StoreCurrentDataElementContent(DataElementChange change, DataElement dataElement)
+    {
+        var bytes = change switch
+        {
+            BinaryDataChange binaryDataChange => binaryDataChange.CurrentBinaryData,
+            FormDataChange { CurrentBinaryData: { } currentBinaryData } => currentBinaryData,
+            _ => throw new UnreachableException("Created change must be a form or binary data change"),
+        };
+
+        _binaryCache.Set(dataElement, bytes);
+        if (change is FormDataChange formDataChange)
+        {
+            _formDataCache.Set(dataElement, formDataChange.CurrentFormDataWrapper);
+        }
+    }
+
+    private void StoreContentMetadataFromAggregateResponse(
+        DataElementIdentifier dataElementIdentifier,
+        IReadOnlyDictionary<string, StorageDataElementMetadata> responseMetadata
+    )
+    {
+        if (responseMetadata.TryGetValue(dataElementIdentifier.Id, out StorageDataElementMetadata? metadata))
+        {
+            StoreDataElementMetadata(dataElementIdentifier, metadata);
+            return;
+        }
+
+        RemoveDataElementMetadata(dataElementIdentifier);
+    }
+
+    private void ApplyInstanceSnapshot(Instance updatedInstance)
+    {
+        foreach (var property in typeof(Instance).GetProperties())
+        {
+            if (property.CanRead && property.CanWrite)
+            {
+                property.SetValue(Instance, property.GetValue(updatedInstance));
+            }
+        }
+
+        InstanceStorageMetadataRegistry.Set(Instance, InstanceStorageMetadataRegistry.Get(updatedInstance));
+    }
+
+    private sealed record AggregateMutationPlan(
+        StorageInstanceMutationRequest Request,
+        IReadOnlyDictionary<string, StorageInstanceMutationContent> ContentParts,
+        IReadOnlyList<DataElementChange> CreatedChanges,
+        IReadOnlySet<DataElementIdentifier> LockStatusDataElementIdentifiers,
+        IReadOnlySet<string> LockStatusDataTypeIds,
+        IReadOnlySet<StorageAuthenticationMethod> AuthenticationMethods
+    )
+    {
+        public bool HasMutations =>
+            Request.CreateDataElements.Count > 0
+            || Request.UpdateDataElements.Count > 0
+            || Request.DeleteDataElements.Count > 0
+            || Request.DeleteInstance is not null
+            || Request.DataValues.Count > 0
+            || Request.PresentationTexts.Count > 0
+            || Request.ProcessState?.State is not null
+            || Request.ProcessState?.Events?.Count > 0;
+
+        public bool HasLockStatusMutations => LockStatusDataElementIdentifiers.Count > 0;
+
+        public bool RequiresLegacyFanOut => AuthenticationMethods.Count > 1;
+    }
+
     internal async Task<ReadOnlyMemory<byte>> GetPersistedBinaryData(DataElementIdentifier dataElementIdentifier)
     {
+        ThrowIfDisposed();
         // Verify that the data element exists on the instance
         GetDataElement(dataElementIdentifier);
 
         return await _binaryCache.GetOrCreate(
             dataElementIdentifier,
-            async () =>
-                await _dataClient.GetDataBytes(
-                    _instanceOwnerPartyId,
-                    _instanceGuid,
-                    dataElementIdentifier.Guid,
-                    authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
-                )
+            async () => await GetDataBytesAndStoreMetadata(dataElementIdentifier)
         );
+    }
+
+    private async Task<DataBytesWithStorageMetadata> GetDataBytesWithStorageMetadata(
+        DataElementIdentifier dataElementIdentifier
+    )
+    {
+        return await _dataClient.GetDataBytesWithStorageMetadata(
+            _instanceOwnerPartyId,
+            _instanceGuid,
+            dataElementIdentifier.Guid,
+            authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
+        );
+    }
+
+    private async Task<ReadOnlyMemory<byte>> GetDataBytesAndStoreMetadata(DataElementIdentifier dataElementIdentifier)
+    {
+        DataBytesWithStorageMetadata result = await GetDataBytesWithStorageMetadata(dataElementIdentifier);
+        StoreDataElementMetadata(dataElementIdentifier, result.Metadata);
+        return result.Bytes;
+    }
+
+    private async Task<DataElementWithStorageMetadata> InsertBinaryDataWithStorageMetadata(
+        string dataType,
+        string contentType,
+        string? filename,
+        Stream stream,
+        string? generatedFromTask,
+        StorageAuthenticationMethod authenticationMethod,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        return await _dataClient.InsertBinaryDataWithStorageMetadata(
+            Instance.Id,
+            dataType,
+            contentType,
+            filename,
+            stream,
+            generatedFromTask: generatedFromTask,
+            authenticationMethod: authenticationMethod,
+            preconditions: preconditions
+        );
+    }
+
+    private async Task<DataElementWithStorageMetadata> UpdateBinaryDataWithStorageMetadata(
+        string? contentType,
+        string? filename,
+        Guid dataGuid,
+        Stream stream,
+        StorageAuthenticationMethod authenticationMethod,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        return await _dataClient.UpdateBinaryDataWithStorageMetadata(
+            new InstanceIdentifier(Instance),
+            contentType,
+            filename,
+            dataGuid,
+            stream,
+            authenticationMethod: authenticationMethod,
+            preconditions: preconditions
+        );
+    }
+
+    private async Task<DataElementWithStorageMetadata> UpdateDataElementMetadataWithStorageMetadata(
+        DataElement dataElement,
+        StorageAuthenticationMethod authenticationMethod,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        return await _dataClient.UpdateDataElementWithStorageMetadata(
+            Instance,
+            dataElement,
+            authenticationMethod: authenticationMethod,
+            preconditions: preconditions
+        );
+    }
+
+    private async Task<DeleteDataWithStorageMetadata> DeleteDataWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        bool delay,
+        StorageAuthenticationMethod authenticationMethod,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        return await _dataClient.DeleteDataWithStorageMetadata(
+            instanceOwnerPartyId,
+            instanceGuid,
+            dataGuid,
+            delay,
+            authenticationMethod: authenticationMethod,
+            preconditions: preconditions
+        );
+    }
+
+    private StorageWritePreconditions GetTaskBoundWritePreconditions()
+    {
+        lock (_storageMetadataLock)
+        {
+            return new StorageWritePreconditions(ProcessStateVersion: _storageVersionMetadata.ProcessStateVersion);
+        }
+    }
+
+    private StorageWritePreconditions GetTaskBoundContentWritePreconditions(DataElementIdentifier dataElementIdentifier)
+    {
+        lock (_storageMetadataLock)
+        {
+            _dataElementStorageMetadata.TryGetValue(dataElementIdentifier.Id, out StorageDataElementMetadata? metadata);
+            return new StorageWritePreconditions(
+                ProcessStateVersion: _storageVersionMetadata.ProcessStateVersion,
+                ContentETag: metadata?.ETag
+            );
+        }
+    }
+
+    private StorageWritePreconditions GetWorkflowOwnedWritePreconditions(string idempotencyKey)
+    {
+        lock (_storageMetadataLock)
+        {
+            return new StorageWritePreconditions(
+                ProcessStateVersion: _storageVersionMetadata.ProcessStateVersion,
+                InstanceVersion: _storageVersionMetadata.InstanceVersion,
+                IdempotencyKey: idempotencyKey
+            );
+        }
+    }
+
+    private void StoreDataElementMetadata(
+        DataElementIdentifier dataElementIdentifier,
+        StorageDataElementMetadata metadata
+    )
+    {
+        if (metadata.ETag is not null)
+        {
+            _dataElementStorageMetadata[dataElementIdentifier.Id] = metadata;
+            return;
+        }
+
+        RemoveDataElementMetadata(dataElementIdentifier);
+    }
+
+    private void RemoveDataElementMetadata(DataElementIdentifier dataElementIdentifier)
+    {
+        _dataElementStorageMetadata.TryRemove(dataElementIdentifier.Id, out _);
     }
 
     /// <summary>
@@ -774,6 +1875,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// </summary>
     internal void SetFormData(DataElementIdentifier dataElementIdentifier, IFormDataWrapper formDataWrapper)
     {
+        ThrowIfCannotMutateOrSave();
         ArgumentNullException.ThrowIfNull(formDataWrapper);
         var dataType = this.GetDataType(dataElementIdentifier);
         if (dataType.AppLogic?.ClassRef is not { } classRef)
@@ -812,6 +1914,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal void VerifyDataElementsUnchangedSincePreviousChanges(DataElementChanges previousChanges)
     {
+        ThrowIfDisposed();
         using var activity = _telemetry?.StartVerifyDataElementsUnchangedSincePreviousChanges();
         var changes = GetDataElementChanges(initializeAltinnRowId: false);
         if (changes.AllChanges.Count != previousChanges.AllChanges.Count)
@@ -856,13 +1959,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         if (updatedTexts.Count > 0)
         {
-            await _instanceClient.UpdatePresentationTexts(
-                int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(Instance.Id.Split("/")[1]),
+            InstanceWithStorageMetadata result = await UpdatePresentationTextsWithStorageMetadata(
                 new PresentationTexts { Texts = updatedTexts },
                 GetAuthenticationMethod(dataType),
-                CancellationToken.None
+                GetTaskBoundWritePreconditions()
             );
+            StoreVersionMetadata(result.Metadata);
 
             // Maintain local copy of presentation texts
             Instance.PresentationTexts ??= [];
@@ -887,13 +1989,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         if (updatedValues.Count > 0)
         {
-            await _instanceClient.UpdateDataValues(
-                int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(Instance.Id.Split("/")[1]),
+            InstanceWithStorageMetadata result = await UpdateDataValuesWithStorageMetadata(
                 new DataValues { Values = updatedValues },
                 GetAuthenticationMethod(dataType),
-                CancellationToken.None
+                GetTaskBoundWritePreconditions()
             );
+            StoreVersionMetadata(result.Metadata);
 
             // Maintain local copy of data values
             Instance.DataValues ??= [];
@@ -908,6 +2009,53 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     Instance.DataValues[key] = value; // Update local copy of data values
                 }
             }
+        }
+    }
+
+    private async Task<InstanceWithStorageMetadata> UpdatePresentationTextsWithStorageMetadata(
+        PresentationTexts presentationTexts,
+        StorageAuthenticationMethod authenticationMethod,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        int instanceOwnerPartyId = int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture);
+        Guid instanceGuid = Guid.Parse(Instance.Id.Split("/")[1]);
+
+        return await _instanceClient.UpdatePresentationTextsWithStorageMetadata(
+            instanceOwnerPartyId,
+            instanceGuid,
+            presentationTexts,
+            authenticationMethod,
+            preconditions: preconditions,
+            ct: CancellationToken.None
+        );
+    }
+
+    private async Task<InstanceWithStorageMetadata> UpdateDataValuesWithStorageMetadata(
+        DataValues dataValues,
+        StorageAuthenticationMethod authenticationMethod,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        int instanceOwnerPartyId = int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture);
+        Guid instanceGuid = Guid.Parse(Instance.Id.Split("/")[1]);
+
+        return await _instanceClient.UpdateDataValuesWithStorageMetadata(
+            instanceOwnerPartyId,
+            instanceGuid,
+            dataValues,
+            authenticationMethod,
+            preconditions: preconditions,
+            ct: CancellationToken.None
+        );
+    }
+
+    private void StoreVersionMetadata(StorageVersionMetadata metadata)
+    {
+        lock (_storageMetadataLock)
+        {
+            _storageVersionMetadata = _storageVersionMetadata.Merge(metadata);
+            InstanceStorageMetadataRegistry.Set(Instance, _storageVersionMetadata);
         }
     }
 }

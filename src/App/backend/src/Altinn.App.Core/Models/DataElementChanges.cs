@@ -54,12 +54,13 @@ public abstract class DataElementChange
     public ChangeType Type { get; }
 
     /// <summary>
-    /// The data element the change is related to (null if a new data element)
+    /// The data element the change is related to. For created changes, this can be a staged, unpersisted data element.
+    /// Storage assigns the final data element id when the change is saved.
     /// </summary>
-    public DataElement? DataElement { get; internal set; } // needs to be set after saving new elements to storage
+    public DataElement? DataElement { get; internal set; }
 
     /// <summary>
-    /// The data element identifier or an exception if accessed before it was set
+    /// The data element identifier or an exception if accessed before it was set.
     /// </summary>
     public DataElementIdentifier DataElementIdentifier =>
         DataElement ?? throw new InvalidOperationException("DataElement was accessed before it was set");
@@ -81,7 +82,8 @@ public abstract class DataElementChange
 public enum ChangeType
 {
     /// <summary>
-    /// The data element was created and will not have <see cref="DataElementChange.DataElement"/> set
+    /// The data element was created. Its <see cref="DataElementChange.DataElement"/> can be a staged, unpersisted data
+    /// element until Storage assigns the final id when the change is saved.
     /// </summary>
     Created,
 

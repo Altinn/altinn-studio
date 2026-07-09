@@ -12,12 +12,16 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 public class ExecuteServiceTaskTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance, string serviceTaskType)
+    private static ProcessEngineCommandContext CreateContext(
+        Instance instance,
+        string serviceTaskType,
+        ExecuteServiceTaskPhase phase = ExecuteServiceTaskPhase.Execute
+    )
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var payload = new ExecuteServiceTaskPayload(serviceTaskType);
+        var payload = new ExecuteServiceTaskPayload(serviceTaskType, phase);
         string serializedPayload = CommandPayloadSerializer.Serialize(payload)!;
 
         return new ProcessEngineCommandContext
@@ -159,5 +163,84 @@ public class ExecuteServiceTaskTests
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal("Service task exploded", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
+    }
+
+    [Fact]
+    public async Task Execute_MutatorApiUseInsideServiceTaskStillWorks()
+    {
+        // Arrange
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+        var dataElementIdentifier = new DataElementIdentifier(Guid.NewGuid());
+        Mock.Get(context.InstanceDataMutator).Setup(x => x.RemoveDataElement(dataElementIdentifier));
+
+        var serviceTask = new DelegateServiceTask(
+            "myServiceTask",
+            context =>
+            {
+                context.InstanceDataMutator.RemoveDataElement(dataElementIdentifier);
+                return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+            }
+        );
+        var command = CreateCommand(serviceTask);
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.False(success.AutoAdvanceProcess);
+    }
+
+    [Fact]
+    public async Task Execute_PostCommitPhase_DispatchesToPostCommitServiceTask()
+    {
+        // Arrange
+        bool executeCalled = false;
+        bool postCommitCalled = false;
+        var serviceTask = new DelegatePostCommitServiceTask(
+            "myServiceTask",
+            _ =>
+            {
+                executeCalled = true;
+                return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+            },
+            _ =>
+            {
+                postCommitCalled = true;
+                return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+            }
+        );
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask", ExecuteServiceTaskPhase.PostCommit);
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.False(executeCalled);
+        Assert.True(postCommitCalled);
+    }
+
+    private sealed class DelegateServiceTask(string type, Func<ServiceTaskContext, Task<ServiceTaskResult>> execute)
+        : IServiceTask
+    {
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => execute(context);
+    }
+
+    private sealed class DelegatePostCommitServiceTask(
+        string type,
+        Func<ServiceTaskContext, Task<ServiceTaskResult>> execute,
+        Func<ServiceTaskContext, Task<ServiceTaskResult>> executePostCommit
+    ) : IPostCommitServiceTask
+    {
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => execute(context);
+
+        public Task<ServiceTaskResult> ExecutePostCommit(ServiceTaskContext context) => executePostCommit(context);
     }
 }

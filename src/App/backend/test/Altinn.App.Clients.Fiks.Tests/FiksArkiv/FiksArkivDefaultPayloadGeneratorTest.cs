@@ -8,6 +8,7 @@ using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Auth;
@@ -172,6 +173,45 @@ public class FiksArkivDefaultPayloadGeneratorTest
         Assert.Contains("Unsupported message type", ex.Message);
     }
 
+    [Fact]
+    internal async Task GeneratePayload_WithDataAccessor_ReadsDocumentBytesFromAccessor()
+    {
+        var fixture = PayloadGeneratorFixture.Create(
+            Factories.DocumentSettings("model"),
+            [Factories.DocumentSettings("ref-data-as-pdf")],
+            archiveDocumentMetadata: null,
+            recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
+            instanceOwnerParty: null,
+            instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
+        );
+        var dataAccessor = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessor
+            .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync("Accessor content"u8.ToArray());
+
+        var result = await fixture.FiksArkivDefaultPayloadGenerator.GeneratePayload(
+            "",
+            _defaultInstance,
+            Factories.Recipient(),
+            FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+            dataAccessor.Object
+        );
+
+        Assert.NotNull(result);
+        dataAccessor.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Exactly(2));
+        fixture.DataClientMock.Verify(
+            x =>
+                x.GetDataBytes(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
     internal sealed record TestCase(
         PayloadGeneratorFixture Fixture,
         string MessageType,
@@ -218,7 +258,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
     internal sealed record PayloadGeneratorFixture(
         FiksArkivDefaultPayloadGenerator FiksArkivDefaultPayloadGenerator,
         Mock<IAppMetadata> AppMetadataMock,
-        Mock<IDataClient> DataClientMock,
+        Mock<IStorageDataClient> DataClientMock,
         Mock<IFiksArkivConfigResolver> ConfigResolverMock,
         FakeTimeProvider FakeTime,
         Mock<ILogger<FiksArkivDefaultPayloadGenerator>> LoggerMock
@@ -247,7 +287,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
         )
         {
             var appMetadataMock = new Mock<IAppMetadata>();
-            var dataClientMock = new Mock<IDataClient>();
+            var dataClientMock = new Mock<IStorageDataClient>();
             var configResolverMock = new Mock<IFiksArkivConfigResolver>();
             var loggerMock = new Mock<ILogger<FiksArkivDefaultPayloadGenerator>>();
             var fakeTime = new FakeTimeProvider(_now);
@@ -282,6 +322,8 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 loggerMock.Object,
                 Mock.Of<IHostEnvironment>(x => x.EnvironmentName == Environments.Development),
                 configResolverMock.Object,
+                Mock.Of<IAppModel>(),
+                Options.Create(TestHelpers.DefaultFiksArkivSettings),
                 Options.Create(Factories.FiksIOSettings(_fiksIOSenderAccount)),
                 fakeTime
             );

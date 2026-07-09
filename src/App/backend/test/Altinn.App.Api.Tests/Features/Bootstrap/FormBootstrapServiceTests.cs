@@ -10,11 +10,13 @@ using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -37,8 +39,8 @@ public class FormBootstrapServiceTests
     private readonly Mock<IValidationService> _validationService = new();
     private readonly Mock<IFormDataReader> _formDataReader = new();
     private readonly IAppModel _appModel = new AppModelMock<DummyModel>();
-    private readonly Mock<IDataClient> _dataClient = new();
-    private readonly Mock<IInstanceClient> _instanceClient = new();
+    private readonly Mock<IStorageDataClient> _dataClient = new();
+    private readonly Mock<IStorageInstanceClient> _instanceClient = new();
     private readonly Mock<ITranslationService> _translationService = new();
     private readonly Mock<IDataProcessor> _dataProcessor = new();
     private readonly Mock<IPrefill> _prefillService = new();
@@ -62,8 +64,17 @@ public class FormBootstrapServiceTests
         var resolvedAppModel = appModel ?? _appModel;
         var services = new ServiceCollection();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-        services.AddSingleton(_dataClient.Object);
-        services.AddSingleton(_instanceClient.Object);
+        services.AddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
+        services.AddSingleton<IStorageDataClient>(_dataClient.Object);
+        services.AddSingleton<IDataClient>(sp => new DataClient(
+            sp.GetRequiredService<IStorageDataClient>(),
+            sp.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>()
+        ));
+        services.AddSingleton<IStorageInstanceClient>(_instanceClient.Object);
+        services.AddSingleton<IInstanceClient, GuardedInstanceClient>();
+        services.AddSingleton<IInstanceClientWithStorageMetadata>(sp =>
+            sp.GetRequiredService<IStorageInstanceClient>()
+        );
         services.AddSingleton(_translationService.Object);
         services.AddSingleton(new ModelSerializationService(resolvedAppModel));
         services.AddSingleton<IOptions<FrontEndSettings>>(Options.Create(new FrontEndSettings()));
@@ -77,7 +88,8 @@ public class FormBootstrapServiceTests
                 _translationService.Object,
                 new ModelSerializationService(resolvedAppModel),
                 _appResources.Object,
-                Options.Create(new FrontEndSettings())
+                Options.Create(new FrontEndSettings()),
+                new InstanceDataMutatorStorageAccessGuard()
             )
         );
         services.AddSingleton(_validationService.Object);
@@ -830,13 +842,13 @@ public class FormBootstrapServiceTests
             );
         _dataClient
             .Setup(x =>
-                x.UpdateBinaryData(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<string?>(),
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<Stream>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -849,13 +861,13 @@ public class FormBootstrapServiceTests
         Assert.True(result.DataModels.ContainsKey("model"));
         _dataClient.Verify(
             x =>
-                x.UpdateBinaryData(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<string?>(),
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<Stream>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -952,7 +964,7 @@ public class FormBootstrapServiceTests
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
         _dataClient
             .Setup(x =>
-                x.GetDataBytes(
+                x.GetDataBytesWithStorageMetadata(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
@@ -960,7 +972,12 @@ public class FormBootstrapServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray());
+            .ReturnsAsync(
+                new DataBytesWithStorageMetadata(
+                    new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray(),
+                    new StorageDataElementMetadata()
+                )
+            );
         _appOptionsFileHandler
             .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);

@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -35,8 +36,8 @@ public sealed class DataAccessorFixture
     public Mock<IAppMetadata> AppMetadataMock { get; } = new(MockBehavior.Strict);
     public Mock<IAppModel> AppModelMock { get; } = new(MockBehavior.Strict);
 
-    public Mock<IDataClient> DataClientMock { get; } = new(MockBehavior.Strict);
-    public Mock<IInstanceClient> InstanceClientMock { get; } = new(MockBehavior.Strict);
+    internal Mock<IStorageDataClient> DataClientMock { get; } = new(MockBehavior.Strict);
+    internal Mock<IStorageInstanceClient> InstanceClientMock { get; } = new(MockBehavior.Strict);
 
     internal Mock<IDataElementAccessChecker> DataElementAccessCheckerMock { get; } = new(MockBehavior.Strict);
     public Mock<IHostEnvironment> HostEnvironmentMock { get; } = new(MockBehavior.Strict);
@@ -71,6 +72,7 @@ public sealed class DataAccessorFixture
         ServiceCollection.AddSingleton(InstanceClientMock.Object);
         ServiceCollection.AddSingleton(DataElementAccessCheckerMock.Object);
         ServiceCollection.AddSingleton(HostEnvironmentMock.Object);
+        ServiceCollection.AddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
         ServiceCollection.AddSingleton<InstanceDataUnitOfWorkInitializer>();
         ServiceCollection.AddSingleton<ModelSerializationService>();
         ServiceCollection.AddTransient<IValidator, RequiredLayoutValidator>();
@@ -224,7 +226,7 @@ public sealed class DataAccessorFixture
         var serializationService = new ModelSerializationService(AppModelMock.Object);
         DataClientMock
             .Setup(dc =>
-                dc.GetDataBytes(
+                dc.GetDataBytesWithStorageMetadata(
                     InstanceOwnerPartyId,
                     InstanceGuid,
                     dataGuid,
@@ -232,6 +234,11 @@ public sealed class DataAccessorFixture
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(serializationService.SerializeToStorage(data, dataType, dataElement).data.ToArray());
+            .ReturnsAsync(
+                new DataBytesWithStorageMetadata(
+                    serializationService.SerializeToStorage(data, dataType, dataElement).data.ToArray(),
+                    new StorageDataElementMetadata()
+                )
+            );
     }
 }

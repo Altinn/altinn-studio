@@ -102,6 +102,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             "Bearer",
             GenerateToken(routeInstanceGuid)
         );
+        client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
         var stateInstance = new Instance
         {

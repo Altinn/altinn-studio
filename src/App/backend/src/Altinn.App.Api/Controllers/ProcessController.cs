@@ -827,7 +827,7 @@ public class ProcessController : ControllerBase
         string? language
     )
     {
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, currentTaskId, language);
+        using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, currentTaskId, language);
 
         var validationIssues = await _validationService.ValidateInstanceAtTask(
             dataAccessor,

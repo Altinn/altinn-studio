@@ -9,9 +9,19 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record TaskStartContext
 {
     /// <summary>
+    /// The task that is starting.
+    /// </summary>
+    public required string TaskId { get; init; }
+
+    /// <summary>
     /// If this is a service task, the task type identifier. Otherwise null.
     /// </summary>
     public required string? ServiceTaskType { get; init; }
+
+    /// <summary>
+    /// Whether this service task should get a second post-commit service-task command.
+    /// </summary>
+    public bool ServiceTaskHasPostCommitStep { get; init; }
 
     /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.

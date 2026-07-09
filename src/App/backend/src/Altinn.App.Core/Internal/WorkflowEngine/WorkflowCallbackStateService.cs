@@ -4,9 +4,11 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -20,13 +22,15 @@ internal sealed class WorkflowCallbackStateService
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
     private readonly WorkflowStateSigner _stateSigner;
+    private readonly ILogger<WorkflowCallbackStateService> _logger;
 
     public WorkflowCallbackStateService(
         InstanceDataUnitOfWorkInitializer unitOfWorkInitializer,
         ModelSerializationService modelSerializationService,
         IAppMetadata appMetadata,
         IAppModel appModel,
-        WorkflowStateSigner stateSigner
+        WorkflowStateSigner stateSigner,
+        ILogger<WorkflowCallbackStateService> logger
     )
     {
         _unitOfWorkInitializer = unitOfWorkInitializer;
@@ -34,6 +38,7 @@ internal sealed class WorkflowCallbackStateService
         _appMetadata = appMetadata;
         _appModel = appModel;
         _stateSigner = stateSigner;
+        _logger = logger;
     }
 
     /// <summary>
@@ -50,7 +55,36 @@ internal sealed class WorkflowCallbackStateService
                 Data = x.Data,
             })
             .ToList();
-        var callbackState = new WorkflowCallbackState { Instance = unitOfWork.Instance, FormData = formData };
+        StorageDataMetadata metadata = unitOfWork.StorageMetadata;
+        var dataElementEtags = new Dictionary<string, string>();
+        foreach (var (dataElementId, dataElementMetadata) in metadata.DataElements)
+        {
+            if (dataElementMetadata.ETag is { } etag)
+            {
+                dataElementEtags[dataElementId] = etag;
+            }
+        }
+
+        var callbackState = new WorkflowCallbackState
+        {
+            Instance = unitOfWork.Instance,
+            InstanceVersion = metadata.Versions.InstanceVersion,
+            ProcessStateVersion = metadata.Versions.ProcessStateVersion,
+            DataElementEtags = dataElementEtags,
+            FormData = formData,
+        };
+        if (callbackState.InstanceVersion is null)
+        {
+            _logger.LogWarning(
+                "Workflow callback state captured without an instance version. Instance: {InstanceId}. AppId: {AppId}. Org: {Org}. Task: {TaskId}. ProcessStateVersion: {ProcessStateVersion}.",
+                callbackState.Instance.Id,
+                callbackState.Instance.AppId,
+                callbackState.Instance.Org,
+                callbackState.Instance.Process?.CurrentTask?.ElementId,
+                callbackState.ProcessStateVersion
+            );
+        }
+
         string payload = JsonSerializer.Serialize(callbackState);
         return _stateSigner.Sign(payload);
     }
@@ -99,6 +133,15 @@ internal sealed class WorkflowCallbackStateService
             language,
             StorageAuthenticationMethod.ServiceOwner()
         );
+        unitOfWork.RestoreStorageMetadata(
+            new StorageDataMetadata(
+                new StorageVersionMetadata(callbackState.InstanceVersion, callbackState.ProcessStateVersion),
+                callbackState.DataElementEtags?.ToDictionary(
+                    entry => entry.Key,
+                    entry => new StorageDataElementMetadata(entry.Value)
+                ) ?? new Dictionary<string, StorageDataElementMetadata>()
+            )
+        );
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
@@ -126,6 +169,10 @@ internal sealed class WorkflowCallbackStateService
             DataElementIdentifier identifier = dataElement;
             unitOfWork.PreloadFormData(identifier, wrapper);
             unitOfWork.PreloadBinaryData(identifier, storageBytes);
+            if (callbackState.DataElementEtags?.TryGetValue(identifier.Id, out string? etag) == true)
+            {
+                unitOfWork.PreloadDataElementStorageMetadata(identifier, new StorageDataElementMetadata(etag));
+            }
         }
 
         return unitOfWork;

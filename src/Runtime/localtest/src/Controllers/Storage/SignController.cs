@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -68,18 +69,44 @@ public class SignController : ControllerBase
             return Unauthorized();
         }
 
-        (bool created, ServiceError serviceError) = await _signingService.CreateSignDocument(
-            instanceGuid,
-            signRequest,
-            performedBy,
-            cancellationToken
-        );
-
-        if (created)
+        (VersionPreconditions preconditions, ActionResult versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
         {
+            return versionError;
+        }
+
+        SignDocumentCreateResult result;
+        try
+        {
+            result = await _signingService.CreateSignDocument(
+                instanceGuid,
+                signRequest,
+                performedBy,
+                cancellationToken,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion
+            );
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+
+        if (result.Created)
+        {
+            if (result.InstanceVersion is not null && result.ProcessStateVersion is not null)
+            {
+                VersionPreconditionHelper.WriteVersionResponseHeaders(
+                    Response,
+                    result.InstanceVersion.Value,
+                    result.ProcessStateVersion.Value
+                );
+            }
+
             return StatusCode(201, "SignDocument is created");
         }
 
-        return Problem(serviceError.ErrorMessage, null, serviceError.ErrorCode);
+        return Problem(result.ServiceError.ErrorMessage, null, result.ServiceError.ErrorCode);
     }
 }

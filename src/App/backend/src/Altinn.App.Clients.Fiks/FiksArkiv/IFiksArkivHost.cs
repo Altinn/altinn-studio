@@ -1,4 +1,5 @@
 using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -22,6 +23,38 @@ public interface IFiksArkivHost
         string taskId,
         Instance instance,
         string messageType,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Stages the generated archive record on the active unit of work before the message is sent.
+    /// </summary>
+    /// <param name="taskId">The task ID the message is generated from</param>
+    /// <param name="instance">The instance the message relates to</param>
+    /// <param name="messageType">The Fiks Arkiv message type (create, update, etc)</param>
+    /// <param name="dataMutator">The active instance data mutator.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task StageArchiveRecordForMessage(
+        string taskId,
+        Instance instance,
+        string messageType,
+        IInstanceDataMutator dataMutator,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Sends a message whose archive record was staged and committed through the active unit of work.
+    /// </summary>
+    /// <param name="taskId">The task ID the message is generated from</param>
+    /// <param name="instance">The instance the message relates to</param>
+    /// <param name="messageType">The Fiks Arkiv message type (create, update, etc)</param>
+    /// <param name="dataAccessor">The active instance data accessor.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<FiksIOMessageResponse> SendStagedMessage(
+        string taskId,
+        Instance instance,
+        string messageType,
+        IInstanceDataAccessor dataAccessor,
         CancellationToken cancellationToken = default
     );
 

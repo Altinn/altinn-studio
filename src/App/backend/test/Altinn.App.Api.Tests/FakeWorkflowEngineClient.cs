@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
@@ -442,6 +443,9 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     State = currentState,
                     WorkflowId = workflow.DatabaseId,
                 };
+
+                controller.HttpContext.Request.Headers[StoragePreconditionHeaders.IdempotencyKeyHeaderName] =
+                    step.DatabaseId.ToString();
 
                 IActionResult result = await controller.ExecuteCommand(
                     workflow.Context.Org,

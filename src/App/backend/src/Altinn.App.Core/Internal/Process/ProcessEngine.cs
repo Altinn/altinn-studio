@@ -160,7 +160,7 @@ internal class ProcessEngine : IProcessEngine
         try
         {
             string? taskId = instance.Process?.CurrentTask?.ElementId;
-            var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+            using InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Open(
                 instance,
                 taskId,
                 language: null,
@@ -473,12 +473,11 @@ internal class ProcessEngine : IProcessEngine
         }
         else
         {
-            InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+            using InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(
                 instance,
                 currentTaskId,
                 request.Language
             );
-
             List<ValidationIssueWithSource> validationIssues = await _validationService.ValidateInstanceAtTask(
                 dataAccessor,
                 currentTaskId, // run full validation
@@ -582,7 +581,7 @@ internal class ProcessEngine : IProcessEngine
         if (actionHandler is null)
             return UserActionResult.SuccessResult();
 
-        InstanceDataUnitOfWork cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+        using InstanceDataUnitOfWork cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Open(
             instance,
             taskId: null,
             request.Language
@@ -618,7 +617,6 @@ internal class ProcessEngine : IProcessEngine
         }
 
         DataElementChanges changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        await cachedDataMutator.UpdateInstanceData(changes);
         await cachedDataMutator.SaveChanges(changes);
 
         return actionResult;
@@ -822,15 +820,18 @@ internal class ProcessEngine : IProcessEngine
 
         // Compute the transition without mutating instance.Process, then capture the old instance/form-data
         // snapshot before mutating instance.Process so the callback starts from the task being left.
+        string state;
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
-        InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-            instance,
-            currentTaskId,
-            language: null,
-            StorageAuthenticationMethod.ServiceOwner()
-        );
+        {
+            using InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Open(
+                instance,
+                currentTaskId,
+                language: null,
+                StorageAuthenticationMethod.ServiceOwner()
+            );
+            state = await _workflowCallbackStateService.CaptureState(unitOfWork);
+        }
 
-        string state = await _workflowCallbackStateService.CaptureState(unitOfWork);
         ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
         if (processStateChange is null)
         {

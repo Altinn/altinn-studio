@@ -1,6 +1,8 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
@@ -91,7 +93,8 @@ public class CommonTaskInitializationTests
         ApplicationMetadata applicationMetadata,
         Mock<IPrefill>? prefillMock = null,
         Mock<IAppModel>? appModelMock = null,
-        Mock<IInstantiationProcessor>? instantiationProcessorMock = null
+        Mock<IInstantiationProcessor>? instantiationProcessorMock = null,
+        InstanceDataMutatorStorageAccessGuard? storageGuard = null
     )
     {
         var appMetadataMock = new Mock<IAppMetadata>();
@@ -104,6 +107,9 @@ public class CommonTaskInitializationTests
 
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        services.AddSingleton<IInstanceDataMutatorStorageAccessGuard>(
+            storageGuard ?? new InstanceDataMutatorStorageAccessGuard()
+        );
         services.AddSingleton(instantiationProcessorMock.Object);
         var sp = services.BuildServiceProvider();
 
@@ -148,6 +154,74 @@ public class CommonTaskInitializationTests
         prefillMock.Verify(x => x.PrefillDataModel("1337", "model", testData, null), Times.Once);
         instantiationProcessorMock.Verify(x => x.DataCreation(instance, testData, null), Times.Once);
         mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
+    }
+
+    [Fact]
+    public async Task Execute_DirectDataClientCallInsideDataCreationDelegatesWithoutActiveUnitOfWork()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        var instanceGuid = Guid.NewGuid();
+        var dataGuid = Guid.NewGuid();
+        var testData = new TestModel { Name = "test" };
+        var storageGuard = new InstanceDataMutatorStorageAccessGuard();
+        var innerDataClient = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        IDataClient dataClient = new DataClient(innerDataClient.Object, storageGuard);
+
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(testData);
+
+        var instantiationProcessorMock = new Mock<IInstantiationProcessor>();
+        instantiationProcessorMock
+            .Setup(x => x.DataCreation(instance, testData, null))
+            .Returns(async () =>
+            {
+                await Task.Yield();
+                await dataClient.GetDataBytes(1337, instanceGuid, dataGuid);
+            });
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskId = "Task_1",
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
+                },
+            ],
+        };
+
+        var command = CreateCommand(
+            appMetadata,
+            appModelMock: appModelMock,
+            instantiationProcessorMock: instantiationProcessorMock,
+            storageGuard: storageGuard
+        );
+        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
+
+        byte[] expectedBytes = [1, 2, 3];
+        innerDataClient
+            .Setup(x =>
+                x.GetDataBytes(
+                    1337,
+                    instanceGuid,
+                    dataGuid,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(expectedBytes);
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.False(storageGuard.IsActive);
+        mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
+        innerDataClient.VerifyAll();
     }
 
     [Fact]

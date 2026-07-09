@@ -98,8 +98,21 @@ public sealed class MockedServiceCollection
         // Adding Data infrastructure
         Services.AddSingleton(Storage);
         // There is no TryAddHttpClient, but these are the core of the mocked service collection
-        Services.AddHttpClient<IDataClient, DataClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
-        Services.AddHttpClient<IInstanceClient, InstanceClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        Services.TryAddSingleton<IInstanceDataMutatorStorageAccessGuard, InstanceDataMutatorStorageAccessGuard>();
+        Services
+            .AddHttpClient<IStorageDataClient, StorageDataClient>()
+            .ConfigurePrimaryHttpMessageHandler(() => Storage);
+        Services.TryAddTransient<IDataClient>(sp => new DataClient(
+            sp.GetRequiredService<IStorageDataClient>(),
+            sp.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>()
+        ));
+        Services
+            .AddHttpClient<IStorageInstanceClient, InstanceClient>()
+            .ConfigurePrimaryHttpMessageHandler(() => Storage);
+        Services.TryAddTransient<IInstanceClient, GuardedInstanceClient>();
+        Services.TryAddTransient<IInstanceClientWithStorageMetadata>(sp =>
+            sp.GetRequiredService<IStorageInstanceClient>()
+        );
         Services.TryAddTransient<IDataService, DataService>();
         Services.TryAddSingleton<IInstanceLocker>(Moq.Mock.Of<IInstanceLocker>());
         Services.TryAddSingleton<Telemetry>();

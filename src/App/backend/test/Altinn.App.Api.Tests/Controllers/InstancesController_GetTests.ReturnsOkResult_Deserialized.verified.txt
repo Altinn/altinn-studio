@@ -46,11 +46,11 @@
         },
         Size: 147,
         Locked: false,
-        IsRead: true
+        IsRead: true,
+        LastChanged: DateTime_3
       }
     ],
-    LastChanged: DateTime_3,
-    LastChangedBy: 
+    LastChanged: DateTime_4
   },
   ReadInstance: {
     Id: <instancOwnerPartyId>/<instanceGuid>,
@@ -99,10 +99,10 @@
         },
         Size: 147,
         Locked: false,
-        IsRead: true
+        IsRead: true,
+        LastChanged: DateTime_3
       }
     ],
-    LastChanged: DateTime_3,
-    LastChangedBy: 
+    LastChanged: DateTime_4
   }
 }
