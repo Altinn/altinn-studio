@@ -98,6 +98,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 {
                     DatabaseId = databaseId,
                     Ref = workflow.Ref,
+                    IsHead = workflow.IsHead,
                     Namespace = ns,
                     CollectionKey = collectionKey,
                     IdempotencyKey = idempotencyKey,
@@ -573,14 +574,21 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         IReadOnlyList<StoredWorkflow> createdWorkflows
     )
     {
+        // Mirrors the engine's IsHead semantics: IsHead == false workflows are invisible to head
+        // tracking - excluded from the heads set, and their dependency edges neither consume
+        // existing heads nor remove leaf status from batch workflows they depend on.
         HashSet<Guid> previousHeadSet = [.. previousHeads];
+        List<StoredWorkflow> visibleWorkflows = createdWorkflows.Where(workflow => workflow.IsHead != false).ToList();
         HashSet<Guid> consumedHeads =
         [
-            .. createdWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
+            .. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
         ];
-        HashSet<Guid> dependedOnWithinBatch = [.. createdWorkflows.SelectMany(workflow => workflow.DependencyIds)];
+        HashSet<Guid> dependedOnByVisibleBatch = [.. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds)];
         List<Guid> newHeads = createdWorkflows
-            .Where(workflow => !dependedOnWithinBatch.Contains(workflow.DatabaseId))
+            .Where(workflow =>
+                workflow.IsHead == true
+                || (workflow.IsHead is null && !dependedOnByVisibleBatch.Contains(workflow.DatabaseId))
+            )
             .Select(workflow => workflow.DatabaseId)
             .ToList();
 
@@ -678,6 +686,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public required Guid DatabaseId { get; init; }
 
         public string? Ref { get; init; }
+
+        public bool? IsHead { get; init; }
 
         public required string Namespace { get; init; }
 

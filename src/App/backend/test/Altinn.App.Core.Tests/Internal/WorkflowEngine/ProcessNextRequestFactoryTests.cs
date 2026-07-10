@@ -3,6 +3,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -39,6 +40,32 @@ public class ProcessNextRequestFactoryTests
         InstanceOwner = new InstanceOwner { PartyId = "1337" },
         Data = [],
     };
+
+    private static readonly AppCode TestSigningCode = new()
+    {
+        Id = "test-secret",
+        Code = "test-secret-code-long-enough-for-hmac",
+        IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
+        ExpiresAt = DateTimeOffset.UtcNow.AddDays(186),
+    };
+
+    private static readonly WorkflowStateSigner TestStateSigner = CreateStateSigner();
+
+    /// <summary>
+    /// A signed state blob for <see cref="TestInstance"/>, as CaptureState would produce at enqueue
+    /// time (the factory verifies and rewrites it when deriving the side-effects workflow state).
+    /// </summary>
+    private static readonly string SignedTestState = TestStateSigner.Sign(
+        JsonSerializer.Serialize(new WorkflowCallbackState { Instance = TestInstance, FormData = [] })
+    );
+
+    private static WorkflowStateSigner CreateStateSigner()
+    {
+        var secretProviderMock = new Mock<IWorkflowCallbackSecretProvider>();
+        secretProviderMock.Setup(x => x.GetSigningSecret()).Returns(TestSigningCode);
+        secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([TestSigningCode]);
+        return new WorkflowStateSigner(secretProviderMock.Object);
+    }
 
     private static ProcessNextRequestFactory CreateFactory(
         Authenticated? authentication = null,
@@ -94,7 +121,8 @@ public class ProcessNextRequestFactoryTests
             TestAppIdentifier,
             appSettings,
             appMetadataMock.Object,
-            callbackTokenGeneratorMock.Object
+            callbackTokenGeneratorMock.Object,
+            new WorkflowCallbackStateRewriter(TestStateSigner)
         );
     }
 
@@ -241,10 +269,12 @@ public class ProcessNextRequestFactoryTests
         };
     }
 
-    private static List<string> ExtractCommandKeys(WorkflowEnqueueEnvelope bundle)
+    private static List<string> ExtractCommandKeys(WorkflowEnqueueEnvelope bundle) =>
+        ExtractCommandKeys(bundle.Request.Workflows[0]);
+
+    private static List<string> ExtractCommandKeys(WorkflowRequest workflow)
     {
-        return bundle
-            .Request.Workflows[0]
+        return workflow
             .Steps.Select(s =>
             {
                 if (s.Command.Type != "app" || s.Command.Data is not { } data)
@@ -256,6 +286,15 @@ public class ProcessNextRequestFactoryTests
             .ToList()!;
     }
 
+    private static List<string> ExtractAllCommandKeys(WorkflowEnqueueEnvelope bundle) =>
+        bundle.Request.Workflows.SelectMany(ExtractCommandKeys).ToList();
+
+    private static WorkflowCallbackState DecodeState(string signedState)
+    {
+        string payload = TestStateSigner.Verify(signedState);
+        return JsonSerializer.Deserialize<WorkflowCallbackState>(payload)!;
+    }
+
     [Fact]
     public async Task Create_TaskToTaskTransition_ProducesCorrectCommandSequence()
     {
@@ -264,7 +303,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
@@ -285,10 +324,12 @@ public class ProcessNextRequestFactoryTests
             StartTask.Key,
             // SaveProcessStateToStorage (commit boundary)
             SaveProcessStateToStorage.Key,
-            // Post-commit
-            MovedToAltinnEvent.Key,
         };
         Assert.Equal(expected, keys);
+
+        // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
+        Assert.Equal(2, bundle.Request.Workflows.Count);
+        Assert.Equal([MovedToAltinnEvent.Key], ExtractCommandKeys(bundle.Request.Workflows[1]));
     }
 
     [Fact]
@@ -299,7 +340,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
@@ -316,13 +357,16 @@ public class ProcessNextRequestFactoryTests
             OnProcessEndingHook.Key,
             // SaveProcessStateToStorage
             SaveProcessStateToStorage.Key,
-            // Post-commit
+            // Critical post-commit (stay in Main)
             EndProcessLegacyHook.Key,
             DeleteDataElementsIfConfigured.Key,
             DeleteInstanceIfConfigured.Key,
-            CompletedAltinnEvent.Key,
         };
         Assert.Equal(expected, keys);
+
+        // The non-critical CompletedAltinnEvent runs in the separate side-effects workflow.
+        Assert.Equal(2, bundle.Request.Workflows.Count);
+        Assert.Equal([CompletedAltinnEvent.Key], ExtractCommandKeys(bundle.Request.Workflows[1]));
     }
 
     [Fact]
@@ -333,7 +377,13 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}", isInstantiation: true);
+        var bundle = await factory.Create(
+            TestInstance,
+            stateChange,
+            "lock-token",
+            SignedTestState,
+            isInstantiation: true
+        );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
@@ -351,11 +401,15 @@ public class ProcessNextRequestFactoryTests
             StartTask.Key,
             // SaveProcessStateToStorage
             SaveProcessStateToStorage.Key,
-            // Post-commit
-            MovedToAltinnEvent.Key,
-            InstanceCreatedAltinnEvent.Key,
         };
         Assert.Equal(expected, keys);
+
+        // Both events are non-critical and run in the side-effects workflow, in order.
+        Assert.Equal(2, bundle.Request.Workflows.Count);
+        Assert.Equal(
+            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key],
+            ExtractCommandKeys(bundle.Request.Workflows[1])
+        );
     }
 
     [Fact]
@@ -366,10 +420,10 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
         Assert.DoesNotContain(NotifyInstanceOwnerOnInstantiation.Key, keys);
     }
@@ -382,7 +436,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskAbandonToNextTask();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
@@ -401,10 +455,12 @@ public class ProcessNextRequestFactoryTests
             StartTask.Key,
             // SaveProcessStateToStorage
             SaveProcessStateToStorage.Key,
-            // Post-commit
-            MovedToAltinnEvent.Key,
         };
         Assert.Equal(expected, keys);
+
+        // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
+        Assert.Equal(2, bundle.Request.Workflows.Count);
+        Assert.Equal([MovedToAltinnEvent.Key], ExtractCommandKeys(bundle.Request.Workflows[1]));
     }
 
     [Fact]
@@ -417,16 +473,19 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert
+        // Assert - ExecuteServiceTask is critical: it stays in Main, after the commit boundary.
         var keys = ExtractCommandKeys(bundle);
         Assert.Contains(ExecuteServiceTask.Key, keys);
-
-        // ExecuteServiceTask should be after MovedToAltinnEvent
-        int movedToIndex = keys.IndexOf(MovedToAltinnEvent.Key);
+        int saveIndex = keys.IndexOf(SaveProcessStateToStorage.Key);
         int executeServiceTaskIndex = keys.IndexOf(ExecuteServiceTask.Key);
-        Assert.True(executeServiceTaskIndex > movedToIndex);
+        Assert.True(executeServiceTaskIndex > saveIndex);
+
+        // MovedToAltinnEvent is non-critical and runs in the side-effects workflow instead.
+        Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
+        Assert.Equal(2, bundle.Request.Workflows.Count);
+        Assert.Contains(MovedToAltinnEvent.Key, ExtractCommandKeys(bundle.Request.Workflows[1]));
     }
 
     [Fact]
@@ -438,7 +497,7 @@ public class ProcessNextRequestFactoryTests
         var prefill = new Dictionary<string, string> { ["key1"] = "value1" };
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}", prefill: prefill);
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState, prefill: prefill);
 
         // Assert
         var steps = bundle.Request.Workflows[0].Steps.ToList();
@@ -466,7 +525,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition("Task_1", "Task_2");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "state-blob");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         Assert.Equal("lock-token", bundle.IdempotencyKey);
@@ -479,7 +538,7 @@ public class ProcessNextRequestFactoryTests
         );
         var workflow = bundle.Request.Workflows[0];
         Assert.Equal("Process next: Task_1 -> Task_2", workflow.OperationId);
-        Assert.Equal("state-blob", workflow.State);
+        Assert.Equal(SignedTestState, workflow.State);
     }
 
     [Fact]
@@ -539,7 +598,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart("Task_1", startEvent: "StartEvent_1");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         var workflow = bundle.Request.Workflows[0];
@@ -554,7 +613,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition("Task_1", "EndEvent_1");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         var workflow = bundle.Request.Workflows[0];
@@ -570,7 +629,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert - Actor is now in Context
         Assert.NotNull(bundle.Request.Context);
@@ -591,7 +650,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         Assert.NotNull(bundle.Request.Context);
@@ -611,7 +670,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
         Assert.NotNull(bundle.Request.Context);
@@ -631,10 +690,10 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
@@ -648,10 +707,10 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         // Non-event post-commit commands should still be present
@@ -668,10 +727,10 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
     }
@@ -689,13 +748,13 @@ public class ProcessNextRequestFactoryTests
             TestInstance,
             stateChange,
             "lock-token",
-            "{}",
+            SignedTestState,
             isInstantiation: true,
             notification: notification
         );
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
         Assert.Contains(NotifyInstanceOwnerOnInstantiation.Key, keys);
@@ -709,10 +768,10 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(DeleteDataElementsIfConfigured.Key, keys);
         Assert.DoesNotContain(DeleteInstanceIfConfigured.Key, keys);
         // Other process end commands should still be present
@@ -727,10 +786,10 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.Contains(DeleteInstanceIfConfigured.Key, keys);
         Assert.DoesNotContain(DeleteDataElementsIfConfigured.Key, keys);
     }
@@ -743,11 +802,133 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert
-        var keys = ExtractCommandKeys(bundle);
+        var keys = ExtractAllCommandKeys(bundle);
         Assert.Contains(DeleteDataElementsIfConfigured.Key, keys);
         Assert.DoesNotContain(DeleteInstanceIfConfigured.Key, keys);
+    }
+
+    [Fact]
+    public async Task Create_WithSideEffects_SideEffectsWorkflowIsInvisibleAndDependsOnMain()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition("Task_1", "Task_2");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert
+        Assert.Equal(2, bundle.Request.Workflows.Count);
+
+        var main = bundle.Request.Workflows[0];
+        Assert.Equal(ProcessNextRequestFactory.MainWorkflowRef, main.Ref);
+        Assert.Equal("Process next: Task_1 -> Task_2", main.OperationId);
+        Assert.Null(main.IsHead);
+
+        var sideEffects = bundle.Request.Workflows[1];
+        Assert.Equal("Process next side-effects: Task_1 -> Task_2", sideEffects.OperationId);
+        Assert.False(sideEffects.IsHead);
+        Assert.True(sideEffects.DependsOnHeads); // default, no-op since it is not a root
+        var dependsOn = Assert.Single(sideEffects.DependsOn!);
+        Assert.True(dependsOn.IsRef);
+        Assert.Equal(ProcessNextRequestFactory.MainWorkflowRef, dependsOn.Ref);
+    }
+
+    [Fact]
+    public async Task Create_NoSideEffects_EmitsSingleWorkflowWithoutRef()
+    {
+        // Arrange - no events, no service task, no instantiation extras -> no side effects
+        var factory = CreateFactory(registerEvents: false);
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert - regression guard: the common path is identical to the pre-split behaviour
+        var workflow = Assert.Single(bundle.Request.Workflows);
+        Assert.Null(workflow.Ref);
+        Assert.Null(workflow.IsHead);
+        Assert.Null(workflow.DependsOn);
+        Assert.Equal(SignedTestState, workflow.State);
+    }
+
+    [Fact]
+    public async Task Create_TaskToTask_SideEffectsStateCarriesNewProcessState()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition("Task_1", "Task_2");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert - Main keeps the original (OLD-state) blob untouched
+        Assert.Equal(SignedTestState, bundle.Request.Workflows[0].State);
+
+        // The side-effects workflow gets a re-signed blob reflecting the committed (NEW) state,
+        // so MovedToAltinnEvent reads the entered task, not the task being left.
+        WorkflowCallbackState sideEffectState = DecodeState(bundle.Request.Workflows[1].State!);
+        Assert.Equal("Task_2", sideEffectState.Instance.Process?.CurrentTask?.ElementId);
+    }
+
+    [Fact]
+    public async Task Create_TaskToEnd_SideEffectsStateCarriesEndEvent()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToEndTransition("Task_1", "EndEvent_1");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert - CompletedAltinnEvent requires instance.Process.EndEvent to be set
+        WorkflowCallbackState sideEffectState = DecodeState(bundle.Request.Workflows[1].State!);
+        Assert.Null(sideEffectState.Instance.Process?.CurrentTask);
+        Assert.Equal("EndEvent_1", sideEffectState.Instance.Process?.EndEvent);
+    }
+
+    [Fact]
+    public async Task Create_InstantiationWithNotification_SideEffectsWorkflowContainsAllSideEffectsInOrder()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateInitialTaskStart();
+        var notification = new InstantiationNotification();
+
+        // Act
+        var bundle = await factory.Create(
+            TestInstance,
+            stateChange,
+            "lock-token",
+            SignedTestState,
+            isInstantiation: true,
+            notification: notification
+        );
+
+        // Assert
+        Assert.Equal(2, bundle.Request.Workflows.Count);
+        Assert.Equal(
+            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
+            ExtractCommandKeys(bundle.Request.Workflows[1])
+        );
+    }
+
+    [Fact]
+    public async Task Create_SideEffectsOperationId_MatchesTheMarkerPrefix()
+    {
+        // The wait/settle logic identifies side-effects workflows by this prefix - guard the coupling.
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition();
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        Assert.StartsWith(
+            ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
+            bundle.Request.Workflows[1].OperationId,
+            StringComparison.Ordinal
+        );
     }
 }

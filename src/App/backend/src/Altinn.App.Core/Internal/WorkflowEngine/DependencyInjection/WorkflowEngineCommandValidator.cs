@@ -116,7 +116,15 @@ internal static class WorkflowEngineCommandValidator
             }
         }
 
-        foreach (var commandRequest in eventCommandSet.PostProcessNextCommittedCommands)
+        foreach (var commandRequest in eventCommandSet.CriticalPostCommitCommands)
+        {
+            if (TryGetAppCommandKey(commandRequest, out string? commandKey))
+            {
+                keys.Add(commandKey);
+            }
+        }
+
+        foreach (var commandRequest in eventCommandSet.SideEffectCommands)
         {
             if (TryGetAppCommandKey(commandRequest, out string? commandKey))
             {

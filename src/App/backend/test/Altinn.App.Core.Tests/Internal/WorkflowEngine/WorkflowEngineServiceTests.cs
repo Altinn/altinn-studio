@@ -172,10 +172,83 @@ public class WorkflowEngineServiceTests
     [Fact]
     public void ScopeToCurrentChain_FallsBackToFullListWhenAnchorIsUnknownOrMissing()
     {
-        var workflows = new[] { CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow) };
+        var workflow = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var workflows = new[] { workflow };
 
-        Assert.Same(workflows, WorkflowEngineService.ScopeToCurrentChain(workflows, sinceWorkflowId: null));
-        Assert.Same(workflows, WorkflowEngineService.ScopeToCurrentChain(workflows, Guid.NewGuid()));
+        Assert.Equal(
+            [workflow.DatabaseId],
+            WorkflowEngineService.ScopeToCurrentChain(workflows, sinceWorkflowId: null).Select(w => w.DatabaseId)
+        );
+        Assert.Equal(
+            [workflow.DatabaseId],
+            WorkflowEngineService.ScopeToCurrentChain(workflows, Guid.NewGuid()).Select(w => w.DatabaseId)
+        );
+    }
+
+    [Fact]
+    public void ScopeToCurrentChain_ExcludesSideEffectsWorkflowsFromTheChain()
+    {
+        // The fire-and-forget side-effects workflows must never extend the wait or influence
+        // failure classification. The same-batch one shares the anchor's timestamp, but a
+        // dependent (auto-advance) batch's side-effects workflow is strictly newer than the
+        // anchor - only the OperationId marker excludes it.
+        var anchorCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-2);
+        var anchor = CreateWorkflowStatus(createdAt: anchorCreatedAt);
+        var sameBatchSideEffects = CreateWorkflowStatus(
+            createdAt: anchorCreatedAt,
+            operationId: "Process next side-effects: Task_1 -> Task_2",
+            status: PersistentItemStatus.Enqueued
+        );
+        var dependent = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var dependentBatchSideEffects = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow,
+            operationId: "Process next side-effects: Task_2 -> Task_3",
+            status: PersistentItemStatus.Enqueued
+        );
+        var workflows = new[] { anchor, sameBatchSideEffects, dependent, dependentBatchSideEffects };
+
+        IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
+            workflows,
+            anchor.DatabaseId
+        );
+
+        Assert.Equal([anchor.DatabaseId, dependent.DatabaseId], scoped.Select(w => w.DatabaseId));
+    }
+
+    [Fact]
+    public void ScopeToCurrentChain_ExcludesSideEffectsWorkflowsFromTheUnscopedFallback()
+    {
+        var mainWorkflow = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var failedSideEffects = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow,
+            operationId: "Process next side-effects: Task_1 -> Task_2",
+            status: PersistentItemStatus.Failed
+        );
+
+        IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
+            [mainWorkflow, failedSideEffects],
+            sinceWorkflowId: null
+        );
+
+        Assert.Equal([mainWorkflow.DatabaseId], scoped.Select(w => w.DatabaseId));
+    }
+
+    [Fact]
+    public void IsSideEffectsWorkflow_MatchesOnlyTheSideEffectsOperationIdMarker()
+    {
+        Assert.True(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(
+                    createdAt: DateTimeOffset.UtcNow,
+                    operationId: "Process next side-effects: Task_1 -> Task_2"
+                )
+            )
+        );
+        Assert.False(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "Process next: Task_1 -> Task_2")
+            )
+        );
     }
 
     [Fact]
@@ -211,12 +284,13 @@ public class WorkflowEngineServiceTests
 
     private static WorkflowStatusResponse CreateWorkflowStatus(
         DateTimeOffset createdAt,
-        PersistentItemStatus status = PersistentItemStatus.Completed
+        PersistentItemStatus status = PersistentItemStatus.Completed,
+        string operationId = "op"
     ) =>
         new()
         {
             DatabaseId = Guid.NewGuid(),
-            OperationId = "op",
+            OperationId = operationId,
             IdempotencyKey = Guid.NewGuid().ToString(),
             Namespace = Namespace,
             CreatedAt = createdAt,

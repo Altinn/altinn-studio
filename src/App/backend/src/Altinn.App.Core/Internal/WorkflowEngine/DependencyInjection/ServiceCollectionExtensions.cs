@@ -22,6 +22,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<ProcessNextRequestFactory>();
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
+        services.AddTransient<WorkflowCallbackStateRewriter>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
         services.AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>();
 

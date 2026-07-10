@@ -75,62 +75,102 @@ Naming gotcha: two command keys differ from their file names — `DeleteDataElem
 
 ## Command Sequences
 
-Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSequence` assembles the full sequence:
+Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSequence` assembles the sequences:
 
 1. Task-end/abandon commands (from `process_EndTask`/`process_AbandonTask` events)
 2. `MutateProcessState` (inserted by the factory if there are task-end/abandon commands)
 3. Task-start and process-end commands (from `process_StartTask`/`process_EndEvent` events)
 4. `SaveProcessStateToStorage` (always inserted by the factory)
-5. Post-commit commands (`PostProcessNextCommittedCommands`)
+5. Critical post-commit commands (`CriticalPostCommitCommands`) — must complete before the transition settles
+6. Side-effect commands (`SideEffectCommands`) — non-critical, fire-and-forget
+
+Steps 1–5 form the **Main workflow**. Step 6, when non-empty, becomes a second **side-effects
+workflow** in the same enqueue batch: `DependsOn = [Main]`, `IsHead = false`, its own initial state
+blob (see State Passthrough), and an OperationId prefixed `Process next side-effects:`. Because it
+is `IsHead = false`, it is invisible to the collection heads frontier: the ProcessNext wait and the
+next transition (which `DependsOnHeads`) key off Main only. The side effects still run ordered
+after the commit, but a slow or failing event registration can never gate the API response or wedge
+the instance's process pipeline. When there are no side-effect commands, a single workflow with no
+`Ref` is emitted — identical to the pre-split behaviour.
+
+Post-commit categorization: `ExecuteServiceTask`, `EndProcessLegacyHook`,
+`DeleteDataElementsIfConfigured`, and `DeleteInstanceIfConfigured` are **critical** (stay in Main);
+`MovedToAltinnEvent`, `InstanceCreatedAltinnEvent`, `CompletedAltinnEvent`, and
+`NotifyInstanceOwnerOnInstantiation` are **side effects**.
 
 ### Task-to-Task Transition (e.g., Task_1 → Task_2)
 
 ```text
+Main workflow:
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → Task_2) ──
 ── instance.Process.CurrentTask = Task_2 (NEW) ──
 UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
   ── SaveProcessStateToStorage (persist to Storage) ──
-MovedToAltinnEvent → [ExecuteServiceTask if service task]
+[ExecuteServiceTask if service task]
+
+Side-effects workflow (IsHead=false, dependsOn Main, NEW-state blob):
+MovedToAltinnEvent
 ```
 
 ### Task-to-End Transition (e.g., Task_1 → EndEvent)
 
 ```text
+Main workflow:
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → null, EndEvent set) ──
 OnProcessEndingHook
   ── SaveProcessStateToStorage (persist to Storage) ──
-EndProcessLegacyHook → DeleteDataElementsIfConfigured → DeleteInstanceIfConfigured → CompletedAltinnEvent
+EndProcessLegacyHook → DeleteDataElementsIfConfigured → DeleteInstanceIfConfigured
+
+Side-effects workflow (IsHead=false, dependsOn Main, NEW-state blob):
+CompletedAltinnEvent
 ```
 
 ### Initial Task Start (process just created)
 
 ```text
+Main workflow:
 ── instance.Process.CurrentTask = Task_1 (already set by CreateInitialProcessState) ──
 UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
   ── SaveProcessStateToStorage (persist to Storage) ──
-MovedToAltinnEvent → [ExecuteServiceTask if service task] → [InstanceCreatedAltinnEvent if first task] → [NotifyInstanceOwnerOnInstantiation if configured]
+[ExecuteServiceTask if service task]
+
+Side-effects workflow (IsHead=false, dependsOn Main, NEW-state blob):
+MovedToAltinnEvent → [InstanceCreatedAltinnEvent if instantiation] → [NotifyInstanceOwnerOnInstantiation if configured]
 ```
 
 ### Task Abandon (reject → end)
 
 ```text
+Main workflow:
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 AbandonTask → OnTaskAbandonHook
   ── MutateProcessState (in-memory: CurrentTask → null or next task) ──
 [OnProcessEndingHook if ending] / [task-start commands if moving to next task]
   ── SaveProcessStateToStorage (persist to Storage) ──
-[post-commit commands]
+[critical post-commit commands]
+
+Side-effects workflow (only when the target emits side effects):
+[side-effect commands]
 ```
+
+### Side-effect failure observability
+
+Side-effect failures no longer gate anything and never surface in the ProcessNext result: a failing
+event registration leaves a `Failed` (or endlessly retrying) workflow in the engine that nothing
+waits on. These workflows remain queryable by the `processNextInstanceGuid` label / the instance's
+collection key, and their OperationId carries the `Process next side-effects:` marker. When
+monitoring transitions, alert on failed side-effects workflows explicitly — they are otherwise
+silent.
 
 ## Waiting, Failure Classification, and Reject/Resume
 
 `WorkflowEngineService` does more than fire-and-forget. After enqueueing it polls the workflow **collection** (keyed by the instance guid — every transition of an instance shares one collection) until the active heads settle, then refetches the instance and builds a `ProcessNextWorkflowResult`:
 
-- `ScopeToCurrentChain` narrows the collection to the workflow just submitted and everything created after it, so lingering terminal heads from earlier transitions don't leak into the current wait.
+- `ScopeToCurrentChain` narrows the collection to the workflow just submitted and everything created after it, so lingering terminal heads from earlier transitions don't leak into the current wait. It also strips side-effects workflows (matched by the `Process next side-effects:` OperationId marker) from every path: they must not extend the wait — a dependent auto-advance batch's side-effects workflow is strictly newer than the anchor and would otherwise leak into the chain — and their failures must never be classified as transition failures.
 - `BuildWorkflowFailure` classifies the outcome into a `WorkflowFailure` (`StepFailed`, `DependencyFailed`, `EngineFault`, `Timeout`, or a superseding-abandon case). `ExtractCallbackErrorDetail` unwraps the ProblemDetails `detail` from an engine error message so the human-readable reason surfaces to the frontend.
 - `HasCommittedProcessState` reports whether `SaveProcessStateToStorage` completed, so the caller knows if the transition was persisted even when a later step failed.
 
@@ -159,6 +199,8 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 **Capture point**: `ProcessEngine` captures state BEFORE the in-memory process state is mutated to the next task. The blob carries the OLD process state (CurrentTask = the task being left). `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
 
+**Side-effects workflow state**: the side-effects workflow does not inherit Main's evolved state — it starts from its own `WorkflowRequest.State`. Its commands read the committed (NEW) process state (`MovedToAltinnEvent` reads `CurrentTask`, `CompletedAltinnEvent` reads `EndEvent`), so `ProcessNextRequestFactory` derives a second blob via `WorkflowCallbackStateRewriter`: verify the primary blob, rewrite `Instance.Process` to `NewProcessState` (mirroring what `MutateProcessState` does in-memory), re-sign. Form data is carried over unchanged — the side-effect commands never read it.
+
 **Why commands read from `instance.Process.CurrentTask`**: In the old ProcessEngine, task-end/start handlers received `taskId` as an explicit parameter. The new commands read directly from `instance.Process.CurrentTask` — single source of truth. `MutateProcessState` ensures each command group sees the correct CurrentTask.
 
 ## How to Add a New Command
@@ -173,7 +215,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 3. **Register in DI**: add `services.AddTransient<IWorkflowEngineCommand, MyCommand>()` in `ServiceCollectionExtensions.cs`
 
-4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddPostProcessNextCommittedCommand` for post-commit)
+4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddCriticalPostCommitCommand` for post-commit work the transition must wait on, `AddSideEffectCommand` for fire-and-forget post-commit work that runs in the non-gating side-effects workflow)
 
 5. **Startup validation**: `WorkflowEngineCommandValidator.Validate` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
 

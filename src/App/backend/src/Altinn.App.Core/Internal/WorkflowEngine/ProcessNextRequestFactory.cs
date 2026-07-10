@@ -40,12 +40,25 @@ internal sealed class ProcessNextRequestFactory
     internal const string ProcessNextTargetIdLabel = "processNextTargetId";
     internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
+    /// <summary>
+    /// Batch-scoped ref for the Main workflow, only set when a side-effects workflow references it.
+    /// </summary>
+    internal const string MainWorkflowRef = "main";
+
+    /// <summary>
+    /// OperationId prefix identifying the fire-and-forget side-effects workflow. The wait/settle
+    /// logic in <see cref="WorkflowEngineService"/> uses this to exclude side-effects workflows
+    /// from the chain it blocks on and from failure classification.
+    /// </summary>
+    internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
+
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppIdentifier _appIdentifier;
     private readonly AppSettings _appSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
+    private readonly WorkflowCallbackStateRewriter _callbackStateRewriter;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -53,7 +66,8 @@ internal sealed class ProcessNextRequestFactory
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
-        IWorkflowCallbackTokenGenerator callbackTokenGenerator
+        IWorkflowCallbackTokenGenerator callbackTokenGenerator,
+        WorkflowCallbackStateRewriter callbackStateRewriter
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -62,6 +76,7 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
+        _callbackStateRewriter = callbackStateRewriter;
     }
 
     /// <summary>
@@ -82,7 +97,7 @@ internal sealed class ProcessNextRequestFactory
         string? idempotencyKey = null
     )
     {
-        List<StepRequest> commands = await AssembleCommandSequence(
+        AssembledCommands commands = await AssembleCommandSequence(
             processStateChange,
             isInstantiation,
             prefill,
@@ -119,20 +134,49 @@ internal sealed class ProcessNextRequestFactory
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
 
+        // Main must stay Workflows[0]: the enqueue response's first workflow id is used to scope the wait.
+        bool hasSideEffects = commands.SideEffects.Count > 0;
+        var workflows = new List<WorkflowRequest>
+        {
+            new()
+            {
+                Ref = hasSideEffects ? MainWorkflowRef : null,
+                OperationId = $"Process next: {fromTaskId} -> {toTaskId}",
+                Steps = commands.Main,
+                State = state,
+                DependsOn = dependsOn,
+            },
+        };
+
+        if (hasSideEffects)
+        {
+            // The side-effects workflow starts from its own state blob: it must reflect the
+            // committed (NEW) process state, which Main's initial blob does not (it is captured
+            // before the in-memory transition and only evolves within Main's own step chain).
+            string? sideEffectState =
+                state is not null && processStateChange.NewProcessState is { } newProcessState
+                    ? _callbackStateRewriter.WithProcessState(state, newProcessState)
+                    : state;
+
+            workflows.Add(
+                new WorkflowRequest
+                {
+                    OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId}",
+                    Steps = commands.SideEffects,
+                    State = sideEffectState,
+                    DependsOn = [WorkflowRef.FromRefString(MainWorkflowRef)],
+                    // Invisible to the collection heads frontier: the next transition and the
+                    // enqueue wait key off Main only. DependsOnHeads is a no-op (not a root).
+                    IsHead = false,
+                }
+            );
+        }
+
         var request = new WorkflowEnqueueRequest
         {
             Labels = labels,
             Context = JsonSerializer.SerializeToElement(context),
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    OperationId = $"Process next: {fromTaskId} -> {toTaskId}",
-                    Steps = commands,
-                    State = state,
-                    DependsOn = dependsOn,
-                },
-            ],
+            Workflows = workflows,
         };
 
         return new WorkflowEnqueueEnvelope(request, ns, effectiveIdempotencyKey, collectionKey);
@@ -163,7 +207,13 @@ internal sealed class ProcessNextRequestFactory
         return labels.Count > 0 ? labels : null;
     }
 
-    private async Task<List<StepRequest>> AssembleCommandSequence(
+    /// <summary>
+    /// The assembled step lists for one transition: the Main workflow's full sequence and the
+    /// non-critical side-effect steps destined for the separate side-effects workflow.
+    /// </summary>
+    private readonly record struct AssembledCommands(List<StepRequest> Main, List<StepRequest> SideEffects);
+
+    private async Task<AssembledCommands> AssembleCommandSequence(
         ProcessStateChange processStateChange,
         bool isInstantiation,
         Dictionary<string, string>? prefill = null,
@@ -172,7 +222,8 @@ internal sealed class ProcessNextRequestFactory
     {
         var taskEndSteps = new List<StepRequest>();
         var taskStartSteps = new List<StepRequest>();
-        var postCommitSteps = new List<StepRequest>();
+        var criticalPostCommitSteps = new List<StepRequest>();
+        var sideEffectSteps = new List<StepRequest>();
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
 
@@ -205,7 +256,8 @@ internal sealed class ProcessNextRequestFactory
                     taskStartSteps.AddRange(workflowCommands.Commands);
                 }
 
-                postCommitSteps.AddRange(workflowCommands.PostProcessNextCommittedCommands);
+                criticalPostCommitSteps.AddRange(workflowCommands.CriticalPostCommitCommands);
+                sideEffectSteps.AddRange(workflowCommands.SideEffectCommands);
             }
         }
 
@@ -217,9 +269,9 @@ internal sealed class ProcessNextRequestFactory
         }
         commands.AddRange(taskStartSteps);
         commands.Add(CreateSaveProcessStateToStorageCommand(processStateChange));
-        commands.AddRange(postCommitSteps);
+        commands.AddRange(criticalPostCommitSteps);
 
-        return commands;
+        return new AssembledCommands(commands, sideEffectSteps);
     }
 
     private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(

@@ -333,9 +333,16 @@ public sealed class ProcessEngineTest
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
                 "StartTask",
-                "SaveProcessStateToStorage",
-                "MovedToAltinnEvent"
+                "SaveProcessStateToStorage"
             );
+
+        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow.
+        commandKeys.Should().NotContain("MovedToAltinnEvent");
+        capturedRequest.Workflows.Should().HaveCount(2);
+        var sideEffectsWorkflow = capturedRequest.Workflows[1];
+        sideEffectsWorkflow.OperationId.Should().Be("Process next side-effects: Task_1 -> Task_2");
+        sideEffectsWorkflow.IsHead.Should().BeFalse();
+        ExtractCommandKeys(sideEffectsWorkflow).Should().Equal("MovedToAltinnEvent");
 
         // Verify OperationId contains transition info
         capturedRequest.Workflows[0].OperationId.Should().Be("Process next: Task_1 -> Task_2");
@@ -521,9 +528,14 @@ public sealed class ProcessEngineTest
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
                 "StartTask",
-                "SaveProcessStateToStorage",
-                "MovedToAltinnEvent"
+                "SaveProcessStateToStorage"
             );
+
+        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow.
+        commandKeys.Should().NotContain("MovedToAltinnEvent");
+        capturedRequest.Workflows.Should().HaveCount(2);
+        capturedRequest.Workflows[1].IsHead.Should().BeFalse();
+        ExtractCommandKeys(capturedRequest.Workflows[1]).Should().Equal("MovedToAltinnEvent");
     }
 
     [Fact]
@@ -687,10 +699,15 @@ public sealed class ProcessEngineTest
                 "OnProcessEndingHook",
                 // Persist to Storage
                 "SaveProcessStateToStorage",
-                // Post-commit
-                "EndProcessLegacyHook",
-                "CompletedAltinnEvent"
+                // Critical post-commit (stays in Main)
+                "EndProcessLegacyHook"
             );
+
+        // The non-critical CompletedAltinnEvent runs in the invisible side-effects workflow.
+        commandKeys.Should().NotContain("CompletedAltinnEvent");
+        capturedRequest.Workflows.Should().HaveCount(2);
+        capturedRequest.Workflows[1].IsHead.Should().BeFalse();
+        ExtractCommandKeys(capturedRequest.Workflows[1]).Should().Equal("CompletedAltinnEvent");
 
         // Verify OperationId contains transition info for process end
         capturedRequest.Workflows[0].OperationId.Should().Be("Process next: Task_2 -> EndEvent_1");
@@ -2967,6 +2984,17 @@ public sealed class ProcessEngineTest
     private static CollectionHeadStatus CreateCollectionHeadStatus(Guid workflowId, PersistentItemStatus status) =>
         new() { DatabaseId = workflowId, Status = status };
 
+    private static List<string> ExtractCommandKeys(WorkflowRequest workflow) =>
+        workflow
+            .Steps.Select(step =>
+                step.Command.Type == "app" && step.Command.Data is { } data
+                    ? System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey
+                    : null
+            )
+            .Where(key => key != null)
+            .Cast<string>()
+            .ToList();
+
     private static WorkflowStatusResponse CreateWorkflowStatusResponse(
         Guid workflowId,
         string operationId,
@@ -3282,6 +3310,7 @@ public sealed class ProcessEngineTest
             services.TryAddTransient<ProcessNextRequestFactory>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
+            services.TryAddTransient<WorkflowCallbackStateRewriter>();
 
             if (registerProcessEnd)
                 services.AddSingleton<IProcessEnd>(_ => new Mock<IProcessEnd>().Object);

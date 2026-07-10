@@ -537,27 +537,48 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// strictly-newer timestamp, so a stale workflow sharing the anchor's exact timestamp cannot
     /// leak in (dependents are enqueued after the anchor's steps have run, so they are always
     /// meaningfully newer). Falls back to the full list when the anchor is unknown or not present.
+    /// Fire-and-forget side-effects workflows are excluded from every path: they are invisible to
+    /// the collection heads frontier and must not extend the wait or be classified as transition
+    /// failures. Exclusion cannot rely on the timestamp filter alone - a same-batch side-effects
+    /// workflow shares the anchor's timestamp, but a dependent auto-advance batch's side-effects
+    /// workflow is strictly newer and would otherwise leak into the chain.
     /// </summary>
     internal static IReadOnlyList<WorkflowStatusResponse> ScopeToCurrentChain(
         IReadOnlyList<WorkflowStatusResponse> workflows,
         Guid? sinceWorkflowId
     )
     {
+        List<WorkflowStatusResponse> visibleWorkflows = workflows
+            .Where(workflow => !IsSideEffectsWorkflow(workflow))
+            .ToList();
+
         if (sinceWorkflowId is null)
         {
-            return workflows;
+            return visibleWorkflows;
         }
 
-        WorkflowStatusResponse? anchor = workflows.FirstOrDefault(workflow => workflow.DatabaseId == sinceWorkflowId);
+        WorkflowStatusResponse? anchor = visibleWorkflows.FirstOrDefault(workflow =>
+            workflow.DatabaseId == sinceWorkflowId
+        );
         if (anchor is null)
         {
-            return workflows;
+            return visibleWorkflows;
         }
 
-        return workflows
+        return visibleWorkflows
             .Where(workflow => workflow.DatabaseId == anchor.DatabaseId || workflow.CreatedAt > anchor.CreatedAt)
             .ToList();
     }
+
+    /// <summary>
+    /// Identifies the fire-and-forget side-effects workflow a process-next batch may include,
+    /// by the OperationId marker <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/>.
+    /// </summary>
+    internal static bool IsSideEffectsWorkflow(WorkflowStatusResponse workflow) =>
+        workflow.OperationId.StartsWith(
+            ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
+            StringComparison.Ordinal
+        );
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
@@ -625,7 +646,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             collectionKey: collectionKey,
             ct: ct
         );
-        WorkflowFailure? workflowFailure = BuildWorkflowFailure(collectionWorkflows);
+        // Scope with a null anchor to strip side-effects workflows: a failed side effect must not
+        // be picked as the resume target for a blocked transition.
+        WorkflowFailure? workflowFailure = BuildWorkflowFailure(
+            ScopeToCurrentChain(collectionWorkflows, sinceWorkflowId: null)
+        );
         return workflowFailure?.RetryTargetWorkflowId ?? workflowFailure?.WorkflowId ?? fallbackWorkflowId;
     }
 
