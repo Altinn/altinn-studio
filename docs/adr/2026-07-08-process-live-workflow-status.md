@@ -19,16 +19,14 @@ An Altinn 3 (v9) app instance has **two sources of truth** for where the process
 1. **Committed state** — Storage's `Instance.Process` (`currentTask`, `ended`, …). It only
    ever reflects *terminal, committed* transitions, because the workflow engine flips it
    atomically at the single `SaveProcessStateToStorage` commit step. It **lags** the engine.
-2. **Live engine state** — the workflow engine's per-workflow/per-step `PersistentItemStatus`
-   (`Enqueued/Processing/Requeued/Completed/Failed/Canceled/DependencyFailed/Abandoned`). This
-   is the real, current status of a transition in flight.
+2. **Live engine state** — the workflow engine's per-workflow/per-step status
+   (enqueued/processing/requeued/completed/failed/…). This is the real, current status of a
+   transition in flight.
 
-Today the frontend only ever sees the committed clock. The process state it reads
-(`GET .../process`, or the process embedded in the enriched instance) is produced by
-`ProcessStateEnricher.Enrich(instance, instance.Process, user)`, which enriches the persisted
-`ProcessState` with authorization + static BPMN metadata and **never consults the engine**.
-The serialized contract has no field for runtime status (verified: the generated OpenAPI
-process schemas contain zero status/state/failure fields).
+Before this decision the frontend only ever saw the committed clock: the process state it reads
+(`GET .../process`, or the process embedded in the enriched instance) enriched the persisted
+`ProcessState` with authorization and static BPMN metadata but never consulted the engine, and
+the serialized contract had no field for runtime status.
 
 Consequences of the frontend seeing only the lagging clock:
 
@@ -37,15 +35,14 @@ Consequences of the frontend seeing only the lagging clock:
   left on Task_1 with an active *Submit* button while the engine is committing Task_2.
 - **`ResumeRequired` limbo.** A workflow that failed terminally needs `POST process/resume`, but
   via a read it is **indistinguishable** from a healthy active task (`currentTask` set, `ended`
-  null). The only way to discover it today is to *attempt* an action and read the error.
+  null). The only way to discover it is to *attempt* an action and read the error.
 - **Concurrent sessions / reload.** Another session advances the instance; this one keeps
   offering the old task's actions until it happens to act.
 
 In every case the frontend offers the user the wrong options because it cannot tell
-*in-progress* / *failed* / *settled* apart. The one channel that does carry live status — the
-`processNextState` / `workflowFailure` extensions on a failed `process/next` response — is
-currently ignored by the frontend entirely, and is only present as an *action* result, never on
-a read.
+*in-progress* / *failed* / *settled* apart. The one channel that did carry live status — the
+`processNextState` / `workflowFailure` extensions on a failed `process/next` response — was
+ignored by the frontend entirely, and is only present as an *action* result, never on a read.
 
 We want a read the frontend can poll that reflects the **real** status of the instance.
 
@@ -73,8 +70,8 @@ against calling the engine on the read path.
 
 ## Alternatives considered
 
-- A1: **Live-enrich the process response unconditionally.** `ProcessStateEnricher` queries the
-  engine on every read and adds a `workflow` annotation next to the (unchanged) committed
+- A1: **Live-enrich the process response unconditionally.** The process-state enrichment queries
+  the engine on every read and adds a `workflow` annotation next to the (unchanged) committed
   `currentTask`. Frontend polls it.
 - A2: **Persisted marker.** Write a "pending → Task_X" / "resume required" marker onto the
   instance at enqueue and clear it on terminal completion via the engine callback; the read stays
@@ -97,8 +94,7 @@ against calling the engine on the read path.
 - Good, because with the always-up/cheap engine constraint, the usual downside (coupling the
   read path to engine availability/latency) does not apply here.
 - Neutral: adds an engine round-trip to each process/instance read. Accepted per the team
-  constraint; a follow-up optimisation can collapse the current multi-query resolve into fewer
-  calls.
+  constraint; see the read-path efficiency decisions below.
 
 ### A2: Persisted marker
 
@@ -126,12 +122,10 @@ against calling the engine on the read path.
   validation context is committed, producing broken or unauthorized renders during the in-flight
   window.
 
-## Technical design
+## The contract
 
-### Contract
-
-`ProcessStateEnricher.Enrich(...)` gains a nested annotation on the `AppProcessState` it returns.
-`currentTask`, `ended`, `processTasks`, `actions` etc. are **unchanged**.
+The enriched process state (`AppProcessState`) gains a nested annotation; `currentTask`, `ended`,
+`processTasks`, `actions` etc. are **unchanged**.
 
 ```jsonc
 {
@@ -149,188 +143,115 @@ against calling the engine on the read path.
 }
 ```
 
-Notes:
-- `workflow` is always present. `idle` is the common case (no active/failed workflow for the
-  current task) and means "render normally".
-- `targetTask` is the BPMN element id of the task the in-flight/failed transition targets, with
-  the engine label's `:{flow}` suffix stripped. Omitted when `idle` or when it cannot be resolved.
-- `failure.detail` reuses the message the engine surfaces (see `BuildWorkflowFailure`), including
-  detail extracted from a failing service-task/callback `ProblemDetails`.
-- We intentionally do **not** expose retry counts, workflow ids, collection keys, or the raw
-  `PersistentItemStatus`. `processing` covers first attempt and every automatic retry — the
-  consumer behaviour (wait) is identical, so the distinction is noise (D4).
+- `workflow` is always present on an enriched read. `idle` is the common case (no active/failed
+  workflow for the current task) and means "render normally".
+- `targetTask` is the BPMN element id of the task the in-flight/failed transition targets
+  (resolved from the `processNextTargetId` label stamped at enqueue, flow suffix stripped).
+  Omitted when `idle` or unresolvable.
+- `failure.detail` reuses the message the engine surfaces, including detail extracted from a
+  failing service-task/callback `ProblemDetails`.
+- We intentionally do **not** expose retry counts, workflow ids, collection keys, or raw engine
+  statuses. `processing` covers the first attempt and every automatic retry — the consumer
+  behaviour (wait) is identical, so the distinction is noise (D4).
 
-### State mapping (engine → exposed)
+State mapping (engine → exposed):
 
-| Engine (`CurrentTaskWorkflowState` / `PersistentItemStatus`)     | Exposed `status` |
-| ---------------------------------------------------------------- | ---------------- |
-| `Unblocked` / `Completed` / `Abandoned`                          | `idle`           |
-| `Retrying` (`Enqueued` / `Processing` / `Requeued`)              | `processing`     |
-| `ResumeRequired` (`Failed` / `Canceled` / `DependencyFailed`)    | `failed`         |
+| Engine collection-head status                         | Exposed `status` |
+| ----------------------------------------------------- | ---------------- |
+| No active or failed head / `Completed` / `Abandoned`  | `idle`           |
+| `Enqueued` / `Processing` / `Requeued`                | `processing`     |
+| `Failed` / `Canceled` / `DependencyFailed`            | `failed`         |
 
 `Abandoned → idle`: an abandoned workflow was written off (e.g. by a bpmn-allowed reject) and no
-longer blocks the current task; the user can act normally. (To be re-confirmed against the reject
-flow during implementation — `IsResumeRequiredCollectionHeadStatus` already excludes `Abandoned`.)
+longer blocks the current task; the user can act normally.
 
-### Backend
+## Design decisions that follow
 
-All symbols below are in `src/App/backend/src/Altinn.App.Core` unless noted.
+Backend:
 
-1. **`AppProcessState`** (`Internal/Process/Elements/AppProcessState.cs`) — the type
-   `ProcessStateEnricher.Enrich` returns and that `ProcessController` serializes. Add a nullable
-   `Workflow` property of a new `AppProcessWorkflowStatus` model:
-   ```csharp
-   public AppProcessWorkflowStatus? Workflow { get; set; }
-   ```
-   `AppProcessWorkflowStatus { WorkflowActivityStatus Status; string? TargetTask; AppProcessWorkflowFailure? Failure }`
-   with `enum WorkflowActivityStatus { Idle, Processing, Failed }` (serialized camelCase) and
-   `AppProcessWorkflowFailure { string? Detail; string? Kind }`. **Verify** which `AppProcessState`
-   the process endpoints actually serialize (there is also `Api/Models/AppProcessState.cs`); add
-   the field to the one on the wire and keep the OpenAPI snapshot updated.
+- **The engine stays the single source of truth (D2).** No new persisted state anywhere; the
+  annotation is recomputed from the engine on every read. The status resolver
+  (`ResolveWorkflowTaskStatus`) is a presentation projection alongside the process engine's
+  control-flow lookup (`GetCurrentTaskWorkflowState`); it resolves off the **collection heads**,
+  so concurrent branches collapse to the single processing/failed signal the consumer needs.
+- **The read path never fails on a status hiccup.** Enrichment degrades to `idle` (render
+  normally) on any non-cancellation error, logging a warning — basic instance rendering must not
+  couple to a transient engine blip; the next poll recovers the true status. Cancellation
+  propagates.
+- **Read-path efficiency.** The enriched read runs on every page load and every poll tick, so it
+  is 1 engine call for the common idle *and* processing cases and 2 only for failed: (1) the
+  process-next collection key is deterministically derived from the instance
+  (`ProcessNextRequestFactory.CreateCollectionKey`, the single source of truth for the key
+  algorithm, shared with enqueue so the two cannot drift), letting the resolver go straight to
+  `GetCollection` instead of label-discovery queries; and (2) the engine includes each head's
+  `labels` on the collection view (`CollectionHeadStatus.Labels`, projected from the workflow row
+  at no extra query cost), so a processing transition's target task is read straight off the
+  head. Only a *failed* transition lists the collection's workflows, because failure detail is
+  built from the step error history.
+- **Failure classification shares the wait path's visibility rules.** The failed-case workflow
+  list is filtered through the same `ScopeToCurrentChain` seam the enqueue wait and resume-target
+  lookup use, so any workflow category excluded from transition-failure classification (e.g. the
+  non-blocking side-effects workflows of
+  `2026-07-10-workflow-engine-noncritical-side-effects.md`) is excluded here too, from one place.
 
-2. **`IWorkflowEngineService`** (`Internal/WorkflowEngine/WorkflowEngineService.cs`) — add a
-   projection method dedicated to enrichment:
-   ```csharp
-   Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default);
-   ```
-   returning `internal sealed record WorkflowTaskStatus(WorkflowActivityStatus Status, string? TargetTask, WorkflowFailure? Failure)`.
-   Implement by factoring the existing scan in `GetCurrentTaskWorkflowState` (lines ~232-296) into
-   a private core that resolves, for the current committed task, the newest matching workflow, its
-   collection head status, its `processNextTargetId` label, and (for the failed case)
-   `BuildWorkflowFailure(...)`. Both `GetCurrentTaskWorkflowState` (unchanged external behaviour,
-   consumed by `ProcessEngine`) and the new `ResolveWorkflowTaskStatus` project from that core so
-   the engine query logic is not duplicated. `targetTask` is read from the **active/failed head's
-   own** `WorkflowStatusResponse.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]`
-   (match head `DatabaseId` back to the workflow in `ListCurrentTaskProcessNextWorkflows` results),
-   then strip the `:{flow}` suffix. When `instance.Process?.CurrentTask` is null (ended / not
-   started), return `Idle` without querying the engine (mirrors the existing early return).
+Frontend:
 
-3. **`ProcessStateEnricher`** (`Internal/Process/ProcessStateEnricher.cs`) — inject
-   `IWorkflowEngineService`; add an optional `CancellationToken` to `Enrich`; call
-   `ResolveWorkflowTaskStatus` and map onto `AppProcessState.Workflow`. DI: both types are already
-   registered transient (`Extensions/ServiceCollectionExtensions.cs:379`,
-   `Internal/WorkflowEngine/DependencyInjection/ServiceCollectionExtensions.cs:25`) — no new
-   registration needed, just the constructor dependency.
-
-4. **`ProcessController` / `InstancesController`** — thread the ambient `CancellationToken` into
-   the `Enrich` calls (call sites: `ProcessController.cs` ~106, ~184, ~371, ~387, ~449, ~596, and
-   the enriched-instance path in `InstancesController`). No response-shape changes beyond the added
-   field.
-
-Assumption: `ProcessEngine` is the sole `IProcessEngine` in v9 (the engine is always in play), so
-enrichment is unconditional and there is no legacy non-engine path to guard.
-
-### Frontend
-
-Source under `src/App/frontend/src`.
-
-1. **Types** — extend the process state type (`features/instance/useProcessQuery.ts` /
-   `types/shared.ts`) with the optional `workflow` object and a `WorkflowActivityStatus` union.
-   Add `workflow` awareness to `useProcessQuery` selectors.
-
-2. **`ProcessWrapper`** (`components/wrappers/ProcessWrapper.tsx`) — drive a state machine off
-   `workflow.status`, sourced from the **fetched** instance so it survives reload and works
-   cross-session:
-   - `idle` → render the committed task normally.
-   - `processing` → suppress the task's Submit/next actions; render a blocking "moving to the next
-     step…" state; set `refetchInterval` on the instance query (~2s) until `status` leaves
-     `processing` or the committed `currentTask` advances, then route forward. (The message
-     deliberately does NOT name the target task — task ids aren't user-facing and app authors rarely
-     give them meaningful names. `targetTask` stays in the contract for diagnostics/other consumers.)
-   - `failed` → suppress actions; show `failure.detail` and a **"Retry"** button (label "retry",
-     not "resume") that calls `POST process/resume`, then returns to `processing` + poll.
-
-3. **Resume** — add `doProcessResume` in `queries/queries.ts` (`POST .../process/resume`) and a
-   mutation hook; wire it to the Retry button. The endpoint already exists
-   (`ProcessController` `POST("resume")`) and re-derives the workflow/collection ids server-side,
-   so the client just POSTs.
-
-4. **Error-path alignment** — update `useProcessNext.tsx` so a synchronous failure and a polled
-   `workflow.status` render identically: a `process/next` that returns `processNextState`
-   (`retrying` → treat as `processing`; `resumeRequired` → treat as `failed`) drives the same
-   state machine rather than a generic toast. This finally consumes the extensions the frontend
-   currently ignores.
-
-5. **Text resources** — add nb/en/nn entries for the advancing message, the retry action, and the
-   failure heading.
-
-### Testing
-
-- **Backend unit** (`test/Altinn.App.Core.Tests`): `ProcessStateEnricher` mapping with a mocked
-  `IWorkflowEngineService` (idle/processing/failed, target extraction, failure detail present only
-  on failed); `WorkflowEngineService.ResolveWorkflowTaskStatus` label→target extraction and head
-  classification with a fake `IWorkflowEngineClient`.
-- **Backend integration/API** (`test/Altinn.App.Api.Tests` + OpenAPI snapshot): the process
-  response includes `workflow`; update the OpenAPI verified snapshot.
-- **Test app** (`src/test/apps`): an app (or scenario) with a **service task** that can be forced
-  to fail and/or delay, so real `processing`/`failed` states are produced without intercepts. A
-  service task runs in the engine post-commit and is the natural lever.
-- **Frontend jest**: `ProcessWrapper` state machine per status.
-- **Cypress e2e** (`src/App/frontend/test/e2e`): prove Submit is suppressed during `processing`,
-  the Retry affordance appears on `failed` and calls `process/resume`, and refresh in each state
-  re-renders correctly. Deterministic runs may intercept the enriched instance to assert the
-  state machine; a real-backend run against the test app exercises the true engine path.
-
-### Forward-looking (D5)
-
-Because the frontend converges purely off the fetched `workflow.status`, the backend's
-synchronous block-and-wait in `process/next` (kept for backwards compatibility) becomes an
-implementation detail it can shed later: `process/next` returns `processing` immediately and the
-frontend converges via polling. The design is deliberately indifferent to whether `next` is
-synchronous or asynchronous — no client change is needed to make that switch.
-
-## Hardening (post-review refinements)
-
-Applied after the first implementation pass, addressing robustness/privacy/UX gaps found in review:
-
-- **Read path never fails on a status hiccup.** `ProcessStateEnricher` wraps the engine lookup and
-  degrades to `Idle` (render normally) on any non-cancellation error, logging a warning. Enriching
-  on every read must not couple basic instance rendering to a transient engine blip; cancellation
-  still propagates. (`Enrich_WhenEngineThrows_DegradesToIdle` / `..._WhenCancelled_Propagates`.)
-- **Raw failure detail is not shown to citizens.** The engine/service-task `failure.detail` can
-  contain internal, non-user-facing text, so the citizen UI renders a localized generic message
-  (`process_workflow.failed_description`), not the raw detail. `detail` stays in the API payload for
+- **Fetched status drives a state machine** in `ProcessWrapper`, layered on the committed-task
+  routing: `idle` renders normally; `processing` replaces the task UI (which suppresses its
+  Submit/next affordances) and polls the instance until the status settles; `failed` replaces the
+  task UI with a failure state and a **Retry** button calling `POST process/resume`, then
+  returns to `processing` + poll. Because the state is sourced from the fetched instance, it
+  survives reloads and works cross-session.
+- **Raw failure detail is not shown to citizens.** `failure.detail` can contain internal text, so
+  the citizen UI renders a localized generic message; the detail stays in the API payload for
   diagnostics and service-owner tooling, and is logged. A first-class, app-authored *user-safe*
   failure message is a follow-up.
-- **Polling is jittered.** The `processing` poll uses a jittered ~2–3s interval so many clients
-  waiting on the same engine don't synchronise into a thundering herd — which would otherwise peak
-  exactly when the engine is already slow.
-- **Prolonged processing gets an affordance.** After ~20s in `processing`, the UI adds a reassuring
-  "this is taking longer than usual" line so the user isn't left staring at a bare spinner (workflows
-  can retry for a long time server-side).
-- **Deterministic status.** `ResolveWorkflowTaskStatus` resolves off the collection heads; concurrent
-  branches collapse to a single processing/failed signal (all the consumer needs).
-- **Read-path efficiency.** The read path went from 4–5 engine calls per enriched read to **1 for the
-  common idle *and* processing cases, and 2 only for failed**. Two changes get us there: (1) the
-  process-next collection key is deterministically the instance guid, so instead of 3 label-union
-  `ListWorkflows` calls to discover the key, the resolver goes straight to `GetCollection`; and (2) the
-  **engine now includes each head's `labels` on the collection view** (`CollectionHeadStatus.Labels`,
-  projected from the workflow row — no extra query), so a processing transition's target task is read
-  straight off the head with no per-workflow lookup. The collection's workflows are listed only for a
-  *failed* transition, where the failure detail must be built from the step error history. This matters
-  because the enriched read runs on every page load and every poll tick.
-- **Single source of truth for the collection key.** The key algorithm lives in
-  `ProcessNextRequestFactory.CreateCollectionKey(...)` and is used by both enqueue and the read-path
-  lookup, so a future change (e.g. a prefix) can't let the two drift apart.
+- **Polling is jittered** (~2–3s) so many clients waiting on the same engine don't synchronise
+  into a thundering herd — which would otherwise peak exactly when the engine is already slow.
+  After ~20s in `processing` the UI adds a "taking longer than usual" reassurance line.
+- **The synchronous error path converges on the same machine.** A `process/next` response
+  carrying `processNextState` (`retrying` → `processing`, `resumeRequired` → `failed`) refetches
+  the live-enriched instance and lets the polled status take over, instead of a hard error toast
+  — finally consuming the extensions the frontend previously ignored.
+- **The processing message does not name the target task.** Task ids aren't user-facing and app
+  authors rarely give them meaningful names; `targetTask` stays in the contract for diagnostics
+  and other consumers.
 
-### Still open (follow-ups, not blockers)
+## Consequences
+
+- Positive: reads (and therefore reloads, concurrent sessions, and post-504 limbo) reflect the
+  live truth; a terminally failed transition is discoverable and retryable from the UI instead of
+  by attempting an action; no second copy of process truth exists anywhere.
+- Positive (D5): because the frontend converges purely off the fetched `workflow.status`, the
+  backend's synchronous block-and-wait in `process/next` becomes an implementation detail it can
+  shed later — `process/next` could return `processing` immediately and the frontend converges
+  via polling, with no client change.
+- Negative / accepted: every enriched read costs an engine round-trip (per the always-up/cheap
+  constraint; kept to a single call for idle/processing).
+- Interaction with the side-effects split (`2026-07-10-workflow-engine-noncritical-side-effects.md`):
+  the annotation resolves off collection heads, and side-effects workflows are `IsHead=false`, so
+  a running or failed side-effects workflow never surfaces as `processing`/`failed` on a read.
+  This is intentional — they are non-blocking by design and monitored via the engine instead.
+
+### Follow-ups (not blockers)
 
 - Whether the **end user is the right actor** to retry an engine failure at all, vs. a "received,
   we're processing it" model with ops alerting — a product decision.
 - App-authored **user-safe failure message** channel (so useful, safe detail *can* be shown).
 - `Abandoned → idle` mapping re-confirmed against the reject path.
 - True **backoff** (not just jitter) for very long-running processing, if load warrants.
-- **Collapse the *failed* read to a single call too.** Idle and processing are now single-call; failed
-  still needs a second `ListWorkflows` because the failure detail is built from the step error history,
-  which the collection view doesn't carry. A compact last-error/failing-step summary on
-  `CollectionHeadStatus` (engine side) would make failed single-call as well — deferred because failed
-  is the rare case and it would duplicate the step-error extraction the app already does.
+- **Collapse the *failed* read to a single call too**: a compact last-error summary on
+  `CollectionHeadStatus` (engine side) would remove the second `ListWorkflows` — deferred because
+  failed is the rare case and it would duplicate the step-error extraction the app already does.
+- **Share the resolver core** between `ResolveWorkflowTaskStatus` and
+  `GetCurrentTaskWorkflowState` (the control-flow lookup still discovers the collection via label
+  queries; both could key off the deterministic collection key).
 
 ## Related
 
-- `src/App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/CLAUDE.md` — workflow engine
+- `src/App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md` — the workflow engine
   integration layer (enqueue/labels/callbacks, command phases, the `SaveProcessStateToStorage`
-  commit boundary).
-- `ProcessNextRequestFactory` — `processNextTargetId` / `processNextSourceId` labels stamped at
-  enqueue and round-tripped on `WorkflowStatusResponse.Labels`.
-- `docs/adr/2025-10-22-pdf-generation-architecture.md` — prior v9 runtime ADR (format reference).
+  commit boundary, waiting and failure classification).
+- `docs/adr/2026-07-10-workflow-engine-noncritical-side-effects.md` — the non-blocking
+  side-effects split this design deliberately does not surface (see Consequences).
+- `docs/adr/2025-10-22-pdf-generation-architecture.md` — prior v9 runtime ADR.
