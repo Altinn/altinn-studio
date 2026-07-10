@@ -14,7 +14,7 @@ import { ListSummary } from 'src/layout/List/ListSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { indexDataModelReferenceForValidation, validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,
@@ -135,7 +135,14 @@ export class List extends ListDef {
         }
         const fieldWithoutGroup = binding.field.replace(`${groupBinding.field}.`, '');
         const fieldWithIndex = `${groupBinding.field}[0].${fieldWithoutGroup}`;
-        const [schema, err] = lookupBinding?.({ field: fieldWithIndex, dataType: binding.dataType }) ?? [];
+        const [schema, err] =
+          lookupBinding?.(
+            indexDataModelReferenceForValidation(
+              baseComponentId,
+              { field: fieldWithIndex, dataType: binding.dataType },
+              layoutLookups,
+            ),
+          ) ?? [];
         if (err) {
           errors.push(lookupErrorAsText(err));
         } else if (typeof schema?.type !== 'string' || !allowedLeafTypes.includes(schema.type)) {

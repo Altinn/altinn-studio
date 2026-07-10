@@ -8,7 +8,7 @@ import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryComponent';
 import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';

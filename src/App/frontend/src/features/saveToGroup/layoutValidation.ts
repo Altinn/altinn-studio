@@ -1,5 +1,9 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { validateDataModelBindingsAny, validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
+import {
+  indexDataModelReferenceForValidation,
+  validateDataModelBindingsAny,
+  validateDataModelBindingsSimple,
+} from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 
@@ -37,10 +41,16 @@ export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 
     const simpleBindingsWithoutGroup = simpleBinding.field.replace(`${groupBinding.field}.`, '');
     const fieldWithIndex = `${groupBinding.field}[0].${simpleBindingsWithoutGroup}`;
     const [schema, err] =
-      lookupBinding?.({
-        field: fieldWithIndex,
-        dataType: simpleBinding.dataType,
-      }) ?? [];
+      lookupBinding?.(
+        indexDataModelReferenceForValidation(
+          baseComponentId,
+          {
+            field: fieldWithIndex,
+            dataType: simpleBinding.dataType,
+          },
+          layoutLookups,
+        ),
+      ) ?? [];
 
     if (err) {
       errors.push(lookupErrorAsText(err));

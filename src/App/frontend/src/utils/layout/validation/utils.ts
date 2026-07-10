@@ -1,6 +1,7 @@
 import type { JSONSchema7 } from 'json-schema';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
+import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
 import { isDataModelBindingsRequired } from 'src/layout';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { DataModelBindingValidationContext } from 'src/layout';
@@ -32,7 +33,7 @@ export function validateDataModelBindingsAny<T extends CompTypes>(
     return [[], undefined];
   }
 
-  const [result, error] = lookupBinding(value);
+  const [result, error] = lookupBinding(indexDataModelReferenceForValidation(baseComponentId, value, layoutLookups));
   if (error) {
     return [[lookupErrorAsText(error)], undefined];
   }
@@ -53,6 +54,70 @@ export function validateDataModelBindingsAny<T extends CompTypes>(
   }
 
   return [undefined, result];
+}
+
+/**
+ * Rewrites a data model reference so schema validation can resolve bindings inside repeating-group bodies.
+ *
+ * This preserves strict schema lookup while adding the synthetic row indexes that flat layout validation
+ * does not have at hand.
+ */
+export function indexDataModelReferenceForValidation(
+  baseComponentId: string,
+  reference: IDataModelReference,
+  layoutLookups: LayoutLookups,
+): IDataModelReference {
+  const parentRepeatingBindings = getParentRepeatingGroupBindings(baseComponentId, layoutLookups);
+  if (parentRepeatingBindings.length === 0) {
+    return reference;
+  }
+
+  let indexedReference = reference;
+  for (const repeatingGroupBinding of parentRepeatingBindings) {
+    if (indexedReference.dataType !== repeatingGroupBinding.dataType) {
+      continue;
+    }
+
+    const groupField = repeatingGroupBinding.field;
+    const suffix = indexedReference.field.slice(groupField.length);
+    if (
+      indexedReference.field === groupField ||
+      (indexedReference.field.startsWith(`${groupField}.`) && !suffix.startsWith('['))
+    ) {
+      indexedReference = {
+        ...indexedReference,
+        field: `${groupField}[0]${indexedReference.field.slice(groupField.length)}`,
+      };
+    }
+  }
+
+  return indexedReference;
+}
+
+function getParentRepeatingGroupBindings(baseComponentId: string, layoutLookups: LayoutLookups): IDataModelReference[] {
+  const repeatingGroupBindings: IDataModelReference[] = [];
+  let childId = baseComponentId;
+  let parent = layoutLookups.componentToParent[childId];
+
+  while (parent?.type === 'node') {
+    const parentComponent = layoutLookups.allComponents[parent.id];
+    const isClaimedByRepeatedBody =
+      parentComponent?.type === 'RepeatingGroup'
+        ? (parentComponent.children?.includes(childId) ?? false)
+        : (layoutLookups.componentToChildren[parent.id]?.includes(childId) ?? false);
+
+    if (isRepeatingComponent(parentComponent) && isClaimedByRepeatedBody) {
+      const repeatingBinding = getRepeatingBinding(parentComponent.type, parentComponent.dataModelBindings);
+      if (repeatingBinding) {
+        repeatingGroupBindings.push(repeatingBinding);
+      }
+    }
+
+    childId = parent.id;
+    parent = layoutLookups.componentToParent[childId];
+  }
+
+  return repeatingGroupBindings;
 }
 
 export function validateDataModelBindingsSimple<T extends CompTypes>(
