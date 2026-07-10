@@ -361,11 +361,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
 
         // A failed transition additionally needs its failure detail, which lives in the workflow's
-        // steps - list the collection's workflows once to build it.
-        IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
-            GetNamespace(),
-            collectionKey: collectionKey,
-            ct: ct
+        // steps - list the collection's workflows once to build it. The list goes through
+        // ScopeToCurrentChain (no anchor) so failure classification here obeys the same visibility
+        // rules as the enqueue wait and the resume-target lookup: workflows that must never be
+        // classified as transition failures are stripped in that one place.
+        IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ScopeToCurrentChain(
+            await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+            sinceWorkflowId: null
         );
         return new WorkflowTaskStatus(
             WorkflowActivityStatus.Failed,
