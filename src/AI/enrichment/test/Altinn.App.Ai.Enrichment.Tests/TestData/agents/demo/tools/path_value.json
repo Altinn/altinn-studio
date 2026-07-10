@@ -1,0 +1,11 @@
+{
+  "name": "path_value",
+  "description": "Hent verdien på en punktseparert sti i søknads-JSON (f.eks. 'Innsender.Navn' eller 'Booking.Periode[0].StartDato'). Returnerer om stien finnes og verdien.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "json_path": { "type": "string", "description": "Punktseparert sti, med [index] for lister." }
+    },
+    "required": ["json_path"]
+  }
+}

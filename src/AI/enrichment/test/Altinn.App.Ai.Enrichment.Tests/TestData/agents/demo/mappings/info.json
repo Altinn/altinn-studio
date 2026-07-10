@@ -1,0 +1,19 @@
+{
+  "output": {
+    "meta": {
+      "dato":          { "kind": "today" },
+      "saksbehandler": { "kind": "const", "value": "KI-agent" }
+    },
+    "soker": {
+      "navn": { "kind": "chain", "sources": ["Innsender.Navn"], "default": "ukjent" }
+    },
+    "booking": {
+      "rom":     { "kind": "registry_field", "registry": "rom.json", "key_sources": ["Booking.RomKode"], "field": "name", "default": "ukjent" },
+      "dato":    { "kind": "path", "source": "Booking.Dato",     "default": "ukjent" },
+      "start":   { "kind": "path", "source": "Booking.StartTid", "default": "ukjent" },
+      "slutt":   { "kind": "path", "source": "Booking.SluttTid", "default": "ukjent" },
+      "formaal": { "kind": "path", "source": "Booking.Formaal",  "default": "ukjent" }
+    },
+    "vedlegg": { "kind": "list_pluck", "source": "VedleggsListe.Rader", "fields": ["Navn", "Filnavn"] }
+  }
+}

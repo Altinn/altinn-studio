@@ -1,0 +1,28 @@
+{
+  "FlatData": {
+    "SoknadsType": "standard",
+    "Innsender": {
+      "Navn": "Test Testesen",
+      "Foedselsnummer": "01018012345",
+      "Epost": "test@example.com"
+    },
+    "Booking": {
+      "RomKode": "R101",
+      "Dato": "2026-12-19",
+      "StartTid": "17:00",
+      "SluttTid": "20:00",
+      "AntallDeltakere": "12",
+      "Formaal": "Årsmøte i velforeningen"
+    },
+    "Ansvarlig": {
+      "Navn": "Kari Ansvarlig",
+      "Foedselsnummer": "01018012345"
+    },
+    "VedleggsListe": {
+      "Rader": [
+        { "Navn": "vedtekter.pdf" },
+        { "Filnavn": "program.pdf" }
+      ]
+    }
+  }
+}
