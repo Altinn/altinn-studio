@@ -255,8 +255,11 @@ dotnet run
 ```
 
 3. Kjør flyten via API-et: hent testbruker-token fra localtest
-   (`GET http://localhost:5101/Home/GetTestUserToken/1337?authenticationLevel=3`),
+   (`GET http://localhost:5101/Home/GetTestUserToken/<userId>?authenticationLevel=3`),
    opprett instans, PUT skjemadata, og kall `PUT …/process/next`.
+   **NB:** serverer appen sin egen `testData.json` (wwwroot), bruker localtest
+   *dens* brukere — endepunktet gir 404 for alle andre userId-er. Sjekk
+   `GET <app-url>/testData.json` for gyldige userId/partyId.
 4. Verifiser: `GET` på instansen skal vise nye data-elementer
    (`ki-beriking-json`/`ki-beriking-pdf`), og JSON-en skal ha ekte statuser og
    merknader per punkt. `HTTP/transport error` i merknadene betyr at
@@ -272,6 +275,8 @@ dotnet run
 | Alle punkter `ikke_vurdert` med HTTP-feil i merknad | Gateway-config/nøkkel feil, modell ikke lastet, eller for høy `concurrency` for gatewayen |
 | «Typst compilation failed» / prosess feiler ved PDF | `typst` mangler i image/PATH, eller malen leser felter mapperen ikke produserer |
 | Regler treffer ikke dataene | Stier i rules/mappings matcher ikke modellens JSON-form — verifiser mot en faktisk serialisert instans |
+| `Transport: timeout after Ns` i merknadene | Gatewayen brukte lengre tid enn budsjettet — øk `AiEnrichment:Agent:TimeoutSeconds` eller senk `concurrency` |
+| Prosessen stopper på steget etter feil | Det er retry-semantikken: rett årsaken og kall `process/next` på nytt — kjøringen gjenopptas |
 
 ## Referanser
 
