@@ -20,6 +20,27 @@
         "allowedVersions":"<=7"
     },
     {
+      // These packages need v9 cleanup before taking breaking major updates, see #647.
+      "matchPackageNames": [
+        "Altinn.ApiClients.Maskinporten"
+      ],
+      "allowedVersions": "<9"
+    },
+    {
+      // JWTCookieAuthentication v4 removes KeyVaultSettings used by apps, see #647.
+      "matchPackageNames": [
+        "JWTCookieAuthentication"
+      ],
+      "allowedVersions": "<4"
+    },
+    {
+      // Altinn.Common.AccessTokenClient v2 removes transitive dependencies used by SecretsClient, see #647.
+      "matchPackageNames": [
+        "Altinn.Common.AccessTokenClient"
+      ],
+      "allowedVersions": "<2"
+    },
+    {
       "matchPackageNames": [
         "/dotnet(-|\\/)sdk/",
         "/^Microsoft\\.AspNetCore/",
