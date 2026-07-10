@@ -45,4 +45,3 @@ load balancer then routes to your local dev server) and rebuild `studio_loadbala
 
 - Avoid hard-coded numbers and strings; use meaningful, descriptive names (no abbreviations).
 - Short functions that do one thing; comments only for what the code cannot express.
-- Backend- and frontend-specific conventions live in the respective `AGENTS.md` files.
