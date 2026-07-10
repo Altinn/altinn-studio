@@ -68,7 +68,11 @@ for (const file of agentsFiles) {
   for (const match of content.matchAll(LINK_PATTERN)) {
     const target = match[1];
     if (/^(https?:|mailto:|#)/.test(target)) continue;
-    const resolved = path.join(path.dirname(file), target.split('#')[0]);
+    const linkPath = target.split('#')[0];
+    // Leading "/" means repo-root-relative (GitHub semantics), not doc-relative.
+    const resolved = linkPath.startsWith('/')
+      ? linkPath.slice(1)
+      : path.join(path.dirname(file), linkPath);
     if (!fs.existsSync(resolved)) {
       errors.push(`${file}: broken link "${target}" (resolved to ${resolved})`);
     }
