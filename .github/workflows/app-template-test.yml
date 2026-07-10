@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/App/template/**'
       - '.github/workflows/app-template-test.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

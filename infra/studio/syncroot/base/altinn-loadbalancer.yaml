@@ -16,6 +16,8 @@ metadata:
 spec:
   interval: 5m
   targetNamespace: default
+  dependsOn:
+    - name: studio-ssl-cert
   sourceRef:
     kind: OCIRepository
     name: altinn-loadbalancer

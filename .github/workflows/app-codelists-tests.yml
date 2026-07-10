@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/App/codelists/**'
       - '.github/workflows/app-codelists-tests.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

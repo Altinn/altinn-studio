@@ -7,6 +7,8 @@ on:
       - "src/cli/**"
       - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
+      - "!**/AGENTS.md"
+      - "!**/CLAUDE.md"
   workflow_dispatch:
 
 concurrency:

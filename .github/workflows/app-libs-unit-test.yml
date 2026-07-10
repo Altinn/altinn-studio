@@ -8,6 +8,8 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - '.github/workflows/app-libs-unit-test.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
