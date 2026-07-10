@@ -48,7 +48,12 @@ public static class ServiceCollectionExtensions
         services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.SectionName));
         services.Configure<TypstOptions>(configuration.GetSection(TypstOptions.SectionName));
 
-        services.AddHttpClient(OpenAiCompatibleChatService.HttpClientName);
+        // Infinite client-level timeout: HttpClient's default (100s) would fire
+        // before AgentOptions.TimeoutSeconds; the chat service enforces the
+        // configured budget per call via a linked CancellationTokenSource.
+        services
+            .AddHttpClient(OpenAiCompatibleChatService.HttpClientName)
+            .ConfigureHttpClient(client => client.Timeout = Timeout.InfiniteTimeSpan);
         services.TryAddSingleton<IApiKeyProvider, ConfigurationApiKeyProvider>();
         services.AddSingleton<IChatService, OpenAiCompatibleChatService>();
         services.AddSingleton<ITypstRenderer, TypstRenderer>();

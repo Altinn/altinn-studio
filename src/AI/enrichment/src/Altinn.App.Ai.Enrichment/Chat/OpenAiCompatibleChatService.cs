@@ -72,7 +72,20 @@ public sealed class OpenAiCompatibleChatService(
         ChatResponse? lastResponse = null;
         for (var attempt = 0; attempt < MaxRetryAttempts; attempt++)
         {
-            lastResponse = await SendOnceAsync(endpoint, body, apiKey, request.Stream, cts.Token);
+            try
+            {
+                lastResponse = await SendOnceAsync(endpoint, body, apiKey, request.Stream, cts.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Our own TimeoutSeconds budget expired — a per-call condition the
+                // orchestrator records as a verdict, not a cancellation of the run.
+                return new ChatResponse
+                {
+                    StatusCode = 0,
+                    Error = $"Transport: timeout after {opts.TimeoutSeconds}s ({AgentOptions.SectionName}:TimeoutSeconds)",
+                };
+            }
 
             var retryable = lastResponse.StatusCode != 0 &&
                             RetryStatusCodes.Contains((HttpStatusCode)lastResponse.StatusCode);
