@@ -92,6 +92,33 @@ public class HttpClientExtensionTest
     }
 
     [Fact]
+    public async Task PutAsync_SkipTaskDataCleanup_AppendsWithAmpersandWhenUriHasQuery()
+    {
+        // Arrange
+        const string requestUriWithQuery = $"{RequestUri}?existing=param";
+        HttpRequestMessage? capturedHttpRequestMessage = null;
+        using var fixture = CreateMockedHttpClient(request =>
+        {
+            capturedHttpRequestMessage = request;
+        });
+
+        // Act
+        await fixture.HttpClient.PutAsync(
+            AuthorizationToken,
+            requestUriWithQuery,
+            content: null,
+            skipTaskDataCleanup: true
+        );
+
+        // Assert
+        Assert.NotNull(capturedHttpRequestMessage);
+        Assert.Equal(
+            $"{requestUriWithQuery}&deleteGeneratedElements=false",
+            capturedHttpRequestMessage!.RequestUri!.ToString()
+        );
+    }
+
+    [Fact]
     public async Task PutAsync_WithoutSkipTaskDataCleanup_DoesNotAddQueryParam()
     {
         // Arrange
