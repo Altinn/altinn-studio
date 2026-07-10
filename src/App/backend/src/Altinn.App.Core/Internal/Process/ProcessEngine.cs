@@ -408,7 +408,11 @@ internal class ProcessEngine : IProcessEngine
                 // Write the failed workflow off in the engine (-> Abandoned) before enqueueing the
                 // reject: Abandoned is terminal but no longer condemns dependents, so the reject's
                 // ordinary dependency on it lets the reject run.
-                bool abandoned = await _workflowEngineService.AbandonWorkflow(failedWorkflow.WorkflowId, ct);
+                bool abandoned = await _workflowEngineService.AbandonWorkflow(
+                    failedWorkflow.WorkflowId,
+                    failedWorkflow.CollectionKey,
+                    ct
+                );
                 if (!abandoned)
                 {
                     // The engine's compare-and-set lost a race with a concurrent resume: the failed

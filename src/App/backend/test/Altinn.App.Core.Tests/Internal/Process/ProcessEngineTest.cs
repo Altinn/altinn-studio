@@ -1943,6 +1943,181 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
+    public async Task Next_reject_cancels_pending_side_effects_workflow_of_abandoned_batch()
+    {
+        // An Abandoned dependency satisfies dependents instead of condemning them, so the abandoned
+        // Main workflow's not-yet-condemned side-effects sibling would become runnable and emit
+        // events for a transition that never committed. The abandon must cancel it explicitly.
+        Guid failedWorkflowId = Guid.NewGuid();
+        Guid sideEffectsWorkflowId = Guid.NewGuid();
+        Guid rejectWorkflowId = Guid.NewGuid();
+        string collectionKey = _collectionKey;
+        bool failedWorkflowAbandoned = false;
+        DateTimeOffset failedBatchCreatedAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        IsProcessNextLabel(labels, ProcessNextRequestFactory.ProcessNextSourceIdLabel, "Task_1:2")
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    failedWorkflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey,
+                    failedBatchCreatedAt
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        MatchesCurrentTaskLookupLabel(labels, "Task_1:2")
+                        && !labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (string _, string key, CancellationToken _) =>
+                    CreateWorkflowCollectionDetailResponse(
+                        key,
+                        failedWorkflowAbandoned
+                            ? CreateCollectionHeadStatus(rejectWorkflowId, PersistentItemStatus.Completed)
+                            : CreateCollectionHeadStatus(failedWorkflowId, PersistentItemStatus.Failed)
+                    )
+            );
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    string _,
+                    string? key,
+                    Dictionary<string, string>? _,
+                    IReadOnlyList<PersistentItemStatus>? _,
+                    CancellationToken _
+                ) =>
+                {
+                    List<WorkflowStatusResponse> workflows =
+                    [
+                        CreateWorkflowStatusResponse(
+                            failedWorkflowId,
+                            "Process next: Task_1 -> Task_2",
+                            failedWorkflowAbandoned ? PersistentItemStatus.Abandoned : PersistentItemStatus.Failed,
+                            key,
+                            failedBatchCreatedAt
+                        ),
+                        // The side-effects sibling from the failed batch: same idempotency key,
+                        // still Enqueued because no worker has condemned it yet.
+                        CreateWorkflowStatusResponse(
+                            sideEffectsWorkflowId,
+                            "Process next side-effects: Task_1 -> Task_2",
+                            PersistentItemStatus.Enqueued,
+                            key,
+                            failedBatchCreatedAt
+                        ),
+                    ];
+                    if (failedWorkflowAbandoned)
+                    {
+                        workflows.Add(
+                            CreateWorkflowStatusResponse(
+                                rejectWorkflowId,
+                                "Process next: Task_1 -> Task_2",
+                                PersistentItemStatus.Completed,
+                                key
+                            )
+                        );
+                    }
+
+                    return workflows;
+                }
+            );
+        processEngineClientMock
+            .Setup(c => c.AbandonWorkflow(It.IsAny<string>(), failedWorkflowId, It.IsAny<CancellationToken>()))
+            .Callback(() => failedWorkflowAbandoned = true)
+            .ReturnsAsync(true);
+        processEngineClientMock
+            .Setup(c => c.CancelWorkflow(It.IsAny<string>(), sideEffectsWorkflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CancelWorkflowResponse(sideEffectsWorkflowId, DateTimeOffset.UtcNow, true));
+        processEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = rejectWorkflowId, Namespace = "org/app" }],
+                }
+            );
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { AltinnActions = [new AltinnAction("reject")] });
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = "reject",
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeTrue();
+        processEngineClientMock.Verify(
+            c => c.CancelWorkflow(It.IsAny<string>(), sideEffectsWorkflowId, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        // Only the side-effects sibling is cancelled - never the abandoned Main or the reject.
+        processEngineClientMock.Verify(
+            c => c.CancelWorkflow(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
     public async Task Next_reject_blocks_as_retrying_when_abandon_loses_race_with_concurrent_resume()
     {
         Guid failedWorkflowId = Guid.NewGuid();
@@ -2999,7 +3174,8 @@ public sealed class ProcessEngineTest
         Guid workflowId,
         string operationId,
         PersistentItemStatus overallStatus,
-        string? collectionKey = null
+        string? collectionKey = null,
+        DateTimeOffset? createdAt = null
     ) =>
         new()
         {
@@ -3008,7 +3184,7 @@ public sealed class ProcessEngineTest
             IdempotencyKey = "test-idempotency-key",
             Namespace = "org/app",
             CollectionKey = collectionKey,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = createdAt ?? DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             OverallStatus = overallStatus,
             Steps = [],

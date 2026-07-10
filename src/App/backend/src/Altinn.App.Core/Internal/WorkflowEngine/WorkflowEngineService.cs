@@ -12,6 +12,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -36,8 +37,11 @@ internal interface IWorkflowEngineService
     /// subsequently enqueued workflow can depend on it and run. Returns <see langword="false"/> when
     /// the engine's compare-and-set rejected the transition - e.g. a concurrent resume revived the
     /// workflow - in which case the caller must treat the task as still blocked.
+    /// On success, any still-pending side-effects workflow from the abandoned batch is cancelled:
+    /// an Abandoned dependency satisfies dependents instead of condemning them, so without the
+    /// cancel the abandoned transition's fire-and-forget side effects could still run.
     /// </summary>
-    Task<bool> AbandonWorkflow(Guid workflowId, CancellationToken ct = default);
+    Task<bool> AbandonWorkflow(Guid workflowId, string collectionKey, CancellationToken ct = default);
 
     Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
@@ -100,18 +104,21 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private readonly IWorkflowEngineClient _workflowEngineClient;
     private readonly IInstanceClient _instanceClient;
     private readonly AppIdentifier _appIdentifier;
+    private readonly ILogger<WorkflowEngineService> _logger;
 
     public WorkflowEngineService(
         ProcessNextRequestFactory processNextRequestFactory,
         IWorkflowEngineClient workflowEngineClient,
         IInstanceClient instanceClient,
-        AppIdentifier appIdentifier
+        AppIdentifier appIdentifier,
+        ILogger<WorkflowEngineService> logger
     )
     {
         _processNextRequestFactory = processNextRequestFactory;
         _workflowEngineClient = workflowEngineClient;
         _instanceClient = instanceClient;
         _appIdentifier = appIdentifier;
+        _logger = logger;
     }
 
     public async Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
@@ -311,8 +318,74 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
     }
 
-    public Task<bool> AbandonWorkflow(Guid workflowId, CancellationToken ct = default) =>
-        _workflowEngineClient.AbandonWorkflow(GetNamespace(), workflowId, ct);
+    public async Task<bool> AbandonWorkflow(Guid workflowId, string collectionKey, CancellationToken ct = default)
+    {
+        bool abandoned = await _workflowEngineClient.AbandonWorkflow(GetNamespace(), workflowId, ct);
+        if (abandoned)
+        {
+            await CancelSideEffectsOfAbandonedBatch(workflowId, collectionKey, ct);
+        }
+
+        return abandoned;
+    }
+
+    /// <summary>
+    /// An Abandoned dependency satisfies dependents instead of condemning them (that is what lets
+    /// the superseding reject run), so the abandoned Main workflow's fire-and-forget side-effects
+    /// sibling becomes runnable unless the engine already condemned it to DependencyFailed - and it
+    /// would then emit events for a transition that never committed. Cancel it explicitly. The
+    /// engine checks pending cancellation before dependency evaluation, so the cancel reliably
+    /// stops the workflow even if a worker fetches it afterwards. Best-effort: in the common case
+    /// the sibling is already DependencyFailed and there is nothing to cancel; on lookup/cancel
+    /// failure the pre-existing narrow race remains rather than failing the reject.
+    /// </summary>
+    private async Task CancelSideEffectsOfAbandonedBatch(
+        Guid abandonedWorkflowId,
+        string collectionKey,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
+                GetNamespace(),
+                collectionKey: collectionKey,
+                ct: ct
+            );
+            WorkflowStatusResponse? abandonedWorkflow = collectionWorkflows.FirstOrDefault(workflow =>
+                workflow.DatabaseId == abandonedWorkflowId
+            );
+            if (abandonedWorkflow is null)
+            {
+                return;
+            }
+
+            foreach (WorkflowStatusResponse workflow in collectionWorkflows)
+            {
+                if (
+                    IsSideEffectsWorkflow(workflow)
+                    && workflow.IdempotencyKey == abandonedWorkflow.IdempotencyKey
+                    && IsActiveWorkflowStatus(workflow)
+                )
+                {
+                    await _workflowEngineClient.CancelWorkflow(GetNamespace(), workflow.DatabaseId, ct);
+                }
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Failed to cancel side-effects workflows of abandoned workflow {WorkflowId} in collection {CollectionKey}.",
+                abandonedWorkflowId,
+                collectionKey
+            );
+        }
+    }
 
     private async Task<Guid> EnqueueDependentWorkflow(
         Instance instance,
@@ -548,9 +621,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Guid? sinceWorkflowId
     )
     {
-        List<WorkflowStatusResponse> visibleWorkflows = workflows
-            .Where(workflow => !IsSideEffectsWorkflow(workflow))
-            .ToList();
+        IReadOnlyList<WorkflowStatusResponse> visibleWorkflows = workflows.Any(IsSideEffectsWorkflow)
+            ? workflows.Where(workflow => !IsSideEffectsWorkflow(workflow)).ToList()
+            : workflows;
 
         if (sinceWorkflowId is null)
         {

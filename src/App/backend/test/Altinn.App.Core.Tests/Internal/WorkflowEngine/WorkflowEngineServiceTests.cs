@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
@@ -81,7 +82,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             instanceClient.Object,
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         // Act

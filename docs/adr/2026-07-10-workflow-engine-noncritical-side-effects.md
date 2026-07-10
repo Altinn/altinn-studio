@@ -314,6 +314,18 @@ Update `Internal/WorkflowEngine/AGENTS.md`:
   notification cannot wedge the process; enqueue stays atomic/idempotent; no engine or DTO changes.
 - Negative / accepted: side effects fire only after the full Main workflow (incl. any service task) — see
   A2 for the future diamond refinement if prompt event emission becomes a requirement.
+- Negative / accepted: **cross-transition event ordering is relaxed.** Each side-effects workflow depends
+  only on its own Main, so a retrying `movedTo.Task_2` can be registered after `movedTo.Task_3` or
+  `completed`. Event consumers must tolerate out-of-order delivery (per-transition ordering is kept).
+- Follow-up (engine): the wait/settle exclusion identifies side-effects workflows by an OperationId string
+  prefix because the engine does not persist/expose `IsHead` in `WorkflowStatusResponse` and labels are
+  batch-scoped. Consider exposing `IsHead` (or a per-workflow tag) in status responses and switching the
+  filter to it.
+- Reject interaction (fixed during review): an Abandoned dependency *satisfies* dependents instead of
+  condemning them, so abandoning a failed Main (the bpmn-allowed reject path) could let its not-yet-condemned
+  side-effects sibling run and emit events for a transition that never committed. `AbandonWorkflow` now
+  cancels the abandoned batch's still-pending side-effects workflow after a successful abandon (the engine
+  checks pending cancellation before dependency evaluation, so the cancel wins the race).
 - Out of scope: this gates **workflow ordering** only. It does not prevent ad-hoc data mutation (direct
   PATCH) while a service task runs — that remains a client/data-path (task-type) concern, unchanged by this
   work.

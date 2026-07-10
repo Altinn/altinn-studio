@@ -159,10 +159,18 @@ internal sealed class ProcessNextRequestFactory
             // The side-effects workflow starts from its own state blob: it must reflect the
             // committed (NEW) process state, which Main's initial blob does not (it is captured
             // before the in-memory transition and only evolves within Main's own step chain).
-            string? sideEffectState =
-                state is not null && processStateChange.NewProcessState is { } newProcessState
-                    ? _callbackStateRewriter.WithProcessState(state, newProcessState)
-                    : state;
+            // A missing blob or process state can never produce correct side effects (the commands
+            // read the NEW CurrentTask/EndEvent from the blob), so fail the enqueue up front
+            // rather than emitting events for the wrong task.
+            if (state is null || processStateChange.NewProcessState is not { } newProcessState)
+            {
+                throw new InvalidOperationException(
+                    "Cannot build the side-effects workflow: the callback state blob and the new "
+                        + "process state are required to derive its initial state."
+                );
+            }
+
+            string sideEffectState = _callbackStateRewriter.WithProcessState(state, newProcessState);
 
             workflows.Add(
                 new WorkflowRequest

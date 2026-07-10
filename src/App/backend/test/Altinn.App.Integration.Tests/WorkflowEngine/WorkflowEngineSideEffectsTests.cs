@@ -23,6 +23,8 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
     : IClassFixture<AppFixtureClassFixture>
 {
     private const string SideEffectsOperationIdPrefix = "Process next side-effects:";
+
+    // Keep in sync with StudioctlEnvironment.WaitForEngineReady - the engine's host-exposed address.
     private static readonly Uri _engineBaseAddress = new("http://workflow-engine.local.altinn.cloud:8000");
     private static readonly TimeSpan _sideEffectsCompletionTimeout = TimeSpan.FromSeconds(120);
 
@@ -58,7 +60,10 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
         EngineWorkflow instantiationMain = Assert.Single(workflows, w => !IsSideEffectsWorkflow(w));
         EngineWorkflow instantiationSideEffects = Assert.Single(workflows, IsSideEffectsWorkflow);
 
-        // The transition itself settled, but its delayed side effects are still running.
+        // The transition itself settled, but its delayed side effects are still running. This is
+        // implicitly timing-based, with a wide margin: the side-effects workflow needs >= 2x10s of
+        // delayed event registrations, while the gap between the instantiation response and this
+        // query is a couple of HTTP round-trips.
         Assert.Equal("Completed", instantiationMain.OverallStatus);
         Assert.NotEqual("Completed", instantiationSideEffects.OverallStatus);
 
