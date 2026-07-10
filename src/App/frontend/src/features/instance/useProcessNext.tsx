@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { reportProcessNextSuccess } from 'src/components/wrappers/processNextRecovery';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
 import { instanceQueryKeys, useCurrentInstance } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
@@ -97,9 +96,6 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
             newInstance,
           );
         }
-        // Anchor ProcessWrapper's lost-navigation recovery window at the moment this navigation
-        // is dispatched (mutations only expose submittedAt, which ages out on slow submissions).
-        reportProcessNextSuccess();
         navigateToTask(task);
         await invalidateFormDataQueries(queryClient);
       } else if (validationIssues) {
