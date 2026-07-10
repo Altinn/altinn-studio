@@ -9,10 +9,10 @@ https://docs.altinn.studio/
 
 ## Two halves
 
-| Folder | What it is | Stack | Docs |
-| --- | --- | --- | --- |
-| `backend` | ASP.NET Core Web API. Three projects: `src/Designer` (the API — Controllers/Services/Repository/Hubs/Migrations), `src/DataModeling` (JSON Schema ↔ XSD ↔ C#), `PolicyAdmin` (XACML policy). | .NET (ASP.NET Core), EF Core + Postgres, SignalR, MediatR, Kafka, Redis, Quartz, LibGit2Sharp | [backend/AGENTS.md](backend/AGENTS.md) |
-| `frontend` | React/TS SPA. Multiple packages: feature apps (`app-development`, `dashboard`, `app-preview`, `admin`, `resourceadm`), editors under `packages/` (`ux-editor`, `schema-editor`, `process-editor`, `policy-editor`, `text-editor`), and shared libs under `libs/` (`studio-components`, `studio-hooks`, …). | Yarn, Vite, TypeScript, React, Tanstack Query, Jest + Playwright, Designsystemet | [frontend/AGENTS.md](frontend/AGENTS.md) |
+| Folder     | What it is                                                                                                                                                                                                                                                                                                 | Stack                                                                                         | Docs                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `backend`  | ASP.NET Core Web API. Three projects: `src/Designer` (the API — Controllers/Services/Repository/Hubs/Migrations), `src/DataModeling` (JSON Schema ↔ XSD ↔ C#), `PolicyAdmin` (XACML policy).                                                                                                               | .NET (ASP.NET Core), EF Core + Postgres, SignalR, MediatR, Kafka, Redis, Quartz, LibGit2Sharp | [backend/AGENTS.md](backend/AGENTS.md)   |
+| `frontend` | React/TS SPA. Multiple packages: feature apps (`app-development`, `dashboard`, `app-preview`, `admin`, `resourceadm`), editors under `packages/` (`ux-editor`, `schema-editor`, `process-editor`, `policy-editor`, `text-editor`), and shared libs under `libs/` (`studio-components`, `studio-hooks`, …). | Yarn, Vite, TypeScript, React, Tanstack Query, Jest + Playwright, Designsystemet              | [frontend/AGENTS.md](frontend/AGENTS.md) |
 
 Supporting dirs: `development/` (local setup: `setup.js`, Gitea provisioning, mock services — Kafka, DB,
 `fake-ansattporten`, `azure-devops-mock`), `testdata/` (fixtures for backend/data-modeling tests), and
@@ -45,7 +45,4 @@ load balancer then routes to your local dev server) and rebuild `studio_loadbala
 
 - Avoid hard-coded numbers and strings; use meaningful, descriptive names (no abbreviations).
 - Short functions that do one thing; comments only for what the code cannot express.
-- **Backend:** prefer grouped context objects (e.g. `AltinnRepoEditingContext`) over passing
-  `org`/`repo`/`developer` separately.
-- **Frontend:** import UI components via `libs/studio-components`, never directly from
-  `digdir/designsystemet-react`; follow the paths → query functions → hooks → components API layering.
+- Backend- and frontend-specific conventions live in the respective `AGENTS.md` files.

@@ -2,8 +2,7 @@
 
 This file provides guidance to AI agents working anywhere in this repository. It is the top of a
 hierarchy: every major area has its own `AGENTS.md` with more detail, and the deeper you go, the more
-specific the guidance becomes. Start here to orient, then open the `AGENTS.md` closest to the code you
-are touching.
+specific the guidance becomes.
 
 ## Altinn Studio
 
@@ -42,16 +41,13 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 ### Runtime & platform services — [`src/Runtime`](src/Runtime/AGENTS.md)
 
-| Area                                                               | What it is                                                                                                     |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| [`workflow-engine`](src/Runtime/workflow-engine/AGENTS.md)         | Reusable .NET class library for async workflow processing (engine, HTTP API, Postgres persistence, dashboard). |
-| [`workflow-engine-app`](src/Runtime/workflow-engine-app/AGENTS.md) | Deployable host that composes `workflow-engine` and registers the Altinn `AppCommand`.                         |
-| [`gateway`](src/Runtime/gateway/AGENTS.md)                         | .NET control-plane gateway between Studio and the runtime cluster (deploy/alerts/metrics).                     |
-| [`operator`](src/Runtime/operator/AGENTS.md)                       | Go Kubernetes operator (Kubebuilder) managing Maskinporten clients via CRDs.                                   |
-| [`pdf3`](src/Runtime/pdf3/AGENTS.md)                               | Go PDF-generation service driving headless Chrome, with PDF/A validation.                                      |
-| [`localtest`](src/Runtime/localtest/AGENTS.md)                     | .NET service emulating Altinn Platform so apps can run locally.                                                |
-| [`devenv`](src/Runtime/devenv/AGENTS.md)                           | Go container runtime fixture mirroring the real runtime for dev/tests.                                         |
-| [`kubernetes-wrapper`](src/Runtime/kubernetes-wrapper/AGENTS.md)   | .NET REST API surfacing Kubernetes deployment state.                                                           |
+.NET and Go services supporting apps in production and local dev (one-liners + stacks in the area doc):
+[`workflow-engine`](src/Runtime/workflow-engine/AGENTS.md) (+ its host
+[`workflow-engine-app`](src/Runtime/workflow-engine-app/AGENTS.md)),
+[`gateway`](src/Runtime/gateway/AGENTS.md), [`operator`](src/Runtime/operator/AGENTS.md),
+[`pdf3`](src/Runtime/pdf3/AGENTS.md), [`localtest`](src/Runtime/localtest/AGENTS.md),
+[`devenv`](src/Runtime/devenv/AGENTS.md), and
+[`kubernetes-wrapper`](src/Runtime/kubernetes-wrapper/AGENTS.md).
 
 ### Developer tooling
 
