@@ -930,6 +930,38 @@ public sealed class LocalTestInstanceMutationTests(ITestOutputHelper output, App
     }
 
     [Fact]
+    public async Task CommitMutation_WhenProcessStateEnds_ArchivesResponseAndStoredInstance()
+    {
+        await using var fixtureScope = await classFixture.Get(output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        Instance instance = await CreateInstance(fixture, token, partyId: 501337);
+        (int ownerPartyId, Guid instanceGuid) = SplitInstanceId(instance);
+        int instanceVersion = await GetCurrentInstanceVersion(fixture, token, ownerPartyId, instanceGuid);
+        DateTime ended = new(2026, 7, 10, 12, 34, 56, DateTimeKind.Utc);
+
+        using HttpResponseMessage response = await PostJsonMutation(
+            fixture,
+            token,
+            ownerPartyId,
+            instanceGuid,
+            instanceVersion,
+            idempotencyKey: null,
+            new { processState = new { state = new ProcessState { Ended = ended, EndEvent = "EndEvent_1" } } }
+        );
+        MutationResponse mutation = await ReadMutationResponse(response);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        AssertArchiveStatus(mutation.Instance, ended);
+
+        using HttpResponseMessage storedResponse = await GetStorageInstance(fixture, token, ownerPartyId, instanceGuid);
+        Instance storedInstance = await ReadJson<Instance>(storedResponse);
+
+        Assert.Equal(HttpStatusCode.OK, storedResponse.StatusCode);
+        AssertArchiveStatus(storedInstance, ended);
+    }
+
+    [Fact]
     public async Task CommitMutation_WhenFilenameLessBinaryPartContainsInvalidUtf8_StoresOriginalBytes()
     {
         await using var fixtureScope = await classFixture.Get(output, TestApps.Basic);
@@ -1345,6 +1377,14 @@ public sealed class LocalTestInstanceMutationTests(ITestOutputHelper output, App
         Assert.NotNull(instance.Status.SoftDeleted);
         Assert.NotNull(instance.LastChanged);
         Assert.NotNull(instance.LastChangedBy);
+    }
+
+    private static void AssertArchiveStatus(Instance? instance, DateTime ended)
+    {
+        Assert.NotNull(instance);
+        Assert.NotNull(instance.Status);
+        Assert.True(instance.Status.IsArchived);
+        Assert.Equal(ended, instance.Status.Archived);
     }
 
     private static void AssertMutationContentETag(MutationResponse mutation, string dataElementId, string? expectedETag)

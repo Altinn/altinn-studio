@@ -598,6 +598,21 @@ public class InstanceMutationsController(
                 instanceUpdateProperties.Add(nameof(InstanceStatus.HardDeleted));
             }
 
+            // Archiving instance if process was ended
+            if (instance.Process?.Ended is null && processState?.Ended is not null)
+            {
+                instanceStatus ??= instance.Status ?? new InstanceStatus();
+                instanceStatus.IsArchived = true;
+                instanceStatus.Archived = processState.Ended;
+                if (!instanceUpdateProperties.Contains(nameof(Instance.Status)))
+                {
+                    instanceUpdateProperties.Add(nameof(Instance.Status));
+                }
+
+                instanceUpdateProperties.Add(nameof(InstanceStatus.IsArchived));
+                instanceUpdateProperties.Add(nameof(InstanceStatus.Archived));
+            }
+
             Instance instanceUpdates = new()
             {
                 Id = instance.Id,
