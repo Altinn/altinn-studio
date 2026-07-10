@@ -19,6 +19,8 @@ on:
       - 'app-libs/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

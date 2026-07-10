@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/App/backend/**'
       - '.github/workflows/app-backend-formatting.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
