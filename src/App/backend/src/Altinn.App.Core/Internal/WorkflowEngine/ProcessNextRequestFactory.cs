@@ -46,6 +46,12 @@ internal sealed class ProcessNextRequestFactory
     internal const string MainWorkflowRef = "main";
 
     /// <summary>
+    /// OperationId prefix for the Main process-next workflow (the visible collection head carrying
+    /// the pre-commit, commit, and critical post-commit steps).
+    /// </summary>
+    internal const string MainOperationIdPrefix = "Process next:";
+
+    /// <summary>
     /// OperationId prefix identifying the fire-and-forget side-effects workflow. The wait/settle
     /// logic in <see cref="WorkflowEngineService"/> uses this to exclude side-effects workflows
     /// from the chain it blocks on and from failure classification.
@@ -141,7 +147,7 @@ internal sealed class ProcessNextRequestFactory
             new()
             {
                 Ref = hasSideEffects ? MainWorkflowRef : null,
-                OperationId = $"Process next: {fromTaskId} -> {toTaskId}",
+                OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
                 Steps = commands.Main,
                 State = state,
                 DependsOn = dependsOn,
