@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -135,6 +136,25 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Empty(storedData);
     }
 
+    [Fact]
+    public async Task ExecuteCommand_WhenCommandEndsProcess_ArchivesStoredAndCapturedState()
+    {
+        var ended = new DateTime(2026, 7, 10, 12, 34, 56, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(new StageEndedProcessCommand(ended));
+
+        IActionResult result = await setup.Execute(StageEndedProcessCommand.Key, idempotencyKey: "process-end-step-id");
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<AppCallbackResponse>(ok.Value);
+        WorkflowCallbackState capturedState = setup.DeserializeState(response.State!);
+
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.True(storedInstance.Status.IsArchived);
+        Assert.Equal(ended, storedInstance.Status.Archived);
+        Assert.True(capturedState.Instance.Status.IsArchived);
+        Assert.Equal(ended, capturedState.Instance.Status.Archived);
+    }
+
     private static ControllerSetup CreateSetup(IWorkflowEngineCommand command)
     {
         var services = new MockedServiceCollection();
@@ -256,6 +276,28 @@ public class WorkflowEngineCallbackControllerTests
         {
             var unitOfWork = Assert.IsType<InstanceDataUnitOfWork>(context.InstanceDataMutator);
             unitOfWork.StageInstanceDeletion();
+            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+        }
+    }
+
+    private sealed class StageEndedProcessCommand(DateTime ended) : IWorkflowEngineCommand
+    {
+        public const string Key = "StageEndedProcessForCallbackTest";
+
+        public string GetKey() => Key;
+
+        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        {
+            var unitOfWork = Assert.IsType<InstanceDataUnitOfWork>(context.InstanceDataMutator);
+            var endedProcessState = new ProcessState { Ended = ended, EndEvent = "EndEvent_1" };
+            var processStateChange = new ProcessStateChange
+            {
+                OldProcessState = unitOfWork.Instance.Process,
+                NewProcessState = endedProcessState,
+                Events = [],
+            };
+            unitOfWork.Instance.Process = endedProcessState;
+            unitOfWork.StageProcessStateChange(processStateChange);
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
         }
     }

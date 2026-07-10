@@ -831,6 +831,13 @@ internal sealed class DataClientMock : IStorageDataClient
         bool processStateChanged = mutation.ProcessState?.State is not null;
         if (mutation.ProcessState?.State is { } processState)
         {
+            if (instance.Process?.Ended is null && processState.Ended is not null)
+            {
+                instance.Status ??= new InstanceStatus();
+                instance.Status.IsArchived = true;
+                instance.Status.Archived = processState.Ended;
+            }
+
             instance.Process = processState;
         }
 

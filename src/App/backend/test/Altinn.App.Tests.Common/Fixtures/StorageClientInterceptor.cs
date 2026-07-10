@@ -601,9 +601,16 @@ public class StorageClientInterceptor : HttpMessageHandler
 
         ApplyInstanceFieldUpdates(instance.PresentationTexts ??= [], mutation.PresentationTexts);
         ApplyInstanceFieldUpdates(instance.DataValues ??= [], mutation.DataValues);
-        if (mutation.ProcessState?.State is not null)
+        if (mutation.ProcessState?.State is { } processState)
         {
-            instance.Process = mutation.ProcessState.State;
+            if (instance.Process?.Ended is null && processState.Ended is not null)
+            {
+                instance.Status ??= new InstanceStatus();
+                instance.Status.IsArchived = true;
+                instance.Status.Archived = processState.Ended;
+            }
+
+            instance.Process = processState;
         }
 
         string responseBody = JsonConvert.SerializeObject(
