@@ -30,33 +30,34 @@ developer tooling, and the supporting infrastructure to run it all.
 
 ## Repository map
 
-Everything lives under `src/`. Each area below links to its own `AGENTS.md` where one exists.
+Nearly everything lives under `src/`; the one top-level code directory outside it is `app-libs/`.
+Each area below links to its own `AGENTS.md` where one exists.
 
 ### Product surfaces
 
-| Area | What it is |
-| --- | --- |
-| [`src/Designer`](src/Designer/AGENTS.md) | **Altinn Studio Designer** — React + .NET web app where users build apps (forms, data models, policies, BPMN processes). Split into [`backend`](src/Designer/backend/AGENTS.md) (.NET) and [`frontend`](src/Designer/frontend/AGENTS.md) (React/TS). |
-| [`src/App`](src/App/AGENTS.md) | The **Altinn 3 app runtime** every deployed service builds on: [`backend`](src/App/backend/AGENTS.md) (Altinn.App .NET libraries), [`frontend`](src/App/frontend/AGENTS.md) (React form renderer), plus support libs [`codelists`](src/App/codelists/AGENTS.md), [`fileanalyzers`](src/App/fileanalyzers/AGENTS.md), the [`template`](src/App/template/AGENTS.md), and `azure-pipelines`. |
+| Area                                     | What it is                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/Designer`](src/Designer/AGENTS.md) | **Altinn Studio Designer** — React + .NET web app where users build apps (forms, data models, policies, BPMN processes). Split into [`backend`](src/Designer/backend/AGENTS.md) (.NET) and [`frontend`](src/Designer/frontend/AGENTS.md) (React/TS).                                                                                                                                      |
+| [`src/App`](src/App/AGENTS.md)           | The **Altinn 3 app runtime** every deployed service builds on: [`backend`](src/App/backend/AGENTS.md) (Altinn.App .NET libraries), [`frontend`](src/App/frontend/AGENTS.md) (React form renderer), plus support libs [`codelists`](src/App/codelists/AGENTS.md), [`fileanalyzers`](src/App/fileanalyzers/AGENTS.md), the [`template`](src/App/template/AGENTS.md), and `azure-pipelines`. |
 
 ### Runtime & platform services — [`src/Runtime`](src/Runtime/AGENTS.md)
 
-| Area | What it is |
-| --- | --- |
-| [`workflow-engine`](src/Runtime/workflow-engine/AGENTS.md) | Reusable .NET class library for async workflow processing (engine, HTTP API, Postgres persistence, dashboard). |
-| [`workflow-engine-app`](src/Runtime/workflow-engine-app/AGENTS.md) | Deployable host that composes `workflow-engine` and registers the Altinn `AppCommand`. |
-| [`gateway`](src/Runtime/gateway/AGENTS.md) | .NET control-plane gateway between Studio and the runtime cluster (deploy/alerts/metrics). |
-| [`operator`](src/Runtime/operator/AGENTS.md) | Go Kubernetes operator (Kubebuilder) managing Maskinporten clients via CRDs. |
-| [`pdf3`](src/Runtime/pdf3/AGENTS.md) | Go PDF-generation service driving headless Chrome, with PDF/A validation. |
-| [`localtest`](src/Runtime/localtest/AGENTS.md) | .NET service emulating Altinn Platform so apps can run locally. |
-| [`devenv`](src/Runtime/devenv/AGENTS.md) | Go container runtime fixture mirroring the real runtime for dev/tests. |
-| [`kubernetes-wrapper`](src/Runtime/kubernetes-wrapper/AGENTS.md) | .NET REST API surfacing Kubernetes deployment state. |
+| Area                                                               | What it is                                                                                                     |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| [`workflow-engine`](src/Runtime/workflow-engine/AGENTS.md)         | Reusable .NET class library for async workflow processing (engine, HTTP API, Postgres persistence, dashboard). |
+| [`workflow-engine-app`](src/Runtime/workflow-engine-app/AGENTS.md) | Deployable host that composes `workflow-engine` and registers the Altinn `AppCommand`.                         |
+| [`gateway`](src/Runtime/gateway/AGENTS.md)                         | .NET control-plane gateway between Studio and the runtime cluster (deploy/alerts/metrics).                     |
+| [`operator`](src/Runtime/operator/AGENTS.md)                       | Go Kubernetes operator (Kubebuilder) managing Maskinporten clients via CRDs.                                   |
+| [`pdf3`](src/Runtime/pdf3/AGENTS.md)                               | Go PDF-generation service driving headless Chrome, with PDF/A validation.                                      |
+| [`localtest`](src/Runtime/localtest/AGENTS.md)                     | .NET service emulating Altinn Platform so apps can run locally.                                                |
+| [`devenv`](src/Runtime/devenv/AGENTS.md)                           | Go container runtime fixture mirroring the real runtime for dev/tests.                                         |
+| [`kubernetes-wrapper`](src/Runtime/kubernetes-wrapper/AGENTS.md)   | .NET REST API surfacing Kubernetes deployment state.                                                           |
 
 ### Developer tooling
 
-| Area | What it is |
-| --- | --- |
-| [`src/cli`](src/cli/AGENTS.md) | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally. |
+| Area                               | What it is                                                                                                                                                                                                        |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/cli`](src/cli/AGENTS.md)     | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally.                                                                              |
 | [`src/tools`](src/tools/AGENTS.md) | Standalone tools: [`deployer`](src/tools/deployer/AGENTS.md), [`releaser`](src/tools/releaser/AGENTS.md), [`altinn-fleet-stats`](src/tools/altinn-fleet-stats/AGENTS.md), [`health`](src/tools/health/AGENTS.md). |
 
 ### AI — [`src/AI`](src/AI/AGENTS.md)
@@ -67,10 +68,11 @@ augmentation microservice).
 
 ### Shared code
 
-| Area | What it is |
-| --- | --- |
-| [`src/common`](src/common/AGENTS.md) | `Altinn.Studio.Runtime.Common` — shared .NET hosting helpers used by the Runtime services. |
+| Area                                 | What it is                                                                                                                                                          |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/common`](src/common/AGENTS.md) | `Altinn.Studio.Runtime.Common` — shared .NET hosting helpers used by the Runtime services.                                                                          |
 | [`src/Shared`](src/Shared/AGENTS.md) | Cross-language shared contracts compiled into `studioctl-server`: `EnvTopology` (routing) and `HostBridge` (WebSocket tunnel protocol), each with a Go counterpart. |
+| [`app-libs`](app-libs/AGENTS.md)     | TS/React libraries for apps (top level, not under `src/`), being extracted from `src/App/frontend`: `form-component`, `form-engine`, `language`.                    |
 
 ### Testing — [`src/test`](src/test/AGENTS.md)
 
@@ -96,7 +98,8 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`
   exists alongside it, that file just links to the `AGENTS.md` (`@AGENTS.md`) so Claude Code loads it.
   Never leave a directory with only a `CLAUDE.md` — always create the `AGENTS.md` and point `CLAUDE.md`
-  at it.
+  at it. These invariants (pairing, resolvable links, root-map coverage of tracked directories) are
+  enforced by `yarn docs:validate` in CI.
 - **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
   Framework versions differ per project and are documented at the leaf, not here — check the project's
   own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.

@@ -10,7 +10,7 @@ One of the standalone [tools](../AGENTS.md). Full docs: [`README.md`](README.md)
 
 - `az` CLI, logged into an account with access to the relevant environments (uses `az graph query`).
 - `kubectl` (the tool can fetch cluster creds for you).
-- Go 1.26.4.
+- Go (version in `go.mod`).
 
 ## Commands
 
