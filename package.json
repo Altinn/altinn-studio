@@ -5,7 +5,7 @@
     "lefthook": "2.1.9",
     "prettier": "3.8.4"
   },
-  "packageManager": "yarn@4.16.0",
+  "packageManager": "yarn@4.17.1",
   "private": true,
   "scripts": {
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
