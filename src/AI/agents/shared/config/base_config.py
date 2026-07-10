@@ -98,6 +98,7 @@ class BaseConfig:
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
     LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1.1")  # Version/release tag for traces
     LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)  # Inherit from general environment
+    LANGFUSE_TRACE_RETENTION_DAYS = int(os.getenv("LANGFUSE_TRACE_RETENTION_DAYS", "90"))
 
     # Created in Langfuse UI and paste the UUIDs here.
     # They enable structured, objective quality measurement across traces.

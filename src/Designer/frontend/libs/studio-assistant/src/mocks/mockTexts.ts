@@ -3,15 +3,20 @@ import type {
   AssistantTexts,
   MessageFeedbackTexts,
   EmptyThreadTexts,
+  CriticalFileAlertTexts,
   TextAreaTexts,
 } from '../types/AssistantTexts';
 
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   heading: 'aboutAssistantHeading',
+  intro: 'aboutAssistantIntro',
+  howToHeading: 'aboutAssistantHowToHeading',
   description: 'aboutAssistantDescription',
   branchInfo: 'aboutAssistantBranchInfo',
   branchDocsLink: 'aboutAssistantBranchDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
+  privacyHeading: 'aboutAssistantPrivacyHeading',
+  privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
 };
 
 const emptyThreadTexts: EmptyThreadTexts = {
@@ -35,6 +40,11 @@ export const messageFeedbackTexts: MessageFeedbackTexts = {
   cancel: 'feedbackCancel',
 };
 
+export const criticalFileAlertTexts: CriticalFileAlertTexts = {
+  heading: 'criticalFileAlertHeading',
+  description: 'criticalFileAlertDescription',
+};
+
 export const mockTexts: AssistantTexts = {
   heading: 'heading',
   preview: 'preview',
@@ -43,7 +53,6 @@ export const mockTexts: AssistantTexts = {
   showThreads: 'showThreads',
   newThread: 'newThread',
   previousThreads: 'previousThreads',
-  aboutAssistant: 'aboutAssistant',
   aboutAssistantDialog: aboutAssistantDialogTexts,
   emptyThread: emptyThreadTexts,
   textarea: textAreaTexts,
@@ -53,4 +62,5 @@ export const mockTexts: AssistantTexts = {
   cancel: 'cancel',
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
   feedback: messageFeedbackTexts,
+  criticalFileAlert: criticalFileAlertTexts,
 };

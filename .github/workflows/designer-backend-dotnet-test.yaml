@@ -8,6 +8,8 @@ on:
       - 'src/Designer/testdata/**'
       - 'src/App/template/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

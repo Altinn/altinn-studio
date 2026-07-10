@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-devenv-build.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

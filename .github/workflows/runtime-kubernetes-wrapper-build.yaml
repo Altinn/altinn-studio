@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/Runtime/kubernetes-wrapper/**'
       - '.github/workflows/runtime-kubernetes-wrapper-integrationtests-kind.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

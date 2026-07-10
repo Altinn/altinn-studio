@@ -10,6 +10,7 @@
   "scripts": {
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
     "codeowners:validate": "node .github/scripts/codeowners-generate.mjs --check",
+    "docs:validate": "node .github/scripts/agents-docs-validate.mjs",
     "lint": "yarn workspace studio-designer-frontend lint && yarn lint:libs",
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix && yarn lint:libs",
     "lint:libs": "yarn workspace app-libs lint",

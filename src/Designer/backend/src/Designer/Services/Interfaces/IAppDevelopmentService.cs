@@ -289,18 +289,6 @@ public interface IAppDevelopmentService
     );
 
     /// <summary>
-    /// Update layout references
-    /// </summary>
-    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-    /// <param name="referencesToUpdate">The references to update.</param>
-    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<bool> UpdateLayoutReferences(
-        AltinnRepoEditingContext altinnRepoEditingContext,
-        List<Reference> referencesToUpdate,
-        CancellationToken cancellationToken
-    );
-
-    /// <summary>
     /// Gets the validation on navigation configuration from layout-sets.json.
     /// </summary>
     /// <param name="context"></param>
@@ -314,6 +302,18 @@ public interface IAppDevelopmentService
     public Task SaveValidationOnNavigationLayoutSets(
         AltinnRepoEditingContext context,
         ValidationOnNavigation validationOnNavigation,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Update layout references
+    /// </summary>
+    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="referencesToUpdate">The references to update.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<bool> UpdateLayoutReferences(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        List<Reference> referencesToUpdate,
         CancellationToken cancellationToken
     );
 }

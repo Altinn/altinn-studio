@@ -1,11 +1,10 @@
 import React from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
-import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
-import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
@@ -23,10 +22,6 @@ export const PageLayout = (): React.ReactNode => {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
-
-  const { data: orgs, isPending: orgsPending } = useOrgListQuery();
-  const { data: repository } = useRepoMetadataQuery(org, app);
-  const repoOwnerIsOrg = !orgsPending && Object.keys(orgs).includes(repository?.owner?.login);
 
   const {
     data: repoStatus,
@@ -46,7 +41,7 @@ export const PageLayout = (): React.ReactNode => {
 
   return (
     <>
-      <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
+      <PageHeaderContextProvider user={user}>
         <PageHeader
           showSubMenu={!repoStatus?.hasMergeConflict}
           isRepoError={repoStatusError !== null}

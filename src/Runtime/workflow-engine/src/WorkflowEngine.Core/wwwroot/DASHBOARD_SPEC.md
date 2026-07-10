@@ -201,7 +201,7 @@ Left to right:
 2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`.
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
-5. **Status pill** — Workflow-level status with color-coded CSS class.
+5. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts.
 6. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
 7. **Action buttons** — Copy idempotency key, open state modal, Grafana trace link.
 
@@ -390,7 +390,7 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
-- **Recent**: All, Completed, Failed
+- **Recent**: All, Completed, Failed, Abandoned
 - **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Completed, Failed, Canceled
 
 ### Text Filter

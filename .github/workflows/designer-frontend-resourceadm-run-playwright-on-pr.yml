@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/Designer/frontend/resourceadm/**'
       - '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

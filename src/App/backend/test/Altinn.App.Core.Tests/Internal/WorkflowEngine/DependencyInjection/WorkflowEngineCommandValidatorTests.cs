@@ -44,6 +44,7 @@ public class WorkflowEngineCommandValidatorTests
     {
         // Register all commands that are referenced in ProcessEventCommands
         services.AddTransient<IWorkflowEngineCommand, UnlockTaskData>();
+        services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
         services.AddTransient<IWorkflowEngineCommand, StartTask>();
