@@ -1,0 +1,60 @@
+name: Publish app OCI artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semver version the artifact will be tagged with.'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REPOSITORY: ghcr.io/altinn/altinn-studio/app-dist
+
+jobs:
+  publish:
+    name: Build and push OCI artifact to GHCR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/App/frontend
+    steps:
+      - name: checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: install node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+
+      - name: install oras
+        uses: oras-project/setup-oras@38de303aac69abb66f3e6255b7198bff35f323e3 # v2.0.0
+
+      - name: Build
+        run: |
+          yarn install --immutable
+          yarn build
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push
+        working-directory: src/App/frontend/dist
+        run: |
+          VERSION="${{ inputs.version }}"
+          TAGS="$VERSION"
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            TAGS="$VERSION,${VERSION%%.*}"
+          fi
+          oras push "$REPOSITORY:$TAGS" \
+            --artifact-type application/vnd.altinn.app-frontend.v1 \
+            --annotation "org.opencontainers.image.version=$VERSION" \
+            --annotation "org.opencontainers.image.revision=${{ github.sha }}" \
+            --annotation "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            schemas/json:application/vnd.altinn.app.schemas.tar+gzip \
+            .:application/vnd.altinn.app.bundle.tar+gzip
