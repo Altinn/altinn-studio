@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-check-quartz-update.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

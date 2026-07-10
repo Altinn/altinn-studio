@@ -25,6 +25,8 @@ on:
       - '.github/workflows/designer-frontend-codeql.yml'
       - 'package.json'
       - 'yarn.lock'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
   schedule:
     - cron: '55 1 * * 0'

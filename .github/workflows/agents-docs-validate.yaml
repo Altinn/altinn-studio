@@ -1,35 +1,38 @@
-name: Deployer - Check
+name: Validate AGENTS.md docs
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/tools/deployer/**'
-      - '.github/workflows/deployer-check.yaml'
-      - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
+      - "**/AGENTS.md"
+      - "**/CLAUDE.md"
+      - ".github/scripts/agents-docs-validate.mjs"
+      - ".github/workflows/agents-docs-validate.yaml"
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  check:
-    name: Run make check
+  validate:
+    name: Validate AGENTS.md hierarchy
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: src/tools/deployer
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 1
 
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
-          node-version: '22'
+          node-version: "24"
+          package-manager-cache: false
 
-      - name: Run checks
-        run: make check
+      - name: Validate AGENTS.md hierarchy
+        run: node .github/scripts/agents-docs-validate.mjs
