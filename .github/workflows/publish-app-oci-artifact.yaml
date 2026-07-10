@@ -54,10 +54,11 @@ jobs:
           if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             TAGS="$VERSION,${VERSION%%.*}"
           fi
+          mapfile -t SCHEMAS < <(find schemas/json -name '*.json' | sort | sed 's|$|:application/schema+json|')
           oras push "$REPOSITORY:$TAGS" \
             --artifact-type application/vnd.altinn.app-frontend.v1 \
             --annotation "org.opencontainers.image.version=$VERSION" \
             --annotation "org.opencontainers.image.revision=${{ github.sha }}" \
             --annotation "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
-            schemas/json:application/vnd.altinn.app.schemas.tar+gzip \
+            "${SCHEMAS[@]}" \
             .:application/vnd.altinn.app.bundle.tar+gzip
