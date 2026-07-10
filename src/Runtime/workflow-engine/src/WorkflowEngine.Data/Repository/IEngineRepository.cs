@@ -122,6 +122,15 @@ internal interface IEngineRepository
     Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns the final state of a successfully completed workflow: the last non-null
+    /// <see cref="Step.StateOut"/> by processing order, falling back to the workflow's initial
+    /// state. Returns <see langword="null"/> when the workflow does not exist, has not completed
+    /// successfully, or never carried state. Used to resolve state inheritance
+    /// (<see cref="Workflow.InheritStateFromWorkflowId"/>) for a dependent at execution start.
+    /// </summary>
+    Task<string?> GetCompletedWorkflowFinalState(Guid workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Returns the root workflow plus every workflow it can reach — directly or transitively,
     /// upstream or downstream — through dependency or link relations within <paramref name="ns"/>.
     /// Each returned <see cref="Workflow"/> has its steps, dependencies, dependents, and links

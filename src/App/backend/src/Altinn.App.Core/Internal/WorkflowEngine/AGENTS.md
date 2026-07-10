@@ -115,7 +115,7 @@ UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTas
   ── SaveProcessStateToStorage (persist to Storage) ──
 [ExecuteServiceTask if service task]
 
-Side-effects workflow (IsHead=false, dependsOn Main, NEW-state blob):
+Side-effects workflow (IsHead=false, dependsOn Main, inherits Main's final state):
 MovedToAltinnEvent
 ```
 
@@ -130,7 +130,7 @@ OnProcessEndingHook
   ── SaveProcessStateToStorage (persist to Storage) ──
 EndProcessLegacyHook → DeleteDataElementsIfConfigured → DeleteInstanceIfConfigured
 
-Side-effects workflow (IsHead=false, dependsOn Main, NEW-state blob):
+Side-effects workflow (IsHead=false, dependsOn Main, inherits Main's final state):
 CompletedAltinnEvent
 ```
 
@@ -143,7 +143,7 @@ UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTas
   ── SaveProcessStateToStorage (persist to Storage) ──
 [ExecuteServiceTask if service task]
 
-Side-effects workflow (IsHead=false, dependsOn Main, NEW-state blob):
+Side-effects workflow (IsHead=false, dependsOn Main, inherits Main's final state):
 MovedToAltinnEvent → [InstanceCreatedAltinnEvent if instantiation] → [NotifyInstanceOwnerOnInstantiation if configured]
 ```
 
@@ -207,7 +207,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 **Capture point**: `ProcessEngine` captures state BEFORE the in-memory process state is mutated to the next task. The blob carries the OLD process state (CurrentTask = the task being left). `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
 
-**Side-effects workflow state**: the side-effects workflow does not inherit Main's evolved state — it starts from its own `WorkflowRequest.State`. Its commands read the committed (NEW) process state (`MovedToAltinnEvent` reads `CurrentTask`, `CompletedAltinnEvent` reads `EndEvent`), so `ProcessNextRequestFactory` derives a second blob via `WorkflowCallbackStateRewriter`: verify the primary blob, rewrite `Instance.Process` to `NewProcessState` (mirroring what `MutateProcessState` does in-memory), re-sign. Form data is carried over unchanged — the side-effect commands never read it.
+**Side-effects workflow state**: the side-effects workflow carries no state of its own. It is enqueued with the engine's `inheritStateFrom: "main"` (mutually exclusive with `state`), so when it starts — necessarily after Main completed — the engine hands its first step Main's **final evolved state blob**: the committed (NEW) process state plus every form-data/data-element change Main's commands made. This is exactly the view the trailing post-commit steps had before the split, so side-effect commands are not restricted in what they may read. If Main did not complete successfully (e.g. it was abandoned and the sibling slipped through before being cancelled — see the reject path), the side-effects workflow runs with a null state and its callbacks fail fast with 422 instead of emitting events from stale data.
 
 **Why commands read from `instance.Process.CurrentTask`**: In the old ProcessEngine, task-end/start handlers received `taskId` as an explicit parameter. The new commands read directly from `instance.Process.CurrentTask` — single source of truth. `MutateProcessState` ensures each command group sees the correct CurrentTask.
 
@@ -223,7 +223,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 3. **Register in DI**: add `services.AddTransient<IWorkflowEngineCommand, MyCommand>()` in `ServiceCollectionExtensions.cs`
 
-4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddCriticalPostCommitCommand` for post-commit work the transition must wait on, `AddSideEffectCommand` for fire-and-forget post-commit work that runs in the non-gating side-effects workflow). **Side-effect commands must read only instance identity + process state**: their blob is the pre-transition snapshot with `Instance.Process` rewritten to the NEW state — it does NOT contain form-data or data-element changes made by Main's task-start commands.
+4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddCriticalPostCommitCommand` for post-commit work the transition must wait on, `AddSideEffectCommand` for fire-and-forget post-commit work that runs in the non-gating side-effects workflow). Side-effect commands see Main's final evolved state (engine state inheritance), the same view trailing post-commit steps had pre-split — but remember they run after the response has been sent and must stay idempotent and non-blocking.
 
 5. **Startup validation**: `WorkflowEngineCommandValidator.Validate` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
 

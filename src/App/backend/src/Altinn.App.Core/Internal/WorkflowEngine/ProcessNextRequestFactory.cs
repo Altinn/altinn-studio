@@ -64,7 +64,6 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppSettings _appSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
-    private readonly WorkflowCallbackStateRewriter _callbackStateRewriter;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -72,8 +71,7 @@ internal sealed class ProcessNextRequestFactory
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
-        IWorkflowCallbackTokenGenerator callbackTokenGenerator,
-        WorkflowCallbackStateRewriter callbackStateRewriter
+        IWorkflowCallbackTokenGenerator callbackTokenGenerator
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -82,7 +80,6 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
-        _callbackStateRewriter = callbackStateRewriter;
     }
 
     /// <summary>
@@ -156,28 +153,16 @@ internal sealed class ProcessNextRequestFactory
 
         if (hasSideEffects)
         {
-            // The side-effects workflow starts from its own state blob: it must reflect the
-            // committed (NEW) process state, which Main's initial blob does not (it is captured
-            // before the in-memory transition and only evolves within Main's own step chain).
-            // A missing blob or process state can never produce correct side effects (the commands
-            // read the NEW CurrentTask/EndEvent from the blob), so fail the enqueue up front
-            // rather than emitting events for the wrong task.
-            if (state is null || processStateChange.NewProcessState is not { } newProcessState)
-            {
-                throw new InvalidOperationException(
-                    "Cannot build the side-effects workflow: the callback state blob and the new "
-                        + "process state are required to derive its initial state."
-                );
-            }
-
-            string sideEffectState = _callbackStateRewriter.WithProcessState(state, newProcessState);
-
             workflows.Add(
                 new WorkflowRequest
                 {
                     OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId}",
                     Steps = commands.SideEffects,
-                    State = sideEffectState,
+                    // The side-effects workflow inherits Main's final evolved state blob - the
+                    // exact view the trailing post-commit steps had pre-split: the committed (NEW)
+                    // process state plus every data change Main's commands made. The engine
+                    // resolves it when this workflow starts, i.e. after Main completed.
+                    InheritStateFrom = WorkflowRef.FromRefString(MainWorkflowRef),
                     DependsOn = [WorkflowRef.FromRefString(MainWorkflowRef)],
                     // Invisible to the collection heads frontier: the next transition and the
                     // enqueue wait key off Main only. DependsOnHeads is a no-op (not a root).

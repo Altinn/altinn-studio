@@ -10,13 +10,14 @@ internal static class ValidationUtils
 {
     /// <summary>
     /// Validates the workflow batch graph: ref uniqueness, self-references, unresolved
-    /// <c>DependsOn</c> refs, and dependency cycles. Cycle detection runs Kahn's algorithm
-    /// for its acyclicity check; the topological ordering it produces is not surfaced because
-    /// persistence and the API response both key off request order.
+    /// <c>DependsOn</c> refs, state-inheritance constraints, and dependency cycles. Cycle
+    /// detection runs Kahn's algorithm for its acyclicity check; the topological ordering it
+    /// produces is not surfaced because persistence and the API response both key off request order.
     /// </summary>
     /// <exception cref="ArgumentException">
     /// Thrown when refs are not unique, a <c>DependsOn</c> ref is not present in the batch,
-    /// a workflow references itself, or a dependency cycle is detected.
+    /// a workflow references itself, <c>InheritStateFrom</c> is combined with <c>State</c> or
+    /// does not reference one of the workflow's own dependencies, or a dependency cycle is detected.
     /// </exception>
     public static void ValidateWorkflowGraph(IReadOnlyList<WorkflowRequest> requests)
     {
@@ -33,6 +34,8 @@ internal static class ValidationUtils
 
             if (req.Ref is not null && !refToIndex.TryAdd(req.Ref, i))
                 throw new ArgumentException($"Duplicate ref '{req.Ref}' in batch.");
+
+            ValidateInheritStateFrom(req, i);
         }
 
         // Build adjacency list (edges: dependency -> dependent)
@@ -107,6 +110,28 @@ internal static class ValidationUtils
                 $"Dependency cycle detected in batch involving refs: {string.Join(", ", cycleRefs)}"
             );
         }
+    }
+
+    /// <summary>
+    /// Validates the state-inheritance constraints for one workflow request: a workflow provides
+    /// EITHER an explicit initial <c>State</c> OR <c>InheritStateFrom</c> (never both), and the
+    /// inheritance source must be one of the workflow's own <c>DependsOn</c> entries so it is
+    /// guaranteed to be terminal before this workflow starts.
+    /// </summary>
+    private static void ValidateInheritStateFrom(WorkflowRequest req, int index)
+    {
+        if (req.InheritStateFrom is not { } inheritStateFrom)
+            return;
+
+        if (req.State is not null)
+            throw new ArgumentException(
+                $"Workflow '{WorkflowLabel(req, index)}' sets both State and InheritStateFrom - they are mutually exclusive."
+            );
+
+        if (req.DependsOn?.Contains(inheritStateFrom) is not true)
+            throw new ArgumentException(
+                $"InheritStateFrom '{inheritStateFrom}' in workflow '{WorkflowLabel(req, index)}' must reference one of the workflow's own DependsOn entries."
+            );
     }
 
     /// <summary>

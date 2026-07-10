@@ -41,31 +41,11 @@ public class ProcessNextRequestFactoryTests
         Data = [],
     };
 
-    private static readonly AppCode TestSigningCode = new()
-    {
-        Id = "test-secret",
-        Code = "test-secret-code-long-enough-for-hmac",
-        IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
-        ExpiresAt = DateTimeOffset.UtcNow.AddDays(186),
-    };
-
-    private static readonly WorkflowStateSigner TestStateSigner = CreateStateSigner();
-
     /// <summary>
-    /// A signed state blob for <see cref="TestInstance"/>, as CaptureState would produce at enqueue
-    /// time (the factory verifies and rewrites it when deriving the side-effects workflow state).
+    /// The primary state blob is opaque to the factory (it is neither inspected nor rewritten -
+    /// the side-effects workflow inherits Main's final state via the engine), so any string works.
     /// </summary>
-    private static readonly string SignedTestState = TestStateSigner.Sign(
-        JsonSerializer.Serialize(new WorkflowCallbackState { Instance = TestInstance, FormData = [] })
-    );
-
-    private static WorkflowStateSigner CreateStateSigner()
-    {
-        var secretProviderMock = new Mock<IWorkflowCallbackSecretProvider>();
-        secretProviderMock.Setup(x => x.GetSigningSecret()).Returns(TestSigningCode);
-        secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([TestSigningCode]);
-        return new WorkflowStateSigner(secretProviderMock.Object);
-    }
+    private const string SignedTestState = "signed-state-blob";
 
     private static ProcessNextRequestFactory CreateFactory(
         Authenticated? authentication = null,
@@ -121,8 +101,7 @@ public class ProcessNextRequestFactoryTests
             TestAppIdentifier,
             appSettings,
             appMetadataMock.Object,
-            callbackTokenGeneratorMock.Object,
-            new WorkflowCallbackStateRewriter(TestStateSigner)
+            callbackTokenGeneratorMock.Object
         );
     }
 
@@ -288,12 +267,6 @@ public class ProcessNextRequestFactoryTests
 
     private static List<string> ExtractAllCommandKeys(WorkflowEnqueueEnvelope bundle) =>
         bundle.Request.Workflows.SelectMany(ExtractCommandKeys).ToList();
-
-    private static WorkflowCallbackState DecodeState(string signedState)
-    {
-        string payload = TestStateSigner.Verify(signedState);
-        return JsonSerializer.Deserialize<WorkflowCallbackState>(payload)!;
-    }
 
     [Fact]
     public async Task Create_TaskToTaskTransition_ProducesCorrectCommandSequence()
@@ -835,6 +808,7 @@ public class ProcessNextRequestFactoryTests
         var dependsOn = Assert.Single(sideEffects.DependsOn!);
         Assert.True(dependsOn.IsRef);
         Assert.Equal(ProcessNextRequestFactory.MainWorkflowRef, dependsOn.Ref);
+        Assert.Equal(ProcessNextRequestFactory.MainWorkflowRef, sideEffects.InheritStateFrom?.Ref);
     }
 
     [Fact]
@@ -856,7 +830,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_TaskToTask_SideEffectsStateCarriesNewProcessState()
+    public async Task Create_SideEffectsWorkflow_InheritsMainStateInsteadOfCarryingItsOwn()
     {
         // Arrange
         var factory = CreateFactory();
@@ -865,29 +839,17 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert - Main keeps the original (OLD-state) blob untouched
+        // Assert - Main keeps the original blob untouched
         Assert.Equal(SignedTestState, bundle.Request.Workflows[0].State);
 
-        // The side-effects workflow gets a re-signed blob reflecting the committed (NEW) state,
-        // so MovedToAltinnEvent reads the entered task, not the task being left.
-        WorkflowCallbackState sideEffectState = DecodeState(bundle.Request.Workflows[1].State!);
-        Assert.Equal("Task_2", sideEffectState.Instance.Process?.CurrentTask?.ElementId);
-    }
-
-    [Fact]
-    public async Task Create_TaskToEnd_SideEffectsStateCarriesEndEvent()
-    {
-        // Arrange
-        var factory = CreateFactory();
-        var stateChange = CreateTaskToEndTransition("Task_1", "EndEvent_1");
-
-        // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
-
-        // Assert - CompletedAltinnEvent requires instance.Process.EndEvent to be set
-        WorkflowCallbackState sideEffectState = DecodeState(bundle.Request.Workflows[1].State!);
-        Assert.Null(sideEffectState.Instance.Process?.CurrentTask);
-        Assert.Equal("EndEvent_1", sideEffectState.Instance.Process?.EndEvent);
+        // The side-effects workflow carries no state of its own: the engine resolves its initial
+        // state from Main's final evolved state after Main completes (State and InheritStateFrom
+        // are mutually exclusive by engine validation).
+        var sideEffects = bundle.Request.Workflows[1];
+        Assert.Null(sideEffects.State);
+        Assert.NotNull(sideEffects.InheritStateFrom);
+        Assert.True(sideEffects.InheritStateFrom.Value.IsRef);
+        Assert.Equal(ProcessNextRequestFactory.MainWorkflowRef, sideEffects.InheritStateFrom.Value.Ref);
     }
 
     [Fact]

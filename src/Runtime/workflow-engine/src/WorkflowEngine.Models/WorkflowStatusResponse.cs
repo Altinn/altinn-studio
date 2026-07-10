@@ -116,6 +116,14 @@ public sealed record WorkflowStatusResponse
     public string? InitialState { get; init; }
 
     /// <summary>
+    /// The id of the dependency workflow whose final state this workflow inherits as its initial
+    /// state, when state inheritance was requested at enqueue.
+    /// </summary>
+    [JsonPropertyName("inheritStateFromWorkflowId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? InheritStateFromWorkflowId { get; init; }
+
+    /// <summary>
     /// Details about each step in the workflow.
     /// </summary>
     [JsonPropertyName("steps")]
@@ -140,6 +148,7 @@ public sealed record WorkflowStatusResponse
             Labels = workflow.Labels,
             OverallStatus = workflow.Status,
             InitialState = workflow.InitialState,
+            InheritStateFromWorkflowId = workflow.InheritStateFromWorkflowId,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),

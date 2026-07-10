@@ -56,6 +56,8 @@ internal sealed class WorkflowEntity
 
     public string? InitialState { get; set; }
 
+    public Guid? InheritStateFromWorkflowId { get; set; }
+
     public ICollection<StepEntity> Steps { get; set; } = [];
     public ICollection<WorkflowEntity>? Dependencies { get; set; }
     public ICollection<WorkflowEntity>? Dependents { get; set; }
@@ -84,6 +86,7 @@ internal sealed class WorkflowEntity
             EngineTraceContext = workflow.EngineTraceContext,
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             InitialState = workflow.InitialState,
+            InheritStateFromWorkflowId = workflow.InheritStateFromWorkflowId,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
             Links = workflow.Links?.Select(FromDomainModel).ToList(),
@@ -128,6 +131,7 @@ internal sealed class WorkflowEntity
             EngineTraceContext = EngineTraceContext,
             CancellationRequestedAt = CancellationRequestedAt,
             InitialState = InitialState,
+            InheritStateFromWorkflowId = InheritStateFromWorkflowId,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
             Dependencies = includeRelations
                 ? Dependencies?.Select(x => x.ToDomainModel(includeRelations: false)).ToList()

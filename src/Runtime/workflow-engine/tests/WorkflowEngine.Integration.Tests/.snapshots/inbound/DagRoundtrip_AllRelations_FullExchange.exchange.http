@@ -34,6 +34,7 @@ Content-Type: application/json; charset=utf-8
       ],
       "startAt": null,
       "state": null,
+      "inheritStateFrom": null,
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
@@ -60,6 +61,7 @@ Content-Type: application/json; charset=utf-8
       ],
       "startAt": null,
       "state": null,
+      "inheritStateFrom": null,
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
@@ -86,6 +88,7 @@ Content-Type: application/json; charset=utf-8
       ],
       "startAt": null,
       "state": null,
+      "inheritStateFrom": null,
       "dependsOn": [
         "wf-up",
         "Guid_2"
@@ -118,6 +121,7 @@ Content-Type: application/json; charset=utf-8
       ],
       "startAt": null,
       "state": null,
+      "inheritStateFrom": null,
       "dependsOn": [
         "wf-mid"
       ],

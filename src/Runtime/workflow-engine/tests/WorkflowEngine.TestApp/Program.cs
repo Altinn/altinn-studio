@@ -1,5 +1,6 @@
 using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.TestApp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,9 @@ var connectionString =
     );
 
 builder.AddWorkflowEngine(connectionString);
+
+// Test-only command for observing state threading (incl. dependency state inheritance).
+builder.Services.AddCommand<StateProbeCommand>();
 
 var app = builder.Build();
 await app.UseWorkflowEngine();

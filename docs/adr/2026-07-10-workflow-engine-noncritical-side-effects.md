@@ -362,3 +362,30 @@ Update `Internal/WorkflowEngine/AGENTS.md`:
 3. **Yes, moved.** The relative ordering is unchanged from the pre-split sequence (`CompletedAltinnEvent`
    already ran after the delete commands), the command only reads instance identity + `EndEvent` from
    the blob (indifferent to instance deletion), and no downstream ordering assumption was found.
+
+## Amendment (10.07.2026): engine-level state inheritance replaces the derived blob
+
+The `WorkflowCallbackStateRewriter` approach from Answer 1 was replaced during review discussion. The
+rewritten blob was correct for the four current commands but only carried "OLD snapshot + NEW process
+state" — a footgun for future side-effect commands tempted to read data elements or form data that Main's
+commands had since changed. Since this split is intended as a general pattern, the fix moved into the
+engine (reopening the "no engine changes" constraint deliberately):
+
+- **New engine feature**: `WorkflowRequest.InheritStateFrom` (a `WorkflowRef`). Validated at enqueue to
+  (a) be mutually exclusive with `State` and (b) reference one of the workflow's own `DependsOn` entries
+  (only a dependency is guaranteed terminal before the workflow starts). Persisted as
+  `inherit_state_from_workflow_id`; exposed in `WorkflowStatusResponse`. At execution start the engine
+  resolves the source's final state (last step-produced state, falling back to its initial state) and
+  uses it as the dependent's initial state — in memory only, the persisted column is untouched. A
+  non-Completed source (abandoned-and-released) yields no state; a transient lookup failure requeues the
+  workflow rather than failing it.
+- **App side**: the side-effects workflow is enqueued with `InheritStateFrom = "main"` and `State = null`.
+  Its commands now see **Main's full final evolved blob** — the exact view the trailing post-commit steps
+  had pre-split (NEW process state + all data changes) — so the "side-effect commands may only read
+  identity + process state" restriction is lifted. `WorkflowCallbackStateRewriter` is deleted. The
+  fail-safe if an orphaned side chain ever runs without Main completing: null state → callback 422, never
+  events from stale data.
+- **Deployment ordering**: an older engine would ignore the unknown `inheritStateFrom` field, leaving the
+  side chain with null state (loud failure, no wrong events — but events would be lost). The engine must
+  be deployed before/with the app-lib version carrying this change. Both live in this monorepo and v9 is
+  unreleased, so this is a release-notes concern, not a migration.

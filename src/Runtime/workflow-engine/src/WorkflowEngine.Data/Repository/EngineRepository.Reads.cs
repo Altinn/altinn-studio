@@ -575,6 +575,45 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<string?> GetCompletedWorkflowFinalState(
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetCompletedWorkflowFinalState");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var result = await context
+                .Workflows.Where(w => w.Id == workflowId && w.Status == PersistentItemStatus.Completed)
+                .Select(w => new
+                {
+                    LastStepState = w
+                        .Steps.Where(s => s.StateOut != null)
+                        .OrderByDescending(s => s.ProcessingOrder)
+                        .Select(s => s.StateOut)
+                        .FirstOrDefault(),
+                    w.InitialState,
+                })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return result is null ? null : result.LastStepState ?? result.InitialState;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<WorkflowStatusInfo?> GetWorkflowStatusInfo(
         Guid workflowId,
         string ns,

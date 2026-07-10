@@ -56,6 +56,7 @@ Content-Type: application/json; charset=utf-8
       ],
       "startAt": null,
       "state": "initial-workflow-state",
+      "inheritStateFrom": null,
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
