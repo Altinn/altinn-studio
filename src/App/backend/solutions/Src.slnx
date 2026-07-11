@@ -4,6 +4,7 @@
         <Platform Name="x64" />
         <Platform Name="x86" />
     </Configurations>
+    <Project Path="../../../_vendor/Storage.Interface/Altinn.Platform.Storage.Interface.csproj" />
     <Project Path="../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
     <Project Path="../src/Altinn.App.Api/Altinn.App.Api.csproj" />
     <Project Path="../src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj" />

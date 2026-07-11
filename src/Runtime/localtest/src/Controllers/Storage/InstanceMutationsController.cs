@@ -21,6 +21,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using InstanceMutationResponse = Altinn.Platform.Storage.LocalTest.Models.InstanceMutationResponse;
 
 namespace Altinn.Platform.Storage.Controllers;
 
@@ -783,7 +784,7 @@ public class InstanceMutationsController(
                 MultipartSection section;
                 while (
                     (section = await multipartReader.ReadNextSectionAsync(cancellationToken))
-                    is not null
+                        is not null
                 )
                 {
                     if (
@@ -855,7 +856,11 @@ public class InstanceMutationsController(
             }
             catch (IOException exception)
             {
-                return (null, null, BadRequest($"Error reading multipart body: {exception.Message}"));
+                return (
+                    null,
+                    null,
+                    BadRequest($"Error reading multipart body: {exception.Message}")
+                );
             }
 
             if (mutationJson is null)
@@ -961,14 +966,13 @@ public class InstanceMutationsController(
         InstanceMutationRequest mutationRequest
     )
     {
-        IEnumerable<Guid> dataElementIds =
-            (
-                mutationRequest.UpdateDataElements?.Select(update => update.DataElementId)
+        IEnumerable<Guid> dataElementIds = (
+            mutationRequest.UpdateDataElements?.Select(update => update.DataElementId)
+            ?? Enumerable.Empty<Guid>()
+        ).Concat(
+            mutationRequest.DeleteDataElements?.Select(delete => delete.DataElementId)
                 ?? Enumerable.Empty<Guid>()
-            ).Concat(
-                mutationRequest.DeleteDataElements?.Select(delete => delete.DataElementId)
-                    ?? Enumerable.Empty<Guid>()
-            );
+        );
 
         if (TryFindDuplicateDataElementId(dataElementIds, out Guid duplicateDataElementId))
         {

@@ -16,7 +16,6 @@
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageReference Include="Altinn.Common.PEP" Version="4.1.2" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.6.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.2.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="FluentValidation" Version="11.10.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="3.0.1" />
@@ -32,6 +31,10 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.*" />
     <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../_vendor/Storage.Interface/Altinn.Platform.Storage.Interface.csproj" />
   </ItemGroup>
 
   <ItemGroup>
