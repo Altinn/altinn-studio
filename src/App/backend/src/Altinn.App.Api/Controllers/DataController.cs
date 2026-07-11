@@ -390,6 +390,10 @@ public class DataController : ControllerBase
                 ValidationIssues = validationIssues,
             };
         }
+        catch (DataElementContentConflictException e)
+        {
+            return DataElementContentConflictResult.Create(e);
+        }
         catch (PlatformHttpException e)
         {
             return new ProblemDetails()
@@ -528,6 +532,7 @@ public class DataController : ControllerBase
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 201)]
     [ProducesResponseType(typeof(CalculationResult), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult> Put(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -572,6 +577,10 @@ public class DataController : ControllerBase
             }
 
             return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, dataTypeObject);
+        }
+        catch (DataElementContentConflictException e)
+        {
+            return Problem(DataElementContentConflictResult.Create(e));
         }
         catch (PlatformHttpException e)
         {
@@ -712,6 +721,10 @@ public class DataController : ControllerBase
 
             return Problem(res.Error);
         }
+        catch (DataElementContentConflictException e)
+        {
+            return Problem(DataElementContentConflictResult.Create(e));
+        }
         catch (PlatformHttpException e)
         {
             return HandlePlatformHttpException(
@@ -735,6 +748,8 @@ public class DataController : ControllerBase
     /// <returns>The updated data element.</returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpDelete("{dataGuid:guid}")]
+    [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DataPostResponse>> Delete(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -816,6 +831,10 @@ public class DataController : ControllerBase
                     NewDataModels = GetNewDataModels(changes),
                 }
             );
+        }
+        catch (DataElementContentConflictException e)
+        {
+            return Problem(DataElementContentConflictResult.Create(e));
         }
         catch (PlatformHttpException e)
         {

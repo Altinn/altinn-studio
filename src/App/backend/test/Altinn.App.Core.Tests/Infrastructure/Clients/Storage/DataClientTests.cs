@@ -292,12 +292,24 @@ public class DataClientTests
                         {
                           "instance": {
                             "id": "123/{{instanceGuid}}",
-                            "data": [{ "id": "{{dataGuid}}", "dataType": "catstories" }]
+                            "data": [
+                              {
+                                "id": "{{dataGuid}}",
+                                "dataType": "catstories",
+                                "contentEtag": "\"etag-2\""
+                              },
+                              {
+                                "id": "00000000-0000-0000-0000-000000000001",
+                                "dataType": "legacy",
+                                "contentEtag": ""
+                              },
+                              {
+                                "id": "00000000-0000-0000-0000-000000000002",
+                                "dataType": "on-demand"
+                              }
+                            ]
                           },
                           "createdDataElementIds": ["{{dataGuid}}"],
-                          "dataElementContentEtags": {
-                            "{{dataGuid}}": "\"etag-2\""
-                          },
                           "replayed": true
                         }
                         """,
@@ -347,6 +359,7 @@ public class DataClientTests
         Assert.False(platformRequest.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName));
         Assert.Equal($"123/{instanceGuid}", result.Instance.Id);
         Assert.Equal([dataGuid], result.CreatedDataElementIds);
+        Assert.Single(result.DataElementMetadata);
         Assert.Equal("\"etag-2\"", result.DataElementMetadata[dataGuid.ToString()].ETag);
         Assert.Equal(30, result.Metadata.InstanceVersion);
         Assert.Equal(9, result.Metadata.ProcessStateVersion);
@@ -373,9 +386,9 @@ public class DataClientTests
                         $$"""
                         {
                           "instance": {
-                            "id": "123/{{instanceGuid}}"
-                          },
-                          "dataElementContentEtags": {}
+                            "id": "123/{{instanceGuid}}",
+                            "data": []
+                          }
                         }
                         """,
                         Encoding.UTF8,
@@ -419,9 +432,9 @@ public class DataClientTests
                         $$"""
                         {
                           "instance": {
-                            "id": "123/{{instanceGuid}}"
-                          },
-                          "dataElementContentEtags": {}
+                            "id": "123/{{instanceGuid}}",
+                            "data": []
+                          }
                         }
                         """,
                         Encoding.UTF8,
@@ -608,9 +621,11 @@ public class DataClientTests
     public async Task GetDataBytesWithStorageMetadata_ParsesETagHeader()
     {
         byte[] expectedBytes = "hello"u8.ToArray();
+        HttpRequestMessage? platformRequest = null;
         await using var fixture = Fixture.Create(
-            async (_, _) =>
+            async (request, _) =>
             {
+                platformRequest = request;
                 await Task.CompletedTask;
                 return new HttpResponseMessage
                 {
@@ -632,6 +647,33 @@ public class DataClientTests
 
         Assert.Equal(expectedBytes, result.Bytes);
         Assert.Equal("\"etag-2\"", result.Metadata.ETag);
+        Assert.NotNull(platformRequest);
+        Assert.Empty(platformRequest.Headers.IfMatch);
+    }
+
+    [Fact]
+    public async Task GetDataBytesWithStorageMetadata_WithExpectedContentETag_SendsIfMatch()
+    {
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new ByteArrayContent([]) };
+            }
+        );
+
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithStorageMetadata(
+            123,
+            Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+            Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+            authenticationMethod: null,
+            expectedContentETag: "\"etag-expected\""
+        );
+
+        Assert.NotNull(platformRequest);
+        Assert.Equal("\"etag-expected\"", Assert.Single(platformRequest.Headers.IfMatch).ToString());
     }
 
     [Theory]

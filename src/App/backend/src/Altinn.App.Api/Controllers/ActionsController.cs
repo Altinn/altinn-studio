@@ -140,109 +140,119 @@ public class ActionsController : ControllerBase
             return Forbid();
         }
         var taskId = instance.Process?.CurrentTask?.ElementId;
-        using var dataMutator = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
-
-        UserActionContext userActionContext = new(
-            dataMutator,
-            null, // let userId be derived from currentAuth
-            actionRequest.ButtonId,
-            actionRequest.Metadata,
-            language,
-            currentAuth,
-            actionRequest.OnBehalfOf,
-            cancellationToken: ct
-        );
-        IUserAction? actionHandler = _userActionService.GetActionHandler(action);
-        if (actionHandler is null)
+        try
         {
-            return new NotFoundObjectResult(
-                new UserActionResponse()
-                {
-                    Instance = instance,
-                    Error = new ActionError()
+            using var dataMutator = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
+
+            UserActionContext userActionContext = new(
+                dataMutator,
+                null, // let userId be derived from currentAuth
+                actionRequest.ButtonId,
+                actionRequest.Metadata,
+                language,
+                currentAuth,
+                actionRequest.OnBehalfOf,
+                cancellationToken: ct
+            );
+            IUserAction? actionHandler = _userActionService.GetActionHandler(action);
+            if (actionHandler is null)
+            {
+                return new NotFoundObjectResult(
+                    new UserActionResponse()
                     {
-                        Code = "ActionNotFound",
-                        Message = $"Action handler with id {action} not found",
+                        Instance = instance,
+                        Error = new ActionError()
+                        {
+                            Code = "ActionNotFound",
+                            Message = $"Action handler with id {action} not found",
+                        },
+                    }
+                );
+            }
+
+            UserActionResult result = await actionHandler.HandleAction(userActionContext);
+
+            if (result.ResultType is ResultType.Failure)
+            {
+                return StatusCode(
+                    statusCode: result.ErrorType switch
+                    {
+                        ProcessErrorType.Conflict => 409,
+                        ProcessErrorType.Unauthorized => 401,
+                        ProcessErrorType.BadRequest => 400,
+                        _ => 500,
                     },
-                }
-            );
-        }
+                    value: new UserActionResponse()
+                    {
+                        Instance = instance,
+                        ClientActions = result.ClientActions,
+                        Error = result.Error,
+                    }
+                );
+            }
 
-        UserActionResult result = await actionHandler.HandleAction(userActionContext);
-
-        if (result.ResultType is ResultType.Failure)
-        {
-            return StatusCode(
-                statusCode: result.ErrorType switch
-                {
-                    ProcessErrorType.Conflict => 409,
-                    ProcessErrorType.Unauthorized => 401,
-                    ProcessErrorType.BadRequest => 400,
-                    _ => 500,
-                },
-                value: new UserActionResponse()
-                {
-                    Instance = instance,
-                    ClientActions = result.ClientActions,
-                    Error = result.Error,
-                }
-            );
-        }
-
-        if (dataMutator.GetAbandonResponse() is not null)
-        {
-            throw new NotImplementedException(
-                "return an error response from UserActions instead of abandoning the dataMutator"
-            );
-        }
+            if (dataMutator.GetAbandonResponse() is not null)
+            {
+                throw new NotImplementedException(
+                    "return an error response from UserActions instead of abandoning the dataMutator"
+                );
+            }
 
 #pragma warning disable CS0618 // Type or member is obsolete
 
-        // Ensure that the data mutator has the previous binary data for the data elements
-        // that were updated so that it shows up in diff for validation
-        // and ensures that it gets saved to storage
-        if (result.UpdatedDataModels is { Count: > 0 })
-        {
-            await Task.WhenAll(
-                result.UpdatedDataModels.Select(row => dataMutator.GetFormData(new DataElementIdentifier(row.Key)))
-            );
-            foreach (var (elementId, data) in result.UpdatedDataModels)
+            // Ensure that the data mutator has the previous binary data for the data elements
+            // that were updated so that it shows up in diff for validation
+            // and ensures that it gets saved to storage
+            if (result.UpdatedDataModels is { Count: > 0 })
             {
-                // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
-                // we still need to return it to the frontend, but we assume it was already saved to storage
-                var elementIdentifier = new DataElementIdentifier(elementId);
-                var dataElement = dataMutator.GetDataElement(elementIdentifier);
-                var dataType = dataMutator.GetDataType(elementIdentifier);
-                dataMutator.SetFormData(elementIdentifier, FormDataWrapperFactory.Create(data, dataType, dataElement));
+                await Task.WhenAll(
+                    result.UpdatedDataModels.Select(row => dataMutator.GetFormData(new DataElementIdentifier(row.Key)))
+                );
+                foreach (var (elementId, data) in result.UpdatedDataModels)
+                {
+                    // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
+                    // we still need to return it to the frontend, but we assume it was already saved to storage
+                    var elementIdentifier = new DataElementIdentifier(elementId);
+                    var dataElement = dataMutator.GetDataElement(elementIdentifier);
+                    var dataType = dataMutator.GetDataType(elementIdentifier);
+                    dataMutator.SetFormData(
+                        elementIdentifier,
+                        FormDataWrapperFactory.Create(data, dataType, dataElement)
+                    );
+                }
             }
-        }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
+            var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 
-        await dataMutator.SaveChanges(changes);
+            await dataMutator.SaveChanges(changes);
 
-        var validationIssues = await GetIncrementalValidations(
-            dataMutator,
-            changes,
-            actionRequest.IgnoredValidators,
-            language
-        );
+            var validationIssues = await GetIncrementalValidations(
+                dataMutator,
+                changes,
+                actionRequest.IgnoredValidators,
+                language
+            );
 
-        var updatedDataModels = changes
-            .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)
-            .ToDictionary(c => c.DataElementIdentifier.Id, c => c.CurrentFormData);
+            var updatedDataModels = changes
+                .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)
+                .ToDictionary(c => c.DataElementIdentifier.Id, c => c.CurrentFormData);
 
-        return Ok(
-            new UserActionResponse()
-            {
-                Instance = instance,
-                ClientActions = result.ClientActions,
-                UpdatedDataModels = updatedDataModels,
-                UpdatedValidationIssues = validationIssues,
-                RedirectUrl = result.RedirectUrl,
-            }
-        );
+            return Ok(
+                new UserActionResponse()
+                {
+                    Instance = instance,
+                    ClientActions = result.ClientActions,
+                    UpdatedDataModels = updatedDataModels,
+                    UpdatedValidationIssues = validationIssues,
+                    RedirectUrl = result.RedirectUrl,
+                }
+            );
+        }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
     }
 
     private async Task<Dictionary<

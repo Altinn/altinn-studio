@@ -184,6 +184,10 @@ public class ProcessController : ControllerBase
             AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User);
             return Ok(appProcessState);
         }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
         catch (WorkflowSubmissionFailedException exception)
         {
             // The existing instance is intentionally retained; unlike instantiation we never delete it here.
@@ -392,6 +396,10 @@ public class ProcessController : ControllerBase
 
             return Ok(appProcessState);
         }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
         catch (PlatformHttpException e)
         {
             _logger.LogError("Platform exception when processing next. {Message}", e.Message);
@@ -453,6 +461,10 @@ public class ProcessController : ControllerBase
             );
 
             return Ok(appProcessState);
+        }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
         }
         catch (PlatformHttpException e)
         {
@@ -546,11 +558,19 @@ public class ProcessController : ControllerBase
                 return Forbid();
             }
 
-            var validationProblem = await GetValidationProblemDetails(
-                instance,
-                instance.Process.CurrentTask.ElementId,
-                language
-            );
+            ProblemDetails? validationProblem;
+            try
+            {
+                validationProblem = await GetValidationProblemDetails(
+                    instance,
+                    instance.Process.CurrentTask.ElementId,
+                    language
+                );
+            }
+            catch (DataElementContentConflictException exception)
+            {
+                return Conflict(DataElementContentConflictResult.Create(exception));
+            }
             if (validationProblem is not null)
             {
                 return Conflict(validationProblem);
@@ -575,6 +595,10 @@ public class ProcessController : ControllerBase
                 }
 
                 instance = result.MutatedInstance ?? instance;
+            }
+            catch (DataElementContentConflictException exception)
+            {
+                return Conflict(DataElementContentConflictResult.Create(exception));
             }
             catch (Exception ex)
             {

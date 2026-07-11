@@ -123,6 +123,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
         _instance = instance;
         _storageVersionMetadata = InstanceStorageMetadataRegistry.Get(instance);
+        ReplaceDataElementStorageMetadataFromInstance(instance);
         _dataTypes = appMetadata.DataTypes;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
@@ -963,12 +964,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         using var activity = _telemetry?.StartSaveChanges(changes);
         ValidateCanSaveChangesOrThrow();
 
-        await Task.WhenAll(
-            changes
-                .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
-                .Select(change => GetPersistedBinaryData(change.DataElementIdentifier))
-        );
-
         var mutationPlan = BuildAggregateMutationPlan(changes);
         if (!mutationPlan.HasMutations)
         {
@@ -1017,12 +1012,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             throw new InvalidOperationException("Workflow-owned aggregate save requires an idempotency key.");
         }
 
-        await Task.WhenAll(
-            changes
-                .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
-                .Select(change => GetPersistedBinaryData(change.DataElementIdentifier))
-        );
-
         var mutationPlan = BuildAggregateMutationPlan(changes);
         ApplyStagedProcessState(mutationPlan.Request);
         ApplyStagedInstanceDeletion(mutationPlan.Request);
@@ -1058,7 +1047,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
         if (result.Replayed)
         {
-            await RebuildFromStorageAfterReplay(result, cancellationToken);
+            await RebuildFromStorageAfterReplay(cancellationToken);
             throw new InstanceMutationReplayedException(
                 "Storage replayed the workflow-owned instance mutation. The unit of work has been rebuilt from Storage state."
             );
@@ -1172,12 +1161,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
     private async Task SaveChangesLegacy(DataElementChanges changes)
     {
-        await Task.WhenAll(
-            changes
-                .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
-                .Select(change => GetPersistedBinaryData(change.DataElementIdentifier))
-        );
-
         var tasks = new List<Task>();
 
         foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Updated))
@@ -1371,10 +1354,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         request.DeleteInstance = new StorageInstanceMutationDeleteInstance { Hard = true };
     }
 
-    private async Task RebuildFromStorageAfterReplay(
-        InstanceMutationWithStorageMetadata replayedResult,
-        CancellationToken cancellationToken
-    )
+    private async Task RebuildFromStorageAfterReplay(CancellationToken cancellationToken)
     {
         var appIdentifier = GetAppIdentifierForStorageLookup();
         InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
@@ -1387,7 +1367,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         );
 
         ApplyInstanceSnapshot(freshInstance.Instance);
-        RestoreStorageMetadata(new StorageDataMetadata(freshInstance.Metadata, replayedResult.DataElementMetadata));
+        RestoreStorageMetadata(new StorageDataMetadata(freshInstance.Metadata, StorageMetadata.DataElements));
         ClearAttemptLocalState();
     }
 
@@ -1686,7 +1666,25 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             }
         }
 
+        ReplaceDataElementStorageMetadataFromInstance(updatedInstance);
         InstanceStorageMetadataRegistry.Set(Instance, InstanceStorageMetadataRegistry.Get(updatedInstance));
+    }
+
+    private void ReplaceDataElementStorageMetadataFromInstance(Instance instance)
+    {
+        lock (_storageMetadataLock)
+        {
+            _dataElementStorageMetadata.Clear();
+            foreach (DataElement dataElement in instance.Data ?? [])
+            {
+                if (!string.IsNullOrEmpty(dataElement.ContentEtag))
+                {
+                    _dataElementStorageMetadata[dataElement.Id] = new StorageDataElementMetadata(
+                        dataElement.ContentEtag
+                    );
+                }
+            }
+        }
     }
 
     private sealed record AggregateMutationPlan(
@@ -1729,12 +1727,24 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         DataElementIdentifier dataElementIdentifier
     )
     {
-        return await _dataClient.GetDataBytesWithStorageMetadata(
-            _instanceOwnerPartyId,
-            _instanceGuid,
-            dataElementIdentifier.Guid,
-            authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
-        );
+        string? expectedContentETag = GetDataElementContentETag(dataElementIdentifier);
+        try
+        {
+            return await _dataClient.GetDataBytesWithStorageMetadata(
+                _instanceOwnerPartyId,
+                _instanceGuid,
+                dataElementIdentifier.Guid,
+                authenticationMethod: GetAuthenticationMethod(dataElementIdentifier),
+                expectedContentETag: expectedContentETag
+            );
+        }
+        catch (PlatformHttpException exception)
+            when (!string.IsNullOrEmpty(expectedContentETag)
+                && exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed
+            )
+        {
+            throw new DataElementContentConflictException(Instance.Id, dataElementIdentifier.Guid, exception);
+        }
     }
 
     private async Task<ReadOnlyMemory<byte>> GetDataBytesAndStoreMetadata(DataElementIdentifier dataElementIdentifier)

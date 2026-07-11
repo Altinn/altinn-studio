@@ -67,6 +67,7 @@ public class SigningController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(SigningStateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> GetSigneesState(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -106,11 +107,15 @@ public class SigningController : ControllerBase
             (_processReader.GetAltinnTaskExtension(finalTaskId)?.SignatureConfiguration)
             ?? throw new ApplicationConfigException("Signing configuration not found in AltinnTaskExtension");
 
-        List<SigneeContext> signeeContexts = await _signingService.GetSigneeContexts(
-            instanceDataAccessor,
-            signingConfiguration,
-            ct
-        );
+        List<SigneeContext> signeeContexts;
+        try
+        {
+            signeeContexts = await _signingService.GetSigneeContexts(instanceDataAccessor, signingConfiguration, ct);
+        }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
 
         var response = new SigningStateResponse
         {
@@ -177,6 +182,7 @@ public class SigningController : ControllerBase
     [ProducesResponseType(typeof(SigningAuthorizedOrganizationsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> GetAuthorizedOrganizations(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -221,12 +227,20 @@ public class SigningController : ControllerBase
             return Unauthorized();
         }
 
-        List<OrganizationSignee> authorizedOrganizations = await _signingService.GetAuthorizedOrganizationSignees(
-            instanceDataAccessor,
-            signingConfiguration,
-            userId.Value,
-            ct
-        );
+        List<OrganizationSignee> authorizedOrganizations;
+        try
+        {
+            authorizedOrganizations = await _signingService.GetAuthorizedOrganizationSignees(
+                instanceDataAccessor,
+                signingConfiguration,
+                userId.Value,
+                ct
+            );
+        }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
 
         SigningAuthorizedOrganizationsResponse response = new()
         {

@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Storage;
@@ -97,6 +98,59 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_WhenRealServiceTaskLazyReadUsesStaleCallbackState_ReturnsConflict()
+    {
+        Guid dataElementId = Guid.NewGuid();
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(new LazyReadServiceTask(dataElementId));
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>()
+                ));
+            },
+            (services, instance) =>
+            {
+                instance.Data.Add(
+                    new DataElement
+                    {
+                        Id = dataElementId.ToString(),
+                        InstanceGuid = GetInstanceGuid(instance).ToString(),
+                        DataType = DataTypeId,
+                        ContentType = ContentType,
+                        Filename = "task-data.json",
+                        ContentEtag = "\"etag-1\"",
+                    }
+                );
+                services.Storage.AddDataRaw(dataElementId, "stale state"u8.ToArray(), "\"etag-1\"");
+            }
+        );
+        setup.Services.Storage.SetDataETag(dataElementId, "\"etag-2\"");
+        string commandPayload = CommandPayloadSerializer.Serialize(
+            new ExecuteServiceTaskPayload(LazyReadServiceTask.ServiceTaskType)
+        )!;
+
+        IActionResult result = await setup.Execute(
+            ExecuteServiceTask.Key,
+            idempotencyKey: "stale-read-step-id",
+            commandPayload
+        );
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(conflict.Value);
+        Assert.Equal("Data element content conflict", problem.Title);
+        Assert.Contains("Reload the instance data and retry the request.", problem.Detail, StringComparison.Ordinal);
+        Assert.Contains(dataElementId.ToString(), problem.Detail, StringComparison.Ordinal);
+        var contentRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get
+        );
+        Assert.Equal("\"etag-1\"", Assert.Single(contentRequest.RequestHeaders.IfMatch).ToString());
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenStorageReplaysMutation_RebuildsStateAndReturnsSuccess()
     {
         await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
@@ -155,7 +209,13 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ended, capturedState.Instance.Status.Archived);
     }
 
-    private static ControllerSetup CreateSetup(IWorkflowEngineCommand command)
+    private static ControllerSetup CreateSetup(IWorkflowEngineCommand command) =>
+        CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command));
+
+    private static ControllerSetup CreateSetup(
+        Action<MockedServiceCollection> configureServices,
+        Action<MockedServiceCollection, Instance>? configureInstance = null
+    )
     {
         var services = new MockedServiceCollection();
         services.AddDataType(
@@ -167,7 +227,7 @@ public class WorkflowEngineCallbackControllerTests
                 MaxCount = 10,
             }
         );
-        services.Services.AddSingleton<IWorkflowEngineCommand>(command);
+        configureServices(services);
         services.Services.AddSingleton<WorkflowCallbackStateService>();
         services.Services.AddTransient<WorkflowStateSigner>();
         var stateSigningCode = new AppCode
@@ -192,6 +252,7 @@ public class WorkflowEngineCallbackControllerTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
             Data = [],
         };
+        configureInstance?.Invoke(services, instance);
         services.Storage.AddInstance(instance);
         services.Storage.SetStorageVersions(
             InstanceOwnerPartyId,
@@ -216,7 +277,9 @@ public class WorkflowEngineCallbackControllerTests
                         Instance = instance,
                         InstanceVersion = 1,
                         ProcessStateVersion = 1,
-                        DataElementEtags = [],
+                        DataElementEtags = instance
+                            .Data.Where(dataElement => !string.IsNullOrEmpty(dataElement.ContentEtag))
+                            .ToDictionary(dataElement => dataElement.Id, dataElement => dataElement.ContentEtag!),
                         FormData = [],
                     }
                 )
@@ -224,6 +287,8 @@ public class WorkflowEngineCallbackControllerTests
 
         return new ControllerSetup(services, serviceProvider, controller, instanceGuid, state);
     }
+
+    private static Guid GetInstanceGuid(Instance instance) => Guid.Parse(instance.Id!.Split('/')[1]);
 
     private static List<Altinn.App.Tests.Common.Mocks.StorageClientInterceptor.RequestResponse> GetMutationRequests(
         MockedServiceCollection services
@@ -263,6 +328,19 @@ public class WorkflowEngineCallbackControllerTests
                 Encoding.UTF8.GetBytes("""{"status":"created"}""")
             );
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+        }
+    }
+
+    private sealed class LazyReadServiceTask(Guid dataElementId) : IServiceTask
+    {
+        public const string ServiceTaskType = "LazyReadForCallbackTest";
+
+        public string Type => ServiceTaskType;
+
+        public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        {
+            await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
+            return ServiceTaskResult.SuccessWithoutAutoAdvance();
         }
     }
 
@@ -310,7 +388,11 @@ public class WorkflowEngineCallbackControllerTests
         string State
     ) : IAsyncDisposable
     {
-        public async Task<IActionResult> Execute(string commandKey, string? idempotencyKey)
+        public async Task<IActionResult> Execute(
+            string commandKey,
+            string? idempotencyKey,
+            string? commandPayload = null
+        )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
             if (idempotencyKey is not null)
@@ -322,6 +404,7 @@ public class WorkflowEngineCallbackControllerTests
             var payload = new AppCallbackPayload
             {
                 CommandKey = commandKey,
+                Payload = commandPayload,
                 Actor = new Actor { UserId = 42, Language = "nb" },
                 LockToken = Guid.NewGuid().ToString(),
                 WorkflowId = Guid.NewGuid(),

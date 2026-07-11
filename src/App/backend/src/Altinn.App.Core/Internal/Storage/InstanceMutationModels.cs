@@ -131,9 +131,6 @@ internal sealed class StorageInstanceMutationResponse
     [JsonProperty(PropertyName = "createdDataElementIds")]
     public List<Guid>? CreatedDataElementIds { get; init; }
 
-    [JsonProperty(PropertyName = "dataElementContentEtags")]
-    public Dictionary<string, string>? DataElementContentEtags { get; init; }
-
     [JsonProperty(PropertyName = "replayed")]
     public bool Replayed { get; init; }
 }

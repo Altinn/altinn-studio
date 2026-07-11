@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Argon;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.OpenApi;
@@ -29,6 +30,57 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
         using HttpResponseMessage response = await client.GetAsync($"/{org}/{app}/v1/customOpenapi.json");
         await Snapshot(response);
+    }
+
+    [Fact]
+    public async Task Swagger_PreservesSuccessAndConflictResponsesForContentConflictOperations()
+    {
+        using HttpClient client = GetRootedClient("tdd", "contributer-restriction");
+        using HttpResponseMessage response = await client.GetAsync("/swagger/v1/swagger.json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        JsonElement paths = document.RootElement.GetProperty("paths");
+
+        AssertSuccessAndConflictResponses(
+            paths
+                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}")
+                .GetProperty("delete")
+                .GetProperty("responses"),
+            "#/components/schemas/DataPostResponse"
+        );
+        AssertSuccessAndConflictResponses(
+            paths
+                .GetProperty(
+                    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}"
+                )
+                .GetProperty("post")
+                .GetProperty("responses"),
+            "#/components/schemas/AppCallbackResponse"
+        );
+    }
+
+    private static void AssertSuccessAndConflictResponses(JsonElement responses, string successSchema)
+    {
+        Assert.Equal(
+            successSchema,
+            responses
+                .GetProperty("200")
+                .GetProperty("content")
+                .GetProperty("application/json")
+                .GetProperty("schema")
+                .GetProperty("$ref")
+                .GetString()
+        );
+        Assert.Equal(
+            "#/components/schemas/ProblemDetails",
+            responses
+                .GetProperty("409")
+                .GetProperty("content")
+                .GetProperty("application/json")
+                .GetProperty("schema")
+                .GetProperty("$ref")
+                .GetString()
+        );
     }
 
     private static async Task Snapshot(HttpResponseMessage response)

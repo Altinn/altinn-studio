@@ -860,6 +860,7 @@ public sealed class ProcessEngineTest
                     _instanceGuid,
                     dataElementGuid,
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

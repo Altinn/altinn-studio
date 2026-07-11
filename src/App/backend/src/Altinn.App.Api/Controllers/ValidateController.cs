@@ -102,6 +102,10 @@ public class ValidateController : ControllerBase
             );
             return Ok(messages);
         }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
         catch (PlatformHttpException exception)
         {
             return Problem(
@@ -194,18 +198,25 @@ public class ValidateController : ControllerBase
             messages.Add(message);
         }
 
-        using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, dataType.TaskId, language);
+        try
+        {
+            using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, dataType.TaskId, language);
 
-        // Run validations for all data elements, but only return the issues for the specific data element
-        var issues = await _validationService.ValidateInstanceAtTask(
-            dataAccessor,
-            dataType.TaskId,
-            ignoredValidators: null,
-            onlyIncrementalValidators: true,
-            language: language
-        );
-        messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
+            // Run validations for all data elements, but only return the issues for the specific data element
+            var issues = await _validationService.ValidateInstanceAtTask(
+                dataAccessor,
+                dataType.TaskId,
+                ignoredValidators: null,
+                onlyIncrementalValidators: true,
+                language: language
+            );
+            messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
 
-        return Ok(messages);
+            return Ok(messages);
+        }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
     }
 }

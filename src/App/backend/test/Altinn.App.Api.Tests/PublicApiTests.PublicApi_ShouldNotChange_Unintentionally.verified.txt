@@ -113,6 +113,8 @@ namespace Altinn.App.Api.Controllers
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Create([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string dataType) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpDelete("{dataGuid:guid}")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.DataPostResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.DataPostResponse>> Delete([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string? dataType = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? ignoredValidators = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.HttpGet("{dataGuid:guid}")]
@@ -149,6 +151,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.HttpPut("{dataGuid:guid}/type/{dataType}")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.CalculationResult), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.DataElement), 201)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Put([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string? dataType = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
@@ -193,6 +196,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SetTagsResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.SetTagsResponse>> SetTags([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.SetTagsRequest setTagsRequest, [Microsoft.AspNetCore.Mvc.FromQuery] string? ignoredValidators = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method)]
@@ -251,6 +255,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         [Microsoft.AspNetCore.Mvc.ResponseCache(Location=Microsoft.AspNetCore.Mvc.ResponseCacheLocation.None, NoStore=true)]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-fo" +
             "rm/{uiFolder}")]
@@ -357,6 +362,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.InstanceResponse), 201)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> Post([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] int? instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
@@ -365,6 +371,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.InstanceResponse), 201)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> PostSimplified([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.InstansiationInstance instansiationInstance, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
@@ -617,6 +624,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningAuthorizedOrganizationsResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAuthorizedOrganizations([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("data-elements")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningDataElementsResponse), 200)]
@@ -625,6 +633,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningStateResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSigneesState([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
@@ -718,6 +727,11 @@ namespace Altinn.App.Api.Controllers
     {
         public WorkflowEngineCallbackController(System.IServiceProvider serviceProvider, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.WorkflowEngineCallbackController> logger, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         [Microsoft.AspNetCore.Mvc.HttpPost("{commandKey}")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 422)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 500)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ExecuteCommand([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string commandKey, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackPayload payload, System.Threading.CancellationToken ct) { }
     }
 }

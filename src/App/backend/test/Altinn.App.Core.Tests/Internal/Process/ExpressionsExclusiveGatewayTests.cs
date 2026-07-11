@@ -276,6 +276,7 @@ public class ExpressionsExclusiveGatewayTests
                         It.IsAny<Guid>(),
                         It.IsAny<Guid>(),
                         It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<string?>(),
                         It.IsAny<CancellationToken>()
                     )
                 )

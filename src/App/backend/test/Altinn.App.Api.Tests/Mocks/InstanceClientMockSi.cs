@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -123,6 +124,13 @@ internal sealed class InstanceClientMockSi : IStorageInstanceClient
         (instance.LastChangedBy, instance.LastChanged) = FindLastChanged(instance);
 
         StorageVersionMetadata metadata = _storageMetadata.RegisterLoadedInstance(instance);
+        var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceId);
+        foreach (DataElement dataElement in instance.Data)
+        {
+            dataElement.ContentEtag = _storageMetadata
+                .GetDataElementMetadata(instanceIdentifier, Guid.Parse(dataElement.Id))
+                .ETag;
+        }
         return new InstanceWithStorageMetadata(instance, metadata);
     }
 

@@ -229,6 +229,7 @@ public partial class DataTagsController : ControllerBase
     [ProducesResponseType(typeof(SetTagsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<SetTagsResponse>> SetTags(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -276,7 +277,15 @@ public partial class DataTagsController : ControllerBase
             );
         }
 
-        var validationIssues = await ValidateTags(instance, ignoredValidators, language);
+        List<ValidationSourcePair>? validationIssues;
+        try
+        {
+            validationIssues = await ValidateTags(instance, ignoredValidators, language);
+        }
+        catch (DataElementContentConflictException exception)
+        {
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
         SetTagsResponse updateTagsResponse = new() { Tags = updatedElement.Tags, ValidationIssues = validationIssues };
 
         return Ok(updateTagsResponse);

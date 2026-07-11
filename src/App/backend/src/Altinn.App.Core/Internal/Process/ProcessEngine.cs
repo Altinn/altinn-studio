@@ -168,6 +168,10 @@ internal class ProcessEngine : IProcessEngine
             );
             state = await _workflowCallbackStateService.CaptureState(unitOfWork);
         }
+        catch (DataElementContentConflictException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             throw WorkflowSubmissionFailedException.NotAccepted(

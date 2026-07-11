@@ -497,6 +497,7 @@ public sealed class PatchServiceTests : IDisposable
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

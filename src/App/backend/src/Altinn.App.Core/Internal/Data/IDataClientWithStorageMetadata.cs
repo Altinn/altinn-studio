@@ -12,6 +12,7 @@ internal interface IDataClientWithStorageMetadata
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod = null,
+        string? expectedContentETag = null,
         CancellationToken cancellationToken = default
     );
 

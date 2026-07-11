@@ -231,6 +231,7 @@ public sealed class DataAccessorFixture
                     InstanceGuid,
                     dataGuid,
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

@@ -65,6 +65,87 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task Init_SeedsNonEmptyDataElementContentETagsFromInstanceSnapshot()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "content"u8.ToArray(),
+            dataElementCount: 2,
+            contentETag: "\"etag-snapshot\"",
+            lastContentETagEmpty: true
+        );
+
+        Assert.Equal("\"etag-snapshot\"", setup.DataMutator.StorageMetadata.DataElements[setup.DataElement.Id].ETag);
+        Assert.DoesNotContain(setup.DataMutator.Instance.Data[1].Id, setup.DataMutator.StorageMetadata.DataElements);
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_SendsSnapshotContentETagAsIfMatch()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "content"u8.ToArray(),
+            contentETag: "\"etag-1\""
+        );
+
+        await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+
+        var request = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
+        );
+        Assert.Equal("\"etag-1\"", Assert.Single(request.RequestHeaders.IfMatch).ToString());
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_WithoutSnapshotContentETag_DoesNotSendIfMatch()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("content"u8.ToArray());
+
+        await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+
+        var request = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get
+        );
+        Assert.Empty(request.RequestHeaders.IfMatch);
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_WithMalformedSnapshotContentETag_FailsBeforeSendingRequest()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "content"u8.ToArray(),
+            contentETag: "malformed-etag"
+        );
+
+        await Assert.ThrowsAsync<FormatException>(() => setup.DataMutator.GetPersistedBinaryData(setup.DataElement));
+
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get
+        );
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_WhenSnapshotContentETagIsStale_ThrowsTypedConflictAndKeepsBaseline()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "content"u8.ToArray(),
+            contentETag: "\"etag-1\""
+        );
+        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), "\"etag-2\"");
+
+        DataElementContentConflictException exception = await Assert.ThrowsAsync<DataElementContentConflictException>(
+            () =>
+                setup.DataMutator.GetPersistedBinaryData(setup.DataElement)
+        );
+
+        Assert.Equal(setup.DataMutator.Instance.Id, exception.InstanceId);
+        Assert.Equal(Guid.Parse(setup.DataElement.Id), exception.DataElementId);
+        Assert.IsType<PlatformHttpException>(exception.InnerException);
+        Assert.Equal("\"etag-1\"", setup.DataMutator.StorageMetadata.DataElements[setup.DataElement.Id].ETag);
+    }
+
+    [Fact]
     public async Task Init_ReturnsInactiveUnitOfWork()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
@@ -461,11 +542,9 @@ public sealed class InstanceDataUnitOfWorkTests
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
-            new StorageVersionMetadata(ProcessStateVersion: 1)
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            contentETag: "\"etag-1\""
         );
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), "\"etag-1\"");
-
-        await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
         setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), externalBytes);
         setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), "\"etag-2\"");
 
@@ -904,7 +983,8 @@ public sealed class InstanceDataUnitOfWorkTests
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
-            new StorageVersionMetadata(ProcessStateVersion: 1)
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            contentETag: "\"etag-1\""
         );
         DataType formDataType = setup.Services.AddDataType<PaymentForm>(
             "payment-form",
@@ -993,7 +1073,8 @@ public sealed class InstanceDataUnitOfWorkTests
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
-            seedStorageVersions: true
+            seedStorageVersions: true,
+            contentETag: "\"etag-1\""
         );
 
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
@@ -1023,6 +1104,11 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal("3", mutationRequest.RequestHeaders.GetValues("If-Process-State-Version-Match").Single());
         Assert.Equal("workflow-save-key", mutationRequest.RequestHeaders.GetValues("Idempotency-Key").Single());
         Assert.Contains("\"processState\"", mutationRequest.RequestBody, StringComparison.Ordinal);
+        Assert.Contains("\"expectedCurrentBlobVersion\":\"\\\"etag-1\\\"\"", mutationRequest.RequestBody);
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
+        );
         Assert.Equal("Task_2", setup.DataMutator.Instance.Process.CurrentTask?.ElementId);
         Assert.True(setup.ServiceProvider.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>().IsActive);
 
@@ -1563,6 +1649,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     DataType = "payment",
                     ContentType = "application/json",
                     Filename = "attempt-one.json",
+                    ContentEtag = "\"etag-replay\"",
                 },
             ],
         };
@@ -1570,6 +1657,27 @@ public sealed class InstanceDataUnitOfWorkTests
             authoritativeInstance,
             new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4)
         );
+        var replayedResponseInstance = new Instance
+        {
+            Id = authoritativeInstance.Id,
+            AppId = authoritativeInstance.AppId,
+            Org = authoritativeInstance.Org,
+            InstanceOwner = authoritativeInstance.InstanceOwner,
+            Process = authoritativeInstance.Process,
+            Data =
+            [
+                new DataElement
+                {
+                    Id = authoritativeDataElementId.ToString(),
+                    InstanceGuid = instanceGuid.ToString(),
+                    DataType = "payment",
+                    ContentType = "application/json",
+                    Filename = "attempt-one.json",
+                    ContentEtag = "\"etag-replayed-response\"",
+                },
+            ],
+        };
+        authoritativeInstance.Data[0].ContentEtag = "\"etag-fresh-instance\"";
         var dataClientMock = new Mock<IStorageDataClient>(MockBehavior.Strict);
         dataClientMock
             .Setup(x =>
@@ -1585,8 +1693,11 @@ public sealed class InstanceDataUnitOfWorkTests
             )
             .ReturnsAsync(
                 new InstanceMutationWithStorageMetadata(
-                    authoritativeInstance,
-                    new Dictionary<string, StorageDataElementMetadata>(),
+                    replayedResponseInstance,
+                    new Dictionary<string, StorageDataElementMetadata>
+                    {
+                        [authoritativeDataElementId.ToString()] = new("\"etag-replayed-response\""),
+                    },
                     new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4),
                     [authoritativeDataElementId],
                     replayed: true
@@ -1647,6 +1758,10 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal("Task_2", unitOfWork.Instance.Process?.CurrentTask?.ElementId);
         Assert.Equal(8, unitOfWork.StorageMetadata.Versions.InstanceVersion);
         Assert.Equal(4, unitOfWork.StorageMetadata.Versions.ProcessStateVersion);
+        Assert.Equal(
+            "\"etag-fresh-instance\"",
+            unitOfWork.StorageMetadata.DataElements[authoritativeDataElementId.ToString()].ETag
+        );
         Assert.Equal(stagedDataElementId.ToString(), createdChange.DataElement?.Id);
         WorkflowAggregateSaveOutcome replayRebuildOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
@@ -1664,16 +1779,24 @@ public sealed class InstanceDataUnitOfWorkTests
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
-            new StorageVersionMetadata(ProcessStateVersion: 1)
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            contentETag: "\"etag-1\""
         );
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), "\"etag-1\"");
-
-        await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+        string staleDataElementId = Guid.NewGuid().ToString();
+        setup.DataMutator.PreloadDataElementStorageMetadata(
+            new DataElementIdentifier(staleDataElementId),
+            new StorageDataElementMetadata("\"etag-stale\"")
+        );
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await setup.DataMutator.SaveChanges(changes);
 
         Assert.Equal("\"etag-2\"", setup.DataMutator.StorageMetadata.DataElements[setup.DataElement.Id].ETag);
+        Assert.DoesNotContain(staleDataElementId, setup.DataMutator.StorageMetadata.DataElements);
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get
+        );
     }
 
     [Fact]
@@ -1685,31 +1808,12 @@ public sealed class InstanceDataUnitOfWorkTests
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
-            new StorageVersionMetadata(ProcessStateVersion: 1)
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            otherDataTypeElementCount: 1,
+            contentETag: "\"etag-1\""
         );
-        var serviceOwnerDataType = new DataType
-        {
-            Id = "receipt",
-            AllowedContentTypes = ["application/json"],
-            MaxCount = 1,
-            TaskId = "Task_1",
-        };
-        setup.Services.AddDataType(serviceOwnerDataType);
-
-        Guid receiptDataGuid = Guid.NewGuid();
-        var receiptDataElement = new DataElement
-        {
-            Id = receiptDataGuid.ToString(),
-            InstanceGuid = setup.InstanceGuid.ToString(),
-            DataType = serviceOwnerDataType.Id,
-            ContentType = "application/json",
-            Filename = "receipt.json",
-        };
-        setup.DataMutator.Instance.Data.Add(receiptDataElement);
-        setup
-            .Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid)
-            .instance.Data.Add(receiptDataElement);
-        setup.Services.Storage.AddDataRaw(receiptDataGuid, initialBytes);
+        DataType serviceOwnerDataType = setup.DataMutator.DataTypes.Single(dataType => dataType.Id == "receipt");
+        DataElement receiptDataElement = setup.DataElements.Single(dataElement => dataElement.DataType == "receipt");
         setup.DataMutator.OverrideAuthenticationMethod(
             serviceOwnerDataType,
             StorageAuthenticationMethod.ServiceOwner()
@@ -1735,6 +1839,21 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.Services.Storage.RequestsResponses.Count(request =>
                 request.RequestMethod == HttpMethod.Put && request.RequestUrl?.AbsolutePath.Contains("/data/") == true
             )
+        );
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get
+        );
+        var updateRequests = setup
+            .Services.Storage.RequestsResponses.Where(request => request.RequestMethod == HttpMethod.Put)
+            .ToDictionary(request => request.RequestUrl!.Segments[^1].TrimEnd('/'));
+        Assert.Equal(
+            "\"etag-1\"",
+            Assert.Single(updateRequests[setup.DataElement.Id].RequestHeaders.IfMatch).ToString()
+        );
+        Assert.Equal(
+            "\"etag-1\"",
+            Assert.Single(updateRequests[receiptDataElement.Id].RequestHeaders.IfMatch).ToString()
         );
 
         (_, var storedData) = setup.Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid);
@@ -2054,17 +2173,12 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task UpdateBinaryDataElement_WhenStorageOmitsETag_RefreshesVersionsAndClearsStaleETag()
+    public async Task UpdateBinaryDataElement_WhenStorageOmitsETag_RefreshesVersionsAndKeepsMetadataEmpty()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
-        setup.DataMutator.PreloadDataElementStorageMetadata(
-            setup.DataElement,
-            new StorageDataElementMetadata("\"etag-stale\"")
-        );
-
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await setup.DataMutator.SaveChanges(changes);
@@ -2144,13 +2258,14 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task PreviousDataAccessor_AfterSavingUpdatedBinaryData_ReturnsOriginalBytes()
+    public async Task PreviousDataAccessor_AfterSavingUpdatedBinaryData_WhenPreviouslyLoaded_ReturnsOriginalBytes()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
 
+        await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await setup.DataMutator.SaveChanges(changes);
@@ -2446,7 +2561,9 @@ public sealed class InstanceDataUnitOfWorkTests
             bool seedStorageVersions = false,
             bool activateForCurrentFlow = true,
             int otherDataTypeElementCount = 0,
-            bool locked = false
+            bool locked = false,
+            string? contentETag = null,
+            bool lastContentETagEmpty = false
         )
         {
             var services = new MockedServiceCollection();
@@ -2489,6 +2606,7 @@ public sealed class InstanceDataUnitOfWorkTests
                         ContentType = contentType,
                         Filename = i == 0 ? fileName : $"payment-{i}.json",
                         Locked = locked,
+                        ContentEtag = lastContentETagEmpty && i == dataElementCount - 1 ? string.Empty : contentETag,
                     }
                 );
             }
@@ -2504,6 +2622,7 @@ public sealed class InstanceDataUnitOfWorkTests
                         ContentType = contentType,
                         Filename = i == 0 ? "receipt.json" : $"receipt-{i}.json",
                         Locked = locked,
+                        ContentEtag = contentETag,
                     }
                 );
             }
@@ -2520,7 +2639,7 @@ public sealed class InstanceDataUnitOfWorkTests
             services.Storage.AddInstance(instance);
             foreach (DataElement dataElement in dataElements)
             {
-                services.Storage.AddDataRaw(Guid.Parse(dataElement.Id), initialBytes);
+                services.Storage.AddDataRaw(Guid.Parse(dataElement.Id), initialBytes, dataElement.ContentEtag);
             }
 
             WrappedServiceProvider serviceProvider = services.BuildServiceProvider();

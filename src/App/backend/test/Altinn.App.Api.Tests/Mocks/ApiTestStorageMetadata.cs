@@ -8,6 +8,13 @@ namespace Altinn.App.Api.Tests.Mocks;
 internal sealed class ApiTestStorageMetadata
 {
     private readonly ConcurrentDictionary<string, InstanceState> _instances = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<(string InstanceId, Guid DataElementId), byte> _bumpBeforeNextContentRead =
+        new();
+
+    public void BumpDataElementBeforeNextContentRead(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    {
+        _bumpBeforeNextContentRead[(instanceIdentifier.GetInstanceId(), dataGuid)] = 0;
+    }
 
     public StorageVersionMetadata RegisterLoadedInstance(Instance instance)
     {
@@ -40,6 +47,23 @@ internal sealed class ApiTestStorageMetadata
         InstanceState state = GetState(instanceIdentifier.GetInstanceId());
         lock (state)
         {
+            return new StorageDataElementMetadata(CreateDataElementETag(state.GetDataElementVersion(dataGuid)));
+        }
+    }
+
+    public StorageDataElementMetadata GetDataElementMetadataForContentRead(
+        InstanceIdentifier instanceIdentifier,
+        Guid dataGuid
+    )
+    {
+        InstanceState state = GetState(instanceIdentifier.GetInstanceId());
+        lock (state)
+        {
+            if (_bumpBeforeNextContentRead.TryRemove((instanceIdentifier.GetInstanceId(), dataGuid), out _))
+            {
+                state.BumpDataElement(dataGuid);
+            }
+
             return new StorageDataElementMetadata(CreateDataElementETag(state.GetDataElementVersion(dataGuid)));
         }
     }

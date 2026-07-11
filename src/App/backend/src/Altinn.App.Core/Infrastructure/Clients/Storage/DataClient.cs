@@ -752,6 +752,7 @@ internal sealed class StorageDataClient : IStorageDataClient
                 instanceGuid,
                 dataId,
                 authenticationMethod,
+                expectedContentETag: null,
                 cancellationToken
             )
         ).Bytes;
@@ -762,6 +763,7 @@ internal sealed class StorageDataClient : IStorageDataClient
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod,
+        string? expectedContentETag,
         CancellationToken cancellationToken
     )
     {
@@ -775,7 +777,20 @@ internal sealed class StorageDataClient : IStorageDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
+        using HttpRequestMessage request = new(HttpMethod.Get, apiUrl);
+#pragma warning restore S7044
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        if (!string.IsNullOrEmpty(expectedContentETag))
+        {
+            request.Headers.IfMatch.Add(EntityTagHeaderValue.Parse(expectedContentETag));
+        }
+
+        HttpResponseMessage response = await _client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseContentRead,
+            cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -960,11 +975,12 @@ internal sealed class StorageDataClient : IStorageDataClient
                 throw new JsonException("Could not deserialize instance mutation response from Storage");
             }
 
-            var dataElementMetadata =
-                mutationResponse.DataElementContentEtags?.ToDictionary(
-                    pair => pair.Key,
-                    pair => new StorageDataElementMetadata(pair.Value)
-                ) ?? [];
+            var dataElementMetadata = (instance.Data ?? [])
+                .Where(dataElement => !string.IsNullOrEmpty(dataElement.ContentEtag))
+                .ToDictionary(
+                    dataElement => dataElement.Id,
+                    dataElement => new StorageDataElementMetadata(dataElement.ContentEtag)
+                );
 
             return new InstanceMutationWithStorageMetadata(
                 instance,

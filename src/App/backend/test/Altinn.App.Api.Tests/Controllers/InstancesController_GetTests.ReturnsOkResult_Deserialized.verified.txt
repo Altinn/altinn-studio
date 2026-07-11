@@ -45,6 +45,7 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
+        ContentEtag: "2",
         Locked: false,
         IsRead: true,
         LastChanged: DateTime_3
@@ -98,6 +99,7 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
+        ContentEtag: "2",
         Locked: false,
         IsRead: true,
         LastChanged: DateTime_3

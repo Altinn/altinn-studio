@@ -13,6 +13,7 @@ using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -296,5 +297,54 @@ public class ValidateControllerTests
         Assert.Equal(403, problemDetails.Status);
         Assert.Equal("Something went wrong.", problemDetails.Title);
         Assert.Equal(exception.Message, problemDetails?.Detail);
+    }
+
+    [Fact]
+    public async Task ValidateInstance_returns_stable_conflict_when_data_element_content_is_stale()
+    {
+        Guid dataElementId = Guid.NewGuid();
+        Instance instance = new()
+        {
+            Id = $"{InstanceOwnerPartyId}/{_instanceId}",
+            InstanceOwner = new() { PartyId = InstanceOwnerPartyId.ToString() },
+            Org = Org,
+            AppId = $"{Org}/{App}",
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "dummy" } },
+        };
+        _instanceClientMock
+            .Setup(i =>
+                i.GetInstance(
+                    App,
+                    Org,
+                    InstanceOwnerPartyId,
+                    _instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(instance);
+        _validationServiceMock
+            .Setup(v => v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null))
+            .ThrowsAsync(
+                new DataElementContentConflictException(
+                    instance.Id,
+                    dataElementId,
+                    new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.PreconditionFailed), "stale")
+                )
+            );
+
+        await using var sp = _services.BuildStrictServiceProvider();
+        var controller = sp.GetRequiredService<ValidateController>();
+
+        IActionResult result = await controller.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId);
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result);
+        var problemDetails = Assert.IsType<ProblemDetails>(conflict.Value);
+        Assert.Equal(StatusCodes.Status409Conflict, problemDetails.Status);
+        Assert.Equal("Data element content conflict", problemDetails.Title);
+        Assert.Equal(
+            $"Data element {dataElementId} for instance {instance.Id} changed after the instance was loaded. Reload the instance data and retry the request.",
+            problemDetails.Detail
+        );
     }
 }

@@ -308,6 +308,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> Post(
@@ -525,6 +526,11 @@ public class InstancesController : ControllerBase
                 notification: notification
             );
         }
+        catch (DataElementContentConflictException exception)
+        {
+            await TryDeleteInstance(instance);
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
         catch (WorkflowSubmissionFailedException exception)
         {
             return await HandleInitialWorkflowSubmissionFailure(
@@ -598,6 +604,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
@@ -863,6 +870,11 @@ public class InstancesController : ControllerBase
                 notification: instansiationInstance.Notification
             );
         }
+        catch (DataElementContentConflictException exception)
+        {
+            await TryDeleteInstance(instance);
+            return Conflict(DataElementContentConflictResult.Create(exception));
+        }
         catch (WorkflowSubmissionFailedException exception)
         {
             return await HandleInitialWorkflowSubmissionFailure(
@@ -1064,6 +1076,11 @@ public class InstancesController : ControllerBase
             string url = SelfLinkHelper.BuildFrontendSelfLink(targetInstance, Request);
 
             return Redirect(url);
+        }
+        catch (DataElementContentConflictException exception)
+        {
+            await TryDeleteInstance(targetInstance);
+            return Conflict(DataElementContentConflictResult.Create(exception));
         }
         catch (WorkflowSubmissionFailedException exception)
         {

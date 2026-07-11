@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using System.Net;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -179,6 +181,7 @@ internal sealed class DataClientMock : IStorageDataClient
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod,
+        string? expectedContentETag,
         CancellationToken cancellationToken
     )
     {
@@ -189,10 +192,17 @@ internal sealed class DataClientMock : IStorageDataClient
             authenticationMethod,
             cancellationToken
         );
-        StorageDataElementMetadata metadata = _storageMetadata.GetDataElementMetadata(
+        StorageDataElementMetadata metadata = _storageMetadata.GetDataElementMetadataForContentRead(
             new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
             dataId
         );
+        if (!string.IsNullOrEmpty(expectedContentETag) && metadata.ETag != expectedContentETag)
+        {
+            throw new PlatformHttpException(
+                new HttpResponseMessage(HttpStatusCode.PreconditionFailed),
+                "Content ETag mismatch"
+            );
+        }
         return new DataBytesWithStorageMetadata(bytes, metadata);
     }
 
@@ -620,7 +630,7 @@ internal sealed class DataClientMock : IStorageDataClient
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
 
         await WriteDataElementToFile(dataElement, org, app, instanceOwnerId, cancellationToken);
-        _storageMetadata.BumpDataElement(new InstanceIdentifier(instance), Guid.Parse(dataElement.Id));
+        _storageMetadata.BumpInstance(instance);
 
         return dataElement;
     }
@@ -706,7 +716,12 @@ internal sealed class DataClientMock : IStorageDataClient
         string instancePath = TestData.GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
 
         Instance instance = await InstanceClientMockSi.ReadJsonFile<Instance>(instancePath, cancellationToken);
-        instance.Data = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid, cancellationToken);
+        instance.Data =
+        [
+            .. (await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid, cancellationToken)).DistinctBy(
+                dataElement => dataElement.Id
+            ),
+        ];
 
         HashSet<Guid> changedDataElementIds = [];
         HashSet<Guid> deletedDataElementIds = [];
@@ -844,13 +859,26 @@ internal sealed class DataClientMock : IStorageDataClient
         instance.LastChanged = DateTime.UtcNow;
         await InstanceClientMockSi.WriteJsonFile(instancePath, instance, cancellationToken);
 
-        var (versions, dataElementMetadata) = _storageMetadata.BumpAggregate(
+        var (versions, _) = _storageMetadata.BumpAggregate(
             instanceIdentifier,
             changedDataElementIds,
             deletedDataElementIds,
             processStateChanged
         );
         InstanceStorageMetadataRegistry.Set(instance, versions);
+
+        var dataElementMetadata = instance.Data.ToDictionary(
+            dataElement => dataElement.Id,
+            dataElement =>
+            {
+                StorageDataElementMetadata metadata = _storageMetadata.GetDataElementMetadata(
+                    instanceIdentifier,
+                    Guid.Parse(dataElement.Id)
+                );
+                dataElement.ContentEtag = metadata.ETag;
+                return metadata;
+            }
+        );
 
         return new InstanceMutationWithStorageMetadata(instance, dataElementMetadata, versions, createdDataElementIds);
     }

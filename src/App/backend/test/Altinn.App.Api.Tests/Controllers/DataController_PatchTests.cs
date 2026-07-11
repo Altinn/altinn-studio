@@ -6,11 +6,14 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -20,8 +23,11 @@ using FluentAssertions;
 using Json.More;
 using Json.Patch;
 using Json.Pointer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -135,6 +141,58 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         response.Should().HaveStatusCode(expectedStatus);
         var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, _jsonSerializerOptions)!;
         return (response, responseString, responseObject);
+    }
+
+    [Fact]
+    public async Task Patch_WhenContentChangedAfterInstanceRead_ReturnsConflictWithReloadInstructions()
+    {
+        var storageMetadata = new ApiTestStorageMetadata();
+        OverrideServicesForThisTest = services => services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+        _ = GetClient();
+        storageMetadata.BumpDataElementBeforeNextContentRead(
+            new InstanceIdentifier(InstanceOwnerPartyId, _instanceGuid),
+            _dataGuid
+        );
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        );
+
+        var (response, responseBody, problemDetails) = await CallPatchApi<ProblemDetails>(
+            patch,
+            ignoredValidators: null,
+            HttpStatusCode.Conflict
+        );
+
+        problemDetails.Status.Should().Be(StatusCodes.Status409Conflict);
+        problemDetails.Title.Should().Be("Data element content conflict");
+        problemDetails.Detail.Should().Contain("Reload the instance data and retry the request.");
+        problemDetails.Detail.Should().Contain(_dataGuid.ToString());
+
+        var expectedConflict = new ConflictObjectResult(
+            DataElementContentConflictResult.Create(
+                new DataElementContentConflictException(
+                    $"{InstanceOwnerPartyId}/{_instanceGuid}",
+                    _dataGuid,
+                    new InvalidOperationException("stale")
+                )
+            )
+        );
+        var expectedHttpContext = new DefaultHttpContext { RequestServices = Services };
+        await using var expectedBody = new MemoryStream();
+        expectedHttpContext.Response.Body = expectedBody;
+        await expectedConflict.ExecuteResultAsync(
+            new ActionContext(expectedHttpContext, new RouteData(), new ActionDescriptor())
+        );
+        expectedBody.Position = 0;
+        using var expectedBodyReader = new StreamReader(expectedBody);
+        string expectedResponseBody = await expectedBodyReader.ReadToEndAsync();
+
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+        MediaTypeHeaderValue
+            .Parse(expectedHttpContext.Response.ContentType!)
+            .MediaType.Should()
+            .Be("application/problem+json");
+        JsonNode.DeepEquals(JsonNode.Parse(responseBody), JsonNode.Parse(expectedResponseBody)).Should().BeTrue();
     }
 
     [Fact]

@@ -7,6 +7,7 @@ using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -76,6 +77,7 @@ public class FormBootstrapController : ControllerBase
     [ProducesResponseType(typeof(FormBootstrapResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form/{uiFolder}")]
     public async Task<ActionResult<FormBootstrapResponse>> GetInstanceFormBootstrap(
@@ -116,6 +118,10 @@ public class FormBootstrapController : ControllerBase
             );
 
             return Ok(response);
+        }
+        catch (DataElementContentConflictException ex)
+        {
+            return Conflict(DataElementContentConflictResult.Create(ex));
         }
         catch (ServiceException ex)
         {

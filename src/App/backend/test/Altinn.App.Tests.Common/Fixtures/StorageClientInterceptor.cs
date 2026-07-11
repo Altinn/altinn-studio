@@ -152,7 +152,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             ("GET", { } path) when TryParseInstanceUrl(path, out int partyId, out Guid instanceGuid) =>
                 GetInstanceResponse(partyId, instanceGuid),
             ("GET", { } path) when TryParseDataUrl(path, out int partyId, out Guid instanceGuid, out Guid dataId) =>
-                GetData(partyId, instanceGuid, dataId),
+                GetData(partyId, instanceGuid, dataId, request),
             ("POST", { } path) when TryParseDataPostUrl(path, out int partyId, out Guid instanceGuid) => PostData(
                 partyId,
                 instanceGuid,
@@ -315,6 +315,7 @@ public class StorageClientInterceptor : HttpMessageHandler
                 Content = new StringContent($"Instance with id {instanceGuid} not found"),
             };
         }
+        StampContentEtags(instance);
         var instanceJson = System.Text.Json.JsonSerializer.Serialize(instance);
         return new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -346,7 +347,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         return false;
     }
 
-    private HttpResponseMessage GetData(int partyId, Guid instanceGuid, Guid dataId)
+    private HttpResponseMessage GetData(int partyId, Guid instanceGuid, Guid dataId, HttpRequestMessage request)
     {
         if (!_instances.TryGetValue($"{partyId}/{instanceGuid}", out Instance? instance))
         {
@@ -370,6 +371,10 @@ public class StorageClientInterceptor : HttpMessageHandler
             {
                 Content = new StringContent($"Data with id {dataId} not found"),
             };
+        }
+        if (ValidateWritePreconditions(partyId, instanceGuid, request, dataId) is { } validationFailure)
+        {
+            return validationFailure;
         }
         HttpResponseMessage response = new(HttpStatusCode.OK)
         {
@@ -526,7 +531,6 @@ public class StorageClientInterceptor : HttpMessageHandler
             return validationFailure;
         }
 
-        var responseEtags = new Dictionary<string, string>();
         var createdDataElementIds = new List<Guid>();
         foreach (StorageInstanceMutationCreateDataElement create in mutation.CreateDataElements)
         {
@@ -546,7 +550,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             };
             instance.Data.Add(dataElement);
             _data[dataId] = part.Bytes;
-            responseEtags[dataElement.Id] = BumpDataETag(dataId);
+            dataElement.ContentEtag = BumpDataETag(dataId);
         }
 
         foreach (StorageInstanceMutationUpdateDataElement update in mutation.UpdateDataElements)
@@ -564,7 +568,7 @@ public class StorageClientInterceptor : HttpMessageHandler
 
                 if (_dataEtags.ContainsKey(update.DataElementId))
                 {
-                    responseEtags[dataElement.Id] = BumpDataETag(update.DataElementId);
+                    dataElement.ContentEtag = BumpDataETag(update.DataElementId);
                 }
             }
 
@@ -613,13 +617,9 @@ public class StorageClientInterceptor : HttpMessageHandler
             instance.Process = processState;
         }
 
+        StampContentEtags(instance);
         string responseBody = JsonConvert.SerializeObject(
-            new StorageInstanceMutationResponse
-            {
-                Instance = instance,
-                CreatedDataElementIds = createdDataElementIds,
-                DataElementContentEtags = responseEtags,
-            }
+            new StorageInstanceMutationResponse { Instance = instance, CreatedDataElementIds = createdDataElementIds }
         );
         HttpResponseMessage response = AddVersionHeaders(
             new HttpResponseMessage(HttpStatusCode.OK)
@@ -1419,6 +1419,17 @@ public class StorageClientInterceptor : HttpMessageHandler
         string eTag = $"\"etag-{contentVersion}\"";
         _dataEtags[dataId] = eTag;
         return eTag;
+    }
+
+    private void StampContentEtags(Instance instance)
+    {
+        foreach (DataElement dataElement in instance.Data ?? [])
+        {
+            dataElement.ContentEtag =
+                Guid.TryParse(dataElement.Id, out Guid dataId) && _dataEtags.TryGetValue(dataId, out string? eTag)
+                    ? eTag
+                    : null;
+        }
     }
 
     private static bool TryParseGeneratedETagVersion(string eTag, out int version)
