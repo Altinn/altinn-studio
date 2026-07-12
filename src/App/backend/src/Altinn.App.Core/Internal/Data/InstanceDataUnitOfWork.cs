@@ -987,13 +987,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         IInstanceMutationClient mutationClient = _dataClient;
         StorageAuthenticationMethod authenticationMethod =
             mutationPlan.AuthenticationMethods.SingleOrDefault() ?? _defaultAuthenticationMethod;
-        InstanceMutationWithStorageMetadata result = await mutationClient.CommitInstanceMutationWithStorageMetadata(
-            _instanceOwnerPartyId,
-            _instanceGuid,
-            mutationPlan.Request,
-            mutationPlan.ContentParts,
-            authenticationMethod,
-            GetTaskBoundWritePreconditions()
+        InstanceMutationWithStorageMetadata result = await ExecuteTaskBoundStorageWrite(() =>
+            mutationClient.CommitInstanceMutationWithStorageMetadata(
+                _instanceOwnerPartyId,
+                _instanceGuid,
+                mutationPlan.Request,
+                mutationPlan.ContentParts,
+                authenticationMethod,
+                GetTaskBoundWritePreconditions()
+            )
         );
 
         ApplyAggregateMutationResult(changes, mutationPlan, result);
@@ -1764,15 +1766,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         StorageWritePreconditions? preconditions
     )
     {
-        return await _dataClient.InsertBinaryDataWithStorageMetadata(
-            Instance.Id,
-            dataType,
-            contentType,
-            filename,
-            stream,
-            generatedFromTask: generatedFromTask,
-            authenticationMethod: authenticationMethod,
-            preconditions: preconditions
+        return await ExecuteTaskBoundStorageWrite(() =>
+            _dataClient.InsertBinaryDataWithStorageMetadata(
+                Instance.Id,
+                dataType,
+                contentType,
+                filename,
+                stream,
+                generatedFromTask: generatedFromTask,
+                authenticationMethod: authenticationMethod,
+                preconditions: preconditions
+            )
         );
     }
 
@@ -1785,14 +1789,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         StorageWritePreconditions? preconditions
     )
     {
-        return await _dataClient.UpdateBinaryDataWithStorageMetadata(
-            new InstanceIdentifier(Instance),
-            contentType,
-            filename,
-            dataGuid,
-            stream,
-            authenticationMethod: authenticationMethod,
-            preconditions: preconditions
+        return await ExecuteTaskBoundStorageWrite(() =>
+            _dataClient.UpdateBinaryDataWithStorageMetadata(
+                new InstanceIdentifier(Instance),
+                contentType,
+                filename,
+                dataGuid,
+                stream,
+                authenticationMethod: authenticationMethod,
+                preconditions: preconditions
+            )
         );
     }
 
@@ -1802,11 +1808,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         StorageWritePreconditions? preconditions
     )
     {
-        return await _dataClient.UpdateDataElementWithStorageMetadata(
-            Instance,
-            dataElement,
-            authenticationMethod: authenticationMethod,
-            preconditions: preconditions
+        return await ExecuteTaskBoundStorageWrite(() =>
+            _dataClient.UpdateDataElementWithStorageMetadata(
+                Instance,
+                dataElement,
+                authenticationMethod: authenticationMethod,
+                preconditions: preconditions
+            )
         );
     }
 
@@ -1819,14 +1827,29 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         StorageWritePreconditions? preconditions
     )
     {
-        return await _dataClient.DeleteDataWithStorageMetadata(
-            instanceOwnerPartyId,
-            instanceGuid,
-            dataGuid,
-            delay,
-            authenticationMethod: authenticationMethod,
-            preconditions: preconditions
+        return await ExecuteTaskBoundStorageWrite(() =>
+            _dataClient.DeleteDataWithStorageMetadata(
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataGuid,
+                delay,
+                authenticationMethod: authenticationMethod,
+                preconditions: preconditions
+            )
         );
+    }
+
+    private static async Task<T> ExecuteTaskBoundStorageWrite<T>(Func<Task<T>> write)
+    {
+        try
+        {
+            return await write();
+        }
+        catch (PlatformHttpException exception)
+            when (exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
+        {
+            throw new InstanceDataStaleException(exception);
+        }
     }
 
     private StorageWritePreconditions GetTaskBoundWritePreconditions()
@@ -2031,13 +2054,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         int instanceOwnerPartyId = int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture);
         Guid instanceGuid = Guid.Parse(Instance.Id.Split("/")[1]);
 
-        return await _instanceClient.UpdatePresentationTextsWithStorageMetadata(
-            instanceOwnerPartyId,
-            instanceGuid,
-            presentationTexts,
-            authenticationMethod,
-            preconditions: preconditions,
-            ct: CancellationToken.None
+        return await ExecuteTaskBoundStorageWrite(() =>
+            _instanceClient.UpdatePresentationTextsWithStorageMetadata(
+                instanceOwnerPartyId,
+                instanceGuid,
+                presentationTexts,
+                authenticationMethod,
+                preconditions: preconditions,
+                ct: CancellationToken.None
+            )
         );
     }
 
@@ -2050,13 +2075,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         int instanceOwnerPartyId = int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture);
         Guid instanceGuid = Guid.Parse(Instance.Id.Split("/")[1]);
 
-        return await _instanceClient.UpdateDataValuesWithStorageMetadata(
-            instanceOwnerPartyId,
-            instanceGuid,
-            dataValues,
-            authenticationMethod,
-            preconditions: preconditions,
-            ct: CancellationToken.None
+        return await ExecuteTaskBoundStorageWrite(() =>
+            _instanceClient.UpdateDataValuesWithStorageMetadata(
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataValues,
+                authenticationMethod,
+                preconditions: preconditions,
+                ct: CancellationToken.None
+            )
         );
     }
 

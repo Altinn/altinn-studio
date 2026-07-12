@@ -534,7 +534,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveChanges_WhenContentETagIsStale_ThrowsPreconditionFailed()
+    public async Task SaveChanges_WhenAggregateMutationContentETagIsStale_ThrowsInstanceDataStaleException()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] externalBytes = Encoding.UTF8.GetBytes("""{"status":"externally-updated"}""");
@@ -550,11 +550,12 @@ public sealed class InstanceDataUnitOfWorkTests
 
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+        InstanceDataStaleException exception = await Assert.ThrowsAsync<InstanceDataStaleException>(() =>
             setup.DataMutator.SaveChanges(changes)
         );
 
-        Assert.Equal(HttpStatusCode.PreconditionFailed, exception.Response.StatusCode);
+        var innerException = Assert.IsType<PlatformHttpException>(exception.InnerException);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, innerException.Response.StatusCode);
         Assert.True(setup.ServiceProvider.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>().IsActive);
 
         setup.DataMutator.Dispose();
@@ -569,7 +570,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveChanges_WhenProcessStateVersionIsStale_ThrowsPreconditionFailed()
+    public async Task SaveChanges_WhenProcessStateVersionIsStale_ThrowsInstanceDataStaleException()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] newBytes = Encoding.UTF8.GetBytes("""{"status":"new"}""");
@@ -581,12 +582,256 @@ public sealed class InstanceDataUnitOfWorkTests
 
         setup.DataMutator.AddBinaryDataElement("payment", "application/json", "new-payment.json", newBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+        InstanceDataStaleException exception = await Assert.ThrowsAsync<InstanceDataStaleException>(() =>
             setup.DataMutator.SaveChanges(changes)
         );
 
-        Assert.Equal(HttpStatusCode.PreconditionFailed, exception.Response.StatusCode);
+        var innerException = Assert.IsType<PlatformHttpException>(exception.InnerException);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, innerException.Response.StatusCode);
         Assert.Single(setup.DataMutator.Instance.Data);
+    }
+
+    [Fact]
+    public async Task SaveChanges_WhenTaskBoundWriteReturnsNonPreconditionFailure_RethrowsSamePlatformException()
+    {
+        PlatformHttpException storageException = CreatePlatformException(HttpStatusCode.ServiceUnavailable);
+        var dataClientMock = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        dataClientMock
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(storageException);
+        DataType dataType = CreateBinaryDataType("payment");
+        using InstanceDataUnitOfWork unitOfWork = CreateStorageWriteUnitOfWork(dataClientMock, dataType);
+        unitOfWork.AddBinaryDataElement(dataType.Id, "application/json", "payment.json", "content"u8.ToArray());
+
+        PlatformHttpException actual = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            unitOfWork.SaveChanges(unitOfWork.GetDataElementChanges(initializeAltinnRowId: false))
+        );
+
+        Assert.Same(storageException, actual);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, actual.Response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(LegacyTaskBoundWrite.Insert)]
+    [InlineData(LegacyTaskBoundWrite.MetadataUpdate)]
+    [InlineData(LegacyTaskBoundWrite.Delete)]
+    public async Task SaveChanges_WhenLegacyTaskBoundWriteReturnsPreconditionFailed_ThrowsInstanceDataStaleException(
+        LegacyTaskBoundWrite write
+    )
+    {
+        PlatformHttpException storageException = CreatePlatformException(HttpStatusCode.PreconditionFailed);
+        var dataClientMock = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        DataType currentUserDataType = CreateBinaryDataType("payment");
+        DataType serviceOwnerDataType = CreateBinaryDataType("receipt");
+        DataElement currentUserDataElement = CreateDataElement(currentUserDataType.Id);
+        DataElement serviceOwnerDataElement = CreateDataElement(serviceOwnerDataType.Id);
+        using InstanceDataUnitOfWork unitOfWork = CreateStorageWriteUnitOfWork(
+            dataClientMock,
+            [currentUserDataElement, serviceOwnerDataElement],
+            currentUserDataType,
+            serviceOwnerDataType
+        );
+        unitOfWork.OverrideAuthenticationMethod(serviceOwnerDataType, StorageAuthenticationMethod.ServiceOwner());
+
+        switch (write)
+        {
+            case LegacyTaskBoundWrite.Insert:
+                dataClientMock
+                    .Setup(x =>
+                        x.InsertBinaryDataWithStorageMetadata(
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string?>(),
+                            It.IsAny<Stream>(),
+                            It.IsAny<string?>(),
+                            It.IsAny<StorageAuthenticationMethod?>(),
+                            It.IsAny<StorageWritePreconditions?>(),
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .ThrowsAsync(storageException);
+                AddLegacyCreatedElements(unitOfWork, currentUserDataType, serviceOwnerDataType);
+                break;
+            case LegacyTaskBoundWrite.MetadataUpdate:
+                dataClientMock
+                    .Setup(x =>
+                        x.InsertBinaryDataWithStorageMetadata(
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string?>(),
+                            It.IsAny<Stream>(),
+                            It.IsAny<string?>(),
+                            It.IsAny<StorageAuthenticationMethod?>(),
+                            It.IsAny<StorageWritePreconditions?>(),
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .ReturnsAsync(() =>
+                        new DataElementWithStorageMetadata(
+                            CreateDataElement(currentUserDataType.Id),
+                            new StorageDataElementMetadata(),
+                            StorageVersionMetadata.Empty
+                        )
+                    );
+                dataClientMock
+                    .Setup(x =>
+                        x.UpdateDataElementWithStorageMetadata(
+                            It.IsAny<Instance>(),
+                            It.IsAny<DataElement>(),
+                            It.IsAny<StorageAuthenticationMethod?>(),
+                            It.IsAny<StorageWritePreconditions?>(),
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .ThrowsAsync(storageException);
+                AddLegacyCreatedElements(
+                    unitOfWork,
+                    currentUserDataType,
+                    serviceOwnerDataType,
+                    metadata: [new KeyValueEntry { Key = "source", Value = "test" }]
+                );
+                break;
+            case LegacyTaskBoundWrite.Delete:
+                dataClientMock
+                    .Setup(x =>
+                        x.DeleteDataWithStorageMetadata(
+                            It.IsAny<int>(),
+                            It.IsAny<Guid>(),
+                            It.IsAny<Guid>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<StorageAuthenticationMethod?>(),
+                            It.IsAny<StorageWritePreconditions?>(),
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .ThrowsAsync(storageException);
+                unitOfWork.RemoveDataElement(currentUserDataElement);
+                unitOfWork.RemoveDataElement(serviceOwnerDataElement);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(write), write, null);
+        }
+
+        InstanceDataStaleException actual = await Assert.ThrowsAsync<InstanceDataStaleException>(() =>
+            unitOfWork.SaveChanges(unitOfWork.GetDataElementChanges(initializeAltinnRowId: false))
+        );
+
+        Assert.Same(storageException, actual.InnerException);
+    }
+
+    [Theory]
+    [InlineData(DerivedInstanceFieldWrite.PresentationTexts)]
+    [InlineData(DerivedInstanceFieldWrite.DataValues)]
+    public async Task SaveChanges_WhenLegacyDerivedInstanceFieldWriteReturnsPreconditionFailed_ThrowsInstanceDataStaleException(
+        DerivedInstanceFieldWrite derivedFieldWrite
+    )
+    {
+        PlatformHttpException storageException = CreatePlatformException(HttpStatusCode.PreconditionFailed);
+        var dataClientMock = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        var instanceClientMock = new Mock<IStorageInstanceClient>(MockBehavior.Strict);
+        if (derivedFieldWrite is DerivedInstanceFieldWrite.PresentationTexts)
+        {
+            instanceClientMock
+                .Setup(x =>
+                    x.UpdatePresentationTextsWithStorageMetadata(
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<PresentationTexts>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<StorageWritePreconditions?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ThrowsAsync(storageException);
+        }
+        else
+        {
+            instanceClientMock
+                .Setup(x =>
+                    x.UpdateDataValuesWithStorageMetadata(
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<DataValues>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<StorageWritePreconditions?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ThrowsAsync(storageException);
+        }
+
+        DataType currentUserDataType = CreateBinaryDataType("payment");
+        DataType serviceOwnerDataType = CreateBinaryDataType("receipt");
+        DataType formDataType = new()
+        {
+            Id = "form",
+            TaskId = "Task_1",
+            AppLogic = new ApplicationLogic { ClassRef = typeof(PaymentForm).FullName },
+        };
+        DataElement currentUserDataElement = CreateDataElement(currentUserDataType.Id);
+        DataElement serviceOwnerDataElement = CreateDataElement(serviceOwnerDataType.Id);
+        DataElement formDataElement = CreateDataElement(formDataType.Id);
+        ApplicationMetadata appMetadata = CreateApplicationMetadata(
+            currentUserDataType,
+            serviceOwnerDataType,
+            formDataType
+        );
+        DataField derivedField = new()
+        {
+            Id = "status",
+            DataTypeId = formDataType.Id,
+            Path = nameof(PaymentForm.Status),
+        };
+        if (derivedFieldWrite is DerivedInstanceFieldWrite.PresentationTexts)
+        {
+            appMetadata.PresentationFields = [derivedField];
+        }
+        else
+        {
+            appMetadata.DataFields = [derivedField];
+        }
+        using InstanceDataUnitOfWork unitOfWork = CreateStorageWriteUnitOfWork(
+            dataClientMock.Object,
+            instanceClientMock.Object,
+            appMetadata,
+            [currentUserDataElement, serviceOwnerDataElement, formDataElement]
+        );
+        unitOfWork.Instance.PresentationTexts = [];
+        unitOfWork.Instance.DataValues = [];
+        unitOfWork.SetFormData(
+            formDataElement,
+            FormDataWrapperFactory.Create(new PaymentForm { Status = "updated" }, formDataType, formDataElement)
+        );
+        unitOfWork.OverrideAuthenticationMethod(serviceOwnerDataType, StorageAuthenticationMethod.ServiceOwner());
+        BinaryDataChange currentUserChange = unitOfWork.UpdateBinaryDataElement(
+            currentUserDataElement,
+            "application/json",
+            "payment"u8.ToArray()
+        );
+        BinaryDataChange serviceOwnerChange = unitOfWork.UpdateBinaryDataElement(
+            serviceOwnerDataElement,
+            "application/json",
+            "receipt"u8.ToArray()
+        );
+        var changes = new DataElementChanges([currentUserChange, serviceOwnerChange]);
+
+        InstanceDataStaleException actual = await Assert.ThrowsAsync<InstanceDataStaleException>(() =>
+            unitOfWork.SaveChanges(changes)
+        );
+
+        Assert.Same(storageException, actual.InnerException);
     }
 
     [Fact]
@@ -1117,6 +1362,30 @@ public sealed class InstanceDataUnitOfWorkTests
 
         setup.DataMutator.Dispose();
         Assert.False(setup.ServiceProvider.GetRequiredService<IInstanceDataMutatorStorageAccessGuard>().IsActive);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_WhenStorageReturnsPreconditionFailed_ThrowsPlatformHttpException()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"workflow-updated"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBytes,
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            contentETag: "\"etag-1\""
+        );
+        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), "\"etag-2\"");
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            setup.DataMutator.SaveWorkflowOwnedAggregate(changes, "stale-workflow-save", CancellationToken.None)
+        );
+
+        Assert.IsNotType<InstanceDataStaleException>(exception);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, exception.Response.StatusCode);
     }
 
     [Fact]
@@ -1862,6 +2131,37 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task SaveChanges_WhenLegacyPutContentETagIsStale_ThrowsInstanceDataStaleException()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"updated"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBytes,
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            otherDataTypeElementCount: 1,
+            contentETag: "\"etag-1\""
+        );
+        DataType serviceOwnerDataType = setup.DataMutator.DataTypes.Single(dataType => dataType.Id == "receipt");
+        DataElement receiptDataElement = setup.DataElements.Single(dataElement => dataElement.DataType == "receipt");
+        setup.DataMutator.OverrideAuthenticationMethod(
+            serviceOwnerDataType,
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), "\"etag-2\"");
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        setup.DataMutator.UpdateBinaryDataElement(receiptDataElement, receiptDataElement.ContentType!, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+
+        InstanceDataStaleException exception = await Assert.ThrowsAsync<InstanceDataStaleException>(() =>
+            setup.DataMutator.SaveChanges(changes)
+        );
+
+        var innerException = Assert.IsType<PlatformHttpException>(exception.InnerException);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, innerException.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task SaveChanges_WhenMixedAuthenticationMethodsIncludeDeleteWithoutLockStatus_FallsBackToLegacyFanOut()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
@@ -2325,6 +2625,111 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Contains("cannot be updated", exception.Message, StringComparison.Ordinal);
     }
 
+    private static PlatformHttpException CreatePlatformException(HttpStatusCode statusCode) =>
+        new(new HttpResponseMessage(statusCode), $"Storage returned {(int)statusCode}");
+
+    private static DataType CreateBinaryDataType(string id) =>
+        new()
+        {
+            Id = id,
+            TaskId = "Task_1",
+            AllowedContentTypes = ["application/json"],
+        };
+
+    private static DataElement CreateDataElement(string dataType) =>
+        new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = dataType,
+            ContentType = "application/json",
+        };
+
+    private static void AddLegacyCreatedElements(
+        InstanceDataUnitOfWork unitOfWork,
+        DataType currentUserDataType,
+        DataType serviceOwnerDataType,
+        List<KeyValueEntry>? metadata = null
+    )
+    {
+        unitOfWork.AddBinaryDataElement(
+            currentUserDataType.Id,
+            "application/json",
+            "payment.json",
+            "payment"u8.ToArray(),
+            metadata: metadata
+        );
+        unitOfWork.AddBinaryDataElement(
+            serviceOwnerDataType.Id,
+            "application/json",
+            "receipt.json",
+            "receipt"u8.ToArray()
+        );
+    }
+
+    private static ApplicationMetadata CreateApplicationMetadata(params DataType[] dataTypes) =>
+        new($"{MockedServiceCollection.Org}/{MockedServiceCollection.App}") { DataTypes = [.. dataTypes] };
+
+    private static InstanceDataUnitOfWork CreateStorageWriteUnitOfWork(
+        Mock<IStorageDataClient> dataClientMock,
+        params DataType[] dataTypes
+    ) =>
+        CreateStorageWriteUnitOfWork(
+            dataClientMock.Object,
+            Mock.Of<IStorageInstanceClient>(),
+            CreateApplicationMetadata(dataTypes),
+            []
+        );
+
+    private static InstanceDataUnitOfWork CreateStorageWriteUnitOfWork(
+        Mock<IStorageDataClient> dataClientMock,
+        IReadOnlyList<DataElement> dataElements,
+        params DataType[] dataTypes
+    ) =>
+        CreateStorageWriteUnitOfWork(
+            dataClientMock.Object,
+            Mock.Of<IStorageInstanceClient>(),
+            CreateApplicationMetadata(dataTypes),
+            dataElements
+        );
+
+    private static InstanceDataUnitOfWork CreateStorageWriteUnitOfWork(
+        IStorageDataClient dataClient,
+        IStorageInstanceClient instanceClient,
+        ApplicationMetadata appMetadata,
+        IReadOnlyList<DataElement> dataElements
+    )
+    {
+        const int instanceOwnerPartyId = 123456;
+        Guid instanceGuid = Guid.NewGuid();
+        foreach (DataElement dataElement in dataElements)
+        {
+            dataElement.InstanceGuid = instanceGuid.ToString();
+        }
+
+        var instance = new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = appMetadata.Id,
+            Org = MockedServiceCollection.Org,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Data = [.. dataElements],
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+        };
+        return new InstanceDataUnitOfWork(
+            instance,
+            dataClient,
+            instanceClient,
+            appMetadata,
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            new InstanceDataMutatorStorageAccessGuard(),
+            taskId: "Task_1",
+            language: null
+        );
+    }
+
     private static DataElement CreatePersistedDataElement(
         StorageInstanceMutationCreateDataElement create,
         Guid dataElementId,
@@ -2449,6 +2854,19 @@ public sealed class InstanceDataUnitOfWorkTests
         public string? Status { get; set; }
 
         public string? CustomerName { get; set; }
+    }
+
+    public enum DerivedInstanceFieldWrite
+    {
+        PresentationTexts,
+        DataValues,
+    }
+
+    public enum LegacyTaskBoundWrite
+    {
+        Insert,
+        MetadataUpdate,
+        Delete,
     }
 
     private static async Task RunAppCallbackThatUsesDirectStorage(

@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Net;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -10,6 +12,9 @@ internal sealed class ApiTestStorageMetadata
     private readonly ConcurrentDictionary<string, InstanceState> _instances = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(string InstanceId, Guid DataElementId), byte> _bumpBeforeNextContentRead =
         new();
+    private readonly TaskCompletionSource _firstAggregateMutation = new(
+        TaskCreationOptions.RunContinuationsAsynchronously
+    );
 
     public void BumpDataElementBeforeNextContentRead(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
@@ -21,6 +26,48 @@ internal sealed class ApiTestStorageMetadata
         StorageVersionMetadata metadata = GetVersions(instance);
         InstanceStorageMetadataRegistry.Set(instance, metadata);
         return metadata;
+    }
+
+    public Task WaitForFirstAggregateMutation(CancellationToken cancellationToken) =>
+        _firstAggregateMutation.Task.WaitAsync(cancellationToken);
+
+    public void ValidateAggregatePreconditions(
+        InstanceIdentifier instanceIdentifier,
+        StorageInstanceMutationRequest mutation,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        InstanceState state = GetState(instanceIdentifier.GetInstanceId());
+        lock (state)
+        {
+            if (
+                preconditions?.ProcessStateVersion is { } expectedProcessStateVersion
+                && expectedProcessStateVersion != state.ProcessStateVersion
+            )
+            {
+                ThrowPreconditionFailed("Process state version mismatch");
+            }
+
+            if (
+                preconditions?.InstanceVersion is { } expectedInstanceVersion
+                && expectedInstanceVersion != state.InstanceVersion
+            )
+            {
+                ThrowPreconditionFailed("Instance version mismatch");
+            }
+
+            foreach (StorageInstanceMutationUpdateDataElement update in mutation.UpdateDataElements)
+            {
+                if (
+                    update.ExpectedCurrentBlobVersion is { } expectedCurrentBlobVersion
+                    && expectedCurrentBlobVersion
+                        != CreateDataElementETag(state.GetDataElementVersion(update.DataElementId))
+                )
+                {
+                    ThrowPreconditionFailed("Data element content version mismatch");
+                }
+            }
+        }
     }
 
     public StorageVersionMetadata GetVersions(Instance instance)
@@ -146,13 +193,18 @@ internal sealed class ApiTestStorageMetadata
                 state.DataElementVersions.Remove(dataGuid);
             }
 
-            return (state.Versions, dataElementMetadata);
+            var result = (state.Versions, (IReadOnlyDictionary<string, StorageDataElementMetadata>)dataElementMetadata);
+            _firstAggregateMutation.TrySetResult();
+            return result;
         }
     }
 
     private InstanceState GetState(string instanceId) => _instances.GetOrAdd(instanceId, _ => new InstanceState());
 
     private static string CreateDataElementETag(int version) => $"\"{version}\"";
+
+    private static void ThrowPreconditionFailed(string message) =>
+        throw new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.PreconditionFailed), message);
 
     private sealed class InstanceState
     {

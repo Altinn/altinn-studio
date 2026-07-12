@@ -712,6 +712,7 @@ internal sealed class DataClientMock : IStorageDataClient
     )
     {
         var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+        _storageMetadata.ValidateAggregatePreconditions(instanceIdentifier, mutation, preconditions);
         (string org, string app) = GetInstanceOrgApp(instanceIdentifier);
         string instancePath = TestData.GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
 
