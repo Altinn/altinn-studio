@@ -43,6 +43,15 @@ public interface IDataRepository
     );
 
     /// <summary>
+    /// Atomically reads data element metadata and its authoritative current blob version.
+    /// </summary>
+    Task<DataElementReadResult> ReadWithCurrentBlobVersion(
+        Guid instanceGuid,
+        Guid dataElementId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Deletes data-element metadata and detaches current blob-version metadata for later cleanup.
     /// </summary>
     /// <param name="dataElement">the element to delete</param>
@@ -160,3 +169,5 @@ public interface IDataRepository
         CancellationToken cancellationToken = default
     );
 }
+
+public sealed record DataElementReadResult(DataElement DataElement, string CurrentBlobVersion);

@@ -224,6 +224,7 @@ public class DataController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
     [Produces("application/json")]
     public async Task<ActionResult> Get(
         int instanceOwnerPartyId,
@@ -248,15 +249,19 @@ public class DataController : ControllerBase
             return instanceError;
         }
 
-        (DataElement dataElement, ActionResult dataElementError) = await GetDataElementAsync(
-            instanceGuid,
-            dataGuid,
-            cancellationToken
-        );
-        if (dataElement == null)
+        (DataElementReadResult dataElementRead, ActionResult dataElementError) =
+            await GetDataElementWithCurrentBlobVersionAsync(
+                instanceGuid,
+                dataGuid,
+                cancellationToken
+            );
+        if (dataElementRead == null)
         {
             return dataElementError;
         }
+
+        DataElement dataElement = dataElementRead.DataElement;
+        string currentBlobVersion = dataElementRead.CurrentBlobVersion;
 
         (Application application, ActionResult applicationError) = await GetApplicationAsync(
             instance.AppId,
@@ -291,21 +296,24 @@ public class DataController : ControllerBase
             return NotFound();
         }
 
-        if (!dataElement.IsRead && !appOwnerRequestingElement)
+        (string ifMatchBlobVersion, ActionResult ifMatchError) = TryGetIfMatchBlobVersion();
+        if (ifMatchError is not null)
         {
-            await _dataRepository.UpdateReadStatus(
-                instanceGuid,
-                dataGuid,
-                true,
-                cancellationToken
-            );
+            return ifMatchError;
         }
 
-        string currentBlobVersion = await _dataRepository.ReadCurrentBlobVersion(
-            instanceGuid,
-            dataGuid,
-            cancellationToken
-        );
+        if (
+            ifMatchBlobVersion is not null
+            && !string.Equals(currentBlobVersion, ifMatchBlobVersion, StringComparison.Ordinal)
+        )
+        {
+            return StatusCode(StatusCodes.Status412PreconditionFailed);
+        }
+
+        if (!dataElement.IsRead && !appOwnerRequestingElement)
+        {
+            await _dataRepository.UpdateReadStatus(instanceGuid, dataGuid, true, cancellationToken);
+        }
 
         if (
             (instance.AppId.Contains(@"/a1-") || instance.AppId.Contains(@"/a2-"))
@@ -320,7 +328,15 @@ public class DataController : ControllerBase
             await _instanceRepository.ReadVersions(instanceGuid, cancellationToken)
         );
 
-        if (HasExpectedBlobStoragePath(dataElement, currentBlobVersion, instance.AppId, instanceGuid, dataGuid))
+        if (
+            HasExpectedBlobStoragePath(
+                dataElement,
+                currentBlobVersion,
+                instance.AppId,
+                instanceGuid,
+                dataGuid
+            )
+        )
         {
             Stream dataStream = await _blobRepository.ReadBlob(
                 instance.Org,
@@ -727,7 +743,15 @@ public class DataController : ControllerBase
             cancellationToken
         );
 
-        if (!HasExpectedBlobStoragePath(dataElement, currentBlobVersion, instance.AppId, instanceGuid, dataGuid))
+        if (
+            !HasExpectedBlobStoragePath(
+                dataElement,
+                currentBlobVersion,
+                instance.AppId,
+                instanceGuid,
+                dataGuid
+            )
+        )
         {
             return StatusCode(500, "Storage url does not match with instance metadata");
         }
@@ -1046,11 +1070,8 @@ public class DataController : ControllerBase
         [FromBody] FileScanStatus fileScanStatus
     )
     {
-        DataElementWriteResult<DataElement> updateResult = await _dataRepository.UpdateFileScanStatus(
-            instanceGuid,
-            dataGuid,
-            fileScanStatus
-        );
+        DataElementWriteResult<DataElement> updateResult =
+            await _dataRepository.UpdateFileScanStatus(instanceGuid, dataGuid, fileScanStatus);
 
         VersionPreconditionHelper.WriteVersionResponseHeaders(Response, updateResult);
         return Ok();
@@ -1155,6 +1176,26 @@ public class DataController : ControllerBase
         return dataElement is null
             ? (null, NotFound($"Unable to find any data element with id: {dataGuid}."))
             : (dataElement, null);
+    }
+
+    private async Task<(
+        DataElementReadResult DataElementRead,
+        ActionResult ErrorMessage
+    )> GetDataElementWithCurrentBlobVersionAsync(
+        Guid instanceGuid,
+        Guid dataGuid,
+        CancellationToken cancellationToken = default
+    )
+    {
+        DataElementReadResult dataElementRead = await _dataRepository.ReadWithCurrentBlobVersion(
+            instanceGuid,
+            dataGuid,
+            cancellationToken
+        );
+
+        return dataElementRead?.DataElement is null
+            ? (null, NotFound($"Unable to find any data element with id: {dataGuid}."))
+            : (dataElementRead, null);
     }
 
     private async Task<ActionResult<DataElement>> InitiateDelayedDelete(

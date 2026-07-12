@@ -21,7 +21,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using InstanceMutationResponse = Altinn.Platform.Storage.LocalTest.Models.InstanceMutationResponse;
 
 namespace Altinn.Platform.Storage.Controllers;
 
@@ -741,9 +740,6 @@ public class InstanceMutationsController(
                 Instance = updatedInstance,
                 CreatedDataElementIds = [.. applyResult.CreatedDataElementIds],
                 Replayed = applyResult.Replayed,
-                DataElementContentEtags = BuildContentETagMap(
-                    applyResult.DataElementBlobVersionIds
-                ),
             }
         );
     }
@@ -1346,27 +1342,6 @@ public class InstanceMutationsController(
             Response,
             await _instanceRepository.ReadVersions(instanceGuid, cancellationToken)
         );
-    }
-
-    private static Dictionary<string, string> BuildContentETagMap(
-        IReadOnlyDictionary<string, string> dataElementBlobVersionIds
-    )
-    {
-        Dictionary<string, string> result = [];
-        if (dataElementBlobVersionIds is null)
-        {
-            return result;
-        }
-
-        foreach ((string dataElementId, string blobVersionId) in dataElementBlobVersionIds)
-        {
-            if (!string.IsNullOrEmpty(blobVersionId))
-            {
-                result[dataElementId] = $"\"{blobVersionId}\"";
-            }
-        }
-
-        return result;
     }
 
     private void WriteVersionResponseHeaders(InstanceVersionResult versions)

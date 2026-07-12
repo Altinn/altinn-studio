@@ -38,6 +38,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="LocalTest.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="jwtselfsignedcert.pfx" />
     <None Remove="JWTValidationCert.cer" />
     <None Remove="MaskinportenJwtValidationCert.cer" />

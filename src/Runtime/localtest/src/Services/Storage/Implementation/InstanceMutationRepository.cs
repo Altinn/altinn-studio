@@ -1,14 +1,14 @@
 #nullable disable
 
-using Altinn.Platform.Storage.Interface.Models;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.Security.Cryptography;
-using System.Net;
-using System.Text;
 
 namespace LocalTest.Services.Storage.Implementation;
 
@@ -268,7 +268,11 @@ public sealed class InstanceMutationRepository(
 
             foreach (InstanceMutationDataElementUpdate update in mutation.UpdateDataElements ?? [])
             {
-                StampDataElementUpdate(update.Properties, mutationLastChanged, mutationLastChangedBy);
+                StampDataElementUpdate(
+                    update.Properties,
+                    mutationLastChanged,
+                    mutationLastChangedBy
+                );
                 await _localDataRepository.UpdateWithoutVersionBump(
                     instanceGuid,
                     update.DataElementId,
@@ -293,10 +297,7 @@ public sealed class InstanceMutationRepository(
                     );
                 }
 
-                await _localDataRepository.DeleteWithoutVersionBump(
-                    dataElement,
-                    cancellationToken
-                );
+                await _localDataRepository.DeleteWithoutVersionBump(dataElement, cancellationToken);
             }
 
             Instance instanceUpdates = await BuildFullInstanceUpdates(
@@ -401,8 +402,10 @@ public sealed class InstanceMutationRepository(
     {
         bool shouldWriteInstanceMetadata = HasStoredInstanceUpdate(mutation);
         if (
-            (mutation.InstanceUpdateProperties is null || mutation.InstanceUpdateProperties.Count == 0)
-            && !shouldWriteInstanceMetadata
+            (
+                mutation.InstanceUpdateProperties is null
+                || mutation.InstanceUpdateProperties.Count == 0
+            ) && !shouldWriteInstanceMetadata
         )
         {
             return mutation.InstanceUpdates;
@@ -414,11 +417,7 @@ public sealed class InstanceMutationRepository(
                 false,
                 cancellationToken
             )
-            : await _instanceRepository.GetOne(
-                instanceGuid,
-                false,
-                cancellationToken
-            );
+            : await _instanceRepository.GetOne(instanceGuid, false, cancellationToken);
         if (existingInstance is null)
         {
             throw new RepositoryException(
@@ -578,8 +577,9 @@ public sealed class InstanceMutationRepository(
         return current;
     }
 
-    private static IReadOnlyList<string> GetCreatedDataElementIds(InstanceMutationCommit mutation) =>
-        [.. (mutation.CreateDataElements ?? []).Select(dataElement => dataElement.Id)];
+    private static IReadOnlyList<string> GetCreatedDataElementIds(
+        InstanceMutationCommit mutation
+    ) => [.. (mutation.CreateDataElements ?? []).Select(dataElement => dataElement.Id)];
 
     private string GetInstancePath(Instance instance) =>
         Path.Combine(GetInstanceFolder() + instance.Id.Replace("/", "_") + ".json");
@@ -675,23 +675,13 @@ public sealed class InstanceMutationRepository(
             );
         }
 
-        IReadOnlyDictionary<string, string> dataElementBlobVersionIds =
-            await BuildBlobVersionIdMap(instanceGuid, instance, cancellationToken);
-
         return replayed
             ? InstanceMutationApplyResult.ReplayWithCreatedDataElementIds(
                 createdDataElementIds,
                 instance,
-                versions,
-                dataElementBlobVersionIds
+                versions
             )
-            : new InstanceMutationApplyResult(
-                false,
-                createdDataElementIds,
-                instance,
-                versions,
-                dataElementBlobVersionIds
-            );
+            : new InstanceMutationApplyResult(false, createdDataElementIds, instance, versions);
     }
 
     private async Task ThrowIfInstanceNotFound(
@@ -711,29 +701,6 @@ public sealed class InstanceMutationRepository(
                 HttpStatusCode.NotFound
             );
         }
-    }
-
-    private async Task<IReadOnlyDictionary<string, string>> BuildBlobVersionIdMap(
-        Guid instanceGuid,
-        Instance instance,
-        CancellationToken cancellationToken
-    )
-    {
-        Dictionary<string, string> result = [];
-        foreach (DataElement dataElement in instance.Data ?? [])
-        {
-            string blobVersionId = await _dataRepository.ReadCurrentBlobVersion(
-                instanceGuid,
-                new Guid(dataElement.Id),
-                cancellationToken
-            );
-            if (!string.IsNullOrEmpty(blobVersionId))
-            {
-                result[dataElement.Id] = blobVersionId;
-            }
-        }
-
-        return result;
     }
 
     private async Task<InstanceMutationIdempotencyRecord> ReadIdempotencyRecord(
@@ -768,7 +735,10 @@ public sealed class InstanceMutationRepository(
                 FileShare.None
             );
             await using StreamWriter writer = new(stream);
-            await writer.WriteAsync(JsonConvert.SerializeObject(record).AsMemory(), cancellationToken);
+            await writer.WriteAsync(
+                JsonConvert.SerializeObject(record).AsMemory(),
+                cancellationToken
+            );
             return (true, path);
         }
         catch (IOException) when (File.Exists(path))
@@ -779,11 +749,10 @@ public sealed class InstanceMutationRepository(
 
     private string GetIdempotencyRecordPath(string idempotencyKey)
     {
-        string keyHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(idempotencyKey)));
-        return Path.Combine(
-            GetMutationIdempotencyFolder(),
-            $"{keyHash}.json"
+        string keyHash = Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes(idempotencyKey))
         );
+        return Path.Combine(GetMutationIdempotencyFolder(), $"{keyHash}.json");
     }
 
     private string GetMutationIdempotencyFolder() =>
@@ -798,7 +767,10 @@ public sealed class InstanceMutationRepository(
         string instancePath = GetInstancePath(instanceUpdates);
         string dataFolder = GetDataForInstanceFolder(instanceGuid.ToString());
         string instanceEventFolder = GetInstanceEventFolder();
-        string snapshotRoot = Path.Combine(Path.GetTempPath(), $"localtest-aggregate-{Guid.NewGuid()}");
+        string snapshotRoot = Path.Combine(
+            Path.GetTempPath(),
+            $"localtest-aggregate-{Guid.NewGuid()}"
+        );
         string snapshotInstancePath = Path.Combine(snapshotRoot, "instance.json");
         string snapshotDataFolder = Path.Combine(snapshotRoot, "data");
         string snapshotInstanceEventFolder = Path.Combine(snapshotRoot, "instanceevents");
@@ -903,7 +875,9 @@ public sealed class InstanceMutationRepository(
     private static void CopyDirectory(string source, string destination)
     {
         Directory.CreateDirectory(destination);
-        foreach (string directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+        foreach (
+            string directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories)
+        )
         {
             Directory.CreateDirectory(
                 Path.Combine(destination, Path.GetRelativePath(source, directory))

@@ -445,6 +445,34 @@ public sealed class LocalTestInstanceMutationTests(ITestOutputHelper output, App
         Assert.Equal(updateMutation.Instance?.LastChangedBy, updatedDataElement.LastChangedBy);
         Assert.Equal("updated-by-mutation.txt", updatedDataElement.Filename);
         Assert.Equal("true", updateMutation.Instance?.DataValues?["mixed-content-update"]);
+
+        using HttpResponseMessage createdContentResponse = await GetStorageDataElementContent(
+            fixture,
+            token,
+            ownerPartyId,
+            instanceGuid,
+            Guid.Parse(createdDataElementId)
+        );
+        using HttpResponseMessage updatedContentResponse = await GetStorageDataElementContent(
+            fixture,
+            token,
+            ownerPartyId,
+            instanceGuid,
+            Guid.Parse(updatedDataElementId)
+        );
+
+        Assert.Equal(HttpStatusCode.OK, createdContentResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, updatedContentResponse.StatusCode);
+        AssertMutationContentETag(
+            updateMutation,
+            createdDataElementId,
+            createdContentResponse.Headers.ETag?.ToString()
+        );
+        AssertMutationContentETag(
+            updateMutation,
+            updatedDataElementId,
+            updatedContentResponse.Headers.ETag?.ToString()
+        );
     }
 
     [Fact]
@@ -1354,7 +1382,12 @@ public sealed class LocalTestInstanceMutationTests(ITestOutputHelper output, App
 
     private static async Task<MutationResponse> ReadMutationResponse(HttpResponseMessage response)
     {
-        MutationResponse mutation = await ReadJson<MutationResponse>(response);
+        string body = await response.Content.ReadAsStringAsync();
+        using JsonDocument document = JsonDocument.Parse(body);
+        Assert.False(document.RootElement.TryGetProperty("dataElementContentEtags", out _));
+        MutationResponse mutation =
+            JsonSerializer.Deserialize<MutationResponse>(body, _jsonOptions)
+            ?? throw new InvalidOperationException($"Response body was empty or invalid JSON: {body}");
         Assert.NotNull(mutation.Instance);
         Assert.NotNull(mutation.CreatedDataElementIds);
         return mutation;
@@ -1394,12 +1427,9 @@ public sealed class LocalTestInstanceMutationTests(ITestOutputHelper output, App
         Assert.StartsWith("\"", expected);
         Assert.EndsWith("\"", expected);
 
-        Assert.NotNull(mutation.DataElementContentEtags);
-        Assert.True(
-            mutation.DataElementContentEtags.TryGetValue(dataElementId, out string? actualETag),
-            $"Missing content ETag for data element {dataElementId}."
-        );
-        Assert.Equal(expected, actualETag);
+        Assert.NotNull(mutation.Instance);
+        DataElement dataElement = Assert.Single(mutation.Instance.Data, element => element.Id == dataElementId);
+        Assert.Equal(expected, dataElement.ContentEtag);
     }
 
     private static (int OwnerPartyId, Guid InstanceGuid) SplitInstanceId(Instance instance)
@@ -1412,9 +1442,7 @@ public sealed class LocalTestInstanceMutationTests(ITestOutputHelper output, App
     private sealed record MutationResponse(
         Instance? Instance,
         IReadOnlyList<string>? CreatedDataElementIds,
-        bool Replayed,
-        [property: JsonPropertyName("dataElementContentEtags")]
-            IReadOnlyDictionary<string, string>? DataElementContentEtags
+        bool Replayed
     );
 
     private sealed record VersionHeaders(int InstanceVersion, int ProcessStateVersion);

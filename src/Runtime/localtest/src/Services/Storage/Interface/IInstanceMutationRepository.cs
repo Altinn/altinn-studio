@@ -50,16 +50,14 @@ public sealed record InstanceMutationApplyResult(
     bool Replayed,
     IReadOnlyList<string> CreatedDataElementIds,
     Instance Instance,
-    InstanceVersionResult Versions,
-    IReadOnlyDictionary<string, string> DataElementBlobVersionIds
+    InstanceVersionResult Versions
 )
 {
     public static InstanceMutationApplyResult ReplayWithCreatedDataElementIds(
         IReadOnlyList<string> createdDataElementIds,
         Instance instance,
-        InstanceVersionResult versions,
-        IReadOnlyDictionary<string, string> dataElementBlobVersionIds
-    ) => new(true, createdDataElementIds, instance, versions, dataElementBlobVersionIds);
+        InstanceVersionResult versions
+    ) => new(true, createdDataElementIds, instance, versions);
 }
 
 public sealed record InstanceMutationDataElementUpdate(
@@ -69,4 +67,7 @@ public sealed record InstanceMutationDataElementUpdate(
     bool EnforceLockCheck
 );
 
-public sealed record InstanceMutationDataElementDelete(DataElement DataElement, bool EnforceLockCheck);
+public sealed record InstanceMutationDataElementDelete(
+    DataElement DataElement,
+    bool EnforceLockCheck
+);

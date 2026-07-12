@@ -26,11 +26,3 @@ and without `InstanceMutationResponse.DataElementContentEtags` is released. Then
    `src/Runtime/localtest/LocalTest.sln`.
 4. Remove the `BlockAppPackagePackWhileStorageInterfaceIsVendored` target from
    `src/App/backend/src/Directory.Build.targets`.
-5. After Phase 4 makes the LocalTest response mirror unnecessary, delete
-   `src/Runtime/localtest/src/Models/Storage/InstanceMutationResponse.cs` and remove the
-   `InstanceMutationResponse` alias from
-   `src/Runtime/localtest/src/Controllers/Storage/InstanceMutationsController.cs`, so the
-   controller uses the released package type directly. Delete
-   `src/Runtime/localtest/test/LocalTest.Tests/Storage/InstanceMutationResponseContractTests.cs`
-   with the legacy mirror/map, or replace it with Phase 4 contract coverage for `contentEtag`
-   and the response without `dataElementContentEtags` if that coverage remains valuable.

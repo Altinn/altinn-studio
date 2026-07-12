@@ -1,5 +1,7 @@
 #nullable disable
 
+using System.Runtime.ExceptionServices;
+
 namespace LocalTest.Services.Storage.Implementation;
 
 internal sealed class PartitionedAsyncLock : IDisposable
@@ -14,16 +16,21 @@ internal sealed class PartitionedAsyncLock : IDisposable
         }
     }
 
-    public Task<IDisposable> Lock<T>(T partitionKey) where T : struct
+    public Task<IDisposable> Lock<T>(T partitionKey)
+        where T : struct
     {
         var @lock = _locks[Math.Abs(partitionKey.GetHashCode()) % _locks.Length];
         return @lock.Lock();
     }
 
-    public Task<IDisposable> Lock(string partitionKey)
+    public Task<IDisposable> Lock(
+        string partitionKey,
+        Action<bool> waitStarted = null,
+        CancellationToken cancellationToken = default
+    )
     {
         var @lock = _locks[Math.Abs(partitionKey.GetHashCode()) % _locks.Length];
-        return @lock.Lock();
+        return @lock.Lock(waitStarted, cancellationToken);
     }
 
     public void Dispose()
@@ -39,11 +46,52 @@ internal sealed class AsyncLock : IDisposable
 {
     private readonly SemaphoreSlim _inner = new SemaphoreSlim(1, 1);
 
-    public async Task<IDisposable> Lock()
+    public async Task<IDisposable> Lock(
+        Action<bool> waitStarted = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        var releaser = new Releaser(_inner);
-        await _inner.WaitAsync();
-        return releaser;
+        Task waitTask = _inner.WaitAsync(cancellationToken);
+        if (waitStarted is not null)
+        {
+            try
+            {
+                // The callback only observes whether this acquisition queued. It must not try to
+                // acquire the same lock, because this method waits for it to return before proceeding.
+                waitStarted(!waitTask.IsCompletedSuccessfully);
+            }
+            catch (Exception callbackException)
+            {
+                bool acquired = false;
+                try
+                {
+                    await waitTask;
+                    acquired = true;
+                }
+                catch (Exception waitException)
+                {
+                    callbackException.Data["AsyncLockWaitException"] = waitException;
+                }
+
+                if (acquired)
+                {
+                    try
+                    {
+                        _inner.Release();
+                    }
+                    catch (Exception releaseException)
+                    {
+                        callbackException.Data["AsyncLockReleaseException"] = releaseException;
+                    }
+                }
+
+                ExceptionDispatchInfo.Capture(callbackException).Throw();
+                throw;
+            }
+        }
+
+        await waitTask;
+        return new Releaser(_inner);
     }
 
     public void Dispose() => _inner.Dispose();
