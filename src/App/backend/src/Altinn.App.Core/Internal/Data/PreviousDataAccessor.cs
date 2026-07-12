@@ -11,6 +11,14 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
 
+/// <summary>
+/// Provides the data persisted before the unit of work's in-memory changes.
+/// </summary>
+/// <remarks>
+/// Unchanged elements are loaded lazily. For an updated binary element, the previous bytes are available only when
+/// that element was read before its first update; otherwise <see cref="GetBinaryData"/> throws
+/// <see cref="InvalidOperationException"/> instead of reading the updated content from storage.
+/// </remarks>
 internal class PreviousDataAccessor : IInstanceDataAccessor
 {
     private readonly IInstanceDataAccessor _dataAccessor;
@@ -115,7 +123,7 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
     {
         if (_dataAccessor is InstanceDataUnitOfWork dataUnitOfWork)
         {
-            return await dataUnitOfWork.GetPersistedBinaryData(dataElementIdentifier).ConfigureAwait(false);
+            return await dataUnitOfWork.GetPreviousBinaryData(dataElementIdentifier).ConfigureAwait(false);
         }
 
         return await _dataAccessor.GetBinaryData(dataElementIdentifier).ConfigureAwait(false);

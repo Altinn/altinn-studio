@@ -80,6 +80,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
     // Existing binary data elements with updated content that is not yet saved to storage.
     private readonly ConcurrentDictionary<DataElementIdentifier, BinaryDataChange> _changesForBinaryUpdate = [];
 
+    // Previous binary state retained for the unit-of-work lifetime, independently of pending mutation state.
+    private readonly ConcurrentDictionary<DataElementIdentifier, PreviousBinaryState> _previousBinaryUpdates = [];
+
     // Pending lock status changes, collapsed to the last requested value for each data element.
     private readonly ConcurrentDictionary<DataElementIdentifier, bool> _pendingDataElementLockStatuses = [];
 
@@ -338,6 +341,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
     // Non thread safe cache, because the previous data is always the same.
     private PreviousDataAccessor? _previousDataAccessorCache;
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// For an updated binary data element, previous bytes are available only when the element was read before its
+    /// first update. Unchanged elements retain lazy persisted reads.
+    /// </remarks>
     public IInstanceDataAccessor GetPreviousDataAccessor()
     {
         ThrowIfDisposed();
@@ -519,13 +527,27 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
         ValidateBinaryData(dataType, contentType, bytes);
 
+        PreviousBinaryState previousState = _previousBinaryUpdates.GetOrAdd(
+            dataElementIdentifier,
+            identifier =>
+                _binaryCache.TryGetCachedValue(identifier, out var cachedBinaryData)
+                    ? new PreviousBinaryState(IsAvailable: true, Data: cachedBinaryData)
+                    : new PreviousBinaryState(IsAvailable: false, Data: default)
+        );
+        ReadOnlyMemory<byte>? previousBinaryData = null;
+        if (previousState.IsAvailable)
+        {
+            previousBinaryData = previousState.Data;
+        }
+
         BinaryDataChange change = new BinaryDataChange(
             type: ChangeType.Updated,
             dataElement: dataElement,
             dataType: dataType,
             fileName: dataElement.Filename,
             contentType: contentType,
-            currentBinaryData: bytes
+            currentBinaryData: bytes,
+            previousBinaryData: previousBinaryData
         );
         _changesForBinaryUpdate[dataElementIdentifier] = change;
         return change;
@@ -1659,6 +1681,28 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             async () => await GetDataBytes(dataElementIdentifier)
         );
     }
+
+    internal async Task<ReadOnlyMemory<byte>> GetPreviousBinaryData(DataElementIdentifier dataElementIdentifier)
+    {
+        ThrowIfDisposed();
+        GetDataElement(dataElementIdentifier);
+
+        if (_previousBinaryUpdates.TryGetValue(dataElementIdentifier, out PreviousBinaryState previousState))
+        {
+            if (previousState.IsAvailable)
+            {
+                return previousState.Data;
+            }
+
+            throw new InvalidOperationException(
+                $"Previous binary data for data element {dataElementIdentifier.Id} is unavailable because the element was not read before it was updated. Read the element before calling UpdateBinaryDataElement when previous data is required."
+            );
+        }
+
+        return await GetPersistedBinaryData(dataElementIdentifier);
+    }
+
+    private readonly record struct PreviousBinaryState(bool IsAvailable, ReadOnlyMemory<byte> Data);
 
     private async Task<byte[]> GetDataBytes(DataElementIdentifier dataElementIdentifier)
     {

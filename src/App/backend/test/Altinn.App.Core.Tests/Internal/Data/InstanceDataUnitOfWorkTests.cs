@@ -2834,13 +2834,14 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task PreviousDataAccessor_AfterUpdatingBinaryData_ReturnsOriginalBytes()
+    public async Task PreviousDataAccessor_BeforeSavingUpdatedBinaryData_WhenPreviouslyLoaded_ReturnsOriginalBytes()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
 
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
 
         ReadOnlyMemory<byte> previousBytes = await setup
@@ -2851,6 +2852,29 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task PreviousDataAccessor_BeforeSavingUpdatedBinaryData_WhenNotPreviouslyLoaded_Throws()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
+
+        BinaryDataChange change = setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            updatedBytes
+        );
+
+        Assert.Null(change.PreviousBinaryData);
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.GetPreviousDataAccessor().GetBinaryData(setup.DataElement)
+        );
+
+        Assert.Contains("was not read before it was updated", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task PreviousDataAccessor_AfterSavingUpdatedBinaryData_WhenPreviouslyLoaded_ReturnsOriginalBytes()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
@@ -2858,7 +2882,7 @@ public sealed class InstanceDataUnitOfWorkTests
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
 
-        await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await setup.DataMutator.SaveChanges(changes);
@@ -2866,6 +2890,269 @@ public sealed class InstanceDataUnitOfWorkTests
         ReadOnlyMemory<byte> previousBytes = await setup
             .DataMutator.GetPreviousDataAccessor()
             .GetBinaryData(setup.DataElement);
+
+        Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterSavingUpdatedBinaryData_WhenNotPreviouslyLoaded_Throws()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
+
+        BinaryDataChange change = setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            updatedBytes
+        );
+
+        Assert.Null(change.PreviousBinaryData);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await setup.DataMutator.SaveChanges(changes);
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.GetPreviousDataAccessor().GetBinaryData(setup.DataElement)
+        );
+
+        Assert.Contains("was not read before it was updated", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterWorkflowOwnedSave_WhenPreviouslyLoaded_ReturnsOriginalBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBytes,
+            new StorageVersionMetadata(InstanceVersion: 1, ProcessStateVersion: 1),
+            seedStorageVersions: true,
+            contentETag: DataETag(1)
+        );
+
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await setup.DataMutator.SaveWorkflowOwnedAggregate(changes, "previous-data-loaded", CancellationToken.None);
+
+        ReadOnlyMemory<byte> previousBytes = await setup
+            .DataMutator.GetPreviousDataAccessor()
+            .GetBinaryData(setup.DataElement);
+
+        Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterWorkflowOwnedSave_WhenNotPreviouslyLoaded_Throws()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBytes,
+            new StorageVersionMetadata(InstanceVersion: 1, ProcessStateVersion: 1),
+            seedStorageVersions: true,
+            contentETag: DataETag(1)
+        );
+
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            changes,
+            "previous-data-unavailable",
+            CancellationToken.None
+        );
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.GetPreviousDataAccessor().GetBinaryData(setup.DataElement)
+        );
+
+        Assert.Contains("was not read before it was updated", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterSavedUpdateIsStagedForDeletion_WhenNotPreviouslyLoaded_Throws()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
+
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await setup.DataMutator.SaveChanges(changes);
+        setup.DataMutator.RemoveDataElement(setup.DataElement);
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.GetPreviousDataAccessor().GetBinaryData(setup.DataElement)
+        );
+
+        Assert.Contains("was not read before it was updated", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PreviousDataAccessor_AfterLoadedUpdateIsStagedForDeletion_ReturnsOriginalBytes(
+        bool saveBeforeDeletion
+    )
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
+
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        if (saveBeforeDeletion)
+        {
+            DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+            await setup.DataMutator.SaveChanges(changes);
+        }
+        setup.DataMutator.RemoveDataElement(setup.DataElement);
+
+        ReadOnlyMemory<byte> previousBytes = await setup
+            .DataMutator.GetPreviousDataAccessor()
+            .GetBinaryData(setup.DataElement);
+
+        Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterSequentialBinaryUpdates_ReturnsOriginalBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] firstUpdatedBytes = Encoding.UTF8.GetBytes("""{"status":"authorized"}""");
+        byte[] secondUpdatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
+
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, firstUpdatedBytes);
+        BinaryDataChange secondChange = setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            secondUpdatedBytes
+        );
+
+        ReadOnlyMemory<byte> previousBytes = await setup
+            .DataMutator.GetPreviousDataAccessor()
+            .GetBinaryData(setup.DataElement);
+
+        Assert.True(secondChange.PreviousBinaryData.HasValue);
+        Assert.True(secondChange.PreviousBinaryData.Value.Span.SequenceEqual(initialBytes));
+        Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_WhenCachedPreviousBinaryDataIsEmpty_ReturnsAvailableEmptyBytes()
+    {
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("updated");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create([]);
+
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
+        BinaryDataChange change = setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            updatedBytes
+        );
+
+        ReadOnlyMemory<byte> previousBytes = await setup
+            .DataMutator.GetPreviousDataAccessor()
+            .GetBinaryData(setup.DataElement);
+
+        Assert.True(change.PreviousBinaryData.HasValue);
+        Assert.True(change.PreviousBinaryData.Value.IsEmpty);
+        Assert.True(previousBytes.IsEmpty);
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterFailedSaveAndSuccessfulRetry_WhenNotPreviouslyLoaded_StillThrows()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes, contentETag: DataETag(1));
+
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(2));
+
+        await Assert.ThrowsAsync<InstanceDataStaleException>(() => setup.DataMutator.SaveChanges(changes));
+        await AssertPreviousBinaryDataUnavailable(setup.DataMutator, setup.DataElement);
+
+        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(1));
+        await setup.DataMutator.SaveChanges(changes);
+
+        await AssertPreviousBinaryDataUnavailable(setup.DataMutator, setup.DataElement);
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterReplay_WhenPreviouslyLoaded_ReturnsOriginalBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"attempted"}""");
+        byte[] replayedBytes = Encoding.UTF8.GetBytes("""{"status":"replayed"}""");
+        var (unitOfWork, dataElement) = CreateBinaryUpdateReplayUnitOfWork(replayedBytes);
+        using (unitOfWork)
+        {
+            unitOfWork.PreloadBinaryData(dataElement, initialBytes);
+            unitOfWork.UpdateBinaryDataElement(dataElement, dataElement.ContentType!, updatedBytes);
+            DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
+
+            await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
+                unitOfWork.SaveWorkflowOwnedAggregate(changes, "previous-data-replay-loaded", CancellationToken.None)
+            );
+
+            ReadOnlyMemory<byte> previousBytes = await unitOfWork.GetPreviousDataAccessor().GetBinaryData(dataElement);
+
+            Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
+        }
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterReplay_WhenNotPreviouslyLoaded_Throws()
+    {
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"attempted"}""");
+        byte[] replayedBytes = Encoding.UTF8.GetBytes("""{"status":"replayed"}""");
+        var (unitOfWork, dataElement) = CreateBinaryUpdateReplayUnitOfWork(replayedBytes);
+        using (unitOfWork)
+        {
+            unitOfWork.UpdateBinaryDataElement(dataElement, dataElement.ContentType!, updatedBytes);
+            DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
+
+            await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
+                unitOfWork.SaveWorkflowOwnedAggregate(
+                    changes,
+                    "previous-data-replay-unavailable",
+                    CancellationToken.None
+                )
+            );
+
+            await AssertPreviousBinaryDataUnavailable(unitOfWork, dataElement);
+        }
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterSavingAnotherBinaryUpdate_ForUnchangedElement_LazilyReturnsPersistedBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes, dataElementCount: 2);
+
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await setup.DataMutator.SaveChanges(changes);
+
+        DataElement unchangedDataElement = setup.DataElements[1];
+
+        ReadOnlyMemory<byte> previousBytes = await setup
+            .DataMutator.GetPreviousDataAccessor()
+            .GetBinaryData(unchangedDataElement);
 
         Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
     }
@@ -2916,6 +3203,135 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, "text/plain", updatedBytes)
         );
         Assert.Contains("cannot be updated", exception.Message, StringComparison.Ordinal);
+    }
+
+    private static async Task AssertPreviousBinaryDataUnavailable(
+        InstanceDataUnitOfWork unitOfWork,
+        DataElementIdentifier dataElementIdentifier
+    )
+    {
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            unitOfWork.GetPreviousDataAccessor().GetBinaryData(dataElementIdentifier)
+        );
+        Assert.Contains("was not read before it was updated", exception.Message, StringComparison.Ordinal);
+    }
+
+    private static (InstanceDataUnitOfWork UnitOfWork, DataElement DataElement) CreateBinaryUpdateReplayUnitOfWork(
+        byte[] replayedBytes
+    )
+    {
+        const int instanceOwnerPartyId = 123456;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid dataElementId = Guid.NewGuid();
+        var dataElement = new DataElement
+        {
+            Id = dataElementId.ToString(),
+            InstanceGuid = instanceGuid.ToString(),
+            DataType = "payment",
+            ContentType = "application/json",
+            Filename = "payment.json",
+            ContentEtag = DataETag(1),
+        };
+        var instance = new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = "ttd/test-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [dataElement],
+        };
+        InstanceStorageMetadataRegistry.Set(
+            instance,
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3)
+        );
+        var replayedDataElement = new DataElement
+        {
+            Id = dataElement.Id,
+            InstanceGuid = dataElement.InstanceGuid,
+            DataType = dataElement.DataType,
+            ContentType = dataElement.ContentType,
+            Filename = dataElement.Filename,
+            ContentEtag = DataETag(2),
+        };
+        var authoritativeInstance = new Instance
+        {
+            Id = instance.Id,
+            AppId = instance.AppId,
+            Org = instance.Org,
+            InstanceOwner = instance.InstanceOwner,
+            Process = instance.Process,
+            Data = [replayedDataElement],
+        };
+        var replayedMetadata = new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4);
+        var dataClientMock = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        dataClientMock
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new InstanceMutationWithStorageMetadata(authoritativeInstance, replayedMetadata, [], replayed: true)
+            );
+        dataClientMock
+            .Setup(x =>
+                x.GetDataBytesWithExpectedContentETag(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    dataElementId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(replayedBytes);
+        var instanceClientMock = new Mock<IStorageInstanceClient>(MockBehavior.Strict);
+        instanceClientMock
+            .Setup(x =>
+                x.GetInstanceWithStorageMetadata(
+                    "test-app",
+                    "ttd",
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(authoritativeInstance, replayedMetadata));
+        var appMetadata = new ApplicationMetadata(instance.AppId)
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = dataElement.DataType,
+                    TaskId = "Task_1",
+                    AllowedContentTypes = [dataElement.ContentType],
+                },
+            ],
+        };
+
+        var unitOfWork = new InstanceDataUnitOfWork(
+            instance,
+            dataClientMock.Object,
+            instanceClientMock.Object,
+            appMetadata,
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            new InstanceDataMutatorStorageAccessGuard(),
+            taskId: "Task_1",
+            language: null
+        );
+        return (unitOfWork, dataElement);
     }
 
     private static PlatformHttpException CreatePlatformException(HttpStatusCode statusCode) =>

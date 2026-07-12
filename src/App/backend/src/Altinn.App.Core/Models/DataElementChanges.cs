@@ -111,7 +111,8 @@ public sealed class BinaryDataChange : DataElementChange
         string? fileName,
         ReadOnlyMemory<byte> currentBinaryData,
         string? generatedFromTask = null,
-        List<KeyValueEntry>? metadata = null
+        List<KeyValueEntry>? metadata = null,
+        ReadOnlyMemory<byte>? previousBinaryData = null
     )
         : base(type, dataType, contentType, dataElement)
     {
@@ -119,6 +120,7 @@ public sealed class BinaryDataChange : DataElementChange
         CurrentBinaryData = currentBinaryData;
         GeneratedFromTask = generatedFromTask;
         Metadata = metadata;
+        PreviousBinaryData = previousBinaryData;
     }
 
     /// <summary>
@@ -140,6 +142,11 @@ public sealed class BinaryDataChange : DataElementChange
     /// Metadata to associate with the data element
     /// </summary>
     public List<KeyValueEntry>? Metadata { get; }
+
+    /// <summary>
+    /// The binary data before the first staged update, or <see langword="null"/> when it was not already cached.
+    /// </summary>
+    internal ReadOnlyMemory<byte>? PreviousBinaryData { get; }
 }
 
 /// <summary>
