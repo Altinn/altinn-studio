@@ -7,21 +7,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import {
-  getLastHistoryNavigationAt,
-  getLastProcessNextSuccessAt,
-  getProcessNextRecoveryTarget,
-} from 'src/components/wrappers/processNextRecovery';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormStore } from 'src/features/form/FormContext';
-import {
-  getProcessNextMutationKey,
-  getTargetTaskFromProcess,
-  useProcessResume,
-} from 'src/features/instance/useProcessNext';
+import { getProcessNextMutationKey, useProcessResume } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -37,7 +28,6 @@ import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import type { IInstance } from 'src/types/shared';
 
 interface NavigationErrorProps {
   label: string;
@@ -282,8 +272,6 @@ function useIsWrongTask(taskId: string | undefined) {
   const { data: process } = useProcessQuery();
   const currentTaskId = process?.currentTask?.elementId;
   const waitForQueries = useWaitForQueries();
-  const queryClient = useQueryClient();
-  const navigateToTask = useNavigateToTask();
 
   const [isWrongTask, setIsWrongTask] = useState<boolean | null>(null);
   const isCurrentTask =
@@ -300,41 +288,9 @@ function useIsWrongTask(taskId: string | undefined) {
       const delayedCheck = async () => {
         await waitForQueries();
         await new Promise((resolve) => setTimeout(resolve, 100)); // Wait a bit longer, for navigation to maybe occur
-        if (cancelled) {
-          return;
+        if (!cancelled) {
+          setIsWrongTask(true);
         }
-
-        // Self-heal after a lost navigation: a fast process/next response can race the navigation
-        // dispatched in useProcessNext's onSuccess (observed with back-to-back data tasks, where no
-        // <ServiceTask /> polling covers the gap), leaving the URL on the previous task while the
-        // process has moved on. If the user just successfully advanced the process (and hasn't
-        // deliberately moved through browser history since), finish that navigation instead of
-        // showing the "wrong task" dead-end. Other visits to previous tasks still get the message.
-        const lastProcessNext = queryClient
-          .getMutationCache()
-          .findAll({ mutationKey: getProcessNextMutationKey() })
-          .at(-1);
-        const [instanceFromMutation] = (lastProcessNext?.state.data as
-          | readonly [IInstance | null, unknown]
-          | undefined) ?? [null];
-        const recoveryTarget = getProcessNextRecoveryTarget({
-          lastMutationStatus: lastProcessNext?.state.status,
-          // Prefer the process query (at least as fresh as the mutation result, since onSuccess
-          // writes that result into it), but fall back to the mutation's own target so a
-          // process-ending transition recovers to the receipt (currentTask is null then).
-          targetTask: instanceFromMutation
-            ? (currentTaskId ?? getTargetTaskFromProcess(instanceFromMutation.process))
-            : undefined,
-          successAt: getLastProcessNextSuccessAt(),
-          lastUserNavigationAt: getLastHistoryNavigationAt(),
-          now: Date.now(),
-        });
-        if (recoveryTarget !== undefined) {
-          navigateToTask(recoveryTarget, { replace: true });
-          return;
-        }
-
-        setIsWrongTask(true);
       };
       delayedCheck().then();
 
@@ -342,7 +298,7 @@ function useIsWrongTask(taskId: string | undefined) {
         cancelled = true;
       };
     }
-  }, [isCurrentTask, waitForQueries, queryClient, currentTaskId, navigateToTask]);
+  }, [isCurrentTask, waitForQueries]);
 
   return isWrongTask && !isCurrentTask && !isNavigating;
 }
