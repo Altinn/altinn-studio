@@ -1,5 +1,6 @@
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Filters;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +54,46 @@ public class InstanceStateConflictExceptionFilterTests
             "Instance data changed since it was loaded. Reload the instance data and retry the request.",
             problemDetails.Detail
         );
+    }
+
+    [Fact]
+    public void OnException_WithInstanceDataStaleConflict_ReturnsConflictProblemDetails()
+    {
+        ExceptionContext context = CreateContext(
+            new InstanceDataStaleException(
+                new PlatformHttpException(
+                    new HttpResponseMessage(System.Net.HttpStatusCode.PreconditionFailed),
+                    "storage precondition failed"
+                )
+            )
+        );
+
+        new InstanceStateConflictExceptionFilter().OnException(context);
+
+        Assert.True(context.ExceptionHandled);
+        var conflict = Assert.IsType<ConflictObjectResult>(context.Result);
+        var problemDetails = Assert.IsType<ProblemDetails>(conflict.Value);
+        Assert.Equal(StatusCodes.Status409Conflict, problemDetails.Status);
+        Assert.Equal("Instance data conflict", problemDetails.Title);
+    }
+
+    [Fact]
+    public void OnException_WithStaleProcessState_ReturnsPreconditionFailedProblemDetails()
+    {
+        ExceptionContext context = CreateContext(new ProcessStateStaleException(expectedVersion: 7, actualVersion: 9));
+
+        new InstanceStateConflictExceptionFilter().OnException(context);
+
+        Assert.True(context.ExceptionHandled);
+        var result = Assert.IsType<ObjectResult>(context.Result);
+        Assert.Equal(StatusCodes.Status412PreconditionFailed, result.StatusCode);
+        var problemDetails = Assert.IsType<ProblemDetails>(result.Value);
+        Assert.Equal(StatusCodes.Status412PreconditionFailed, problemDetails.Status);
+        Assert.Equal("Process state has changed", problemDetails.Title);
+        Assert.Contains("7", problemDetails.Detail, StringComparison.Ordinal);
+        Assert.Contains("9", problemDetails.Detail, StringComparison.Ordinal);
+        Assert.Equal(7, problemDetails.Extensions["expectedVersion"]);
+        Assert.Equal(9, problemDetails.Extensions["actualVersion"]);
     }
 
     [Fact]

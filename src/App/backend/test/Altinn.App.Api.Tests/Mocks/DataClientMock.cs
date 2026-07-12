@@ -693,6 +693,7 @@ internal sealed class DataClientMock : IStorageDataClient
         CancellationToken cancellationToken
     )
     {
+        _storageMetadata.RegisterAggregateMutationRequest();
         var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
         _storageMetadata.ValidateAggregatePreconditions(instanceIdentifier, mutation, preconditions);
         (string org, string app) = GetInstanceOrgApp(instanceIdentifier);

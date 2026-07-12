@@ -70,6 +70,43 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("responses")
                 .GetProperty("409")
         );
+
+        JsonElement patchOperation = paths
+            .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data")
+            .GetProperty("patch");
+        Assert.Equal(
+            "#/components/schemas/ProblemDetails",
+            patchOperation
+                .GetProperty("responses")
+                .GetProperty("412")
+                .GetProperty("content")
+                .GetProperty("application/json")
+                .GetProperty("schema")
+                .GetProperty("$ref")
+                .GetString()
+        );
+        JsonElement patchRequestSchema = document
+            .RootElement.GetProperty("components")
+            .GetProperty("schemas")
+            .GetProperty("DataPatchRequestMultiple");
+        Assert.Equal(
+            "integer",
+            patchRequestSchema
+                .GetProperty("properties")
+                .GetProperty("expectedProcessStateVersion")
+                .GetProperty("type")
+                .GetString()
+        );
+        Assert.DoesNotContain(
+            "expectedProcessStateVersion",
+            document
+                .RootElement.GetProperty("components")
+                .GetProperty("schemas")
+                .GetProperty("DataPatchRequest")
+                .GetProperty("properties")
+                .EnumerateObject()
+                .Select(property => property.Name)
+        );
     }
 
     private static void AssertSuccessAndConflictResponses(JsonElement responses, string successSchema)

@@ -649,6 +649,7 @@ public class DataController : ControllerBase
     [HttpPatch("")]
     [ProducesResponseType(typeof(DataPatchResponseMultiple), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 409)]
+    [ProducesResponseType(typeof(ProblemDetails), 412)]
     [ProducesResponseType(typeof(ProblemDetails), 422)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 404)]
@@ -696,7 +697,8 @@ public class DataController : ControllerBase
                 instance,
                 dataPatchRequestMultiple.Patches.ToDictionary(i => i.DataElementId, i => i.Patch),
                 language,
-                dataPatchRequestMultiple.IgnoredValidators
+                dataPatchRequestMultiple.IgnoredValidators,
+                dataPatchRequestMultiple.ExpectedProcessStateVersion
             );
 
             if (res.Success)

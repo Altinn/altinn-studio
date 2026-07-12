@@ -133,6 +133,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 412)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 422)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.DataPatchResponseMultiple>> PatchFormDataMultiple([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.DataPatchRequestMultiple dataPatchRequestMultiple, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
@@ -970,6 +971,8 @@ namespace Altinn.App.Api.Models
     public class DataPatchRequestMultiple
     {
         public DataPatchRequestMultiple() { }
+        [System.Text.Json.Serialization.JsonPropertyName("expectedProcessStateVersion")]
+        public int? ExpectedProcessStateVersion { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("ignoredValidators")]
         public System.Collections.Generic.List<string>? IgnoredValidators { get; init; }
         [System.ComponentModel.DataAnnotations.Required]

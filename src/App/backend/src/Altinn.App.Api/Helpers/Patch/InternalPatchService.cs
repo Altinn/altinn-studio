@@ -12,6 +12,7 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Altinn.App.Api.Helpers.Patch;
 
@@ -25,6 +26,7 @@ public class InternalPatchService
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly Telemetry? _telemetry;
     private readonly IValidationService _validationService;
+    private readonly ILogger<InternalPatchService> _logger;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -46,23 +48,49 @@ public class InternalPatchService
         _hostingEnvironment = hostingEnvironment;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _logger =
+            serviceProvider.GetService<ILogger<InternalPatchService>>() ?? NullLogger<InternalPatchService>.Instance;
         _telemetry = telemetry;
     }
 
     /// <summary>
     /// Applies a patch to a Form Data element
     /// </summary>
-    public async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
+    public Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
         Instance instance,
         Dictionary<Guid, JsonPatch> patches,
         string? language,
         List<string>? ignoredValidators
+    ) => ApplyPatches(instance, patches, language, ignoredValidators, expectedProcessStateVersion: null);
+
+    internal async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
+        Instance instance,
+        Dictionary<Guid, JsonPatch> patches,
+        string? language,
+        List<string>? ignoredValidators,
+        int? expectedProcessStateVersion
     )
     {
         using var activity = _telemetry?.StartDataPatchActivity(instance);
         var taskId = instance.Process.CurrentTask.ElementId;
 
         using var dataAccessor = await _instanceDataUnitOfWorkInitializer.Open(instance, taskId, language);
+
+        if (expectedProcessStateVersion is { } expectedVersion)
+        {
+            int? actualVersion = dataAccessor.StorageMetadata.Versions.ProcessStateVersion;
+            if (actualVersion is null)
+            {
+                _logger.LogDebug(
+                    "Skipping expected process-state version admission check for instance {InstanceId} because the current version is unavailable",
+                    instance.Id
+                );
+            }
+            else if (expectedVersion != actualVersion.Value)
+            {
+                throw new ProcessStateStaleException(expectedVersion, actualVersion.Value);
+            }
+        }
 
         List<FormDataChange> changesAfterPatch = [];
 

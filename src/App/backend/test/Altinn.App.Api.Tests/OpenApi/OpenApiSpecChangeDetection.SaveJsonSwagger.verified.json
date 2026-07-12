@@ -934,6 +934,36 @@
               }
             }
           },
+          "412": {
+            "description": "Precondition Failed",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Unprocessable Content",
             "content": {
@@ -9398,6 +9428,12 @@
         ],
         "type": "object",
         "properties": {
+          "expectedProcessStateVersion": {
+            "type": "integer",
+            "description": "The process-state version the caller expects the instance to have.\nWhen supplied and the current version differs, the request fails with 412 before any data is touched.\nWhen omitted, no process-state admission check is performed.",
+            "format": "int32",
+            "nullable": true
+          },
           "patches": {
             "type": "array",
             "items": {

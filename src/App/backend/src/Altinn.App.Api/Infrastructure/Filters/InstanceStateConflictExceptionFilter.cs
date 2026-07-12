@@ -14,7 +14,18 @@ internal sealed class InstanceStateConflictExceptionFilter : IExceptionFilter
             return;
         }
 
-        context.Result = new ConflictObjectResult(InstanceStateConflictResult.Create(exception));
+        ProblemDetails problemDetails = InstanceStateConflictResult.Create(exception);
+        context.Result = problemDetails.Status switch
+        {
+            StatusCodes.Status409Conflict => new ConflictObjectResult(problemDetails),
+            StatusCodes.Status412PreconditionFailed => new ObjectResult(problemDetails)
+            {
+                StatusCode = StatusCodes.Status412PreconditionFailed,
+            },
+            _ => throw new InvalidOperationException(
+                $"Unsupported status code {problemDetails.Status} for {nameof(InstanceStateConflictException)}."
+            ),
+        };
         context.ExceptionHandled = true;
     }
 }

@@ -16,6 +16,11 @@ internal sealed class ApiTestStorageMetadata
     private readonly TaskCompletionSource _firstAggregateMutation = new(
         TaskCreationOptions.RunContinuationsAsynchronously
     );
+    private int _aggregateMutationRequestCount;
+
+    public int AggregateMutationRequestCount => Volatile.Read(ref _aggregateMutationRequestCount);
+
+    public void RegisterAggregateMutationRequest() => Interlocked.Increment(ref _aggregateMutationRequestCount);
 
     public void BumpDataElementBeforeNextContentRead(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {

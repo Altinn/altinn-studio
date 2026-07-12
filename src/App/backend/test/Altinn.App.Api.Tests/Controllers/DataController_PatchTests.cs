@@ -196,6 +196,37 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
+    public async Task PatchMultiple_WhenExpectedProcessStateVersionIsExplicitZero_ReturnsPreconditionFailedBeforeMutation()
+    {
+        var storageMetadata = new ApiTestStorageMetadata();
+        OverrideServicesForThisTest = services => services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+        JsonPatch patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        );
+        var request = new DataPatchRequestMultiple
+        {
+            ExpectedProcessStateVersion = 0,
+            Patches = [new(_dataGuid, patch)],
+        };
+        string serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
+        using JsonDocument serializedDocument = JsonDocument.Parse(serializedRequest);
+        serializedDocument.RootElement.GetProperty("expectedProcessStateVersion").GetInt32().Should().Be(0);
+
+        var (response, _, problemDetails) = await CallPatchMultipleApi<ProblemDetails>(
+            request,
+            HttpStatusCode.PreconditionFailed
+        );
+
+        problemDetails.Status.Should().Be(StatusCodes.Status412PreconditionFailed);
+        problemDetails.Title.Should().Be("Process state has changed");
+        ((JsonElement)problemDetails.Extensions["expectedVersion"]!).GetInt32().Should().Be(0);
+        ((JsonElement)problemDetails.Extensions["actualVersion"]!).GetInt32().Should().BeGreaterThan(0);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+        storageMetadata.AggregateMutationRequestCount.Should().Be(0);
+        _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task ConcurrentPatches_WhenFirstUnitOfWorkSaves_SecondReturnsConflictWithReloadInstructions()
     {
         var storageMetadata = new ApiTestStorageMetadata();
@@ -290,8 +321,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public async Task MultiplePatches_AppliesCorrectly()
     {
         const string prefillDataType = "prefill-data-type";
+        var storageMetadata = new ApiTestStorageMetadata();
         OverrideServicesForThisTest = (services) =>
         {
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
             services.AddSingleton(
                 new AppMetadataMutationHook(
                     (app) =>
@@ -350,6 +383,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             Patches = new() { new(_dataGuid, patch), new(extraDataGuid, patch2) },
             IgnoredValidators = [],
         };
+        int mutationRequestCountBeforePatch = storageMetadata.AggregateMutationRequestCount;
 
         var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(request, HttpStatusCode.OK);
 
@@ -377,6 +411,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Which.Deserialize<Skjema>()!;
         newExtraData.Melding!.Name.Should().Be("Kari Olsen");
 
+        storageMetadata.AggregateMutationRequestCount.Should().Be(mutationRequestCountBeforePatch + 1);
         _dataProcessorMock.Verify();
     }
 
