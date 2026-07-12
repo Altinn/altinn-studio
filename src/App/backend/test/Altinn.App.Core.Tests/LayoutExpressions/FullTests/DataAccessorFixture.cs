@@ -226,7 +226,7 @@ public sealed class DataAccessorFixture
         var serializationService = new ModelSerializationService(AppModelMock.Object);
         DataClientMock
             .Setup(dc =>
-                dc.GetDataBytesWithStorageMetadata(
+                dc.GetDataBytesWithExpectedContentETag(
                     InstanceOwnerPartyId,
                     InstanceGuid,
                     dataGuid,
@@ -235,11 +235,6 @@ public sealed class DataAccessorFixture
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new DataBytesWithStorageMetadata(
-                    serializationService.SerializeToStorage(data, dataType, dataElement).data.ToArray(),
-                    new StorageDataElementMetadata()
-                )
-            );
+            .ReturnsAsync(serializationService.SerializeToStorage(data, dataType, dataElement).data.ToArray());
     }
 }

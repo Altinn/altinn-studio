@@ -271,7 +271,7 @@ public class ExpressionsExclusiveGatewayTests
         {
             _dataClient
                 .Setup(d =>
-                    d.GetDataBytesWithStorageMetadata(
+                    d.GetDataBytesWithExpectedContentETag(
                         It.IsAny<int>(),
                         It.IsAny<Guid>(),
                         It.IsAny<Guid>(),
@@ -280,12 +280,7 @@ public class ExpressionsExclusiveGatewayTests
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .ReturnsAsync(
-                    new DataBytesWithStorageMetadata(
-                        modelSerializationService.SerializeToJson(formData).ToArray(),
-                        new StorageDataElementMetadata()
-                    )
-                );
+                .ReturnsAsync(modelSerializationService.SerializeToJson(formData).ToArray());
 
             _appModel.Setup(am => am.GetModelType(_classRef)).Returns(formData.GetType());
         }

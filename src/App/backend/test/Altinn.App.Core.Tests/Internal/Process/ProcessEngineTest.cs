@@ -855,7 +855,7 @@ public sealed class ProcessEngineTest
         Mock<IStorageDataClient> dataClientMock = new(MockBehavior.Strict);
         dataClientMock
             .Setup(c =>
-                c.GetDataBytesWithStorageMetadata(
+                c.GetDataBytesWithExpectedContentETag(
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     dataElementGuid,
@@ -864,7 +864,7 @@ public sealed class ProcessEngineTest
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new DataBytesWithStorageMetadata(initialBytes, new StorageDataElementMetadata()));
+            .ReturnsAsync(initialBytes);
         dataClientMock
             .Setup(c =>
                 c.UpdateBinaryDataWithStorageMetadata(
@@ -887,7 +887,6 @@ public sealed class ProcessEngineTest
             .ReturnsAsync(
                 new DataElementWithStorageMetadata(
                     dataElement,
-                    new StorageDataElementMetadata(),
                     new StorageVersionMetadata(InstanceVersion: 6, ProcessStateVersion: 1)
                 )
             );
@@ -1010,7 +1009,6 @@ public sealed class ProcessEngineTest
             .ReturnsAsync(
                 new InstanceMutationWithStorageMetadata(
                     instance,
-                    new Dictionary<string, StorageDataElementMetadata>(),
                     new StorageVersionMetadata(InstanceVersion: 6, ProcessStateVersion: 1)
                 )
             );

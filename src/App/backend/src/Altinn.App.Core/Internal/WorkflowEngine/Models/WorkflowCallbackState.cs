@@ -19,9 +19,6 @@ internal sealed record WorkflowCallbackState
     [JsonPropertyName("processStateVersion")]
     public int? ProcessStateVersion { get; init; }
 
-    [JsonPropertyName("dataElementEtags")]
-    public Dictionary<string, string>? DataElementEtags { get; init; }
-
     /// <summary>
     /// Form data elements (those with AppLogic.ClassRef), not binary attachments.
     /// </summary>

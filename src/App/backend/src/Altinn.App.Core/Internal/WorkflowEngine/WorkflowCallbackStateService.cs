@@ -56,21 +56,11 @@ internal sealed class WorkflowCallbackStateService
             })
             .ToList();
         StorageDataMetadata metadata = unitOfWork.StorageMetadata;
-        var dataElementEtags = new Dictionary<string, string>();
-        foreach (var (dataElementId, dataElementMetadata) in metadata.DataElements)
-        {
-            if (dataElementMetadata.ETag is { } etag)
-            {
-                dataElementEtags[dataElementId] = etag;
-            }
-        }
-
         var callbackState = new WorkflowCallbackState
         {
             Instance = unitOfWork.Instance,
             InstanceVersion = metadata.Versions.InstanceVersion,
             ProcessStateVersion = metadata.Versions.ProcessStateVersion,
-            DataElementEtags = dataElementEtags,
             FormData = formData,
         };
         if (callbackState.InstanceVersion is null)
@@ -135,11 +125,7 @@ internal sealed class WorkflowCallbackStateService
         );
         unitOfWork.RestoreStorageMetadata(
             new StorageDataMetadata(
-                new StorageVersionMetadata(callbackState.InstanceVersion, callbackState.ProcessStateVersion),
-                callbackState.DataElementEtags?.ToDictionary(
-                    entry => entry.Key,
-                    entry => new StorageDataElementMetadata(entry.Value)
-                ) ?? new Dictionary<string, StorageDataElementMetadata>()
+                new StorageVersionMetadata(callbackState.InstanceVersion, callbackState.ProcessStateVersion)
             )
         );
 
@@ -169,10 +155,6 @@ internal sealed class WorkflowCallbackStateService
             DataElementIdentifier identifier = dataElement;
             unitOfWork.PreloadFormData(identifier, wrapper);
             unitOfWork.PreloadBinaryData(identifier, storageBytes);
-            if (callbackState.DataElementEtags?.TryGetValue(identifier.Id, out string? etag) == true)
-            {
-                unitOfWork.PreloadDataElementStorageMetadata(identifier, new StorageDataElementMetadata(etag));
-            }
         }
 
         return unitOfWork;

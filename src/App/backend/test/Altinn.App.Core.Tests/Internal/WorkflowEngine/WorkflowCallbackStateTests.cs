@@ -27,10 +27,15 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class WorkflowCallbackStateTests
 {
     [Fact]
-    public async Task CaptureState_PreservesUnitOfWorkStorageVersionsAndEtags()
+    public async Task CaptureState_PreservesStorageVersionsAndInstanceContentEtag()
     {
         string dataElementId = Guid.NewGuid().ToString();
-        var dataElement = new DataElement { Id = dataElementId, DataType = "attachment" };
+        var dataElement = new DataElement
+        {
+            Id = dataElementId,
+            DataType = "attachment",
+            ContentEtag = "\"etag-capture\"",
+        };
         var instance = new Instance
         {
             Id = $"1337/{Guid.NewGuid()}",
@@ -44,7 +49,6 @@ public class WorkflowCallbackStateTests
             new StorageVersionMetadata(InstanceVersion: 21, ProcessStateVersion: 14)
         );
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
-        unitOfWork.PreloadDataElementStorageMetadata(dataElement, new StorageDataElementMetadata("\"etag-capture\""));
         var logger = new FakeLogger<WorkflowCallbackStateService>();
         WorkflowStateSigner stateSigner = CreateStateSigner();
         var service = new WorkflowCallbackStateService(
@@ -64,7 +68,7 @@ public class WorkflowCallbackStateTests
         Assert.NotNull(deserialized);
         Assert.Equal(21, deserialized.InstanceVersion);
         Assert.Equal(14, deserialized.ProcessStateVersion);
-        Assert.Equal("\"etag-capture\"", deserialized.DataElementEtags?[dataElementId]);
+        Assert.Equal("\"etag-capture\"", Assert.Single(deserialized.Instance.Data).ContentEtag);
         Assert.DoesNotContain(
             logger.Collector.GetSnapshot(),
             record =>
@@ -120,7 +124,15 @@ public class WorkflowCallbackStateTests
             Org = "ttd",
             AppId = "ttd/test-app",
             InstanceOwner = new InstanceOwner { PartyId = "1337" },
-            Data = [],
+            Data =
+            [
+                new DataElement
+                {
+                    Id = dataElementId,
+                    DataType = "attachment",
+                    ContentEtag = "\"etag-restore\"",
+                },
+            ],
         };
         WorkflowStateSigner stateSigner = CreateStateSigner();
         string state = stateSigner.Sign(
@@ -130,7 +142,6 @@ public class WorkflowCallbackStateTests
                     Instance = instance,
                     InstanceVersion = 31,
                     ProcessStateVersion = 22,
-                    DataElementEtags = new Dictionary<string, string> { [dataElementId] = "\"etag-restore\"" },
                     FormData = [],
                 }
             )
@@ -157,7 +168,7 @@ public class WorkflowCallbackStateTests
 
         Assert.Equal(31, unitOfWork.StorageMetadata.Versions.InstanceVersion);
         Assert.Equal(22, unitOfWork.StorageMetadata.Versions.ProcessStateVersion);
-        Assert.Equal("\"etag-restore\"", unitOfWork.StorageMetadata.DataElements[dataElementId].ETag);
+        Assert.Equal("\"etag-restore\"", Assert.Single(unitOfWork.Instance.Data).ContentEtag);
         Assert.Equal(new StorageVersionMetadata(31, 22), InstanceStorageMetadataRegistry.Get(unitOfWork.Instance));
 
         InstanceDataUnitOfWork followUpUnitOfWork = await initializer.Init(unitOfWork.Instance, null, "nb");
@@ -191,7 +202,6 @@ public class WorkflowCallbackStateTests
                     Instance = instance,
                     InstanceVersion = 31,
                     ProcessStateVersion = 22,
-                    DataElementEtags = [],
                     FormData = [],
                 }
             )
@@ -361,14 +371,18 @@ public class WorkflowCallbackStateTests
     }
 
     [Fact]
-    public void WorkflowCallbackState_SerializeDeserialize_PreservesExplicitStorageVersionsAndEtags()
+    public void WorkflowCallbackState_SerializeDeserialize_PreservesExplicitStorageVersionsAndInstanceContentEtag()
     {
         var instanceState = new WorkflowCallbackState
         {
-            Instance = new Instance { Org = "ttd", AppId = "ttd/test-app" },
+            Instance = new Instance
+            {
+                Org = "ttd",
+                AppId = "ttd/test-app",
+                Data = [new DataElement { Id = "data-guid-1", ContentEtag = "\"etag-1\"" }],
+            },
             InstanceVersion = 13,
             ProcessStateVersion = 8,
-            DataElementEtags = new Dictionary<string, string> { ["data-guid-1"] = "\"etag-1\"" },
             FormData = new List<FormDataEntry>(),
         };
 
@@ -378,17 +392,26 @@ public class WorkflowCallbackStateTests
         Assert.NotNull(deserialized);
         Assert.Equal(13, deserialized.InstanceVersion);
         Assert.Equal(8, deserialized.ProcessStateVersion);
-        Assert.Equal("\"etag-1\"", deserialized.DataElementEtags?["data-guid-1"]);
+        Assert.Equal("\"etag-1\"", Assert.Single(deserialized.Instance.Data).ContentEtag);
     }
 
     [Fact]
-    public void WorkflowCallbackState_DeserializeOldStateWithoutVersions_RemainsCompatible()
+    public void WorkflowCallbackState_DeserializeOldStateWithRemovedDataElementEtags_RemainsCompatible()
     {
         const string json = """
             {
                 "instance": {
                     "org": "ttd",
-                    "appId": "ttd/test-app"
+                    "appId": "ttd/test-app",
+                    "Data": [
+                        {
+                            "Id": "data-guid-1",
+                            "ContentEtag": "\"etag-instance\""
+                        }
+                    ]
+                },
+                "dataElementEtags": {
+                    "data-guid-1": "\"etag-legacy-field\""
                 },
                 "formData": []
             }
@@ -399,7 +422,7 @@ public class WorkflowCallbackStateTests
         Assert.NotNull(deserialized);
         Assert.Null(deserialized.InstanceVersion);
         Assert.Null(deserialized.ProcessStateVersion);
-        Assert.Null(deserialized.DataElementEtags);
+        Assert.Equal("\"etag-instance\"", Assert.Single(deserialized.Instance.Data).ContentEtag);
         Assert.Empty(deserialized.FormData);
     }
 

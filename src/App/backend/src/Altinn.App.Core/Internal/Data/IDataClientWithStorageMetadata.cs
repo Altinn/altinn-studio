@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Internal.Data;
 
 internal interface IDataClientWithStorageMetadata
 {
-    Task<DataBytesWithStorageMetadata> GetDataBytesWithStorageMetadata(
+    Task<byte[]> GetDataBytesWithExpectedContentETag(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,

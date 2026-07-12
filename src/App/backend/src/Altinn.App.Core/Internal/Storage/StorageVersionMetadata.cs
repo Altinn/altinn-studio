@@ -25,8 +25,6 @@ internal sealed record StorageVersionMetadata(int? InstanceVersion = null, int? 
         };
 }
 
-internal sealed record StorageDataElementMetadata(string? ETag = null);
-
 internal sealed record StorageWritePreconditions(
     int? ProcessStateVersion = null,
     string? ContentETag = null,
@@ -34,24 +32,14 @@ internal sealed record StorageWritePreconditions(
     string? IdempotencyKey = null
 );
 
-internal sealed record StorageDataMetadata(
-    StorageVersionMetadata Versions,
-    IReadOnlyDictionary<string, StorageDataElementMetadata> DataElements
-)
+internal sealed record StorageDataMetadata(StorageVersionMetadata Versions)
 {
-    public static StorageDataMetadata Empty { get; } =
-        new(StorageVersionMetadata.Empty, new Dictionary<string, StorageDataElementMetadata>());
+    public static StorageDataMetadata Empty { get; } = new(StorageVersionMetadata.Empty);
 }
 
 internal sealed record InstanceWithStorageMetadata(Instance Instance, StorageVersionMetadata Metadata);
 
-internal sealed record DataElementWithStorageMetadata(
-    DataElement DataElement,
-    StorageDataElementMetadata Metadata,
-    StorageVersionMetadata Versions
-);
-
-internal sealed record DataBytesWithStorageMetadata(byte[] Bytes, StorageDataElementMetadata Metadata);
+internal sealed record DataElementWithStorageMetadata(DataElement DataElement, StorageVersionMetadata Versions);
 
 internal sealed record DeleteDataWithStorageMetadata(bool Deleted, StorageVersionMetadata Metadata);
 
@@ -65,9 +53,6 @@ internal static class StorageResponseMetadata
             ReadPositiveIntHeader(response.Headers, InstanceVersionHeaderName),
             ReadPositiveIntHeader(response.Headers, ProcessStateVersionHeaderName)
         );
-
-    public static StorageDataElementMetadata ReadDataElementMetadata(HttpResponseMessage response) =>
-        new(response.Headers.ETag?.ToString());
 
     private static int? ReadPositiveIntHeader(HttpResponseHeaders headers, string name)
     {

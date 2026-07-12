@@ -747,7 +747,7 @@ internal sealed class StorageDataClient : IStorageDataClient
         CancellationToken cancellationToken = default
     ) =>
         (
-            await ((IDataClientWithStorageMetadata)this).GetDataBytesWithStorageMetadata(
+            await ((IDataClientWithStorageMetadata)this).GetDataBytesWithExpectedContentETag(
                 instanceOwnerPartyId,
                 instanceGuid,
                 dataId,
@@ -755,10 +755,10 @@ internal sealed class StorageDataClient : IStorageDataClient
                 expectedContentETag: null,
                 cancellationToken
             )
-        ).Bytes;
+        );
 
     /// <inheritdoc />
-    async Task<DataBytesWithStorageMetadata> IDataClientWithStorageMetadata.GetDataBytesWithStorageMetadata(
+    async Task<byte[]> IDataClientWithStorageMetadata.GetDataBytesWithExpectedContentETag(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
@@ -794,8 +794,7 @@ internal sealed class StorageDataClient : IStorageDataClient
 
         if (response.IsSuccessStatusCode)
         {
-            byte[] bytes = await response.Content.ReadAsByteArrayAsync(cts.Token);
-            return new DataBytesWithStorageMetadata(bytes, StorageResponseMetadata.ReadDataElementMetadata(response));
+            return await response.Content.ReadAsByteArrayAsync(cts.Token);
         }
 
         throw await PlatformHttpException.CreateAsync(response);
@@ -975,16 +974,8 @@ internal sealed class StorageDataClient : IStorageDataClient
                 throw new JsonException("Could not deserialize instance mutation response from Storage");
             }
 
-            var dataElementMetadata = (instance.Data ?? [])
-                .Where(dataElement => !string.IsNullOrEmpty(dataElement.ContentEtag))
-                .ToDictionary(
-                    dataElement => dataElement.Id,
-                    dataElement => new StorageDataElementMetadata(dataElement.ContentEtag)
-                );
-
             return new InstanceMutationWithStorageMetadata(
                 instance,
-                dataElementMetadata,
                 StorageResponseMetadata.ReadVersionMetadata(response),
                 mutationResponse.CreatedDataElementIds,
                 mutationResponse.Replayed
@@ -1152,7 +1143,6 @@ internal sealed class StorageDataClient : IStorageDataClient
             if (dataElement is not null)
                 return new DataElementWithStorageMetadata(
                     dataElement,
-                    StorageResponseMetadata.ReadDataElementMetadata(response),
                     StorageResponseMetadata.ReadVersionMetadata(response)
                 );
         }
@@ -1286,7 +1276,6 @@ internal sealed class StorageDataClient : IStorageDataClient
 
             return new DataElementWithStorageMetadata(
                 dataElement,
-                StorageResponseMetadata.ReadDataElementMetadata(response),
                 StorageResponseMetadata.ReadVersionMetadata(response)
             );
         }
@@ -1344,11 +1333,7 @@ internal sealed class StorageDataClient : IStorageDataClient
                 await response.Content.ReadAsStringAsync(cts.Token)
             )!;
 
-            return new DataElementWithStorageMetadata(
-                result,
-                StorageResponseMetadata.ReadDataElementMetadata(response),
-                StorageResponseMetadata.ReadVersionMetadata(response)
-            );
+            return new DataElementWithStorageMetadata(result, StorageResponseMetadata.ReadVersionMetadata(response));
         }
 
         throw await PlatformHttpException.CreateAsync(response);

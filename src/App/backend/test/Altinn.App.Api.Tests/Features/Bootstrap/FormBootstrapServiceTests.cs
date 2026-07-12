@@ -964,7 +964,7 @@ public class FormBootstrapServiceTests
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
         _dataClient
             .Setup(x =>
-                x.GetDataBytesWithStorageMetadata(
+                x.GetDataBytesWithExpectedContentETag(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
@@ -973,12 +973,7 @@ public class FormBootstrapServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new DataBytesWithStorageMetadata(
-                    new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray(),
-                    new StorageDataElementMetadata()
-                )
-            );
+            .ReturnsAsync(new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray());
         _appOptionsFileHandler
             .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);

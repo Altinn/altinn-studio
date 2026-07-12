@@ -285,9 +285,6 @@ public class WorkflowEngineCallbackControllerTests
                         Instance = instance,
                         InstanceVersion = 1,
                         ProcessStateVersion = 1,
-                        DataElementEtags = instance
-                            .Data.Where(dataElement => !string.IsNullOrEmpty(dataElement.ContentEtag))
-                            .ToDictionary(dataElement => dataElement.Id, dataElement => dataElement.ContentEtag!),
                         FormData = [],
                     }
                 )

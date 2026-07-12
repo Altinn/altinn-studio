@@ -145,22 +145,18 @@ internal sealed record InstanceMutationWithStorageMetadata
 {
     public InstanceMutationWithStorageMetadata(
         Instance instance,
-        IReadOnlyDictionary<string, StorageDataElementMetadata> dataElementMetadata,
         StorageVersionMetadata metadata,
         IReadOnlyList<Guid>? createdDataElementIds = null,
         bool replayed = false
     )
     {
         Instance = instance;
-        DataElementMetadata = dataElementMetadata;
         Metadata = metadata;
         CreatedDataElementIds = createdDataElementIds ?? [];
         Replayed = replayed;
     }
 
     public Instance Instance { get; }
-
-    public IReadOnlyDictionary<string, StorageDataElementMetadata> DataElementMetadata { get; }
 
     public StorageVersionMetadata Metadata { get; }
 

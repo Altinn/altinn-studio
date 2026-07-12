@@ -127,9 +127,10 @@ internal sealed class InstanceClientMockSi : IStorageInstanceClient
         var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceId);
         foreach (DataElement dataElement in instance.Data)
         {
-            dataElement.ContentEtag = _storageMetadata
-                .GetDataElementMetadata(instanceIdentifier, Guid.Parse(dataElement.Id))
-                .ETag;
+            dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(
+                instanceIdentifier,
+                Guid.Parse(dataElement.Id)
+            );
         }
         return new InstanceWithStorageMetadata(instance, metadata);
     }

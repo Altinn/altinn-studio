@@ -138,7 +138,6 @@ public class UnlockTaskDataTests
                     capturedMutation = request;
                     return new InstanceMutationWithStorageMetadata(
                         instance,
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: null)
                     );
                 }

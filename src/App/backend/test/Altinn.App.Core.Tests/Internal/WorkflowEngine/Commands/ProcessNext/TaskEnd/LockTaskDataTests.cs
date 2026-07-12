@@ -137,7 +137,6 @@ public class LockTaskDataTests
                     capturedMutation = request;
                     return new InstanceMutationWithStorageMetadata(
                         instance,
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: null)
                     );
                 }

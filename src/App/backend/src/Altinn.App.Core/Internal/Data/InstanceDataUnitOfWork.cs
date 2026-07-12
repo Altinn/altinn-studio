@@ -89,7 +89,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
     private ProcessStateChange? _stagedProcessStateChange;
     private bool _stagedInstanceDeletion;
 
-    private readonly ConcurrentDictionary<string, StorageDataElementMetadata> _dataElementStorageMetadata = [];
     private readonly Lock _storageMetadataLock = new();
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
@@ -123,7 +122,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
         _instance = instance;
         _storageVersionMetadata = InstanceStorageMetadataRegistry.Get(instance);
-        ReplaceDataElementStorageMetadataFromInstance(instance);
         _dataTypes = appMetadata.DataTypes;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
@@ -183,13 +181,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             ThrowIfDisposed();
             lock (_storageMetadataLock)
             {
-                return new StorageDataMetadata(_storageVersionMetadata, _dataElementStorageMetadata.ToDictionary());
+                return new StorageDataMetadata(_storageVersionMetadata);
             }
         }
     }
 
     /// <summary>
-    /// Replaces the storage version and data element ETag metadata tracked by this unit of work.
+    /// Replaces the storage version metadata tracked by this unit of work.
     /// </summary>
     /// <remarks>
     /// Also updates the <see cref="InstanceStorageMetadataRegistry"/> weak-table entry for <see cref="Instance"/>,
@@ -201,11 +199,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         lock (_storageMetadataLock)
         {
             _storageVersionMetadata = metadata.Versions;
-            _dataElementStorageMetadata.Clear();
-            foreach (var (dataElementId, dataElementMetadata) in metadata.DataElements)
-            {
-                _dataElementStorageMetadata[dataElementId] = dataElementMetadata;
-            }
             InstanceStorageMetadataRegistry.Set(Instance, _storageVersionMetadata);
         }
     }
@@ -664,12 +657,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         _binaryCache.Set(id, data);
     }
 
-    internal void PreloadDataElementStorageMetadata(DataElementIdentifier id, StorageDataElementMetadata metadata)
-    {
-        ThrowIfCannotMutateOrSave();
-        _dataElementStorageMetadata[id.Id] = metadata;
-    }
-
     internal void StageProcessStateChange(ProcessStateChange processStateChange)
     {
         ThrowIfCannotMutateOrSave();
@@ -893,7 +880,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             preconditions: GetTaskBoundWritePreconditions()
         );
         var dataElement = dataElementResult.DataElement;
-        StoreDataElementMetadata(dataElement, dataElementResult.Metadata);
         StoreVersionMetadata(dataElementResult.Versions);
 
         // Apply metadata if specified
@@ -938,7 +924,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             GetAuthenticationMethod(change.DataElementIdentifier),
             GetTaskBoundContentWritePreconditions(change.DataElementIdentifier)
         );
-        StoreDataElementMetadata(result.DataElement, result.Metadata);
+        change.DataElement.ContentEtag = result.DataElement.ContentEtag;
         StoreVersionMetadata(result.Versions);
     }
 
@@ -955,7 +941,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             GetAuthenticationMethod(change.DataElementIdentifier),
             GetTaskBoundContentWritePreconditions(change.DataElementIdentifier)
         );
-        StoreDataElementMetadata(result.DataElement, result.Metadata);
+        change.DataElement.ContentEtag = result.DataElement.ContentEtag;
         StoreVersionMetadata(result.Versions);
     }
 
@@ -1132,7 +1118,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
                     preconditions: GetTaskBoundWritePreconditions()
                 );
                 StoreVersionMetadata(result.Metadata);
-                RemoveDataElementMetadata(change.DataElementIdentifier);
             }
 
             tasks.Add(DeleteData());
@@ -1369,7 +1354,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         );
 
         ApplyInstanceSnapshot(freshInstance.Instance);
-        RestoreStorageMetadata(new StorageDataMetadata(freshInstance.Metadata, StorageMetadata.DataElements));
+        RestoreStorageMetadata(new StorageDataMetadata(freshInstance.Metadata));
         ClearAttemptLocalState();
     }
 
@@ -1548,15 +1533,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
     private string? GetDataElementContentETag(DataElementIdentifier dataElementIdentifier)
     {
-        lock (_storageMetadataLock)
-        {
-            return _dataElementStorageMetadata.TryGetValue(
-                dataElementIdentifier.Id,
-                out StorageDataElementMetadata? metadata
-            )
-                ? metadata.ETag
-                : null;
-        }
+        string? contentEtag = GetDataElement(dataElementIdentifier).ContentEtag;
+        return string.IsNullOrEmpty(contentEtag) ? null : contentEtag;
     }
 
     private void ApplyAggregateMutationResult(
@@ -1602,17 +1580,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
                     $"Storage mutation response did not contain updated data element {change.DataElementIdentifier.Id}"
                 );
             change.DataElement = dataElement;
-            StoreContentMetadataFromAggregateResponse(change.DataElementIdentifier, result.DataElementMetadata);
-        }
-
-        foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Deleted))
-        {
-            RemoveDataElementMetadata(change.DataElementIdentifier);
-        }
-
-        foreach (var (dataElementId, metadata) in result.DataElementMetadata)
-        {
-            StoreDataElementMetadata(new DataElementIdentifier(dataElementId), metadata);
         }
 
         foreach (DataElementIdentifier dataElementIdentifier in mutationPlan.LockStatusDataElementIdentifiers)
@@ -1644,20 +1611,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         }
     }
 
-    private void StoreContentMetadataFromAggregateResponse(
-        DataElementIdentifier dataElementIdentifier,
-        IReadOnlyDictionary<string, StorageDataElementMetadata> responseMetadata
-    )
-    {
-        if (responseMetadata.TryGetValue(dataElementIdentifier.Id, out StorageDataElementMetadata? metadata))
-        {
-            StoreDataElementMetadata(dataElementIdentifier, metadata);
-            return;
-        }
-
-        RemoveDataElementMetadata(dataElementIdentifier);
-    }
-
     private void ApplyInstanceSnapshot(Instance updatedInstance)
     {
         foreach (var property in typeof(Instance).GetProperties())
@@ -1668,25 +1621,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
             }
         }
 
-        ReplaceDataElementStorageMetadataFromInstance(updatedInstance);
         InstanceStorageMetadataRegistry.Set(Instance, InstanceStorageMetadataRegistry.Get(updatedInstance));
-    }
-
-    private void ReplaceDataElementStorageMetadataFromInstance(Instance instance)
-    {
-        lock (_storageMetadataLock)
-        {
-            _dataElementStorageMetadata.Clear();
-            foreach (DataElement dataElement in instance.Data ?? [])
-            {
-                if (!string.IsNullOrEmpty(dataElement.ContentEtag))
-                {
-                    _dataElementStorageMetadata[dataElement.Id] = new StorageDataElementMetadata(
-                        dataElement.ContentEtag
-                    );
-                }
-            }
-        }
     }
 
     private sealed record AggregateMutationPlan(
@@ -1721,18 +1656,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
         return await _binaryCache.GetOrCreate(
             dataElementIdentifier,
-            async () => await GetDataBytesAndStoreMetadata(dataElementIdentifier)
+            async () => await GetDataBytes(dataElementIdentifier)
         );
     }
 
-    private async Task<DataBytesWithStorageMetadata> GetDataBytesWithStorageMetadata(
-        DataElementIdentifier dataElementIdentifier
-    )
+    private async Task<byte[]> GetDataBytes(DataElementIdentifier dataElementIdentifier)
     {
         string? expectedContentETag = GetDataElementContentETag(dataElementIdentifier);
         try
         {
-            return await _dataClient.GetDataBytesWithStorageMetadata(
+            return await _dataClient.GetDataBytesWithExpectedContentETag(
                 _instanceOwnerPartyId,
                 _instanceGuid,
                 dataElementIdentifier.Guid,
@@ -1747,13 +1680,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
         {
             throw new DataElementContentConflictException(Instance.Id, dataElementIdentifier.Guid, exception);
         }
-    }
-
-    private async Task<ReadOnlyMemory<byte>> GetDataBytesAndStoreMetadata(DataElementIdentifier dataElementIdentifier)
-    {
-        DataBytesWithStorageMetadata result = await GetDataBytesWithStorageMetadata(dataElementIdentifier);
-        StoreDataElementMetadata(dataElementIdentifier, result.Metadata);
-        return result.Bytes;
     }
 
     private async Task<DataElementWithStorageMetadata> InsertBinaryDataWithStorageMetadata(
@@ -1862,12 +1788,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
 
     private StorageWritePreconditions GetTaskBoundContentWritePreconditions(DataElementIdentifier dataElementIdentifier)
     {
+        string? contentETag = GetDataElementContentETag(dataElementIdentifier);
         lock (_storageMetadataLock)
         {
-            _dataElementStorageMetadata.TryGetValue(dataElementIdentifier.Id, out StorageDataElementMetadata? metadata);
             return new StorageWritePreconditions(
                 ProcessStateVersion: _storageVersionMetadata.ProcessStateVersion,
-                ContentETag: metadata?.ETag
+                ContentETag: contentETag
             );
         }
     }
@@ -1882,25 +1808,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IDisposable
                 IdempotencyKey: idempotencyKey
             );
         }
-    }
-
-    private void StoreDataElementMetadata(
-        DataElementIdentifier dataElementIdentifier,
-        StorageDataElementMetadata metadata
-    )
-    {
-        if (metadata.ETag is not null)
-        {
-            _dataElementStorageMetadata[dataElementIdentifier.Id] = metadata;
-            return;
-        }
-
-        RemoveDataElementMetadata(dataElementIdentifier);
-    }
-
-    private void RemoveDataElementMetadata(DataElementIdentifier dataElementIdentifier)
-    {
-        _dataElementStorageMetadata.TryRemove(dataElementIdentifier.Id, out _);
     }
 
     /// <summary>

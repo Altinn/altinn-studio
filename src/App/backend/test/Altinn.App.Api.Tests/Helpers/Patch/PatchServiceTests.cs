@@ -113,13 +113,7 @@ public sealed class PatchServiceTests : IDisposable
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new InstanceMutationWithStorageMetadata(
-                    _instance,
-                    new Dictionary<string, StorageDataElementMetadata>(),
-                    StorageVersionMetadata.Empty
-                )
-            );
+            .ReturnsAsync(new InstanceMutationWithStorageMetadata(_instance, StorageVersionMetadata.Empty));
 
         _dataElementAccessCheckerMock
             .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
@@ -492,7 +486,7 @@ public sealed class PatchServiceTests : IDisposable
     {
         _dataClientMock
             .Setup(d =>
-                d.GetDataBytesWithStorageMetadata(
+                d.GetDataBytesWithExpectedContentETag(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
@@ -501,12 +495,7 @@ public sealed class PatchServiceTests : IDisposable
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new DataBytesWithStorageMetadata(
-                    _modelSerializationService.SerializeToXml(oldModel).ToArray(),
-                    new StorageDataElementMetadata()
-                )
-            )
+            .ReturnsAsync(_modelSerializationService.SerializeToXml(oldModel).ToArray())
             .Verifiable();
     }
 

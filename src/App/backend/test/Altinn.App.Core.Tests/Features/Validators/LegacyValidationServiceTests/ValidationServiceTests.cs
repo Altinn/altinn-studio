@@ -300,7 +300,7 @@ public sealed class ValidationServiceTests : IDisposable
     {
         _dataClientMock
             .Setup(d =>
-                d.GetDataBytesWithStorageMetadata(
+                d.GetDataBytesWithExpectedContentETag(
                     DefaultPartyId,
                     _defaultInstanceId,
                     _defaultDataElementId,
@@ -309,12 +309,7 @@ public sealed class ValidationServiceTests : IDisposable
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new DataBytesWithStorageMetadata(
-                    _modelSerialization.SerializeToXml(data).ToArray(),
-                    new StorageDataElementMetadata()
-                )
-            )
+            .ReturnsAsync(_modelSerialization.SerializeToXml(data).ToArray())
             .Verifiable(Times.AtLeastOnce);
     }
 

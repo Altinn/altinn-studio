@@ -6,28 +6,28 @@ namespace Altinn.App.Api.Tests.Mocks;
 public sealed class ApiTestStorageMetadataTests
 {
     [Fact]
-    public void GetDataElementMetadata_DefaultsNormalElementToVersionOne()
+    public void GetDataElementContentEtag_DefaultsNormalElementToVersionOne()
     {
         var metadata = new ApiTestStorageMetadata();
         var instanceIdentifier = new InstanceIdentifier(123456, Guid.NewGuid());
         Guid dataId = Guid.NewGuid();
 
-        var actual = metadata.GetDataElementMetadata(instanceIdentifier, dataId);
+        string? actual = metadata.GetDataElementContentEtag(instanceIdentifier, dataId);
 
-        Assert.Equal(StorageClientInterceptor.CreateDataETag(1), actual.ETag);
+        Assert.Equal(StorageClientInterceptor.CreateDataETag(1), actual);
     }
 
     [Fact]
-    public void GetDataElementMetadata_PreservesExplicitVersion()
+    public void GetDataElementContentEtag_PreservesExplicitVersion()
     {
         var metadata = new ApiTestStorageMetadata();
         var instanceIdentifier = new InstanceIdentifier(123456, Guid.NewGuid());
         Guid dataId = Guid.NewGuid();
         metadata.SetDataElementBlobVersion(instanceIdentifier, dataId, 7);
 
-        var actual = metadata.GetDataElementMetadata(instanceIdentifier, dataId);
+        string? actual = metadata.GetDataElementContentEtag(instanceIdentifier, dataId);
 
-        Assert.Equal(StorageClientInterceptor.CreateDataETag(7), actual.ETag);
+        Assert.Equal(StorageClientInterceptor.CreateDataETag(7), actual);
     }
 
     [Fact]
@@ -38,9 +38,9 @@ public sealed class ApiTestStorageMetadataTests
         Guid dataId = Guid.NewGuid();
         metadata.SetDataElementWithoutBlobVersion(instanceIdentifier, dataId);
 
-        Assert.Null(metadata.GetDataElementMetadata(instanceIdentifier, dataId).ETag);
+        Assert.Null(metadata.GetDataElementContentEtag(instanceIdentifier, dataId));
         var actual = metadata.BumpDataElement(instanceIdentifier, dataId);
 
-        Assert.Equal(StorageClientInterceptor.CreateDataETag(1), actual.DataElement.ETag);
+        Assert.Equal(StorageClientInterceptor.CreateDataETag(1), actual.ContentEtag);
     }
 }

@@ -108,19 +108,16 @@ internal sealed class ApiTestStorageMetadata
         }
     }
 
-    public StorageDataElementMetadata GetDataElementMetadata(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    public string? GetDataElementContentEtag(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
         InstanceState state = GetState(instanceIdentifier.GetInstanceId());
         lock (state)
         {
-            return new StorageDataElementMetadata(CreateDataElementETag(state.GetDataElementVersion(dataGuid)));
+            return CreateDataElementETag(state.GetDataElementVersion(dataGuid));
         }
     }
 
-    public StorageDataElementMetadata GetDataElementMetadataForContentRead(
-        InstanceIdentifier instanceIdentifier,
-        Guid dataGuid
-    )
+    public string? GetDataElementContentEtagForContentRead(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
         InstanceState state = GetState(instanceIdentifier.GetInstanceId());
         lock (state)
@@ -130,7 +127,7 @@ internal sealed class ApiTestStorageMetadata
                 state.BumpDataElement(dataGuid);
             }
 
-            return new StorageDataElementMetadata(CreateDataElementETag(state.GetDataElementVersion(dataGuid)));
+            return CreateDataElementETag(state.GetDataElementVersion(dataGuid));
         }
     }
 
@@ -156,7 +153,7 @@ internal sealed class ApiTestStorageMetadata
         }
     }
 
-    public (StorageVersionMetadata Versions, StorageDataElementMetadata DataElement) BumpDataElement(
+    public (StorageVersionMetadata Versions, string? ContentEtag) BumpDataElement(
         InstanceIdentifier instanceIdentifier,
         Guid dataGuid
     )
@@ -166,7 +163,7 @@ internal sealed class ApiTestStorageMetadata
         {
             state.InstanceVersion++;
             int dataElementVersion = state.BumpDataElement(dataGuid);
-            return (state.Versions, new StorageDataElementMetadata(CreateDataElementETag(dataElementVersion)));
+            return (state.Versions, CreateDataElementETag(dataElementVersion));
         }
     }
 
@@ -179,10 +176,7 @@ internal sealed class ApiTestStorageMetadata
         }
     }
 
-    public (
-        StorageVersionMetadata Versions,
-        IReadOnlyDictionary<string, StorageDataElementMetadata> DataElements
-    ) BumpAggregate(
+    public StorageVersionMetadata BumpAggregate(
         InstanceIdentifier instanceIdentifier,
         IEnumerable<Guid> changedDataElements,
         IEnumerable<Guid> deletedDataElements,
@@ -198,13 +192,9 @@ internal sealed class ApiTestStorageMetadata
                 state.ProcessStateVersion++;
             }
 
-            Dictionary<string, StorageDataElementMetadata> dataElementMetadata = new(StringComparer.Ordinal);
             foreach (Guid dataGuid in changedDataElements)
             {
-                int version = state.BumpDataElement(dataGuid);
-                dataElementMetadata[dataGuid.ToString()] = new StorageDataElementMetadata(
-                    CreateDataElementETag(version)
-                );
+                state.BumpDataElement(dataGuid);
             }
 
             foreach (Guid dataGuid in deletedDataElements)
@@ -212,9 +202,8 @@ internal sealed class ApiTestStorageMetadata
                 state.DataElementVersions.Remove(dataGuid);
             }
 
-            var result = (state.Versions, (IReadOnlyDictionary<string, StorageDataElementMetadata>)dataElementMetadata);
             _firstAggregateMutation.TrySetResult();
-            return result;
+            return state.Versions;
         }
     }
 

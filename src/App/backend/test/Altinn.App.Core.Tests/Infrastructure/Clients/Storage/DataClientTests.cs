@@ -196,12 +196,17 @@ public class DataClientTests
     }
 
     [Fact]
-    public async Task InsertBinaryDataWithStorageMetadata_ParsesETagHeader()
+    public async Task InsertBinaryDataWithStorageMetadata_UsesBodyContentETagAndParsesVersionHeaders()
     {
         await using var fixture = Fixture.Create(
             async (_, _) =>
             {
-                DataElement dataElement = new DataElement { Id = "DataElement.Id", InstanceGuid = "InstanceGuid" };
+                DataElement dataElement = new DataElement
+                {
+                    Id = "DataElement.Id",
+                    InstanceGuid = "InstanceGuid",
+                    ContentEtag = "\"etag-body\"",
+                };
                 await Task.CompletedTask;
                 var response = new HttpResponseMessage
                 {
@@ -227,7 +232,7 @@ public class DataClientTests
             authenticationMethod: null
         );
 
-        Assert.Equal("\"etag-1\"", result.Metadata.ETag);
+        Assert.Equal("\"etag-body\"", result.DataElement.ContentEtag);
         Assert.Equal(21, result.Versions.InstanceVersion);
         Assert.Equal(4, result.Versions.ProcessStateVersion);
     }
@@ -240,7 +245,12 @@ public class DataClientTests
         await using var fixture = Fixture.Create(
             async (_, _) =>
             {
-                DataElement dataElement = new DataElement { Id = dataGuid.ToString(), InstanceGuid = "InstanceGuid" };
+                DataElement dataElement = new DataElement
+                {
+                    Id = dataGuid.ToString(),
+                    InstanceGuid = "InstanceGuid",
+                    ContentEtag = "\"etag-body\"",
+                };
                 await Task.CompletedTask;
                 var response = new HttpResponseMessage
                 {
@@ -265,7 +275,7 @@ public class DataClientTests
             authenticationMethod: null
         );
 
-        Assert.Equal("\"etag-3\"", result.Metadata.ETag);
+        Assert.Equal("\"etag-body\"", result.DataElement.ContentEtag);
         Assert.Equal(22, result.Versions.InstanceVersion);
         Assert.Equal(5, result.Versions.ProcessStateVersion);
     }
@@ -359,8 +369,10 @@ public class DataClientTests
         Assert.False(platformRequest.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName));
         Assert.Equal($"123/{instanceGuid}", result.Instance.Id);
         Assert.Equal([dataGuid], result.CreatedDataElementIds);
-        Assert.Single(result.DataElementMetadata);
-        Assert.Equal("\"etag-2\"", result.DataElementMetadata[dataGuid.ToString()].ETag);
+        Assert.Equal(
+            "\"etag-2\"",
+            Assert.Single(result.Instance.Data, dataElement => dataElement.Id == dataGuid.ToString()).ContentEtag
+        );
         Assert.Equal(30, result.Metadata.InstanceVersion);
         Assert.Equal(9, result.Metadata.ProcessStateVersion);
         Assert.True(result.Replayed);
@@ -618,7 +630,7 @@ public class DataClientTests
     }
 
     [Fact]
-    public async Task GetDataBytesWithStorageMetadata_ParsesETagHeader()
+    public async Task GetDataBytes_ReturnsBytesWithoutCapturingETagHeader()
     {
         byte[] expectedBytes = "hello"u8.ToArray();
         HttpRequestMessage? platformRequest = null;
@@ -636,23 +648,20 @@ public class DataClientTests
             }
         );
 
-        DataBytesWithStorageMetadata result = await (
-            (IDataClientWithStorageMetadata)fixture.DataClient
-        ).GetDataBytesWithStorageMetadata(
+        byte[] result = await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
             123,
             Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
             Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
             authenticationMethod: null
         );
 
-        Assert.Equal(expectedBytes, result.Bytes);
-        Assert.Equal("\"etag-2\"", result.Metadata.ETag);
+        Assert.Equal(expectedBytes, result);
         Assert.NotNull(platformRequest);
         Assert.Empty(platformRequest.Headers.IfMatch);
     }
 
     [Fact]
-    public async Task GetDataBytesWithStorageMetadata_WithExpectedContentETag_SendsIfMatch()
+    public async Task GetDataBytes_WithExpectedContentETag_SendsIfMatch()
     {
         HttpRequestMessage? platformRequest = null;
         await using var fixture = Fixture.Create(
@@ -664,7 +673,7 @@ public class DataClientTests
             }
         );
 
-        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithStorageMetadata(
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
             123,
             Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
             Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),

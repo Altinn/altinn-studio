@@ -141,7 +141,6 @@ public class DeleteInstanceIfConfiguredTests
                             },
                             Data = [],
                         },
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 8)
                     );
                 }

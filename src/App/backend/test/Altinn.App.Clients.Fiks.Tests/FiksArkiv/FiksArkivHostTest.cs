@@ -433,7 +433,6 @@ public class FiksArkivHostTest
 
                     return new InstanceMutationWithStorageMetadata(
                         updatedInstance,
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         new StorageVersionMetadata(InstanceVersion: 1),
                         [createdDataElementId]
                     );

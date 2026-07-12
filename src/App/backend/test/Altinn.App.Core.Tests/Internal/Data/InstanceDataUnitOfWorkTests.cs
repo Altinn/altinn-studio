@@ -67,7 +67,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task Init_SeedsNonEmptyDataElementContentETagsFromInstanceSnapshot()
+    public async Task Init_PreservesDataElementContentETagsOnInstanceSnapshot()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             "content"u8.ToArray(),
@@ -76,8 +76,8 @@ public sealed class InstanceDataUnitOfWorkTests
             lastContentETagEmpty: true
         );
 
-        Assert.Equal("\"etag-snapshot\"", setup.DataMutator.StorageMetadata.DataElements[setup.DataElement.Id].ETag);
-        Assert.DoesNotContain(setup.DataMutator.Instance.Data[1].Id, setup.DataMutator.StorageMetadata.DataElements);
+        Assert.Equal("\"etag-snapshot\"", setup.DataMutator.Instance.Data[0].ContentEtag);
+        Assert.Null(setup.DataMutator.Instance.Data[1].ContentEtag);
     }
 
     [Fact]
@@ -106,6 +106,43 @@ public sealed class InstanceDataUnitOfWorkTests
             request => request.RequestMethod == HttpMethod.Get
         );
         Assert.Empty(request.RequestHeaders.IfMatch);
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_ResponseHeaderETagDoesNotConditionLaterWrite()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("content"u8.ToArray(), withoutBlobVersion: true);
+        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(1));
+
+        await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+
+        DataElement instanceDataElement = Assert.Single(
+            setup.DataMutator.Instance.Data,
+            dataElement => dataElement.Id == setup.DataElement.Id
+        );
+        Assert.Null(instanceDataElement.ContentEtag);
+        var contentRead = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get
+        );
+        Assert.Empty(contentRead.RequestHeaders.IfMatch);
+        Assert.Equal(DataETag(1), contentRead.ResponseHeaders.ETag?.ToString());
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            instanceDataElement,
+            instanceDataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        var mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
+        Assert.Null(Assert.Single(mutation.UpdateDataElements).ExpectedCurrentBlobVersion);
     }
 
     [Fact]
@@ -160,7 +197,12 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal(setup.DataMutator.Instance.Id, exception.InstanceId);
         Assert.Equal(Guid.Parse(setup.DataElement.Id), exception.DataElementId);
         Assert.IsType<PlatformHttpException>(exception.InnerException);
-        Assert.Equal(DataETag(1), setup.DataMutator.StorageMetadata.DataElements[setup.DataElement.Id].ETag);
+        Assert.Equal(
+            DataETag(1),
+            Assert
+                .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
+                .ContentEtag
+        );
     }
 
     [Fact]
@@ -421,30 +463,23 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task RestoreStorageMetadata_ReplacesVersionAndDataElementMetadata()
+    public async Task RestoreStorageMetadata_ReplacesVersionsWithoutChangingInstanceContentETag()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             Encoding.UTF8.GetBytes("""{"status":"created"}""")
         );
-        setup.DataMutator.PreloadDataElementStorageMetadata(
-            setup.DataElement,
-            new StorageDataElementMetadata("\"etag-stale\"")
+        DataElement instanceDataElement = Assert.Single(
+            setup.DataMutator.Instance.Data,
+            dataElement => dataElement.Id == setup.DataElement.Id
         );
-        var replacementDataElementId = Guid.NewGuid().ToString();
-        var metadata = new StorageDataMetadata(
-            new StorageVersionMetadata(InstanceVersion: 11, ProcessStateVersion: 5),
-            new Dictionary<string, StorageDataElementMetadata>
-            {
-                [replacementDataElementId] = new StorageDataElementMetadata("\"etag-restore\""),
-            }
-        );
+        instanceDataElement.ContentEtag = "\"etag-instance\"";
+        var metadata = new StorageDataMetadata(new StorageVersionMetadata(InstanceVersion: 11, ProcessStateVersion: 5));
 
         setup.DataMutator.RestoreStorageMetadata(metadata);
 
         Assert.Equal(11, setup.DataMutator.StorageMetadata.Versions.InstanceVersion);
         Assert.Equal(5, setup.DataMutator.StorageMetadata.Versions.ProcessStateVersion);
-        Assert.False(setup.DataMutator.StorageMetadata.DataElements.ContainsKey(setup.DataElement.Id));
-        Assert.Equal("\"etag-restore\"", setup.DataMutator.StorageMetadata.DataElements[replacementDataElementId].ETag);
+        Assert.Equal("\"etag-instance\"", instanceDataElement.ContentEtag);
     }
 
     [Fact]
@@ -699,7 +734,6 @@ public sealed class InstanceDataUnitOfWorkTests
                     .ReturnsAsync(() =>
                         new DataElementWithStorageMetadata(
                             CreateDataElement(currentUserDataType.Id),
-                            new StorageDataElementMetadata(),
                             StorageVersionMetadata.Empty
                         )
                     );
@@ -1053,7 +1087,6 @@ public sealed class InstanceDataUnitOfWorkTests
                                 CreatePersistedDataElement(firstCreate, firstCreatedDataElementId, contentParts),
                             ],
                         },
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         StorageVersionMetadata.Empty,
                         [firstCreatedDataElementId, secondCreatedDataElementId]
                     );
@@ -1142,7 +1175,6 @@ public sealed class InstanceDataUnitOfWorkTests
                         instanceGuid,
                         [CreatePersistedDataElement(create, createdDataElementId, contentParts)]
                     ),
-                    new Dictionary<string, StorageDataElementMetadata>(),
                     StorageVersionMetadata.Empty,
                     []
                 );
@@ -1182,7 +1214,6 @@ public sealed class InstanceDataUnitOfWorkTests
                             ),
                         ]
                     ),
-                    new Dictionary<string, StorageDataElementMetadata>(),
                     StorageVersionMetadata.Empty,
                     [duplicatedDataElementId, duplicatedDataElementId]
                 );
@@ -1216,7 +1247,6 @@ public sealed class InstanceDataUnitOfWorkTests
             (instanceOwnerPartyId, instanceGuid, mutation, contentParts) =>
                 new InstanceMutationWithStorageMetadata(
                     CreateAggregateCreateResultInstance(instanceOwnerPartyId, instanceGuid, []),
-                    new Dictionary<string, StorageDataElementMetadata>(),
                     StorageVersionMetadata.Empty,
                     [missingDataElementId]
                 )
@@ -1607,7 +1637,6 @@ public sealed class InstanceDataUnitOfWorkTests
                                 },
                             ],
                         },
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
                     );
                 }
@@ -1738,7 +1767,6 @@ public sealed class InstanceDataUnitOfWorkTests
                             Process = instance.Process,
                             Data = [dataElement],
                         },
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 8)
                     );
                 }
@@ -1844,7 +1872,6 @@ public sealed class InstanceDataUnitOfWorkTests
                             },
                             Data = [],
                         },
-                        new Dictionary<string, StorageDataElementMetadata>(),
                         new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 8)
                     );
                 }
@@ -1982,10 +2009,6 @@ public sealed class InstanceDataUnitOfWorkTests
             .ReturnsAsync(
                 new InstanceMutationWithStorageMetadata(
                     replayedResponseInstance,
-                    new Dictionary<string, StorageDataElementMetadata>
-                    {
-                        [authoritativeDataElementId.ToString()] = new("\"etag-replayed-response\""),
-                    },
                     new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4),
                     [authoritativeDataElementId],
                     replayed: true
@@ -2046,10 +2069,7 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal("Task_2", unitOfWork.Instance.Process?.CurrentTask?.ElementId);
         Assert.Equal(8, unitOfWork.StorageMetadata.Versions.InstanceVersion);
         Assert.Equal(4, unitOfWork.StorageMetadata.Versions.ProcessStateVersion);
-        Assert.Equal(
-            "\"etag-fresh-instance\"",
-            unitOfWork.StorageMetadata.DataElements[authoritativeDataElementId.ToString()].ETag
-        );
+        Assert.Equal("\"etag-fresh-instance\"", Assert.Single(unitOfWork.Instance.Data).ContentEtag);
         Assert.Equal(stagedDataElementId.ToString(), createdChange.DataElement?.Id);
         WorkflowAggregateSaveOutcome replayRebuildOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
@@ -2060,7 +2080,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveChanges_WhenStorageReturnsNewETag_RefreshesDataElementStorageMetadata()
+    public async Task SaveChanges_WhenStorageReturnsNewETag_RefreshesInstanceDataElement()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
@@ -2070,17 +2090,16 @@ public sealed class InstanceDataUnitOfWorkTests
             new StorageVersionMetadata(ProcessStateVersion: 1),
             contentETag: DataETag(1)
         );
-        string staleDataElementId = Guid.NewGuid().ToString();
-        setup.DataMutator.PreloadDataElementStorageMetadata(
-            new DataElementIdentifier(staleDataElementId),
-            new StorageDataElementMetadata("\"etag-stale\"")
-        );
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await setup.DataMutator.SaveChanges(changes);
 
-        Assert.Equal(DataETag(2), setup.DataMutator.StorageMetadata.DataElements[setup.DataElement.Id].ETag);
-        Assert.DoesNotContain(staleDataElementId, setup.DataMutator.StorageMetadata.DataElements);
+        Assert.Equal(
+            DataETag(2),
+            Assert
+                .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
+                .ContentEtag
+        );
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestMethod == HttpMethod.Get
@@ -2147,6 +2166,262 @@ public sealed class InstanceDataUnitOfWorkTests
         (_, var storedData) = setup.Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(storedData[setup.DataElement.Id].AsSpan().SequenceEqual(firstUpdatedBytes));
         Assert.True(storedData[receiptDataElement.Id].AsSpan().SequenceEqual(secondUpdatedBytes));
+    }
+
+    [Fact]
+    public async Task SaveChanges_LegacyFanOutRefreshesInstanceContentEtagAndConditionsSecondWrite()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            otherDataTypeElementCount: 1,
+            contentETag: DataETag(1)
+        );
+        DataType serviceOwnerDataType = setup.DataMutator.DataTypes.Single(dataType => dataType.Id == "receipt");
+        DataElement receiptDataElement = setup.DataElements.Single(dataElement => dataElement.DataType == "receipt");
+        setup.DataMutator.OverrideAuthenticationMethod(
+            serviceOwnerDataType,
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "first"u8.ToArray()
+        );
+        setup.DataMutator.UpdateBinaryDataElement(
+            receiptDataElement,
+            receiptDataElement.ContentType!,
+            "first receipt"u8.ToArray()
+        );
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.All(setup.DataMutator.Instance.Data, dataElement => Assert.Equal(DataETag(2), dataElement.ContentEtag));
+        setup.Services.Storage.RequestsResponses.Clear();
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "second"u8.ToArray()
+        );
+        setup.DataMutator.UpdateBinaryDataElement(
+            receiptDataElement,
+            receiptDataElement.ContentType!,
+            "second receipt"u8.ToArray()
+        );
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        var secondWrite = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Put
+                && request.RequestUrl?.AbsolutePath.EndsWith($"/data/{setup.DataElement.Id}", StringComparison.Ordinal)
+                    == true
+        );
+        Assert.Equal(DataETag(2), Assert.Single(secondWrite.RequestHeaders.IfMatch).ToString());
+        Assert.Equal(
+            DataETag(3),
+            Assert
+                .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
+                .ContentEtag
+        );
+    }
+
+    [Fact]
+    public async Task SaveChanges_LegacyFormFanOutRefreshesInstanceContentEtagAndConditionsSecondWrite()
+    {
+        var services = new MockedServiceCollection();
+        DataType formDataType = services.AddDataType<PaymentForm>("form", ["application/json"], taskId: "Task_1");
+        var serviceOwnerDataType = new DataType
+        {
+            Id = "receipt",
+            AllowedContentTypes = ["application/json"],
+            MaxCount = 1,
+            TaskId = "Task_1",
+        };
+        services.AddDataType(serviceOwnerDataType);
+
+        const int instanceOwnerPartyId = 123456;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid formDataGuid = Guid.NewGuid();
+        Guid receiptDataGuid = Guid.NewGuid();
+        var formDataIdentifier = new DataElementIdentifier(formDataGuid.ToString());
+        var receiptDataIdentifier = new DataElementIdentifier(receiptDataGuid.ToString());
+        var instance = new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{MockedServiceCollection.Org}/{MockedServiceCollection.App}",
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data =
+            [
+                new DataElement
+                {
+                    Id = formDataGuid.ToString(),
+                    InstanceGuid = instanceGuid.ToString(),
+                    DataType = formDataType.Id,
+                    ContentType = "application/json",
+                    ContentEtag = DataETag(1),
+                },
+                new DataElement
+                {
+                    Id = receiptDataGuid.ToString(),
+                    InstanceGuid = instanceGuid.ToString(),
+                    DataType = serviceOwnerDataType.Id,
+                    ContentType = "application/json",
+                    ContentEtag = DataETag(1),
+                },
+            ],
+        };
+        services.Storage.AddInstance(instance);
+        services.Storage.AddDataRaw(
+            formDataGuid,
+            JsonSerializer.SerializeToUtf8Bytes(new PaymentForm { Status = "initial" }),
+            DataETag(1)
+        );
+        services.Storage.AddDataRaw(receiptDataGuid, "initial receipt"u8.ToArray(), DataETag(1));
+
+        await using WrappedServiceProvider serviceProvider = services.BuildServiceProvider();
+        var initializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
+        Instance instanceCopy = JsonSerializer.Deserialize<Instance>(JsonSerializer.SerializeToUtf8Bytes(instance))!;
+        using InstanceDataUnitOfWork unitOfWork = await initializer.Init(instanceCopy, "Task_1", language: null);
+        unitOfWork.Open();
+        unitOfWork.OverrideAuthenticationMethod(serviceOwnerDataType, StorageAuthenticationMethod.ServiceOwner());
+        var formData = Assert.IsType<PaymentForm>(await unitOfWork.GetFormData(formDataIdentifier));
+
+        formData.Status = "first";
+        unitOfWork.UpdateBinaryDataElement(receiptDataIdentifier, "application/json", "first receipt"u8.ToArray());
+        await unitOfWork.SaveChanges(unitOfWork.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.Equal(DataETag(2), unitOfWork.GetDataElement(formDataIdentifier).ContentEtag);
+        services.Storage.RequestsResponses.Clear();
+
+        formData.Status = "second";
+        unitOfWork.UpdateBinaryDataElement(receiptDataIdentifier, "application/json", "second receipt"u8.ToArray());
+        await unitOfWork.SaveChanges(unitOfWork.GetDataElementChanges(initializeAltinnRowId: false));
+
+        var secondFormWrite = Assert.Single(
+            services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Put
+                && request.RequestUrl?.AbsolutePath.EndsWith($"/data/{formDataGuid}", StringComparison.Ordinal) == true
+        );
+        Assert.Equal(DataETag(2), Assert.Single(secondFormWrite.RequestHeaders.IfMatch).ToString());
+        Assert.Equal(DataETag(3), unitOfWork.GetDataElement(formDataIdentifier).ContentEtag);
+    }
+
+    [Fact]
+    public async Task SaveChanges_LegacyFanOutWithoutSnapshotContentEtagOmitsIfMatch()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            otherDataTypeElementCount: 1,
+            withoutBlobVersion: true
+        );
+        DataType serviceOwnerDataType = setup.DataMutator.DataTypes.Single(dataType => dataType.Id == "receipt");
+        DataElement receiptDataElement = setup.DataElements.Single(dataElement => dataElement.DataType == "receipt");
+        setup.DataMutator.OverrideAuthenticationMethod(
+            serviceOwnerDataType,
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
+        setup.DataMutator.UpdateBinaryDataElement(
+            receiptDataElement,
+            receiptDataElement.ContentType!,
+            "updated receipt"u8.ToArray()
+        );
+
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        var writes = setup.Services.Storage.RequestsResponses.Where(request =>
+            request.RequestMethod == HttpMethod.Put && request.RequestUrl?.AbsolutePath.Contains("/data/") == true
+        );
+        Assert.Equal(2, writes.Count());
+        Assert.All(writes, write => Assert.Empty(write.RequestHeaders.IfMatch));
+        Assert.All(setup.DataMutator.Instance.Data, dataElement => Assert.Equal(DataETag(1), dataElement.ContentEtag));
+    }
+
+    [Fact]
+    public async Task SaveChanges_LegacyFanOutNullResponseBodyContentEtagOmitsNextIfMatch()
+    {
+        DataType currentUserDataType = CreateBinaryDataType("payment");
+        DataType serviceOwnerDataType = CreateBinaryDataType("receipt");
+        DataElement currentUserDataElement = CreateDataElement(currentUserDataType.Id);
+        DataElement serviceOwnerDataElement = CreateDataElement(serviceOwnerDataType.Id);
+        currentUserDataElement.ContentEtag = DataETag(1);
+        serviceOwnerDataElement.ContentEtag = DataETag(1);
+        var currentUserPreconditions = new List<StorageWritePreconditions?>();
+        var dataClientMock = new Mock<IStorageDataClient>(MockBehavior.Strict);
+        dataClientMock
+            .Setup(x =>
+                x.UpdateBinaryDataWithStorageMetadata(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Stream>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    InstanceIdentifier _,
+                    string? contentType,
+                    string? filename,
+                    Guid dataGuid,
+                    Stream _,
+                    StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? preconditions,
+                    CancellationToken _
+                ) =>
+                {
+                    bool isCurrentUserElement = dataGuid == Guid.Parse(currentUserDataElement.Id);
+                    if (isCurrentUserElement)
+                    {
+                        currentUserPreconditions.Add(preconditions);
+                    }
+
+                    return new DataElementWithStorageMetadata(
+                        new DataElement
+                        {
+                            Id = dataGuid.ToString(),
+                            DataType = isCurrentUserElement ? currentUserDataType.Id : serviceOwnerDataType.Id,
+                            ContentType = contentType,
+                            Filename = filename,
+                            ContentEtag = isCurrentUserElement ? null : DataETag(2),
+                        },
+                        StorageVersionMetadata.Empty
+                    );
+                }
+            );
+        using InstanceDataUnitOfWork unitOfWork = CreateStorageWriteUnitOfWork(
+            dataClientMock,
+            [currentUserDataElement, serviceOwnerDataElement],
+            currentUserDataType,
+            serviceOwnerDataType
+        );
+        unitOfWork.OverrideAuthenticationMethod(serviceOwnerDataType, StorageAuthenticationMethod.ServiceOwner());
+
+        unitOfWork.UpdateBinaryDataElement(currentUserDataElement, "application/json", "first"u8.ToArray());
+        unitOfWork.UpdateBinaryDataElement(serviceOwnerDataElement, "application/json", "first receipt"u8.ToArray());
+        await unitOfWork.SaveChanges(unitOfWork.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.Null(unitOfWork.GetDataElement(currentUserDataElement).ContentEtag);
+
+        unitOfWork.UpdateBinaryDataElement(currentUserDataElement, "application/json", "second"u8.ToArray());
+        unitOfWork.UpdateBinaryDataElement(serviceOwnerDataElement, "application/json", "second receipt"u8.ToArray());
+        await unitOfWork.SaveChanges(unitOfWork.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.Equal(2, currentUserPreconditions.Count);
+        Assert.Equal(DataETag(1), currentUserPreconditions[0]?.ContentETag);
+        Assert.Null(currentUserPreconditions[1]?.ContentETag);
     }
 
     [Fact]
@@ -2504,7 +2779,12 @@ public sealed class InstanceDataUnitOfWorkTests
 
         Assert.Equal(1, setup.DataMutator.StorageMetadata.Versions.InstanceVersion);
         Assert.Equal(1, setup.DataMutator.StorageMetadata.Versions.ProcessStateVersion);
-        Assert.Equal(DataETag(1), setup.DataMutator.StorageMetadata.DataElements[setup.DataElement.Id].ETag);
+        Assert.Equal(
+            DataETag(1),
+            Assert
+                .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
+                .ContentEtag
+        );
     }
 
     [Fact]
@@ -2524,23 +2804,17 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task RemoveDataElement_RefreshesVersionsAndRemovesDataElementMetadata()
+    public async Task RemoveDataElement_RefreshesVersionsAndRemovesElementFromInstanceSnapshot()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
 
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
-        setup.DataMutator.PreloadDataElementStorageMetadata(
-            setup.DataElement,
-            new StorageDataElementMetadata("\"etag-stale\"")
-        );
-
         setup.DataMutator.RemoveDataElement(setup.DataElement);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await setup.DataMutator.SaveChanges(changes);
 
         Assert.Equal(1, setup.DataMutator.StorageMetadata.Versions.InstanceVersion);
         Assert.Equal(1, setup.DataMutator.StorageMetadata.Versions.ProcessStateVersion);
-        Assert.False(setup.DataMutator.StorageMetadata.DataElements.ContainsKey(setup.DataElement.Id));
         Assert.DoesNotContain(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id);
     }
 

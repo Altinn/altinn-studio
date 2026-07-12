@@ -176,7 +176,7 @@ internal sealed class DataClientMock : IStorageDataClient
         return await File.ReadAllBytesAsync(dataPath, cancellationToken);
     }
 
-    async Task<DataBytesWithStorageMetadata> IDataClientWithStorageMetadata.GetDataBytesWithStorageMetadata(
+    async Task<byte[]> IDataClientWithStorageMetadata.GetDataBytesWithExpectedContentETag(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
@@ -192,18 +192,18 @@ internal sealed class DataClientMock : IStorageDataClient
             authenticationMethod,
             cancellationToken
         );
-        StorageDataElementMetadata metadata = _storageMetadata.GetDataElementMetadataForContentRead(
+        string? contentEtag = _storageMetadata.GetDataElementContentEtagForContentRead(
             new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
             dataId
         );
-        if (!string.IsNullOrEmpty(expectedContentETag) && metadata.ETag != expectedContentETag)
+        if (!string.IsNullOrEmpty(expectedContentETag) && contentEtag != expectedContentETag)
         {
             throw new PlatformHttpException(
                 new HttpResponseMessage(HttpStatusCode.PreconditionFailed),
                 "Content ETag mismatch"
             );
         }
-        return new DataBytesWithStorageMetadata(bytes, metadata);
+        return bytes;
     }
 
     public async Task<List<AttachmentList>> GetBinaryDataList(
@@ -562,15 +562,11 @@ internal sealed class DataClientMock : IStorageDataClient
             cancellationToken
         );
         var instanceIdentifier = new InstanceIdentifier(instanceId);
-        StorageDataElementMetadata dataElementMetadata = _storageMetadata.GetDataElementMetadata(
+        dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(
             instanceIdentifier,
             Guid.Parse(dataElement.Id)
         );
-        return new DataElementWithStorageMetadata(
-            dataElement,
-            dataElementMetadata,
-            _storageMetadata.GetVersions(instanceIdentifier)
-        );
+        return new DataElementWithStorageMetadata(dataElement, _storageMetadata.GetVersions(instanceIdentifier));
     }
 
     public Task<DataElement> UpdateBinaryData(
@@ -607,15 +603,8 @@ internal sealed class DataClientMock : IStorageDataClient
             authenticationMethod,
             cancellationToken
         );
-        StorageDataElementMetadata dataElementMetadata = _storageMetadata.GetDataElementMetadata(
-            instanceIdentifier,
-            dataGuid
-        );
-        return new DataElementWithStorageMetadata(
-            dataElement,
-            dataElementMetadata,
-            _storageMetadata.GetVersions(instanceIdentifier)
-        );
+        dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(instanceIdentifier, dataGuid);
+        return new DataElementWithStorageMetadata(dataElement, _storageMetadata.GetVersions(instanceIdentifier));
     }
 
     public async Task<DataElement> Update(
@@ -645,15 +634,8 @@ internal sealed class DataClientMock : IStorageDataClient
     {
         DataElement result = await Update(instance, dataElement, authenticationMethod, cancellationToken);
         var instanceIdentifier = new InstanceIdentifier(instance);
-        StorageDataElementMetadata dataElementMetadata = _storageMetadata.GetDataElementMetadata(
-            instanceIdentifier,
-            Guid.Parse(result.Id)
-        );
-        return new DataElementWithStorageMetadata(
-            result,
-            dataElementMetadata,
-            _storageMetadata.GetVersions(instanceIdentifier)
-        );
+        result.ContentEtag = _storageMetadata.GetDataElementContentEtag(instanceIdentifier, Guid.Parse(result.Id));
+        return new DataElementWithStorageMetadata(result, _storageMetadata.GetVersions(instanceIdentifier));
     }
 
     public async Task<DataElement> LockDataElement(
@@ -860,7 +842,7 @@ internal sealed class DataClientMock : IStorageDataClient
         instance.LastChanged = DateTime.UtcNow;
         await InstanceClientMockSi.WriteJsonFile(instancePath, instance, cancellationToken);
 
-        var (versions, _) = _storageMetadata.BumpAggregate(
+        StorageVersionMetadata versions = _storageMetadata.BumpAggregate(
             instanceIdentifier,
             changedDataElementIds,
             deletedDataElementIds,
@@ -868,20 +850,15 @@ internal sealed class DataClientMock : IStorageDataClient
         );
         InstanceStorageMetadataRegistry.Set(instance, versions);
 
-        var dataElementMetadata = instance.Data.ToDictionary(
-            dataElement => dataElement.Id,
-            dataElement =>
-            {
-                StorageDataElementMetadata metadata = _storageMetadata.GetDataElementMetadata(
-                    instanceIdentifier,
-                    Guid.Parse(dataElement.Id)
-                );
-                dataElement.ContentEtag = metadata.ETag;
-                return metadata;
-            }
-        );
+        foreach (DataElement dataElement in instance.Data)
+        {
+            dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(
+                instanceIdentifier,
+                Guid.Parse(dataElement.Id)
+            );
+        }
 
-        return new InstanceMutationWithStorageMetadata(instance, dataElementMetadata, versions, createdDataElementIds);
+        return new InstanceMutationWithStorageMetadata(instance, versions, createdDataElementIds);
     }
 
     private static async Task WriteDataBlob(
