@@ -1214,7 +1214,11 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             var blobPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataElementGuid);
             if (File.Exists(blobPath))
             {
-                storage.AddDataRaw(dataElementGuid, await File.ReadAllBytesAsync(blobPath), "\"test-etag\"");
+                storage.AddDataRaw(
+                    dataElementGuid,
+                    await File.ReadAllBytesAsync(blobPath),
+                    StorageClientInterceptor.CreateDataETag(1)
+                );
             }
         }
     }

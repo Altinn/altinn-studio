@@ -433,7 +433,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             var blobPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataElementGuid);
             if (File.Exists(blobPath))
             {
-                storage.AddDataRaw(dataElementGuid, File.ReadAllBytes(blobPath), "\"1\"");
+                storage.AddDataRaw(dataElementGuid, File.ReadAllBytes(blobPath));
             }
         }
 

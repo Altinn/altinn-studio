@@ -3,6 +3,7 @@ using System.Net;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
+using Altinn.App.Tests.Common.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Tests.Mocks;
@@ -30,6 +31,24 @@ internal sealed class ApiTestStorageMetadata
 
     public Task WaitForFirstAggregateMutation(CancellationToken cancellationToken) =>
         _firstAggregateMutation.Task.WaitAsync(cancellationToken);
+
+    public void SetDataElementBlobVersion(InstanceIdentifier instanceIdentifier, Guid dataGuid, int blobVersion)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(blobVersion);
+        SetDataElementBlobVersion(instanceIdentifier, dataGuid, (int?)blobVersion);
+    }
+
+    public void SetDataElementWithoutBlobVersion(InstanceIdentifier instanceIdentifier, Guid dataGuid) =>
+        SetDataElementBlobVersion(instanceIdentifier, dataGuid, null);
+
+    private void SetDataElementBlobVersion(InstanceIdentifier instanceIdentifier, Guid dataGuid, int? blobVersion)
+    {
+        InstanceState state = GetState(instanceIdentifier.GetInstanceId());
+        lock (state)
+        {
+            state.DataElementVersions[dataGuid] = blobVersion;
+        }
+    }
 
     public void ValidateAggregatePreconditions(
         InstanceIdentifier instanceIdentifier,
@@ -201,7 +220,8 @@ internal sealed class ApiTestStorageMetadata
 
     private InstanceState GetState(string instanceId) => _instances.GetOrAdd(instanceId, _ => new InstanceState());
 
-    private static string CreateDataElementETag(int version) => $"\"{version}\"";
+    private static string? CreateDataElementETag(int? version) =>
+        version is null ? null : StorageClientInterceptor.CreateDataETag(version.Value);
 
     private static void ThrowPreconditionFailed(string message) =>
         throw new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.PreconditionFailed), message);
@@ -210,13 +230,13 @@ internal sealed class ApiTestStorageMetadata
     {
         public int InstanceVersion { get; set; } = 1;
         public int ProcessStateVersion { get; set; } = 1;
-        public Dictionary<Guid, int> DataElementVersions { get; } = [];
+        public Dictionary<Guid, int?> DataElementVersions { get; } = [];
 
         public StorageVersionMetadata Versions => new(InstanceVersion, ProcessStateVersion);
 
-        public int GetDataElementVersion(Guid dataGuid)
+        public int? GetDataElementVersion(Guid dataGuid)
         {
-            if (!DataElementVersions.TryGetValue(dataGuid, out int version))
+            if (!DataElementVersions.TryGetValue(dataGuid, out int? version))
             {
                 version = 1;
                 DataElementVersions[dataGuid] = version;
@@ -227,7 +247,7 @@ internal sealed class ApiTestStorageMetadata
 
         public int BumpDataElement(Guid dataGuid)
         {
-            int version = GetDataElementVersion(dataGuid) + 1;
+            int version = (GetDataElementVersion(dataGuid) ?? 0) + 1;
             DataElementVersions[dataGuid] = version;
             return version;
         }

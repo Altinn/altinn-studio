@@ -1,3 +1,5 @@
+using System.Buffers.Binary;
+using System.Buffers.Text;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
@@ -12,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using HeaderUtilities = Microsoft.Net.Http.Headers.HeaderUtilities;
 using NetContentDispositionHeaderValue = Microsoft.Net.Http.Headers.ContentDispositionHeaderValue;
+using NetEntityTagHeaderValue = Microsoft.Net.Http.Headers.EntityTagHeaderValue;
 using NetMediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace Altinn.App.Tests.Common.Mocks;
@@ -44,9 +47,10 @@ public class StorageClientInterceptor : HttpMessageHandler
         PropertyNameCaseInsensitive = true,
     };
 
-    public StorageClientInterceptor(ApplicationMetadata appMetadata)
+    public StorageClientInterceptor(ApplicationMetadata appMetadata, bool stampDataElementEtags = true)
     {
         AppMetadata = appMetadata;
+        StampDataElementEtags = stampDataElementEtags;
         AppMetadata.Title ??= new()
         {
             { LanguageConst.Nb, "Testapplikasjon" },
@@ -57,6 +61,7 @@ public class StorageClientInterceptor : HttpMessageHandler
 
     public ConcurrentBag<RequestResponse> RequestsResponses { get; } = new();
     public ApplicationMetadata AppMetadata { get; }
+    public bool StampDataElementEtags { get; }
 
     public void AddInstance(Instance instance)
     {
@@ -73,6 +78,22 @@ public class StorageClientInterceptor : HttpMessageHandler
         instance.Id ??= $"{instance.InstanceOwner.PartyId}/{defaultInstanceGuid}";
         instance.Data ??= [];
         instance.AppId ??= AppMetadata.Id;
+        foreach (DataElement dataElement in instance.Data)
+        {
+            if (!Guid.TryParse(dataElement.Id, out Guid dataId))
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(dataElement.ContentEtag))
+            {
+                SetDataETag(dataId, dataElement.ContentEtag);
+            }
+            else if (StampDataElementEtags)
+            {
+                dataElement.ContentEtag = EnsureDataETag(dataId);
+            }
+        }
         _instances[instance.Id.ToLowerInvariant()] = instance;
     }
 
@@ -105,6 +126,24 @@ public class StorageClientInterceptor : HttpMessageHandler
         {
             SetDataETag(dataId, eTag);
         }
+        else if (StampDataElementEtags)
+        {
+            EnsureDataETag(dataId);
+        }
+    }
+
+    public void AddDataRawWithoutBlobVersion(Guid dataId, byte[] data)
+    {
+        _data[dataId] = data;
+        SetDataETag(dataId, null);
+        foreach (Instance instance in _instances.Values)
+        {
+            DataElement? dataElement = instance.Data?.FirstOrDefault(element => element.Id == dataId.ToString());
+            if (dataElement is not null)
+            {
+                dataElement.ContentEtag = null;
+            }
+        }
     }
 
     public void SetDataETag(Guid dataId, string? eTag)
@@ -135,6 +174,10 @@ public class StorageClientInterceptor : HttpMessageHandler
         };
         instance.Data.Add(dataElement);
         _data[dataId] = data;
+        if (StampDataElementEtags)
+        {
+            dataElement.ContentEtag = EnsureDataETag(dataId);
+        }
         return dataElement;
     }
 
@@ -237,6 +280,8 @@ public class StorageClientInterceptor : HttpMessageHandler
         }
         dataElement.Size = dataContent.Length;
         _data[dataId] = dataContent;
+        string contentETag = BumpDataETag(dataId);
+        dataElement.ContentEtag = contentETag;
 
         var dataElementJson = System.Text.Json.JsonSerializer.Serialize(dataElement);
         HttpResponseMessage response = AddVersionHeaders(
@@ -247,10 +292,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             instanceOwnerPartyId,
             instanceGuid
         );
-        if (_dataEtags.ContainsKey(dataId))
-        {
-            response.Headers.ETag = EntityTagHeaderValue.Parse(BumpDataETag(dataId));
-        }
+        response.Headers.ETag = EntityTagHeaderValue.Parse(contentETag);
 
         return response;
     }
@@ -566,10 +608,7 @@ public class StorageClientInterceptor : HttpMessageHandler
                 dataElement.Size = part.Bytes.Length;
                 _data[update.DataElementId] = part.Bytes;
 
-                if (_dataEtags.ContainsKey(update.DataElementId))
-                {
-                    dataElement.ContentEtag = BumpDataETag(update.DataElementId);
-                }
+                dataElement.ContentEtag = BumpDataETag(update.DataElementId);
             }
 
             if (update.Metadata is not null)
@@ -791,17 +830,7 @@ public class StorageClientInterceptor : HttpMessageHandler
                     || !MatchesExpectedContentETag(currentETag, expectedVersion)
                 )
                 {
-                    HttpResponseMessage response = AddCurrentVersionHeaders(
-                        CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Content ETag mismatch"),
-                        instanceOwnerPartyId,
-                        instanceGuid
-                    );
-                    if (currentETag is not null)
-                    {
-                        response.Headers.ETag = EntityTagHeaderValue.Parse(currentETag);
-                    }
-
-                    return response;
+                    return CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Content ETag mismatch");
                 }
             }
         }
@@ -929,11 +958,7 @@ public class StorageClientInterceptor : HttpMessageHandler
 
         if (currentVersion != previousVersion)
         {
-            return AddCurrentVersionHeaders(
-                CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Idempotent mutation replay is stale"),
-                instanceOwnerPartyId,
-                instanceGuid
-            );
+            return CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Idempotent mutation replay is stale");
         }
 
         return null;
@@ -1298,35 +1323,31 @@ public class StorageClientInterceptor : HttpMessageHandler
             return processStateVersionFailure;
         }
 
-        if (dataId is null || request.Headers.IfMatch.Count == 0)
+        if (dataId is null || !request.Headers.TryGetValues("If-Match", out IEnumerable<string>? ifMatchValues))
         {
             return null;
         }
 
-        if (request.Headers.IfMatch.Count != 1)
+        if (
+            !NetEntityTagHeaderValue.TryParseList([.. ifMatchValues], out IList<NetEntityTagHeaderValue>? ifMatch)
+            || ifMatch.Count != 1
+            || ifMatch[0].IsWeak
+            || ifMatch[0].Equals(NetEntityTagHeaderValue.Any)
+        )
         {
-            return CreateErrorResponse(HttpStatusCode.BadRequest, "Expected one If-Match value");
+            return CreateErrorResponse(HttpStatusCode.BadRequest, "Expected one strong If-Match value");
         }
 
-        EntityTagHeaderValue expectedETag = request.Headers.IfMatch.Single();
-        if (expectedETag.IsWeak || expectedETag.Tag == "*")
+        NetEntityTagHeaderValue expectedETag = ifMatch[0];
+        string blobVersionId = expectedETag.Tag.Value![1..^1];
+        if (!IsBlobVersionId(blobVersionId))
         {
-            return CreateErrorResponse(HttpStatusCode.BadRequest, "Expected a strong If-Match value");
+            return CreateErrorResponse(HttpStatusCode.BadRequest, "If-Match ETag value must be a blob version id");
         }
 
         if (!_dataEtags.TryGetValue(dataId.Value, out string? currentETag) || currentETag != expectedETag.ToString())
         {
-            HttpResponseMessage response = AddCurrentVersionHeaders(
-                CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Content ETag mismatch"),
-                instanceOwnerPartyId,
-                instanceGuid
-            );
-            if (currentETag is not null)
-            {
-                response.Headers.ETag = EntityTagHeaderValue.Parse(currentETag);
-            }
-
-            return response;
+            return CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Content ETag mismatch");
         }
 
         return null;
@@ -1356,11 +1377,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             return null;
         }
 
-        return AddCurrentVersionHeaders(
-            CreateErrorResponse(HttpStatusCode.PreconditionFailed, $"{headerName} mismatch"),
-            instanceOwnerPartyId,
-            instanceGuid
-        );
+        return CreateErrorResponse(HttpStatusCode.PreconditionFailed, $"{headerName} mismatch");
     }
 
     private HttpResponseMessage AddVersionHeaders(
@@ -1393,32 +1410,32 @@ public class StorageClientInterceptor : HttpMessageHandler
         return response;
     }
 
-    private HttpResponseMessage AddCurrentVersionHeaders(
-        HttpResponseMessage response,
-        int instanceOwnerPartyId,
-        Guid instanceGuid
-    )
-    {
-        string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-        int instanceVersion = _instanceVersions.GetOrAdd(instanceId, 1);
-        int processStateVersion = _processStateVersions.GetOrAdd(instanceId, 1);
-        response.Headers.Add(
-            "Instance-Version",
-            instanceVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)
-        );
-        response.Headers.Add(
-            "Process-State-Version",
-            processStateVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)
-        );
-        return response;
-    }
-
     private string BumpDataETag(Guid dataId)
     {
         int contentVersion = _dataContentVersions.AddOrUpdate(dataId, 1, (_, current) => current + 1);
-        string eTag = $"\"etag-{contentVersion}\"";
+        string eTag = CreateDataETag(contentVersion);
         _dataEtags[dataId] = eTag;
         return eTag;
+    }
+
+    private string EnsureDataETag(Guid dataId)
+    {
+        return _dataEtags.GetOrAdd(
+            dataId,
+            id =>
+            {
+                int contentVersion = _dataContentVersions.GetOrAdd(id, 1);
+                return CreateDataETag(contentVersion);
+            }
+        );
+    }
+
+    public static string CreateDataETag(int contentVersion)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(contentVersion);
+        Span<byte> bytes = stackalloc byte[16];
+        BinaryPrimitives.WriteInt32BigEndian(bytes[12..], contentVersion);
+        return $"\"{Base64Url.EncodeToString(bytes)}\"";
     }
 
     private void StampContentEtags(Instance instance)
@@ -1434,20 +1451,40 @@ public class StorageClientInterceptor : HttpMessageHandler
 
     private static bool TryParseGeneratedETagVersion(string eTag, out int version)
     {
-        const string prefix = "\"etag-";
-        const string suffix = "\"";
-        if (eTag.StartsWith(prefix, StringComparison.Ordinal) && eTag.EndsWith(suffix, StringComparison.Ordinal))
+        if (eTag.Length == 24 && eTag[0] == '"' && eTag[^1] == '"')
         {
-            return int.TryParse(
-                eTag.Substring(prefix.Length, eTag.Length - prefix.Length - suffix.Length),
-                System.Globalization.NumberStyles.None,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out version
-            );
+            Span<byte> bytes = stackalloc byte[16];
+            if (
+                Base64Url.TryDecodeFromChars(eTag.AsSpan(1, 22), bytes, out int bytesWritten)
+                && bytesWritten == 16
+                && bytes[..12].IndexOfAnyExcept((byte)0) < 0
+            )
+            {
+                version = BinaryPrimitives.ReadInt32BigEndian(bytes[12..]);
+                return version > 0;
+            }
         }
 
         version = 0;
         return false;
+    }
+
+    private static bool IsBlobVersionId(string value)
+    {
+        if (value.Length != 22)
+        {
+            return false;
+        }
+
+        Span<byte> bytes = stackalloc byte[16];
+        try
+        {
+            return Base64Url.TryDecodeFromChars(value, bytes, out int bytesWritten) && bytesWritten == 16;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     private static HttpResponseMessage CreateErrorResponse(

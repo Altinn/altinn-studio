@@ -14,6 +14,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Fixtures;
+using Altinn.App.Tests.Common.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -119,13 +120,17 @@ public class WorkflowEngineCallbackControllerTests
                         DataType = DataTypeId,
                         ContentType = ContentType,
                         Filename = "task-data.json",
-                        ContentEtag = "\"etag-1\"",
+                        ContentEtag = StorageClientInterceptor.CreateDataETag(1),
                     }
                 );
-                services.Storage.AddDataRaw(dataElementId, "stale state"u8.ToArray(), "\"etag-1\"");
+                services.Storage.AddDataRaw(
+                    dataElementId,
+                    "stale state"u8.ToArray(),
+                    StorageClientInterceptor.CreateDataETag(1)
+                );
             }
         );
-        setup.Services.Storage.SetDataETag(dataElementId, "\"etag-2\"");
+        setup.Services.Storage.SetDataETag(dataElementId, StorageClientInterceptor.CreateDataETag(2));
         string commandPayload = CommandPayloadSerializer.Serialize(
             new ExecuteServiceTaskPayload(LazyReadServiceTask.ServiceTaskType)
         )!;
@@ -146,7 +151,10 @@ public class WorkflowEngineCallbackControllerTests
             setup.Services.Storage.RequestsResponses,
             request => request.RequestMethod == HttpMethod.Get
         );
-        Assert.Equal("\"etag-1\"", Assert.Single(contentRequest.RequestHeaders.IfMatch).ToString());
+        Assert.Equal(
+            StorageClientInterceptor.CreateDataETag(1),
+            Assert.Single(contentRequest.RequestHeaders.IfMatch).ToString()
+        );
         Assert.Empty(GetMutationRequests(setup.Services));
     }
 
