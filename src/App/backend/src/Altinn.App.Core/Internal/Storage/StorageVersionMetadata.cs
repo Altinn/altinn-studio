@@ -92,7 +92,7 @@ internal static class StoragePreconditionHeaders
             );
         }
 
-        if (preconditions?.ContentETag is { } eTag)
+        if (preconditions?.ContentETag is { Length: > 0 } eTag)
         {
             headers.IfMatch.Add(EntityTagHeaderValue.Parse(eTag));
         }

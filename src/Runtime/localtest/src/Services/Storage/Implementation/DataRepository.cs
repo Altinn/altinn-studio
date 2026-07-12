@@ -606,9 +606,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private static void StampContentEtag(DataElement dataElement, string currentBlobVersion)
         {
-            dataElement.ContentEtag = string.IsNullOrEmpty(currentBlobVersion)
-                ? null
-                : $"\"{currentBlobVersion}\"";
+            dataElement.ContentEtag = BlobVersionId.ToContentEtag(currentBlobVersion);
         }
 
         private static string SerializeForPersistence(DataElement dataElement)

@@ -685,6 +685,31 @@ public class DataClientTests
         Assert.Equal("\"etag-expected\"", Assert.Single(platformRequest.Headers.IfMatch).ToString());
     }
 
+    [Fact]
+    public async Task GetDataBytes_WithEmptyExpectedContentETag_DoesNotSendIfMatch()
+    {
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new ByteArrayContent([]) };
+            }
+        );
+
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
+            123,
+            Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+            Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+            authenticationMethod: null,
+            expectedContentETag: string.Empty
+        );
+
+        Assert.NotNull(platformRequest);
+        Assert.Empty(platformRequest.Headers.IfMatch);
+    }
+
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]
     public async Task InsertBinaryData_MethodProduceValidPlatformRequest_with_generatedFrom_query_params(

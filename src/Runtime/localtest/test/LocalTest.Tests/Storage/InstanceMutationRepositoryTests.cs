@@ -1,13 +1,7 @@
+using System.Net;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using LocalTest.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using System.Net;
 using Xunit;
-using LocalDataRepository = LocalTest.Services.Storage.Implementation.DataRepository;
-using LocalInstanceMutationRepository = LocalTest.Services.Storage.Implementation.InstanceMutationRepository;
-using LocalInstanceRepository = LocalTest.Services.Storage.Implementation.InstanceRepository;
 
 namespace LocalTest.Tests.Storage;
 
@@ -17,11 +11,10 @@ public sealed class InstanceMutationRepositoryTests
     public async Task Apply_WhenCompleteConfirmationsAreUpdated_AppendsIncomingConfirmations()
     {
         await using var storage = new LocalStorageFixture();
-        LocalRepositories repositories = storage.CreateRepositories();
         DateTime existingConfirmedOn = new(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
         DateTime incomingConfirmedOn = new(2026, 1, 3, 3, 4, 5, DateTimeKind.Utc);
         DateTime mutationLastChanged = new(2026, 1, 4, 3, 4, 5, DateTimeKind.Utc);
-        Instance instance = await repositories.InstanceRepository.Create(
+        Instance instance = await storage.InstanceRepository.Create(
             CreateInstance(
                 lastChanged: new DateTime(2026, 1, 1, 3, 4, 5, DateTimeKind.Utc),
                 lastChangedBy: "seed-actor",
@@ -37,7 +30,7 @@ public sealed class InstanceMutationRepositoryTests
             CancellationToken.None
         );
         Guid instanceGuid = GetInstanceGuid(instance);
-        InstanceVersionResult versions = await repositories.InstanceRepository.ReadVersions(
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
             instanceGuid
         );
 
@@ -64,7 +57,7 @@ public sealed class InstanceMutationRepositoryTests
             LastChangedBy: "append-actor"
         );
 
-        InstanceMutationApplyResult result = await repositories.MutationRepository.Apply(
+        InstanceMutationApplyResult result = await storage.MutationRepository.Apply(
             instanceGuid,
             instanceInternalId: 0,
             mutation,
@@ -96,17 +89,13 @@ public sealed class InstanceMutationRepositoryTests
     public async Task Apply_WhenDataElementOnlyMutationHasOldInstanceTimestamp_StampsInstanceAndElementWithFreshDefaultedStamp()
     {
         await using var storage = new LocalStorageFixture();
-        LocalRepositories repositories = storage.CreateRepositories();
         DateTime oldInstanceLastChanged = new(2026, 1, 1, 3, 4, 5, DateTimeKind.Utc);
-        Instance instance = await repositories.InstanceRepository.Create(
-            CreateInstance(
-                lastChanged: oldInstanceLastChanged,
-                lastChangedBy: null
-            ),
+        Instance instance = await storage.InstanceRepository.Create(
+            CreateInstance(lastChanged: oldInstanceLastChanged, lastChangedBy: null),
             CancellationToken.None
         );
         Guid instanceGuid = GetInstanceGuid(instance);
-        InstanceVersionResult versions = await repositories.InstanceRepository.ReadVersions(
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
             instanceGuid
         );
         Guid dataElementId = Guid.NewGuid();
@@ -140,7 +129,7 @@ public sealed class InstanceMutationRepositoryTests
         );
         DateTime lowerBound = DateTime.UtcNow.AddSeconds(-1);
 
-        InstanceMutationApplyResult result = await repositories.MutationRepository.Apply(
+        InstanceMutationApplyResult result = await storage.MutationRepository.Apply(
             instanceGuid,
             instanceInternalId: 0,
             mutation,
@@ -163,8 +152,7 @@ public sealed class InstanceMutationRepositoryTests
     public async Task Apply_WhenLockedDataElementDeleteEnforcesLock_ThrowsConflict()
     {
         await using var storage = new LocalStorageFixture();
-        LocalRepositories repositories = storage.CreateRepositories();
-        Instance instance = await repositories.InstanceRepository.Create(
+        Instance instance = await storage.InstanceRepository.Create(
             CreateInstance(
                 lastChanged: new DateTime(2026, 1, 1, 3, 4, 5, DateTimeKind.Utc),
                 lastChangedBy: "seed-actor"
@@ -173,12 +161,12 @@ public sealed class InstanceMutationRepositoryTests
         );
         Guid instanceGuid = GetInstanceGuid(instance);
         DataElement dataElement = (
-            await repositories.DataRepository.Create(
+            await storage.DataRepository.Create(
                 CreateDataElement(instanceGuid, locked: true),
                 cancellationToken: CancellationToken.None
             )
         ).DataElement;
-        InstanceVersionResult versions = await repositories.InstanceRepository.ReadVersions(
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
             instanceGuid
         );
         var mutation = new InstanceMutationCommit(
@@ -194,12 +182,12 @@ public sealed class InstanceMutationRepositoryTests
         );
 
         RepositoryException exception = await Assert.ThrowsAsync<RepositoryException>(() =>
-            repositories.MutationRepository.Apply(instanceGuid, instanceInternalId: 0, mutation)
+            storage.MutationRepository.Apply(instanceGuid, instanceInternalId: 0, mutation)
         );
 
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCodeSuggestion);
         Assert.Contains(dataElement.Id, exception.Message, StringComparison.Ordinal);
-        DataElement stored = await repositories.DataRepository.Read(
+        DataElement stored = await storage.DataRepository.Read(
             instanceGuid,
             Guid.Parse(dataElement.Id)
         );
@@ -210,8 +198,7 @@ public sealed class InstanceMutationRepositoryTests
     public async Task Apply_WhenLockedDataElementDeleteIgnoresLock_Deletes()
     {
         await using var storage = new LocalStorageFixture();
-        LocalRepositories repositories = storage.CreateRepositories();
-        Instance instance = await repositories.InstanceRepository.Create(
+        Instance instance = await storage.InstanceRepository.Create(
             CreateInstance(
                 lastChanged: new DateTime(2026, 1, 1, 3, 4, 5, DateTimeKind.Utc),
                 lastChangedBy: "seed-actor"
@@ -220,12 +207,12 @@ public sealed class InstanceMutationRepositoryTests
         );
         Guid instanceGuid = GetInstanceGuid(instance);
         DataElement dataElement = (
-            await repositories.DataRepository.Create(
+            await storage.DataRepository.Create(
                 CreateDataElement(instanceGuid, locked: true),
                 cancellationToken: CancellationToken.None
             )
         ).DataElement;
-        InstanceVersionResult versions = await repositories.InstanceRepository.ReadVersions(
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
             instanceGuid
         );
         var mutation = new InstanceMutationCommit(
@@ -240,7 +227,7 @@ public sealed class InstanceMutationRepositoryTests
             LastChangedBy: "delete-actor"
         );
 
-        InstanceMutationApplyResult result = await repositories.MutationRepository.Apply(
+        InstanceMutationApplyResult result = await storage.MutationRepository.Apply(
             instanceGuid,
             instanceInternalId: 0,
             mutation
@@ -297,44 +284,4 @@ public sealed class InstanceMutationRepositoryTests
         };
 
     private static Guid GetInstanceGuid(Instance instance) => Guid.Parse(instance.Id.Split('/')[1]);
-
-    private sealed class LocalStorageFixture : IAsyncDisposable
-    {
-        private readonly string _root =
-            Path.Combine(Path.GetTempPath(), $"localtest-mutation-{Guid.NewGuid()}")
-            + Path.DirectorySeparatorChar;
-
-        public LocalRepositories CreateRepositories()
-        {
-            Directory.CreateDirectory(_root);
-            IOptions<LocalPlatformSettings> options = Options.Create(
-                new LocalPlatformSettings { LocalTestingStorageBasePath = _root }
-            );
-            var dataRepository = new LocalDataRepository(options);
-            var instanceRepository = new LocalInstanceRepository(options, dataRepository);
-            var mutationRepository = new LocalInstanceMutationRepository(
-                options,
-                instanceRepository,
-                dataRepository,
-                NullLogger<LocalInstanceMutationRepository>.Instance
-            );
-            return new LocalRepositories(instanceRepository, dataRepository, mutationRepository);
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            if (Directory.Exists(_root))
-            {
-                Directory.Delete(_root, recursive: true);
-            }
-
-            return ValueTask.CompletedTask;
-        }
-    }
-
-    private sealed record LocalRepositories(
-        LocalInstanceRepository InstanceRepository,
-        LocalDataRepository DataRepository,
-        LocalInstanceMutationRepository MutationRepository
-    );
 }

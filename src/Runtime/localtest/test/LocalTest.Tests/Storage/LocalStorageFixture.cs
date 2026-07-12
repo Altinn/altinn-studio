@@ -8,14 +8,14 @@ using LocalInstanceRepository = LocalTest.Services.Storage.Implementation.Instan
 
 namespace LocalTest.Tests.Storage;
 
-internal sealed class ContentEtagStorageFixture : IAsyncDisposable
+internal sealed class LocalStorageFixture : IAsyncDisposable
 {
     private bool _preserveRootOnDispose;
 
-    public ContentEtagStorageFixture()
+    public LocalStorageFixture()
     {
         Root =
-            Path.Combine(Path.GetTempPath(), $"localtest-content-etag-{Guid.NewGuid()}")
+            Path.Combine(Path.GetTempPath(), $"localtest-storage-{Guid.NewGuid()}")
             + Path.DirectorySeparatorChar;
         Directory.CreateDirectory(Root);
         Settings = new LocalPlatformSettings { LocalTestingStorageBasePath = Root };

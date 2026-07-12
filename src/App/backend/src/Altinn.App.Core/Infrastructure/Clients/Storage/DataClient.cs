@@ -781,10 +781,10 @@ internal sealed class StorageDataClient : IStorageDataClient
         using HttpRequestMessage request = new(HttpMethod.Get, apiUrl);
 #pragma warning restore S7044
         request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
-        if (!string.IsNullOrEmpty(expectedContentETag))
-        {
-            request.Headers.IfMatch.Add(EntityTagHeaderValue.Parse(expectedContentETag));
-        }
+        StoragePreconditionHeaders.Add(
+            request.Headers,
+            new StorageWritePreconditions(ContentETag: expectedContentETag)
+        );
 
         HttpResponseMessage response = await _client.SendAsync(
             request,

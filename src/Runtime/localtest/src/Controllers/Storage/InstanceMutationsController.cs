@@ -1272,21 +1272,30 @@ public class InstanceMutationsController(
                 );
             }
 
-            blobVersionId = ifMatch[0].Tag.Value[1..^1];
+            if (!BlobVersionId.TryParseContentEtag(ifMatch[0].Tag.Value, out blobVersionId))
+            {
+                return (
+                    null,
+                    BadRequest("expectedCurrentBlobVersion must identify a blob version id.")
+                );
+            }
+        }
+        else
+        {
+            try
+            {
+                BlobVersionId.Decode(blobVersionId);
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return (
+                    null,
+                    BadRequest("expectedCurrentBlobVersion must identify a blob version id.")
+                );
+            }
         }
 
-        try
-        {
-            BlobVersionId.Decode(blobVersionId);
-            return (blobVersionId, null);
-        }
-        catch (Exception exception) when (exception is ArgumentException or FormatException)
-        {
-            return (
-                null,
-                BadRequest("expectedCurrentBlobVersion must identify a blob version id.")
-            );
-        }
+        return (blobVersionId, null);
     }
 
     private static DataElement CloneDataElementForScan(

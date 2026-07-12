@@ -12,7 +12,7 @@ public class InstanceMutationResponseContractTests
     [Fact]
     public async Task CreateUpdateAndReplay_ResponseSnapshotCarriesContentEtagWithoutLegacyMap()
     {
-        await using var storage = new ContentEtagStorageFixture();
+        await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
         InstanceVersionResult initialVersions = await storage.InstanceRepository.ReadVersions(

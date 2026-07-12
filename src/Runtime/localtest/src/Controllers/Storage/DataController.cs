@@ -1362,12 +1362,7 @@ public class DataController : ControllerBase
             return (null, BadRequest("If-Match must contain exactly one strong ETag."));
         }
 
-        string blobVersionId = ifMatch[0].Tag.Value[1..^1];
-        try
-        {
-            BlobVersionId.Decode(blobVersionId);
-        }
-        catch (Exception exception) when (exception is ArgumentException or FormatException)
+        if (!BlobVersionId.TryParseContentEtag(ifMatch[0].Tag.Value, out string blobVersionId))
         {
             return (null, BadRequest("If-Match ETag value must be a blob version id."));
         }
@@ -1377,13 +1372,12 @@ public class DataController : ControllerBase
 
     private void SetBlobVersionETag(string blobVersionId)
     {
-        if (string.IsNullOrEmpty(blobVersionId))
+        string etag = BlobVersionId.ToContentEtag(blobVersionId);
+        if (etag is null)
         {
             return;
         }
 
-        Response.Headers[HeaderNames.ETag] = new EntityTagHeaderValue(
-            $"\"{blobVersionId}\""
-        ).ToString();
+        Response.Headers[HeaderNames.ETag] = etag;
     }
 }

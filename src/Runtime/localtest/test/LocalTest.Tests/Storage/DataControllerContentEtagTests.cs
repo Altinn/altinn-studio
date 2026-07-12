@@ -383,7 +383,7 @@ public sealed class DataControllerContentEtagTests
     private sealed class ControllerFixture : IAsyncDisposable
     {
         private ControllerFixture(
-            ContentEtagStorageFixture storage,
+            LocalStorageFixture storage,
             Instance instance,
             DataElement dataElement,
             Mock<IBlobRepository> blobRepository,
@@ -403,7 +403,7 @@ public sealed class DataControllerContentEtagTests
             Controller = controller;
         }
 
-        public ContentEtagStorageFixture Storage { get; }
+        public LocalStorageFixture Storage { get; }
 
         public Instance Instance { get; }
 
@@ -434,7 +434,7 @@ public sealed class DataControllerContentEtagTests
             bool authorizeRead = true
         )
         {
-            var storage = new ContentEtagStorageFixture();
+            var storage = new LocalStorageFixture();
             Instance instance = await storage.CreateInstance();
             Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
             Guid dataElementId = Guid.NewGuid();

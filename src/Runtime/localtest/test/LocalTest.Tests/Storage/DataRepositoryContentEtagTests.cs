@@ -14,7 +14,7 @@ public sealed class DataRepositoryContentEtagTests
     [Fact]
     public async Task ReadPaths_StampAuthoritativeSidecarAndNeverPersistContentEtag()
     {
-        await using var storage = new ContentEtagStorageFixture();
+        await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
         Guid dataElementId = Guid.NewGuid();
@@ -85,7 +85,7 @@ public sealed class DataRepositoryContentEtagTests
     [Fact]
     public async Task Read_ConcurrentContentUpdate_ReturnsMetadataAndVersionFromOneLockedSnapshot()
     {
-        await using var storage = new ContentEtagStorageFixture();
+        await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
         Guid dataElementId = Guid.NewGuid();
@@ -256,7 +256,7 @@ public sealed class DataRepositoryContentEtagTests
     [Fact]
     public async Task NoCurrentBlobVersion_OverwritesPersistedValueWithNullAndOmitsItOnWrite()
     {
-        await using var storage = new ContentEtagStorageFixture();
+        await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
         Guid dataElementId = Guid.NewGuid();
