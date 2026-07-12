@@ -25,6 +25,8 @@ using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.App.Tests.Common.Mocks;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
@@ -904,6 +906,98 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         if (createResponseParsed is not null)
         {
             TestData.DeleteInstanceAndData(org, app, createResponseParsed.Id);
+        }
+    }
+
+    [Fact]
+    public async Task CopyInstance_WhenValidatorReadsStaleSourceContent_ReturnsConflictProblemDetails()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        var storageMetadata = new ApiTestStorageMetadata();
+        var copyInstanceValidatorMock = new Mock<ICopyInstanceValidator>();
+        var pdpMock = new Mock<IPDP>();
+        pdpMock
+            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] });
+        copyInstanceValidatorMock
+            .Setup(validator => validator.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .Returns(
+                async (IInstanceDataAccessor sourceData) =>
+                {
+                    DataElement dataElement = Assert.Single(
+                        sourceData.Instance.Data,
+                        element => element.DataType == "default"
+                    );
+                    _ = await sourceData.GetFormData(new DataElementIdentifier(Guid.Parse(dataElement.Id)));
+                    return null;
+                }
+            );
+        OverrideServicesForThisTest = services =>
+        {
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+            services.AddSingleton(copyInstanceValidatorMock.Object);
+            services.RemoveAll<IPDP>();
+            services.AddSingleton(pdpMock.Object);
+        };
+        using HttpClient client = GetRootedClient(org, app);
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: org);
+        string userToken = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            orgToken
+        );
+
+        try
+        {
+            DataElement dataElement = Assert.Single(sourceInstance.Data, element => element.DataType == "default");
+            var patch = new JsonPatch(
+                PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+            );
+            await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataElement.Id, patch);
+            await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+            var sourceIdentifier = new InstanceIdentifier(sourceInstance.Id);
+            storageMetadata.BumpDataElementBeforeNextContentRead(sourceIdentifier, Guid.Parse(dataElement.Id));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                AuthorizationSchemes.Bearer,
+                userToken
+            );
+
+            using HttpResponseMessage response = await client.GetAsync(
+                $"/{org}/{app}/legacy/instances/{sourceIdentifier.InstanceOwnerPartyId}/{sourceIdentifier.InstanceGuid}/copy"
+            );
+            string responseContent = await response.Content.ReadAsStringAsync();
+            OutputHelper.WriteLine(responseContent);
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+            ProblemDetails? problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+                responseContent,
+                JsonSerializerOptions
+            );
+            Assert.NotNull(problemDetails);
+            Assert.Equal(StatusCodes.Status409Conflict, problemDetails.Status);
+            Assert.Equal("Data element content conflict", problemDetails.Title);
+            Assert.Contains(dataElement.Id, problemDetails.Detail, StringComparison.Ordinal);
+            Assert.Contains(
+                "Reload the instance data and retry the request.",
+                problemDetails.Detail,
+                StringComparison.Ordinal
+            );
+            copyInstanceValidatorMock.Verify(
+                validator => validator.Validate(It.IsAny<IInstanceDataAccessor>()),
+                Times.Once
+            );
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
         }
     }
 

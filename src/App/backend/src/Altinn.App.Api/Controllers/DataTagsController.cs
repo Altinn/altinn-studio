@@ -277,15 +277,7 @@ public partial class DataTagsController : ControllerBase
             );
         }
 
-        List<ValidationSourcePair>? validationIssues;
-        try
-        {
-            validationIssues = await ValidateTags(instance, ignoredValidators, language);
-        }
-        catch (DataElementContentConflictException exception)
-        {
-            return Conflict(DataElementContentConflictResult.Create(exception));
-        }
+        List<ValidationSourcePair>? validationIssues = await ValidateTags(instance, ignoredValidators, language);
         SetTagsResponse updateTagsResponse = new() { Tags = updatedElement.Tags, ValidationIssues = validationIssues };
 
         return Ok(updateTagsResponse);

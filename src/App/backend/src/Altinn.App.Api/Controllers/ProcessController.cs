@@ -133,7 +133,7 @@ public class ProcessController : ControllerBase
     [HttpPost("start")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_INSTANTIATE)]
     public async Task<ActionResult<AppProcessState>> StartProcess(
@@ -184,10 +184,6 @@ public class ProcessController : ControllerBase
             AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User);
             return Ok(appProcessState);
         }
-        catch (DataElementContentConflictException exception)
-        {
-            return Conflict(DataElementContentConflictResult.Create(exception));
-        }
         catch (WorkflowSubmissionFailedException exception)
         {
             // The existing instance is intentionally retained; unlike instantiation we never delete it here.
@@ -215,7 +211,7 @@ public class ProcessController : ControllerBase
                 $"Unable to start the process for instance {instance?.Id} of {instance?.AppId}"
             );
         }
-        catch (Exception startException)
+        catch (Exception startException) when (startException is not InstanceStateConflictException)
         {
             _logger.LogError(
                 $"Unable to start the process for instance {instance?.Id} of {instance?.AppId}. Due to {startException}"
@@ -314,7 +310,7 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult> NextElement(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -396,16 +392,12 @@ public class ProcessController : ControllerBase
 
             return Ok(appProcessState);
         }
-        catch (DataElementContentConflictException exception)
-        {
-            return Conflict(DataElementContentConflictResult.Create(exception));
-        }
         catch (PlatformHttpException e)
         {
             _logger.LogError("Platform exception when processing next. {Message}", e.Message);
             return HandlePlatformHttpException(e, "Process next failed.");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             return ExceptionResponse(exception, "Process next failed.");
         }
@@ -417,7 +409,7 @@ public class ProcessController : ControllerBase
     [HttpPost("resume")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AppProcessState>> ResumeCurrentTask(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -462,16 +454,12 @@ public class ProcessController : ControllerBase
 
             return Ok(appProcessState);
         }
-        catch (DataElementContentConflictException exception)
-        {
-            return Conflict(DataElementContentConflictResult.Create(exception));
-        }
         catch (PlatformHttpException e)
         {
             _logger.LogError("Platform exception when resuming current task. {Message}", e.Message);
             return HandlePlatformHttpException(e, "Resume current task failed.");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             return ExceptionResponse(exception, "Resume current task failed.");
         }
@@ -490,7 +478,7 @@ public class ProcessController : ControllerBase
     [HttpPut("completeProcess")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AppProcessState>> CompleteProcess(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -558,19 +546,11 @@ public class ProcessController : ControllerBase
                 return Forbid();
             }
 
-            ProblemDetails? validationProblem;
-            try
-            {
-                validationProblem = await GetValidationProblemDetails(
-                    instance,
-                    instance.Process.CurrentTask.ElementId,
-                    language
-                );
-            }
-            catch (DataElementContentConflictException exception)
-            {
-                return Conflict(DataElementContentConflictResult.Create(exception));
-            }
+            ProblemDetails? validationProblem = await GetValidationProblemDetails(
+                instance,
+                instance.Process.CurrentTask.ElementId,
+                language
+            );
             if (validationProblem is not null)
             {
                 return Conflict(validationProblem);
@@ -596,11 +576,7 @@ public class ProcessController : ControllerBase
 
                 instance = result.MutatedInstance ?? instance;
             }
-            catch (DataElementContentConflictException exception)
-            {
-                return Conflict(DataElementContentConflictResult.Create(exception));
-            }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not InstanceStateConflictException)
             {
                 return ExceptionResponse(ex, "Complete process failed.");
             }

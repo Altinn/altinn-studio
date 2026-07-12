@@ -169,7 +169,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         problemDetails.Detail.Should().Contain(_dataGuid.ToString());
 
         var expectedConflict = new ConflictObjectResult(
-            DataElementContentConflictResult.Create(
+            InstanceStateConflictResult.Create(
                 new DataElementContentConflictException(
                     $"{InstanceOwnerPartyId}/{_instanceGuid}",
                     _dataGuid,

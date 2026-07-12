@@ -107,15 +107,11 @@ public class SigningController : ControllerBase
             (_processReader.GetAltinnTaskExtension(finalTaskId)?.SignatureConfiguration)
             ?? throw new ApplicationConfigException("Signing configuration not found in AltinnTaskExtension");
 
-        List<SigneeContext> signeeContexts;
-        try
-        {
-            signeeContexts = await _signingService.GetSigneeContexts(instanceDataAccessor, signingConfiguration, ct);
-        }
-        catch (DataElementContentConflictException exception)
-        {
-            return Conflict(DataElementContentConflictResult.Create(exception));
-        }
+        List<SigneeContext> signeeContexts = await _signingService.GetSigneeContexts(
+            instanceDataAccessor,
+            signingConfiguration,
+            ct
+        );
 
         var response = new SigningStateResponse
         {
@@ -227,20 +223,12 @@ public class SigningController : ControllerBase
             return Unauthorized();
         }
 
-        List<OrganizationSignee> authorizedOrganizations;
-        try
-        {
-            authorizedOrganizations = await _signingService.GetAuthorizedOrganizationSignees(
-                instanceDataAccessor,
-                signingConfiguration,
-                userId.Value,
-                ct
-            );
-        }
-        catch (DataElementContentConflictException exception)
-        {
-            return Conflict(DataElementContentConflictResult.Create(exception));
-        }
+        List<OrganizationSignee> authorizedOrganizations = await _signingService.GetAuthorizedOrganizationSignees(
+            instanceDataAccessor,
+            signingConfiguration,
+            userId.Value,
+            ct
+        );
 
         SigningAuthorizedOrganizationsResponse response = new()
         {

@@ -57,6 +57,7 @@ public static class ServiceCollectionExtensions
         // Add API controllers from Altinn.App.Api
         IMvcBuilder mvcBuilder = services.AddControllersWithViews(options =>
         {
+            options.Filters.Add<InstanceStateConflictExceptionFilter>();
             options.Filters.Add<TelemetryEnrichingResultFilter>();
             options.Conventions.Add(new AltinnControllerConventions());
         });

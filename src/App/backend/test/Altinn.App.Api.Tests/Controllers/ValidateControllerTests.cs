@@ -300,7 +300,7 @@ public class ValidateControllerTests
     }
 
     [Fact]
-    public async Task ValidateInstance_returns_stable_conflict_when_data_element_content_is_stale()
+    public async Task ValidateInstance_propagates_data_element_content_conflict_to_global_filter()
     {
         Guid dataElementId = Guid.NewGuid();
         Instance instance = new()
@@ -336,15 +336,11 @@ public class ValidateControllerTests
         await using var sp = _services.BuildStrictServiceProvider();
         var controller = sp.GetRequiredService<ValidateController>();
 
-        IActionResult result = await controller.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId);
-
-        var conflict = Assert.IsType<ConflictObjectResult>(result);
-        var problemDetails = Assert.IsType<ProblemDetails>(conflict.Value);
-        Assert.Equal(StatusCodes.Status409Conflict, problemDetails.Status);
-        Assert.Equal("Data element content conflict", problemDetails.Title);
-        Assert.Equal(
-            $"Data element {dataElementId} for instance {instance.Id} changed after the instance was loaded. Reload the instance data and retry the request.",
-            problemDetails.Detail
+        var exception = await Assert.ThrowsAsync<DataElementContentConflictException>(() =>
+            controller.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
         );
+
+        Assert.Equal(instance.Id, exception.InstanceId);
+        Assert.Equal(dataElementId, exception.DataElementId);
     }
 }

@@ -390,10 +390,6 @@ public class DataController : ControllerBase
                 ValidationIssues = validationIssues,
             };
         }
-        catch (DataElementContentConflictException e)
-        {
-            return DataElementContentConflictResult.Create(e);
-        }
         catch (PlatformHttpException e)
         {
             return new ProblemDetails()
@@ -578,10 +574,6 @@ public class DataController : ControllerBase
 
             return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, dataTypeObject);
         }
-        catch (DataElementContentConflictException e)
-        {
-            return Problem(DataElementContentConflictResult.Create(e));
-        }
         catch (PlatformHttpException e)
         {
             return HandlePlatformHttpException(
@@ -721,10 +713,6 @@ public class DataController : ControllerBase
 
             return Problem(res.Error);
         }
-        catch (DataElementContentConflictException e)
-        {
-            return Problem(DataElementContentConflictResult.Create(e));
-        }
         catch (PlatformHttpException e)
         {
             return HandlePlatformHttpException(
@@ -831,10 +819,6 @@ public class DataController : ControllerBase
                     NewDataModels = GetNewDataModels(changes),
                 }
             );
-        }
-        catch (DataElementContentConflictException e)
-        {
-            return Problem(DataElementContentConflictResult.Create(e));
         }
         catch (PlatformHttpException e)
         {

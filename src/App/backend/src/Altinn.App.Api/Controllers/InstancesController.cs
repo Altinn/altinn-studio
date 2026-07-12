@@ -526,10 +526,10 @@ public class InstancesController : ControllerBase
                 notification: notification
             );
         }
-        catch (DataElementContentConflictException exception)
+        catch (InstanceStateConflictException)
         {
             await TryDeleteInstance(instance);
-            return Conflict(DataElementContentConflictResult.Create(exception));
+            throw;
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -548,7 +548,7 @@ public class InstancesController : ControllerBase
                 app
             );
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             await TryDeleteInstance(instance);
             return ExceptionResponse(
@@ -870,10 +870,10 @@ public class InstancesController : ControllerBase
                 notification: instansiationInstance.Notification
             );
         }
-        catch (DataElementContentConflictException exception)
+        catch (InstanceStateConflictException)
         {
             await TryDeleteInstance(instance);
-            return Conflict(DataElementContentConflictResult.Create(exception));
+            throw;
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -892,7 +892,7 @@ public class InstancesController : ControllerBase
                 app
             );
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             await TryDeleteInstance(instance);
 
@@ -935,6 +935,7 @@ public class InstancesController : ControllerBase
     [HttpGet("/{org}/{app}/legacy/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/copy")]
     [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CopyInstance(
         [FromRoute] string org,
@@ -1077,10 +1078,10 @@ public class InstancesController : ControllerBase
 
             return Redirect(url);
         }
-        catch (DataElementContentConflictException exception)
+        catch (InstanceStateConflictException)
         {
             await TryDeleteInstance(targetInstance);
-            return Conflict(DataElementContentConflictResult.Create(exception));
+            throw;
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -1101,7 +1102,7 @@ public class InstancesController : ControllerBase
                 app
             );
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             // Any other failure after CreateInstance (e.g. data copy or storage read) leaves an orphaned
             // instance, so clean it up before surfacing the error.

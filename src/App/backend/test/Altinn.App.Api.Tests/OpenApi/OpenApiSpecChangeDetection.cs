@@ -57,6 +57,19 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("responses"),
             "#/components/schemas/AppCallbackResponse"
         );
+        AssertConflictResponse(
+            paths
+                .GetProperty("/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate")
+                .GetProperty("get")
+                .GetProperty("responses")
+        );
+        AssertActionsConflictResponse(
+            paths
+                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/actions")
+                .GetProperty("post")
+                .GetProperty("responses")
+                .GetProperty("409")
+        );
     }
 
     private static void AssertSuccessAndConflictResponses(JsonElement responses, string successSchema)
@@ -71,6 +84,11 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("$ref")
                 .GetString()
         );
+        AssertConflictResponse(responses);
+    }
+
+    private static void AssertConflictResponse(JsonElement responses)
+    {
         Assert.Equal(
             "#/components/schemas/ProblemDetails",
             responses
@@ -81,6 +99,43 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("$ref")
                 .GetString()
         );
+    }
+
+    private static void AssertActionsConflictResponse(JsonElement conflictResponse)
+    {
+        JsonElement content = conflictResponse.GetProperty("content");
+        Assert.Equal(
+            ["application/json", "application/problem+json", "text/json", "text/plain"],
+            content.EnumerateObject().Select(property => property.Name).Order().ToArray()
+        );
+        Assert.Equal("string", content.GetProperty("text/plain").GetProperty("schema").GetProperty("type").GetString());
+        AssertSchemaReference(content.GetProperty("application/problem+json").GetProperty("schema"), "ProblemDetails");
+        AssertOneOfSchemaReferences(
+            content.GetProperty("application/json").GetProperty("schema"),
+            "ProblemDetails",
+            "UserActionResponse"
+        );
+        AssertOneOfSchemaReferences(
+            content.GetProperty("text/json").GetProperty("schema"),
+            "ProblemDetails",
+            "UserActionResponse"
+        );
+    }
+
+    private static void AssertOneOfSchemaReferences(JsonElement schema, params string[] expectedSchemaNames)
+    {
+        string[] actualSchemaNames = schema
+            .GetProperty("oneOf")
+            .EnumerateArray()
+            .Select(reference => reference.GetProperty("$ref").GetString()!.Split('/').Last())
+            .Order()
+            .ToArray();
+        Assert.Equal(expectedSchemaNames.Order().ToArray(), actualSchemaNames);
+    }
+
+    private static void AssertSchemaReference(JsonElement schema, string expectedSchemaName)
+    {
+        Assert.Equal($"#/components/schemas/{expectedSchemaName}", schema.GetProperty("$ref").GetString());
     }
 
     private static async Task Snapshot(HttpResponseMessage response)
