@@ -57,7 +57,7 @@ namespace LocalTest.Services.Storage.Implementation
                 _localPlatformSettings,
                 instanceGuid,
                 cancellationToken);
-            await PostProcess(instance);
+            await PostProcess(instance, cancellationToken);
             return instance;
         }
 
@@ -239,7 +239,7 @@ namespace LocalTest.Services.Storage.Implementation
                 await Task.WhenAll(instances.Select(async i =>
                 {
                     using var _ = await Lock(i);
-                    await PostProcess(i);
+                    await PostProcess(i, cancellationToken);
                 }));
             }
             else
@@ -317,7 +317,7 @@ namespace LocalTest.Services.Storage.Implementation
                 () => WriteInstance(instance, cancellationToken),
                 cancellationToken);
 
-            await PostProcess(instance);
+            await PostProcess(instance, cancellationToken);
             return instance;
         }
 
@@ -335,7 +335,7 @@ namespace LocalTest.Services.Storage.Implementation
             CancellationToken cancellationToken)
         {
             await WriteInstance(instance, cancellationToken);
-            await PostProcess(instance);
+            await PostProcess(instance, cancellationToken);
             return instance;
         }
 
@@ -362,7 +362,7 @@ namespace LocalTest.Services.Storage.Implementation
                 },
                 cancellationToken);
 
-            await PostProcess(instance);
+            await PostProcess(instance, cancellationToken);
             return instance;
         }
 
@@ -394,7 +394,7 @@ namespace LocalTest.Services.Storage.Implementation
 
             if (includeElements)
             {
-                await PostProcess(instance);
+                await PostProcess(instance, cancellationToken);
             }
             else
             {
@@ -426,13 +426,16 @@ namespace LocalTest.Services.Storage.Implementation
             instance.Data = new List<DataElement>();
         }
 
-        private async Task PostProcess(Instance instance)
+        private async Task PostProcess(Instance instance, CancellationToken cancellationToken)
         {
             Guid instanceGuid = Guid.Parse(instance.Id);
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-            instance.Data = await ((DataRepository)_dataRepository).ReadAll(instanceGuid);
+            instance.Data = await ((DataRepository)_dataRepository).ReadAll(
+                instanceGuid,
+                cancellationToken
+            );
 
             if (instance.Data != null && instance.Data.Any())
             {

@@ -6,6 +6,8 @@ namespace LocalTest.Services.Storage.Implementation;
 
 internal sealed class PartitionedAsyncLock : IDisposable
 {
+    // LocalTest is a development tool, so a processor-count partition bound is sufficient.
+    // Hash collisions may serialize unrelated callers and strict fairness is not required.
     private readonly AsyncLock[] _locks = new AsyncLock[Environment.ProcessorCount];
 
     public PartitionedAsyncLock()
@@ -62,29 +64,7 @@ internal sealed class AsyncLock : IDisposable
             }
             catch (Exception callbackException)
             {
-                bool acquired = false;
-                try
-                {
-                    await waitTask;
-                    acquired = true;
-                }
-                catch (Exception waitException)
-                {
-                    callbackException.Data["AsyncLockWaitException"] = waitException;
-                }
-
-                if (acquired)
-                {
-                    try
-                    {
-                        _inner.Release();
-                    }
-                    catch (Exception releaseException)
-                    {
-                        callbackException.Data["AsyncLockReleaseException"] = releaseException;
-                    }
-                }
-
+                ReleaseAfterWait(waitTask, callbackException);
                 ExceptionDispatchInfo.Capture(callbackException).Throw();
                 throw;
             }
@@ -92,6 +72,37 @@ internal sealed class AsyncLock : IDisposable
 
         await waitTask;
         return new Releaser(_inner);
+    }
+
+    private void ReleaseAfterWait(Task waitTask, Exception callbackException)
+    {
+        _ = waitTask.ContinueWith(
+            static (completedWait, state) =>
+            {
+                var (semaphore, exception) = ((SemaphoreSlim, Exception))state;
+                if (completedWait.IsCompletedSuccessfully)
+                {
+                    try
+                    {
+                        semaphore.Release();
+                    }
+                    catch (Exception releaseException)
+                    {
+                        exception.Data["AsyncLockReleaseException"] = releaseException;
+                    }
+
+                    return;
+                }
+
+                Exception waitException = completedWait.Exception?.InnerException
+                    ?? new TaskCanceledException(completedWait);
+                exception.Data["AsyncLockWaitException"] = waitException;
+            },
+            (_inner, callbackException),
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default
+        );
     }
 
     public void Dispose() => _inner.Dispose();

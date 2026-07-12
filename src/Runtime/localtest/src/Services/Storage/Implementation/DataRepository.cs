@@ -8,12 +8,12 @@ using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace LocalTest.Services.Storage.Implementation
 {
     public class DataRepository : IDataRepository
     {
+        private const int ReadAllMaxDegreeOfParallelism = 8;
         private static readonly PartitionedAsyncLock _dataElementLocks = new PartitionedAsyncLock();
 
         private readonly LocalPlatformSettings _localPlatformSettings;
@@ -144,29 +144,66 @@ namespace LocalTest.Services.Storage.Implementation
                 instanceId,
                 dataId,
                 GetDataPath(instanceId, dataId),
+                stampContentEtag: true,
                 cancellationToken
             );
         }
 
-        public async Task<List<DataElement>> ReadAll(Guid instanceGuid)
+        public Task<List<DataElement>> ReadAll(
+            Guid instanceGuid,
+            CancellationToken cancellationToken = default
+        )
         {
-            List<DataElement> dataElements = new List<DataElement>();
-            string path = GetDataForInstanceFolder(instanceGuid.ToString());
-            if (Directory.Exists(path))
+            return ReadAllCore(instanceGuid, stampContentEtags: true, cancellationToken);
+        }
+
+        private Task<List<DataElement>> ReadAllWithoutContentEtags(
+            Guid instanceGuid,
+            CancellationToken cancellationToken
+        )
+        {
+            return ReadAllCore(instanceGuid, stampContentEtags: false, cancellationToken);
+        }
+
+        private async Task<List<DataElement>> ReadAllCore(
+            Guid instanceGuid,
+            bool stampContentEtags,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string instanceId = instanceGuid.ToString();
+            string path = GetDataForInstanceFolder(instanceId);
+            if (!Directory.Exists(path))
             {
-                string[] files = Directory.GetFiles(path);
-                foreach (string filePath in files)
+                return [];
+            }
+
+            string[] files = Directory.GetFiles(path);
+            var dataElements = new DataElement[files.Length];
+            await Parallel.ForEachAsync(
+                Enumerable.Range(0, files.Length),
+                new ParallelOptions
                 {
+                    CancellationToken = cancellationToken,
+                    MaxDegreeOfParallelism = ReadAllMaxDegreeOfParallelism,
+                },
+                async (index, operationCancellationToken) =>
+                {
+                    string filePath = files[index];
                     string dataId = Path.GetFileNameWithoutExtension(filePath);
                     DataElementReadResult result = await ReadSnapshot(
-                        instanceGuid.ToString(),
+                        instanceId,
                         dataId,
                         filePath,
-                        CancellationToken.None
+                        stampContentEtags,
+                        operationCancellationToken
                     );
-                    dataElements.Add(result.DataElement);
+                    dataElements[index] = result.DataElement;
                 }
-            }
+            );
+
             return dataElements.OrderBy(x => x.Created).ToList();
         }
 
@@ -349,11 +386,7 @@ namespace LocalTest.Services.Storage.Implementation
                 await CommitBlobVersion(dataElement.InstanceGuid, dataElement.Id, blobVersionId);
             }
 
-            string currentBlobVersion = await ReadCurrentBlobVersionWithoutLock(
-                dataElement.InstanceGuid,
-                dataElement.Id
-            );
-            StampContentEtag(dataElement, currentBlobVersion);
+            StampContentEtag(dataElement, blobVersionId);
             return dataElement;
         }
 
@@ -393,7 +426,10 @@ namespace LocalTest.Services.Storage.Implementation
                 return;
             }
 
-            List<DataElement> dataElements = await ReadAll(instanceGuid);
+            List<DataElement> dataElements = await ReadAllWithoutContentEtags(
+                instanceGuid,
+                cancellationToken
+            );
             bool otherDataElementIsRead = dataElements.Any(d =>
                 !string.Equals(d.Id, dataElementId.ToString(), StringComparison.OrdinalIgnoreCase)
                 && d.IsRead
@@ -434,11 +470,12 @@ namespace LocalTest.Services.Storage.Implementation
                 cancellationToken
             );
 
-            string content = await ReadFileAsString(path);
+            string content = await ReadFileAsString(path, cancellationToken);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content);
             string currentBlobVersion = await ReadCurrentBlobVersionWithoutLock(
                 instanceGuid.ToString(),
-                dataElementId.ToString()
+                dataElementId.ToString(),
+                cancellationToken
             );
 
             if (
@@ -474,85 +511,85 @@ namespace LocalTest.Services.Storage.Implementation
                 switch (propName)
                 {
                     case "contentType":
-                    {
-                        dataElement.ContentType = (string)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.ContentType = (string)property.Value;
+                            break;
+                        }
                     case "deleteStatus":
-                    {
-                        dataElement.DeleteStatus = (DeleteStatus)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.DeleteStatus = (DeleteStatus)property.Value;
+                            break;
+                        }
                     case "filename":
-                    {
-                        dataElement.Filename = (string)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.Filename = (string)property.Value;
+                            break;
+                        }
                     case "fileScanResult":
-                    {
-                        dataElement.FileScanResult = (FileScanResult)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.FileScanResult = (FileScanResult)property.Value;
+                            break;
+                        }
                     case "blobStoragePath":
-                    {
-                        dataElement.BlobStoragePath = (string)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.BlobStoragePath = (string)property.Value;
+                            break;
+                        }
                     case "currentBlobVersion":
-                    {
-                        newCurrentBlobVersion = (string)property.Value;
-                        break;
-                    }
+                        {
+                            newCurrentBlobVersion = (string)property.Value;
+                            break;
+                        }
                     case "isRead":
-                    {
-                        dataElement.IsRead = (bool)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.IsRead = (bool)property.Value;
+                            break;
+                        }
                     case "lastChangedBy":
-                    {
-                        dataElement.LastChangedBy = (string)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.LastChangedBy = (string)property.Value;
+                            break;
+                        }
                     case "lastChanged":
-                    {
-                        dataElement.LastChanged = (DateTime)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.LastChanged = (DateTime)property.Value;
+                            break;
+                        }
                     case "locked":
-                    {
-                        dataElement.Locked = (bool)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.Locked = (bool)property.Value;
+                            break;
+                        }
                     case "refs":
-                    {
-                        dataElement.Refs = (List<Guid>)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.Refs = (List<Guid>)property.Value;
+                            break;
+                        }
                     case "references":
-                    {
-                        dataElement.References = (List<Reference>)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.References = (List<Reference>)property.Value;
+                            break;
+                        }
                     case "size":
-                    {
-                        dataElement.Size = (long)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.Size = (long)property.Value;
+                            break;
+                        }
                     case "tags":
-                    {
-                        dataElement.Tags = (List<string>)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.Tags = (List<string>)property.Value;
+                            break;
+                        }
                     case "userDefinedMetadata":
-                    {
-                        dataElement.UserDefinedMetadata = (List<KeyValueEntry>)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.UserDefinedMetadata = (List<KeyValueEntry>)property.Value;
+                            break;
+                        }
                     case "metadata":
-                    {
-                        dataElement.Metadata = (List<KeyValueEntry>)property.Value;
-                        break;
-                    }
+                        {
+                            dataElement.Metadata = (List<KeyValueEntry>)property.Value;
+                            break;
+                        }
                 }
             }
             Directory.CreateDirectory(GetDataCollectionFolder());
@@ -568,11 +605,7 @@ namespace LocalTest.Services.Storage.Implementation
                 );
             }
 
-            string committedBlobVersion = await ReadCurrentBlobVersionWithoutLock(
-                instanceGuid.ToString(),
-                dataElementId.ToString()
-            );
-            StampContentEtag(dataElement, committedBlobVersion);
+            StampContentEtag(dataElement, newCurrentBlobVersion ?? currentBlobVersion);
             return dataElement;
         }
 
@@ -580,6 +613,7 @@ namespace LocalTest.Services.Storage.Implementation
             string instanceId,
             string dataId,
             string dataPath,
+            bool stampContentEtag,
             CancellationToken cancellationToken
         )
         {
@@ -588,9 +622,14 @@ namespace LocalTest.Services.Storage.Implementation
                 cancellationToken: cancellationToken
             );
 
-            string content = await ReadFileAsString(dataPath);
+            string content = await ReadFileAsString(dataPath, cancellationToken);
             DataElement dataElement = (DataElement)
                 JsonConvert.DeserializeObject(content, typeof(DataElement));
+
+            if (!stampContentEtag)
+            {
+                return new DataElementReadResult(dataElement, null);
+            }
 
             Func<string, string, Task> metadataReadHook = SnapshotMetadataReadHook;
             if (metadataReadHook is not null)
@@ -599,7 +638,11 @@ namespace LocalTest.Services.Storage.Implementation
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            string currentBlobVersion = await ReadCurrentBlobVersionWithoutLock(instanceId, dataId);
+            string currentBlobVersion = await ReadCurrentBlobVersionWithoutLock(
+                instanceId,
+                dataId,
+                cancellationToken
+            );
             StampContentEtag(dataElement, currentBlobVersion);
             return new DataElementReadResult(dataElement, currentBlobVersion);
         }
@@ -611,23 +654,19 @@ namespace LocalTest.Services.Storage.Implementation
 
         private static string SerializeForPersistence(DataElement dataElement)
         {
-            JObject persistedDataElement = JObject.Parse(dataElement.ToString());
-            foreach (
-                JProperty property in persistedDataElement
-                    .Properties()
-                    .Where(property =>
-                        string.Equals(
-                            property.Name,
-                            "contentEtag",
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                    )
-                    .ToList()
-            )
+            lock (dataElement)
             {
-                property.Remove();
+                string contentEtag = dataElement.ContentEtag;
+                try
+                {
+                    dataElement.ContentEtag = null;
+                    return dataElement.ToString();
+                }
+                finally
+                {
+                    dataElement.ContentEtag = contentEtag;
+                }
             }
-            return persistedDataElement.ToString(Formatting.None);
         }
 
         private string GetDataPath(string instanceId, string dataId)
@@ -667,15 +706,22 @@ namespace LocalTest.Services.Storage.Implementation
                 + this._localPlatformSettings.InstanceCollectionFolder;
         }
 
-        private static async Task<string> ReadFileAsString(string path)
+        private static async Task<string> ReadFileAsString(
+            string path,
+            CancellationToken cancellationToken = default
+        )
         {
-            using Stream stream = await ReadFileAsStream(path);
+            using Stream stream = await ReadFileAsStream(path, cancellationToken);
             using StreamReader reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
+            return await reader.ReadToEndAsync(cancellationToken);
         }
 
-        private static async Task<Stream> ReadFileAsStream(string path)
+        private static async Task<Stream> ReadFileAsStream(
+            string path,
+            CancellationToken cancellationToken
+        )
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 return ReadFileAsStreamInternal(path);
@@ -684,7 +730,7 @@ namespace LocalTest.Services.Storage.Implementation
             {
                 if (ioException.Message.Contains("used by another process"))
                 {
-                    await Task.Delay(400);
+                    await Task.Delay(400, cancellationToken);
                     return ReadFileAsStreamInternal(path);
                 }
 
@@ -868,18 +914,21 @@ namespace LocalTest.Services.Storage.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             return await ReadCurrentBlobVersionWithoutLock(
                 instanceGuid.ToString(),
-                dataElementId.ToString()
+                dataElementId.ToString(),
+                cancellationToken
             );
         }
 
         private async Task<string> ReadCurrentBlobVersionWithoutLock(
             string instanceId,
-            string dataId
+            string dataId,
+            CancellationToken cancellationToken = default
         )
         {
             DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(
                 instanceId,
-                dataId
+                dataId,
+                cancellationToken
             );
             return metadata.CurrentBlobVersion;
         }
@@ -904,7 +953,8 @@ namespace LocalTest.Services.Storage.Implementation
 
         private async Task<DataElementBlobVersionMetadata> ReadBlobVersionMetadata(
             string instanceId,
-            string dataId
+            string dataId,
+            CancellationToken cancellationToken = default
         )
         {
             string path = GetBlobVersionPath(instanceId, dataId);
@@ -913,7 +963,7 @@ namespace LocalTest.Services.Storage.Implementation
                 return new DataElementBlobVersionMetadata();
             }
 
-            string content = await ReadFileAsString(path);
+            string content = await ReadFileAsString(path, cancellationToken);
             return JsonConvert.DeserializeObject<DataElementBlobVersionMetadata>(content)
                 ?? new DataElementBlobVersionMetadata();
         }

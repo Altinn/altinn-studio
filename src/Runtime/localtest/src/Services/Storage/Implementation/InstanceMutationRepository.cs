@@ -425,7 +425,10 @@ public sealed class InstanceMutationRepository(
                 HttpStatusCode.NotFound
             );
         }
-        existingInstance.Data = await _localDataRepository.ReadAll(instanceGuid);
+        existingInstance.Data = await _localDataRepository.ReadAll(
+            instanceGuid,
+            cancellationToken
+        );
 
         IReadOnlyList<string> updateProperties = mutation.InstanceUpdateProperties ?? [];
         if (updateProperties.Contains(nameof(Instance.PresentationTexts)))

@@ -66,6 +66,16 @@ internal sealed class LocalStorageFixture : IAsyncDisposable
             $"{dataElementId}.json"
         );
 
+    public string GetBlobVersionMetadataPath(Guid instanceGuid, Guid dataElementId) =>
+        Path.Combine(
+            Root,
+            Settings.DocumentDbFolder,
+            Settings.DataCollectionFolder,
+            instanceGuid.ToString(),
+            ".blobversions",
+            $"{dataElementId}.json"
+        );
+
     public void PreserveRootOnDispose() => _preserveRootOnDispose = true;
 
     public ValueTask DisposeAsync()

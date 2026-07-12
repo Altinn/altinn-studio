@@ -83,6 +83,206 @@ public sealed class DataRepositoryContentEtagTests
     }
 
     [Fact]
+    public async Task ReadAll_OrdersByCreatedAndStampsEveryContentEtag()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+        DateTime created = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc);
+        var expectedEtags = new Dictionary<string, string>();
+
+        foreach (int offset in new[] { 2, 0, 1 })
+        {
+            Guid dataElementId = Guid.NewGuid();
+            string blobVersionId = await storage.DataRepository.CreateBlobVersionId(
+                instanceGuid,
+                dataElementId,
+                instance.AppId,
+                instance.Org,
+                storageAccountNumber: null
+            );
+            await storage.DataRepository.Create(
+                new DataElement
+                {
+                    Id = dataElementId.ToString(),
+                    InstanceGuid = instanceGuid.ToString(),
+                    DataType = "attachment",
+                    BlobStoragePath = BlobRepository.GetVersionedBlobPath(
+                        instance.AppId,
+                        instanceGuid.ToString(),
+                        blobVersionId
+                    ),
+                    Created = created.AddMinutes(offset),
+                    LastChanged = created.AddMinutes(offset),
+                }
+            );
+            expectedEtags[dataElementId.ToString()] = $"\"{blobVersionId}\"";
+        }
+
+        List<DataElement> dataElements = await storage.DataRepository.ReadAll(
+            instanceGuid,
+            CancellationToken.None
+        );
+
+        Assert.Equal(
+            new DateTime?[] { created, created.AddMinutes(1), created.AddMinutes(2) },
+            dataElements.Select(dataElement => dataElement.Created).ToArray()
+        );
+        Assert.All(
+            dataElements,
+            dataElement => Assert.Equal(expectedEtags[dataElement.Id], dataElement.ContentEtag)
+        );
+    }
+
+    [Fact]
+    public async Task ReadAll_WhenCanceled_ThrowsInsteadOfReturningPartialResults()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+        Guid dataElementId = Guid.NewGuid();
+        string blobVersionId = await storage.DataRepository.CreateBlobVersionId(
+            instanceGuid,
+            dataElementId,
+            instance.AppId,
+            instance.Org,
+            storageAccountNumber: null
+        );
+        await storage.DataRepository.Create(
+            new DataElement
+            {
+                Id = dataElementId.ToString(),
+                InstanceGuid = instanceGuid.ToString(),
+                DataType = "attachment",
+                BlobStoragePath = BlobRepository.GetVersionedBlobPath(
+                    instance.AppId,
+                    instanceGuid.ToString(),
+                    blobVersionId
+                ),
+                Created = DateTime.UtcNow,
+                LastChanged = DateTime.UtcNow,
+            }
+        );
+        using var cancellation = new CancellationTokenSource();
+        var readStarted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        storage.DataRepository.SnapshotMetadataReadHook = (readInstanceId, readDataId) =>
+        {
+            if (
+                readInstanceId == instanceGuid.ToString()
+                && readDataId == dataElementId.ToString()
+            )
+            {
+                readStarted.TrySetResult();
+                return Task.Delay(Timeout.InfiniteTimeSpan, cancellation.Token);
+            }
+
+            return Task.CompletedTask;
+        };
+
+        Task<List<DataElement>> readAll = storage.DataRepository.ReadAll(
+            instanceGuid,
+            cancellation.Token
+        );
+        try
+        {
+            await readStarted.Task.WaitAsync(_cleanupTimeout);
+            cancellation.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                readAll.WaitAsync(_cleanupTimeout)
+            );
+        }
+        finally
+        {
+            cancellation.Cancel();
+            storage.DataRepository.SnapshotMetadataReadHook = null;
+            try
+            {
+                await readAll.WaitAsync(_cleanupTimeout);
+            }
+            catch
+            {
+                // Cancellation is asserted above or observed here during cleanup.
+            }
+        }
+    }
+
+    [Fact]
+    public async Task UpdateReadStatus_IgnoresUnrelatedBlobVersionSidecars()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        instance.Status.ReadStatus = ReadStatus.Read;
+        await storage.InstanceRepository.UpdateReadStatus(instance, CancellationToken.None);
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+
+        (Guid targetId, string targetBlobVersion) = await CreateVersionedDataElement(
+            storage,
+            instance,
+            instanceGuid,
+            isRead: true
+        );
+        (Guid otherId, _) = await CreateVersionedDataElement(
+            storage,
+            instance,
+            instanceGuid,
+            isRead: false
+        );
+        await File.WriteAllTextAsync(
+            storage.GetBlobVersionMetadataPath(instanceGuid, otherId),
+            "not valid json"
+        );
+
+        DataElement updated = (
+            await storage.DataRepository.UpdateReadStatus(
+                instanceGuid,
+                targetId,
+                isRead: false,
+                CancellationToken.None
+            )
+        ).DataElement;
+        (Instance persistedInstance, _) = await storage.InstanceRepository.GetOne(
+            instanceGuid,
+            includeElements: false,
+            CancellationToken.None
+        );
+
+        Assert.Equal($"\"{targetBlobVersion}\"", updated.ContentEtag);
+        Assert.Equal(ReadStatus.Unread, persistedInstance.Status.ReadStatus);
+
+        Exception? readAllException = await Record.ExceptionAsync(() =>
+            storage.DataRepository.ReadAll(instanceGuid)
+        );
+        Assert.NotNull(readAllException);
+        JsonReaderException sidecarException = Assert.IsType<JsonReaderException>(
+            readAllException.GetBaseException()
+        );
+        Assert.Contains("Unexpected character", sidecarException.Message);
+    }
+
+    [Fact]
+    public async Task Create_WhenSerializationThrows_RestoresContentEtag()
+    {
+        await using var storage = new LocalStorageFixture();
+        var dataElement = new ThrowingDataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            InstanceGuid = Guid.NewGuid().ToString(),
+            ContentEtag = "\"etag-to-restore\"",
+        };
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => storage.DataRepository.CreateWithoutVersionBump(dataElement)
+        );
+
+        Assert.Equal("serialization failed", exception.Message);
+        Assert.True(dataElement.SawNullContentEtag);
+        Assert.Equal("\"etag-to-restore\"", dataElement.ContentEtag);
+    }
+
+    [Fact]
     public async Task Read_ConcurrentContentUpdate_ReturnsMetadataAndVersionFromOneLockedSnapshot()
     {
         await using var storage = new LocalStorageFixture();
@@ -305,6 +505,51 @@ public sealed class DataRepositoryContentEtagTests
         catch (Exception exception)
         {
             return exception;
+        }
+    }
+
+    private static async Task<(Guid DataElementId, string BlobVersionId)> CreateVersionedDataElement(
+        LocalStorageFixture storage,
+        Instance instance,
+        Guid instanceGuid,
+        bool isRead
+    )
+    {
+        Guid dataElementId = Guid.NewGuid();
+        string blobVersionId = await storage.DataRepository.CreateBlobVersionId(
+            instanceGuid,
+            dataElementId,
+            instance.AppId,
+            instance.Org,
+            storageAccountNumber: null
+        );
+        await storage.DataRepository.Create(
+            new DataElement
+            {
+                Id = dataElementId.ToString(),
+                InstanceGuid = instanceGuid.ToString(),
+                DataType = "attachment",
+                BlobStoragePath = BlobRepository.GetVersionedBlobPath(
+                    instance.AppId,
+                    instanceGuid.ToString(),
+                    blobVersionId
+                ),
+                IsRead = isRead,
+                Created = DateTime.UtcNow,
+                LastChanged = DateTime.UtcNow,
+            }
+        );
+        return (dataElementId, blobVersionId);
+    }
+
+    private sealed class ThrowingDataElement : DataElement
+    {
+        public bool SawNullContentEtag { get; private set; }
+
+        public override string ToString()
+        {
+            SawNullContentEtag = ContentEtag is null;
+            throw new InvalidOperationException("serialization failed");
         }
     }
 }
