@@ -184,9 +184,10 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task Handle_InheritedStateLookupFails_RequeuesWithoutRunningSteps()
+    public async Task Handle_InheritedStateLookupFails_RequeuesWithBackoffWithoutRunningSteps()
     {
         var sourceWorkflowId = Guid.NewGuid();
+        var backoffDelay = TimeSpan.FromSeconds(5);
 
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         repository
@@ -197,13 +198,22 @@ public class WorkflowHandlerTests
         var workflow = CreateWorkflow(CreateStep());
         workflow.InheritStateFromWorkflowId = sourceWorkflowId;
 
-        await CreateHandler(executor.Object, repository: repository.Object).Handle(workflow, CancellationToken.None);
+        var settings = _defaultSettings with { DefaultStepRetryStrategy = RetryStrategy.Constant(backoffDelay) };
+        var before = DateTimeOffset.UtcNow;
+        await CreateHandler(executor.Object, settings: settings, repository: repository.Object)
+            .Handle(workflow, CancellationToken.None);
+        var after = DateTimeOffset.UtcNow;
 
         Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
         executor.Verify(
             e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
+
+        // Backed off before the next attempt - without this the workflow is immediately
+        // fetchable again and a persistently failing lookup would spin at fetch cadence.
+        Assert.NotNull(workflow.BackoffUntil);
+        Assert.InRange(workflow.BackoffUntil.Value, before.Add(backoffDelay), after.Add(backoffDelay));
     }
 
     [Fact]

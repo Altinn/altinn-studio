@@ -113,8 +113,13 @@ internal sealed class WorkflowHandler(
         if (!await TryResolveInheritedState(workflow, ct))
         {
             // The lookup failed transiently - requeue for another attempt rather than failing the
-            // workflow terminally before any step has run.
+            // workflow terminally before any step has run. Back off before the retry: without a
+            // backoff the workflow is immediately fetchable again (backoff_until NULLS FIRST), so a
+            // persistently failing lookup would spin at fetch cadence. There is no attempt counter
+            // at the workflow level, so use the default step strategy's first-retry delay as a
+            // constant pause.
             workflow.Status = PersistentItemStatus.Requeued;
+            workflow.BackoffUntil = timeProvider.GetUtcNow().Add(_settings.DefaultStepRetryStrategy.CalculateDelay(1));
 
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
