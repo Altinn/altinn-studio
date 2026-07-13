@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -53,12 +54,12 @@ public class ProcessStateEnricherTests
     }
 
     [Fact]
-    public async Task Enrich_WhenEngineReturnsFailed_MapsFailureDetailAndKind()
+    public async Task Enrich_WhenEngineReturnsFailed_MapsFailureKindButNeverRawDetail()
     {
         var workflowFailure = new WorkflowFailure
         {
             Kind = WorkflowFailureKind.StepFailed,
-            LastError = new WorkflowFailureError { Message = "The service task failed." },
+            LastError = new WorkflowFailureError { Message = "INTERNAL: raw engine error text" },
         };
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
@@ -74,8 +75,9 @@ public class ProcessStateEnricherTests
         Assert.NotNull(result.Workflow);
         Assert.Equal(WorkflowActivityStatus.Failed, result.Workflow.Status);
         Assert.Equal("Task_2", result.Workflow.TargetTask);
+        // Only the coarse classification is projected; the raw error message must never reach the
+        // consumer-facing model (it can contain internal infrastructure text).
         Assert.NotNull(result.Workflow.Failure);
-        Assert.Equal("The service task failed.", result.Workflow.Failure.Detail);
         Assert.Equal(WorkflowFailureKind.StepFailed, result.Workflow.Failure.Kind);
     }
 
@@ -98,18 +100,67 @@ public class ProcessStateEnricherTests
     }
 
     [Fact]
-    public async Task Enrich_WhenCancelled_PropagatesCancellation()
+    public async Task Enrich_WhenCallerCancelled_PropagatesCancellation()
     {
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
             .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException());
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
 
         ProcessStateEnricher enricher = CreateEnricher(engine);
 
+        // The request itself was aborted - that must propagate, not degrade to Idle.
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            enricher.Enrich(new Instance(), new ProcessState(), CreateUser())
+            enricher.Enrich(new Instance(), new ProcessState(), CreateUser(), cts.Token)
         );
+    }
+
+    [Fact]
+    public async Task Enrich_WhenEngineTimesOutWithoutCallerCancellation_DegradesToIdle()
+    {
+        // HttpClient throws TaskCanceledException on its own timeout; when the caller's token is
+        // NOT cancelled this is an engine hiccup, not an aborted request, and must degrade to Idle.
+        var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        engine
+            .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(
+                new TaskCanceledException("The request was canceled due to the configured HttpClient.Timeout")
+            );
+
+        ProcessStateEnricher enricher = CreateEnricher(engine);
+
+        AppProcessState result = await enricher.Enrich(new Instance(), new ProcessState(), CreateUser());
+
+        Assert.NotNull(result.Workflow);
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Workflow.Status);
+    }
+
+    [Fact]
+    public async Task Enrich_WhenStatusResolutionExceedsBudget_DegradesToIdle()
+    {
+        // A slow engine must not hold the read hostage: the enricher's own resolution budget fires
+        // and the status degrades to Idle while the caller's request continues normally.
+        var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        engine
+            .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .Returns(
+                async (Instance _, CancellationToken token) =>
+                {
+                    await Task.Delay(Timeout.InfiniteTimeSpan, token);
+                    throw new UnreachableException();
+                }
+            );
+
+        ProcessStateEnricher enricher = CreateEnricher(engine);
+        enricher.WorkflowStatusResolutionBudget = TimeSpan.FromMilliseconds(50);
+
+        AppProcessState result = await enricher.Enrich(new Instance(), new ProcessState(), CreateUser());
+
+        Assert.NotNull(result.Workflow);
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Workflow.Status);
     }
 
     // Isolates the workflow mapping: the flow-element / authorization block is a no-op (no current

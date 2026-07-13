@@ -136,7 +136,6 @@ The enriched process state (`AppProcessState`) gains a nested annotation; `curre
     "status": "idle" | "processing" | "failed",
     "targetTask": "Task_2",            // omitted when idle / unknown
     "failure": {                       // present only when status == "failed"
-      "detail": "…human-readable…",
       "kind": "StepFailed | DependencyFailed | EngineFault | Timeout"
     }
   }
@@ -148,8 +147,12 @@ The enriched process state (`AppProcessState`) gains a nested annotation; `curre
 - `targetTask` is the BPMN element id of the task the in-flight/failed transition targets
   (resolved from the `processNextTargetId` label stamped at enqueue, flow suffix stripped).
   Omitted when `idle` or unresolvable.
-- `failure.detail` reuses the message the engine surfaces, including detail extracted from a
-  failing service-task/callback `ProblemDetails`.
+- `failure` carries only the coarse `kind` classification. The raw failure detail (the engine's
+  last recorded error message) is **never serialized to clients**: it originates from
+  exception/callback messages and can carry internal infrastructure text (platform response
+  bodies, exception messages from app-authored hooks). It remains available server-side — the
+  callback controller logs every command failure and the engine persists the step error history —
+  so nothing is lost for diagnostics.
 - We intentionally do **not** expose retry counts, workflow ids, collection keys, or raw engine
   statuses. `processing` covers the first attempt and every automatic retry — the consumer
   behaviour (wait) is identical, so the distinction is noise (D4).
@@ -186,8 +189,8 @@ Backend:
   `GetCollection` instead of label-discovery queries; and (2) the engine includes each head's
   `labels` on the collection view (`CollectionHeadStatus.Labels`, projected from the workflow row
   at no extra query cost), so a processing transition's target task is read straight off the
-  head. Only a *failed* transition lists the collection's workflows, because failure detail is
-  built from the step error history.
+  head. Only a *failed* transition lists the collection's workflows, because the failure `kind`
+  classification is built from the step error history.
 - **Failure classification shares the wait path's visibility rules.** The failed-case workflow
   list is filtered through the same `ScopeToCurrentChain` seam the enqueue wait and resume-target
   lookup use, so any workflow category excluded from transition-failure classification (e.g. the
@@ -202,10 +205,11 @@ Frontend:
   task UI with a failure state and a **Retry** button calling `POST process/resume`, then
   returns to `processing` + poll. Because the state is sourced from the fetched instance, it
   survives reloads and works cross-session.
-- **Raw failure detail is not shown to citizens.** `failure.detail` can contain internal text, so
-  the citizen UI renders a localized generic message; the detail stays in the API payload for
-  diagnostics and service-owner tooling, and is logged. A first-class, app-authored *user-safe*
-  failure message is a follow-up.
+- **Raw failure detail never reaches the citizen.** The read-path annotation ships only the
+  failure `kind`; the citizen UI renders a localized generic message. Shipping unrendered detail
+  "for diagnostics" would only widen exposure (any browser devtools sees the payload) while the
+  same information is already logged server-side and persisted in the engine's error history. A
+  first-class, app-authored *user-safe* failure message is a follow-up.
 - **Polling is jittered** (~2–3s) so many clients waiting on the same engine don't synchronise
   into a thundering herd — which would otherwise peak exactly when the engine is already slow.
   After ~20s in `processing` the UI adds a "taking longer than usual" reassurance line.

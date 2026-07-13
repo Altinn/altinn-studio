@@ -96,9 +96,7 @@
     Workflow: {
       Status: Failed,
       TargetTask: Task_Service,
-      Failure: {
-        Detail: Service task 'failing-service' failed: Scenario service task failed permanently.
-      }
+      Failure: {}
     },
     Started: DateTime_2,
     StartEvent: StartEvent_1

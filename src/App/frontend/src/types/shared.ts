@@ -207,7 +207,6 @@ export interface IProcess {
 export type WorkflowActivityStatus = 'idle' | 'processing' | 'failed';
 
 export interface IProcessWorkflowFailure {
-  detail?: string;
   kind?: string;
 }
 

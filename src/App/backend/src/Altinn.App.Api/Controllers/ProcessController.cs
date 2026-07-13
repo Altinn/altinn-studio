@@ -81,6 +81,7 @@ public class ProcessController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="ct">cancellation token</param>
     /// <returns>the instance's process state</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -90,7 +91,8 @@ public class ProcessController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid
+        [FromRoute] Guid instanceGuid,
+        CancellationToken ct = default
     )
     {
         try
@@ -101,9 +103,9 @@ public class ProcessController : ControllerBase
                 instanceOwnerPartyId,
                 instanceGuid,
                 authenticationMethod: null,
-                CancellationToken.None
+                ct
             );
-            AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User);
+            AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User, ct);
 
             return Ok(appProcessState);
         }

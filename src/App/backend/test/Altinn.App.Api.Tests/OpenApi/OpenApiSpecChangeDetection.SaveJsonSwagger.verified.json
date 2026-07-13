@@ -8254,10 +8254,6 @@
       "AppProcessWorkflowFailure": {
         "type": "object",
         "properties": {
-          "detail": {
-            "type": "string",
-            "nullable": true
-          },
           "kind": {
             "$ref": "#/components/schemas/WorkflowFailureKind"
           }

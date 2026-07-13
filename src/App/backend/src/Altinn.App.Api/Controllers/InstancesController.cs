@@ -274,7 +274,7 @@ public class InstancesController : ControllerBase
                 instanceOwnerPartyId,
                 cancellationToken: cancellationToken
             );
-            var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
+            var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User, cancellationToken);
 
             await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 

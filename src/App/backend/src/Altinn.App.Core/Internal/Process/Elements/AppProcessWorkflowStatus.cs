@@ -38,18 +38,13 @@ public sealed class AppProcessWorkflowStatus
 
 /// <summary>
 /// A slim, consumer-facing projection of a failed process transition. Intentionally omits engine
-/// internals (workflow ids, collection keys, retry counts).
+/// internals (workflow ids, collection keys, retry counts) and the raw error detail: the detail
+/// originates from exception/callback messages that can carry internal infrastructure text, so it
+/// is never serialized to clients. It remains available server-side (callback failure logs and the
+/// engine's step error history).
 /// </summary>
 public sealed class AppProcessWorkflowFailure
 {
-    /// <summary>
-    /// Human-readable failure detail, suitable for display. Sourced from the workflow engine's
-    /// last recorded error (including detail extracted from a failing service task / callback).
-    /// </summary>
-    [JsonPropertyName("detail")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Detail { get; init; }
-
     /// <summary>
     /// The failure classification.
     /// </summary>

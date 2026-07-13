@@ -101,10 +101,10 @@ function WorkflowProcessing() {
   );
 }
 
-// We deliberately do NOT render the backend's raw failure detail here: it originates from the
-// workflow engine / a service task and may contain internal, non-user-facing text. Citizens see a
-// localized, generic message; the detail stays in the API payload for diagnostics and service-owner
-// tooling. A future improvement is a first-class, app-authored user-safe message.
+// The backend deliberately never ships raw failure detail to the client (it originates from the
+// workflow engine / a service task and may contain internal, non-user-facing text) - only the
+// coarse failure `kind`. Citizens see a localized, generic message; diagnostics live server-side.
+// A future improvement is a first-class, app-authored user-safe message.
 function WorkflowFailed() {
   const resume = useProcessResume();
 

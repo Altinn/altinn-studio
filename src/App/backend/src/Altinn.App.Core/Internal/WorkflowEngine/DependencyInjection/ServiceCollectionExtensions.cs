@@ -23,7 +23,14 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
-        services.AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>();
+
+        // The engine is a low-latency internal service; never let a single call hold a request for
+        // the framework-default 100s. Application-level waits poll with repeated short calls (see
+        // WorkflowEngineService.WorkflowPollingTimeoutMs), and the read-path status lookup applies
+        // a tighter budget on top of this (see ProcessStateEnricher.WorkflowStatusResolutionBudget).
+        services
+            .AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>()
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(30));
 
         // Callback authentication (app signs at enqueue, app validates at callback)
         services.TryAddSingleton<IWorkflowCallbackSecretProvider, WorkflowCallbackSecretProvider>();

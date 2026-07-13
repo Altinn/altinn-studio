@@ -104,27 +104,45 @@ public sealed class ProcessStateEnricher
     }
 
     /// <summary>
+    /// Upper bound on the live status lookup. The lookup runs on every process/instance read (and
+    /// every frontend poll tick), so a slow engine must degrade quickly instead of holding the read
+    /// hostage for the HTTP client's full timeout. Generous compared to a healthy engine round-trip.
+    /// Internal-settable for tests.
+    /// </summary>
+    internal TimeSpan WorkflowStatusResolutionBudget { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
     /// Resolves the live workflow status for enrichment. The read path must never fail just because
-    /// the live status lookup hiccuped, so any non-cancellation error degrades to
-    /// <see cref="WorkflowActivityStatus.Idle"/> (render normally) - the next read/poll recovers the
-    /// true status. Cancellation is allowed to propagate (the request was aborted).
+    /// the live status lookup hiccuped, so any error - including the resolution budget elapsing -
+    /// degrades to <see cref="WorkflowActivityStatus.Idle"/> (render normally); the next read/poll
+    /// recovers the true status. Only cancellation of the caller's own token propagates (the
+    /// request was aborted).
     /// </summary>
     private async Task<AppProcessWorkflowStatus> ResolveWorkflowStatus(Instance instance, CancellationToken ct)
     {
         try
         {
             var workflowEngineService = _serviceProvider.GetRequiredService<IWorkflowEngineService>();
-            WorkflowTaskStatus workflowStatus = await workflowEngineService.ResolveWorkflowTaskStatus(instance, ct);
+            using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            budgetCts.CancelAfter(WorkflowStatusResolutionBudget);
+            WorkflowTaskStatus workflowStatus = await workflowEngineService.ResolveWorkflowTaskStatus(
+                instance,
+                budgetCts.Token
+            );
             return new AppProcessWorkflowStatus
             {
                 Status = workflowStatus.Status,
                 TargetTask = workflowStatus.TargetTask,
                 Failure = workflowStatus.Failure is { } failure
-                    ? new AppProcessWorkflowFailure { Detail = failure.LastError?.Message, Kind = failure.Kind }
+                    ? new AppProcessWorkflowFailure { Kind = failure.Kind }
                     : null,
             };
         }
-        catch (Exception e) when (e is not OperationCanceledException)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception e)
         {
             _logger.LogWarning(
                 e,

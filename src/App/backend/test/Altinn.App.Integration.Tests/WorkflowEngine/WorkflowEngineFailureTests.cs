@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Xunit.Abstractions;
 using CoreProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 using WorkflowActivityStatus = Altinn.App.Core.Internal.Process.Elements.WorkflowActivityStatus;
+using WorkflowFailureKind = Altinn.App.Core.Models.Process.WorkflowFailureKind;
 
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
@@ -144,8 +145,10 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         Assert.NotNull(processState.Workflow);
         Assert.Equal(WorkflowActivityStatus.Failed, processState.Workflow!.Status);
 
+        // Only the coarse failure kind is exposed on the read path - raw failure detail is
+        // deliberately never serialized to clients (it can contain internal text).
         Assert.NotNull(processState.Workflow.Failure);
-        Assert.False(string.IsNullOrEmpty(processState.Workflow.Failure!.Detail));
+        Assert.Equal(WorkflowFailureKind.StepFailed, processState.Workflow.Failure!.Kind);
 
         // The transition targeted the committed current task; the engine round-trips the
         // processNextTargetId label so the annotation resolves it back.
