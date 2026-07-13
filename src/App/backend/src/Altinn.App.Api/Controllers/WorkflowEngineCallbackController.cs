@@ -197,7 +197,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                     }
 
                     var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
-                    await processEngine.EnqueueProcessNext(
+                    await processEngine.EnqueueDependentProcessNext(
                         instanceDataUnitOfWork.Instance,
                         payload.Actor,
                         payload.LockToken,

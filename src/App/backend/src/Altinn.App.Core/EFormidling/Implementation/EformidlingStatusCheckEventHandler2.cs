@@ -126,7 +126,7 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
             StorageAuthenticationMethod.ServiceOwner()
         );
 
-        await processEngine.EnqueueProcessNextNoWait(
+        await processEngine.EnqueueProcessNext(
             instance,
             new Actor { OrgId = appIdentifier.Org },
             requiredCurrentTaskType: AltinnTaskTypes.EFormidling

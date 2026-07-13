@@ -596,7 +596,7 @@ public class WorkflowEngineServiceTests
         };
 
     [Fact]
-    public async Task EnqueueProcessNextNoWait_EmitsTheSameBatchAsAUserDrivenAdvance()
+    public async Task EnqueueProcessNext_EmitsTheSameBatchAsAUserDrivenAdvance()
     {
         // The no-wait path (system-initiated advances of parked service tasks) must go through the
         // same ProcessNextRequestFactory as user-driven process-next: Main opts into DependsOnHeads
@@ -684,7 +684,7 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App)
         );
 
-        await service.EnqueueProcessNextNoWait(
+        await service.EnqueueProcessNext(
             instance,
             processStateChange,
             resolvedAction: "write",
@@ -761,6 +761,7 @@ public class WorkflowEngineServiceTests
             .EnqueueRequest;
         return [.. embedded.Workflows];
     }
+
     private static WorkflowStatusResponse CreateWorkflowStatus(
         DateTimeOffset createdAt,
         PersistentItemStatus status = PersistentItemStatus.Completed,

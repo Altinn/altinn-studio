@@ -872,7 +872,7 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task EnqueueProcessNext(
+    public async Task EnqueueDependentProcessNext(
         Instance instance,
         Actor actor,
         string lockToken,
@@ -899,7 +899,7 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task EnqueueProcessNextNoWait(
+    public async Task EnqueueProcessNext(
         Instance instance,
         Actor actor,
         string? action = null,
@@ -970,7 +970,7 @@ internal class ProcessEngine : IProcessEngine
 
         string resolvedAction =
             action ?? (altinnTaskType is { } taskType ? ConvertTaskTypeToAction(taskType) : "write");
-        await _workflowEngineService.EnqueueProcessNextNoWait(
+        await _workflowEngineService.EnqueueProcessNext(
             instance,
             processStateChange,
             resolvedAction,

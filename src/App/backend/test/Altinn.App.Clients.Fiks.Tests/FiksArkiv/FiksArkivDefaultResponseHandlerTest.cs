@@ -133,7 +133,7 @@ public class FiksArkivDefaultResponseHandlerTest
 
         processEngineMock
             .Setup(x =>
-                x.EnqueueProcessNextNoWait(
+                x.EnqueueProcessNext(
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
                     "the-action",
@@ -243,7 +243,7 @@ public class FiksArkivDefaultResponseHandlerTest
 
         processEngineMock
             .Setup(x =>
-                x.EnqueueProcessNextNoWait(
+                x.EnqueueProcessNext(
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
                     "the-action",

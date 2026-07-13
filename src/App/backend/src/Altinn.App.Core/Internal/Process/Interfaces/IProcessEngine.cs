@@ -6,7 +6,12 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Process engine interface that defines the Altinn App process engine
+/// Process engine interface that defines the Altinn App process engine.
+/// Naming convention: <c>Enqueue*</c> methods return as soon as the workflow engine has durably
+/// accepted the workflow - they never wait for it to run. Members that wait for the workflow chain
+/// to settle say so explicitly (<see cref="Next"/>, <see cref="SubmitInitialProcessState"/> and
+/// <see cref="ResumeCurrentTask"/> wrap the wait internally; the service layer's waiting variant is
+/// named <c>EnqueueAndWaitForProcessNext</c>).
 /// </summary>
 internal interface IProcessEngine
 {
@@ -40,12 +45,13 @@ internal interface IProcessEngine
     Task<ProcessChangeResult> ResumeCurrentTask(ProcessNextRequest request, CancellationToken ct = default);
 
     /// <summary>
-    /// Enqueues a process-next workflow that transitions the process from the current task to the next element.
-    /// The workflow has a dependency on <paramref name="dependsOnWorkflowId"/> so it won't start
-    /// until that workflow completes.
+    /// Enqueues a process-next workflow that transitions the process from the current task to the next element,
+    /// with an explicit dependency on <paramref name="dependsOnWorkflowId"/> so it won't start until that
+    /// workflow completes. Used from inside engine callbacks (auto-advance), where the lock token, state and
+    /// collection key are already available. Returns once the engine has durably accepted the workflow.
     /// Does not mutate the <paramref name="instance"/>.
     /// </summary>
-    Task EnqueueProcessNext(
+    Task EnqueueDependentProcessNext(
         Instance instance,
         Actor actor,
         string lockToken,
@@ -57,8 +63,10 @@ internal interface IProcessEngine
     );
 
     /// <summary>
-    /// Enqueues a process-next workflow on behalf of a system actor (e.g. an async service-task callback) and
-    /// returns as soon as the engine accepts it — no synchronous wait and no "current task workflow" gate.
+    /// Enqueues a process-next workflow on behalf of a system actor (e.g. an async service-task reply) and
+    /// returns as soon as the engine has durably accepted it — no synchronous wait and no "current task
+    /// workflow" gate. Self-contained: acquires the instance lock briefly, captures the callback state and
+    /// computes the transition internally.
     /// The workflow auto-appends onto the collection's current heads, so the engine runs it immediately when
     /// the collection is idle, or chains it after the active head. Computes the transition and captures the
     /// callback state internally; does not mutate the <paramref name="instance"/>.
@@ -73,7 +81,7 @@ internal interface IProcessEngine
     /// (FiksIO redelivery, Events retries) safe after the original advance has committed.
     /// </param>
     /// <param name="ct">Cancellation token.</param>
-    Task EnqueueProcessNextNoWait(
+    Task EnqueueProcessNext(
         Instance instance,
         Actor actor,
         string? action = null,

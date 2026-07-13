@@ -120,7 +120,7 @@ internal sealed class FiksArkivDefaultResponseHandler : IFiksArkivResponseHandle
     {
         await using AsyncServiceScope scope = _serviceScopeFactory.CreateAsyncScope();
         var processEngine = scope.ServiceProvider.GetRequiredService<IProcessEngine>();
-        await processEngine.EnqueueProcessNextNoWait(
+        await processEngine.EnqueueProcessNext(
             instance,
             new Actor { OrgId = instance.Org },
             action,

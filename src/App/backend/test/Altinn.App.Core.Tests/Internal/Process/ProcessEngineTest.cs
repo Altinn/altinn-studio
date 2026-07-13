@@ -2824,7 +2824,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task EnqueueProcessNext_ServiceOwnerActor_PreservesPlatformUser()
+    public async Task EnqueueDependentProcessNext_ServiceOwnerActor_PreservesPlatformUser()
     {
         // Arrange
         var workflowEngineServiceMock = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
@@ -2856,7 +2856,7 @@ public sealed class ProcessEngineTest
         var actor = new Actor { OrgId = TestAuthentication.DefaultOrg, AuthenticationLevel = 3 };
 
         // Act
-        await processEngine.EnqueueProcessNext(
+        await processEngine.EnqueueDependentProcessNext(
             CreateTask1Instance(),
             actor,
             "test-lock-token",
@@ -2879,7 +2879,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task EnqueueProcessNext_SystemUserActor_PreservesPlatformUser()
+    public async Task EnqueueDependentProcessNext_SystemUserActor_PreservesPlatformUser()
     {
         // Arrange
         var workflowEngineServiceMock = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
@@ -2916,7 +2916,7 @@ public sealed class ProcessEngineTest
         };
 
         // Act
-        await processEngine.EnqueueProcessNext(
+        await processEngine.EnqueueDependentProcessNext(
             CreateTask1Instance(),
             actor,
             "test-lock-token",
@@ -3125,7 +3125,7 @@ public sealed class ProcessEngineTest
         };
 
     [Fact]
-    public async Task EnqueueProcessNextNoWait_LocksByInstanceIdentifiers_WithServiceOwnerAuth()
+    public async Task EnqueueProcessNext_LocksByInstanceIdentifiers_WithServiceOwnerAuth()
     {
         // The no-wait advance runs outside an instance-scoped HTTP request (the FiksIO listener
         // thread, the Events webhook): the instance lock must be initialized from the instance's own
@@ -3194,7 +3194,7 @@ public sealed class ProcessEngineTest
         };
 
         // The required-task-type match is case-insensitive.
-        await fixture.ProcessEngine.EnqueueProcessNextNoWait(
+        await fixture.ProcessEngine.EnqueueProcessNext(
             instance,
             new Actor { OrgId = "org" },
             action: null,
@@ -3219,7 +3219,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task EnqueueProcessNextNoWait_RedeliveredTriggerAfterCommittedAdvance_DoesNotAdvanceAgain()
+    public async Task EnqueueProcessNext_RedeliveredTriggerAfterCommittedAdvance_DoesNotAdvanceAgain()
     {
         // At-least-once triggers (FiksIO redelivery, Events retries) can arrive again after the first
         // advance has committed - e.g. because a follow-up Storage call failed and the trigger was
@@ -3254,7 +3254,7 @@ public sealed class ProcessEngineTest
             },
         };
 
-        await fixture.ProcessEngine.EnqueueProcessNextNoWait(
+        await fixture.ProcessEngine.EnqueueProcessNext(
             instance,
             new Actor { OrgId = "org" },
             action: null,

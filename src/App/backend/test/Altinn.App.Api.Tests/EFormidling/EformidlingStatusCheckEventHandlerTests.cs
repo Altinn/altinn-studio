@@ -96,7 +96,7 @@ public class EformidlingStatusCheckEventHandlerTests
         var processEngineMock = new Mock<IProcessEngine>();
         processEngineMock
             .Setup(e =>
-                e.EnqueueProcessNextNoWait(
+                e.EnqueueProcessNext(
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
                     It.IsAny<string?>(),

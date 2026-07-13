@@ -72,8 +72,9 @@ internal interface IWorkflowEngineService
     );
 
     /// <summary>
-    /// Enqueues a process-next workflow and returns as soon as the engine has accepted it, without waiting
-    /// for the collection to settle. The workflow auto-appends onto the collection's current heads
+    /// Enqueues a process-next workflow and returns as soon as the engine has durably accepted it, without
+    /// waiting for the collection to settle (the waiting variant is
+    /// <see cref="EnqueueAndWaitForProcessNext"/>). The workflow auto-appends onto the collection's current heads
     /// (<see cref="Models.Engine.WorkflowRequest.DependsOnHeads"/>), so the engine runs it immediately when the
     /// collection is idle, or chains it after the active head. Used for system-initiated advances (e.g. async
     /// service-task callbacks) that must not block on the engine.
@@ -85,7 +86,7 @@ internal interface IWorkflowEngineService
     /// replays without the caller tracking failure state. A redelivered trigger re-enqueueing the same
     /// transition deduplicates onto the existing workflow via the idempotency key.
     /// </remarks>
-    Task EnqueueProcessNextNoWait(
+    Task EnqueueProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
         string resolvedAction,
@@ -321,7 +322,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ct
         );
 
-    public async Task EnqueueProcessNextNoWait(
+    public async Task EnqueueProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
         string resolvedAction,
