@@ -73,6 +73,8 @@
     "globals": "17.6.0",
     "jsdom": "26.1.0",
     "prettier": "3.8.4",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "storybook": "10.4.4",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-plugin-css-modules": "5.2.0",
