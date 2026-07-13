@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",
-    "vitest": "4.1.8"
+    "vitest": "4.1.10"
   }
 }
