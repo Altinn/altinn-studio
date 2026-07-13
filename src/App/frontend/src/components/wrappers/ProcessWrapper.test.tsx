@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
@@ -65,6 +65,54 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/task_2/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
+  });
+
+  it('processing shows the connection-trouble note only after repeated poll failures', async () => {
+    // A single swallowed poll blip stays invisible; from the second consecutive failed cycle the
+    // advancing view honestly tells the user we're having trouble reaching the server (while
+    // InstanceProvider keeps the view alive and the poll loop keeps retrying underneath).
+    // Each failed poll cycle takes at most ~10s incl. the poll tick and the query's internal
+    // retries/backoff, so advancing 12s completes exactly one cycle.
+    jest.useFakeTimers();
+    // Swallowed poll failures log a warning by design; setupTests makes window.log* throw.
+    const logWarnOnce = jest.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
+    try {
+      let failing = false;
+      await renderWithInstanceAndLayout({
+        renderer: () => <ProcessWrapper>{null}</ProcessWrapper>,
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => {
+              if (failing) {
+                throw new Error('poll failed');
+              }
+              return getInstanceWithWorkflow({ status: 'processing', targetTask: 'Task_2' });
+            },
+          },
+        },
+      });
+
+      expect(await screen.findByText(/går videre til neste steg/i)).toBeInTheDocument();
+      failing = true;
+
+      // Cycle 1: swallowed silently - no hint yet.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(12_000);
+      });
+      expect(screen.queryByText(/problemer med å nå serveren/i)).not.toBeInTheDocument();
+
+      // Cycle 2: the advancing view is still alive (below the escalation threshold) and now
+      // carries the honest connection-trouble note.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(12_000);
+      });
+      expect(screen.getByText(/går videre til neste steg/i)).toBeInTheDocument();
+      expect(screen.getByText(/problemer med å nå serveren/i)).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+      logWarnOnce.mockRestore();
+    }
   });
 
   it('processing does NOT replace the task in PDF mode', async () => {

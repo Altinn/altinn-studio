@@ -466,6 +466,7 @@ export function nn() {
     'process_workflow.failed_description':
       'Noko gjekk gale då skjemaet skulle handsamast vidare. Prøv igjen om nokre minutt.',
     'process_workflow.taking_longer': 'Dette tek litt lengre tid enn vanleg. Du treng ikkje gjere noko – vent litt til.',
+    'process_workflow.connection_trouble': 'Vi har problem med å nå serveren akkurat no. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikkje førehandsvise PDF',
     'pdfPreview.defaultButtonText': 'Førehandsvis PDF',
     'taskTypes.data': 'Utfylling',

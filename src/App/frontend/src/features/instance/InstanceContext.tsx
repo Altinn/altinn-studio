@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -21,6 +21,36 @@ import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 const emptyArray: never[] = [];
 const InstanceContext = React.createContext<IInstance | null>(null);
 
+/**
+ * How many consecutive failed refetch cycles (each cycle already retries 3 times with backoff
+ * internally) we tolerate while still holding renderable instance data, before replacing the UI
+ * with the full error page. A transient blip or a single pod restart must not tear a user off a
+ * working view — especially the "advancing" screen during a workflow transition, where the poll
+ * loop recovers by itself. With the ~2–3s processing poll plus per-cycle retries this threshold
+ * amounts to roughly 30–45s of continuous failure, at which point the outage is real and the
+ * error page is honest. Counted in cycles rather than wall-clock so a tab that was hidden (polling
+ * pauses) doesn't blow through the threshold on its first refetch after refocus.
+ */
+export const INSTANCE_POLL_FAILURE_ESCALATION_CYCLES = 3;
+
+/**
+ * Number of consecutive failed instance refetch cycles since the last successful fetch.
+ * 0 whenever the latest fetch succeeded (or nothing has failed since mount).
+ */
+export function useInstancePollFailureCount(): number {
+  const { isError, errorUpdateCount, dataUpdatedAt } = useInstanceDataQuery();
+
+  // Baseline the (monotonic) error count at the moment of the last successful fetch, so the
+  // difference counts consecutive failures only. Any successful data write — a poll tick, a
+  // mutation refetch, an optimistic setQueryData — bumps dataUpdatedAt and resets the baseline.
+  const [baseline, setBaseline] = useState({ dataUpdatedAt, errorUpdateCount });
+  if (baseline.dataUpdatedAt !== dataUpdatedAt) {
+    setBaseline({ dataUpdatedAt, errorUpdateCount });
+  }
+
+  return isError ? errorUpdateCount - baseline.errorUpdateCount : 0;
+}
+
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -29,6 +59,7 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
 
   const hasPendingScans = useHasPendingScans();
   const isWorkflowProcessing = useIsWorkflowProcessing();
+  const pollFailureCount = useInstancePollFailureCount();
   const { error: instanceDataError, data } = useInstanceDataQuery({
     // Poll while a workflow transition is in flight so we converge on the committed task once it settles;
     // otherwise fall back to the slower pending-scans poll. The processing poll is jittered (~2-3s) so
@@ -41,13 +72,41 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
         : false,
   });
 
+  // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've
+  // been failing for a while" (sustained outage). A background refetch error while we hold
+  // renderable data keeps the last known UI — during a workflow transition that keeps the
+  // advancing screen and its recovering poll loop alive instead of flashing an error page over a
+  // transient blip. The fatal state is sticky (adjusted during render, per React's
+  // adjust-state-on-change pattern): the error page itself mounts subscribers to the instance
+  // query (e.g. <Lang> resolving instance data sources), and a mounting observer refetches an
+  // errored no-data query, flipping it back to pending — without stickiness the UI would
+  // flip-flop between the spinner and the error page on every retry cycle. A later successful
+  // fetch clears the fatal state, so the error page auto-recovers when the backend comes back.
+  const [fatalError, setFatalError] = useState<Error>();
+  if (!fatalError && instanceDataError && (!data || pollFailureCount >= INSTANCE_POLL_FAILURE_ESCALATION_CYCLES)) {
+    setFatalError(instanceDataError);
+  }
+  if (fatalError && data && !instanceDataError) {
+    setFatalError(undefined);
+  }
+
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
   }
 
-  const error = instantiation.error ?? instanceDataError;
-  if (error) {
-    return <DisplayError error={error} />;
+  if (instantiation.error) {
+    return <DisplayError error={instantiation.error} />;
+  }
+
+  if (fatalError) {
+    return <DisplayError error={fatalError} />;
+  }
+
+  if (instanceDataError) {
+    window.logWarnOnce(
+      `Instance refetch failed (cycle ${pollFailureCount} of ${INSTANCE_POLL_FAILURE_ESCALATION_CYCLES} tolerated); keeping last known instance data:`,
+      instanceDataError,
+    );
   }
 
   if (!data) {

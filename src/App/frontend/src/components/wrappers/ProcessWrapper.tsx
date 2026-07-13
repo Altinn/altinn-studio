@@ -12,6 +12,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormStore } from 'src/features/form/FormContext';
+import { useInstancePollFailureCount } from 'src/features/instance/InstanceContext';
 import { getProcessNextMutationKey, useProcessResume } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -75,7 +76,13 @@ function NavigationError({ label }: NavigationErrorProps) {
 // leaving them staring at a spinner indefinitely (workflows can retry for a long time server-side).
 const TAKING_LONGER_MS = 20_000;
 
+// From this many consecutive failed poll cycles we tell the user we're having trouble reaching the
+// server (one failed cycle is a swallowed blip; InstanceProvider escalates to the full error page
+// at INSTANCE_POLL_FAILURE_ESCALATION_CYCLES). Staying honest while the poll loop self-recovers.
+const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
+
 function WorkflowProcessing() {
+  const pollFailureCount = useInstancePollFailureCount();
   const [takingLonger, setTakingLonger] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setTakingLonger(true), TAKING_LONGER_MS);
@@ -95,6 +102,11 @@ function WorkflowProcessing() {
       {takingLonger && (
         <div>
           <Lang id='process_workflow.taking_longer' />
+        </div>
+      )}
+      {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
+        <div>
+          <Lang id='process_workflow.connection_trouble' />
         </div>
       )}
     </Flex>

@@ -227,6 +227,18 @@ Frontend:
 - **Polling is jittered** (~2–3s) so many clients waiting on the same engine don't synchronise
   into a thundering herd — which would otherwise peak exactly when the engine is already slow.
   After ~20s in `processing` the UI adds a "taking longer than usual" reassurance line.
+- **Transient poll failures don't tear down the UI.** With the hard-fail backend semantics, an
+  engine blip now surfaces as failed instance reads — but a client holding renderable data must
+  not flash the full error page over a single failed poll. `InstanceProvider` tolerates up to 3
+  consecutive failed refetch cycles (each already retried internally; ~30–45s of continuous
+  failure) before escalating to the error page, counted in cycles rather than wall-clock so a
+  backgrounded tab (polling pauses) doesn't escalate on its first refetch after refocus. From the
+  second failed cycle the processing view adds an honest "trouble reaching the server" line. The
+  initial load (no data yet) still fails straight to the error page, and the escalated state is
+  **sticky with auto-recovery**: the error page's own subscribers refetch the errored query
+  (flipping it to pending), so without stickiness the UI would flip-flop between spinner and
+  error page in an endless refetch loop — a pre-existing bug this change fixes; a later
+  successful fetch clears the state and restores the UI.
 - **The synchronous error path converges on the same machine.** A `process/next` response
   carrying `processNextState` (`retrying` → `processing`, `resumeRequired` → `failed`) refetches
   the live-enriched instance and lets the polled status take over, instead of a hard error toast
