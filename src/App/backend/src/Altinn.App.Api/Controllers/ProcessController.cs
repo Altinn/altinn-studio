@@ -81,6 +81,11 @@ public class ProcessController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="includeWorkflowStatus">
+    /// When false, the live <c>workflow</c> annotation is omitted from the response and the read
+    /// does not consult the workflow engine. Opt-out for bulk/machine-to-machine consumers that
+    /// don't need liveness.
+    /// </param>
     /// <param name="ct">cancellation token</param>
     /// <returns>the instance's process state</returns>
     [HttpGet]
@@ -92,6 +97,7 @@ public class ProcessController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
+        [FromQuery] bool includeWorkflowStatus = true,
         CancellationToken ct = default
     )
     {
@@ -105,7 +111,13 @@ public class ProcessController : ControllerBase
                 authenticationMethod: null,
                 ct
             );
-            AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User, ct);
+            AppProcessState appProcessState = await _processStateEnricher.Enrich(
+                instance,
+                instance.Process,
+                User,
+                includeWorkflowStatus,
+                ct
+            );
 
             return Ok(appProcessState);
         }
@@ -374,7 +386,7 @@ public class ProcessController : ControllerBase
                     instance,
                     result.ProcessStateChange.NewProcessState,
                     User,
-                    ct
+                    ct: ct
                 );
                 await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 
@@ -391,7 +403,7 @@ public class ProcessController : ControllerBase
                 instance,
                 result.ProcessStateChange.NewProcessState,
                 User,
-                ct
+                ct: ct
             );
 
             return Ok(appProcessState);
@@ -454,7 +466,7 @@ public class ProcessController : ControllerBase
                 freshInstance,
                 freshInstance.Process,
                 User,
-                ct
+                ct: ct
             );
 
             return Ok(appProcessState);

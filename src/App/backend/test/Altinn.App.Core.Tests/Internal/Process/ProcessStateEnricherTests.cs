@@ -7,7 +7,6 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
 
@@ -82,21 +81,20 @@ public class ProcessStateEnricherTests
     }
 
     [Fact]
-    public async Task Enrich_WhenEngineThrows_DegradesToIdleAndDoesNotThrow()
+    public async Task Enrich_WhenEngineCommunicationFails_PropagatesError()
     {
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
             .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("transient engine error"));
+            .ThrowsAsync(new HttpRequestException("connection refused"));
 
         ProcessStateEnricher enricher = CreateEnricher(engine);
 
-        // The read path must not fail just because the live status lookup hiccuped.
-        AppProcessState result = await enricher.Enrich(new Instance(), new ProcessState(), CreateUser());
-
-        Assert.NotNull(result.Workflow);
-        Assert.Equal(WorkflowActivityStatus.Idle, result.Workflow.Status);
-        Assert.Null(result.Workflow.Failure);
+        // A v9 app is codependent on the engine: failing to talk to it is a systemic fault that
+        // must surface on the read, not be masked as an idle annotation.
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            enricher.Enrich(new Instance(), new ProcessState(), CreateUser())
+        );
     }
 
     [Fact]
@@ -112,17 +110,19 @@ public class ProcessStateEnricherTests
 
         ProcessStateEnricher enricher = CreateEnricher(engine);
 
-        // The request itself was aborted - that must propagate, not degrade to Idle.
+        // The request itself was aborted - that must propagate as a cancellation, not be
+        // translated into a timeout error.
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            enricher.Enrich(new Instance(), new ProcessState(), CreateUser(), cts.Token)
+            enricher.Enrich(new Instance(), new ProcessState(), CreateUser(), ct: cts.Token)
         );
     }
 
     [Fact]
-    public async Task Enrich_WhenEngineTimesOutWithoutCallerCancellation_DegradesToIdle()
+    public async Task Enrich_WhenEngineTimesOutWithoutCallerCancellation_ThrowsActionableTimeout()
     {
         // HttpClient throws TaskCanceledException on its own timeout; when the caller's token is
-        // NOT cancelled this is an engine hiccup, not an aborted request, and must degrade to Idle.
+        // NOT cancelled this is an engine communication fault. It must surface as an actionable
+        // timeout error, not read as a client abort (and not degrade to idle).
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
             .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
@@ -132,17 +132,16 @@ public class ProcessStateEnricherTests
 
         ProcessStateEnricher enricher = CreateEnricher(engine);
 
-        AppProcessState result = await enricher.Enrich(new Instance(), new ProcessState(), CreateUser());
-
-        Assert.NotNull(result.Workflow);
-        Assert.Equal(WorkflowActivityStatus.Idle, result.Workflow.Status);
+        await Assert.ThrowsAsync<TimeoutException>(() =>
+            enricher.Enrich(new Instance(), new ProcessState(), CreateUser())
+        );
     }
 
     [Fact]
-    public async Task Enrich_WhenStatusResolutionExceedsBudget_DegradesToIdle()
+    public async Task Enrich_WhenStatusResolutionExceedsBudget_ThrowsActionableTimeout()
     {
-        // A slow engine must not hold the read hostage: the enricher's own resolution budget fires
-        // and the status degrades to Idle while the caller's request continues normally.
+        // A slow engine must not hold the read hostage for the HTTP client's full timeout: the
+        // enricher's own resolution budget fires and fails the read fast, as an actionable error.
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
             .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
@@ -157,10 +156,29 @@ public class ProcessStateEnricherTests
         ProcessStateEnricher enricher = CreateEnricher(engine);
         enricher.WorkflowStatusResolutionBudget = TimeSpan.FromMilliseconds(50);
 
-        AppProcessState result = await enricher.Enrich(new Instance(), new ProcessState(), CreateUser());
+        await Assert.ThrowsAsync<TimeoutException>(() =>
+            enricher.Enrich(new Instance(), new ProcessState(), CreateUser())
+        );
+    }
 
-        Assert.NotNull(result.Workflow);
-        Assert.Equal(WorkflowActivityStatus.Idle, result.Workflow.Status);
+    [Fact]
+    public async Task Enrich_WhenWorkflowStatusOptedOut_OmitsAnnotationAndNeverCallsEngine()
+    {
+        // No setup on the strict mock: any engine call would throw. Opting out must skip the
+        // engine entirely and leave the annotation null (distinguishable from idle).
+        var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+
+        ProcessStateEnricher enricher = CreateEnricher(engine);
+
+        AppProcessState result = await enricher.Enrich(
+            new Instance(),
+            new ProcessState(),
+            CreateUser(),
+            includeWorkflowStatus: false
+        );
+
+        Assert.Null(result.Workflow);
+        engine.VerifyNoOtherCalls();
     }
 
     // Isolates the workflow mapping: the flow-element / authorization block is a no-op (no current
@@ -173,12 +191,7 @@ public class ProcessStateEnricherTests
 
         var serviceProvider = new ServiceCollection().AddSingleton(engine.Object).BuildServiceProvider();
 
-        return new ProcessStateEnricher(
-            processReader.Object,
-            Mock.Of<IAuthorizationService>(),
-            serviceProvider,
-            NullLogger<ProcessStateEnricher>.Instance
-        );
+        return new ProcessStateEnricher(processReader.Object, Mock.Of<IAuthorizationService>(), serviceProvider);
     }
 
     private static ClaimsPrincipal CreateUser() => new(new ClaimsIdentity());

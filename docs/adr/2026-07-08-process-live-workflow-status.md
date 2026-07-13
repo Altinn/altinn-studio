@@ -142,8 +142,15 @@ The enriched process state (`AppProcessState`) gains a nested annotation; `curre
 }
 ```
 
-- `workflow` is always present on an enriched read. `idle` is the common case (no active/failed
-  workflow for the current task) and means "render normally".
+- `workflow` is present on every enriched read **unless the consumer opts out** with
+  `?includeWorkflowStatus=false` (on `GET …/process` and the enriched-instance read), in which
+  case it is omitted entirely — "not resolved" stays distinguishable from `idle`, and the read
+  does not touch the engine. The opt-out exists for bulk/machine-to-machine consumers (e.g.
+  service-owner dashboards enumerating instances) that don't need liveness and shouldn't inherit
+  the engine as a read dependency; it is deliberately **not** inferred from the caller's identity
+  (an org token polling for `processing` to settle is a legitimate consumer).
+- `idle` is the common case (no active/failed workflow for the current task) and means "render
+  normally".
 - `targetTask` is the BPMN element id of the task the in-flight/failed transition targets
   (resolved from the `processNextTargetId` label stamped at enqueue, flow suffix stripped).
   Omitted when `idle` or unresolvable.
@@ -177,10 +184,17 @@ Backend:
   (`ResolveWorkflowTaskStatus`) is a presentation projection alongside the process engine's
   control-flow lookup (`GetCurrentTaskWorkflowState`); it resolves off the **collection heads**,
   so concurrent branches collapse to the single processing/failed signal the consumer needs.
-- **The read path never fails on a status hiccup.** Enrichment degrades to `idle` (render
-  normally) on any non-cancellation error, logging a warning — basic instance rendering must not
-  couple to a transient engine blip; the next poll recovers the true status. Cancellation
-  propagates.
+- **Engine communication errors fail the read, loudly.** A v9 app is codependent on the engine
+  (the given constraint), so an error *talking* to it is a systemic fault: masking it as `idle`
+  would silently re-introduce the exact stale-state bug this decision fixes, and hide the outage
+  from standard error-rate telemetry. Enrichment therefore propagates communication errors (a 500
+  on the read); only **definitive negative findings** — no collection for the deterministic key,
+  no active or failed head — resolve to `idle`. A 5s resolution budget bounds the lookup so a
+  slow engine fails the read fast (as an actionable `TimeoutException`) instead of holding it for
+  the HTTP client's full timeout; caller cancellation propagates as cancellation. An earlier
+  iteration degraded every error to `idle` with a warning log; it was reviewed away as
+  unobservable — a persistent outage would show every instance as idle-with-actions while only
+  emitting warnings nobody alerts on.
 - **Read-path efficiency.** The enriched read runs on every page load and every poll tick, so it
   is 1 engine call for the common idle *and* processing cases and 2 only for failed: (1) the
   process-next collection key is deterministically derived from the instance
@@ -231,7 +245,14 @@ Frontend:
   shed later — `process/next` could return `processing` immediately and the frontend converges
   via polling, with no client change.
 - Negative / accepted: every enriched read costs an engine round-trip (per the always-up/cheap
-  constraint; kept to a single call for idle/processing).
+  constraint; kept to a single call for idle/processing), and — deliberately — the engine becomes
+  a hard dependency of the enriched read: an engine outage fails process/instance reads (surfacing
+  through standard error-rate alerting) rather than silently rendering stale-but-actionable state.
+  This also reaches the action responses (`process/next`, `resume`, `complete` enrich their
+  response): if the engine dies in the window after a transition committed but before enrichment,
+  the client gets a 500 for an action that succeeded — honest, and the frontend refetches and
+  converges. Consumers that don't want the coupling opt out per read
+  (`includeWorkflowStatus=false`).
 - Interaction with the side-effects split (`2026-07-10-workflow-engine-noncritical-side-effects.md`):
   the annotation resolves off collection heads, and side-effects workflows are `IsHead=false`, so
   a running or failed side-effects workflow never surfaces as `processing`/`failed` on a read.

@@ -3947,8 +3947,8 @@ namespace Altinn.App.Core.Internal.Process
     }
     public sealed class ProcessStateEnricher
     {
-        public ProcessStateEnricher(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization, System.IServiceProvider serviceProvider, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Process.ProcessStateEnricher> logger) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> Enrich(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user, System.Threading.CancellationToken ct = default) { }
+        public ProcessStateEnricher(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization, System.IServiceProvider serviceProvider) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> Enrich(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user, bool includeWorkflowStatus = true, System.Threading.CancellationToken ct = default) { }
     }
 }
 namespace Altinn.App.Core.Internal.Process.ProcessTasks

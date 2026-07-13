@@ -219,6 +219,11 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="includeWorkflowStatus">
+    /// When false, the live <c>workflow</c> annotation is omitted from the enriched process state
+    /// and the read does not consult the workflow engine. Opt-out for bulk/machine-to-machine
+    /// consumers that don't need liveness.
+    /// </param>
     /// <param name="cancellationToken">cancellation token</param>
     /// <returns>the instance with enriched process state</returns>
     [Authorize]
@@ -231,7 +236,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken cancellationToken
+        [FromQuery] bool includeWorkflowStatus = true,
+        CancellationToken cancellationToken = default
     )
     {
         EnforcementResult enforcementResult = await AuthorizeAction(
@@ -274,7 +280,13 @@ public class InstancesController : ControllerBase
                 instanceOwnerPartyId,
                 cancellationToken: cancellationToken
             );
-            var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User, cancellationToken);
+            var processStateTask = _processStateEnricher.Enrich(
+                instance,
+                instance.Process,
+                User,
+                includeWorkflowStatus,
+                cancellationToken
+            );
 
             await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 

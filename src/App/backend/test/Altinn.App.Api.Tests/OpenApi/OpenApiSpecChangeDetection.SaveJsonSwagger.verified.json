@@ -3485,6 +3485,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "includeWorkflowStatus",
+            "in": "query",
+            "description": "When false, the live `workflow` annotation is omitted from the enriched process state\nand the read does not consult the workflow engine. Opt-out for bulk/machine-to-machine\nconsumers that don't need liveness.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
           }
         ],
         "responses": {
@@ -5107,6 +5116,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "includeWorkflowStatus",
+            "in": "query",
+            "description": "When false, the live `workflow` annotation is omitted from the response and the read\ndoes not consult the workflow engine. Opt-out for bulk/machine-to-machine consumers that\ndon't need liveness.",
+            "schema": {
+              "type": "boolean",
+              "default": true
             }
           }
         ],
