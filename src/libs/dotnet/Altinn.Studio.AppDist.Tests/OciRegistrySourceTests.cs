@@ -1,0 +1,87 @@
+using System.Text;
+using Xunit;
+
+namespace Altinn.Studio.AppDist.Tests;
+
+public sealed class OciRegistrySourceTests
+{
+    private const string SchemasMediaType = "application/vnd.altinn.app.schemas.tar+gzip";
+    private const string BundleMediaType = "application/vnd.altinn.app.bundle.tar+gzip";
+
+    private static OciRegistrySource Source(FakeRegistry handler) =>
+        new(new HttpClient(handler), $"{FakeRegistry.Host}/{FakeRegistry.Repository}");
+
+    [Fact]
+    public async Task Fetch_MergesKnownLayersAndSkipsUnknown()
+    {
+        var handler = new FakeRegistry();
+        var schemas = FakeRegistry.TarGz(("schemas/json/layout/layout.schema.v1.json", """{"type":"object"}"""));
+        var bundle = FakeRegistry.TarGz(("index.html", "<html/>"));
+        var unknown = FakeRegistry.TarGz(("future.bin", "??"));
+        handler.SetManifest(
+            "4",
+            (SchemasMediaType, handler.AddBlob(schemas), schemas.Length),
+            (BundleMediaType, handler.AddBlob(bundle), bundle.Length),
+            ("application/vnd.some.future.layer", handler.AddBlob(unknown), unknown.Length)
+        );
+
+        var files = await Source(handler).FetchAsync("4", CancellationToken.None);
+
+        Assert.Equal(2, files.Count);
+        var layout = Assert.Single(files, f => f.Path == "schemas/json/layout/layout.schema.v1.json");
+        Assert.Equal("""{"type":"object"}""", Encoding.UTF8.GetString(layout.Content));
+        Assert.Single(files, f => f.Path == "index.html");
+    }
+
+    [Fact]
+    public async Task Fetch_DigestMismatchThrows()
+    {
+        var handler = new FakeRegistry();
+        var blob = FakeRegistry.TarGz(("schemas/json/a.json", "{}"));
+        var lyingDigest = "sha256:" + new string('0', 64);
+        handler.AddBlobAs(lyingDigest, blob);
+        handler.SetManifest("4", (SchemasMediaType, lyingDigest, blob.Length));
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Source(handler).FetchAsync("4", CancellationToken.None)
+        );
+        Assert.Contains("digest mismatch", ex.Message);
+    }
+
+    [Fact]
+    public async Task Fetch_PathTraversalEntryThrows()
+    {
+        var handler = new FakeRegistry();
+        var blob = FakeRegistry.TarGz(("../escape.json", "{}"));
+        handler.SetManifest("4", (SchemasMediaType, handler.AddBlob(blob), blob.Length));
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Source(handler).FetchAsync("4", CancellationToken.None)
+        );
+        Assert.Contains("unsafe path", ex.Message);
+    }
+
+    [Fact]
+    public async Task Fetch_InvalidTagThrows()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Source(new FakeRegistry()).FetchAsync("../evil", CancellationToken.None)
+        );
+    }
+
+    [Fact]
+    public async Task Fetch_UnreachableRegistryThrowsUnavailable()
+    {
+        var handler = new FakeRegistry { Offline = true };
+
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            Source(handler).FetchAsync("4", CancellationToken.None)
+        );
+    }
+
+    [Fact]
+    public void RepositoryWithoutHost_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => new OciRegistrySource(new HttpClient(), "no-slash"));
+    }
+}
