@@ -9498,7 +9498,7 @@ __metadata:
     html-react-parser: "npm:6.1.4"
     http-server: "npm:14.1.1"
     identity-obj-proxy: "npm:3.0.0"
-    immer: "npm:11.1.11"
+    immer: "npm:11.1.8"
     jest: "npm:30.4.2"
     jest-environment-jsdom: "npm:30.4.1"
     jest-junit: "npm:16.0.0"
@@ -15418,10 +15418,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immer@npm:11.1.11":
-  version: 11.1.11
-  resolution: "immer@npm:11.1.11"
-  checksum: 10/78e37e04d334bc17af311bcb25e7abc58520d7020747b793a33743debf9ec4fd3990c08de774da6ea0f5adeed62c8db5a8ff4cfd5e357a33158d851f1bea4774
+"immer@npm:11.1.8":
+  version: 11.1.8
+  resolution: "immer@npm:11.1.8"
+  checksum: 10/59a72aaac68115a8d584cb555a76566fb9c52be4c09055d446e5828c23e08470379b342f615a826cc07715e6a1c88dcdcfd41cc86114c397389cb8a6665768b0
   languageName: node
   linkType: hard
 
