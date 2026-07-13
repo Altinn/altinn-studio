@@ -212,6 +212,22 @@ internal sealed class ParkedServiceTaskProcessRewriter
             return;
         }
 
+        // Chained waiting steps (S -> F1 -> F2): splicing out F1 would leave F2, which is equally
+        // never advanced under parking semantics - the migration must not report this shape clean.
+        var successor = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == successorId);
+        if (successor is not null && IsFeedbackTask(successor))
+        {
+            _warnings.Add(
+                $"The waiting step '{feedbackId}' after service task '{taskId}' ({taskType}) is followed by "
+                    + $"another 'feedback' waiting step ('{successorId}'). Removing only the first would leave "
+                    + "a chained waiting step that is never advanced, so the process was left unchanged. The "
+                    + "service task now waits for its asynchronous reply - review the process and remove the "
+                    + "chained waiting steps manually."
+            );
+            ManualActionRequired = true;
+            return;
+        }
+
         Bypass(process, plane, sourceId: taskId, flow, feedback, feedbackId, feedbackOut, successorId);
         _notes.Add(
             $"Removed waiting step '{feedbackId}': service task '{taskId}' ({taskType}) now parks until its "
@@ -322,6 +338,19 @@ internal sealed class ParkedServiceTaskProcessRewriter
                 continue;
             }
 
+            if (!WaitingBranchReceivesReply(process, gateway, gatewayId, branchFlow, out var whyWaiting))
+            {
+                _warnings.Add(
+                    $"The waiting step '{feedbackId}' after service task '{taskId}' ({taskType}) could not be "
+                        + $"removed automatically: {whyWaiting} A reply action could then match no branch of "
+                        + $"'{gatewayId}' at all and strand the process, so it was left unchanged. The service "
+                        + "task now waits for its asynchronous reply - review the process and remove the "
+                        + "waiting step manually."
+                );
+                ManualActionRequired = true;
+                continue;
+            }
+
             Bypass(process, plane, sourceId: gatewayId, branchFlow, feedback, feedbackId, feedbackOut, successorId);
             _notes.Add(
                 $"Removed waiting step '{feedbackId}': service task '{taskId}' ({taskType}) now parks until its "
@@ -425,6 +454,62 @@ internal sealed class ParkedServiceTaskProcessRewriter
 
         why = string.Empty;
         return true;
+    }
+
+    /// <summary>
+    /// Checks that the entry gateway's waiting branch will actually receive the reply action after the
+    /// rewrite. Post-migration the reply is evaluated at the entry gateway and the retargeted waiting
+    /// branch keeps its condition, so a reply action matching no branch would strand the process at the
+    /// gateway. Provably safe shapes: the waiting branch is the gateway's declared default flow, it is
+    /// unconditional, or it is the exact equals/notEquals complement of a single escape branch - any
+    /// action then lands on either the waiting branch or an escape branch.
+    /// </summary>
+    private static bool WaitingBranchReceivesReply(
+        XElement process,
+        XElement gateway,
+        string gatewayId,
+        XElement waitingBranch,
+        out string why
+    )
+    {
+        why = string.Empty;
+        var waitingCondition = NormalizedCondition(waitingBranch, gateway);
+        if (waitingCondition is DefaultConditionSentinel or UnconditionalSentinel)
+            return true;
+
+        List<XElement> escapeBranches = FlowsFrom(process, gatewayId).Where(f => f != waitingBranch).ToList();
+        if (
+            escapeBranches.Count == 1
+            && AreComplementaryConditions(waitingCondition, NormalizedCondition(escapeBranches[0], gateway))
+        )
+        {
+            return true;
+        }
+
+        why =
+            $"the waiting branch of gateway '{gatewayId}' has a condition that is neither the gateway's "
+            + "default flow nor the logical complement of its single escape branch.";
+        return false;
+    }
+
+    /// <summary>
+    /// Whether two (whitespace-normalized) conditions are exact equals/notEquals complements, e.g.
+    /// <c>["equals",["gatewayAction"],"reject"]</c> vs <c>["notEquals",["gatewayAction"],"reject"]</c>.
+    /// </summary>
+    private static bool AreComplementaryConditions(string a, string b)
+    {
+        const string equalsPrefix = "[\"equals\",";
+        const string notEqualsPrefix = "[\"notEquals\",";
+        return (
+                a.StartsWith(equalsPrefix, StringComparison.Ordinal)
+                && b.StartsWith(notEqualsPrefix, StringComparison.Ordinal)
+                && a[equalsPrefix.Length..] == b[notEqualsPrefix.Length..]
+            )
+            || (
+                a.StartsWith(notEqualsPrefix, StringComparison.Ordinal)
+                && b.StartsWith(equalsPrefix, StringComparison.Ordinal)
+                && a[notEqualsPrefix.Length..] == b[equalsPrefix.Length..]
+            );
     }
 
     /// <summary>

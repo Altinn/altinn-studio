@@ -106,6 +106,38 @@ public sealed class ParkedServiceTaskMigratorTests : IDisposable
         Assert.Contains("UI folder", warning, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task DirectWait_ChainedFeedback_IsLeftUnchangedWithWarning()
+    {
+        // S → F1(feedback) → F2(feedback): splicing out F1 would leave F2, which is equally never
+        // advanced under parking semantics - the migration must flag this, not report it clean.
+        var original = Process(
+            StartEvent("StartEvent_1"),
+            Task("ServiceTask_1", "fiksArkiv"),
+            Task("Feedback_1", "feedback"),
+            Task("Feedback_2", "feedback"),
+            EndEvent("EndEvent_1"),
+            Flow("Flow_start", "StartEvent_1", "ServiceTask_1"),
+            Flow("Flow_service_feedback", "ServiceTask_1", "Feedback_1"),
+            Flow("Flow_f1_f2", "Feedback_1", "Feedback_2"),
+            Flow("Flow_f2_end", "Feedback_2", "EndEvent_1")
+        );
+        _app.Write("config/process/process.bpmn", original);
+
+        var result = await Migrate();
+
+        Assert.True(result.ManualActionRequired);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("another 'feedback' waiting step", warning, StringComparison.Ordinal);
+        Assert.Contains("Feedback_2", warning, StringComparison.Ordinal);
+        Assert.Equal(original, _app.Read("config/process/process.bpmn"));
+
+        // Idempotent: a second run reports the same and still changes nothing.
+        var secondResult = await Migrate();
+        Assert.True(secondResult.ManualActionRequired);
+        Assert.Equal(original, _app.Read("config/process/process.bpmn"));
+    }
+
     // --- Scenario B: gateway wait (S → G1 → F → T), the shape real FiksArkiv apps use ------------
 
     /// <summary>
@@ -229,6 +261,148 @@ public sealed class ParkedServiceTaskMigratorTests : IDisposable
         var warning = Assert.Single(result.Warnings);
         Assert.Contains("also fed by [Task_1]", warning, StringComparison.Ordinal);
         Assert.NotNull(ElementById(ProcessAfter(), "Feedback_1"));
+    }
+
+    /// <summary>
+    /// A gateway-wait shape whose escape branches agree (reject → Error_1 on both gateways) but whose
+    /// waiting branch carries an arbitrary condition.
+    /// </summary>
+    private static string GatewayWaitProcessWithWaitingCondition(string waitingCondition) =>
+        Process(
+            StartEvent("StartEvent_1"),
+            Task("Task_1", "data"),
+            Task("ServiceTask_1", "fiksArkiv"),
+            Gateway("Gateway_entry"),
+            Task("Feedback_1", "feedback"),
+            Gateway("Gateway_result"),
+            Task("Error_1", "data"),
+            EndEvent("EndEvent_1"),
+            Flow("Flow_start", "StartEvent_1", "Task_1"),
+            Flow("Flow_data_service", "Task_1", "ServiceTask_1"),
+            Flow("Flow_service_entry", "ServiceTask_1", "Gateway_entry"),
+            ConditionalFlow("Flow_entry_feedback", "Gateway_entry", "Feedback_1", waitingCondition),
+            ConditionalFlow(
+                "Flow_entry_reject",
+                "Gateway_entry",
+                "Error_1",
+                """["equals",["gatewayAction"],"reject"]"""
+            ),
+            Flow("Flow_feedback_result", "Feedback_1", "Gateway_result"),
+            ConditionalFlow(
+                "Flow_result_reject",
+                "Gateway_result",
+                "Error_1",
+                """["equals",["gatewayAction"],"reject"]"""
+            ),
+            ConditionalFlow(
+                "Flow_result_end",
+                "Gateway_result",
+                "EndEvent_1",
+                """["notEquals",["gatewayAction"],"reject"]"""
+            ),
+            Flow("Flow_error1_back", "Error_1", "Task_1")
+        );
+
+    [Fact]
+    public async Task GatewayWait_WaitingBranchNotComplementOfEscape_IsLeftUnchangedWithWarning()
+    {
+        // The escape branches agree (reject → Error_1 on both gateways), but the waiting branch only
+        // matches gatewayAction "write": a reply action like "confirm" matched the successor
+        // gateway's notEquals-reject branch in v8, yet would match NO branch of the entry gateway
+        // post-rewrite - the process would strand at the gateway.
+        var original = GatewayWaitProcessWithWaitingCondition("""["equals",["gatewayAction"],"write"]""");
+        _app.Write("config/process/process.bpmn", original);
+
+        var result = await Migrate();
+
+        Assert.True(result.ManualActionRequired);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains(
+            "neither the gateway's default flow nor the logical complement",
+            warning,
+            StringComparison.Ordinal
+        );
+        Assert.Equal(original, _app.Read("config/process/process.bpmn"));
+
+        // Idempotent: a second run reports the same and still changes nothing.
+        var secondResult = await Migrate();
+        Assert.True(secondResult.ManualActionRequired);
+        Assert.Equal(original, _app.Read("config/process/process.bpmn"));
+    }
+
+    [Fact]
+    public async Task GatewayWait_WaitingBranchIsComplementOfEscape_FeedbackIsBypassed()
+    {
+        // The canonical complement shape: waiting branch notEquals-reject, escape equals-reject.
+        _app.Write(
+            "config/process/process.bpmn",
+            GatewayWaitProcessWithWaitingCondition("""["notEquals",["gatewayAction"],"reject"]""")
+        );
+
+        var (result, notes) = await MigrateWithNotes();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+        Assert.Contains(notes, n => n.Contains("Removed waiting step 'Feedback_1'", StringComparison.Ordinal));
+        Assert.Null(ElementById(ProcessAfter(), "Feedback_1"));
+    }
+
+    [Fact]
+    public async Task GatewayWait_WaitingBranchIsDefaultFlow_FeedbackIsBypassed()
+    {
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                StartEvent("StartEvent_1"),
+                Task("Task_1", "data"),
+                Task("ServiceTask_1", "fiksArkiv"),
+                GatewayWithDefault("Gateway_entry", "Flow_entry_feedback"),
+                Task("Feedback_1", "feedback"),
+                Gateway("Gateway_result"),
+                Task("Error_1", "data"),
+                EndEvent("EndEvent_1"),
+                Flow("Flow_start", "StartEvent_1", "Task_1"),
+                Flow("Flow_data_service", "Task_1", "ServiceTask_1"),
+                Flow("Flow_service_entry", "ServiceTask_1", "Gateway_entry"),
+                // The waiting branch is the gateway's declared default flow (no condition).
+                Flow("Flow_entry_feedback", "Gateway_entry", "Feedback_1"),
+                ConditionalFlow(
+                    "Flow_entry_reject",
+                    "Gateway_entry",
+                    "Error_1",
+                    """["equals",["gatewayAction"],"reject"]"""
+                ),
+                Flow("Flow_feedback_result", "Feedback_1", "Gateway_result"),
+                ConditionalFlow(
+                    "Flow_result_reject",
+                    "Gateway_result",
+                    "Error_1",
+                    """["equals",["gatewayAction"],"reject"]"""
+                ),
+                ConditionalFlow(
+                    "Flow_result_end",
+                    "Gateway_result",
+                    "EndEvent_1",
+                    """["notEquals",["gatewayAction"],"reject"]"""
+                ),
+                Flow("Flow_error1_back", "Error_1", "Task_1")
+            )
+        );
+
+        var (result, notes) = await MigrateWithNotes();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+        Assert.Contains(notes, n => n.Contains("Removed waiting step 'Feedback_1'", StringComparison.Ordinal));
+
+        var process = ProcessAfter();
+        Assert.Null(ElementById(process, "Feedback_1"));
+        var bypass = RequireFlow(process, "Flow_entry_feedback");
+        Assert.Equal("Gateway_result", bypass.Attribute("targetRef")?.Value);
+        // The gateway still declares the retargeted flow as its default.
+        var gateway = ElementById(process, "Gateway_entry");
+        Assert.NotNull(gateway);
+        Assert.Equal("Flow_entry_feedback", gateway.Attribute("default")?.Value);
     }
 
     // --- Defensive scenarios --------------------------------------------------------------------

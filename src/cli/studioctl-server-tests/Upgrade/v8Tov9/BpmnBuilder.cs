@@ -48,6 +48,9 @@ internal static class BpmnBuilder
 
     public static string Gateway(string id) => $"    <bpmn:exclusiveGateway id=\"{id}\" />";
 
+    public static string GatewayWithDefault(string id, string defaultFlowId) =>
+        $"    <bpmn:exclusiveGateway id=\"{id}\" default=\"{defaultFlowId}\" />";
+
     public static string Flow(string id, string sourceRef, string targetRef) =>
         $"    <bpmn:sequenceFlow id=\"{id}\" sourceRef=\"{sourceRef}\" targetRef=\"{targetRef}\" />";
 
