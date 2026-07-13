@@ -4713,10 +4713,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oddbird/popover-polyfill@npm:^0.6.1":
-  version: 0.6.1
-  resolution: "@oddbird/popover-polyfill@npm:0.6.1"
-  checksum: 10/8cbe2b769be3f68115f142d075decae978ec83e66c319cee78f1ff4903fb61cf86ecaa718f8a275c4017309c9b3d73c2ecd71d8a14cff686cde8c32155ae6f07
+"@oddbird/popover-polyfill@npm:^0.7.0":
+  version: 0.7.1
+  resolution: "@oddbird/popover-polyfill@npm:0.7.1"
+  checksum: 10/aa0017797c70f8a748920855cf5d6db7026a0f140e4738f8776b187649e21c8f3df8ce2bf346907ad715a91aa0e762004cccdaf60135115b5e0c5843cba4345e
   languageName: node
   linkType: hard
 
@@ -23135,7 +23135,7 @@ __metadata:
     "@microsoft/applicationinsights-react-js": "npm:17.3.6"
     "@microsoft/applicationinsights-web": "npm:3.4.1"
     "@microsoft/signalr": "npm:8.0.17"
-    "@oddbird/popover-polyfill": "npm:^0.6.1"
+    "@oddbird/popover-polyfill": "npm:^0.7.0"
     "@swc/core": "npm:1.15.41"
     "@swc/jest": "npm:0.2.39"
     "@tanstack/react-query": "npm:5.101.0"
