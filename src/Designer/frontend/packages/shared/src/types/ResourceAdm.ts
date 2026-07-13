@@ -22,8 +22,6 @@ export interface Resource {
   version?: string;
   resourceReferences?: ResourceReference[];
   status?: ResourceStatusOption;
-  selfIdentifiedUserEnabled?: boolean;
-  enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
   accessListMode?: ResourceAccessListMode;
