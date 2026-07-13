@@ -44,7 +44,6 @@ internal static class ValidateEndpoint
             return Results.Problem($"load app: {ex.Message}", statusCode: 422);
         }
 
-        // vet surfaces the full check: structural rules + the optional schema-conformance pass.
         var report = engine.ValidateAll();
 
         Severity minSev = Severity.Warning;

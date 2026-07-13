@@ -65,18 +65,18 @@ public sealed class AppConfigEngine
 
     public ValidationReport Validate() => ValidationEngine.Run(Current);
 
-    public ValidationReport ValidateSchemas()
+    public ValidationReport ValidateSchemas(SchemaSet? schemas = null)
     {
         var model = Current;
         return model.UnsupportedAppVersion is not null
             ? new(model, Array.Empty<Finding>(), rulesRun: 0)
-            : new(model, SchemaValidation.Collect(_dir), rulesRun: 0);
+            : new(model, SchemaValidation.Collect(_dir, schemas ?? SchemaSet.Empty), rulesRun: 0);
     }
 
-    public ValidationReport ValidateAll()
+    public ValidationReport ValidateAll(SchemaSet? schemas = null)
     {
         var rules = Validate();
-        var merged = ValidationEngine.Normalize(rules.Findings.Concat(ValidateSchemas().Findings).ToList());
+        var merged = ValidationEngine.Normalize(rules.Findings.Concat(ValidateSchemas(schemas).Findings).ToList());
         return new(Current, merged, rules.RulesRun);
     }
 

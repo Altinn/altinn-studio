@@ -8,22 +8,20 @@ internal static class SchemaValidator
 {
     public const string RuleId = "JSONSCHEMA-VALID";
 
-    private static readonly object _evaluationGate = new();
-
-    public static IReadOnlyList<Finding> Validate(string filePath, byte[] data)
+    public static IReadOnlyList<Finding> Validate(SchemaSet schemas, string filePath, byte[] data)
     {
         var findings = new List<Finding>();
         var schemaUrl = ExtractDeclaredSchemaUrl(data);
         if (schemaUrl is null)
             return findings;
-        var schema = SchemaBundle.Get(schemaUrl);
+        var schema = schemas.Get(schemaUrl);
         if (schema is null)
         {
             if (schemaUrl.Contains("altinncdn.no", StringComparison.OrdinalIgnoreCase))
                 findings.Add(
                     new Finding(
                         RuleId,
-                        $"$schema \"{schemaUrl}\" is not in the bundled schema set — file not schema-checked",
+                        $"$schema \"{schemaUrl}\" is not in the loaded schema set — file not schema-checked",
                         Severity.Info,
                         new SourceSpan(filePath, "/$schema")
                     )
@@ -45,15 +43,10 @@ internal static class SchemaValidator
         var schemaName = AfterLastSlash(schemaUrl);
         try
         {
-            // JsonSchema.Net builds a schema's constraints lazily on first Evaluate; that build is
-            // not thread-safe, and the bundle schemas are shared singletons.
             EvaluationResults results;
-            lock (_evaluationGate)
+            lock (schemas.EvaluationGate)
             {
-                results = schema.Evaluate(
-                    doc.RootElement,
-                    new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical }
-                );
+                results = schema.Evaluate(doc.RootElement, schemas.Options);
             }
             if (results.IsValid)
                 return findings;
