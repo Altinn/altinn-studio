@@ -67,12 +67,16 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
         Statuses statusesForShipment = await GetStatusesForShipment(id);
         if (MessageDeliveredToKS(statusesForShipment))
         {
-            // Update status on instance if message is confirmed delivered to KS.
-            // The instance should wait in feedback step. This enforces a feedback step in the process in current version.
-            // Moving forward sending to Eformidling should considered as a ServiceTask with auto advance in the process
-            // when the message is confirmed.
+            // Delivery to KS is confirmed. The process is parked on the eFormidling service task, so advance it.
+            // If the engine can't advance yet (still processing, or a workflow needs resumption) we leave the
+            // event unconsumed so the Events system retries later; the current task is unchanged, so re-running
+            // this handler is safe.
+            bool advanced = await ProcessMoveNext(appIdentifier, instanceIdentifier);
+            if (!advanced)
+            {
+                return false;
+            }
 
-            await ProcessMoveNext(appIdentifier, instanceIdentifier);
             _ = await AddCompleteConfirmation(instanceIdentifier);
 
             return true;
@@ -101,7 +105,12 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
         // and be handled by the Platform team manually.
     }
 
-    private async Task ProcessMoveNext(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier)
+    /// <summary>
+    /// Advances the process parked on the eFormidling service task. Returns true when the process advanced;
+    /// false when the workflow engine could not advance yet (e.g. still processing or a workflow requires
+    /// resumption), in which case the caller should let the Events system retry later.
+    /// </summary>
+    private async Task<bool> ProcessMoveNext(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier)
     {
         string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(appIdentifier);
         string url = $"{baseUrl}instances/{instanceIdentifier}/process/next";
@@ -114,16 +123,16 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("Moved instance {instanceId} to next step.", instanceIdentifier);
+            return true;
         }
-        else
-        {
-            _logger.LogError(
-                "Failed moving instance {instanceId} to next step. Received error: {errorCode}. Received content: {content}",
-                instanceIdentifier,
-                response.StatusCode,
-                await response.Content.ReadAsStringAsync()
-            );
-        }
+
+        _logger.LogError(
+            "Failed moving instance {instanceId} to next step. Received error: {errorCode}. Received content: {content}",
+            instanceIdentifier,
+            response.StatusCode,
+            await response.Content.ReadAsStringAsync()
+        );
+        return false;
     }
 
     /// This is basically a duplicate of the method in <see cref="InstanceClient"/>

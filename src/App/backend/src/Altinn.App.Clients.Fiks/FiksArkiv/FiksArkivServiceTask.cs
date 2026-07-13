@@ -53,7 +53,9 @@ internal sealed class FiksArkivServiceTask : IServiceTask
                 response
             );
 
-            return ServiceTaskResult.Success();
+            // The archive message has been sent, but the recipient's receipt arrives asynchronously (via FiksIO).
+            // Park the process on this service task; FiksArkivHost advances it once the receipt is received.
+            return ServiceTaskResult.SuccessWithoutAutoAdvance();
         }
         catch (Exception e)
         {
