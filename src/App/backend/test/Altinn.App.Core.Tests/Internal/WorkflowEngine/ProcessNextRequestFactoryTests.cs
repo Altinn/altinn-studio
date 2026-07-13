@@ -881,7 +881,10 @@ public class ProcessNextRequestFactoryTests
     [Fact]
     public async Task Create_SideEffectsOperationId_MatchesTheMarkerPrefix()
     {
-        // The wait/settle logic identifies side-effects workflows by this prefix - guard the coupling.
+        // The prefix is a human-readable naming convention for ops queries and logs only - not
+        // load-bearing for identification (wait/settle scoping, failure classification, and the
+        // abandon-cancel all key off the engine-persisted IsHead == false directive). Guard the
+        // convention so ops queries against the OperationId keep working.
         var factory = CreateFactory();
         var stateChange = CreateTaskToTaskTransition();
 

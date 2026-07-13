@@ -172,10 +172,13 @@ chain means outbound events/notifications were **lost** — downstream event sub
 of the transition — so this class must be monitored explicitly:
 
 - **Alert** on the engine metric `engine.workflows.execution.failed` filtered to
-  `is_head="false"` (side chains are the only `IsHead=false` workflows the app enqueues; Main
-  failures also increment this counter but with `is_head="unset"`, and those already surface to
-  users as `workflow: failed` with a Retry affordance). Every `is_head="false"` increment is
-  actionable.
+  `is_head="false"` **and** `reason` in (`execution`, `poisoned`) — those are the lost-events
+  cases (side chains are the only `IsHead=false` workflows the app enqueues; Main failures also
+  increment this counter but with `is_head="unset"`, and those already surface to users as
+  `workflow: failed` with a Retry affordance). Do **not** alert on `reason="dependency_failed"`:
+  every pre-commit Main failure condemns its side-effects sibling to DependencyFailed, so those
+  increments merely mirror a Main failure that is already user-visible — a user Retry
+  cascade-resumes the sibling (no events lost), and a reject correctly discards it.
 - **Enumerate** with `GET /api/v1/{org}/{app}/workflows?status=Failed` — side chains are
   identifiable by `isHead: false` on the status response (their OperationId also carries the
   human-readable `Process next side-effects:` naming prefix), or scope to one instance by
@@ -185,6 +188,14 @@ of the transition — so this class must be monitored explicitly:
   idempotent per event). Note that the app's `POST process/resume` deliberately does **not** touch
   side chains (they are excluded from the resume-target lookup); the engine-level resume is the
   only re-emit path.
+- **Before redriving, check the Main workflow** (`inheritStateFromWorkflowId` on the failed side
+  chain points at it). If Main is `Completed`, the failure is a genuine lost-events case and the
+  resume re-delivers. If Main is `Abandoned` (a reject wrote the transition off after the
+  abandon-cancel lost its narrow race), the side chain is *correctly* dead: state inheritance
+  resolves to null and every resume attempt just re-fails with 422 — there is nothing to
+  re-deliver for a transition that never committed. Also note the redrive window is implicitly
+  bounded by the engine's terminal-workflow retention sweep (default 60 days): after that both
+  the side chain and its Main — including the state a resume would inherit — are purged.
 
 ## Waiting, Failure Classification, and Reject/Resume
 

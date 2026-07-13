@@ -12,7 +12,8 @@ critical post-commit commands) and a **side-effects** workflow (`IsHead = false`
 `DependsOn = ["main"]`) carrying the fire-and-forget commands. The side-effects workflow declares
 `InheritStateFrom = "main"` — a new general engine primitive — so its commands run against Main's
 final evolved state. When a transition has no side-effect commands, a single workflow is emitted,
-identical to the pre-split request.
+semantically identical to the pre-split request (the only wire-level difference is a serialized
+`"inheritStateFrom": null`, which the engine treats the same as the field being absent).
 
 ## Problem context
 
@@ -196,9 +197,13 @@ State:
 - Negative / accepted: side-effect failures no longer surface in the ProcessNext result (nor in the
   read-path status annotation) — a terminally failed side chain means events were lost, silently
   from the user's perspective. Mitigated with a dedicated telemetry dimension: the engine's
-  `engine.workflows.execution.failed` counter is tagged `is_head`, so `is_head="false"` isolates
-  side-chain failures for alerting (every increment is actionable, unlike Main failures which
-  surface to users). Failed side chains remain enumerable (`status=Failed`, `isHead: false`; or by
+  `engine.workflows.execution.failed` counter is tagged `is_head` (on the execution, poisoned, and
+  dependency-failed paths), so side-chain failures are isolatable for alerting. Alert on
+  `is_head="false"` **and** `reason` in (`execution`, `poisoned`) — those are the lost-events
+  cases. `reason="dependency_failed"` increments for `is_head="false"` are expected noise: every
+  pre-commit Main failure condemns its side-effects sibling to DependencyFailed, and that failure
+  already surfaces to the user with a Retry affordance (a retry cascade-resumes the sibling, so no
+  events are lost). Failed side chains remain enumerable (`status=Failed`, `isHead: false`; or by
   collection key / `processNextInstanceGuid` label) and redrivable via the engine's resume API —
   the app's `process/resume` deliberately excludes them. See the observability + redrive runbook in
   the integration layer's `AGENTS.md`.
@@ -224,8 +229,9 @@ State:
 
 ### Follow-ups
 
-- Wire an actual alert rule on `engine.workflows.execution.failed{is_head="false"}` in the
-  monitoring stack (the metric dimension ships with this decision; the alert is deployment
+- Wire an actual alert rule on
+  `engine.workflows.execution.failed{is_head="false", reason=~"execution|poisoned"}` in the
+  monitoring stack (the metric dimensions ship with this decision; the alert is deployment
   configuration).
 - A2 (diamond) if prompt post-commit event emission becomes a requirement.
 - Data retention review (platform-wide, not specific to this decision): document the engine's

@@ -233,8 +233,17 @@ Rules:
   retries because a terminal workflow's state is immutable.
 - If the source did **not** complete successfully (e.g. it was `Abandoned` and this workflow was released
   anyway), the workflow runs with a null initial state.
-- A transient lookup failure requeues the workflow instead of failing it.
+- A transient lookup failure requeues the workflow (with a backoff) instead of failing it.
 - The resolved source id is exposed as `inheritStateFromWorkflowId` in workflow status responses.
+
+One deliberate semantic difference from intra-workflow state chaining: within a workflow, a step whose
+predecessors never produced any `StateOut` receives **null** — not the workflow's initial state. The
+inheritance fallback is different: a `Completed` source whose steps never produced state hands the
+inheritor the source's **initial state** ("the workflow started with state X and nothing changed it, so
+its final state is X"). So for a stateless-step source, an inheriting workflow sees the source's initial
+state where a step appended to the source itself would have seen null. If your inheriting steps must
+behave exactly like appended steps, ensure the source's steps always emit `StateOut` (commands that pass
+state through unchanged, as the app callback commands do, make the two views identical).
 
 The canonical use is a fire-and-forget side chain (`IsHead = false`, see
 [workflow-collections.md](workflow-collections.md)) that continues from the main workflow's evolved state
