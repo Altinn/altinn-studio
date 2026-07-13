@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
-import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';

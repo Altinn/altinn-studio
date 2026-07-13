@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
   StudioHeading,

@@ -7,7 +7,8 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import type { ItemType } from './components/Properties/ItemType';
+import { useSearchParams } from 'react-router-dom';
+import { ItemType } from './components/Properties/ItemType';
 import useUxEditorParams from './hooks/useUxEditorParams';
 
 export interface WindowWithQueryClient extends Window {
@@ -59,13 +60,18 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
   const { isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
+  const [searchParams] = useSearchParams();
+  const layout = searchParams.get('layout');
 
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
     useSelectedFormLayoutName(layoutSet);
+
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(
+    layout ? { type: ItemType.Page, id: layout } : null,
+  );
 
   const refetch = useCallback(
     async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {
