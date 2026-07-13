@@ -93,10 +93,6 @@ const DesignViewLoadedContent = ({
       });
     } else {
       setSelectedFormLayoutName(undefined);
-      setSelectedItem({
-        type: ItemType.Page,
-        id: pageName,
-      });
       setSelectedItem(null);
     }
   };
