@@ -166,6 +166,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         {
             case SuccessfulProcessEngineCommandResult success:
                 DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
+
                 await instanceDataUnitOfWork.UpdateInstanceData(changes);
                 await instanceDataUnitOfWork.SaveChanges(changes);
 

@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/gitea-proxy/**'
       - '.github/workflows/gitea-proxy-test.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}

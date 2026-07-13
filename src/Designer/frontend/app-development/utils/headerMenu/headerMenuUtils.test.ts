@@ -3,7 +3,6 @@ import {
   isMenuItemEnabledByFeatureFlag,
   getFilteredMenuListForOverviewPage,
   getFilteredTopBarMenu,
-  getTopBarMenuItems,
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
   topBarMenuItems,
@@ -19,7 +18,7 @@ describe('headerMenuUtils', () => {
   describe('getFilteredTopBarMenu', () => {
     it('should return all items when provided repository type is "App" which is not hidden behind feature-flags', () => {
       const menuLength = topBarMenuItems.filter((menuItem) => !menuItem.featureFlagName).length;
-      expect(getFilteredTopBarMenu(RepositoryType.App, [])).toHaveLength(menuLength);
+      expect(getFilteredTopBarMenu(RepositoryType.App, true, [])).toHaveLength(menuLength);
     });
 
     it('Should only return the data model menu item when the provided repo type is "DataModels"', () => {
@@ -33,36 +32,48 @@ describe('headerMenuUtils', () => {
         },
       ];
 
-      expect(getFilteredTopBarMenu(RepositoryType.DataModels, [])).toEqual(expected);
+      expect(getFilteredTopBarMenu(RepositoryType.DataModels, true, [])).toEqual(expected);
     });
 
     it('should return empty list when provided repo type is "Unknown"', () => {
       const expected: HeaderMenuItem[] = [];
 
-      expect(getFilteredTopBarMenu(RepositoryType.Unknown, [])).toEqual(expected);
+      expect(getFilteredTopBarMenu(RepositoryType.Unknown, true, [])).toEqual(expected);
     });
 
     it('should return menu items including items hidden behind feature flag, if the flag is activated', () => {
-      expect(getFilteredTopBarMenu(RepositoryType.App, Object.values(FeatureFlag))).toHaveLength(
-        topBarMenuItems.length,
-      );
+      expect(
+        getFilteredTopBarMenu(RepositoryType.App, true, Object.values(FeatureFlag)),
+      ).toHaveLength(topBarMenuItems.length);
     });
-  });
 
-  describe('getTopBarMenuItems', () => {
-    it('should filter out Deploy item when repoOwnerIsOrg is false', () => {
-      const filteredItems = getTopBarMenuItems(RepositoryType.App, false, []);
+    it('should filter out Deploy item when isRepoOwnerOrg is false', () => {
+      const filteredItems = getFilteredTopBarMenu(RepositoryType.App, false, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
     });
 
-    it('should include Deploy item when repoOwnerIsOrg is true and repositoryType is not DataModels', () => {
-      const filteredItems = getTopBarMenuItems(RepositoryType.App, true, []);
+    it('should include Deploy item when isRepoOwnerOrg is true and repositoryType is not DataModels', () => {
+      const filteredItems = getFilteredTopBarMenu(RepositoryType.App, true, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(true);
     });
 
     it('should filter out Deploy item when repositoryType is DataModels', () => {
-      const filteredItems = getTopBarMenuItems(RepositoryType.DataModels, true, []);
+      const filteredItems = getFilteredTopBarMenu(RepositoryType.DataModels, true, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
+    });
+
+    it('should filter out AiAssistant item when isRepoOwnerOrg is false', () => {
+      const filteredItems = getFilteredTopBarMenu(RepositoryType.App, false, [
+        FeatureFlag.AiAssistant,
+      ]);
+      expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(false);
+    });
+
+    it('should include AiAssistant item when isRepoOwnerOrg is true', () => {
+      const filteredItems = getFilteredTopBarMenu(RepositoryType.App, true, [
+        FeatureFlag.AiAssistant,
+      ]);
+      expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(true);
     });
   });
 
@@ -136,7 +147,7 @@ describe('headerMenuUtils', () => {
 
   describe('getFilteredMenuListForOverviewPage', () => {
     it('should filter out menu items with keys "About" and "Deploy"', () => {
-      const filteredMenu = getFilteredMenuListForOverviewPage([]);
+      const filteredMenu = getFilteredMenuListForOverviewPage([], true);
 
       // Ensure no item with key 'About' is present
       expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.About)).toBe(false);
@@ -153,6 +164,16 @@ describe('headerMenuUtils', () => {
         HeaderMenuItemKey.ProcessEditor,
         HeaderMenuItemKey.ContentLibrary,
       ]);
+    });
+
+    it('should filter out org-only items when isRepoOwnerOrg is false', () => {
+      const filteredMenu = getFilteredMenuListForOverviewPage([FeatureFlag.AiAssistant], false);
+      expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(false);
+    });
+
+    it('should include org-only items when isRepoOwnerOrg is true', () => {
+      const filteredMenu = getFilteredMenuListForOverviewPage([FeatureFlag.AiAssistant], true);
+      expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.AiAssistant)).toBe(true);
     });
   });
 });

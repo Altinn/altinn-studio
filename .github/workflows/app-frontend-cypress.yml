@@ -1,6 +1,8 @@
 name: App Frontend - Cypress
 
 on:
+  schedule:
+    - cron: '0 3 * * 1-5'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
@@ -19,6 +21,8 @@ on:
       - 'app-libs/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -61,12 +65,8 @@ jobs:
     name: Build App Run Targets
     if: |
       (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
-      github.repository_owner == 'Altinn' &&
-      (
-        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
-        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
-      )
-    runs-on: self-hosted-single
+      github.repository_owner == 'Altinn'
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
     timeout-minutes: 45
     outputs:
       app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
@@ -239,7 +239,7 @@ jobs:
 
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    needs: [build-frontend-external]
+    needs: [build-frontend-external, build-app-run-targets]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -248,31 +248,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      - name: Build app run targets
-        id: app-run-targets
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+      - name: Download app process outputs
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          script: |
-            const fs = require('fs/promises');
-            const nodePath = require('path');
+          name: app-process-build
+          path: /tmp/app-process-build
 
-            const appRoot = 'src/test/apps';
-            const entries = await fs.readdir(appRoot, { withFileTypes: true });
-            const targets = entries
-              .filter(entry => entry.isDirectory())
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map(entry => ({ path: nodePath.posix.join(appRoot, entry.name) }));
-
-            if (targets.length === 0) {
-              throw new Error('No app run targets were found.');
-            }
-            core.setOutput('app-run-targets-json', JSON.stringify(targets));
+      - name: Extract app process outputs
+        shell: bash
+        run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
           run-localtest: true
-          app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
+          app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
+          skip-app-build: true
 
       - name: Install Cypress binary
         shell: bash

@@ -17,6 +17,8 @@ on:
       - '.github/actions/codeql-config/**'
       - '.github/codeql/**'
       - '.github/workflows/designer-backend-codeql.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
   schedule:
     - cron: '45 1 * * 0'
@@ -55,7 +57,7 @@ jobs:
           language: csharp
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
+        uses: github/codeql-action/init@02c5e83432fe5497fd85b873b6c9f16a8578e1d9 # v3
         with:
           languages: csharp
           build-mode: manual
@@ -68,6 +70,6 @@ jobs:
         working-directory: src/Designer/
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
+        uses: github/codeql-action/analyze@02c5e83432fe5497fd85b873b6c9f16a8578e1d9 # v3
         with:
           category: "/codeql/designer/backend/csharp"

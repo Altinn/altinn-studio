@@ -11,6 +11,8 @@ on:
       - 'app-libs/language/src/**'
       - 'app-libs/language/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

@@ -74,6 +74,14 @@ The solution follows a **layered architecture** with feature-based organization:
 - **Validation** - Data validation pipelines
 - **Telemetry** - OpenTelemetry observability (considered public contract)
 
+### Process engine (`/src/Altinn.App.Core/Internal/WorkflowEngine/`)
+
+All process transitions (ProcessNext) execute through the async Workflow Engine — commands enqueued to
+an external engine service that calls back into the app. Anything touching process state, task
+start/end hooks, or service tasks runs on this foundation. Architecture, command sequences, and hard
+constraints (idempotency, state passthrough, callback auth):
+[WorkflowEngine/AGENTS.md](src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md).
+
 ### Technology Stack
 
 - **.NET 10.0** (see global.json)

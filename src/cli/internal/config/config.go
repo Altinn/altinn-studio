@@ -282,6 +282,11 @@ func (c *Config) CredentialsPath() string {
 	return filepath.Join(c.Home, "credentials.yaml")
 }
 
+// UpdateCheckCachePath returns the path to the passive update-check cache file.
+func (c *Config) UpdateCheckCachePath() string {
+	return filepath.Join(c.Home, "update-check.yaml")
+}
+
 // Validate checks that the configuration is valid.
 func (c *Config) Validate() error {
 	if c.Home == "" {

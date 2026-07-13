@@ -34,13 +34,31 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var oldWorkflowId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, oldWorkflowId, status: 3, updatedAt: _now.AddDays(-31), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            oldWorkflowId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
 
         var recentWorkflowId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, recentWorkflowId, status: 3, updatedAt: _now.AddDays(-1), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            recentWorkflowId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-1),
+            ct: ct
+        );
 
         var activeWorkflowId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, activeWorkflowId, status: 1, updatedAt: _now.AddDays(-31), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            activeWorkflowId,
+            status: PersistentItemStatus.Processing,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
 
         await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
 
@@ -59,10 +77,41 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var expired = _now.AddDays(-31);
-        await InsertWorkflow(dataSource, Guid.NewGuid(), status: 3, updatedAt: expired, ct: ct);
-        await InsertWorkflow(dataSource, Guid.NewGuid(), status: 4, updatedAt: expired, ct: ct);
-        await InsertWorkflow(dataSource, Guid.NewGuid(), status: 5, updatedAt: expired, ct: ct);
-        await InsertWorkflow(dataSource, Guid.NewGuid(), status: 6, updatedAt: expired, ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.Completed,
+            updatedAt: expired,
+            ct: ct
+        );
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.Failed,
+            updatedAt: expired,
+            ct: ct
+        );
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.Canceled,
+            updatedAt: expired,
+            ct: ct
+        );
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.DependencyFailed,
+            updatedAt: expired,
+            ct: ct
+        );
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.Abandoned,
+            updatedAt: expired,
+            ct: ct
+        );
 
         await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
 
@@ -77,10 +126,16 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var depTargetId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, depTargetId, status: 3, updatedAt: _now.AddDays(-31), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            depTargetId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
 
         var activeId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, activeId, status: 1, updatedAt: _now, ct: ct);
+        await InsertWorkflow(dataSource, activeId, status: PersistentItemStatus.Processing, updatedAt: _now, ct: ct);
         await InsertDependency(dataSource, workflowId: activeId, dependsOnId: depTargetId, ct: ct);
 
         await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
@@ -98,10 +153,16 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var linkedTargetId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, linkedTargetId, status: 3, updatedAt: _now.AddDays(-31), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            linkedTargetId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
 
         var activeId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, activeId, status: 1, updatedAt: _now, ct: ct);
+        await InsertWorkflow(dataSource, activeId, status: PersistentItemStatus.Processing, updatedAt: _now, ct: ct);
         await InsertLink(dataSource, workflowId: activeId, linkedWorkflowId: linkedTargetId, ct: ct);
 
         await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
@@ -120,7 +181,13 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Insert 5 expired workflows, run with batch size 2 — should still delete all 5
         for (var i = 0; i < 5; i++)
-            await InsertWorkflow(dataSource, Guid.NewGuid(), status: 3, updatedAt: _now.AddDays(-31), ct: ct);
+            await InsertWorkflow(
+                dataSource,
+                Guid.NewGuid(),
+                status: PersistentItemStatus.Completed,
+                updatedAt: _now.AddDays(-31),
+                ct: ct
+            );
 
         await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), batchSize: 2, ct: ct);
 
@@ -135,7 +202,13 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var workflowId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, workflowId, status: 3, updatedAt: _now.AddDays(-31), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            workflowId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
         await InsertStep(dataSource, workflowId, ct: ct);
         await InsertStep(dataSource, workflowId, ct: ct);
 
@@ -153,10 +226,22 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var deletedWorkflowId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, deletedWorkflowId, status: 3, updatedAt: _now.AddDays(-31), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            deletedWorkflowId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
 
         var survivingWorkflowId = Guid.NewGuid();
-        await InsertWorkflow(dataSource, survivingWorkflowId, status: 3, updatedAt: _now.AddDays(-1), ct: ct);
+        await InsertWorkflow(
+            dataSource,
+            survivingWorkflowId,
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-1),
+            ct: ct
+        );
 
         await InsertIdempotencyKey(
             dataSource,
@@ -206,7 +291,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await InsertWorkflow(
             dataSource,
             expiredHeadId,
-            status: 3,
+            status: PersistentItemStatus.Completed,
             updatedAt: _now.AddDays(-31),
             collectionKey: "collection",
             ct: ct
@@ -234,7 +319,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await InsertWorkflow(
             dataSource,
             expiredHeadId,
-            status: 3,
+            status: PersistentItemStatus.Completed,
             updatedAt: _now.AddDays(-31),
             collectionKey: "collection",
             ct: ct
@@ -242,7 +327,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await InsertWorkflow(
             dataSource,
             retainedHeadId,
-            status: 3,
+            status: PersistentItemStatus.Completed,
             updatedAt: _now.AddDays(-1),
             collectionKey: "collection",
             ct: ct
@@ -284,7 +369,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await using (var ctx = fixture.CreateDbContext())
         {
             await ctx.Database.ExecuteSqlAsync(
-                $"UPDATE engine.workflows SET status = 3, updated_at = {_now.AddDays(-31)} WHERE id = {expiredHeadId}",
+                $"UPDATE engine.workflows SET status = {(int)PersistentItemStatus.Completed}, updated_at = {_now.AddDays(-31)} WHERE id = {expiredHeadId}",
                 ct
             );
         }
@@ -366,7 +451,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     private static async Task InsertWorkflow(
         NpgsqlDataSource dataSource,
         Guid id,
-        int status,
+        PersistentItemStatus status,
         DateTimeOffset updatedAt,
         string? collectionKey = null,
         CancellationToken ct = default
@@ -379,7 +464,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
             """
         );
         cmd.Parameters.AddWithValue("id", id);
-        cmd.Parameters.AddWithValue("status", status);
+        cmd.Parameters.AddWithValue("status", (int)status);
         cmd.Parameters.AddWithValue("createdAt", updatedAt.AddHours(-1));
         cmd.Parameters.AddWithValue("updatedAt", updatedAt);
         cmd.Parameters.AddWithValue("collectionKey", collectionKey is null ? DBNull.Value : collectionKey);

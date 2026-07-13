@@ -5,6 +5,8 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/AI/agents/**'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
