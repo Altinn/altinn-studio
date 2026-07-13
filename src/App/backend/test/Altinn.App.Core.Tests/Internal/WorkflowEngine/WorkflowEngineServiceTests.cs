@@ -1,12 +1,23 @@
+using System.Text.Json;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Tests.Common.Auth;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
@@ -584,6 +595,172 @@ public class WorkflowEngineServiceTests
             },
         };
 
+    [Fact]
+    public async Task EnqueueProcessNextNoWait_EmitsTheSameBatchAsAUserDrivenAdvance()
+    {
+        // The no-wait path (system-initiated advances of parked service tasks) must go through the
+        // same ProcessNextRequestFactory as user-driven process-next: Main opts into DependsOnHeads
+        // (no explicit dependsOn), and the fire-and-forget side effects ride Main's
+        // EnqueueSideEffectsWorkflow step payload as invisible IsHead=false siblings scheduled at
+        // the commit - never inline in the blocking chain.
+        var instance = new Instance
+        {
+            Id = "1337/aabbccdd-1234-5678-9012-aabbccddeeff",
+            AppId = $"{Org}/{App}",
+            Org = Org,
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Data = [],
+        };
+        var processStateChange = new ProcessStateChange
+        {
+            OldProcessState = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", AltinnTaskType = "eFormidling" },
+            },
+            NewProcessState = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_2", AltinnTaskType = "data" },
+            },
+            Events =
+            [
+                new InstanceEvent
+                {
+                    EventType = InstanceEventType.process_EndTask.ToString(),
+                    ProcessInfo = new ProcessState
+                    {
+                        CurrentTask = new ProcessElementInfo { ElementId = "Task_1", AltinnTaskType = "eFormidling" },
+                    },
+                },
+                new InstanceEvent
+                {
+                    EventType = InstanceEventType.process_StartTask.ToString(),
+                    ProcessInfo = new ProcessState
+                    {
+                        CurrentTask = new ProcessElementInfo { ElementId = "Task_2", AltinnTaskType = "data" },
+                    },
+                },
+            ],
+        };
+
+        string? capturedIdempotencyKey = null;
+        string? capturedCollectionKey = null;
+        WorkflowEnqueueRequest? capturedRequest = null;
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    Namespace,
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    string _,
+                    string idempotencyKey,
+                    string? collectionKey,
+                    WorkflowEnqueueRequest request,
+                    CancellationToken _
+                ) =>
+                {
+                    capturedIdempotencyKey = idempotencyKey;
+                    capturedCollectionKey = collectionKey;
+                    capturedRequest = request;
+                }
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = Namespace }],
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            CreateRequestFactory(),
+            client.Object,
+            new Mock<IInstanceClient>(MockBehavior.Strict).Object,
+            new AppIdentifier(Org, App)
+        );
+
+        await service.EnqueueProcessNextNoWait(
+            instance,
+            processStateChange,
+            resolvedAction: "write",
+            lockToken: "lock-token",
+            state: "signed-state-blob",
+            actor: new Actor { OrgId = Org },
+            CancellationToken.None
+        );
+
+        Assert.NotNull(capturedRequest);
+        WorkflowRequest main = Assert.Single(capturedRequest.Workflows);
+        Assert.Null(main.DependsOn);
+        Assert.True(main.DependsOnHeads, "the advance must auto-append onto the collection's current heads");
+        Assert.Equal("signed-state-blob", main.State);
+
+        // The side effects ride inside Main's EnqueueSideEffectsWorkflow step payload, submitted at
+        // the commit boundary as independent IsHead=false roots.
+        WorkflowRequest sideEffects = Assert.Single(ExtractSideEffectsWorkflows(capturedRequest));
+        Assert.StartsWith(ProcessNextRequestFactory.SideEffectsOperationIdPrefix, sideEffects.OperationId);
+        Assert.False(sideEffects.IsHead ?? true, "the side chain must stay invisible to the heads frontier");
+        Assert.False(sideEffects.DependsOnHeads);
+
+        // Deterministic process-next key: a redelivered trigger (FiksIO/Events retry) deduplicates
+        // onto the same workflow instead of double-advancing.
+        Assert.StartsWith("process-next-operation-", capturedIdempotencyKey);
+        Assert.Equal("aabbccdd-1234-5678-9012-aabbccddeeff", capturedCollectionKey);
+    }
+
+    private static ProcessNextRequestFactory CreateRequestFactory()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<AppImplementationFactory>();
+        var appImplFactory = services.BuildServiceProvider().GetRequiredService<AppImplementationFactory>();
+
+        var authContextMock = new Mock<IAuthenticationContext>();
+        authContextMock.Setup(x => x.Current).Returns(TestAuthentication.GetUserAuthentication());
+
+        var appMetadataMock = new Mock<IAppMetadata>();
+        appMetadataMock
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata($"{Org}/{App}") { DataTypes = [] });
+
+        var callbackTokenGeneratorMock = new Mock<IWorkflowCallbackTokenGenerator>();
+        callbackTokenGeneratorMock.Setup(x => x.GenerateToken(It.IsAny<Guid>())).Returns("test-callback-token");
+
+        return new ProcessNextRequestFactory(
+            appImplFactory,
+            authContextMock.Object,
+            new AppIdentifier(Org, App),
+            Options.Create(new AppSettings { RegisterEventsWithEventsComponent = true }),
+            appMetadataMock.Object,
+            callbackTokenGeneratorMock.Object,
+            new ProcessStepOptionsResolver([new ExecuteServiceTask(appImplFactory)], appImplFactory)
+        );
+    }
+
+    /// <summary>
+    /// Unwraps the sibling side-effects workflow requests embedded in the Main workflow's
+    /// EnqueueSideEffectsWorkflow step payload (the batch that step submits at the commit boundary).
+    /// </summary>
+    private static List<WorkflowRequest> ExtractSideEffectsWorkflows(WorkflowEnqueueRequest request)
+    {
+        StepRequest? enqueueStep = request
+            .Workflows.SelectMany(workflow => workflow.Steps)
+            .SingleOrDefault(step =>
+                step.Command.Type == "app"
+                && step.Command.Data is { } data
+                && JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey == EnqueueSideEffectsWorkflow.Key
+            );
+        Assert.NotNull(enqueueStep);
+        var commandData = JsonSerializer.Deserialize<AppCommandData>(enqueueStep.Command.Data!.Value)!;
+        WorkflowEnqueueRequest embedded = CommandPayloadSerializer
+            .Deserialize<EnqueueSideEffectsWorkflowPayload>(commandData.Payload)!
+            .EnqueueRequest;
+        return [.. embedded.Workflows];
+    }
     private static WorkflowStatusResponse CreateWorkflowStatus(
         DateTimeOffset createdAt,
         PersistentItemStatus status = PersistentItemStatus.Completed,

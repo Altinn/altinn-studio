@@ -78,6 +78,13 @@ internal interface IWorkflowEngineService
     /// collection is idle, or chains it after the active head. Used for system-initiated advances (e.g. async
     /// service-task callbacks) that must not block on the engine.
     /// </summary>
+    /// <remarks>
+    /// A <c>Failed</c> head needs no special handling here: the engine condemns the appended workflow to
+    /// <c>DependencyFailed</c>, and the standard resume path (<see cref="ResumeAndWaitForWorkflow"/>,
+    /// cascade) transitively revives condemned dependents once the failed head is resumed — so the advance
+    /// replays without the caller tracking failure state. A redelivered trigger re-enqueueing the same
+    /// transition deduplicates onto the existing workflow via the idempotency key.
+    /// </remarks>
     Task EnqueueProcessNextNoWait(
         Instance instance,
         ProcessStateChange processStateChange,
