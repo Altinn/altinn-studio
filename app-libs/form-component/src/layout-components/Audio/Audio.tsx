@@ -2,6 +2,8 @@ import { useCurrentLanguage, useTranslation } from '@app/form-component/Language
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
+import classes from './Audio.module.css';
+
 /** Audio source URLs keyed by language code (e.g. `nb`, `nn`, `en`). */
 export interface AudioSrc {
   nb?: string;
@@ -37,9 +39,8 @@ export function Audio({ componentId, src, altText, mediaHeight, innerGrid }: Aud
         id={componentId}
         style={{
           height: mediaHeight,
-          letterSpacing: '0.3px',
-          width: '100%',
         }}
+        className={classes.audioContainer}
       >
         <source src={audioSrc} />
         <track kind='captions' src={audioSrc} srcLang={currentLanguage} label={label} />
