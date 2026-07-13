@@ -47,7 +47,7 @@ type DataModelBindingsValidator = (
 
 export function LayoutPropertiesValidation({ children }: PropsWithChildren) {
   const enabled = shouldValidateLayoutConfiguration();
-  const schemaValidator = useLayoutSchemaValidator(enabled);
+  const { data: schemaValidator, isPending: schemaValidatorIsPending } = useLayoutSchemaValidator(enabled);
   const replaceErrors = FormStore.raw.useStaticSelector((state) => state.layoutDiagnostics.replaceErrors);
   const bootstrap = FormStore.raw.useMemoSelector((state) => state.bootstrap);
   const application = getApplicationMetadata();
@@ -64,6 +64,10 @@ export function LayoutPropertiesValidation({ children }: PropsWithChildren) {
   const [completedValidationRun, setCompletedValidationRun] = useState<typeof validationRun | undefined>();
 
   useEffect(() => {
+    if (schemaValidatorIsPending) {
+      return;
+    }
+
     replaceErrors(
       validateLayoutProperties({
         bootstrap: validationRun.bootstrap,
@@ -75,10 +79,14 @@ export function LayoutPropertiesValidation({ children }: PropsWithChildren) {
       }),
     );
     setCompletedValidationRun(validationRun);
-  }, [langAsStringRef, replaceErrors, validationRun]);
+  }, [langAsStringRef, replaceErrors, schemaValidatorIsPending, validationRun]);
 
   if (!enabled) {
     return children;
+  }
+
+  if (schemaValidatorIsPending) {
+    return <Loader reason='layout-validation-schema' />;
   }
 
   return (

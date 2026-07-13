@@ -13,7 +13,7 @@ import { isDev } from 'src/utils/isDev';
 export type LayoutValidationResult = Record<string, string[]>;
 export type ValidateFunc = ReturnType<typeof makeValidateFunc>;
 
-export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfiguration()): ValidateFunc | undefined {
+export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfiguration()) {
   const { fetchLayoutSchema } = useAppQueries();
   return useQuery({
     enabled,
@@ -25,7 +25,7 @@ export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfigura
       }
       return makeValidateFunc(createLayoutValidator(schema));
     },
-  }).data;
+  });
 }
 
 export function shouldValidateLayoutConfiguration() {
