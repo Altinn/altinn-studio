@@ -162,23 +162,35 @@ Side-effects workflow (only when the target emits side effects):
 [side-effect commands]
 ```
 
-### Side-effect failure observability
+### Side-effect failure observability and redrive
 
-Side-effect failures no longer gate anything and never surface in the ProcessNext result: a failing
-event registration leaves a `Failed` (or endlessly retrying) workflow in the engine that nothing
-waits on. These workflows remain queryable by the `processNextInstanceGuid` label / the instance's
-collection key, and their OperationId carries the `Process next side-effects:` marker. When
-monitoring transitions, alert on failed side-effects workflows explicitly — they are otherwise
-silent. Concretely: the engine's `workflows` metrics/dashboard already count failures, and
-`GET /api/v1/{org}/{app}/workflows?status=Failed` (filter client-side on the
-`Process next side-effects:` OperationId prefix, or by `collectionKey`/`processNextInstanceGuid`
-label for one instance) enumerates them; a resumed side-effects workflow re-delivers its events.
+Side-effect failures no longer gate anything and never surface in the ProcessNext result **or** the
+read-path `workflow` status annotation: a failing event registration retries per the engine's step
+retry strategy (production default: exponential backoff up to 24h `MaxDuration`) and then lands as
+a terminal `Failed` workflow that nothing waits on and no user ever sees. A terminally failed side
+chain means outbound events/notifications were **lost** — downstream event subscribers never learn
+of the transition — so this class must be monitored explicitly:
+
+- **Alert** on the engine metric `engine.workflows.execution.failed` filtered to
+  `is_head="false"` (side chains are the only `IsHead=false` workflows the app enqueues; Main
+  failures also increment this counter but with `is_head="unset"`, and those already surface to
+  users as `workflow: failed` with a Retry affordance). Every `is_head="false"` increment is
+  actionable.
+- **Enumerate** with `GET /api/v1/{org}/{app}/workflows?status=Failed` — side chains are
+  identifiable by `isHead: false` on the status response (their OperationId also carries the
+  human-readable `Process next side-effects:` naming prefix), or scope to one instance by
+  `collectionKey`/`processNextInstanceGuid` label.
+- **Redrive**: resume the failed workflow via the engine's resume API — a resumed side-effects
+  workflow re-runs its remaining steps and re-delivers its events (event registration is
+  idempotent per event). Note that the app's `POST process/resume` deliberately does **not** touch
+  side chains (they are excluded from the resume-target lookup); the engine-level resume is the
+  only re-emit path.
 
 ## Waiting, Failure Classification, and Reject/Resume
 
 `WorkflowEngineService` does more than fire-and-forget. After enqueueing it polls the workflow **collection** (keyed by the instance guid — every transition of an instance shares one collection) until the active heads settle, then refetches the instance and builds a `ProcessNextWorkflowResult`:
 
-- `ScopeToCurrentChain` narrows the collection to the workflow just submitted and everything created after it, so lingering terminal heads from earlier transitions don't leak into the current wait. It also strips side-effects workflows (matched by the `Process next side-effects:` OperationId marker) from every path: they must not extend the wait — a dependent auto-advance batch's side-effects workflow is strictly newer than the anchor and would otherwise leak into the chain — and their failures must never be classified as transition failures.
+- `ScopeToCurrentChain` narrows the collection to the workflow just submitted and everything created after it, so lingering terminal heads from earlier transitions don't leak into the current wait. It also strips side-effects workflows (matched by the engine-persisted `isHead == false` head-visibility directive; the `Process next side-effects:` OperationId prefix is a naming convention only) from every path: they must not extend the wait — a dependent auto-advance batch's side-effects workflow is strictly newer than the anchor and would otherwise leak into the chain — and their failures must never be classified as transition failures.
 - `BuildWorkflowFailure` classifies the outcome into a `WorkflowFailure` (`StepFailed`, `DependencyFailed`, `EngineFault`, `Timeout`, or a superseding-abandon case). `ExtractCallbackErrorDetail` unwraps the ProblemDetails `detail` from an engine error message so the human-readable reason surfaces to the frontend.
 - `HasCommittedProcessState` reports whether `SaveProcessStateToStorage` completed, so the caller knows if the transition was persisted even when a later step failed.
 

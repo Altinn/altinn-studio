@@ -644,14 +644,16 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     /// <summary>
-    /// Identifies the fire-and-forget side-effects workflow a process-next batch may include,
-    /// by the OperationId marker <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/>.
+    /// Identifies the fire-and-forget side-effects workflow a process-next batch may include, by
+    /// the engine-persisted head-visibility directive: side-effects workflows are enqueued with
+    /// <c>IsHead = false</c> (invisible to the collection heads frontier), which the engine now
+    /// exposes on status responses. The
+    /// <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/> OperationId marker
+    /// remains purely a human-readable naming convention for ops queries and logs; it is no longer
+    /// load-bearing for identification. Requires an engine that persists/exposes <c>isHead</c> -
+    /// the same ship-together requirement the state-inheritance feature already imposes.
     /// </summary>
-    internal static bool IsSideEffectsWorkflow(WorkflowStatusResponse workflow) =>
-        workflow.OperationId.StartsWith(
-            ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
-            StringComparison.Ordinal
-        );
+    internal static bool IsSideEffectsWorkflow(WorkflowStatusResponse workflow) => workflow.IsHead == false;
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 

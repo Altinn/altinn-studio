@@ -642,6 +642,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             UpdatedAt = workflow.UpdatedAt,
             Labels = workflow.Labels is null ? null : new Dictionary<string, string>(workflow.Labels),
             OverallStatus = workflow.Status,
+            IsHead = workflow.IsHead,
             Dependencies =
                 workflow.DependencyIds.Count == 0
                     ? null

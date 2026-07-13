@@ -52,9 +52,10 @@ internal sealed class ProcessNextRequestFactory
     internal const string MainOperationIdPrefix = "Process next:";
 
     /// <summary>
-    /// OperationId prefix identifying the fire-and-forget side-effects workflow. The wait/settle
-    /// logic in <see cref="WorkflowEngineService"/> uses this to exclude side-effects workflows
-    /// from the chain it blocks on and from failure classification.
+    /// OperationId prefix for the fire-and-forget side-effects workflow. A human-readable naming
+    /// convention for ops queries and logs only - identification (wait/settle scoping, failure
+    /// classification, abandon-cancel) is by the engine-persisted <c>IsHead == false</c> directive
+    /// (see <see cref="WorkflowEngineService.IsSideEffectsWorkflow"/>), not by this string.
     /// </summary>
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 

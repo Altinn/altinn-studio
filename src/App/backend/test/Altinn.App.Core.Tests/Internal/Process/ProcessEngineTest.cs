@@ -3187,6 +3187,14 @@ public sealed class ProcessEngineTest
             CreatedAt = createdAt ?? DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             OverallStatus = overallStatus,
+            // Mirrors the engine: the side-effects workflow is enqueued with (and now reports)
+            // IsHead = false, which is what identifies it to the app's side-chain filter.
+            IsHead = operationId.StartsWith(
+                ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
+                StringComparison.Ordinal
+            )
+                ? false
+                : null,
             Steps = [],
         };
 

@@ -124,6 +124,15 @@ public sealed record WorkflowStatusResponse
     public Guid? InheritStateFromWorkflowId { get; init; }
 
     /// <summary>
+    /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>).
+    /// <c>false</c> identifies workflows deliberately invisible to collection head tracking (e.g.
+    /// non-blocking side chains); <c>null</c>/omitted means natural leaf detection applied.
+    /// </summary>
+    [JsonPropertyName("isHead")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? IsHead { get; init; }
+
+    /// <summary>
     /// Details about each step in the workflow.
     /// </summary>
     [JsonPropertyName("steps")]
@@ -149,6 +158,7 @@ public sealed record WorkflowStatusResponse
             OverallStatus = workflow.Status,
             InitialState = workflow.InitialState,
             InheritStateFromWorkflowId = workflow.InheritStateFromWorkflowId,
+            IsHead = workflow.IsHead,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),

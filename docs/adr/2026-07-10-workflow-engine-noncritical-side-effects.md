@@ -164,12 +164,16 @@ State:
   state (last step-produced state, falling back to its initial state) replaces the dependent's
   initial state in memory; a non-`Completed` source yields no state; a transient lookup failure
   requeues the workflow rather than failing it.
-- **Side-chain identification**: side-effects workflows are marked by the
-  `Process next side-effects:` OperationId prefix. Every consumer that inspects an instance's
-  workflow collection — the enqueue wait, failure classification, the resume-target lookup, and the
-  read-path status enrichment (see Related) — must exclude them via this marker
-  (`WorkflowEngineService.ScopeToCurrentChain` is the shared filter). The marker is a stopgap: the
-  engine does not currently expose `IsHead` on `WorkflowStatusResponse` (see follow-ups).
+- **Side-chain identification**: the engine persists the head-visibility directive verbatim
+  (`is_head`, nullable) and exposes it on `WorkflowStatusResponse` (`isHead`), so side-effects
+  workflows are identified by `isHead == false` — engine-owned data, not string matching. Every
+  consumer that inspects an instance's workflow collection — the enqueue wait, failure
+  classification, the resume-target lookup, the abandon-cancel, and the read-path status
+  enrichment (see Related) — excludes them via `WorkflowEngineService.IsSideEffectsWorkflow`
+  (`ScopeToCurrentChain` is the shared filter). The `Process next side-effects:` OperationId
+  prefix remains purely a human-readable naming convention for ops queries and logs. (An earlier
+  iteration used the prefix as the identification mechanism, as a stopgap while the engine did not
+  expose `IsHead`.)
 - **Reject/abandon interaction**: an `Abandoned` dependency *satisfies* dependents rather than
   condemning them (that is what lets a superseding reject run), so abandoning a pre-commit-failed
   Main would release its side-effects sibling — events for a transition that never committed.
@@ -189,10 +193,15 @@ State:
   depends only on its own Main, so a retrying `movedTo.Task_2` can be registered after
   `movedTo.Task_3` or `completed`. Event consumers must tolerate out-of-order delivery
   (per-transition ordering is kept).
-- Negative / accepted: side-effect failures no longer surface in the ProcessNext result. They remain
-  queryable in the engine (by collection key / `processNextInstanceGuid` label, filtered on the
-  `Process next side-effects:` marker) and must be monitored explicitly — see the observability note
-  in the integration layer's `AGENTS.md`.
+- Negative / accepted: side-effect failures no longer surface in the ProcessNext result (nor in the
+  read-path status annotation) — a terminally failed side chain means events were lost, silently
+  from the user's perspective. Mitigated with a dedicated telemetry dimension: the engine's
+  `engine.workflows.execution.failed` counter is tagged `is_head`, so `is_head="false"` isolates
+  side-chain failures for alerting (every increment is actionable, unlike Main failures which
+  surface to users). Failed side chains remain enumerable (`status=Failed`, `isHead: false`; or by
+  collection key / `processNextInstanceGuid` label) and redrivable via the engine's resume API —
+  the app's `process/resume` deliberately excludes them. See the observability + redrive runbook in
+  the integration layer's `AGENTS.md`.
 - Deployment ordering: the engine must ship before/with the app-lib version carrying this change. An
   older engine ignores the unknown `inheritStateFrom` field, leaving the side chain with a null state
   — a loud failure with no wrong events, but events would be lost. Both live in this monorepo and v9
@@ -215,8 +224,9 @@ State:
 
 ### Follow-ups
 
-- Engine: expose `IsHead` (or a per-workflow tag) in `WorkflowStatusResponse` and switch the
-  side-chain filter from the OperationId marker to it.
+- Wire an actual alert rule on `engine.workflows.execution.failed{is_head="false"}` in the
+  monitoring stack (the metric dimension ships with this decision; the alert is deployment
+  configuration).
 - A2 (diamond) if prompt post-commit event emission becomes a requirement.
 - Data retention review (platform-wide, not specific to this decision): document the engine's
   retention period in service-owner-facing material (DPIA support), and evaluate per-org retention

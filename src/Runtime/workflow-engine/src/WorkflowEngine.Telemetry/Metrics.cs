@@ -109,7 +109,11 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of workflows that terminated in a <c>Failed</c> state.
+    /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
+    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c>) and, for the execution
+    /// paths, <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>) - <c>is_head="false"</c>
+    /// isolates deliberately invisible workflows (non-blocking side chains) whose terminal
+    /// failures surface nowhere else and should be alerted on.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"

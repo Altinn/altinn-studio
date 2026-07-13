@@ -27,6 +27,12 @@ Tri-state control over head membership and head consumption:
 
 `IsHead = false` makes a workflow **invisible to collection head tracking**. It can still depend on heads for execution ordering (via `DependsOnHeads`), but from the collection's perspective the heads set is unchanged — as if this workflow was never part of the collection.
 
+The directive is persisted verbatim (`is_head`) and exposed on `WorkflowStatusResponse.isHead`, so
+status consumers can identify invisible workflows without relying on naming conventions, and the
+`engine.workflows.execution.failed` metric is tagged `is_head` — alert on `is_head="false"` to
+catch terminal failures of invisible workflows, which by construction gate nothing and are
+otherwise silent.
+
 ---
 
 ## Examples

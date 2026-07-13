@@ -193,19 +193,21 @@ public class WorkflowEngineServiceTests
         // The fire-and-forget side-effects workflows must never extend the wait or influence
         // failure classification. The same-batch one shares the anchor's timestamp, but a
         // dependent (auto-advance) batch's side-effects workflow is strictly newer than the
-        // anchor - only the OperationId marker excludes it.
+        // anchor - only the IsHead=false directive excludes it.
         var anchorCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-2);
         var anchor = CreateWorkflowStatus(createdAt: anchorCreatedAt);
         var sameBatchSideEffects = CreateWorkflowStatus(
             createdAt: anchorCreatedAt,
             operationId: "Process next side-effects: Task_1 -> Task_2",
-            status: PersistentItemStatus.Enqueued
+            status: PersistentItemStatus.Enqueued,
+            isHead: false
         );
         var dependent = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
         var dependentBatchSideEffects = CreateWorkflowStatus(
             createdAt: DateTimeOffset.UtcNow,
             operationId: "Process next side-effects: Task_2 -> Task_3",
-            status: PersistentItemStatus.Enqueued
+            status: PersistentItemStatus.Enqueued,
+            isHead: false
         );
         var workflows = new[] { anchor, sameBatchSideEffects, dependent, dependentBatchSideEffects };
 
@@ -224,7 +226,8 @@ public class WorkflowEngineServiceTests
         var failedSideEffects = CreateWorkflowStatus(
             createdAt: DateTimeOffset.UtcNow,
             operationId: "Process next side-effects: Task_1 -> Task_2",
-            status: PersistentItemStatus.Failed
+            status: PersistentItemStatus.Failed,
+            isHead: false
         );
 
         IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
@@ -236,9 +239,26 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public void IsSideEffectsWorkflow_MatchesOnlyTheSideEffectsOperationIdMarker()
+    public void IsSideEffectsWorkflow_MatchesOnlyTheIsHeadFalseDirective()
     {
+        // Identification is by the engine-persisted head-visibility directive, not the
+        // OperationId naming convention: a side-effects OperationId without IsHead=false is not
+        // matched, and IsHead=false is matched regardless of naming.
         Assert.True(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(
+                    createdAt: DateTimeOffset.UtcNow,
+                    operationId: "Process next side-effects: Task_1 -> Task_2",
+                    isHead: false
+                )
+            )
+        );
+        Assert.True(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: false)
+            )
+        );
+        Assert.False(
             WorkflowEngineService.IsSideEffectsWorkflow(
                 CreateWorkflowStatus(
                     createdAt: DateTimeOffset.UtcNow,
@@ -248,7 +268,7 @@ public class WorkflowEngineServiceTests
         );
         Assert.False(
             WorkflowEngineService.IsSideEffectsWorkflow(
-                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "Process next: Task_1 -> Task_2")
+                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: true)
             )
         );
     }
@@ -287,7 +307,8 @@ public class WorkflowEngineServiceTests
     private static WorkflowStatusResponse CreateWorkflowStatus(
         DateTimeOffset createdAt,
         PersistentItemStatus status = PersistentItemStatus.Completed,
-        string operationId = "op"
+        string operationId = "op",
+        bool? isHead = null
     ) =>
         new()
         {
@@ -297,6 +318,7 @@ public class WorkflowEngineServiceTests
             Namespace = Namespace,
             CreatedAt = createdAt,
             OverallStatus = status,
+            IsHead = isHead,
             Steps = [],
         };
 }
