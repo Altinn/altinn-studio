@@ -17,7 +17,7 @@ const appFrontend = new AppFrontend();
  *     honoured there.
  *
  * UI strings (app-libs nb.ts, keys process_workflow.*):
- *   processing  = "Går videre til {targetTask} …"
+ *   processing  = "Går videre til neste steg …" (deliberately never names the target task)
  *   failed      = heading "Noe gikk galt"
  *   retry       = button "Prøv igjen"
  */
@@ -94,8 +94,8 @@ describe('Live workflow status (real engine)', () => {
     submitAndReloadDuringTransition();
 
     // Committed task is still Task_1 during the pre-commit delay, so the reloaded session renders the
-    // live "advancing" state and the task's Send inn action is suppressed. (The engine does not resolve
-    // a targetTask for a pre-commit step, so the advancing text has no task name appended.)
+    // live "advancing" state and the task's Send inn action is suppressed. (The workflow's labels carry
+    // targetTask=Task_2 from enqueue time, but the advancing message deliberately never names it.)
     cy.contains('Går videre til', { timeout: 15000 }).should('be.visible');
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');

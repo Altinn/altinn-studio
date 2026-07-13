@@ -318,7 +318,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         if (ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask) is null)
         {
-            // Not started / ended: nothing is transitioning, so don't query the engine.
+            // Not started, or ended: there is no current task to annotate, so don't query the
+            // engine. Known gap: the final (task -> end) transition's post-commit steps still run
+            // AFTER `ended` is committed, and a terminal failure there parks the workflow as
+            // ResumeRequired - but with CurrentTask null this resolver reports Idle, so that
+            // failure never surfaces on a read. Detection is ops alerting on the engine's failed
+            // workflows (see the live workflow-status ADR).
             return idle;
         }
 

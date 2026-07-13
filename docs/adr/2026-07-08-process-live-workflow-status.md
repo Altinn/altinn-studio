@@ -218,12 +218,20 @@ Frontend:
   Submit/next affordances) and polls the instance until the status settles; `failed` replaces the
   task UI with a failure state and a **Retry** button calling `POST process/resume`, then
   returns to `processing` + poll. Because the state is sourced from the fetched instance, it
-  survives reloads and works cross-session.
+  survives reloads and works cross-session — including the failed state itself, which polls at a
+  slow jittered cadence (~10–12s) so a resume performed in another session converges here too;
+  a failed resume attempt likewise refetches before deciding whether an error is still worth
+  surfacing.
 - **Raw failure detail never reaches the citizen.** The read-path annotation ships only the
   failure `kind`; the citizen UI renders a localized generic message. Shipping unrendered detail
   "for diagnostics" would only widen exposure (any browser devtools sees the payload) while the
   same information is already logged server-side and persisted in the engine's error history. A
-  first-class, app-authored *user-safe* failure message is a follow-up.
+  first-class, app-authored *user-safe* failure message is a follow-up. The same rule applies to
+  the synchronous action responses: a failed `process/next`/`resume` ships a stable generic
+  `detail` derived from the failure kind, and its `workflowFailure` extension is stripped of the
+  recorded error message (the controller logs the raw text instead). The instantiation /
+  process-start recovery contract (`WorkflowInitializationProblemDetails`) is a separate,
+  machine-facing channel and is deliberately unchanged.
 - **Polling is jittered** (~2–3s) so many clients waiting on the same engine don't synchronise
   into a thundering herd — which would otherwise peak exactly when the engine is already slow.
   After ~20s in `processing` the UI adds a "taking longer than usual" reassurance line.
@@ -239,10 +247,11 @@ Frontend:
   (flipping it to pending), so without stickiness the UI would flip-flop between spinner and
   error page in an endless refetch loop — a pre-existing bug this change fixes; a later
   successful fetch clears the state and restores the UI.
-- **The synchronous error path converges on the same machine.** A `process/next` response
-  carrying `processNextState` (`retrying` → `processing`, `resumeRequired` → `failed`) refetches
-  the live-enriched instance and lets the polled status take over, instead of a hard error toast
-  — finally consuming the extensions the frontend previously ignored.
+- **The synchronous error path converges on the same machine.** Both a blocked `process/next`
+  (409 carrying `processNextState`: `retrying` → `processing`, `resumeRequired` → `failed`) and a
+  terminally failed or timed-out one (500/504 carrying `workflowFailure`) refetch the
+  live-enriched instance and let the polled status take over, instead of a hard error toast —
+  finally consuming the extensions the frontend previously ignored.
 - **The processing message does not name the target task.** Task ids aren't user-facing and app
   authors rarely give them meaningful names; `targetTask` stays in the contract for diagnostics
   and other consumers.
@@ -269,6 +278,13 @@ Frontend:
   the annotation resolves off collection heads, and side-effects workflows are `IsHead=false`, so
   a running or failed side-effects workflow never surfaces as `processing`/`failed` on a read.
   This is intentional — they are non-blocking by design and monitored via the engine instead.
+- Known gap / accepted: the resolver reports `idle` for a process that has **ended**
+  (`CurrentTask == null`) without consulting the engine, but the final (task → end) transition's
+  post-commit steps (e.g. `CompletedAltinnEvent`, configured deletes) still run *after* `ended`
+  is committed. A terminal failure there parks the workflow as ResumeRequired in the engine, yet
+  no read ever surfaces it — the receipt renders normally and there is no user-facing retry.
+  Detection and recovery is ops alerting on the engine's failed workflows. Revisit if these
+  post-end steps ever gain user-visible significance.
 
 ### Follow-ups (not blockers)
 
