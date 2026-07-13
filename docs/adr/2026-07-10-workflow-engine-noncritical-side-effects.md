@@ -135,8 +135,9 @@ State:
 - Good (B4): The side-effects workflow sees **Main's full final evolved state** — the committed (NEW)
   process state plus every data change Main's commands made. That is exactly the view the trailing
   post-commit steps had before the split, so future side-effect commands are not restricted in what
-  they may read. No Storage fetch (survives hard auto-delete at process end), no fetch-the-latest
-  race under auto-advance.
+  they may read. No Storage fetch — the side chain runs off the engine's own persisted state, so it
+  works even when the transition ended the process and auto-deleted the instance from Storage (see
+  the data-retention consequence below) — and no fetch-the-latest race under auto-advance.
 - Good (B5): A general engine primitive (see semantics below), useful to any batch author, rather
   than app-side special-casing.
 - Good: Fail-safe by construction — a workflow whose inheritance source did not complete runs with a
@@ -196,6 +197,19 @@ State:
   older engine ignores the unknown `inheritStateFrom` field, leaving the side chain with a null state
   — a loud failure with no wrong events, but events would be lost. Both live in this monorepo and v9
   is unreleased, so this is a release-notes concern, not a migration.
+- **Data retention (deliberate, bounded).** The engine's persisted workflow state (`initial_state`,
+  per-step `state_out`) embeds the app's callback state — instance metadata, process state, and form
+  data. This is inherent to the state-passthrough design of *every* workflow-engine-backed
+  transition, not new to this decision, but state inheritance makes it load-bearing: the side chain
+  runs off that state even after the instance itself was hard-deleted from Storage at process end.
+  The bounds and controls are: terminal workflows (and their state) are purged by the engine's
+  retention job — default `Retention.RetentionPeriod` of **60 days** (2h sweep interval),
+  configurable per deployment; the engine database is scoped **per org** and is not routed outside
+  the cluster (neither the database nor the dashboard is reachable externally, and no human-facing
+  surface exposes the blobs); an org can have its namespace pruned on request. There is deliberately
+  **no erasure hook** from instance deletion into engine state — engine state is treated as
+  short-lived processing data with a bounded lifetime, not as a copy of the archive. Aligning this
+  explicitly with data-minimization/erasure requirements is a follow-up.
 - Out of scope: this gates **workflow ordering** only. It does not prevent ad-hoc data mutation
   (direct PATCH) while a service task runs — that remains a client/data-path concern.
 
@@ -204,6 +218,10 @@ State:
 - Engine: expose `IsHead` (or a per-workflow tag) in `WorkflowStatusResponse` and switch the
   side-chain filter from the OperationId marker to it.
 - A2 (diamond) if prompt post-commit event emission becomes a requirement.
+- Data retention review (platform-wide, not specific to this decision): document the engine's
+  retention period in service-owner-facing material (DPIA support), and evaluate per-org retention
+  configuration and a purge-by-collection-key operation so an erasure request can also clear the
+  corresponding engine state ahead of the retention sweep.
 
 ## Related
 
