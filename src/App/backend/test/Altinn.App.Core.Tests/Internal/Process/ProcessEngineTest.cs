@@ -3124,6 +3124,159 @@ public sealed class ProcessEngineTest
             },
         };
 
+    [Fact]
+    public async Task EnqueueProcessNextNoWait_LocksByInstanceIdentifiers_WithServiceOwnerAuth()
+    {
+        // The no-wait advance runs outside an instance-scoped HTTP request (the FiksIO listener
+        // thread, the Events webhook): the instance lock must be initialized from the instance's own
+        // identifiers (the parameterless InitLock() reads HttpContext route values and would throw)
+        // and acquired with ServiceOwner authentication (there is no user context). Gateway
+        // evaluation must likewise use explicit ServiceOwner storage auth. Regression test for all
+        // three.
+        var instanceLockMock = new Mock<IInstanceLock>(MockBehavior.Strict);
+        instanceLockMock
+            .Setup(l => l.Lock(null, It.IsNotNull<StorageAuthenticationMethod>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+        instanceLockMock.Setup(l => l.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+        var instanceLockerMock = new Mock<IInstanceLocker>(MockBehavior.Strict);
+        instanceLockerMock
+            .Setup(x => x.InitLock(_instanceOwnerPartyId, _instanceGuid))
+            .Returns(instanceLockMock.Object)
+            .Verifiable(Times.Once);
+        instanceLockerMock.Setup(x => x.CurrentLockToken).Returns("test-lock-token");
+
+        var services = new ServiceCollection();
+        services.AddTransient<IInstanceLocker>(_ => instanceLockerMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+
+        fixture
+            .Mock<IProcessNavigator>()
+            .Setup(pn =>
+                pn.GetNextTask(
+                    It.IsAny<Instance>(),
+                    "Task_1",
+                    It.IsAny<string?>(),
+                    It.IsNotNull<StorageAuthenticationMethod>()
+                )
+            )
+            .ReturnsAsync(() =>
+                new ProcessTask()
+                {
+                    Id = "Task_2",
+                    Incoming = new List<string> { "Flow_2" },
+                    Outgoing = new List<string> { "Flow_3" },
+                    Name = "Bekreft",
+                    ExtensionElements = new() { TaskExtension = new() { TaskType = AltinnTaskTypes.Confirmation } },
+                }
+            );
+
+        Instance instance = new Instance()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            Org = "org",
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                Started = DateTime.UtcNow,
+                CurrentTask = new ProcessElementInfo()
+                {
+                    ElementId = "Task_1",
+                    AltinnTaskType = "fiksArkiv",
+                    Flow = 2,
+                },
+            },
+        };
+
+        // The required-task-type match is case-insensitive.
+        await fixture.ProcessEngine.EnqueueProcessNextNoWait(
+            instance,
+            new Actor { OrgId = "org" },
+            action: null,
+            requiredCurrentTaskType: "FIKSARKIV"
+        );
+
+        instanceLockerMock.Verify();
+        instanceLockMock.Verify();
+        fixture
+            .Mock<IWorkflowEngineClient>()
+            .Verify(
+                c =>
+                    c.EnqueueWorkflows(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<WorkflowEnqueueRequest>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+    }
+
+    [Fact]
+    public async Task EnqueueProcessNextNoWait_RedeliveredTriggerAfterCommittedAdvance_DoesNotAdvanceAgain()
+    {
+        // At-least-once triggers (FiksIO redelivery, Events retries) can arrive again after the first
+        // advance has committed - e.g. because a follow-up Storage call failed and the trigger was
+        // redelivered. The instance is then no longer on the parked service task, and recomputing a
+        // transition would advance the NEXT task (silently completing a user's task as the service
+        // owner). With requiredCurrentTaskType declared, the advance must be skipped entirely:
+        // no lock, no workflow enqueued. (An ended process takes the same path: CurrentTask is null.)
+        var instanceLockerMock = new Mock<IInstanceLocker>(MockBehavior.Strict);
+        var services = new ServiceCollection();
+        services.AddTransient<IInstanceLocker>(_ => instanceLockerMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+
+        Instance instance = new Instance()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            Org = "org",
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                Started = DateTime.UtcNow,
+                // The first advance already committed: the process has moved past the service task.
+                CurrentTask = new ProcessElementInfo()
+                {
+                    ElementId = "Task_2",
+                    AltinnTaskType = "confirmation",
+                    Flow = 3,
+                },
+            },
+        };
+
+        await fixture.ProcessEngine.EnqueueProcessNextNoWait(
+            instance,
+            new Actor { OrgId = "org" },
+            action: null,
+            requiredCurrentTaskType: "fiksArkiv"
+        );
+
+        instanceLockerMock.VerifyNoOtherCalls();
+        fixture
+            .Mock<IWorkflowEngineClient>()
+            .Verify(
+                c =>
+                    c.EnqueueWorkflows(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<WorkflowEnqueueRequest>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
+            );
+    }
+
     private sealed record Fixture(IServiceProvider ServiceProvider) : IAsyncDisposable
     {
         public LegacyProcessEngine ProcessEngine =>

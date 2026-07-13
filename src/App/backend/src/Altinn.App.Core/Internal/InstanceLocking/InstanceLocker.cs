@@ -138,7 +138,12 @@ internal sealed class InstanceLocker(
         private static readonly TimeSpan _defaultTtl = TimeSpan.FromMinutes(5);
         private bool _disposed;
 
-        public async Task Lock(TimeSpan? ttl = null)
+        // The authentication method chosen at acquisition time; reused for TTL updates and release so
+        // every lock operation of this handle authenticates the same way (e.g. ServiceOwner for
+        // system-initiated callers that have no user context).
+        private StorageAuthenticationMethod? _authenticationMethod;
+
+        public async Task Lock(TimeSpan? ttl = null, StorageAuthenticationMethod? authenticationMethod = null)
         {
             ThrowIfDisposed();
 
@@ -147,7 +152,13 @@ internal sealed class InstanceLocker(
                 return;
             }
 
-            var lockToken = await client.AcquireInstanceLock(instanceGuid, instanceOwnerPartyId, ttl ?? _defaultTtl);
+            _authenticationMethod = authenticationMethod;
+            var lockToken = await client.AcquireInstanceLock(
+                instanceGuid,
+                instanceOwnerPartyId,
+                ttl ?? _defaultTtl,
+                authenticationMethod
+            );
             holder.LockToken = lockToken;
         }
 
@@ -156,7 +167,7 @@ internal sealed class InstanceLocker(
             ThrowIfDisposed();
 
             var lockToken = holder.LockToken ?? throw new InvalidOperationException("No lock held.");
-            await client.UpdateInstanceLock(instanceGuid, instanceOwnerPartyId, lockToken, ttl);
+            await client.UpdateInstanceLock(instanceGuid, instanceOwnerPartyId, lockToken, ttl, _authenticationMethod);
         }
 
         public async ValueTask DisposeAsync()
@@ -179,7 +190,13 @@ internal sealed class InstanceLocker(
 
             try
             {
-                await client.UpdateInstanceLock(instanceGuid, instanceOwnerPartyId, lockToken, TimeSpan.Zero);
+                await client.UpdateInstanceLock(
+                    instanceGuid,
+                    instanceOwnerPartyId,
+                    lockToken,
+                    TimeSpan.Zero,
+                    _authenticationMethod
+                );
 
                 holder.LockToken = null;
                 holder.ReleaseHandle();

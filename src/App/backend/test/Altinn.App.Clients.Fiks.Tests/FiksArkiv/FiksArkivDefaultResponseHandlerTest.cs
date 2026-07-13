@@ -137,6 +137,9 @@ public class FiksArkivDefaultResponseHandlerTest
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
                     "the-action",
+                    // The redelivery guard: the advance only applies while the instance is still
+                    // parked on the fiksArkiv service task.
+                    "fiksArkiv",
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -244,6 +247,9 @@ public class FiksArkivDefaultResponseHandlerTest
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
                     "the-action",
+                    // The redelivery guard: the advance only applies while the instance is still
+                    // parked on the fiksArkiv service task.
+                    "fiksArkiv",
                     It.IsAny<CancellationToken>()
                 )
             )

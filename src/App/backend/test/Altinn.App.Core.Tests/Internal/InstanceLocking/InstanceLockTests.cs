@@ -1,5 +1,6 @@
 using System.Net;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Helpers;
@@ -8,6 +9,7 @@ using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.InstanceLocking;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -635,6 +637,62 @@ public sealed class InstanceLockTests
 
         await using var newHandle = instanceLocker.InitLock();
         Assert.NotNull(newHandle);
+    }
+
+    [Fact]
+    public async Task Lock_WithExplicitIdentifiersAndServiceOwnerAuth_WorksWithoutHttpContext()
+    {
+        // System-initiated advances (the FiksIO listener thread, the Events webhook) run outside an
+        // instance-scoped HTTP request: there is no HttpContext with instance route values and no
+        // authenticated user. The lock must therefore be initialized from explicit identifiers and
+        // acquired with ServiceOwner authentication. Regression test for the parked-service-task
+        // advance path (ProcessEngine).
+        const int instanceOwnerPartyId = 4321;
+        var instanceGuid = Guid.NewGuid();
+
+        var capturedAuthMethods = new List<AuthenticationMethod>();
+        var tokenResolverMock = new Mock<IAuthenticationTokenResolver>(MockBehavior.Strict);
+        tokenResolverMock
+            .Setup(r => r.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .Callback((AuthenticationMethod method, CancellationToken _) => capturedAuthMethods.Add(method))
+            .ReturnsAsync(JwtToken.Parse(TestAuthentication.GetServiceOwnerToken()));
+
+        using var fixture = Fixture.Create(services =>
+        {
+            // No HttpContext at all - mirrors a background thread / non-instance-scoped request.
+            services.AddSingleton<IHttpContextAccessor>(new HttpContextAccessor { HttpContext = null });
+            services.AddSingleton(tokenResolverMock.Object);
+        });
+
+        var lockToken = GenerateLockToken(Guid.NewGuid());
+        var lockPath = $"/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/lock";
+
+        fixture
+            .Server.Given(Request.Create().WithPath(lockPath).UsingPost())
+            .RespondWith(
+                Response
+                    .Create()
+                    .WithStatusCode(HttpStatusCode.OK)
+                    .WithBodyAsJson(new InstanceLockResponse { LockToken = lockToken })
+            );
+        fixture
+            .Server.Given(Request.Create().WithPath(lockPath).UsingPatch())
+            .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.OK));
+
+        var instanceLocker = fixture.ServiceProvider.GetRequiredService<InstanceLocker>();
+
+        await using (var handle = instanceLocker.InitLock(instanceOwnerPartyId, instanceGuid))
+        {
+            await handle.Lock(authenticationMethod: StorageAuthenticationMethod.ServiceOwner());
+            Assert.Equal(lockToken, instanceLocker.CurrentLockToken);
+        }
+
+        // Acquire + release both hit the identifier-derived endpoint.
+        Assert.Equal(2, fixture.Server.LogEntries.Count);
+
+        // Every lock operation authenticated as service owner - never as the (nonexistent) current user.
+        Assert.Equal(2, capturedAuthMethods.Count);
+        Assert.All(capturedAuthMethods, method => Assert.IsType<AuthenticationMethod.AltinnToken>(method));
     }
 
     private string GenerateLockToken(Guid lockId)

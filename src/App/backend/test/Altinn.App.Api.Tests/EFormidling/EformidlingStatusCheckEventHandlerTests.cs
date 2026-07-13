@@ -100,6 +100,9 @@ public class EformidlingStatusCheckEventHandlerTests
                     It.IsAny<Instance>(),
                     It.IsAny<Actor>(),
                     It.IsAny<string?>(),
+                    // The redelivery guard: the advance only applies while the instance is still
+                    // parked on the eFormidling service task.
+                    "eFormidling",
                     It.IsAny<CancellationToken>()
                 )
             )

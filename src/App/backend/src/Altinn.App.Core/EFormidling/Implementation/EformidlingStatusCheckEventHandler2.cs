@@ -109,6 +109,8 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
     /// in-process <see cref="IProcessEngine"/> as the service owner — no self HTTP call, no Maskinporten. The
     /// engine auto-appends the workflow onto the collection's current heads (running it immediately when idle,
     /// or chaining after an in-flight advance), so it returns as soon as the engine has durably accepted it.
+    /// Requiring the current task to still be the eFormidling service task makes retried Events deliveries
+    /// (e.g. after a failed complete-confirmation) a safe no-op once the advance has committed.
     /// </summary>
     private async Task ProcessMoveNext(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier)
     {
@@ -124,7 +126,11 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
             StorageAuthenticationMethod.ServiceOwner()
         );
 
-        await processEngine.EnqueueProcessNextNoWait(instance, new Actor { OrgId = appIdentifier.Org });
+        await processEngine.EnqueueProcessNextNoWait(
+            instance,
+            new Actor { OrgId = appIdentifier.Org },
+            requiredCurrentTaskType: AltinnTaskTypes.EFormidling
+        );
         _logger.LogInformation("Enqueued process-next for instance {instanceId}.", instanceIdentifier);
     }
 

@@ -690,14 +690,24 @@ internal class ProcessEngine : IProcessEngine
     /// Core BPMN transition logic. Computes the ProcessStateChange for moving from the current task
     /// to the next element. Does NOT mutate instance.Process.
     /// Used by both the normal process-next flow and auto-advance.
+    /// <paramref name="gatewayAuthenticationMethod"/> selects the Storage authentication used when
+    /// evaluating data-driven gateway conditions; system-initiated transitions with no user context
+    /// pass ServiceOwner, user-driven transitions pass null (current user).
     /// </summary>
-    private async Task<ProcessStateChange> ComputeNextTransition(Instance instance, string? action, PlatformUser user)
+    private async Task<ProcessStateChange> ComputeNextTransition(
+        Instance instance,
+        string? action,
+        PlatformUser user,
+        StorageAuthenticationMethod? gatewayAuthenticationMethod = null
+    )
     {
         ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
         string currentTaskId =
             process.CurrentTask?.ElementId ?? throw new ProcessException("Current task element ID is null");
 
-        ProcessElement? nextElement = await _processNavigator.GetNextTask(instance, currentTaskId, action);
+        ProcessElement? nextElement = gatewayAuthenticationMethod is null
+            ? await _processNavigator.GetNextTask(instance, currentTaskId, action)
+            : await _processNavigator.GetNextTask(instance, currentTaskId, action, gatewayAuthenticationMethod);
         if (nextElement is null)
             throw new ProcessException("Next process element was unexpectedly null");
 
@@ -893,15 +903,50 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         Actor actor,
         string? action = null,
+        string? requiredCurrentTaskType = null,
         CancellationToken ct = default
     )
     {
-        await using var instanceLock = _instanceLocker.InitLock();
-        await instanceLock.Lock();
+        // Redelivered-trigger guard: asynchronous triggers (FiksIO redelivery, Events retries) are
+        // at-least-once. The idempotency key only deduplicates while the first advance is uncommitted;
+        // once it has committed, the instance's current task has moved on and a recomputed transition
+        // would advance the NEXT task. When the caller declares which task type its trigger belongs to,
+        // an advance for an instance that is no longer on that task is a no-op.
+        if (requiredCurrentTaskType is not null)
+        {
+            string? currentTaskType = instance.Process?.CurrentTask?.AltinnTaskType;
+            if (!string.Equals(currentTaskType, requiredCurrentTaskType, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(
+                    "Skipping process-next enqueue for instance {InstanceId}: the current task type '{CurrentTaskType}' is not the expected '{RequiredCurrentTaskType}'. The trigger was most likely redelivered after the advance already committed.",
+                    instance.Id,
+                    LogSanitizer.Sanitize(currentTaskType ?? "none"),
+                    LogSanitizer.Sanitize(requiredCurrentTaskType)
+                );
+                return;
+            }
+        }
+
+        // This runs outside an instance-scoped HTTP request (FiksIO listener thread, Events webhook), so the
+        // lock must be initialized from the instance itself — the parameterless InitLock() resolves identifiers
+        // from HttpContext route values — and acquired with ServiceOwner auth, since there is no user context.
+        InstanceIdentifier instanceIdentifier = new(instance);
+        await using var instanceLock = _instanceLocker.InitLock(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid
+        );
+        await instanceLock.Lock(authenticationMethod: StorageAuthenticationMethod.ServiceOwner());
         string lockToken =
             _instanceLocker.CurrentLockToken
             ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock");
 
+        // Note on lock lifetime: this lock is released when this method returns — i.e. before the enqueued
+        // workflow runs — unlike the user-driven path, which holds the lock until the collection settles. That
+        // is intentional: the engine serializes the instance's workflows via DependsOnHeads, and the lock token
+        // baked into the workflow is only consulted by Storage when a lock is actually held. With no lock held
+        // the callback's writes proceed normally; if a third party holds a lock by then, the stale token
+        // mismatches and the writes are rejected until that lock is released (the engine retries). The brief
+        // lock here only serializes the enqueue itself against concurrent lockers.
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
         string? altinnTaskType = instance.Process?.CurrentTask?.AltinnTaskType;
 
@@ -916,7 +961,12 @@ internal class ProcessEngine : IProcessEngine
         string state = await _workflowCallbackStateService.CaptureState(unitOfWork);
 
         PlatformUser user = CreatePlatformUser(actor);
-        ProcessStateChange processStateChange = await ComputeNextTransition(instance, action, user);
+        ProcessStateChange processStateChange = await ComputeNextTransition(
+            instance,
+            action,
+            user,
+            gatewayAuthenticationMethod: StorageAuthenticationMethod.ServiceOwner()
+        );
 
         string resolvedAction =
             action ?? (altinnTaskType is { } taskType ? ConvertTaskTypeToAction(taskType) : "write");

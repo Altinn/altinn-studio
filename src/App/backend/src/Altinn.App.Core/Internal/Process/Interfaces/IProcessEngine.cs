@@ -63,10 +63,21 @@ internal interface IProcessEngine
     /// the collection is idle, or chains it after the active head. Computes the transition and captures the
     /// callback state internally; does not mutate the <paramref name="instance"/>.
     /// </summary>
+    /// <param name="instance">The instance to advance, freshly fetched by the caller.</param>
+    /// <param name="actor">The system actor performing the advance (e.g. the service owner org).</param>
+    /// <param name="action">The process action, or null for the task type's default action.</param>
+    /// <param name="requiredCurrentTaskType">
+    /// The altinn task type the trigger belongs to (e.g. the parked service task awaiting this reply).
+    /// When set and the instance's current task is no longer of this type, the advance is skipped with a
+    /// warning instead of advancing an unrelated task — this is what makes at-least-once triggers
+    /// (FiksIO redelivery, Events retries) safe after the original advance has committed.
+    /// </param>
+    /// <param name="ct">Cancellation token.</param>
     Task EnqueueProcessNextNoWait(
         Instance instance,
         Actor actor,
         string? action = null,
+        string? requiredCurrentTaskType = null,
         CancellationToken ct = default
     );
 }

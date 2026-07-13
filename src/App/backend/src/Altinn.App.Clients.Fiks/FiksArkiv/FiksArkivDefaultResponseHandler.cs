@@ -1,6 +1,7 @@
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
@@ -112,7 +113,8 @@ internal sealed class FiksArkivDefaultResponseHandler : IFiksArkivResponseHandle
     /// in-process <see cref="IProcessEngine"/> as the service owner — no self HTTP call, no Maskinporten. The
     /// engine auto-appends the workflow onto the collection's current heads (running it immediately when idle,
     /// or chaining after an in-flight advance), so there is nothing to gate on here; it returns as soon as the
-    /// engine has durably accepted the enqueue.
+    /// engine has durably accepted the enqueue. Requiring the current task to still be the Fiks Arkiv service
+    /// task makes redelivered FiksIO messages a safe no-op after the advance has committed.
     /// </summary>
     private async Task MoveProcessNext(Instance instance, string? action, CancellationToken cancellationToken)
     {
@@ -122,7 +124,8 @@ internal sealed class FiksArkivDefaultResponseHandler : IFiksArkivResponseHandle
             instance,
             new Actor { OrgId = instance.Org },
             action,
-            cancellationToken
+            requiredCurrentTaskType: AltinnTaskTypes.FiksArkiv,
+            ct: cancellationToken
         );
     }
 }

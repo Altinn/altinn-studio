@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.InstanceLocking;
 
 namespace Altinn.App.Api.Tests.Mocks;
@@ -39,7 +40,8 @@ internal sealed class InstanceLockerMock : IInstanceLocker
     {
         public static readonly NoOpLock Instance = new();
 
-        public Task Lock(TimeSpan? ttl = null) => Task.CompletedTask;
+        public Task Lock(TimeSpan? ttl = null, StorageAuthenticationMethod? authenticationMethod = null) =>
+            Task.CompletedTask;
 
         public Task UpdateTtl(TimeSpan ttl) => Task.CompletedTask;
 
