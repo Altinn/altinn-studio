@@ -16,7 +16,7 @@ import {
 import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
 import { PlusIcon } from '@studio/icons';
 import { usePdf } from '../../hooks/usePdf/usePdf';
-import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';

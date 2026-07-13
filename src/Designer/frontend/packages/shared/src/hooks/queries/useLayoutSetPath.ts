@@ -1,4 +1,4 @@
-import { usePagesQuery } from '@altinn/ux-editor/hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';

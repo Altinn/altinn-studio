@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';
 import { useConvertToPageGroups } from '../../hooks/mutations/useConvertToPageGroups';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { StudioSpinner, StudioSectionHeader, StudioButton } from '@studio/components';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
