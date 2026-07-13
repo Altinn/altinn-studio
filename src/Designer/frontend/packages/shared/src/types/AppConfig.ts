@@ -19,8 +19,6 @@ export type AppConfigNew = {
   rightDescription?: SupportedLanguage;
   keywords?: Keyword[];
   status?: StatusOption;
-  selfIdentifiedUserEnabled?: boolean;
-  enterpriseUserEnabled?: boolean;
   contactPoints?: ContactPoint[];
   visible?: boolean;
 };
