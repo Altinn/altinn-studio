@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
@@ -12,6 +12,8 @@ import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/u
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getFeature } from 'src/features/toggles';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useAsRef } from 'src/hooks/useAsRef';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsDataModelBindingValidation } from 'src/layout';
 import { ProcessTaskType } from 'src/types';
 import {
@@ -49,20 +51,16 @@ export function LayoutPropertiesValidation({ children }: PropsWithChildren) {
   const replaceErrors = FormStore.raw.useStaticSelector((state) => state.layoutDiagnostics.replaceErrors);
   const bootstrap = FormStore.raw.useMemoSelector((state) => state.bootstrap);
   const application = getApplicationMetadata();
-  const { langAsString } = useLanguage();
+  const langAsStringRef = useAsRef(useLanguage().langAsString);
   const hasInstance = useLaxInstanceId() !== undefined;
   const signingTaskMismatch = useSigningTaskMismatch();
-  const validationRun = useMemo<LayoutPropertiesValidationContext>(
-    () => ({
-      application,
-      bootstrap,
-      hasInstance,
-      langAsString,
-      schemaValidator,
-      signingTaskMismatch,
-    }),
-    [application, bootstrap, hasInstance, langAsString, schemaValidator, signingTaskMismatch],
-  );
+  const validationRun = useShallowMemo<Omit<LayoutPropertiesValidationContext, 'langAsString'>>({
+    application,
+    bootstrap,
+    hasInstance,
+    schemaValidator,
+    signingTaskMismatch,
+  });
   const [completedValidationRun, setCompletedValidationRun] = useState<typeof validationRun | undefined>();
 
   useEffect(() => {
@@ -70,14 +68,14 @@ export function LayoutPropertiesValidation({ children }: PropsWithChildren) {
       validateLayoutProperties({
         bootstrap: validationRun.bootstrap,
         schemaValidator: validationRun.schemaValidator,
-        langAsString: validationRun.langAsString,
+        langAsString: langAsStringRef.current,
         hasInstance: validationRun.hasInstance,
         application: validationRun.application,
         signingTaskMismatch: validationRun.signingTaskMismatch,
       }),
     );
     setCompletedValidationRun(validationRun);
-  }, [replaceErrors, validationRun]);
+  }, [langAsStringRef, replaceErrors, validationRun]);
 
   if (!enabled) {
     return children;
