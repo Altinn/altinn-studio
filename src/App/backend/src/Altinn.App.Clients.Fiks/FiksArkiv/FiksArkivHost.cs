@@ -397,6 +397,19 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         IReadOnlyList<ProcessTask> configuredProcessTasks
     )
     {
+        // The fiksArkiv service task parks while waiting for the asynchronous archive receipt, and only the
+        // response handler advances it (per SuccessHandling). If success handling will never advance the
+        // process, instances stay parked on the service task until moved manually - warn loudly up front.
+        if (_fiksArkivSettings.SuccessHandling is not { MoveToNextTask: true })
+        {
+            _logger.LogWarning(
+                "FiksArkivSettings.SuccessHandling.MoveToNextTask is disabled (or SuccessHandling is not configured). "
+                    + "The fiksArkiv service task parks while waiting for the archive receipt, and with this "
+                    + "configuration nothing will advance the process automatically when the receipt arrives - "
+                    + "instances will remain on the service task until the process is moved manually."
+            );
+        }
+
         if (_fiksArkivSettings.Receipt is null)
             throw new FiksArkivConfigurationException(
                 $"{nameof(FiksArkivSettings.Receipt)} configuration is required, but missing."

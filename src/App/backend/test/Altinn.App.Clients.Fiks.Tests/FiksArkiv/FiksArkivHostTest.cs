@@ -445,4 +445,65 @@ public class FiksArkivHostTest
 
         await signal.WaitAsync(TimeSpan.FromSeconds(5));
     }
+
+    [Fact]
+    public async Task ValidateConfiguration_WarnsWhenSuccessHandlingWillNeverAdvanceTheProcess()
+    {
+        // Arrange: with parking semantics the fiksArkiv service task waits for the archive receipt,
+        // and only SuccessHandling.MoveToNextTask advances it. A configuration that never advances
+        // leaves instances parked forever - that deserves a loud advisory at validation time.
+        var loggerMock = new Mock<ILogger<FiksArkivHost>>();
+        var settingsOverride = TestHelpers.DefaultFiksArkivSettings;
+        settingsOverride.SuccessHandling = new FiksArkivSuccessHandlingSettings { MoveToNextTask = false };
+
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(loggerMock.Object);
+            },
+            [("CustomFiksArkivSettings", settingsOverride)],
+            useDefaultFiksArkivSettings: false
+        );
+
+        // Act: the park-forever advisory fires up front, independent of the outcome of the rest of
+        // the validation (which may throw for unrelated reasons given these minimal data types).
+        await Record.ExceptionAsync(() => fixture.FiksArkivHost.ValidateConfiguration([], []));
+
+        // Assert
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(
+                LogLevel.Warning,
+                "nothing will advance the process automatically",
+                loggerMock.Object
+            ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task ValidateConfiguration_DoesNotWarnWhenSuccessHandlingAdvancesTheProcess()
+    {
+        // Arrange: the default settings advance on success (MoveToNextTask = true) - no advisory.
+        var loggerMock = new Mock<ILogger<FiksArkivHost>>();
+
+        await using var fixture = TestFixture.Create(services =>
+        {
+            services.AddFiksArkiv();
+            services.AddSingleton(loggerMock.Object);
+        });
+
+        // Act
+        await Record.ExceptionAsync(() => fixture.FiksArkivHost.ValidateConfiguration([], []));
+
+        // Assert
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(
+                LogLevel.Warning,
+                "nothing will advance the process automatically",
+                loggerMock.Object
+            ),
+            Times.Never
+        );
+    }
 }
