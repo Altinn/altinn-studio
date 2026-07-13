@@ -21,7 +21,7 @@ function getInstanceWithWorkflow(workflow?: IProcessWorkflow): IInstanceWithProc
   return instance;
 }
 
-async function renderProcessWrapper(workflow?: IProcessWorkflow, waitUntilLoaded = true) {
+async function renderProcessWrapper(workflow?: IProcessWorkflow, waitUntilLoaded = true, query?: string) {
   return renderWithInstanceAndLayout({
     renderer: () => (
       <ProcessWrapper>
@@ -29,6 +29,7 @@ async function renderProcessWrapper(workflow?: IProcessWorkflow, waitUntilLoaded
       </ProcessWrapper>
     ),
     waitUntilLoaded,
+    query,
     apis: {
       instanceApi: {
         getInstance: async () => getInstanceWithWorkflow(workflow),
@@ -64,6 +65,16 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/task_2/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
+  });
+
+  it('processing does NOT replace the task in PDF mode', async () => {
+    // The PDF service task renders the page while the transition is processing (by definition), so
+    // the live-status replacement must not apply - it would swallow #readyForPrint and deadlock
+    // the PDF generation the render is part of.
+    await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, true, 'pdf=1');
+
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByText(/går videre til neste steg/i)).not.toBeInTheDocument();
   });
 
   it('failed shows the generic localized message, suppresses the task, and Retry calls resume', async () => {

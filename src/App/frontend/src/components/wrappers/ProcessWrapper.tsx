@@ -16,7 +16,7 @@ import { getProcessNextMutationKey, useProcessResume } from 'src/features/instan
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
+import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTask } from 'src/features/process/service/ServiceTask';
@@ -144,6 +144,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
   const workflow = useProcessWorkflow();
+  const isPdfMode = usePdfModeActive();
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
@@ -174,7 +175,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // Sourced from the fetched process state so it survives reloads and concurrent sessions. While a
   // transition is in flight or has failed, we replace the current task's UI entirely (which also
   // suppresses its Submit/next affordances, since those live inside the task components below).
-  if (workflow?.status === 'processing') {
+  // PDF mode must bypass this replacement: the PDF service task renders the page *during* the
+  // transition (workflow.status === 'processing' by definition), so gating on it would replace the
+  // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
+  if (!isPdfMode && workflow?.status === 'processing') {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowProcessing />
@@ -182,7 +186,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
-  if (workflow?.status === 'failed') {
+  if (!isPdfMode && workflow?.status === 'failed') {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowFailed />
