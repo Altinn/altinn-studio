@@ -117,6 +117,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
 
+        // Runs after Job 10 so eFormidling service tasks inserted by it are analyzed too.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateParkedServiceTaskWaitSteps(projectFolder));
+
         UpgradeConsole.WriteLine(
             returnCode switch
             {
@@ -624,6 +628,55 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating eFormidling service tasks: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Job 11: Remove feedback waiting steps made redundant by v9's parking fiksArkiv/eFormidling
+    /// service tasks (the reply advances the service task directly, so a trailing waiting step is
+    /// never advanced). Runs after Job 10 so eFormidling service tasks inserted by it are covered.
+    /// </summary>
+    static async Task<int> MigrateParkedServiceTaskWaitSteps(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Analyzing waiting steps after fiksArkiv/eFormidling service tasks..."
+            );
+
+            var migrator = new ParkedServiceTaskMigration.ParkedServiceTaskMigrator(projectFolder);
+            var result = await migrator.Migrate();
+
+            foreach (var note in migrator.GetNotes())
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {note}");
+            }
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Waiting-step migration needs manual follow-up. Review the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync(
+                result.Warnings.Count > 0
+                    ? "Waiting-step migration completed with warnings. Review the warnings above."
+                    : "Waiting-step migration completed"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating waiting steps: {ex.Message}");
             return ExitError;
         }
     }
