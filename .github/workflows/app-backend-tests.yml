@@ -8,6 +8,8 @@ on:
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/**'
       - '.github/workflows/app-backend-tests.yml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

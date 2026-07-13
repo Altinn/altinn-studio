@@ -11,6 +11,8 @@ on:
       - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
       - 'yarn.lock'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

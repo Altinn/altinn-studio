@@ -11,6 +11,8 @@ on:
       - 'src/Runtime/workflow-engine/Directory.Packages.props'
       - 'src/Runtime/workflow-engine/typos.toml'
       - '.github/workflows/runtime-workflow-engine-tests.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

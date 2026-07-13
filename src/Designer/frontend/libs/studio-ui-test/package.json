@@ -22,8 +22,9 @@
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/user-event": "14.6.1",
     "@types/jest": "30.0.0",
+    "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.5.0",
     "ts-jest": "^29.1.1",
-    "typescript": "6.0.3"
+    "typescript": "npm:@typescript/typescript6@6.0.2"
   }
 }

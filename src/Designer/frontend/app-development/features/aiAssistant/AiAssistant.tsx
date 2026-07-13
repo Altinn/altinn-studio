@@ -20,19 +20,19 @@ function AiAssistant(): ReactElement {
 
   const {
     connectionStatus,
-    workflowStatus,
+    workflowStatusByThread,
     chatThreads,
     messages,
-    currentSessionId,
+    selectedThreadId,
     onSubmitMessage,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread,
-    clearCurrentSession,
     deleteThread,
   } = useAltinityAssistant();
 
+  // TODO: extract into new useAssistantTexts hook
   const texts: AssistantTexts = {
     heading: t('top_menu.ai_assistant'),
     preview: t('ai_assistant.preview'),
@@ -41,9 +41,10 @@ function AiAssistant(): ReactElement {
     showThreads: t('ai_assistant.show_threads'),
     newThread: t('ai_assistant.new_thread'),
     previousThreads: t('ai_assistant.threads'),
-    aboutAssistant: t('ai_assistant.about_assistant'),
     aboutAssistantDialog: {
       heading: t('ai_assistant.about_assistant_heading'),
+      intro: t('ai_assistant.about_assistant_intro'),
+      howToHeading: t('ai_assistant.about_assistant_how_to_heading'),
       description: (
         <Trans
           i18nKey='ai_assistant.about_assistant_description'
@@ -58,6 +59,8 @@ function AiAssistant(): ReactElement {
       ),
       branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
       disclaimer: t('ai_assistant.about_assistant_disclaimer'),
+      privacyHeading: t('ai_assistant.about_assistant_privacy_heading'),
+      privacyDataHandling: t('ai_assistant.about_assistant_privacy_data_handling'),
     },
     emptyThread: {
       welcome: t('ai_assistant.empty_thread_welcome'),
@@ -66,7 +69,7 @@ function AiAssistant(): ReactElement {
     textarea: {
       placeholder: t('ai_assistant.textarea_placeholder'),
       wait: 'Vent litt ...',
-      waitingForConnection: 'Venter på forbindelse med Altinity ...',
+      waitingForConnection: 'Venter på forbindelse med assistenten ...',
     },
     addAttachment: t('ai_assistant.add_attachment'),
     allowAppChangesSwitch: t('ai_assistant.allow_app_changes'),
@@ -81,6 +84,10 @@ function AiAssistant(): ReactElement {
       detailsOptionalTag: t('general.optional'),
       submit: t('ai_assistant.feedback_submit'),
       cancel: t('general.cancel'),
+    },
+    criticalFileAlert: {
+      heading: t('ai_assistant.critical_file_alert_heading'),
+      description: t('ai_assistant.critical_file_alert_description'),
     },
   };
 
@@ -101,17 +108,17 @@ function AiAssistant(): ReactElement {
         enableCompactInterface={false}
         chatThreads={chatThreads}
         messages={messages}
-        activeThreadId={currentSessionId}
+        activeThreadId={selectedThreadId}
         onSubmitMessage={onSubmitMessage}
         onCancelWorkflow={cancelCurrentWorkflow}
         cancelledMessageContent={cancelledMessageContent}
         onCancelledMessageConsumed={clearCancelledMessageContent}
         onSelectThread={selectThread}
-        onCreateThread={clearCurrentSession}
+        onCreateThread={() => selectThread(null)}
         onDeleteThread={deleteThread}
         onMessageFeedback={sendChatFeedback}
         connectionStatus={connectionStatus}
-        workflowStatus={workflowStatus}
+        workflowStatusByThread={workflowStatusByThread}
         previewContent={<Preview />}
         fileBrowserContent={<FileBrowser />}
         currentUser={currentUser}

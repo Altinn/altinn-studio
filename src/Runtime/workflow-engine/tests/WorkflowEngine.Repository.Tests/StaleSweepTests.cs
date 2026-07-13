@@ -7,7 +7,7 @@ namespace WorkflowEngine.Repository.Tests;
 /// <summary>
 /// Covers the two stale-handling sweeps in <c>DbMaintenanceService</c>:
 /// <see cref="WorkflowEngine.Data.Services.DbMaintenanceService.ReclaimStaleWorkflows"/> and
-/// <see cref="WorkflowEngine.Data.Services.DbMaintenanceService.AbandonStaleWorkflows"/>.
+/// <see cref="WorkflowEngine.Data.Services.DbMaintenanceService.FailPoisonedWorkflows"/>.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
@@ -102,7 +102,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Reclaim_AtOrAboveLimit_IsLeftForAbandon()
+    public async Task Reclaim_AtOrAboveLimit_IsLeftForPoisonedFailure()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -133,7 +133,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Abandon_StaleProcessingAtOrAboveLimit_IsMarkedFailed()
+    public async Task PoisonedFailure_StaleProcessingAtOrAboveLimit_IsMarkedFailed()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -151,7 +151,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        await maintenance.AbandonStaleWorkflows(
+        await maintenance.FailPoisonedWorkflows(
             DateTimeOffset.UtcNow,
             fixture.Settings,
             TestContext.Current.CancellationToken
@@ -165,7 +165,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Abandon_StaleProcessingUnderLimit_IsNotTouched()
+    public async Task PoisonedFailure_StaleProcessingUnderLimit_IsNotTouched()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -183,7 +183,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        await maintenance.AbandonStaleWorkflows(
+        await maintenance.FailPoisonedWorkflows(
             DateTimeOffset.UtcNow,
             fixture.Settings,
             TestContext.Current.CancellationToken
@@ -265,7 +265,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ProgressiveReclaim_EventuallyAbandons()
+    public async Task ProgressiveReclaim_EventuallyFailsPoisoned()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -301,7 +301,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             Assert.Equal(i, dbWf.ReclaimCount);
         }
 
-        // One more stale Processing at the reclaim limit — abandon marks it Failed.
+        // One more stale Processing at the reclaim limit — the poisoned sweep marks it Failed.
         var finalStaleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
@@ -313,16 +313,16 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        await maintenance.AbandonStaleWorkflows(
+        await maintenance.FailPoisonedWorkflows(
             DateTimeOffset.UtcNow,
             fixture.Settings,
             TestContext.Current.CancellationToken
         );
 
-        var abandonedWf = await fixture.GetWorkflow(wf.DatabaseId);
-        Assert.NotNull(abandonedWf);
-        Assert.Equal(PersistentItemStatus.Failed, abandonedWf.Status);
-        Assert.Null(abandonedWf.HeartbeatAt);
-        Assert.Null(abandonedWf.LeaseToken);
+        var poisonedWf = await fixture.GetWorkflow(wf.DatabaseId);
+        Assert.NotNull(poisonedWf);
+        Assert.Equal(PersistentItemStatus.Failed, poisonedWf.Status);
+        Assert.Null(poisonedWf.HeartbeatAt);
+        Assert.Null(poisonedWf.LeaseToken);
     }
 }

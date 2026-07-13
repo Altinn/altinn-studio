@@ -9,6 +9,8 @@ on:
       - 'src/Designer/development/fake-ansattporten/**'
       - 'src/gitea/**'
       - '.github/workflows/designer-backend-gitea-and-db-integration-tests.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

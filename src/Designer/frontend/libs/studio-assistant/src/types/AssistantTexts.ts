@@ -8,7 +8,6 @@ export type AssistantTexts = {
   showThreads: string;
   newThread: string;
   previousThreads: string;
-  aboutAssistant: string;
   aboutAssistantDialog: AboutAssistantDialogTexts;
   emptyThread: EmptyThreadTexts;
   textarea: TextAreaTexts;
@@ -18,6 +17,12 @@ export type AssistantTexts = {
   cancel: string;
   assistantFirstMessage: string;
   feedback: MessageFeedbackTexts;
+  criticalFileAlert: CriticalFileAlertTexts;
+};
+
+export type CriticalFileAlertTexts = {
+  heading: string;
+  description: string;
 };
 
 export type MessageFeedbackTexts = {
@@ -32,10 +37,14 @@ export type MessageFeedbackTexts = {
 
 export type AboutAssistantDialogTexts = {
   heading: string;
+  intro: string;
+  howToHeading: string;
   description: ReactNode;
   branchInfo: ReactNode;
   branchDocsLink: string;
   disclaimer: string;
+  privacyHeading: string;
+  privacyDataHandling: string;
 };
 
 export type EmptyThreadTexts = {

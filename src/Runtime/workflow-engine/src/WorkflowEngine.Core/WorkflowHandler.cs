@@ -92,6 +92,8 @@ internal sealed class WorkflowHandler(
             return;
         }
 
+        // Abandoned is deliberately not in the Failed set: a dependency whose failure has been
+        // explicitly written off no longer condemns its dependents.
         if (workflow.Dependencies?.Any(x => PersistentItemStatusMap.Failed.Contains(x.Status)) is true)
         {
             workflow.Status = PersistentItemStatus.DependencyFailed;

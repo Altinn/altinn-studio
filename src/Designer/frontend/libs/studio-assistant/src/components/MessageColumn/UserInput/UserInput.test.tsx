@@ -29,6 +29,13 @@ describe('UserInput', () => {
     expect(attachmentButton).toBeInTheDocument();
   });
 
+  it('should restrict the file input to the allowed attachment file types', () => {
+    renderUserInput({ enableCompactInterface: false });
+    const fileInput = screen.getByLabelText(mockTexts.addAttachment, { selector: 'input' });
+
+    expect(fileInput).toHaveAttribute('accept', '.pdf,.md,.txt,.png,.jpg,.jpeg,.gif,.webp');
+  });
+
   it('should not render attachment button when enableCompactInterface is true', () => {
     renderUserInput({ enableCompactInterface: true });
     const attachmentButton = screen.queryByRole('button', { name: mockTexts.addAttachment });

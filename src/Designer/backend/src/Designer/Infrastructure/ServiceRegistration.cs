@@ -111,6 +111,7 @@ public static class ServiceRegistration
         services.AddTransient<IAppVersionService, AppVersionService>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
         services.AddTransient<IUiFoldersService, UiFoldersService>();
+        services.AddTransient<ILayoutReferenceUpdater, LayoutReferenceUpdater>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
         services.AddTransient<IDataService, DataService>();
