@@ -7,6 +7,8 @@ import classes from './UserInput.module.css';
 import { createUserMessage } from '../../../utils/messageUtils';
 import type { AssistantTexts } from '../../../types/AssistantTexts';
 
+const allowedAttachmentFileExtensions = '.pdf,.md,.txt,.png,.jpg,.jpeg,.gif,.webp';
+
 export type UserInputProps = {
   texts: AssistantTexts;
   onSubmitMessage: (message: UserMessage) => void;
@@ -115,7 +117,7 @@ export function UserInput({
           {!enableCompactInterface && (
             <>
               <input
-                accept='*/*'
+                accept={allowedAttachmentFileExtensions}
                 multiple
                 onChange={handleAttachmentChange}
                 ref={fileInputRef}

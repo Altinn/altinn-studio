@@ -111,38 +111,6 @@ public class CommonTaskInitializationTests
     }
 
     [Fact]
-    public async Task Execute_RemovesDataElementsGeneratedFromCurrentTask()
-    {
-        // Arrange
-        var instance = CreateInstance("Task_1");
-        var taskGeneratedElement = new DataElement
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "pdf",
-            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_1" }],
-        };
-        var unrelatedElement = new DataElement
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "attachment",
-            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_0" }],
-        };
-        instance.Data = [taskGeneratedElement, unrelatedElement];
-
-        var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [] };
-        var command = CreateCommand(appMetadata);
-        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
-
-        // Act
-        var result = await ((IWorkflowEngineCommand)command).Execute(context);
-
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        mutatorMock.Verify(x => x.RemoveDataElement(taskGeneratedElement), Times.Once);
-        mutatorMock.Verify(x => x.RemoveDataElement(unrelatedElement), Times.Never);
-    }
-
-    [Fact]
     public async Task Execute_AutoCreatesDataElementsForMatchingTask()
     {
         // Arrange
@@ -214,54 +182,6 @@ public class CommonTaskInitializationTests
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         appModelMock.Verify(x => x.Create(It.IsAny<string>()), Times.Never);
         mutatorMock.Verify(x => x.AddFormDataElement(It.IsAny<string>(), It.IsAny<object>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Execute_RecreatesAutoCreatedDataElementWhenExistingElementWasGeneratedFromCurrentTask()
-    {
-        // Arrange
-        var instance = CreateInstance("Task_1");
-        var generatedElement = new DataElement
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "model",
-            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_1" }],
-        };
-        instance.Data = [generatedElement];
-
-        var testData = new TestModel { Name = "replacement" };
-        var appModelMock = new Mock<IAppModel>();
-        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(testData);
-
-        var prefillMock = new Mock<IPrefill>();
-        var instantiationProcessorMock = new Mock<IInstantiationProcessor>();
-
-        var appMetadata = new ApplicationMetadata("ttd/test-app")
-        {
-            DataTypes =
-            [
-                new DataType
-                {
-                    Id = "model",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
-                },
-            ],
-        };
-
-        var command = CreateCommand(appMetadata, prefillMock, appModelMock, instantiationProcessorMock);
-        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
-
-        // Act
-        var result = await ((IWorkflowEngineCommand)command).Execute(context);
-
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.DoesNotContain(generatedElement, instance.Data);
-        mutatorMock.Verify(x => x.RemoveDataElement(generatedElement), Times.Once);
-        mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
-        prefillMock.Verify(x => x.PrefillDataModel("1337", "model", testData, null), Times.Once);
-        instantiationProcessorMock.Verify(x => x.DataCreation(instance, testData, null), Times.Once);
     }
 
     [Fact]

@@ -32,7 +32,9 @@ describe('ThreadColumn', () => {
 
   it('should render the about assistant button', () => {
     renderThreadColumn();
-    const aboutButton = screen.getByRole('button', { name: mockTexts.aboutAssistant });
+    const aboutButton = screen.getByRole('button', {
+      name: mockTexts.aboutAssistantDialog.heading,
+    });
 
     expect(aboutButton).toBeInTheDocument();
   });

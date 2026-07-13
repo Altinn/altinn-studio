@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/runtime-localtest-build.yml'
       - 'src/Runtime/localtest/**'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}

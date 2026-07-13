@@ -6,6 +6,8 @@ on:
     paths:
       - 'app-libs/form-component/**'
       - '.github/workflows/apps-storybook-preview.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}

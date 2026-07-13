@@ -5,11 +5,12 @@
     "lefthook": "2.1.9",
     "prettier": "3.8.4"
   },
-  "packageManager": "yarn@4.16.0",
+  "packageManager": "yarn@4.17.1",
   "private": true,
   "scripts": {
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
     "codeowners:validate": "node .github/scripts/codeowners-generate.mjs --check",
+    "docs:validate": "node .github/scripts/agents-docs-validate.mjs",
     "lint": "yarn workspace studio-designer-frontend lint && yarn lint:libs",
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix && yarn lint:libs",
     "lint:libs": "yarn workspace app-libs lint",

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
@@ -30,6 +31,14 @@ internal interface IWorkflowEngineService
 
     Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(Instance instance, CancellationToken ct = default);
 
+    /// <summary>
+    /// Writes off an unsuccessful terminal workflow (Failed -> Abandoned in the engine) so that a
+    /// subsequently enqueued workflow can depend on it and run. Returns <see langword="false"/> when
+    /// the engine's compare-and-set rejected the transition - e.g. a concurrent resume revived the
+    /// workflow - in which case the caller must treat the task as still blocked.
+    /// </summary>
+    Task<bool> AbandonWorkflow(Guid workflowId, CancellationToken ct = default);
+
     Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
@@ -55,11 +64,30 @@ internal sealed record ProcessNextWorkflowResult(
     bool ProcessStateChanged
 );
 
-internal sealed record CurrentTaskWorkflowState(
-    ProcessNextState? ProcessNextState,
-    Guid? WorkflowId = null,
-    string? CollectionKey = null
-);
+/// <summary>
+/// The workflow engine's view of the instance's current task, as a closed set of states.
+/// Consumers pattern-match on the concrete type; the blocked states carry the ids they
+/// guarantee, so no caller has to null-check correlated optional fields.
+/// </summary>
+internal abstract record CurrentTaskWorkflowState
+{
+    private CurrentTaskWorkflowState() { }
+
+    /// <summary>No workflow is blocking the current task.</summary>
+    internal sealed record Unblocked : CurrentTaskWorkflowState;
+
+    /// <summary>
+    /// The newest workflow for the current task is still executing (enqueued, processing or
+    /// requeued) - process actions must wait for it to finish.
+    /// </summary>
+    internal sealed record Retrying(Guid WorkflowId, string CollectionKey) : CurrentTaskWorkflowState;
+
+    /// <summary>
+    /// The newest workflow for the current task failed terminally - the process cannot continue
+    /// until the workflow is resumed, or written off (-> Abandoned) by a bpmn-allowed reject.
+    /// </summary>
+    internal sealed record ResumeRequired(Guid WorkflowId, string CollectionKey) : CurrentTaskWorkflowState;
+}
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
@@ -126,9 +154,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             throw new InvalidOperationException("Process-next workflow collection key was not created.");
         }
 
+        Guid enqueuedWorkflowId;
         try
         {
-            await EnqueueWorkflowEnvelope(bundle, collectionKey, ct);
+            (enqueuedWorkflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, ct);
         }
         catch (Exception exception) when (IsDefinitiveNotAccepted(exception, out HttpStatusCode? statusCode))
         {
@@ -144,7 +173,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             WorkflowCollectionLookupResult lookupResult = await ProbeWorkflowCollection(collectionKey, ct);
             if (lookupResult == WorkflowCollectionLookupResult.Found)
             {
-                return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
+                // The enqueue response was lost, so the new workflow id is unknown - wait unscoped.
+                return await WaitForWorkflowCollectionAndRefetchInstance(
+                    instance,
+                    collectionKey,
+                    sinceWorkflowId: null,
+                    ct
+                );
             }
 
             if (lookupResult == WorkflowCollectionLookupResult.NotFound)
@@ -165,7 +200,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             );
         }
 
-        return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
+        return await WaitForWorkflowCollectionAndRefetchInstance(
+            instance,
+            collectionKey,
+            sinceWorkflowId: enqueuedWorkflowId,
+            ct
+        );
     }
 
     public Task<Guid> EnqueueDependentProcessNext(
@@ -197,7 +237,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string? processNextId = ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask);
         if (processNextId is null)
         {
-            return new CurrentTaskWorkflowState(null);
+            return new CurrentTaskWorkflowState.Unblocked();
         }
 
         InstanceIdentifier instanceIdentifier = new(instance);
@@ -207,25 +247,19 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ct
         );
 
-        WorkflowStatusResponse? newestWorkflow = matchingWorkflows
+        // The matching workflows share the instance's collection (its key is the instance guid),
+        // so deduplicate the keys before fetching: one GetCollection call per distinct key,
+        // ordered by the newest workflow that carries it.
+        List<string> collectionKeys = matchingWorkflows
             .OrderByDescending(workflow => workflow.CreatedAt)
-            .FirstOrDefault();
-        if (newestWorkflow is null)
-        {
-            return new CurrentTaskWorkflowState(null);
-        }
+            .Select(workflow => workflow.CollectionKey)
+            .OfType<string>()
+            .Where(key => key.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
 
-        foreach (
-            WorkflowStatusResponse currentTaskWorkflow in matchingWorkflows.OrderByDescending(workflow =>
-                workflow.CreatedAt
-            )
-        )
+        foreach (string collectionKey in collectionKeys)
         {
-            if (currentTaskWorkflow.CollectionKey is not { Length: > 0 } collectionKey)
-            {
-                continue;
-            }
-
             WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                 GetNamespace(),
                 collectionKey,
@@ -239,9 +273,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
             if (activeHead is not null)
             {
-                return new CurrentTaskWorkflowState(ProcessNextState.Retrying, activeHead.DatabaseId, collectionKey);
+                return new CurrentTaskWorkflowState.Retrying(activeHead.DatabaseId, collectionKey);
             }
 
+            // Terminal heads linger in the collection (it is shared by every transition of the
+            // instance), but a failed workflow that a reject wrote off carries the Abandoned
+            // status, which IsResumeRequiredCollectionHeadStatus excludes - the write-off lives
+            // in the workflow's own state, so no dating heuristics are needed here.
             CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
                 IsResumeRequiredCollectionHeadStatus
             );
@@ -250,15 +288,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 Guid retryTargetWorkflowId =
                     await GetResumeTargetWorkflowId(collectionKey, resumeRequiredHead.DatabaseId, ct)
                     ?? resumeRequiredHead.DatabaseId;
-                return new CurrentTaskWorkflowState(
-                    ProcessNextState.ResumeRequired,
-                    retryTargetWorkflowId,
-                    collectionKey
-                );
+                return new CurrentTaskWorkflowState.ResumeRequired(retryTargetWorkflowId, collectionKey);
             }
         }
 
-        return new CurrentTaskWorkflowState(null, newestWorkflow.DatabaseId, newestWorkflow.CollectionKey);
+        return new CurrentTaskWorkflowState.Unblocked();
     }
 
     public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
@@ -269,8 +303,16 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     )
     {
         await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cascade: true, ct: ct);
-        return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
+        return await WaitForWorkflowCollectionAndRefetchInstance(
+            instance,
+            collectionKey,
+            sinceWorkflowId: workflowId,
+            ct
+        );
     }
+
+    public Task<bool> AbandonWorkflow(Guid workflowId, CancellationToken ct = default) =>
+        _workflowEngineClient.AbandonWorkflow(GetNamespace(), workflowId, ct);
 
     private async Task<Guid> EnqueueDependentWorkflow(
         Instance instance,
@@ -412,6 +454,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
         string collectionKey,
+        Guid? sinceWorkflowId,
         CancellationToken ct
     )
     {
@@ -430,13 +473,33 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             {
                 if (!collection.Heads.Any(IsActiveCollectionHeadStatus))
                 {
-                    Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
                     IReadOnlyList<WorkflowStatusResponse> collectionWorkflows =
                         await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct);
-                    lastObservedCollectionWorkflows = collectionWorkflows;
-                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(collectionWorkflows);
-                    bool processStateChanged = HasCommittedProcessState(collectionWorkflows);
-                    return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
+                    IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
+                        collectionWorkflows,
+                        sinceWorkflowId
+                    );
+
+                    // The engine buffers enqueues, so the workflow we just submitted may not be
+                    // visible yet - and a lingering terminal head from a previous failure (e.g. a
+                    // failed workflow a reject is superseding) makes the heads look inactive before
+                    // our workflow has even started. When we know which workflow we submitted, keep
+                    // polling until it is visible and its chain has settled.
+                    bool anchoredChainSettled =
+                        sinceWorkflowId is null
+                        || (
+                            currentChain.Any(workflow => workflow.DatabaseId == sinceWorkflowId)
+                            && !currentChain.Any(IsActiveWorkflowStatus)
+                        );
+
+                    if (anchoredChainSettled)
+                    {
+                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                        lastObservedCollectionWorkflows = currentChain;
+                        WorkflowFailure? workflowFailure = BuildWorkflowFailure(currentChain);
+                        bool processStateChanged = HasCommittedProcessState(currentChain);
+                        return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
+                    }
                 }
             }
 
@@ -445,10 +508,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
                 if (lastObservedCollectionWorkflows.Count == 0)
                 {
-                    lastObservedCollectionWorkflows = await _workflowEngineClient.ListWorkflows(
-                        GetNamespace(),
-                        collectionKey: collectionKey,
-                        ct: ct
+                    lastObservedCollectionWorkflows = ScopeToCurrentChain(
+                        await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+                        sinceWorkflowId
                     );
                 }
                 return new ProcessNextWorkflowResult(
@@ -464,6 +526,37 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         ct.ThrowIfCancellationRequested();
         throw new InvalidOperationException("Cancellation should have thrown.");
+    }
+
+    /// <summary>
+    /// Scopes collection workflows to the chain started by <paramref name="sinceWorkflowId"/>: that
+    /// workflow and everything created after it (e.g. auto-advance dependents). The collection is
+    /// shared by every transition of the instance, so older workflows - completed earlier
+    /// transitions, or terminally failed workflows a reject superseded - must not influence the
+    /// current wait's failure reporting. The anchor itself is matched by id and other workflows by a
+    /// strictly-newer timestamp, so a stale workflow sharing the anchor's exact timestamp cannot
+    /// leak in (dependents are enqueued after the anchor's steps have run, so they are always
+    /// meaningfully newer). Falls back to the full list when the anchor is unknown or not present.
+    /// </summary>
+    internal static IReadOnlyList<WorkflowStatusResponse> ScopeToCurrentChain(
+        IReadOnlyList<WorkflowStatusResponse> workflows,
+        Guid? sinceWorkflowId
+    )
+    {
+        if (sinceWorkflowId is null)
+        {
+            return workflows;
+        }
+
+        WorkflowStatusResponse? anchor = workflows.FirstOrDefault(workflow => workflow.DatabaseId == sinceWorkflowId);
+        if (anchor is null)
+        {
+            return workflows;
+        }
+
+        return workflows
+            .Where(workflow => workflow.DatabaseId == anchor.DatabaseId || workflow.CreatedAt > anchor.CreatedAt)
+            .ToList();
     }
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
@@ -503,6 +596,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return workflowsById.Values.ToList();
     }
 
+    private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
+        workflow.OverallStatus
+            is PersistentItemStatus.Enqueued
+                or PersistentItemStatus.Processing
+                or PersistentItemStatus.Requeued;
+
     private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
             is PersistentItemStatus.Enqueued
@@ -537,8 +636,33 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             )
         );
 
-    private static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
+    internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {
+        // An abandoned workflow is only background noise when a superseding workflow was enqueued
+        // after it. When the newest workflow in view is Abandoned, nothing superseded it, so the
+        // action being waited on never ran - that must be reported as a failure, never success.
+        // Normally unreachable (the engine releases the idempotency key on abandon, so a
+        // superseding enqueue always creates a fresh, newer workflow), but the unscoped fallback
+        // wait can still land on an abandoned head.
+        WorkflowStatusResponse? newestWorkflow = hierarchyWorkflows
+            .OrderByDescending(workflow => workflow.CreatedAt)
+            .FirstOrDefault();
+        if (newestWorkflow?.OverallStatus == PersistentItemStatus.Abandoned)
+        {
+            return new WorkflowFailure
+            {
+                Kind = WorkflowFailureKind.EngineFault,
+                WorkflowId = newestWorkflow.DatabaseId,
+                WorkflowOperationId = newestWorkflow.OperationId,
+                LastError = new WorkflowFailureError
+                {
+                    Timestamp = newestWorkflow.UpdatedAt ?? newestWorkflow.CreatedAt,
+                    Message = "The workflow was abandoned before the process action completed. Try the action again.",
+                    WasRetryable = true,
+                },
+            };
+        }
+
         WorkflowStatusResponse? stepFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
             workflow.OverallStatus == PersistentItemStatus.Failed
             && workflow.Steps.Any(step => step.Status == PersistentItemStatus.Failed)
@@ -604,10 +728,47 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             : new WorkflowFailureError
             {
                 Timestamp = errorEntry.Timestamp,
-                Message = errorEntry.Message,
+                Message = ExtractCallbackErrorDetail(errorEntry.Message),
                 HttpStatusCode = errorEntry.HttpStatusCode,
                 WasRetryable = errorEntry.WasRetryable,
             };
+
+    /// <summary>
+    /// The engine records a failed app callback as e.g.
+    /// <c>AppCommand failed with client error UnprocessableEntity: {ProblemDetails json}</c>.
+    /// This message surfaces all the way to the end user (the frontend shows the failure as a
+    /// notification), so extract the ProblemDetails <c>detail</c> - the human-readable reason,
+    /// e.g. a service task's failure message - when the engine message embeds one. Falls back to
+    /// the raw engine message otherwise.
+    /// </summary>
+    internal static string ExtractCallbackErrorDetail(string message)
+    {
+        int jsonStart = message.IndexOf('{');
+        if (jsonStart < 0)
+        {
+            return message;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(message[jsonStart..]);
+            if (
+                doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("detail", out var detail)
+                && detail.ValueKind == JsonValueKind.String
+                && detail.GetString() is { Length: > 0 } detailText
+            )
+            {
+                return detailText;
+            }
+        }
+        catch (JsonException)
+        {
+            // Not an embedded JSON payload - use the message as-is.
+        }
+
+        return message;
+    }
 
     private static string CreateProcessNextIdempotencyKey(
         Instance instance,

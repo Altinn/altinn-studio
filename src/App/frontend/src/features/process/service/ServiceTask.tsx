@@ -57,7 +57,9 @@ export function ServiceTask() {
 const RetryButton = () => {
   const { langAsString } = useLanguage();
   const canRetry = useIsAuthorized()('write');
-  const { mutateAsync: processRetry, isPending: isRetrying } = useProcessNextOutsideFormProvider();
+  // Use mutate (not mutateAsync): failures are handled by the mutation's own onError (toast +
+  // refetch), and an un-awaited mutateAsync would surface them as unhandled promise rejections.
+  const { mutate: processRetry, isPending: isRetrying } = useProcessNextOutsideFormProvider();
 
   return (
     <Button
@@ -76,7 +78,8 @@ const RetryButton = () => {
 const BackButton = () => {
   const { langAsString } = useLanguage();
   const canReject = useIsAuthorized()('reject');
-  const { mutateAsync: processReject, isPending: isRejecting } = useProcessNextOutsideFormProvider({
+  // Use mutate (not mutateAsync) - see RetryButton.
+  const { mutate: processReject, isPending: isRejecting } = useProcessNextOutsideFormProvider({
     action: 'reject',
   });
 

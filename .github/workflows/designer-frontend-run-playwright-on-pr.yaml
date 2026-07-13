@@ -17,6 +17,8 @@ on:
       - 'src/Designer/development/**'
       - 'src/App/template/**'
       - 'yarn.lock'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
