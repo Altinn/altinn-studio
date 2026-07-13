@@ -75,18 +75,25 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
 
           // The workflow engine can report a live status synchronously via the process/next error body.
           // Map it onto the same state machine ProcessWrapper drives off the polled workflow.status, so a
-          // synchronous failure and a polled status render identically: 'retrying' means the transition is
-          // still in flight (processing) and 'resumeRequired' means it failed terminally (failed). In both
-          // cases we refetch the (live-enriched) instance and swallow the error rather than showing a hard
-          // toast — the refetched workflow.status takes over.
+          // synchronous failure and a polled status render identically:
+          //  - a blocked call (409 with processNextState): 'retrying' means the transition is still in
+          //    flight (processing), 'resumeRequired' means it failed terminally (failed);
+          //  - the failing/timed-out call itself (500/504 with a workflowFailure extension): the refetched
+          //    status resolves to failed (terminal) or processing (timeout — the engine keeps retrying).
+          // In all cases we refetch the (live-enriched) instance and swallow the error rather than showing
+          // a hard toast — the refetched workflow.status takes over. The backend deliberately ships no raw
+          // failure detail on these responses (only the coarse classification), so there is nothing more
+          // meaningful to show than the state machine's localized screens.
           const processNextState = error.response?.data?.['processNextState'];
-          if (processNextState === 'retrying' || processNextState === 'resumeRequired') {
+          const workflowFailure = error.response?.data?.['workflowFailure'];
+          if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
             await reFetchInstanceData();
             return [null, null] as const;
           }
 
           if (error.response?.status === 500 && error.response?.data?.['detail'] === 'Pdf generation failed') {
-            // If process next fails due to the PDF generator failing, don't show unknown error if the app unlocks data elements
+            // Legacy fallback: a v9 backend reports PDF service task failures with a workflowFailure
+            // extension (handled above); this branch only catches older backends' bare PDF error.
             toast(<Lang id='process_error.submit_error_please_retry' />, { type: 'error', autoClose: false });
             return [null, null];
           }
@@ -189,10 +196,19 @@ export function useProcessResume() {
     onSuccess: async () => {
       await reFetchInstanceData();
     },
-    onError: (error: HttpClientError<ProblemDetails | undefined>) => {
-      // Log the raw detail for diagnostics, but show the citizen a generic message — the backend
-      // detail may contain internal, non-user-facing text (see WorkflowFailed).
+    onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
       window.logError('Process resume failed:\n', error);
+
+      // The resume may have lost a race with another session (e.g. a 409 because the workflow was
+      // already resumed there, or already finished). Refetch before deciding to complain: if the
+      // fresh workflow.status is no longer 'failed', the state machine has already recovered the
+      // UI and an error toast would be misleading noise. The message stays generic either way —
+      // diagnostics live server-side (see WorkflowFailed).
+      const { data } = await reFetchInstanceData();
+      if (data?.process?.workflow?.status !== 'failed') {
+        return;
+      }
+
       toast(<Lang id='process_workflow.failed_description' />, {
         type: 'error',
         autoClose: false,

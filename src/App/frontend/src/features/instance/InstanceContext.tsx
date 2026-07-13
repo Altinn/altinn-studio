@@ -16,7 +16,7 @@ import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
-import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
+import type { IData, IInstance, IInstanceDataSources, WorkflowActivityStatus } from 'src/types/shared';
 
 const emptyArray: never[] = [];
 const InstanceContext = React.createContext<IInstance | null>(null);
@@ -58,18 +58,23 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const navigation = useNavigation();
 
   const hasPendingScans = useHasPendingScans();
-  const isWorkflowProcessing = useIsWorkflowProcessing();
+  const workflowStatus = useWorkflowStatus();
   const pollFailureCount = useInstancePollFailureCount();
   const { error: instanceDataError, data } = useInstanceDataQuery({
-    // Poll while a workflow transition is in flight so we converge on the committed task once it settles;
-    // otherwise fall back to the slower pending-scans poll. The processing poll is jittered (~2-3s) so
-    // many clients waiting on the same engine don't synchronise into a thundering herd — which would
-    // otherwise peak exactly when the engine is already slow.
-    refetchInterval: isWorkflowProcessing
-      ? () => 2000 + Math.floor(Math.random() * 1000)
-      : hasPendingScans
-        ? 5000
-        : false,
+    // Poll while a workflow transition is in flight (~2-3s) so we converge on the committed task once
+    // it settles, and poll slowly while it is failed (~10-12s) so a resume performed in another session
+    // recovers this one too instead of stranding it on a stale failure screen; otherwise fall back to
+    // the slower pending-scans poll. Both workflow polls are jittered so many clients waiting on the
+    // same engine don't synchronise into a thundering herd — which would otherwise peak exactly when
+    // the engine is already slow.
+    refetchInterval:
+      workflowStatus === 'processing'
+        ? () => 2000 + Math.floor(Math.random() * 1000)
+        : workflowStatus === 'failed'
+          ? () => 10000 + Math.floor(Math.random() * 2000)
+          : hasPendingScans
+            ? 5000
+            : false,
   });
 
   // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've
@@ -188,10 +193,12 @@ export const useInstanceDataElements = (dataType: string | undefined) =>
       dataType ? instance.data.filter((dataElement) => dataElement.dataType === dataType) : instance.data,
   }).data ?? emptyArray;
 
-export function useIsWorkflowProcessing(): boolean {
-  return (
-    useInstanceDataQuery({ select: (instance) => instance.process?.workflow?.status === 'processing' }).data ?? false
-  );
+/**
+ * The live workflow status from the fetched instance, defaulting to `idle` when the backend did not
+ * emit an annotation (older backend or opted-out read). Drives the provider's poll cadence.
+ */
+function useWorkflowStatus(): WorkflowActivityStatus {
+  return useInstanceDataQuery({ select: (instance) => instance.process?.workflow?.status }).data ?? 'idle';
 }
 
 export function useHasPendingScans(): boolean {

@@ -148,4 +148,49 @@ describe('ProcessWrapper workflow state machine', () => {
       expect(doProcessResume).toHaveBeenCalledTimes(1);
     });
   });
+
+  it('retry recovers the UI when another session already resumed the workflow', async () => {
+    const user = userEvent.setup();
+    // The resume mutation logs the failure for diagnostics before recovering; setupTests makes
+    // window.logError throw, so stub it (and assert it fired).
+    const logError = jest.spyOn(window, 'logError').mockImplementation(() => {});
+    try {
+      let resumedElsewhere = false;
+      jest.mocked(doProcessResume).mockImplementation(async () => {
+        // Simulate losing the race: another session already resumed the workflow, so this
+        // session's resume conflicts — and by the time we refetch, the workflow has settled.
+        resumedElsewhere = true;
+        throw Object.assign(new Error('Request failed with status code 409'), {
+          response: { status: 409, data: { title: 'Task does not need to be resumed.' } },
+        });
+      });
+
+      await renderWithInstanceAndLayout({
+        renderer: () => (
+          <ProcessWrapper>
+            <div data-testid='task-content'>Task content</div>
+          </ProcessWrapper>
+        ),
+        apis: {
+          instanceApi: {
+            getInstance: async () =>
+              getInstanceWithWorkflow(
+                resumedElsewhere ? undefined : { status: 'failed', failure: { kind: 'StepFailed' } },
+              ),
+          },
+        },
+      });
+
+      await user.click(screen.getByRole('button', { name: /prøv igjen/i }));
+
+      // The failed resume refetches before complaining; the fresh status is no longer 'failed',
+      // so the state machine recovers the task UI instead of stranding the session on a stale
+      // failure screen with a misleading error toast.
+      expect(await screen.findByTestId('task-content')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
+      expect(logError).toHaveBeenCalled();
+    } finally {
+      logError.mockRestore();
+    }
+  });
 });
