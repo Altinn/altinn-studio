@@ -184,10 +184,14 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
             "ExecuteServiceTask",
             failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
         );
-        Assert.Contains(
-            "Scenario service task failed permanently.",
-            failureRoot.GetProperty("workflowFailure").GetProperty("lastError").GetProperty("message").GetString()
+        // The raw failure detail (the service task's exception text) is never serialized to
+        // clients: the response ships a stable generic detail plus the coarse classification only.
+        Assert.False(failureRoot.GetProperty("workflowFailure").TryGetProperty("lastError", out _));
+        Assert.Equal(
+            "A workflow step failed while performing the process action.",
+            failureRoot.GetProperty("detail").GetString()
         );
+        Assert.DoesNotContain("Scenario service task failed permanently.", failedProcessNext.Data.Body);
 
         using var instanceAfterFailureResponse = await fixture.Instances.Get(token, instance);
         using var instanceAfterFailure = await instanceAfterFailureResponse.Read<Instance>();

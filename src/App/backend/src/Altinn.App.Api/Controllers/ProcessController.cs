@@ -663,13 +663,23 @@ public class ProcessController : ControllerBase
                     ? StatusCodes.Status504GatewayTimeout
                     : StatusCodes.Status500InternalServerError;
 
+            // The raw failure detail originates from exception/callback messages and can carry
+            // internal infrastructure text, so it is logged server-side and never serialized to
+            // clients - the response ships a stable generic message plus the sanitized structured
+            // failure, mirroring the read-path annotation rule (see AppProcessWorkflowFailure).
+            _logger.LogError(
+                "Process action failed with a workflow failure ({WorkflowFailureKind}): {WorkflowFailureDetail}",
+                result.WorkflowFailure.Kind,
+                result.ErrorMessage
+            );
+
             var problemDetails = new ProblemDetails
             {
-                Detail = result.ErrorMessage,
+                Detail = CreateClientWorkflowFailureDetail(result.WorkflowFailure.Kind),
                 Status = statusCode,
                 Title = "Something went wrong while moving to the next task.",
             };
-            problemDetails.Extensions["workflowFailure"] = result.WorkflowFailure;
+            problemDetails.Extensions["workflowFailure"] = SanitizeWorkflowFailureForClient(result.WorkflowFailure);
             if (result.ProcessStateOnFailure is not null)
             {
                 problemDetails.Extensions["processStateChanged"] = true;
@@ -896,5 +906,40 @@ public class ProcessController : ControllerBase
             ProcessNextState.Retrying => "retrying",
             ProcessNextState.ResumeRequired => "resumeRequired",
             _ => throw new ArgumentOutOfRangeException(nameof(processNextState), processNextState, null),
+        };
+
+    /// <summary>
+    /// A stable, generic <c>detail</c> for a failed process action, derived only from the coarse
+    /// failure classification. The underlying error message is deliberately not used: it can carry
+    /// internal infrastructure text and is logged server-side instead.
+    /// </summary>
+    private static string CreateClientWorkflowFailureDetail(WorkflowFailureKind kind) =>
+        kind switch
+        {
+            WorkflowFailureKind.Timeout => "Timeout while waiting for workflows to complete.",
+            WorkflowFailureKind.DependencyFailed => "A workflow failed because a workflow it depends on failed.",
+            WorkflowFailureKind.EngineFault => "The workflow engine failed while performing the process action.",
+            _ => "A workflow step failed while performing the process action.",
+        };
+
+    /// <summary>
+    /// Projects a workflow failure for client serialization: the recorded error
+    /// (<see cref="WorkflowFailure.LastError"/>) is stripped because its message originates from
+    /// exception/callback text that can carry internal detail - clients get only the coarse
+    /// classification and the structured retry metadata. Full detail stays server-side (the log
+    /// entry above and the engine's step error history).
+    /// </summary>
+    private static WorkflowFailure SanitizeWorkflowFailureForClient(WorkflowFailure workflowFailure) =>
+        new()
+        {
+            Kind = workflowFailure.Kind,
+            WorkflowId = workflowFailure.WorkflowId,
+            WorkflowOperationId = workflowFailure.WorkflowOperationId,
+            StepOperationId = workflowFailure.StepOperationId,
+            CommandType = workflowFailure.CommandType,
+            RetryCount = workflowFailure.RetryCount,
+            LastError = null,
+            RetryAction = workflowFailure.RetryAction,
+            RetryTargetWorkflowId = workflowFailure.RetryTargetWorkflowId,
         };
 }
