@@ -18,7 +18,6 @@ type UseImageCropperSaveProps = {
   cropArea: CropInternal;
   zoom: number;
   position: Position;
-  /** Commit the cropped image. Wired by the runtime wrapper to the attachment uploader. */
   onSave: (file: File) => void;
   setValidationErrors: (errors: string[] | null) => void;
 };
