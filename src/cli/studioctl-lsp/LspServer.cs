@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Validation.Schemas;
 using StreamJsonRpc;
 
@@ -27,7 +26,9 @@ public sealed class LspServer
     private readonly LanguageFeatures _features;
 
     private SchemaSet? _schemas;
-    private bool _schemaLoadStarted;
+    private string? _schemasVersion;
+    private string? _loadingVersion;
+    private string? _failedVersion;
     private bool _shutdownRequested;
 
     public LspServer(Stream input, Stream output)
@@ -36,7 +37,15 @@ public sealed class LspServer
         _transport = new LspTransport(input, output, _log);
         _workspace = new WorkspaceState(_transport, _log);
         _convert = new LspConversions(_workspace);
-        _diagnostics = new DiagnosticsPublisher(_sync, _workspace, _convert, _transport, _log, () => _schemas);
+        _diagnostics = new DiagnosticsPublisher(
+            _sync,
+            _workspace,
+            _convert,
+            _transport,
+            _log,
+            () => _schemas,
+            ObserveAppVersion
+        );
         _features = new LanguageFeatures(_workspace, _convert, _diagnostics);
     }
 
@@ -200,7 +209,7 @@ public sealed class LspServer
     private InitializeResult OnInitialize(InitializeParams? p)
     {
         _workspace.SetRoot(ResolveRoot(p));
-        BeginSchemaLoad();
+        _diagnostics.Schedule();
         return new InitializeResult(
             new ServerCapabilities(
                 TextDocumentSync: 1,
@@ -219,43 +228,56 @@ public sealed class LspServer
         );
     }
 
-    private void BeginSchemaLoad()
+    private void ObserveAppVersion(string? version)
     {
-        var root = _workspace.Root;
-        if (_schemaLoadStarted || !WorkspaceState.IsAppDirectory(root))
+        if (!string.Equals(version, _schemasVersion, StringComparison.Ordinal))
+        {
+            _schemas = null;
+            _schemasVersion = version;
+        }
+        if (version is null || _schemas is not null || _loadingVersion is not null)
+            return;
+        if (string.Equals(version, _failedVersion, StringComparison.Ordinal))
             return;
         if (AppDistConfig.CreateProvider() is not { } appDist)
             return;
-        _schemaLoadStarted = true;
+        _loadingVersion = version;
         Task.Run(async () =>
         {
             try
             {
+                SchemaSet? schemas;
                 using (appDist)
+                    schemas = await AppDistConfig.LoadSchemasAsync(appDist, version);
+                lock (_sync)
                 {
-                    if (AppConfigEngine.Open(root).Current.AltinnAppVersion is not { } version)
-                    {
-                        _log.Log(LogLevel.Info, "no exact Altinn.App version; schema pass disabled");
-                        return;
-                    }
-                    var schemas = await AppDistConfig.LoadSchemasAsync(appDist, version);
+                    _loadingVersion = null;
                     if (schemas is null)
                     {
-                        _log.Log(LogLevel.Info, $"app-dist {version} unreachable and not cached; schema pass disabled");
-                        return;
+                        _failedVersion = version;
                     }
-                    foreach (var warning in schemas.LoadWarnings)
-                        _log.Log(LogLevel.Warning, $"app-dist {version}: {warning}");
-                    lock (_sync)
+                    else if (string.Equals(version, _schemasVersion, StringComparison.Ordinal))
                     {
                         _schemas = schemas;
                         _diagnostics.Schedule();
                     }
-                    _log.Log(LogLevel.Info, $"app-dist {version} schemas loaded");
                 }
+                if (schemas is null)
+                {
+                    _log.Log(LogLevel.Info, $"app-dist {version} unreachable and not cached; schema pass disabled");
+                    return;
+                }
+                foreach (var warning in schemas.LoadWarnings)
+                    _log.Log(LogLevel.Warning, $"app-dist {version}: {warning}");
+                _log.Log(LogLevel.Info, $"app-dist {version} schemas loaded");
             }
             catch (Exception ex)
             {
+                lock (_sync)
+                {
+                    _loadingVersion = null;
+                    _failedVersion = version;
+                }
                 _log.Log(LogLevel.Error, $"app-dist schema load failed: {ex}");
             }
         });
@@ -284,7 +306,6 @@ public sealed class LspServer
         if (next is null || string.Equals(next, _workspace.Root, StringComparison.Ordinal))
             return;
         _workspace.SetRoot(next);
-        BeginSchemaLoad();
         _diagnostics.Schedule();
     }
 
@@ -310,6 +331,7 @@ public sealed class LspServer
     private void OnDidChangeWatchedFiles()
     {
         _workspace.InvalidateMappers();
+        _failedVersion = null;
         _diagnostics.Schedule();
     }
 }

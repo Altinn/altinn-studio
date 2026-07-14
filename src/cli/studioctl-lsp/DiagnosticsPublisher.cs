@@ -15,7 +15,8 @@ internal sealed class DiagnosticsPublisher(
     LspConversions convert,
     LspTransport transport,
     Logger log,
-    Func<SchemaSet?> schemas
+    Func<SchemaSet?> schemas,
+    Action<string?> observeAppVersion
 )
 {
     private const int DebounceMs = 150;
@@ -68,6 +69,7 @@ internal sealed class DiagnosticsPublisher(
         IReadOnlyList<Finding> findings;
         try
         {
+            observeAppVersion(engine.Current.AltinnAppVersion);
             findings = schemas() is { } loaded ? engine.ValidateAll(loaded).Findings : engine.Validate().Findings;
         }
         catch (Exception ex)
