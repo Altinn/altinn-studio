@@ -1,13 +1,17 @@
 import React from 'react';
+import type { createMemoryRouter } from 'react-router';
 
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcessWorkflow } from 'src/types/shared';
+
+type RouterRef = { current: ReturnType<typeof createMemoryRouter> | undefined };
 
 function getInstanceWithWorkflow(workflow?: IProcessWorkflow): IInstanceWithProcess {
   const instance = getInstanceWithProcessMock();
@@ -154,6 +158,70 @@ describe('ProcessWrapper workflow state machine', () => {
     // An unknown/new kind must fall back to the generic label, never render a raw lang key.
     expect(screen.getByText('Ukjent feil')).toBeInTheDocument();
     expect(screen.queryByText(/process_workflow\.failure_kind/)).not.toBeInTheDocument();
+  });
+
+  it('navigates to the committed task when the workflow settles while parked on the old task url', async () => {
+    // A reload during a transition parks the session on the pre-transition task's URL (the
+    // same-session flow instead navigates from useProcessNext's onSuccess). When the poll then
+    // observes the settled workflow - currentTask advanced to Task_2, status idle - the page must
+    // navigate onto the committed task, not strand the user on Task_1's "not available" error.
+    //
+    // Rendered with the production provider order (InstanceProvider > ProcessWrapper, FormProvider
+    // below) rather than renderWithInstanceAndLayout, whose inverted order unmounts ProcessWrapper
+    // into a layout loader as soon as currentTask changes.
+    jest.useFakeTimers();
+    try {
+      let committed = false;
+      const routerRef: RouterRef = { current: undefined };
+      await renderWithDefaultProviders({
+        renderer: () => (
+          <InstanceProvider>
+            <ProcessWrapper>
+              <div data-testid='task-content'>Task content</div>
+            </ProcessWrapper>
+          </InstanceProvider>
+        ),
+        router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => {
+              const instance = getInstanceWithProcessMock();
+              instance.process.processTasks = [
+                { altinnTaskType: 'data', elementId: 'Task_1' },
+                { altinnTaskType: 'data', elementId: 'Task_2' },
+              ];
+              if (committed) {
+                instance.process.currentTask!.elementId = 'Task_2';
+                instance.process.currentTask!.name = 'Task_2';
+                instance.process.workflow = { status: 'idle' };
+              } else {
+                instance.process.workflow = { status: 'processing', targetTask: 'Task_2' };
+              }
+              return instance;
+            },
+          },
+        },
+      });
+
+      expect(await screen.findByText(/går videre til neste steg/i)).toBeInTheDocument();
+
+      // The transition commits out-of-band (this session never called process/next).
+      committed = true;
+
+      // One processing-state poll window always contains at least one tick; add slack for the
+      // navigation + the wrong-task check's own settle delay.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(13_000);
+      });
+
+      // The URL converged onto the committed task, and the stale-task navigation error never showed.
+      expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
+      expect(screen.queryByText(/denne delen av skjemaet er ikke tilgjengelig/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /gå til riktig prosessteg/i })).not.toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('failed auto-recovers when ops resumes the workflow out-of-band', async () => {

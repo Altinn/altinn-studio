@@ -90,7 +90,6 @@ describe('Live workflow status (real engine)', () => {
 
   it('processing (pre-commit): reload during the delay shows the advancing UI, then converges on Task_2', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    captureInstanceRoot().as('instanceRoot');
     fillLevers({ delayMs: 8000, phase: 'taskEnding' });
 
     submitAndReloadDuringTransition();
@@ -102,20 +101,16 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
-    // After the delay the transition commits to Task_2. This reloaded session is parked on the old
-    // Task_1 url, so we converge by visiting the committed task directly (concurrent-session style).
-    // The transition happens out-of-band in the engine with no signal on this abandoned page, so we
-    // wait out the (known) delay before reading the committed task.
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(11000);
-    cy.get<string>('@instanceRoot').then((root) => cy.visit(`${root}/Task_2`));
+    // After the delay the transition commits to Task_2 out-of-band. The reloaded session is parked on
+    // the old Task_1 url, but the poll observes the settled workflow and the page navigates onto the
+    // committed task on its own - no reload, no manual navigation, and never the stale-task error.
     cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
+    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
   });
 
   it('failed (pre-commit permanent): shows the error page; an ops resume auto-recovers the page', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    captureInstanceRoot().as('instanceRoot');
     fillLevers({ failCount: 1, failKind: 'permanent', phase: 'taskEnding' });
 
     cy.findByRole('button', { name: 'Send inn' }).click();
@@ -146,18 +141,17 @@ describe('Live workflow status (real engine)', () => {
       );
     });
 
-    // The poll picks up the settled state on its own; the error page disappears without a reload.
+    // The poll picks up the settled state on its own: the error page disappears and the page - still
+    // parked on the old Task_1 url - navigates onto the committed task, all without a reload or any
+    // user interaction.
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('not.exist');
-
-    // This session is parked on the old Task_1 url; converge on the committed task directly.
-    cy.get<string>('@instanceRoot').then((root) => cy.visit(`${root}/Task_2`));
     cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
+    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
   });
 
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    captureInstanceRoot().as('instanceRoot');
     fillLevers({ delayMs: 3000, failCount: 1, failKind: 'retryable', phase: 'taskEnding' });
 
     submitAndReloadDuringTransition();
@@ -167,11 +161,10 @@ describe('Live workflow status (real engine)', () => {
     cy.contains('Går videre til', { timeout: 15000 }).should('be.visible');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
-    // Attempt 2 (after the auto-retry + engine backoff) succeeds and commits Task_2 out-of-band.
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(15000);
-    cy.get<string>('@instanceRoot').then((root) => cy.visit(`${root}/Task_2`));
-    cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
+    // Attempt 2 (after the auto-retry + engine backoff) succeeds and commits Task_2 out-of-band; the
+    // polling page then navigates onto the committed task on its own - no reload, no manual nav.
+    cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
+    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
   });
 

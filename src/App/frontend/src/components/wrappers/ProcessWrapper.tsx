@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { AccordionItem, Button, Flex } from '@app/form-component';
@@ -13,7 +13,7 @@ import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstancePollFailureCount } from 'src/features/instance/InstanceContext';
-import { getProcessNextMutationKey } from 'src/features/instance/useProcessNext';
+import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import {
   useGetAltinnTaskType,
   useGetTaskTypeById,
@@ -224,6 +224,39 @@ function WorkflowFailedDetails({ failure, targetTask }: WorkflowFailedDetailsPro
   );
 }
 
+// A transition can settle while this session's URL is still parked on the pre-transition task: a
+// reload during the transition, or an ops resume converging the failed page. The same-session flow
+// navigates from useProcessNext's onSuccess/onError, but here the poll only converges the *data*
+// (currentTask advances, workflow settles) - nothing converges the URL, stranding the user on the
+// old task's "not available" error. So when the live status goes from busy (processing/failed) to
+// settled, navigate to the committed task exactly like the sync flow would. A URL that is stale on
+// arrival (no observed busy status - e.g. an old deep link) keeps the navigation error + button.
+function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) {
+  const { data: process } = useProcessQuery();
+  const status = process?.workflow?.status;
+  const navigateToTask = useNavigateToTask();
+  const wasBusyRef = useRef(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+    if (status === 'processing' || status === 'failed') {
+      wasBusyRef.current = true;
+      return;
+    }
+    if (!wasBusyRef.current) {
+      return;
+    }
+    wasBusyRef.current = false;
+
+    const settledTask = getTargetTaskFromProcess(process);
+    if (settledTask && settledTask !== taskId) {
+      navigateToTask(settledTask);
+    }
+  }, [enabled, status, process, taskId, navigateToTask]);
+}
+
 function WorkflowFailedDetailItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
@@ -245,6 +278,9 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isRunningProcessNext = useIsRunningProcessNext();
   const workflow = useProcessWorkflow();
   const isPdfMode = usePdfModeActive();
+
+  // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
+  useNavigateToSettledTask(taskId, !isPdfMode);
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
