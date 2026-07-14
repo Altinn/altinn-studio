@@ -7,20 +7,21 @@ public sealed partial class FileSystemAppDistStore(string rootDirectory) : IAppD
 {
     private readonly string _root = Path.GetFullPath(rootDirectory);
 
-    public Task<bool> ContainsAsync(string version, CancellationToken cancellationToken)
+    public Task<bool> ContainsAsync(string version, AppDistLayer layer, CancellationToken cancellationToken)
     {
-        var (contentDir, marker) = EntryPaths(version);
+        var (contentDir, marker) = EntryPaths(version, layer);
         return Task.FromResult(Directory.Exists(contentDir) && File.Exists(marker));
     }
 
     public async Task WriteAsync(
         string version,
+        AppDistLayer layer,
         IReadOnlyList<AppDistFileEntry> files,
         CancellationToken cancellationToken
     )
     {
         ArgumentNullException.ThrowIfNull(files);
-        var (contentDir, marker) = EntryPaths(version);
+        var (contentDir, marker) = EntryPaths(version, layer);
 
         var staging = Path.Combine(_root, "tmp", Guid.NewGuid().ToString("N"));
         try
@@ -34,7 +35,7 @@ public sealed partial class FileSystemAppDistStore(string rootDirectory) : IAppD
                 await File.WriteAllBytesAsync(target, file.Content, cancellationToken);
             }
 
-            Directory.CreateDirectory(Path.Combine(_root, "contents"));
+            Directory.CreateDirectory(Path.Combine(_root, "contents", version));
             File.Delete(marker);
             if (Directory.Exists(contentDir))
                 Directory.Delete(contentDir, recursive: true);
@@ -52,16 +53,25 @@ public sealed partial class FileSystemAppDistStore(string rootDirectory) : IAppD
         }
     }
 
-    public Task<Stream?> OpenFileAsync(string version, string path, CancellationToken cancellationToken)
+    public Task<Stream?> OpenFileAsync(
+        string version,
+        AppDistLayer layer,
+        string path,
+        CancellationToken cancellationToken
+    )
     {
-        var (contentDir, _) = EntryPaths(version);
+        var (contentDir, _) = EntryPaths(version, layer);
         var target = SafeChild(contentDir, path);
         return Task.FromResult<Stream?>(File.Exists(target) ? File.OpenRead(target) : null);
     }
 
-    public Task<IReadOnlyList<string>> ListFilesAsync(string version, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<string>> ListFilesAsync(
+        string version,
+        AppDistLayer layer,
+        CancellationToken cancellationToken
+    )
     {
-        var (contentDir, _) = EntryPaths(version);
+        var (contentDir, _) = EntryPaths(version, layer);
         if (!Directory.Exists(contentDir))
             return Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>());
         IReadOnlyList<string> files = Directory
@@ -72,13 +82,21 @@ public sealed partial class FileSystemAppDistStore(string rootDirectory) : IAppD
         return Task.FromResult(files);
     }
 
-    private (string ContentDir, string Marker) EntryPaths(string version)
+    private (string ContentDir, string Marker) EntryPaths(string version, AppDistLayer layer)
     {
         if (!NameSafePattern().IsMatch(version))
             throw new ArgumentException($"not a name-safe version: \"{version}\"");
-        var contentDir = Path.Combine(_root, "contents", version);
+        var contentDir = Path.Combine(_root, "contents", version, LayerName(layer));
         return (contentDir, contentDir + ".fetched");
     }
+
+    private static string LayerName(AppDistLayer layer) =>
+        layer switch
+        {
+            AppDistLayer.Schemas => "schemas",
+            AppDistLayer.Bundle => "bundle",
+            _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, "unknown app-dist layer"),
+        };
 
     private static string SafeChild(string directory, string relativePath)
     {

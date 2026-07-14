@@ -2,7 +2,11 @@ namespace Altinn.Studio.AppDist;
 
 public interface IAppDistSource
 {
-    Task<IReadOnlyList<AppDistFileEntry>> FetchAsync(string version, CancellationToken cancellationToken);
+    Task<IReadOnlyList<AppDistFileEntry>> FetchLayerAsync(
+        string version,
+        AppDistLayer layer,
+        CancellationToken cancellationToken
+    );
 }
 
 public sealed record AppDistFileEntry(string Path, byte[] Content);

@@ -15,12 +15,6 @@ public sealed partial class OciRegistrySource : IAppDistSource
 
     private const string OciManifestMediaType = "application/vnd.oci.image.manifest.v1+json";
 
-    private static readonly string[] _knownLayerMediaTypes =
-    {
-        "application/vnd.altinn.app.schemas.tar+gzip",
-        "application/vnd.altinn.app.bundle.tar+gzip",
-    };
-
     private readonly HttpClient _http;
     private readonly string _host;
     private readonly string _repository;
@@ -41,23 +35,35 @@ public sealed partial class OciRegistrySource : IAppDistSource
         _repository = repository[(slash + 1)..];
     }
 
-    public async Task<IReadOnlyList<AppDistFileEntry>> FetchAsync(string version, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<AppDistFileEntry>> FetchLayerAsync(
+        string version,
+        AppDistLayer layer,
+        CancellationToken cancellationToken
+    )
     {
         if (!TagPattern().IsMatch(version))
             throw new ArgumentException($"not a valid OCI tag: \"{version}\"");
 
         var files = new List<AppDistFileEntry>();
-        foreach (var layer in await GetLayersAsync(version, cancellationToken))
+        foreach (var ociLayer in await GetLayersAsync(version, LayerMediaType(layer), cancellationToken))
         {
-            using var blob = await DownloadBlobAsync(layer.Digest, cancellationToken);
-            VerifyDigest(blob, layer.Digest);
+            using var blob = await DownloadBlobAsync(ociLayer.Digest, cancellationToken);
+            VerifyDigest(blob, ociLayer.Digest);
             blob.Position = 0;
             files.AddRange(ExtractTarGz(blob));
         }
         return files;
     }
 
-    private async Task<List<OciLayer>> GetLayersAsync(string version, CancellationToken ct)
+    private static string LayerMediaType(AppDistLayer layer) =>
+        layer switch
+        {
+            AppDistLayer.Schemas => "application/vnd.altinn.app.schemas.tar+gzip",
+            AppDistLayer.Bundle => "application/vnd.altinn.app.bundle.tar+gzip",
+            _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, "unknown app-dist layer"),
+        };
+
+    private async Task<List<OciLayer>> GetLayersAsync(string version, string mediaType, CancellationToken ct)
     {
         OciManifest? manifest;
         try
@@ -86,8 +92,10 @@ public sealed partial class OciRegistrySource : IAppDistSource
             throw new InvalidOperationException($"{_repository}:{version}: manifest has no layers");
 
         var layers = manifest
-            .Layers.Where(l => _knownLayerMediaTypes.Contains(l.MediaType, StringComparer.Ordinal))
+            .Layers.Where(l => string.Equals(l.MediaType, mediaType, StringComparison.Ordinal))
             .ToList();
+        if (layers.Count == 0)
+            throw new InvalidOperationException($"{_repository}:{version}: manifest has no {mediaType} layer");
         if (layers.Find(l => !DigestPattern().IsMatch(l.Digest)) is { } invalid)
             throw new InvalidOperationException(
                 $"{_repository}:{version}: unsupported digest \"{invalid.Digest}\" for {invalid.MediaType}"
