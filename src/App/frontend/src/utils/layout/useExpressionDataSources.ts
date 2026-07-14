@@ -260,6 +260,10 @@ function useExpressionDataSourcesRuntime(
   observerRef.current.beginCollect();
 
   useLayoutEffect(() => {
+    observerRef.current!.checkHookInputs();
+  }, [applicationSettings, currentLanguage, currentPage]);
+
+  useLayoutEffect(() => {
     observerRef.current!.commitCollect();
   });
 
@@ -423,6 +427,7 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
       return getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId);
     case 'language':
       return {
+        applicationSettings: inputs.applicationSettings,
         currentLanguage: inputs.currentLanguage,
         textResources: getTextResourcesFromCache(inputs),
         instanceDataSources: getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId),

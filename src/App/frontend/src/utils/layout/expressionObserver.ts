@@ -67,6 +67,14 @@ export class ExpressionObserver {
     return [...this.active.values()];
   }
 
+  checkHookInputs() {
+    // Another dependency may already have caused the expression to run with the latest hook inputs in this render.
+    if (this.evaluatedDuringCollect) {
+      return;
+    }
+    this.checkForChanges(isHookBackedDependency);
+  }
+
   subscribe({
     owner,
     subscribeStore,
@@ -143,6 +151,15 @@ export class ExpressionObserver {
 
 function isStoreBackedDependency(dependency: ExpressionDependency) {
   return dependency.type === 'formData' || dependency.type === 'layout' || dependency.type === 'options';
+}
+
+function isHookBackedDependency(dependency: ExpressionDependency) {
+  return (
+    dependency.type === 'applicationSettings' ||
+    dependency.type === 'currentLanguage' ||
+    dependency.type === 'currentPage' ||
+    dependency.type === 'language'
+  );
 }
 
 function isQueryBackedDependency(dependency: ExpressionDependency) {
