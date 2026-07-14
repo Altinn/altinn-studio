@@ -30,7 +30,8 @@ public sealed class FileSystemAppDirectory : IWritableAppDirectory, IHashingAppD
 
     public bool DirectoryExists(string relativeDir) => Contained(relativeDir) is { } p && Directory.Exists(p);
 
-    public byte[]? ReadAllBytes(string relativePath) => ReadHandle(relativePath).Bytes;
+    public byte[]? ReadAllBytes(string relativePath) =>
+        ReadHandle(relativePath).Bytes is { } bytes ? (byte[])bytes.Clone() : null;
 
     public byte[]? ReadExternalBytes(string relativePath)
     {
