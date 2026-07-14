@@ -3,43 +3,87 @@
   "resources": [
     {
       "id": "appName",
-      "value": "process-transition-test"
+      "value": "Prosessovergang – testapp"
     },
     {
       "id": "Task1.header.title",
       "value": "Task 1 – kontroller prosessovergangen"
     },
     {
+      "id": "Task1.description",
+      "value": "Denne testappen styrer overgangen fra Task 1 til Task 2. Velg hvordan overgangen skal oppføre seg og trykk «Send inn» for å se den live prosesstatusen: venteskjermen med stegindikator, automatiske omprøvinger eller feilsiden."
+    },
+    {
+      "id": "phase.title",
+      "value": "Når skal forsinkelsen eller feilen inntreffe?"
+    },
+    {
+      "id": "phase.taskEnding",
+      "value": "Før overgangen fullføres – ventingen vises mens skjemaet fortsatt står på Task 1"
+    },
+    {
+      "id": "phase.postCommit",
+      "value": "Etter overgangen er fullført – ventingen vises på Task 2 (feil her er alltid forbigående)"
+    },
+    {
       "id": "delayMs.title",
-      "value": "Forsinkelse (ms)"
+      "value": "Forsinkelse"
+    },
+    {
+      "id": "delayMs.none",
+      "value": "Ingen – overgangen fullføres umiddelbart"
+    },
+    {
+      "id": "delayMs.short",
+      "value": "Kort – ca. 3 sekunder"
+    },
+    {
+      "id": "delayMs.medium",
+      "value": "Middels – ca. 8 sekunder"
+    },
+    {
+      "id": "delayMs.long",
+      "value": "Lang – ca. 15 sekunder"
+    },
+    {
+      "id": "delayMs.veryLong",
+      "value": "Svært lang – ca. 30 sekunder"
     },
     {
       "id": "failCount.title",
       "value": "Antall feil før suksess"
     },
     {
+      "id": "failCount.none",
+      "value": "Ingen – lykkes på første forsøk"
+    },
+    {
+      "id": "failCount.one",
+      "value": "Én feil – lykkes på andre forsøk"
+    },
+    {
+      "id": "failCount.two",
+      "value": "To feil – lykkes på tredje forsøk"
+    },
+    {
+      "id": "failCount.four",
+      "value": "Fire feil – flere automatiske omprøvinger på rad"
+    },
+    {
       "id": "failKind.title",
-      "value": "Feiltype"
+      "value": "Feiltype (brukes når antall feil er større enn null)"
     },
     {
       "id": "failKind.retryable",
-      "value": "retryable"
+      "value": "Forbigående – motoren prøver automatisk på nytt"
     },
     {
       "id": "failKind.permanent",
-      "value": "permanent"
+      "value": "Permanent – behandlingen stopper og feilsiden vises"
     },
     {
-      "id": "phase.title",
-      "value": "Fase"
-    },
-    {
-      "id": "phase.taskEnding",
-      "value": "taskEnding"
-    },
-    {
-      "id": "phase.postCommit",
-      "value": "postCommit"
+      "id": "Task1.hint",
+      "value": "Tips: Last siden på nytt mens overgangen pågår – ventesiden skal overleve en refresh og navigere deg videre til Task 2 når overgangen er ferdig."
     },
     {
       "id": "sendinn.title",
@@ -48,6 +92,10 @@
     {
       "id": "Task2.header.title",
       "value": "Task 2"
+    },
+    {
+      "id": "Task2.description",
+      "value": "Overgangen fra Task 1 er fullført. Trykk «Send inn» for å avslutte prosessen og gå til kvitteringen."
     }
   ]
 }

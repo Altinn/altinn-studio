@@ -12,6 +12,37 @@
         }
       },
       {
+        "id": "Task1Description",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Task1.description"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "phase",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "phase",
+        "type": "RadioButtons",
+        "preselectedOptionIndex": 0,
+        "options": [
+          {
+            "value": "taskEnding",
+            "label": "phase.taskEnding"
+          },
+          {
+            "value": "postCommit",
+            "label": "phase.postCommit"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "phase.title"
+        }
+      },
+      {
         "dataModelBindings": {
           "simpleBinding": {
             "field": "delayMs",
@@ -19,14 +50,30 @@
           }
         },
         "id": "delayMs",
-        "type": "Input",
-        "formatting": {
-          "number": {
-            "allowNegative": false,
-            "decimalScale": 0,
-            "thousandSeparator": false
+        "type": "RadioButtons",
+        "preselectedOptionIndex": 0,
+        "options": [
+          {
+            "value": "0",
+            "label": "delayMs.none"
+          },
+          {
+            "value": "3000",
+            "label": "delayMs.short"
+          },
+          {
+            "value": "8000",
+            "label": "delayMs.medium"
+          },
+          {
+            "value": "15000",
+            "label": "delayMs.long"
+          },
+          {
+            "value": "30000",
+            "label": "delayMs.veryLong"
           }
-        },
+        ],
         "textResourceBindings": {
           "title": "delayMs.title"
         }
@@ -39,14 +86,26 @@
           }
         },
         "id": "failCount",
-        "type": "Input",
-        "formatting": {
-          "number": {
-            "allowNegative": false,
-            "decimalScale": 0,
-            "thousandSeparator": false
+        "type": "RadioButtons",
+        "preselectedOptionIndex": 0,
+        "options": [
+          {
+            "value": "0",
+            "label": "failCount.none"
+          },
+          {
+            "value": "1",
+            "label": "failCount.one"
+          },
+          {
+            "value": "2",
+            "label": "failCount.two"
+          },
+          {
+            "value": "4",
+            "label": "failCount.four"
           }
-        },
+        ],
         "textResourceBindings": {
           "title": "failCount.title"
         }
@@ -60,6 +119,7 @@
         },
         "id": "failKind",
         "type": "RadioButtons",
+        "preselectedOptionIndex": 0,
         "options": [
           {
             "value": "retryable",
@@ -75,26 +135,10 @@
         }
       },
       {
-        "dataModelBindings": {
-          "simpleBinding": {
-            "field": "phase",
-            "dataType": "TransitionControl"
-          }
-        },
-        "id": "phase",
-        "type": "RadioButtons",
-        "options": [
-          {
-            "value": "taskEnding",
-            "label": "phase.taskEnding"
-          },
-          {
-            "value": "postCommit",
-            "label": "phase.postCommit"
-          }
-        ],
+        "id": "Task1Hint",
+        "type": "Paragraph",
         "textResourceBindings": {
-          "title": "phase.title"
+          "title": "Task1.hint"
         }
       },
       {

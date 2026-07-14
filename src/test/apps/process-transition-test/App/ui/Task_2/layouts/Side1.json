@@ -12,6 +12,13 @@
         }
       },
       {
+        "id": "Task2Description",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Task2.description"
+        }
+      },
+      {
         "id": "sendinnTask2",
         "type": "Button",
         "textResourceBindings": {

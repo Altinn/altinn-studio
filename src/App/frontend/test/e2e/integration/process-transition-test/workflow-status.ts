@@ -27,25 +27,59 @@ const appFrontend = new AppFrontend();
  */
 
 type Levers = {
-  delayMs?: number;
-  failCount?: number;
+  delayMs?: 0 | 3000 | 8000 | 15000 | 30000;
+  failCount?: 0 | 1 | 2 | 4;
   failKind?: 'retryable' | 'permanent';
   phase?: 'taskEnding' | 'postCommit';
 };
 
+// The levers are user-friendly preselected radios (defaults: taskEnding / no delay / no failures /
+// retryable), so every option maps a lever value to its descriptive label.
+const leverLabels = {
+  delayMs: {
+    0: 'Ingen – overgangen fullføres umiddelbart',
+    3000: 'Kort – ca. 3 sekunder',
+    8000: 'Middels – ca. 8 sekunder',
+    15000: 'Lang – ca. 15 sekunder',
+    30000: 'Svært lang – ca. 30 sekunder',
+  },
+  failCount: {
+    0: 'Ingen – lykkes på første forsøk',
+    1: 'Én feil – lykkes på andre forsøk',
+    2: 'To feil – lykkes på tredje forsøk',
+    4: 'Fire feil – flere automatiske omprøvinger på rad',
+  },
+  failKind: {
+    retryable: 'Forbigående – motoren prøver automatisk på nytt',
+    permanent: 'Permanent – behandlingen stopper og feilsiden vises',
+  },
+  phase: {
+    taskEnding: 'Før overgangen fullføres – ventingen vises mens skjemaet fortsatt står på Task 1',
+    postCommit: 'Etter overgangen er fullført – ventingen vises på Task 2 (feil her er alltid forbigående)',
+  },
+} as const;
+
 function fillLevers({ delayMs, failCount, failKind, phase }: Levers) {
   cy.get('#finishedLoading').should('exist');
+  if (phase !== undefined) {
+    cy.findByRole('radiogroup', { name: /^Når skal/ })
+      .findByRole('radio', { name: leverLabels.phase[phase] })
+      .click();
+  }
   if (delayMs !== undefined) {
-    cy.findByRole('textbox', { name: 'Forsinkelse (ms)' }).type(String(delayMs));
+    cy.findByRole('radiogroup', { name: 'Forsinkelse' })
+      .findByRole('radio', { name: leverLabels.delayMs[delayMs] })
+      .click();
   }
   if (failCount !== undefined) {
-    cy.findByRole('textbox', { name: 'Antall feil før suksess' }).type(String(failCount));
+    cy.findByRole('radiogroup', { name: 'Antall feil før suksess' })
+      .findByRole('radio', { name: leverLabels.failCount[failCount] })
+      .click();
   }
   if (failKind !== undefined) {
-    cy.findByRole('radiogroup', { name: 'Feiltype' }).findByRole('radio', { name: failKind }).click();
-  }
-  if (phase !== undefined) {
-    cy.findByRole('radiogroup', { name: 'Fase' }).findByRole('radio', { name: phase }).click();
+    cy.findByRole('radiogroup', { name: /^Feiltype/ })
+      .findByRole('radio', { name: leverLabels.failKind[failKind] })
+      .click();
   }
   // The hooks read the levers from Storage, so they must be persisted before we advance the process.
   cy.waitUntilSaved();
@@ -82,7 +116,8 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('heading', { name: /Task 1/ }).should('be.visible');
 
-    // No levers set (phase unset) -> both hooks are no-ops -> the transition commits immediately.
+    // The preselected defaults (taskEnding / no delay / no failures) are a no-op for both hooks,
+    // so the transition commits immediately.
     cy.findByRole('button', { name: 'Send inn' }).click();
 
     cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
@@ -175,10 +210,10 @@ describe('Live workflow status (real engine)', () => {
   it('processing (post-commit): observable on the committed Task_2, then settles to a normal Task_2', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     captureInstanceRoot().as('instanceRoot');
-    fillLevers({ delayMs: 10000, phase: 'postCommit' });
+    fillLevers({ delayMs: 15000, phase: 'postCommit' });
 
     // The pre-commit hook is a no-op here, so the transition commits to Task_2 quickly; the post-commit
-    // MovedToAltinnEvent then delays ~10s in the engine.
+    // MovedToAltinnEvent then delays ~15s in the engine.
     cy.findByRole('button', { name: 'Send inn' }).click();
 
     // Give the pre-commit steps time to commit Task_2, then open the committed task in a fresh load
