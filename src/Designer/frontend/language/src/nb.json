@@ -36,6 +36,7 @@
   "admin.instances.data.size_kb": "{{size}} KB",
   "admin.instances.data.type": "Datatype",
   "admin.instances.data_elements": "Dataelementer",
+  "admin.instances.delete.confirm": "Er du sikker på at du vil permanent slette instansen?",
   "admin.instances.fetch_more": "Last inn 10 flere rader",
   "admin.instances.filter.all": "Alle",
   "admin.instances.filter.no": "Nei",

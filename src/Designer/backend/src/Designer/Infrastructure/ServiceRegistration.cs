@@ -74,6 +74,8 @@ public static class ServiceRegistration
         services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
         services.AddScoped<IContactPointsRepository, ContactPointRepository>();
+        services.AddScoped<IAdminAuditLogRepository, AdminAuditLogRepository>();
+        services.AddScoped<IAdminAuditLogger, AdminAuditLogger>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
         services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
