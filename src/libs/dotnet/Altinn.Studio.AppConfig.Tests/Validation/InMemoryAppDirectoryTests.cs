@@ -412,9 +412,8 @@ public sealed class InMemoryAppDirectoryTests
     [Fact]
     public void DuplicateSchemaFindings_AreCollapsed()
     {
-        const string baseUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json";
         const string layout =
-            """{"$schema":"https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json","data":{"layout":[{"id":"h","type":"Header","textResourceBindings":{"title":"t"}}]}}""";
+            """{"data":{"layout":[{"id":"h","type":"Header","textResourceBindings":{"title":"t"}}]}}""";
         // Two identical allOf branches yield the same "size" error twice; Normalize must collapse them.
         const string layoutSchema = """
             {"properties":{"data":{"properties":{"layout":{"items":{
@@ -429,22 +428,14 @@ public sealed class InMemoryAppDirectoryTests
                 ["App/ui/Task_1/layouts/P1.json"] = layout,
             }
         );
-        var schemaDir = Directory.CreateTempSubdirectory("appconfig-schemas-").FullName;
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(schemaDir, "layout"));
-            File.WriteAllText(Path.Combine(schemaDir, "layout", "layout.schema.v1.json"), layoutSchema);
-            var schemas = SchemaSet.FromDirectory(schemaDir, baseUrl);
+        var schemas = SchemaSet.FromFiles(
+            new Dictionary<string, string> { ["layout/layout.schema.v1.json"] = layoutSchema }
+        );
 
-            var report = AppConfigEngine.Open(dir).ValidateSchemas(schemas);
+        var report = AppConfigEngine.Open(dir).ValidateSchemas(schemas);
 
-            Assert.Equal(report.Findings.Count, report.Findings.Distinct().Count());
-            Assert.Equal(1, report.Findings.Count(f => f.RuleId == "JSONSCHEMA-VALID" && f.Message.Contains("size")));
-        }
-        finally
-        {
-            Directory.Delete(schemaDir, recursive: true);
-        }
+        Assert.Equal(report.Findings.Count, report.Findings.Distinct().Count());
+        Assert.Equal(1, report.Findings.Count(f => f.RuleId == "JSONSCHEMA-VALID" && f.Message.Contains("size")));
     }
 
     [Fact]

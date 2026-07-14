@@ -8,41 +8,37 @@ public sealed class SchemaSet
 {
     public static SchemaSet Empty { get; } = new(new Dictionary<string, JsonSchema>(StringComparer.Ordinal));
 
-    private readonly IReadOnlyDictionary<string, JsonSchema> _byUrl;
+    private readonly IReadOnlyDictionary<string, JsonSchema> _byPath;
 
     internal object EvaluationGate { get; } = new();
 
     internal EvaluationOptions Options { get; }
 
-    private SchemaSet(IReadOnlyDictionary<string, JsonSchema> byUrl)
+    private SchemaSet(IReadOnlyDictionary<string, JsonSchema> byPath)
     {
-        _byUrl = byUrl;
+        _byPath = byPath;
         Options = new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical };
-        foreach (var (url, schema) in byUrl)
-            Options.SchemaRegistry.Register(new Uri(url), schema);
+        foreach (var (path, schema) in byPath)
+            Options.SchemaRegistry.Register(RegistryUri(path), schema);
     }
 
-    internal JsonSchema? Get(string schemaUrl) => _byUrl.TryGetValue(schemaUrl, out var s) ? s : null;
+    private static Uri RegistryUri(string path) =>
+        new UriBuilder
+        {
+            Scheme = "schema",
+            Host = "",
+            Path = path,
+        }.Uri;
 
-    public static SchemaSet FromDirectory(string directory, string baseUrl)
-    {
-        var root = Path.GetFullPath(directory);
-        return FromFiles(
-            Directory
-                .EnumerateFiles(root, "*.json", SearchOption.AllDirectories)
-                .Select(file => (Path.GetRelativePath(root, file).Replace('\\', '/'), File.ReadAllText(file))),
-            baseUrl
-        );
-    }
+    internal JsonSchema? Get(string schemaPath) => _byPath.TryGetValue(schemaPath, out var s) ? s : null;
 
-    public static SchemaSet FromFiles(IEnumerable<(string RelativePath, string Json)> files, string baseUrl)
+    public static SchemaSet FromFiles(IEnumerable<KeyValuePair<string, string>> files)
     {
         var map = new Dictionary<string, JsonSchema>(StringComparer.Ordinal);
-        var prefix = baseUrl.TrimEnd('/');
-        foreach (var (relativePath, text) in files)
+        foreach (var (path, text) in files)
         {
             var content = text;
-            if (string.Equals(Path.GetFileName(relativePath), ExpressionFileName, StringComparison.Ordinal))
+            if (string.Equals(Path.GetFileName(path), ExpressionFileName, StringComparison.Ordinal))
                 content = NeutralizeExpressionRecursion(content);
             JsonSchema schema;
             try
@@ -53,7 +49,7 @@ public sealed class SchemaSet
             {
                 continue;
             }
-            map[$"{prefix}/{relativePath}"] = schema;
+            map[path] = schema;
         }
         return new SchemaSet(map);
     }

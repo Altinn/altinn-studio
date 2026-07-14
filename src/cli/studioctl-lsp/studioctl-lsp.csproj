@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../libs/dotnet/Altinn.Studio.AppConfig/Altinn.Studio.AppConfig.csproj" />
+    <ProjectReference Include="../../libs/dotnet/Altinn.Studio.AppDist/Altinn.Studio.AppDist.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 using Altinn.Studio.AppConfig;
+using Altinn.Studio.AppConfig.Models;
 using Altinn.Studio.AppConfig.Validation;
 
 namespace Altinn.Studio.StudioctlServer.Studioctl;
@@ -26,7 +27,11 @@ internal static class ValidateEndpoint
         return Results.Ok(rules);
     }
 
-    private static IResult Run(ValidateRequest? request)
+    private static async Task<IResult> Run(
+        ValidateRequest? request,
+        AppDistSchemasService schemas,
+        CancellationToken cancellationToken
+    )
     {
         if (request is null || string.IsNullOrEmpty(request.Path))
             return Results.BadRequest(new CommandResponse("path is required"));
@@ -34,17 +39,18 @@ internal static class ValidateEndpoint
             return Results.BadRequest(new CommandResponse($"directory does not exist: {request.Path}"));
 
         AppConfigEngine engine;
+        AppModel model;
         try
         {
             engine = AppConfigEngine.Open(request.Path);
-            engine.Build();
+            model = engine.Build();
         }
         catch (Exception ex)
         {
             return Results.Problem($"load app: {ex.Message}", statusCode: 422);
         }
 
-        var report = engine.ValidateAll();
+        var report = engine.ValidateAll(await schemas.GetAsync(model.AltinnAppVersion, cancellationToken));
 
         Severity minSev = Severity.Warning;
         if (!string.IsNullOrEmpty(request.Severity) && !SeverityExtensions.TryParse(request.Severity, out minSev))

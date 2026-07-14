@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.Studio.AppConfig.Validation;
+using Altinn.Studio.AppConfig.Validation.Schemas;
 
 namespace Altinn.Studio.AppConfigLsp;
 
@@ -13,7 +14,8 @@ internal sealed class DiagnosticsPublisher(
     WorkspaceState workspace,
     LspConversions convert,
     LspTransport transport,
-    Logger log
+    Logger log,
+    Func<SchemaSet?> schemas
 )
 {
     private const int DebounceMs = 150;
@@ -66,7 +68,7 @@ internal sealed class DiagnosticsPublisher(
         IReadOnlyList<Finding> findings;
         try
         {
-            findings = ValidationEngine.Run(engine.Build()).Findings;
+            findings = schemas() is { } loaded ? engine.ValidateAll(loaded).Findings : engine.Validate().Findings;
         }
         catch (Exception ex)
         {
