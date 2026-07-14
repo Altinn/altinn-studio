@@ -18,7 +18,8 @@ const appFrontend = new AppFrontend();
  *
  * UI strings (app-libs nb.ts, keys process_workflow.*):
  *   processing  = spinner + "Vi behandler forespørselen din" (deliberately never names the target
- *                 task in prose; a "Steg x av y" line shows when the target is one of the tasks)
+ *                 task; a "Steg x av y" line shows live progress through the transition's
+ *                 workflow steps when the engine reports counts)
  *   failed      = heading "Noe gikk galt" + contact-support blurb + safe details expander
  *                 ("Vis detaljer om feilen"); deliberately NO Retry affordance — the engine already
  *                 exhausted its retry budget, so recovery is ops-driven (POST process/resume) and
@@ -96,11 +97,11 @@ describe('Live workflow status (real engine)', () => {
     submitAndReloadDuringTransition();
 
     // Committed task is still Task_1 during the pre-commit delay, so the reloaded session renders the
-    // live "advancing" state and the task's Send inn action is suppressed. The workflow's labels carry
-    // targetTask=Task_2 from enqueue time: never named in prose, but it resolves the step indicator
-    // (this app is Task_1 -> Task_2, so "Steg 2 av 2").
+    // live "advancing" state and the task's Send inn action is suppressed. The step indicator shows
+    // live progress through the transition's workflow steps (exact numbers depend on the command
+    // sequence, so only the shape is asserted).
     cy.contains('Vi behandler forespørselen din', { timeout: 15000 }).should('be.visible');
-    cy.contains('Steg 2 av 2').should('be.visible');
+    cy.contains(/Steg \d+ av \d+/).should('be.visible');
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 

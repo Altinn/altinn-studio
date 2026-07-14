@@ -39,12 +39,41 @@ public sealed class AppProcessWorkflowStatus
     public bool? Retrying { get; init; }
 
     /// <summary>
+    /// Progress through the in-flight transition's workflow steps. Present only while
+    /// <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/> and the engine
+    /// reported step counts. Presentation-only: a waiting UI can show "step x of y" movement, but
+    /// the step identities stay internal.
+    /// </summary>
+    [JsonPropertyName("progress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AppProcessWorkflowProgress? Progress { get; init; }
+
+    /// <summary>
     /// Failure detail. Present only when <see cref="Status"/> is
     /// <see cref="WorkflowActivityStatus.Failed"/>.
     /// </summary>
     [JsonPropertyName("failure")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AppProcessWorkflowFailure? Failure { get; init; }
+}
+
+/// <summary>
+/// Progress through an in-flight transition's workflow steps: <see cref="Completed"/> of
+/// <see cref="Total"/> steps have finished (so execution is on step <c>completed + 1</c>).
+/// </summary>
+public sealed class AppProcessWorkflowProgress
+{
+    /// <summary>
+    /// The number of the transition's steps that have completed.
+    /// </summary>
+    [JsonPropertyName("completed")]
+    public required int Completed { get; init; }
+
+    /// <summary>
+    /// The total number of steps in the transition.
+    /// </summary>
+    [JsonPropertyName("total")]
+    public required int Total { get; init; }
 }
 
 /// <summary>

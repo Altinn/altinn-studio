@@ -40,7 +40,13 @@ public class WorkflowEngineServiceTests
                     Namespace = Namespace,
                     Heads =
                     [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Completed },
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = workflowId,
+                            Status = PersistentItemStatus.Completed,
+                            StepsCompleted = 12,
+                            StepsTotal = 12,
+                        },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
                 }
@@ -261,6 +267,8 @@ public class WorkflowEngineServiceTests
                             {
                                 [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
                             },
+                            StepsCompleted = 4,
+                            StepsTotal = 12,
                         },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
@@ -280,6 +288,7 @@ public class WorkflowEngineServiceTests
         Assert.Equal("Task_2", result.TargetTask);
         Assert.Null(result.Failure);
         Assert.False(result.Retrying); // Enqueued = first attempt pending, not a retry
+        Assert.Equal(new WorkflowStepProgress(Completed: 4, Total: 12), result.Progress);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
         client.VerifyNoOtherCalls(); // ListWorkflows was NOT called for the processing case
     }
@@ -313,6 +322,8 @@ public class WorkflowEngineServiceTests
                             {
                                 [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
                             },
+                            StepsCompleted = 7,
+                            StepsTotal = 12,
                         },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
@@ -332,6 +343,7 @@ public class WorkflowEngineServiceTests
         Assert.Equal("Task_2", result.TargetTask);
         Assert.True(result.Retrying);
         Assert.Null(result.Failure);
+        Assert.Equal(new WorkflowStepProgress(Completed: 7, Total: 12), result.Progress);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
         client.VerifyNoOtherCalls();
     }
@@ -387,7 +399,16 @@ public class WorkflowEngineServiceTests
                 {
                     Key = collectionKey,
                     Namespace = Namespace,
-                    Heads = [new CollectionHeadStatus { DatabaseId = headId, Status = PersistentItemStatus.Failed }],
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Failed,
+                            StepsCompleted = 7,
+                            StepsTotal = 12,
+                        },
+                    ],
                     CreatedAt = DateTimeOffset.UtcNow,
                 }
             );
@@ -432,6 +453,8 @@ public class WorkflowEngineServiceTests
                         {
                             DatabaseId = Guid.NewGuid(),
                             Status = PersistentItemStatus.Completed,
+                            StepsCompleted = 12,
+                            StepsTotal = 12,
                         },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,

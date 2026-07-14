@@ -77,17 +77,26 @@ internal sealed record ProcessNextWorkflowResult(
 /// <summary>
 /// Presentation projection of the current task's live workflow status, used to enrich the process
 /// state sent to the frontend. <see cref="Failure"/> is only set when <see cref="Status"/> is
-/// <see cref="WorkflowActivityStatus.Failed"/>. <see cref="Retrying"/> is only meaningful while
-/// <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>: true when the engine
-/// has the transition parked between automatic retry attempts (a previous attempt failed), letting
-/// a waiting UI say "a step is being retried" instead of an unexplained long wait.
+/// <see cref="WorkflowActivityStatus.Failed"/>. <see cref="Retrying"/> and <see cref="Progress"/>
+/// are only meaningful while <see cref="Status"/> is
+/// <see cref="WorkflowActivityStatus.Processing"/>: retrying means the engine has the transition
+/// parked between automatic retry attempts (a previous attempt failed), letting a waiting UI say
+/// "a step is being retried" instead of an unexplained long wait; progress is how far through the
+/// transition's engine steps execution has come.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,
     string? TargetTask,
     WorkflowFailure? Failure,
-    bool Retrying = false
+    bool Retrying = false,
+    WorkflowStepProgress? Progress = null
 );
+
+/// <summary>
+/// Progress through a transition's engine steps: <see cref="Completed"/> of <see cref="Total"/>
+/// steps have finished. Presentation-only - the step identities stay internal.
+/// </summary>
+internal sealed record WorkflowStepProgress(int Completed, int Total);
 
 /// <summary>
 /// The workflow engine's view of the instance's current task, as a closed set of states.
@@ -374,7 +383,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 WorkflowActivityStatus.Processing,
                 ExtractTargetTask(activeHead.Labels),
                 Failure: null,
-                Retrying: activeHead.Status == PersistentItemStatus.Requeued
+                Retrying: activeHead.Status == PersistentItemStatus.Requeued,
+                Progress: activeHead is { StepsCompleted: int completed, StepsTotal: int total and > 0 }
+                    ? new WorkflowStepProgress(completed, total)
+                    : null
             );
         }
 

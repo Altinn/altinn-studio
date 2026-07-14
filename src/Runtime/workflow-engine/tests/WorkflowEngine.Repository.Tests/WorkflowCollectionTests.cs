@@ -109,6 +109,57 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task GetCollection_IncludesHeadStepProgress()
+    {
+        // The collection detail exposes each head's step progress (completed / total) so a consumer
+        // can show how far an executing head has come without a second per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a");
+        wf = wf with
+        {
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "step-1",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-2",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-3",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+        var results = await EnqueueWithCollection(repo, "progress-collection", [wf]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var before = await repo.GetCollection("progress-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(before);
+        var headBefore = Assert.Single(before.Heads);
+        Assert.Equal(0, headBefore.StepsCompleted);
+        Assert.Equal(3, headBefore.StepsTotal);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        var firstStep = workflow.Steps.OrderBy(s => s.ProcessingOrder).First();
+        firstStep.Status = PersistentItemStatus.Completed;
+        await repo.UpdateStep(firstStep, cancellationToken: TestContext.Current.CancellationToken);
+
+        var after = await repo.GetCollection("progress-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(after);
+        var headAfter = Assert.Single(after.Heads);
+        Assert.Equal(1, headAfter.StepsCompleted);
+        Assert.Equal(3, headAfter.StepsTotal);
+    }
+
+    [Fact]
     public async Task Enqueue_WithoutCollectionKey_DoesNotCreateCollection()
     {
         // Arrange

@@ -228,8 +228,19 @@ export interface IProcessWorkflow {
    * presentation hint for explaining a long wait honestly. Omitted when false.
    */
   retrying?: boolean;
+  /**
+   * Progress through the in-flight transition's workflow steps (execution is on step
+   * `completed + 1` of `total`). Only present while status === 'processing' and the engine
+   * reported step counts; presentation-only.
+   */
+  progress?: IProcessWorkflowProgress;
   /** Present only when status === 'failed'. */
   failure?: IProcessWorkflowFailure;
+}
+
+export interface IProcessWorkflowProgress {
+  completed: number;
+  total: number;
 }
 
 export interface IProfile {

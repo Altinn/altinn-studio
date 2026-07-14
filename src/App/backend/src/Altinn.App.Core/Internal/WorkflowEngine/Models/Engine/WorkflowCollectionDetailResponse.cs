@@ -63,4 +63,22 @@ internal sealed record CollectionHeadStatus
     [JsonPropertyName("labels")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? Labels { get; init; }
+
+    /// <summary>
+    /// Gets the number of the head workflow's steps that have completed. Together with
+    /// <see cref="StepsTotal"/> this gives a progress indication for an executing head directly
+    /// from the collection view. Null when the engine predates the field - consumers must treat
+    /// absence as "no progress information".
+    /// </summary>
+    [JsonPropertyName("stepsCompleted")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? StepsCompleted { get; init; }
+
+    /// <summary>
+    /// Gets the total number of steps in the head workflow. Null when the engine predates the
+    /// field.
+    /// </summary>
+    [JsonPropertyName("stepsTotal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? StepsTotal { get; init; }
 }

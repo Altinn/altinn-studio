@@ -166,10 +166,13 @@ The enriched process state (`AppProcessState`) gains a nested annotation; `curre
   step error history, keyed by the support reference — so nothing is lost for diagnostics.
 - Beyond the support-reference fields we intentionally do **not** expose retry counts, collection
   keys, or raw engine statuses. `processing` covers the first attempt and every automatic retry —
-  the consumer behaviour (wait) is identical (D4). The one concession is the presentation-only
-  `retrying` hint (true while the head is `Requeued`, i.e. parked between automatic retry
-  attempts, omitted otherwise): it doesn't change what a consumer should do, but lets the waiting
-  UI explain a long wait honestly — "a step is being retried" rather than an unexplained stall.
+  the consumer behaviour (wait) is identical (D4). Two presentation-only concessions exist, both
+  resolved from the same single `GetCollection` call: the `retrying` hint (true while the head is
+  `Requeued`, i.e. parked between automatic retry attempts, omitted otherwise) and the `progress`
+  step counts (`completed`/`total` of the transition's workflow steps — the engine's collection
+  heads carry `stepsCompleted`/`stepsTotal`, nullable on the wire so the contract stays additive).
+  Neither changes what a consumer should do, but they let the waiting UI explain a long wait
+  honestly and show movement; the step *identities* stay internal.
 
 State mapping (engine → exposed):
 
@@ -252,8 +255,9 @@ Frontend:
   into a thundering herd — which would otherwise peak exactly when the engine is already slow.
 - **The waiting screen escalates honestly as the wait grows** (spinner + predefined text per the
   #18935 design discussion; every string is an app-overridable text resource): a "Steg x av y"
-  indicator when the target task resolves against the process' tasks, the `retrying` explanation
-  when the engine reports the transition parked between automatic retries (replacing the generic
+  indicator showing live progress through the transition's workflow steps (from the annotation's
+  `progress`, omitted when an older engine reports no counts), the `retrying` explanation when the
+  engine reports the transition parked between automatic retries (replacing the generic
   reassurance), a "taking longer than usual" line after ~20s, and after ~60s an info alert that
   the user's data is durably stored and the page can safely be closed — the processing continues
   server-side either way, and a transition can legitimately be stuck retrying for hours.
@@ -283,10 +287,9 @@ Frontend:
   observed busy status) keeps the navigation error and its manual button.
 - **The processing message does not name the target task.** Task ids aren't user-facing and app
   authors rarely give them meaningful names; `targetTask` stays in the contract for diagnostics
-  and other consumers. The "Steg x av y" indicator uses only the target's *position* among the
-  process' tasks (BPMN document order — accurate for the linear processes that dominate real
-  apps), and is omitted whenever the target isn't one of them (task→end transitions, branching
-  shapes where the number would lie).
+  and other consumers. The "Steg x av y" indicator shows only *numbers* — progress through the
+  transition's workflow steps (`completed + 1` of `total`) — never the internal step or task
+  identities, and is omitted when the engine didn't report counts.
 
 ## Consequences
 

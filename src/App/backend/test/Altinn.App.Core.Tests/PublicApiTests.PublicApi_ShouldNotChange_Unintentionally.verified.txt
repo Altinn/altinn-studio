@@ -3733,12 +3733,23 @@ namespace Altinn.App.Core.Internal.Process.Elements
         [System.Text.Json.Serialization.JsonPropertyName("workflowId")]
         public System.Guid? WorkflowId { get; init; }
     }
+    public sealed class AppProcessWorkflowProgress
+    {
+        public AppProcessWorkflowProgress() { }
+        [System.Text.Json.Serialization.JsonPropertyName("completed")]
+        public required int Completed { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public required int Total { get; init; }
+    }
     public sealed class AppProcessWorkflowStatus
     {
         public AppProcessWorkflowStatus() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("failure")]
         public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowFailure? Failure { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("progress")]
+        public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowProgress? Progress { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("retrying")]
         public bool? Retrying { get; init; }

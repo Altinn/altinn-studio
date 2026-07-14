@@ -140,6 +140,9 @@ public sealed class ProcessStateEnricher
                 Status = workflowStatus.Status,
                 TargetTask = workflowStatus.TargetTask,
                 Retrying = workflowStatus.Retrying ? true : null,
+                Progress = workflowStatus.Progress is { } progress
+                    ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
+                    : null,
                 // Only the coarse classification and the safe structured support-reference facts
                 // are projected - never the raw error detail (it can contain internal text).
                 Failure = workflowStatus.Failure is { } failure

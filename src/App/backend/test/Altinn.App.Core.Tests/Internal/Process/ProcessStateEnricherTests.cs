@@ -50,12 +50,14 @@ public class ProcessStateEnricherTests
         Assert.Equal(WorkflowActivityStatus.Processing, result.Workflow.Status);
         Assert.Equal("Task_2", result.Workflow.TargetTask);
         Assert.Null(result.Workflow.Failure);
-        // Not retrying maps to null (omitted on the wire), never a serialized `false`.
+        // Not retrying maps to null (omitted on the wire), never a serialized `false`; no engine
+        // step counts maps to an omitted progress object.
         Assert.Null(result.Workflow.Retrying);
+        Assert.Null(result.Workflow.Progress);
     }
 
     [Fact]
-    public async Task Enrich_WhenEngineReturnsRetrying_PopulatesRetryingHint()
+    public async Task Enrich_WhenEngineReturnsRetryingWithProgress_PopulatesHints()
     {
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
@@ -65,7 +67,8 @@ public class ProcessStateEnricherTests
                     WorkflowActivityStatus.Processing,
                     TargetTask: "Task_2",
                     Failure: null,
-                    Retrying: true
+                    Retrying: true,
+                    Progress: new WorkflowStepProgress(Completed: 7, Total: 12)
                 )
             );
 
@@ -76,6 +79,9 @@ public class ProcessStateEnricherTests
         Assert.NotNull(result.Workflow);
         Assert.Equal(WorkflowActivityStatus.Processing, result.Workflow.Status);
         Assert.True(result.Workflow.Retrying);
+        Assert.NotNull(result.Workflow.Progress);
+        Assert.Equal(7, result.Workflow.Progress.Completed);
+        Assert.Equal(12, result.Workflow.Progress.Total);
     }
 
     [Fact]

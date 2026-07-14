@@ -100,4 +100,23 @@ public sealed record CollectionHeadStatus
     [JsonPropertyName("labels")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? Labels { get; init; }
+
+    /// <summary>
+    /// Gets the number of the head workflow's steps that have completed. Together with
+    /// <see cref="StepsTotal"/> this gives consumers a progress indication for an executing head
+    /// directly from the collection view, without a second lookup of the individual workflow.
+    /// Nullable so the wire contract stays additive: consumers must tolerate absence (an older
+    /// engine), and the engine always populates it.
+    /// </summary>
+    [JsonPropertyName("stepsCompleted")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? StepsCompleted { get; init; }
+
+    /// <summary>
+    /// Gets the total number of steps in the head workflow. Nullable for the same additive-contract
+    /// reason as <see cref="StepsCompleted"/>; always populated by the engine.
+    /// </summary>
+    [JsonPropertyName("stepsTotal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? StepsTotal { get; init; }
 }

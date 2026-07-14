@@ -2965,7 +2965,13 @@ public sealed class ProcessEngineTest
         };
 
     private static CollectionHeadStatus CreateCollectionHeadStatus(Guid workflowId, PersistentItemStatus status) =>
-        new() { DatabaseId = workflowId, Status = status };
+        new()
+        {
+            DatabaseId = workflowId,
+            Status = status,
+            StepsCompleted = 0,
+            StepsTotal = 1,
+        };
 
     private static WorkflowStatusResponse CreateWorkflowStatusResponse(
         Guid workflowId,

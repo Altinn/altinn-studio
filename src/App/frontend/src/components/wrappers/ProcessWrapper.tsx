@@ -35,7 +35,7 @@ import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import type { IProcessWorkflowFailure } from 'src/types/shared';
+import type { IProcessWorkflowFailure, IProcessWorkflowProgress } from 'src/types/shared';
 
 interface NavigationErrorProps {
   label: string;
@@ -97,7 +97,7 @@ const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
 // Spinner + predefined text (see #18935 for the design discussion), with escalation tiers as the
 // wait grows. Every string is a text resource, so apps override any of them per app. The layers:
 //   always      - spinner, title, body ("you don't need to do anything, we continue automatically")
-//   resolvable  - "Steg x av y" when the target task is one of the process' tasks
+//   resolvable  - "Steg x av y" progress through the transition's workflow steps (engine-reported)
 //   retrying    - the engine reported the transition parked between automatic retry attempts; this
 //                 explains the wait more specifically than (and therefore replaces) taking_longer
 //   >=20s       - taking_longer reassurance
@@ -142,7 +142,7 @@ function WorkflowProcessing() {
         <div className={classes.processingNote}>
           <Lang id='process_workflow.advancing_body' />
         </div>
-        <WorkflowProcessingStep targetTask={workflow?.targetTask} />
+        <WorkflowProcessingStep progress={workflow?.progress} />
         {retrying && (
           <div className={classes.processingNote}>
             <Lang id='process_workflow.retrying' />
@@ -171,23 +171,21 @@ function WorkflowProcessing() {
   );
 }
 
-// "Steg x av y", resolved from the target task's position among the process' tasks. processTasks
-// comes in BPMN document order, which matches flow order for the linear processes that dominate
-// real apps; when the target isn't one of the tasks (a task -> end transition, an unresolved
-// target, a branching process where the label would lie anyway) the line is simply omitted.
-function WorkflowProcessingStep({ targetTask }: { targetTask: string | undefined }) {
-  const { data: process } = useProcessQuery();
-  const tasks = process?.processTasks;
-  const stepIndex = targetTask && tasks ? tasks.findIndex((task) => task.elementId === targetTask) : -1;
-  if (!tasks || stepIndex < 0) {
+// "Steg x av y" - progress through the in-flight transition's workflow steps, reported live by the
+// engine on the workflow annotation (completed of total; execution is on step completed + 1). The
+// step identities stay internal - only the numbers surface, showing *movement* during the wait.
+// Omitted when the engine didn't report counts (e.g. an older engine).
+function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgress | undefined }) {
+  if (!progress || progress.total <= 0) {
     return null;
   }
 
+  const currentStep = Math.min(progress.completed + 1, progress.total);
   return (
     <div className={classes.processingStep}>
       <Lang
         id='process_workflow.advancing_step'
-        params={[stepIndex + 1, tasks.length]}
+        params={[currentStep, progress.total]}
       />
     </div>
   );

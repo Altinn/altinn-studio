@@ -62,38 +62,29 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
-  it('processing shows "Steg x av y" when the target task is one of the process tasks - and omits it otherwise', async () => {
-    // The step line resolves the target task's position among processTasks (BPMN document order).
-    // A task -> end transition targets the end event, which is not a task, so the line is omitted
-    // rather than rendering a lie.
-    const withTwoTasks = (workflow: IProcessWorkflow) => {
-      const instance = getInstanceWithWorkflow(workflow);
-      instance.process.processTasks = [
-        { altinnTaskType: 'data', elementId: 'Task_1' },
-        { altinnTaskType: 'data', elementId: 'Task_2' },
-      ];
-      return instance;
-    };
-
-    const { unmount } = await renderWithInstanceAndLayout({
-      renderer: () => <ProcessWrapper>{null}</ProcessWrapper>,
-      waitUntilLoaded: false,
-      apis: {
-        instanceApi: { getInstance: async () => withTwoTasks({ status: 'processing', targetTask: 'Task_2' }) },
-      },
-    });
-    expect(await screen.findByText('Steg 2 av 2')).toBeInTheDocument();
+  it('processing shows "Steg x av y" from the transition step progress - and omits it when unreported', async () => {
+    // The step line is progress through the transition's engine steps: 7 of 12 completed means
+    // execution is on step 8. An older engine reports no counts, so the line is simply omitted.
+    const { unmount } = await renderProcessWrapper(
+      { status: 'processing', targetTask: 'Task_2', progress: { completed: 7, total: 12 } },
+      false,
+    );
+    expect(await screen.findByText('Steg 8 av 12')).toBeInTheDocument();
     unmount();
 
-    await renderWithInstanceAndLayout({
-      renderer: () => <ProcessWrapper>{null}</ProcessWrapper>,
-      waitUntilLoaded: false,
-      apis: {
-        instanceApi: { getInstance: async () => withTwoTasks({ status: 'processing', targetTask: 'EndEvent_1' }) },
-      },
-    });
+    await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
     expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
     expect(screen.queryByText(/steg \d+ av \d+/i)).not.toBeInTheDocument();
+  });
+
+  it('processing caps the step indicator at the total while the last step finishes', async () => {
+    // completed === total happens in the window where the last step is done but the workflow
+    // status hasn't settled yet - the indicator must not overshoot to "Steg 13 av 12".
+    await renderProcessWrapper(
+      { status: 'processing', targetTask: 'Task_2', progress: { completed: 12, total: 12 } },
+      false,
+    );
+    expect(await screen.findByText('Steg 12 av 12')).toBeInTheDocument();
   });
 
   it('processing escalates: taking-longer after 20s, then the safe-to-leave alert after 60s', async () => {

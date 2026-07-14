@@ -8288,6 +8288,24 @@
         },
         "additionalProperties": false
       },
+      "AppProcessWorkflowProgress": {
+        "required": [
+          "completed",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "AppProcessWorkflowStatus": {
         "type": "object",
         "properties": {
@@ -8301,6 +8319,9 @@
           "retrying": {
             "type": "boolean",
             "nullable": true
+          },
+          "progress": {
+            "$ref": "#/components/schemas/AppProcessWorkflowProgress"
           },
           "failure": {
             "$ref": "#/components/schemas/AppProcessWorkflowFailure"
