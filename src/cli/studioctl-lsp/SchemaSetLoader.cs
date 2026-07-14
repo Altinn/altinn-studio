@@ -18,6 +18,7 @@ internal sealed class SchemaSetLoader(object sync, Func<string, Task<SchemaSet?>
         {
             Current = null;
             _targetVersion = version;
+            _failedVersion = null;
         }
         if (version is null || Current is not null || _loadingVersion is not null)
             return;
