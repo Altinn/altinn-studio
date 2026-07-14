@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useAttachmentsFor } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments';
 import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
@@ -36,7 +36,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
   }
 
   useDisplayData(baseComponentId: string): string {
-    const attachments = useAttachmentsFor(baseComponentId);
+    const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
     return attachments.map((a) => a.data.filename).join(', ');
   }
 

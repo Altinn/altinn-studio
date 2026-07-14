@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Button } from '@app/form-component';
 
-import { useAttachmentState } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
@@ -32,7 +32,7 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   const { data: process } = useProcessQuery();
   const currentTask = process?.currentTask;
   const { actions, write } = currentTask ?? {};
-  const attachmentState = useAttachmentState();
+  const attachmentState = AttachmentReadModel.useAttachmentState();
   const { mutate: processNext, isPending: isProcessingNext } = useProcessNext();
   const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
 

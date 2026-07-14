@@ -1,6 +1,17 @@
+import {
+  AttachmentReadModel,
+  AttachmentRemoval,
+  AttachmentUpdate,
+  AttachmentUpload,
+} from 'src/features/attachments/hooks';
+import { isDataPostError } from 'src/features/attachments/isDataPostError';
+import type { AttachmentActionRemove, AttachmentActionUpdate } from 'src/features/attachments/hooks';
 import type { IDataModelPairResponse } from 'src/features/formData/types';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IData, IInstance, ProblemDetails } from 'src/types/shared';
+
+export { AttachmentReadModel, AttachmentRemoval, AttachmentUpdate, AttachmentUpload, isDataPostError };
+export type { AttachmentActionRemove, AttachmentActionUpdate };
 
 export interface IAttachmentTemporary {
   temporaryId: string;
@@ -38,13 +49,3 @@ export type DataPostResponse = {
 export type DataPostErrorResponse = ProblemDetails & {
   uploadValidationIssues: BackendValidationIssue[];
 };
-
-export function isDataPostError(error: unknown): error is DataPostErrorResponse {
-  return (
-    typeof error === 'object' &&
-    error != null &&
-    !Array.isArray(error) &&
-    'uploadValidationIssues' in error &&
-    Array.isArray(error.uploadValidationIssues)
-  );
-}

@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useAttachmentsAwaiter, useAttachmentsRemover } from 'src/features/attachments/hooks';
-import { isAttachmentUploaded } from 'src/features/attachments/index';
+import { AttachmentRemoval, AttachmentUpload, isAttachmentUploaded } from 'src/features/attachments';
 import { type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
 import { FormStore } from 'src/features/form/FormContext';
 import { useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
@@ -25,8 +24,8 @@ import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
  * attachments were successfully removed, or false if any of them failed to be removed.
  */
 export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
-  const remove = useAsRef(useAttachmentsRemover());
-  const awaiter = useAttachmentsAwaiter();
+  const remove = useAsRef(AttachmentRemoval.useAttachmentsRemover());
+  const awaiter = AttachmentUpload.useAttachmentsAwaiter();
   const idRef = useAsRef(useIndexedId(baseComponentId));
   const formStore = FormStore.raw.useStore();
   const selectFromInstance = useSelectFromInstanceData();

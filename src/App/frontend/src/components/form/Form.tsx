@@ -12,7 +12,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useAllAttachments } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments';
 import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
@@ -70,7 +70,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
   const requiredFieldsMissing = usePageHasVisibleRequiredValidations(currentPageId);
-  const allAttachments = useAllAttachments();
+  const allAttachments = AttachmentReadModel.useAllAttachments();
   const textResources = useTextResources();
 
   const hasInfectedFiles = Object.values(allAttachments || {}).some((attachments) =>
