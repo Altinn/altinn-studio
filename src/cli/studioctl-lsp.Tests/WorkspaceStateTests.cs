@@ -39,4 +39,35 @@ public sealed class WorkspaceStateTests
         Assert.Null(WorkspaceState.LocalPath(""));
         Assert.Null(WorkspaceState.LocalPath(null));
     }
+
+    private static WorkspaceState Workspace(string root)
+    {
+        var log = new Logger(LogLevel.Error);
+        var workspace = new WorkspaceState(new LspTransport(Stream.Null, Stream.Null, log), log);
+        workspace.SetRoot(root);
+        return workspace;
+    }
+
+    [Fact]
+    public void Relativize_LeadingDotDotFileName_IsInsideWorkspace()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ws-root");
+        Assert.Equal("..settings.json", Workspace(root).Relativize(Path.Combine(root, "..settings.json")));
+    }
+
+    [Fact]
+    public void Relativize_PathOutsideRoot_IsRejected()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ws-root");
+        Assert.Null(Workspace(root).Relativize(Path.Combine(Path.GetTempPath(), "elsewhere", "file.json")));
+        Assert.Null(Workspace(root).Relativize(Path.GetTempPath()));
+    }
+
+    [Fact]
+    public void Relativize_RootedRelativeResult_IsRejected()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+        Assert.Null(Workspace(@"C:\ws-root").Relativize(@"D:\other\file.json"));
+    }
 }

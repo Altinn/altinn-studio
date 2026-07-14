@@ -138,7 +138,8 @@ internal sealed class WorkspaceState(LspTransport transport, Logger log)
         if (path is null)
             return null;
         var rel = Path.GetRelativePath(_root, path).Replace('\\', '/');
-        return rel.StartsWith("..", StringComparison.Ordinal) ? null : rel;
+        var outsideRoot = Path.IsPathRooted(rel) || rel == ".." || rel.StartsWith("../", StringComparison.Ordinal);
+        return outsideRoot ? null : rel;
     }
 
     public string ToUri(string relativeFile) => new Uri(Path.Combine(_root, relativeFile)).AbsoluteUri;
