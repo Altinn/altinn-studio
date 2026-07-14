@@ -2,8 +2,12 @@ using Xunit;
 
 namespace Altinn.Studio.AppDist.Tests;
 
-public sealed class AppDistTests
+public sealed class AppDistTests : IDisposable
 {
+    private readonly string _tempDir = Directory.CreateTempSubdirectory("appdist-tests-").FullName;
+
+    public void Dispose() => Directory.Delete(_tempDir, recursive: true);
+
     private static (AppDist Provider, FakeAppDistSource Source, InMemoryAppDistStore Store) Setup()
     {
         var source = new FakeAppDistSource();
@@ -208,6 +212,20 @@ public sealed class AppDistTests
     }
 
     [Fact]
+    public async Task UnavailableResultIsNotCached()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.Offline = true;
+
+        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+
+        source.Offline = false;
+        Assert.NotNull(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
     public async Task WaiterCancellationDoesNotAffectFetcher()
     {
         var (provider, source, _) = Setup();
@@ -227,17 +245,56 @@ public sealed class AppDistTests
     }
 
     [Fact]
-    public async Task UnavailableResultIsNotCached()
+    public async Task CopyToDirectory_ExportsAllFiles()
     {
         var (provider, source, _) = Setup();
-        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        source.Offline = true;
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/layout/a.json", "{}"));
+        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "js"));
+        var dist = await provider.GetVersionAsync("4");
+        Assert.NotNull(dist);
 
-        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+        var target = Path.Combine(_tempDir, "www");
+        await dist.CopyToDirectoryAsync(target);
 
-        source.Offline = false;
-        Assert.NotNull(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
-        Assert.Equal(1, source.FetchRequests);
+        Assert.Equal("{}", await File.ReadAllTextAsync(Path.Combine(target, "schemas/json/layout/a.json")));
+        Assert.Equal("js", await File.ReadAllTextAsync(Path.Combine(target, "altinn-app-frontend.js")));
+    }
+
+    [Fact]
+    public async Task CopyToDirectory_OverwritesExistingAndKeepsUnrelatedFiles()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "new"));
+        var bundle = await provider.GetLayerAsync("4", AppDistLayer.Bundle);
+        Assert.NotNull(bundle);
+        var target = Path.Combine(_tempDir, "www");
+        Directory.CreateDirectory(target);
+        await File.WriteAllTextAsync(Path.Combine(target, "altinn-app-frontend.js"), "old");
+        await File.WriteAllTextAsync(Path.Combine(target, "unrelated.txt"), "keep");
+
+        await bundle.CopyToDirectoryAsync(target);
+
+        Assert.Equal("new", await File.ReadAllTextAsync(Path.Combine(target, "altinn-app-frontend.js")));
+        Assert.Equal("keep", await File.ReadAllTextAsync(Path.Combine(target, "unrelated.txt")));
+    }
+
+    [Fact]
+    public async Task CopyToDirectory_PathEscapingEntryThrows()
+    {
+        var (provider, _, store) = Setup();
+        await store.WriteAsync(
+            "4",
+            AppDistLayer.Schemas,
+            [new AppDistFileEntry("../escape.json", "{}"u8.ToArray())],
+            CancellationToken.None
+        );
+        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas);
+        Assert.NotNull(schemas);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            schemas.CopyToDirectoryAsync(Path.Combine(_tempDir, "www"))
+        );
+        Assert.Contains("escape", ex.Message);
     }
 
     [Fact]
