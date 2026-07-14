@@ -7,7 +7,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Models.TransitionControl;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Code;
+namespace Altinn.App.Logic;
 
 /// <summary>
 /// Pre-commit lever for the Task_1 → Task_2 transition.

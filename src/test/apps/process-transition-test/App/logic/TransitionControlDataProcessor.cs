@@ -5,7 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Models.TransitionControl;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Code;
+namespace Altinn.App.Logic;
 
 /// <summary>
 /// Keeps the levers mutually consistent: post-commit failures are always retryable

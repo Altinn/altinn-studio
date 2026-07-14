@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 
-namespace Altinn.App.Code;
+namespace Altinn.App.Logic;
 
 /// <summary>
 /// Process-static attempt counter for the transition-control levers.

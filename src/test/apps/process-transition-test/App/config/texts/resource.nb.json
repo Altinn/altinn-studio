@@ -66,8 +66,8 @@
       "value": "To feil – lykkes på tredje forsøk"
     },
     {
-      "id": "failCount.four",
-      "value": "Fire feil – flere automatiske omprøvinger på rad"
+      "id": "failCount.five",
+      "value": "Fem feil – lykkes på sjette forsøk"
     },
     {
       "id": "failKind.title",

@@ -102,8 +102,8 @@
             "label": "failCount.two"
           },
           {
-            "value": "4",
-            "label": "failCount.four"
+            "value": "5",
+            "label": "failCount.five"
           }
         ],
         "textResourceBindings": {

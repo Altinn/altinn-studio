@@ -8,7 +8,7 @@ using Altinn.App.Core.Internal.Events;
 using Altinn.App.Models.TransitionControl;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Code;
+namespace Altinn.App.Logic;
 
 /// <summary>
 /// Post-commit lever for the Task_1 → Task_2 transition.
