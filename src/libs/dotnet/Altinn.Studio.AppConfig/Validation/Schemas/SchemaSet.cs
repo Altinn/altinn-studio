@@ -42,12 +42,12 @@ public sealed class SchemaSet
         var warnings = new List<string>();
         foreach (var (path, text) in files)
         {
-            var content = text;
-            if (string.Equals(Path.GetFileName(path), ExpressionFileName, StringComparison.Ordinal))
-                content = NeutralizeExpressionRecursion(content);
             JsonSchema schema;
             try
             {
+                var content = text;
+                if (string.Equals(Path.GetFileName(path), ExpressionFileName, StringComparison.Ordinal))
+                    content = NeutralizeExpressionRecursion(content);
                 schema = JsonSchema.FromText(content);
             }
             catch (JsonException)
