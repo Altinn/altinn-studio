@@ -1,17 +1,6 @@
-import {
-  AttachmentReadModel,
-  AttachmentRemoval,
-  AttachmentUpdate,
-  AttachmentUpload,
-} from 'src/features/attachments/hooks';
-import { isDataPostError } from 'src/features/attachments/isDataPostError';
-import type { AttachmentActionRemove, AttachmentActionUpdate } from 'src/features/attachments/hooks';
 import type { IDataModelPairResponse } from 'src/features/formData/types';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IData, IInstance, ProblemDetails } from 'src/types/shared';
-
-export { AttachmentReadModel, AttachmentRemoval, AttachmentUpdate, AttachmentUpload, isDataPostError };
-export type { AttachmentActionRemove, AttachmentActionUpdate };
 
 export interface IAttachmentTemporary {
   temporaryId: string;

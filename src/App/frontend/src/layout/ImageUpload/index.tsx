@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { AttachmentReadModel } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { validateFileUploaderDataBindings } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import { ImageUploadDef } from 'src/layout/ImageUpload/config.def.generated';
 import { validateRequiredImageUploadForNode } from 'src/layout/ImageUpload/hooks/useValidateRequiredImageUpload';

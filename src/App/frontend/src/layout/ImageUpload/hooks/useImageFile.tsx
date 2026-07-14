@@ -1,9 +1,7 @@
-import {
-  AttachmentReadModel,
-  AttachmentRemoval,
-  AttachmentUpload,
-  type UploadedAttachment,
-} from 'src/features/attachments';
+import { type UploadedAttachment } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { AttachmentRemoval } from 'src/features/attachments/hooks/attachmentRemoval';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';

@@ -2,7 +2,8 @@ import React from 'react';
 
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 
-import { AttachmentReadModel, isAttachmentUploaded } from 'src/features/attachments';
+import { isAttachmentUploaded } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import classes from 'src/features/devtools/components/NodeInspector/ValidationInspector.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';

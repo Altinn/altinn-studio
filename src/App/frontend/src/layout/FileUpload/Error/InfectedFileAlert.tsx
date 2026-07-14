@@ -2,7 +2,8 @@ import React from 'react';
 
 import { Alert } from '@digdir/designsystemet-react';
 
-import { AttachmentReadModel, isAttachmentUploaded } from 'src/features/attachments';
+import { isAttachmentUploaded } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FileScanResults } from 'src/features/attachments/types';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

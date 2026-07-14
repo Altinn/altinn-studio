@@ -5,12 +5,10 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import {
-  AttachmentReadModel,
-  AttachmentUpload,
-  type IFailedAttachment,
-  isDataPostError,
-} from 'src/features/attachments';
+import { type IFailedAttachment } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
+import { isDataPostError } from 'src/features/attachments/isDataPostError';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getValidationIssueMessage } from 'src/features/validation/backendValidation/backendValidationUtils';

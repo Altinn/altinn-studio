@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { AttachmentRemoval, AttachmentUpload, isAttachmentUploaded } from 'src/features/attachments';
+import { isAttachmentUploaded } from 'src/features/attachments';
+import { AttachmentRemoval } from 'src/features/attachments/hooks/attachmentRemoval';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
 import { FormStore } from 'src/features/form/FormContext';
 import { useSelectFromInstanceData } from 'src/features/instance/InstanceContext';

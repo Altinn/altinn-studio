@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Button } from '@app/form-component';
 
-import { AttachmentReadModel } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
 import { useProcessNext } from 'src/features/instance/useProcessNext';

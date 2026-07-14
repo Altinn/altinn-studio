@@ -5,7 +5,7 @@ import { Button } from '@app/form-component';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
-import { AttachmentReadModel } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

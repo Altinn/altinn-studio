@@ -5,7 +5,7 @@ import { Flex, FullWidthWrapper } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/message/ErrorReport.module.css';
-import { AttachmentReadModel } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FileScanResults } from 'src/features/attachments/types';
 import {
   InstantiationValidation,

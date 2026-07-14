@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { AttachmentReadModel } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';

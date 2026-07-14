@@ -12,7 +12,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { AttachmentReadModel } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';

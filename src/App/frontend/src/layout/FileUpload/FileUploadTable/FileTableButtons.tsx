@@ -5,7 +5,8 @@ import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
-import { AttachmentRemoval, isAttachmentUploaded } from 'src/features/attachments';
+import { isAttachmentUploaded } from 'src/features/attachments';
+import { AttachmentRemoval } from 'src/features/attachments/hooks/attachmentRemoval';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';

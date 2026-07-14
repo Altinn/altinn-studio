@@ -8,7 +8,8 @@ import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Label } from 'src/components/label/Label';
-import { AttachmentReadModel, AttachmentUpload } from 'src/features/attachments';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';

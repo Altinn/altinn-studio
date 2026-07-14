@@ -7,7 +7,8 @@ import deepEqual from 'fast-deep-equal';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
-import { AttachmentUpdate, isAttachmentUploaded } from 'src/features/attachments';
+import { isAttachmentUploaded } from 'src/features/attachments';
+import { AttachmentUpdate } from 'src/features/attachments/hooks/attachmentUpdate';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
