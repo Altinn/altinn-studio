@@ -36,6 +36,18 @@ internal sealed class FakeAppDistSource : IAppDistSource
             throw new AppDistSourceUnavailableException($"no such layer: {version}/{layer}");
         return files;
     }
+
+    public Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken)
+    {
+        if (Offline)
+            throw new AppDistSourceUnavailableException("offline");
+        IReadOnlyList<string> versions = _layers
+            .Keys.Select(k => k.Version)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        return Task.FromResult(versions);
+    }
 }
 
 internal sealed class InMemoryAppDistStore : IAppDistStore
@@ -81,5 +93,10 @@ internal sealed class InMemoryAppDistStore : IAppDistStore
             _entries.TryGetValue((version, layer), out var entry)
                 ? entry.Keys.Order(StringComparer.Ordinal).ToArray()
                 : Array.Empty<string>()
+        );
+
+    public Task<IReadOnlyList<string>> ListVersionsAsync(AppDistLayer layer, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<string>>(
+            _entries.Keys.Where(k => k.Layer == layer).Select(k => k.Version).Order(StringComparer.Ordinal).ToArray()
         );
 }

@@ -93,6 +93,39 @@ public sealed class OciRegistrySourceTests
     }
 
     [Fact]
+    public async Task ListVersions_ReturnsDistinctSortedTags()
+    {
+        var handler = new FakeRegistry();
+        handler.AddTags("4.1.0", "3.0.0", "4.1.0");
+
+        var versions = await Source(handler).ListVersionsAsync(CancellationToken.None);
+
+        Assert.Equal(["3.0.0", "4.1.0"], versions);
+    }
+
+    [Fact]
+    public async Task ListVersions_FollowsPagination()
+    {
+        var handler = new FakeRegistry { TagPageSize = 2 };
+        handler.AddTags("1", "2", "3", "4", "5");
+
+        var versions = await Source(handler).ListVersionsAsync(CancellationToken.None);
+
+        Assert.Equal(["1", "2", "3", "4", "5"], versions);
+        Assert.Equal(3, handler.TagListRequests);
+    }
+
+    [Fact]
+    public async Task ListVersions_UnreachableRegistryThrowsUnavailable()
+    {
+        var handler = new FakeRegistry { Offline = true };
+
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            Source(handler).ListVersionsAsync(CancellationToken.None)
+        );
+    }
+
+    [Fact]
     public void RepositoryWithoutHost_Throws()
     {
         Assert.Throws<ArgumentException>(() => new OciRegistrySource(new HttpClient(), "no-slash"));

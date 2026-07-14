@@ -82,6 +82,24 @@ public sealed partial class FileSystemAppDistStore(string rootDirectory) : IAppD
         return Task.FromResult(files);
     }
 
+    public Task<IReadOnlyList<string>> ListVersionsAsync(AppDistLayer layer, CancellationToken cancellationToken)
+    {
+        var contents = Path.Combine(_root, "contents");
+        if (!Directory.Exists(contents))
+            return Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>());
+        var layerName = LayerName(layer);
+        IReadOnlyList<string> versions = Directory
+            .EnumerateDirectories(contents)
+            .Where(dir =>
+                Directory.Exists(Path.Combine(dir, layerName)) && File.Exists(Path.Combine(dir, layerName + ".fetched"))
+            )
+            .Select(Path.GetFileName)
+            .OfType<string>()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        return Task.FromResult(versions);
+    }
+
     private (string ContentDir, string Marker) EntryPaths(string version, AppDistLayer layer)
     {
         if (!NameSafePattern().IsMatch(version))

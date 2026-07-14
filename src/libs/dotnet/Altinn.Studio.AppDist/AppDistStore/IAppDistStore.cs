@@ -14,4 +14,6 @@ public interface IAppDistStore
     Task<Stream?> OpenFileAsync(string version, AppDistLayer layer, string path, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<string>> ListFilesAsync(string version, AppDistLayer layer, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<string>> ListVersionsAsync(AppDistLayer layer, CancellationToken cancellationToken);
 }

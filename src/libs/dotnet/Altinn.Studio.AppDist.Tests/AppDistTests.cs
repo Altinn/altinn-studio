@@ -239,4 +239,34 @@ public sealed class AppDistTests
         Assert.NotNull(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
         Assert.Equal(1, source.FetchRequests);
     }
+
+    [Fact]
+    public async Task ListVersions_ReturnsSourceVersions()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("3", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+
+        Assert.Equal(["3", "4"], await provider.ListVersionsAsync());
+    }
+
+    [Fact]
+    public async Task ListVersions_OfflineReturnsNull()
+    {
+        var (provider, source, _) = Setup();
+        source.Offline = true;
+
+        Assert.Null(await provider.ListVersionsAsync());
+    }
+
+    [Fact]
+    public async Task ListCachedVersions_ReflectsStorePerLayer()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        await provider.GetLayerAsync("4", AppDistLayer.Schemas);
+
+        Assert.Equal(["4"], await provider.ListCachedVersionsAsync(AppDistLayer.Schemas));
+        Assert.Empty(await provider.ListCachedVersionsAsync(AppDistLayer.Bundle));
+    }
 }

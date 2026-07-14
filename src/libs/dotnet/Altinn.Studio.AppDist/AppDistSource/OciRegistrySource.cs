@@ -55,6 +55,33 @@ public sealed partial class OciRegistrySource : IAppDistSource
         return files;
     }
 
+    public async Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken)
+    {
+        var tags = new List<string>();
+        var url = $"https://{_host}/v2/{_repository}/tags/list";
+        try
+        {
+            while (url is not null)
+            {
+                var pageUrl = url;
+                using var response = await SendAsync(
+                    () => new HttpRequestMessage(HttpMethod.Get, pageUrl),
+                    cancellationToken
+                );
+                response.EnsureSuccessStatusCode();
+                var page = await response.Content.ReadFromJsonAsync<TagsResponse>(cancellationToken);
+                if (page?.Tags is not null)
+                    tags.AddRange(page.Tags);
+                url = NextPageUrl(response);
+            }
+        }
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
+        {
+            throw Unavailable(ex);
+        }
+        return tags.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+    }
+
     private static string LayerMediaType(AppDistLayer layer) =>
         layer switch
         {
@@ -62,6 +89,23 @@ public sealed partial class OciRegistrySource : IAppDistSource
             AppDistLayer.Bundle => "application/vnd.altinn.app.bundle.tar+gzip",
             _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, "unknown app-dist layer"),
         };
+
+    private string? NextPageUrl(HttpResponseMessage response)
+    {
+        if (!response.Headers.TryGetValues("Link", out var headers))
+            return null;
+        foreach (var link in headers.SelectMany(h => h.Split(',')))
+        {
+            var parts = link.Split(';');
+            var target = parts[0].Trim();
+            if (parts.Length < 2 || !target.StartsWith('<') || !target.EndsWith('>'))
+                continue;
+            if (!parts.Skip(1).Any(p => p.Trim() is "rel=\"next\"" or "rel=next"))
+                continue;
+            return new Uri(new Uri($"https://{_host}"), target[1..^1]).ToString();
+        }
+        return null;
+    }
 
     private async Task<List<OciLayer>> GetLayersAsync(string version, string mediaType, CancellationToken ct)
     {
@@ -241,6 +285,8 @@ public sealed partial class OciRegistrySource : IAppDistSource
 
     [GeneratedRegex("^sha256:[a-f0-9]{64}$")]
     private static partial Regex DigestPattern();
+
+    internal sealed record TagsResponse(string? Name, IReadOnlyList<string>? Tags);
 
     internal sealed record TokenResponse(
         string? Token,
