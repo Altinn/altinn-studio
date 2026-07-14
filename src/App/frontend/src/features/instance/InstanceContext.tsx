@@ -62,11 +62,12 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const pollFailureCount = useInstancePollFailureCount();
   const { error: instanceDataError, data } = useInstanceDataQuery({
     // Poll while a workflow transition is in flight (~2-3s) so we converge on the committed task once
-    // it settles, and poll slowly while it is failed (~10-12s) so a resume performed in another session
-    // recovers this one too instead of stranding it on a stale failure screen; otherwise fall back to
-    // the slower pending-scans poll. Both workflow polls are jittered so many clients waiting on the
-    // same engine don't synchronise into a thundering herd — which would otherwise peak exactly when
-    // the engine is already slow.
+    // it settles, and poll slowly while it is failed (~10-12s) so an ops-driven resume converges this
+    // page too — the failed screen deliberately offers no Retry (the engine already exhausted its
+    // retry budget), which makes this poll the user's only recovery path. Otherwise fall back to the
+    // slower pending-scans poll. Both workflow polls are jittered so many clients waiting on the same
+    // engine don't synchronise into a thundering herd — which would otherwise peak exactly when the
+    // engine is already slow.
     refetchInterval:
       workflowStatus === 'processing'
         ? () => 2000 + Math.floor(Math.random() * 1000)

@@ -134,14 +134,14 @@ describe('InstanceProvider poll-failure tolerance', () => {
   });
 
   it('polls slowly while the workflow is failed, and stops once it settles', async () => {
-    // The failed state must poll (at a slow ~10-12s jittered cadence) so a resume performed in
-    // another session converges this one too, instead of stranding it on a stale failure screen.
+    // The failed state must poll (at a slow ~10-12s jittered cadence): the failed screen offers no
+    // Retry, so an ops-driven resume converging through this poll is the user's only recovery path.
     let fetchCount = 0;
-    let resumedElsewhere = false;
+    let resumedByOps = false;
     await renderInstanceProvider(async () => {
       fetchCount++;
       const instance = getInstanceWithProcessMock();
-      instance.process.workflow = resumedElsewhere ? undefined : { status: 'failed', failure: { kind: 'StepFailed' } };
+      instance.process.workflow = resumedByOps ? undefined : { status: 'failed', failure: { kind: 'stepFailed' } };
       return instance;
     });
 
@@ -154,9 +154,9 @@ describe('InstanceProvider poll-failure tolerance', () => {
     });
     expect(fetchCount).toBeGreaterThan(fetchesAfterLoad);
 
-    // Another session resumes and the workflow settles: the next poll picks up the settled
+    // Ops resumes the workflow and it settles: the next poll picks up the settled
     // instance (no annotation -> idle)...
-    resumedElsewhere = true;
+    resumedByOps = true;
     await act(async () => {
       await jest.advanceTimersByTimeAsync(13_000);
     });

@@ -1,19 +1,13 @@
 import React from 'react';
 
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
-import { doProcessResume } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcessWorkflow } from 'src/types/shared';
-
-jest.mock('src/queries/queries', () => ({
-  ...jest.requireActual<typeof import('src/queries/queries')>('src/queries/queries'),
-  doProcessResume: jest.fn(),
-}));
 
 function getInstanceWithWorkflow(workflow?: IProcessWorkflow): IInstanceWithProcess {
   const instance = getInstanceWithProcessMock();
@@ -39,10 +33,6 @@ async function renderProcessWrapper(workflow?: IProcessWorkflow, waitUntilLoaded
 }
 
 describe('ProcessWrapper workflow state machine', () => {
-  beforeEach(() => {
-    jest.mocked(doProcessResume).mockClear();
-  });
-
   it('idle renders the current task children', async () => {
     await renderProcessWrapper({ status: 'idle' });
 
@@ -125,72 +115,82 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/går videre til neste steg/i)).not.toBeInTheDocument();
   });
 
-  it('failed shows the generic localized message, suppresses the task, and Retry calls resume', async () => {
+  it('failed shows the error page with support info and safe structured details - and no Retry', async () => {
     const user = userEvent.setup();
-    jest.mocked(doProcessResume).mockImplementation(async () => new Promise(() => {}));
 
     await renderProcessWrapper({
       status: 'failed',
-      failure: { kind: 'StepFailed' },
+      targetTask: 'Task_2',
+      failure: {
+        kind: 'stepFailed',
+        workflowId: '0f1d5f88-1e5c-4c1f-9a25-4d9f66b6e5a1',
+        occurredAt: '2026-07-10T11:22:33Z',
+      },
     });
 
-    // The citizen sees the localized generic message (the backend deliberately never ships raw
-    // failure detail to the client - only the coarse `kind` classification).
+    // The engine already exhausted its automatic retry budget, so the citizen gets an error page
+    // with a contact-support pointer - deliberately NO Retry affordance. Recovery is ops-driven
+    // and the failed-state slow poll converges the page (tested below).
     expect(screen.getByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
+    expect(screen.getByText(/brukerservice/i)).toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
 
-    const retryButton = screen.getByRole('button', { name: /prøv igjen/i });
-    expect(retryButton).toBeInTheDocument();
-
-    await user.click(retryButton);
-
-    await waitFor(() => {
-      expect(doProcessResume).toHaveBeenCalledTimes(1);
-    });
+    // The details expander (the same widget the unknown-error page uses) exposes only safe
+    // structured facts: localized failure kind, the failed step, when, and the support reference.
+    // Raw error detail is never shipped by the backend, so it cannot appear here.
+    await user.click(screen.getByRole('button', { name: 'Vis detaljer om feilen' }));
+    expect(screen.getByText('Et behandlingssteg feilet')).toBeInTheDocument();
+    expect(screen.getByText('Task_2')).toBeInTheDocument();
+    expect(screen.getByText('0f1d5f88-1e5c-4c1f-9a25-4d9f66b6e5a1')).toBeInTheDocument();
   });
 
-  it('retry recovers the UI when another session already resumed the workflow', async () => {
-    const user = userEvent.setup();
-    // The resume mutation logs the failure for diagnostics before recovering; setupTests makes
-    // window.logError throw, so stub it (and assert it fired).
-    const logError = jest.spyOn(window, 'logError').mockImplementation(() => {});
-    try {
-      let resumedElsewhere = false;
-      jest.mocked(doProcessResume).mockImplementation(async () => {
-        // Simulate losing the race: another session already resumed the workflow, so this
-        // session's resume conflicts — and by the time we refetch, the workflow has settled.
-        resumedElsewhere = true;
-        throw Object.assign(new Error('Request failed with status code 409'), {
-          response: { status: 409, data: { title: 'Task does not need to be resumed.' } },
-        });
-      });
+  it('failed renders the generic kind label for unknown failure kinds', async () => {
+    await renderProcessWrapper({
+      status: 'failed',
+      failure: { kind: 'somethingNewTheBackendInvented' },
+    });
 
+    // An unknown/new kind must fall back to the generic label, never render a raw lang key.
+    expect(screen.getByText('Ukjent feil')).toBeInTheDocument();
+    expect(screen.queryByText(/process_workflow\.failure_kind/)).not.toBeInTheDocument();
+  });
+
+  it('failed auto-recovers when ops resumes the workflow out-of-band', async () => {
+    // There is no Retry affordance; recovery is ops-driven. The failed state keeps polling slowly
+    // (~10-12s jittered), so once an ops resume settles the workflow, the next poll converges the
+    // page back to the task on its own - no reload needed.
+    jest.useFakeTimers();
+    try {
+      let resumedByOps = false;
       await renderWithInstanceAndLayout({
         renderer: () => (
           <ProcessWrapper>
             <div data-testid='task-content'>Task content</div>
           </ProcessWrapper>
         ),
+        waitUntilLoaded: false,
         apis: {
           instanceApi: {
             getInstance: async () =>
-              getInstanceWithWorkflow(
-                resumedElsewhere ? undefined : { status: 'failed', failure: { kind: 'StepFailed' } },
-              ),
+              getInstanceWithWorkflow(resumedByOps ? undefined : { status: 'failed', failure: { kind: 'stepFailed' } }),
           },
         },
       });
 
-      await user.click(screen.getByRole('button', { name: /prøv igjen/i }));
+      expect(await screen.findByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
 
-      // The failed resume refetches before complaining; the fresh status is no longer 'failed',
-      // so the state machine recovers the task UI instead of stranding the session on a stale
-      // failure screen with a misleading error toast.
-      expect(await screen.findByTestId('task-content')).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
-      expect(logError).toHaveBeenCalled();
+      resumedByOps = true;
+
+      // One failed-state poll window (max 12s jitter) always contains at least one tick.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(13_000);
+      });
+
+      expect(screen.getByTestId('task-content')).toBeInTheDocument();
+      expect(screen.queryByText(/noe gikk galt da skjemaet skulle behandles videre/i)).not.toBeInTheDocument();
     } finally {
-      logError.mockRestore();
+      jest.useRealTimers();
     }
   });
 });

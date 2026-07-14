@@ -3,3 +3,17 @@
   margin-top: 35px;
   gap: 10px;
 }
+
+.failedDescription {
+  margin-top: 12px;
+}
+
+.failedDetails {
+  margin-top: 24px;
+}
+
+.failedDetailsContainer {
+  display: flex;
+  gap: 16px;
+  flex-direction: column;
+}

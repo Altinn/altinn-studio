@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Button, Flex } from '@app/form-component';
+import { AccordionItem, Button, Flex } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
@@ -13,9 +13,15 @@ import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstancePollFailureCount } from 'src/features/instance/InstanceContext';
-import { getProcessNextMutationKey, useProcessResume } from 'src/features/instance/useProcessNext';
-import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
+import { getProcessNextMutationKey } from 'src/features/instance/useProcessNext';
+import {
+  useGetAltinnTaskType,
+  useGetTaskTypeById,
+  useProcessQuery,
+  useProcessWorkflow,
+} from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
@@ -29,6 +35,7 @@ import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { getPageTitle } from 'src/utils/getPageTitle';
+import type { IProcessWorkflowFailure } from 'src/types/shared';
 
 interface NavigationErrorProps {
   label: string;
@@ -113,12 +120,23 @@ function WorkflowProcessing() {
   );
 }
 
-// The backend deliberately never ships raw failure detail to the client (it originates from the
-// workflow engine / a service task and may contain internal, non-user-facing text) - only the
-// coarse failure `kind`. Citizens see a localized, generic message; diagnostics live server-side.
-// A future improvement is a first-class, app-authored user-safe message.
+// Failure kinds the backend can emit (camelCase on the wire); anything else falls back to the
+// generic label so an unknown/new kind never renders as a raw key.
+const KNOWN_FAILURE_KINDS = new Set(['stepFailed', 'dependencyFailed', 'engineFault', 'timeout']);
+
+// Altinn task types with a localized `taskTypes.*` display name.
+const NAMED_TASK_TYPES = new Set(['data', 'signing', 'confirmation', 'payment', 'receipt']);
+
+// The engine deemed this failure terminal - it already exhausted its automatic retry budget, so
+// offering the citizen a Retry would be wrong. This is an error page: a generic localized message,
+// a contact-support pointer, and an expandable details section with only SAFE structured facts
+// (failure kind, step, time, support reference). The backend deliberately never ships raw failure
+// detail here (it originates from the engine / a service task and may contain internal text).
+// Recovery is ops-driven: the failed-state slow poll in InstanceProvider picks up an ops resume
+// and this page converges on its own. A future improvement is a first-class, app-authored
+// user-safe failure message.
 function WorkflowFailed() {
-  const resume = useProcessResume();
+  const workflow = useProcessWorkflow();
 
   return (
     <Flex
@@ -132,20 +150,90 @@ function WorkflowFailed() {
       >
         <Lang id='process_workflow.failed_heading' />
       </Heading>
-      <div>
+      <div className={classes.failedDescription}>
         <Lang id='process_workflow.failed_description' />
       </div>
-      <div className={classes.navigationError}>
-        <Button
-          variant='primary'
-          size='md'
-          disabled={resume.isPending}
-          onClick={() => resume.mutate()}
-        >
-          <Lang id='process_workflow.retry' />
-        </Button>
+      <div className={classes.failedDescription}>
+        <Lang
+          id='instantiate.unknown_error_customer_support'
+          params={[
+            <Lang
+              key={0}
+              id='general.customer_service_phone_number'
+            />,
+          ]}
+        />
       </div>
+      <WorkflowFailedDetails
+        failure={workflow?.failure}
+        targetTask={workflow?.targetTask}
+      />
     </Flex>
+  );
+}
+
+interface WorkflowFailedDetailsProps {
+  failure: IProcessWorkflowFailure | undefined;
+  targetTask: string | undefined;
+}
+
+// Reuses the unknown-error details expander pattern (see UnknownErrorDetails): an AccordionItem
+// with name/value rows. Contains only safe structured facts - never raw error text.
+function WorkflowFailedDetails({ failure, targetTask }: WorkflowFailedDetailsProps) {
+  const currentLanguage = useCurrentLanguage();
+  const getAltinnTaskType = useGetAltinnTaskType();
+
+  const kindKey =
+    failure?.kind && KNOWN_FAILURE_KINDS.has(failure.kind)
+      ? `process_workflow.failure_kind.${failure.kind}`
+      : 'process_workflow.failure_kind.unknown';
+
+  const taskType = targetTask ? getAltinnTaskType(targetTask) : undefined;
+  const occurredAt = failure?.occurredAt ? new Date(failure.occurredAt) : undefined;
+
+  return (
+    <AccordionItem
+      title={<Lang id='instantiate.unknown_error_show_details' />}
+      className={classes.failedDetails}
+    >
+      <div className={classes.failedDetailsContainer}>
+        <WorkflowFailedDetailItem
+          label='process_workflow.failed_details_kind'
+          value={<Lang id={kindKey} />}
+        />
+        {targetTask && (
+          <WorkflowFailedDetailItem
+            label='process_workflow.failed_details_step'
+            value={taskType && NAMED_TASK_TYPES.has(taskType) ? <Lang id={`taskTypes.${taskType}`} /> : targetTask}
+          />
+        )}
+        {occurredAt && (
+          <WorkflowFailedDetailItem
+            label='process_workflow.failed_details_time'
+            value={occurredAt.toLocaleString(currentLanguage)}
+          />
+        )}
+        {failure?.workflowId && (
+          <WorkflowFailedDetailItem
+            label='process_workflow.failed_details_reference'
+            value={failure.workflowId}
+          />
+        )}
+      </div>
+    </AccordionItem>
+  );
+}
+
+function WorkflowFailedDetailItem({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div>
+        <strong>
+          <Lang id={label} />:
+        </strong>
+      </div>
+      <div>{value}</div>
+    </div>
   );
 }
 

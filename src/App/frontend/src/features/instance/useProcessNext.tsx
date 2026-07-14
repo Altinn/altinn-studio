@@ -17,7 +17,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { doProcessNext, doProcessResume } from 'src/queries/queries';
+import { doProcessNext } from 'src/queries/queries';
 import { TaskKeys } from 'src/routesBuilder';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IInstance, IProcess, ProblemDetails } from 'src/types/shared';
@@ -171,51 +171,10 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
   return useProcessNextInternal({ action });
 }
 
-export function getProcessResumeMutationKey() {
-  return ['processResume'] as const;
-}
-
-/**
- * Resumes a workflow that failed terminally (`workflow.status === 'failed'`). On success it refetches
- * the instance so the freshly enriched `workflow.status` (typically back to `processing`) drives
- * ProcessWrapper's state machine and the poll takes over again.
- */
-export function useProcessResume() {
-  const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
-  const language = useCurrentLanguage();
-  const instanceId = useLaxInstanceId();
-
-  return useMutation({
-    mutationKey: getProcessResumeMutationKey(),
-    mutationFn: async () => {
-      if (!instanceId) {
-        throw new Error('Missing instance ID. Cannot perform process/resume.');
-      }
-      await doProcessResume(instanceId, language);
-    },
-    onSuccess: async () => {
-      await reFetchInstanceData();
-    },
-    onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
-      window.logError('Process resume failed:\n', error);
-
-      // The resume may have lost a race with another session (e.g. a 409 because the workflow was
-      // already resumed there, or already finished). Refetch before deciding to complain: if the
-      // fresh workflow.status is no longer 'failed', the state machine has already recovered the
-      // UI and an error toast would be misleading noise. The message stays generic either way —
-      // diagnostics live server-side (see WorkflowFailed).
-      const { data } = await reFetchInstanceData();
-      if (data?.process?.workflow?.status !== 'failed') {
-        return;
-      }
-
-      toast(<Lang id='process_workflow.failed_description' />, {
-        type: 'error',
-        autoClose: false,
-      });
-    },
-  });
-}
+// NOTE: there is deliberately no frontend mutation for `process/resume`: once the engine deems a
+// failure terminal it has exhausted its retry budget, so the citizen is shown an error page
+// (see WorkflowFailed) and recovery is ops-driven. The backend endpoint stays - ops tooling uses
+// it - and the failed-state slow poll in InstanceProvider converges this UI when it happens.
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {
   if (!processData) {

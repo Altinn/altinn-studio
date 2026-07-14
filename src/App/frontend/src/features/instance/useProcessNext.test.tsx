@@ -83,15 +83,17 @@ describe('useProcessNext workflow error convergence', () => {
         processStateChanged: false,
       },
       500,
-      { status: 'failed', targetTask: 'Task_2', failure: { kind: 'StepFailed' } },
+      { status: 'failed', targetTask: 'Task_2', failure: { kind: 'stepFailed' } },
     );
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
-    // The refetched workflow.status takes over: the citizen sees the localized failed screen with
-    // Retry — not an error toast echoing the backend's detail.
+    // The refetched workflow.status takes over: the citizen sees the localized failed error page
+    // (with the safe details expander) — not an error toast echoing the backend's detail, and no
+    // Retry affordance (the engine already exhausted its retry budget; recovery is ops-driven).
     expect(await screen.findByRole('heading', { name: /noe gikk galt/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /prøv igjen/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Vis detaljer om feilen' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
     expect(doProcessNext).toHaveBeenCalledTimes(1);
   });
 
