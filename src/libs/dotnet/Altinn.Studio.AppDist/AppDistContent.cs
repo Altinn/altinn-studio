@@ -16,6 +16,8 @@ public interface IAppDistContent
     );
 
     Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken cancellationToken = default);
+
+    Task CopyToDirectoryAsync(string targetDirectory, CancellationToken cancellationToken = default);
 }
 
 internal abstract class AppDistContent(IAppDistStore store, string version) : IAppDistContent
@@ -54,6 +56,24 @@ internal abstract class AppDistContent(IAppDistStore store, string version) : IA
             files[path[prefix.Length..]] = await GetFileTextAsync(path, cancellationToken);
         }
         return files;
+    }
+
+    public async Task CopyToDirectoryAsync(string targetDirectory, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(targetDirectory);
+        var root = Path.GetFullPath(targetDirectory);
+        Directory.CreateDirectory(root);
+        foreach (var path in await ListFilesAsync(cancellationToken))
+        {
+            var target = Path.GetFullPath(Path.Combine(root, path));
+            if (!target.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                throw new InvalidOperationException($"file escapes the target directory: \"{path}\"");
+            if (Path.GetDirectoryName(target) is { } parent)
+                Directory.CreateDirectory(parent);
+            await using var source = await OpenFileAsync(path, cancellationToken);
+            await using var destination = File.Create(target);
+            await source.CopyToAsync(destination, cancellationToken);
+        }
     }
 }
 
