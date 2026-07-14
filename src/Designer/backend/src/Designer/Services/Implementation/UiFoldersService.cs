@@ -512,10 +512,11 @@ public class UiFoldersService : IUiFoldersService
                 continue;
             }
 
-            bool isSubform = layoutSettings.Type == "subform";
+            bool isSubform = layoutSettings.Type == Constants.General.SubformId;
             bool hasMatchingTask = taskOrderById.ContainsKey(layoutSetName);
+            bool isCustomReceipt = layoutSetName == Constants.General.CustomReceiptId;
 
-            if (!isSubform && !hasMatchingTask)
+            if (!isSubform && !hasMatchingTask && !isCustomReceipt)
             {
                 continue;
             }
