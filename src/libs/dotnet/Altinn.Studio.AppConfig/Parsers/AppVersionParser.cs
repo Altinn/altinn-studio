@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using Altinn.Studio.AppConfig.Documents;
@@ -8,7 +9,7 @@ using Altinn.Studio.AppConfig.Models;
 
 namespace Altinn.Studio.AppConfig.Parsers;
 
-internal static class AppVersionParser
+internal static partial class AppVersionParser
 {
     private const string FileRel = "App/App.csproj";
     private const int SupportedMajor = 9;
@@ -54,6 +55,7 @@ internal static class AppVersionParser
         }
 
         var resolvedSupported = false;
+        string? resolvedVersion = null;
         foreach (var (pr, include, projectDoc, projectData, projectFile) in packageRefs)
         {
             var version = ResolveVersion(pr, include, projectDoc, dir);
@@ -68,9 +70,14 @@ internal static class AppVersionParser
                 return;
             }
             resolvedSupported = true;
+            if (resolvedVersion is null && ExactVersionPattern().IsMatch(version))
+                resolvedVersion = version;
         }
         if (resolvedSupported)
+        {
+            app.AltinnAppVersion = resolvedVersion;
             return;
+        }
 
         if (packageRefs.Count > 0)
         {
@@ -211,4 +218,7 @@ internal static class AppVersionParser
         var (line, col) = XmlPositions.LineCol(el as IXmlLineInfo, data, Spans.LineStarts(data));
         return line > 0 ? new SourceSpan(file, "", line, col) : fallback;
     }
+
+    [GeneratedRegex(@"^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$")]
+    private static partial Regex ExactVersionPattern();
 }

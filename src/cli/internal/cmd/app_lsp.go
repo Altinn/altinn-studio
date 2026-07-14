@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studioctlserver"
 )
@@ -31,6 +32,10 @@ func (c *AppCommand) runLsp(ctx context.Context, args []string) error {
 	host.Stdin = os.Stdin
 	host.Stdout = os.Stdout
 	host.Stderr = os.Stderr
+	host.Env = os.Environ()
+	if os.Getenv(config.EnvAppDistCache) == "" {
+		host.Env = append(host.Env, config.EnvAppDistCache+"="+c.server.cfg.AppDistCacheDir())
+	}
 	if err := host.Run(); err != nil {
 		return fmt.Errorf("run app-config language server: %w", err)
 	}

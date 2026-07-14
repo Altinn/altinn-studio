@@ -26,7 +26,7 @@ internal sealed class SnapshotBuilder
         }
         else
         {
-            fragments = new List<AppModelBuilder>();
+            fragments = new List<AppModelBuilder> { gate };
             AppModelBuilder? layoutsetsFragment = null;
             foreach (var aspect in _pipeline.Aspects)
             {

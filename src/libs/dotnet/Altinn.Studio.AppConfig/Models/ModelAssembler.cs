@@ -24,6 +24,7 @@ internal static class ModelAssembler
             ParserNotes = fragments.SelectMany(f => f.ParserNotes).ToList(),
             ParseErrors = fragments.SelectMany(f => f.ParseErrors).ToList(),
             UnsupportedAppVersion = fragments.Select(f => f.UnsupportedAppVersion).FirstOrDefault(v => v is not null),
+            AltinnAppVersion = fragments.Select(f => f.AltinnAppVersion).FirstOrDefault(v => v is not null),
         };
 
     private static Dictionary<string, TValue> Fold<TValue>(

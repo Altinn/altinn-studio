@@ -40,6 +40,8 @@ public sealed class AppModel
 
     public required UnsupportedAppVersion? UnsupportedAppVersion { get; init; }
 
+    public required string? AltinnAppVersion { get; init; }
+
     public const string CustomReceiptFolder = "CustomReceipt";
 
     private SymbolTable? _symbols;

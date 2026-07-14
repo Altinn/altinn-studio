@@ -750,7 +750,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	//nolint:gosec // G204: binary path comes from resolved studioctl config.
 	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.StudioctlServerBinaryPath())
 	cmd.Dir = startConfig.WorkingDir
-	cmd.Env = studioctlServerEnvironment(startConfig)
+	cmd.Env = studioctlServerEnvironment(cfg, startConfig)
 	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
 	if err != nil {
 		return fmt.Errorf("open null device: %w", err)
@@ -795,7 +795,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	return err
 }
 
-func studioctlServerEnvironment(startConfig startConfig) []string {
+func studioctlServerEnvironment(cfg *config.Config, startConfig startConfig) []string {
 	env := append(os.Environ(), studioctlServerUnixSocketEnv+"="+startConfig.UnixSocketPath)
 	if startConfig.HostBridgeURL != "" {
 		env = append(env, studioctlServerHostBridgeURLEnv+"="+startConfig.HostBridgeURL)
@@ -817,6 +817,9 @@ func studioctlServerEnvironment(startConfig startConfig) []string {
 			env,
 			envtopology.BoundTopologyOptionsConfigPathEnv+"="+startConfig.BoundTopologyConfigPath,
 		)
+	}
+	if os.Getenv(config.EnvAppDistCache) == "" {
+		env = append(env, config.EnvAppDistCache+"="+cfg.AppDistCacheDir())
 	}
 	return env
 }

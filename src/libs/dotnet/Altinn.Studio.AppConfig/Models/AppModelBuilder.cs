@@ -28,6 +28,7 @@ internal sealed class AppModelBuilder
     public List<ParserNote> ParserNotes { get; } = new();
     public List<ParseError> ParseErrors { get; } = new();
     public UnsupportedAppVersion? UnsupportedAppVersion { get; set; }
+    public string? AltinnAppVersion { get; set; }
 
     public void RecordCoverageGap(string kind, string detail, SourceSpan position) =>
         ParserNotes.Add(new ParserNote(kind, detail, position));

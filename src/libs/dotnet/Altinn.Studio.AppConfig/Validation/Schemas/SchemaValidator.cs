@@ -8,26 +8,21 @@ internal static class SchemaValidator
 {
     public const string RuleId = "JSONSCHEMA-VALID";
 
+    private const string ApplicationMetadataSchema = "application/application-metadata.schema.v1.json";
+    private const string FooterSchema = "layout/footer.schema.v1.json";
+    private const string LayoutSchema = "layout/layout.schema.v1.json";
+    private const string LayoutSettingsSchema = "layout/layoutSettings.schema.v1.json";
+    private const string TextResourcesSchema = "text-resources/text-resources.schema.v1.json";
+
     public static IReadOnlyList<Finding> Validate(SchemaSet schemas, string filePath, byte[] data)
     {
         var findings = new List<Finding>();
-        var schemaUrl = ExtractDeclaredSchemaUrl(data);
-        if (schemaUrl is null)
+        var schemaPath = SchemaPathFor(filePath);
+        if (schemaPath is null)
             return findings;
-        var schema = schemas.Get(schemaUrl);
+        var schema = schemas.Get(schemaPath);
         if (schema is null)
-        {
-            if (schemaUrl.Contains("altinncdn.no", StringComparison.OrdinalIgnoreCase))
-                findings.Add(
-                    new Finding(
-                        RuleId,
-                        $"$schema \"{schemaUrl}\" is not in the loaded schema set — file not schema-checked",
-                        Severity.Info,
-                        new SourceSpan(filePath, "/$schema")
-                    )
-                );
             return findings;
-        }
 
         JsonDocument doc;
         try
@@ -40,7 +35,7 @@ internal static class SchemaValidator
         }
         using var _ = doc;
 
-        var schemaName = AfterLastSlash(schemaUrl);
+        var schemaName = AfterLastSlash(schemaPath);
         try
         {
             EvaluationResults results;
@@ -114,20 +109,37 @@ internal static class SchemaValidator
         return idx >= 0 ? s[(idx + 1)..] : s;
     }
 
-    private static string? ExtractDeclaredSchemaUrl(byte[] data)
+    internal static string? SchemaPathFor(string filePath)
     {
-        try
-        {
-            using var doc = JsonDocument.Parse(data);
-            if (doc.RootElement.ValueKind != JsonValueKind.Object)
-                return null;
-            return doc.RootElement.TryGetProperty("$schema", out var s) && s.ValueKind == JsonValueKind.String
-                ? s.GetString()
-                : null;
-        }
-        catch (JsonException)
-        {
+        if (string.Equals(filePath, "App/config/applicationmetadata.json", StringComparison.OrdinalIgnoreCase))
+            return ApplicationMetadataSchema;
+        if (
+            filePath.StartsWith("App/config/texts/resource.", StringComparison.OrdinalIgnoreCase)
+            && filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+        )
+            return TextResourcesSchema;
+        if (string.Equals(filePath, "App/ui/footer.json", StringComparison.OrdinalIgnoreCase))
+            return FooterSchema;
+        if (!filePath.StartsWith("App/ui/", StringComparison.OrdinalIgnoreCase))
             return null;
-        }
+        if (string.Equals(FileName(filePath), "Settings.json", StringComparison.OrdinalIgnoreCase))
+            return LayoutSettingsSchema;
+        if (
+            string.Equals(ParentDirectory(filePath), "layouts", StringComparison.OrdinalIgnoreCase)
+            && filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+        )
+            return LayoutSchema;
+        return null;
+    }
+
+    private static string FileName(string path) => AfterLastSlash(path);
+
+    private static string ParentDirectory(string path)
+    {
+        var end = path.LastIndexOf('/');
+        if (end <= 0)
+            return "";
+        var start = path.LastIndexOf('/', end - 1);
+        return path[(start + 1)..end];
     }
 }

@@ -68,6 +68,10 @@ const (
 	// EnvResourcesArchive overrides resources install source with a local archive path.
 	// Intended for development/tooling, not normal end-user flows.
 	EnvResourcesArchive = "STUDIOCTL_RESOURCES_ARCHIVE"
+
+	// EnvAppDistCache overrides the directory the .NET hosts cache fetched app-dist contents in.
+	// The .NET hosts fetch app-dist contents only when this is set.
+	EnvAppDistCache = "STUDIOCTL_APP_DIST_CACHE"
 )
 
 // Sentinel errors for configuration validation.
@@ -237,6 +241,11 @@ func (c *Config) StudioctlServerLockPath() string {
 // StudioctlServerLogDir returns the directory containing studioctl server log files.
 func (c *Config) StudioctlServerLogDir() string {
 	return filepath.Join(c.LogDir, StudioctlServerName)
+}
+
+// AppDistCacheDir returns the directory the .NET hosts cache fetched app-dist contents in.
+func (c *Config) AppDistCacheDir() string {
+	return filepath.Join(c.Home, "cache", "app-dist")
 }
 
 // AppLogsDir returns the directory containing app log directories.
