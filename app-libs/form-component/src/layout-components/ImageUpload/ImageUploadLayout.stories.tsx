@@ -1,3 +1,4 @@
+import { ValidationMessages } from '@app/form-component/app-components/ValidationMessages';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -100,6 +101,10 @@ export const ReadOnly: Story = {
 
 export const WithValidationMessages: Story = {
   args: {
-    validationMessages: 'Du må laste opp et bilde.',
+    validationMessages: (
+      <ValidationMessages
+        validations={[{ id: 'required', severity: 'error', message: 'Du må laste opp et bilde.' }]}
+      />
+    ),
   },
 };
