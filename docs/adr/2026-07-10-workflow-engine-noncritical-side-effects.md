@@ -198,12 +198,16 @@ State:
   read-path status annotation) — a terminally failed side chain means events were lost, silently
   from the user's perspective. Mitigated with a dedicated telemetry dimension: the engine's
   `engine.workflows.execution.failed` counter is tagged `is_head` (on the execution, poisoned, and
-  dependency-failed paths), so side-chain failures are isolatable for alerting. Alert on
-  `is_head="false"` **and** `reason` in (`execution`, `poisoned`) — those are the lost-events
-  cases. `reason="dependency_failed"` increments for `is_head="false"` are expected noise: every
-  pre-commit Main failure condemns its side-effects sibling to DependencyFailed, and that failure
-  already surfaces to the user with a Retry affordance (a retry cascade-resumes the sibling, so no
-  events are lost). Failed side chains remain enumerable (`status=Failed`, `isHead: false`; or by
+  dependency-failed paths). Alert on `reason` in (`execution`, `poisoned`) across **all** `is_head`
+  values: with the user-facing Retry removed from the failed screen (error details + contact
+  support; see the live-status ADR), an ops resume is the only recovery path for a failed Main
+  too, so every terminal failure pages ops. `is_head` is a routing/severity dimension, not the
+  alert filter — `false` means a side chain failed (events lost; re-deliver via engine resume),
+  `unset`/`true` means a head workflow failed (the instance is stuck until ops resumes it with
+  cascade). `reason="dependency_failed"` stays excluded as expected noise: every pre-commit Main
+  failure condemns its side-effects sibling to DependencyFailed, merely mirroring the Main failure
+  that already fired the alert — the cascade resume of Main revives the sibling, so no events are
+  lost. Failed side chains remain enumerable (`status=Failed`, `isHead: false`; or by
   collection key / `processNextInstanceGuid` label) and redrivable via the engine's resume API —
   the app's `process/resume` deliberately excludes them. See the observability + redrive runbook in
   the integration layer's `AGENTS.md`.
@@ -230,9 +234,9 @@ State:
 ### Follow-ups
 
 - Wire an actual alert rule on
-  `engine.workflows.execution.failed{is_head="false", reason=~"execution|poisoned"}` in the
-  monitoring stack (the metric dimensions ship with this decision; the alert is deployment
-  configuration).
+  `engine.workflows.execution.failed{reason=~"execution|poisoned"}` in the monitoring stack,
+  using `is_head` for routing/severity (the metric dimensions ship with this decision; the alert
+  is deployment configuration).
 - A2 (diamond) if prompt post-commit event emission becomes a requirement.
 - Data retention review (platform-wide, not specific to this decision): document the engine's
   retention period in service-owner-facing material (DPIA support), and evaluate per-org retention

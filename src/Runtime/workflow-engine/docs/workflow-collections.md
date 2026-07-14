@@ -30,11 +30,12 @@ Tri-state control over head membership and head consumption:
 The directive is persisted verbatim (`is_head`) and exposed on `WorkflowStatusResponse.isHead`, so
 status consumers can identify invisible workflows without relying on naming conventions, and the
 `engine.workflows.execution.failed` metric is tagged `is_head` on all of its `reason` paths
-(`execution`, `poisoned`, `dependency_failed`). To catch terminal failures of invisible workflows
-— which by construction gate nothing and are otherwise silent — alert on `is_head="false"` **and**
-`reason` in (`execution`, `poisoned`). A `dependency_failed` increment for an invisible workflow
-just mirrors the failure of a visible dependency, which is observable in its own right, and a
-cascade resume of that dependency revives the invisible dependent.
+(`execution`, `poisoned`, `dependency_failed`). Alert on `reason` in (`execution`, `poisoned`)
+regardless of `is_head`, and use `is_head` as a routing/severity dimension: `false` marks
+deliberately invisible workflows, whose terminal failures gate nothing and are otherwise silent.
+Exclude `reason="dependency_failed"` — such an increment for an invisible workflow just mirrors
+the failure of a visible dependency, which fires the alert in its own right, and a cascade resume
+of that dependency revives the invisible dependent.
 
 ---
 

@@ -171,14 +171,18 @@ a terminal `Failed` workflow that nothing waits on and no user ever sees. A term
 chain means outbound events/notifications were **lost** — downstream event subscribers never learn
 of the transition — so this class must be monitored explicitly:
 
-- **Alert** on the engine metric `engine.workflows.execution.failed` filtered to
-  `is_head="false"` **and** `reason` in (`execution`, `poisoned`) — those are the lost-events
-  cases (side chains are the only `IsHead=false` workflows the app enqueues; Main failures also
-  increment this counter but with `is_head="unset"`, and those already surface to users as
-  `workflow: failed` with a Retry affordance). Do **not** alert on `reason="dependency_failed"`:
-  every pre-commit Main failure condemns its side-effects sibling to DependencyFailed, so those
-  increments merely mirror a Main failure that is already user-visible — a user Retry
-  cascade-resumes the sibling (no events lost), and a reject correctly discards it.
+- **Alert** on the engine metric `engine.workflows.execution.failed` with `reason` in
+  (`execution`, `poisoned`) across **all** `is_head` values — every terminal failure needs ops.
+  There is no user-facing Retry for terminally failed workflows (the failed screen shows error
+  details + contact support; the frontend recovers on its own once the workflow is resumed), so
+  an ops resume is the only recovery path. Use `is_head` to route/prioritize, not to filter:
+  `is_head="false"` means a side chain failed — outbound events were lost, re-deliver via the
+  engine resume; `is_head="unset"` (or `"true"`) means a head (Main) workflow failed — the
+  instance is stuck for the user until ops resumes it (cascade) via `process/resume`. Do **not**
+  alert on `reason="dependency_failed"`: every pre-commit Main failure condemns its side-effects
+  sibling to DependencyFailed, so those increments merely mirror the Main failure that already
+  fired the alert — the ops resume of Main cascade-revives the sibling (no events lost), and a
+  reject correctly discards it.
 - **Enumerate** with `GET /api/v1/{org}/{app}/workflows?status=Failed` — side chains are
   identifiable by `isHead: false` on the status response (their OperationId also carries the
   human-readable `Process next side-effects:` naming prefix), or scope to one instance by
