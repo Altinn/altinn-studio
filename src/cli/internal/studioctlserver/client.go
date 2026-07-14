@@ -477,10 +477,19 @@ type ValidateSummary struct {
 	RulesRun int `json:"rulesRun"`
 }
 
+// ValidateSchemaValidation should reflect SchemaValidationJson in studioctl-server's ValidateEndpoint.cs.
+type ValidateSchemaValidation struct {
+	Version  string   `json:"version,omitempty"`
+	Reason   string   `json:"reason,omitempty"`
+	Warnings []string `json:"warnings,omitempty"`
+	Ran      bool     `json:"ran"`
+}
+
 // ValidateResponse is the response body of POST /validate.
 type ValidateResponse struct {
-	Findings []ValidateFinding `json:"findings"`
-	Summary  ValidateSummary   `json:"summary"`
+	Findings         []ValidateFinding        `json:"findings"`
+	SchemaValidation ValidateSchemaValidation `json:"schemaValidation"`
+	Summary          ValidateSummary          `json:"summary"`
 }
 
 // ValidateRule is one entry from GET /validate/rules.

@@ -50,7 +50,10 @@ internal static class ValidateEndpoint
             return Results.Problem($"load app: {ex.Message}", statusCode: 422);
         }
 
-        var report = engine.ValidateAll(await schemas.GetAsync(model.AltinnAppVersion, cancellationToken));
+        var schemaSet = model.UnsupportedAppVersion is not null
+            ? SchemaSetResult.Skipped("the app's Altinn.App version is unsupported")
+            : await schemas.GetAsync(model.AltinnAppVersion, cancellationToken);
+        var report = engine.ValidateAll(schemaSet.Schemas);
 
         Severity minSev = Severity.Warning;
         if (!string.IsNullOrEmpty(request.Severity) && !SeverityExtensions.TryParse(request.Severity, out minSev))
@@ -77,7 +80,13 @@ internal static class ValidateEndpoint
         return Results.Ok(
             new ValidateResponse(
                 findings,
-                new ValidateSummaryJson(summary.Errors, summary.Warnings, summary.Info, summary.RulesRun)
+                new ValidateSummaryJson(summary.Errors, summary.Warnings, summary.Info, summary.RulesRun),
+                new SchemaValidationJson(
+                    schemaSet.Status.Ran,
+                    schemaSet.Status.Version,
+                    schemaSet.Status.Reason,
+                    schemaSet.Status.Warnings.ToArray()
+                )
             )
         );
     }
@@ -98,7 +107,13 @@ internal static class ValidateEndpoint
 
     public sealed record ValidateSummaryJson(int Errors, int Warnings, int Info, int RulesRun);
 
-    public sealed record ValidateResponse(ValidateFindingJson[] Findings, ValidateSummaryJson Summary);
+    public sealed record SchemaValidationJson(bool Ran, string? Version, string? Reason, string[] Warnings);
+
+    public sealed record ValidateResponse(
+        ValidateFindingJson[] Findings,
+        ValidateSummaryJson Summary,
+        SchemaValidationJson SchemaValidation
+    );
 
     public sealed record CommandResponse(string Message);
 }
