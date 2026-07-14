@@ -894,7 +894,7 @@ function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams, componentId:
   if (!layoutLookups) {
     throw new ExprRuntimeError(ctx.expr, ctx.path, 'Layouts not available in this context, cannot look up component');
   }
-  const hiddenSources = collectHiddenSources(componentId, layoutLookups).reverse();
+  const hiddenSources = collectHiddenSources(componentId, layoutLookups);
   const pageKey = layoutLookups.componentToPage[componentId];
   return evaluateHiddenSources({
     hiddenSources,

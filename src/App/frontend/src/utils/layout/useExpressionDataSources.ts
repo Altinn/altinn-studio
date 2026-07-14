@@ -322,7 +322,7 @@ function makeExpressionDataSourcesRuntime({
     currentDataModelPath,
     langToolsSelector: (dataModelPath) => {
       observer.track({ type: 'language', dataModelPath });
-      return buildLanguageTools({ inputs: getInputs(), dataModelPath });
+      return buildLanguageTools({ inputs: getInputs(), dataModelPath, observer });
     },
     markExpressionEvaluated: () => observer.markEvaluated(),
     track: (dependency) => observer.track(dependency),
@@ -448,9 +448,11 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
 function buildLanguageTools({
   inputs,
   dataModelPath,
+  observer,
 }: {
   inputs: SnapshotInputs;
   dataModelPath: IDataModelReference | undefined;
+  observer: ExpressionObserver;
 }): IUseLanguage {
   ensureTextResourcesFetched(inputs);
   const textResources = getTextResourcesFromCache(inputs);
@@ -463,7 +465,10 @@ function buildLanguageTools({
     dataModels: inputs.dataModelReaders,
     defaultDataType: getDefaultDataTypeFromStore(inputs.store),
     formDataTypes: getReadableDataTypesFromStore(inputs.store),
-    formDataSelector: (reference) => readFormDataFromStore(inputs.store, reference),
+    formDataSelector: (reference) => {
+      observer.track({ type: 'formData', reference });
+      return readFormDataFromStore(inputs.store, reference);
+    },
   });
 }
 

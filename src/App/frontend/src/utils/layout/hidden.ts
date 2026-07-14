@@ -47,7 +47,7 @@ export function useIsHidden<Reason extends boolean = false>(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups).reverse();
+  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups);
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
@@ -86,7 +86,7 @@ export function useIsHiddenMulti(
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const hiddenSources = useMemo(
-    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups).reverse()),
+    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups)),
     [baseComponentIds, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
