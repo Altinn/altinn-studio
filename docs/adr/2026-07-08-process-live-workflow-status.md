@@ -136,7 +136,9 @@ The enriched process state (`AppProcessState`) gains a nested annotation; `curre
     "status": "idle" | "processing" | "failed",
     "targetTask": "Task_2",            // omitted when idle / unknown
     "failure": {                       // present only when status == "failed"
-      "kind": "StepFailed | DependencyFailed | EngineFault | Timeout"
+      "kind": "stepFailed | dependencyFailed | engineFault | timeout",
+      "workflowId": "…",               // support reference; omitted when unknown
+      "occurredAt": "…"                // when the failure was recorded; omitted when unknown
     }
   }
 }
@@ -154,15 +156,17 @@ The enriched process state (`AppProcessState`) gains a nested annotation; `curre
 - `targetTask` is the BPMN element id of the task the in-flight/failed transition targets
   (resolved from the `processNextTargetId` label stamped at enqueue, flow suffix stripped).
   Omitted when `idle` or unresolvable.
-- `failure` carries only the coarse `kind` classification. The raw failure detail (the engine's
-  last recorded error message) is **never serialized to clients**: it originates from
-  exception/callback messages and can carry internal infrastructure text (platform response
-  bodies, exception messages from app-authored hooks). It remains available server-side — the
-  callback controller logs every command failure and the engine persists the step error history —
-  so nothing is lost for diagnostics.
-- We intentionally do **not** expose retry counts, workflow ids, collection keys, or raw engine
-  statuses. `processing` covers the first attempt and every automatic retry — the consumer
-  behaviour (wait) is identical, so the distinction is noise (D4).
+- `failure` carries the coarse `kind` classification plus the safe structured facts a support
+  dialogue needs: the failed workflow's id (`workflowId` — the **support reference** operations
+  can look up in the engine) and when the failure was recorded (`occurredAt`). The raw failure
+  detail (the engine's last recorded error message) is **never serialized to clients**: it
+  originates from exception/callback messages and can carry internal infrastructure text
+  (platform response bodies, exception messages from app-authored hooks). It remains available
+  server-side — the callback controller logs every command failure and the engine persists the
+  step error history, keyed by the support reference — so nothing is lost for diagnostics.
+- Beyond the support-reference fields we intentionally do **not** expose retry counts, collection
+  keys, or raw engine statuses. `processing` covers the first attempt and every automatic retry —
+  the consumer behaviour (wait) is identical, so the distinction is noise (D4).
 
 State mapping (engine → exposed):
 
@@ -216,22 +220,30 @@ Frontend:
 - **Fetched status drives a state machine** in `ProcessWrapper`, layered on the committed-task
   routing: `idle` renders normally; `processing` replaces the task UI (which suppresses its
   Submit/next affordances) and polls the instance until the status settles; `failed` replaces the
-  task UI with a failure state and a **Retry** button calling `POST process/resume`, then
-  returns to `processing` + poll. Because the state is sourced from the fetched instance, it
-  survives reloads and works cross-session — including the failed state itself, which polls at a
-  slow jittered cadence (~10–12s) so a resume performed in another session converges here too;
-  a failed resume attempt likewise refetches before deciding whether an error is still worth
-  surfacing.
+  task UI with an **error page**. Because the state is sourced from the fetched instance, it
+  survives reloads and works cross-session.
+- **The failed state offers no user Retry — recovery is ops-driven.** By the time the engine
+  reports `failed` it has already exhausted its automatic retry budget, so inviting the citizen
+  to retry would be dishonest (it would almost always fail again) and shifts an operational
+  problem onto the wrong actor. The failed screen is an error page: a localized generic message,
+  a contact-support pointer, and an expandable details section (the same widget as the
+  unknown-error page) containing only **safe structured facts** — a localized label for the
+  failure `kind`, the failed step, when it failed, and the failed workflow id as a **support
+  reference**. Operations resume the workflow via the (unchanged) `POST process/resume`
+  endpoint, and the failed state's slow poll (~10–12s jittered) is the recovery mechanism: the
+  page converges on its own once the resume settles, no reload needed.
 - **Raw failure detail never reaches the citizen.** The read-path annotation ships only the
-  failure `kind`; the citizen UI renders a localized generic message. Shipping unrendered detail
-  "for diagnostics" would only widen exposure (any browser devtools sees the payload) while the
-  same information is already logged server-side and persisted in the engine's error history. A
-  first-class, app-authored *user-safe* failure message is a follow-up. The same rule applies to
-  the synchronous action responses: a failed `process/next`/`resume` ships a stable generic
-  `detail` derived from the failure kind, and its `workflowFailure` extension is stripped of the
-  recorded error message (the controller logs the raw text instead). The instantiation /
-  process-start recovery contract (`WorkflowInitializationProblemDetails`) is a separate,
-  machine-facing channel and is deliberately unchanged.
+  failure `kind` plus the safe support-reference fields (`workflowId`, `occurredAt`); the citizen
+  UI renders a localized generic message. Shipping unrendered detail "for diagnostics" would only
+  widen exposure (any browser devtools sees the payload) while the same information is already
+  logged server-side and persisted in the engine's error history, keyed by the support reference.
+  A first-class, app-authored *user-safe* failure message is a follow-up — the path to richer
+  citizen-facing detail. The same rule applies to the synchronous action responses: a failed
+  `process/next`/`resume` ships a stable generic `detail` derived from the failure kind, and its
+  `workflowFailure` extension is stripped of the recorded error message (the controller logs the
+  raw text instead). The instantiation / process-start recovery contract
+  (`WorkflowInitializationProblemDetails`) is a separate, machine-facing channel and is
+  deliberately unchanged.
 - **Polling is jittered** (~2–3s) so many clients waiting on the same engine don't synchronise
   into a thundering herd — which would otherwise peak exactly when the engine is already slow.
   After ~20s in `processing` the UI adds a "taking longer than usual" reassurance line.
@@ -259,8 +271,9 @@ Frontend:
 ## Consequences
 
 - Positive: reads (and therefore reloads, concurrent sessions, and post-504 limbo) reflect the
-  live truth; a terminally failed transition is discoverable and retryable from the UI instead of
-  by attempting an action; no second copy of process truth exists anywhere.
+  live truth; a terminally failed transition is discoverable from a read — surfaced to the citizen
+  as an honest error page with a support reference, and recovered by ops resuming the workflow
+  (the page converges via the failed-state poll); no second copy of process truth exists anywhere.
 - Positive (D5): because the frontend converges purely off the fetched `workflow.status`, the
   backend's synchronous block-and-wait in `process/next` becomes an implementation detail it can
   shed later — `process/next` could return `processing` immediately and the frontend converges
@@ -288,9 +301,11 @@ Frontend:
 
 ### Follow-ups (not blockers)
 
-- Whether the **end user is the right actor** to retry an engine failure at all, vs. a "received,
-  we're processing it" model with ops alerting — a product decision.
-- App-authored **user-safe failure message** channel (so useful, safe detail *can* be shown).
+- App-authored **user-safe failure message** channel (so useful, safe detail *can* be shown) —
+  the path to richer citizen-facing failure detail than the generic message + support reference.
+  (The original open question — whether the end user is the right actor to retry an engine
+  failure — was decided: no. The engine has already exhausted its retry budget when it reports
+  `failed`, so the UI shows an error page and recovery is ops-driven via `POST process/resume`.)
 - `Abandoned → idle` mapping re-confirmed against the reject path.
 - True **backoff** (not just jitter) for very long-running processing, if load warrants.
 - **Collapse the *failed* read to a single call too**: a compact last-error summary on
