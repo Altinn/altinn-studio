@@ -1,14 +1,16 @@
 import type React from 'react';
 
-import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
 import {
   cropAreaPlacement,
   drawCropArea,
   getNewFileName,
   IMAGE_TYPE,
   imagePlacement,
-} from 'src/layout/ImageUpload/imageUploadUtils';
-import type { CropInternal, Position } from 'src/layout/ImageUpload/imageUploadUtils';
+} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+import type {
+  CropInternal,
+  Position,
+} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 type UseImageCropperSaveProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -16,7 +18,8 @@ type UseImageCropperSaveProps = {
   cropArea: CropInternal;
   zoom: number;
   position: Position;
-  baseComponentId: string;
+  /** Commit the cropped image. Wired by the runtime wrapper to the attachment uploader. */
+  onSave: (file: File) => void;
   setValidationErrors: (errors: string[] | null) => void;
 };
 
@@ -26,11 +29,9 @@ export function useImageCropperSave({
   cropArea,
   zoom,
   position,
-  baseComponentId,
+  onSave,
   setValidationErrors,
 }: UseImageCropperSaveProps) {
-  const { saveImage } = useImageFile(baseComponentId);
-
   const handleSave = () => {
     const canvas = canvasRef.current;
     const img = imageRef.current;
@@ -47,7 +48,12 @@ export function useImageCropperSave({
     cropCanvas.width = cropArea.width;
     cropCanvas.height = cropArea.height;
 
-    const { imgX, imgY, scaledWidth, scaledHeight } = imagePlacement({ canvas, img, zoom, position });
+    const { imgX, imgY, scaledWidth, scaledHeight } = imagePlacement({
+      canvas,
+      img,
+      zoom,
+      position,
+    });
     const { cropAreaX, cropAreaY } = cropAreaPlacement({ canvas, cropArea });
 
     drawCropArea({ ctx: cropCtx, cropArea });
@@ -61,7 +67,7 @@ export function useImageCropperSave({
 
       const newFileName = getNewFileName({ fileName: img.id });
       const imageFile = new File([blob], newFileName, { type: IMAGE_TYPE });
-      saveImage(imageFile);
+      onSave(imageFile);
       setValidationErrors(null);
     }, IMAGE_TYPE);
   };

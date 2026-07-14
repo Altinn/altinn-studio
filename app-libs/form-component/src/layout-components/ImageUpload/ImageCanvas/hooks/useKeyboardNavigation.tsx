@@ -1,14 +1,17 @@
 import { useCallback } from 'react';
 import type React from 'react';
 
-import type { Position } from 'src/layout/ImageUpload/imageUploadUtils';
+import type { Position } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 type UseKeyboardNavigationProps = {
   position: Position;
   onPositionChange: (newPosition: Position) => void;
 };
 
-export const useKeyboardNavigation = ({ position, onPositionChange }: UseKeyboardNavigationProps) => {
+export const useKeyboardNavigation = ({
+  position,
+  onPositionChange,
+}: UseKeyboardNavigationProps) => {
   const MOVE_AMOUNT = 10;
 
   const handleKeyDown = useCallback(

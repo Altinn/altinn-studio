@@ -7,7 +7,7 @@ import {
   drawCropArea,
   imagePlacement,
   type Position,
-} from 'src/layout/ImageUpload/imageUploadUtils';
+} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 type UseCanvasDrawProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -17,7 +17,13 @@ type UseCanvasDrawProps = {
   cropArea: CropInternal;
 };
 
-export const useCanvasDraw = ({ canvasRef, imageRef, zoom, position, cropArea }: UseCanvasDrawProps) => {
+export const useCanvasDraw = ({
+  canvasRef,
+  imageRef,
+  zoom,
+  position,
+  cropArea,
+}: UseCanvasDrawProps) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
@@ -29,7 +35,12 @@ export const useCanvasDraw = ({ canvasRef, imageRef, zoom, position, cropArea }:
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const { imgX, imgY, scaledWidth, scaledHeight } = imagePlacement({ canvas, img, zoom, position });
+      const { imgX, imgY, scaledWidth, scaledHeight } = imagePlacement({
+        canvas,
+        img,
+        zoom,
+        position,
+      });
 
       ctx.drawImage(img, imgX, imgY, scaledWidth, scaledHeight);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';

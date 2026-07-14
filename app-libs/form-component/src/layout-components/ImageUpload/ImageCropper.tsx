@@ -1,33 +1,46 @@
-import React, { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
-import { AppCard } from '@app/form-component';
-import { ValidationMessage } from '@digdir/designsystemet-react';
-
-import { Lang } from 'src/features/language/Lang';
-import { useFocusOnChange } from 'src/layout/ImageUpload/hooks/useFocusOnChange';
-import { useFocusWhenRemoved } from 'src/layout/ImageUpload/hooks/useFocusWhenRemoved';
-import { useImageCropperSave } from 'src/layout/ImageUpload/hooks/useImageCropperSave';
-import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
-import { useImageUploader } from 'src/layout/ImageUpload/hooks/useImageUploader';
-import { ImageCanvas } from 'src/layout/ImageUpload/ImageCanvas/ImageCanvas';
-import { ImageControllers } from 'src/layout/ImageUpload/ImageControllers';
-import { ImageDropzone } from 'src/layout/ImageUpload/ImageDropzone';
+import { AppCard } from '@app/form-component/app-components/Card';
+import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import { useFocusOnChange } from '@app/form-component/layout-components/ImageUpload/hooks/useFocusOnChange';
+import { useFocusWhenRemoved } from '@app/form-component/layout-components/ImageUpload/hooks/useFocusWhenRemoved';
+import { useImageCropperSave } from '@app/form-component/layout-components/ImageUpload/hooks/useImageCropperSave';
+import { useImageUploader } from '@app/form-component/layout-components/ImageUpload/hooks/useImageUploader';
+import { ImageCanvas } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/ImageCanvas';
+import { ImageControllers } from '@app/form-component/layout-components/ImageUpload/ImageControllers';
+import { ImageDropzone } from '@app/form-component/layout-components/ImageUpload/ImageDropzone';
 import {
   calculateMinZoom,
   calculatePositionForZoom,
   IMAGE_TYPE,
   MAX_ZOOM,
-} from 'src/layout/ImageUpload/imageUploadUtils';
-import type { CropInternal, Position } from 'src/layout/ImageUpload/imageUploadUtils';
+} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+import { ValidationMessage } from '@digdir/designsystemet-react';
+import type {
+  CropInternal,
+  Position,
+  StoredImage,
+} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
-interface ImageCropperProps {
-  baseComponentId: string;
+export interface ImageCropperProps {
+  componentId: string;
   cropArea: CropInternal;
   readOnly: boolean;
+  storedImage?: StoredImage;
+  imageUrl?: string;
+  onSave: (file: File) => void;
+  onDelete: () => void;
 }
 
-export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropperProps) {
-  const { deleteImage, storedImage } = useImageFile(baseComponentId);
+export function ImageCropper({
+  componentId,
+  cropArea,
+  readOnly,
+  storedImage,
+  imageUrl,
+  onSave,
+  onDelete,
+}: ImageCropperProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const imageTypeRef = useRef<string | null>(null);
@@ -41,7 +54,7 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
     cropArea,
     zoom,
     position,
-    baseComponentId,
+    onSave,
     setValidationErrors,
   });
 
@@ -53,14 +66,24 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
   useFocusWhenRemoved(currentImage, dropzoneInputRef);
 
   type UpdateImageState = { minZoom?: number; img?: HTMLImageElement | null };
-  const updateImageState = ({ minZoom = minAllowedZoom, img = imageRef.current }: UpdateImageState) => {
+  const updateImageState = ({
+    minZoom = minAllowedZoom,
+    img = imageRef.current,
+  }: UpdateImageState) => {
     setZoom(minZoom);
     setPosition({ x: 0, y: 0 });
     imageRef.current = img;
   };
 
-  const { handleFileUpload } = useImageUploader({ cropArea, updateImageState, setValidationErrors, imageTypeRef });
-  const minAllowedZoom = imageRef.current ? calculateMinZoom({ img: imageRef.current, cropArea }) : 0.1;
+  const { handleFileUpload } = useImageUploader({
+    cropArea,
+    updateImageState,
+    setValidationErrors,
+    imageTypeRef,
+  });
+  const minAllowedZoom = imageRef.current
+    ? calculateMinZoom({ img: imageRef.current, cropArea })
+    : 0.1;
 
   const handleZoomChange = useCallback(
     (newZoomValue: number) => {
@@ -72,7 +95,14 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
       }
 
       const newZoom = Math.max(minAllowedZoom, Math.min(newZoomValue, MAX_ZOOM));
-      const newPosition = calculatePositionForZoom({ canvas, img, oldZoom: zoom, newZoom, position, cropArea });
+      const newPosition = calculatePositionForZoom({
+        canvas,
+        img,
+        oldZoom: zoom,
+        newZoom,
+        position,
+        cropArea,
+      });
       setZoom(newZoom);
       setPosition(newPosition);
     },
@@ -80,7 +110,7 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
   );
 
   const handleDeleteImage = () => {
-    deleteImage();
+    onDelete();
     updateImageState({ img: null });
   };
 
@@ -93,7 +123,7 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
     return (
       <>
         <ImageDropzone
-          baseComponentId={baseComponentId}
+          componentId={componentId}
           onDrop={(files) => handleFileUpload(files[0])}
           readOnly={readOnly}
           hasErrors={!!validationErrors && validationErrors?.length > 0}
@@ -116,7 +146,8 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
           minAllowedZoom={minAllowedZoom}
           position={position}
           cropArea={cropArea}
-          baseComponentId={baseComponentId}
+          storedImage={storedImage}
+          imageUrl={imageUrl}
           setPosition={setPosition}
           onZoomChange={handleZoomChange}
         />
@@ -143,16 +174,15 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
 }
 
 const ValidationMessages = ({ validationErrors }: { validationErrors: string[] | null }) => {
+  const { lang } = useTranslation();
+
   if (!validationErrors) {
     return null;
   }
 
   return validationErrors.map((error, index) => (
-    <ValidationMessage
-      key={`error-${index}`}
-      data-size='sm'
-    >
-      <Lang id={error} />
+    <ValidationMessage key={`error-${index}`} data-size='sm'>
+      {lang(error)}
     </ValidationMessage>
   ));
 };

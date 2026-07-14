@@ -5,6 +5,7 @@ export * from './ButtonGroup';
 export * from './Datepicker';
 export * from './Divider';
 export * from './Header';
+export * from './ImageUpload';
 export * from './Paragraph';
 export * from './Tabs';
 export * from './TimePicker';
