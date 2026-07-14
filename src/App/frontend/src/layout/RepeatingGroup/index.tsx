@@ -21,11 +21,17 @@ import { RepeatingGroupSummary } from 'src/layout/RepeatingGroup/Summary2/Repeat
 import { validateRepGroupMinCountForNode } from 'src/layout/RepeatingGroup/useValidateRepGroupMinCount';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { claimRepeatingChildren } from 'src/utils/layout/plugins/claimRepeatingChildren';
+import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout/rowContext';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ChildClaimerProps, ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type {
+  ChildClaimerProps,
+  ExprResolver,
+  RuntimeChildrenProps,
+  SummaryRendererProps,
+} from 'src/layout/LayoutComponent';
 import type { RepGroupInternal } from 'src/layout/RepeatingGroup/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -171,5 +177,26 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     claimRepeatingChildren(props, props.item.children, { multiPage });
     claimGridRowsChildren(props, props.item.rowsBefore);
     claimGridRowsChildren(props, props.item.rowsAfter);
+  }
+
+  getRuntimeChildren({ item, childBaseIds, rowContexts, getRows }: RuntimeChildrenProps<'RepeatingGroup'>) {
+    const configuredChildren = item.edit?.multiPage
+      ? item.children.map((childId) => childId.split(':', 2)[1])
+      : item.children;
+    const repeatedChildren = new Set(configuredChildren);
+    const staticChildren = childBaseIds
+      .filter((baseId) => !repeatedChildren.has(baseId))
+      .map((baseId) => ({ baseId, rowContexts }));
+    const groupBinding = getIndexedDataModelReference(item.dataModelBindings.group, rowContexts);
+    const repeated = getRows(groupBinding).flatMap((row) =>
+      childBaseIds
+        .filter((baseId) => repeatedChildren.has(baseId))
+        .map((baseId) => ({
+          baseId,
+          rowContexts: appendRowContext(rowContexts, groupBinding, row),
+        })),
+    );
+
+    return [...staticChildren, ...repeated];
   }
 }

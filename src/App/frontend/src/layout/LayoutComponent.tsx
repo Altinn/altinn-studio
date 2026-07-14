@@ -15,7 +15,12 @@ import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ComponentValidation } from 'src/features/validation';
-import type { ComponentBase, FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
+import type {
+  ComponentBase,
+  FormComponentProps,
+  IDataModelReference,
+  SummarizableComponentProps,
+} from 'src/layout/common.generated';
 import type {
   ComponentValidationContext,
   DataModelBindingValidationContext,
@@ -33,6 +38,8 @@ import type {
 } from 'src/layout/layout';
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
+import type { RowContext } from 'src/utils/layout/rowContext';
+import type { BaseRow } from 'src/utils/layout/types';
 
 export interface ExprResolver<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
@@ -46,6 +53,18 @@ export interface ExprResolver<Type extends CompTypes> {
   evalTrb: () => {
     textResourceBindings: ExprResolved<ITextResourceBindingsExternal<Type>>;
   };
+}
+
+export type RuntimeChild = {
+  baseId: string;
+  rowContexts: RowContext[];
+};
+
+export interface RuntimeChildrenProps<Type extends CompTypes> {
+  item: CompExternal<Type>;
+  childBaseIds: string[];
+  rowContexts: RowContext[];
+  getRows: (binding: IDataModelReference | undefined) => BaseRow[];
 }
 
 export abstract class AnyComponent<Type extends CompTypes> {
@@ -132,6 +151,14 @@ export abstract class AnyComponent<Type extends CompTypes> {
 
   getOptionsEffectValueType(): OptionsValueType | undefined {
     return undefined;
+  }
+
+  /**
+   * Expands statically claimed children into the nodes that exist for the current runtime data.
+   * Containers with generated or repeated children can override this while traversal stays component-agnostic.
+   */
+  getRuntimeChildren({ childBaseIds, rowContexts }: RuntimeChildrenProps<Type>): RuntimeChild[] {
+    return childBaseIds.map((baseId) => ({ baseId, rowContexts }));
   }
 }
 

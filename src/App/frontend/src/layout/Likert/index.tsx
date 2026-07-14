@@ -6,13 +6,20 @@ import type { PropsFromGenericComponent } from '..';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
+import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
 import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryComponent';
 import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
+import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout/rowContext';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ChildClaimerProps, ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type {
+  ChildClaimerProps,
+  ExprResolver,
+  RuntimeChildrenProps,
+  SummaryRendererProps,
+} from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Likert extends LikertDef {
@@ -85,5 +92,18 @@ export class Likert extends LikertDef {
 
   claimChildren(props: ChildClaimerProps<'Likert'>): void {
     props.claimChild(makeLikertChildId(props.item.id));
+  }
+
+  getRuntimeChildren({ item, childBaseIds, rowContexts, getRows }: RuntimeChildrenProps<'Likert'>) {
+    const questionsBinding = getIndexedDataModelReference(item.dataModelBindings.questions, rowContexts);
+    const rows = getRows(questionsBinding);
+    const { startIndex, stopIndex } = getLikertStartStopIndex(rows.length - 1, item.filter);
+
+    return rows.slice(startIndex, stopIndex + 1).flatMap((row) =>
+      childBaseIds.map((baseId) => ({
+        baseId,
+        rowContexts: appendRowContext(rowContexts, questionsBinding, row),
+      })),
+    );
   }
 }
