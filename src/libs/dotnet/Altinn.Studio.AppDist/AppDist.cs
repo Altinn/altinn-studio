@@ -22,6 +22,13 @@ public interface IAppDistProvider
         AppDistLayer layer,
         CancellationToken cancellationToken = default
     );
+
+    Task<IReadOnlyList<string>?> ListVersionsAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<string>> ListCachedVersionsAsync(
+        AppDistLayer layer,
+        CancellationToken cancellationToken = default
+    );
 }
 
 public sealed class AppDist : IAppDistProvider
@@ -78,6 +85,23 @@ public sealed class AppDist : IAppDistProvider
             return null;
         return new LayerContent(_store, version, layer);
     }
+
+    public async Task<IReadOnlyList<string>?> ListVersionsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _source.ListVersionsAsync(cancellationToken);
+        }
+        catch (AppDistSourceUnavailableException)
+        {
+            return null;
+        }
+    }
+
+    public Task<IReadOnlyList<string>> ListCachedVersionsAsync(
+        AppDistLayer layer,
+        CancellationToken cancellationToken = default
+    ) => _store.ListVersionsAsync(layer, cancellationToken);
 
     private async Task<bool> EnsureLayerAsync(string version, AppDistLayer layer, CancellationToken ct)
     {

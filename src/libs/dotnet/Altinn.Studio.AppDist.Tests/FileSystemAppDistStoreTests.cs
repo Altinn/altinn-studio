@@ -113,4 +113,31 @@ public sealed class FileSystemAppDistStoreTests : IDisposable
             _store.ContainsAsync("../evil", AppDistLayer.Schemas, CancellationToken.None)
         );
     }
+
+    [Fact]
+    public async Task ListVersions_IsLayerScopedAndRequiresMarker()
+    {
+        await _store.WriteAsync(
+            "4",
+            AppDistLayer.Schemas,
+            [new AppDistFileEntry("a.json", "{}"u8.ToArray())],
+            CancellationToken.None
+        );
+        await _store.WriteAsync(
+            "5",
+            AppDistLayer.Bundle,
+            [new AppDistFileEntry("b.js", "js"u8.ToArray())],
+            CancellationToken.None
+        );
+        Directory.CreateDirectory(Path.Combine(_root, "contents", "6", "schemas"));
+
+        Assert.Equal(["4"], await _store.ListVersionsAsync(AppDistLayer.Schemas, CancellationToken.None));
+        Assert.Equal(["5"], await _store.ListVersionsAsync(AppDistLayer.Bundle, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ListVersions_EmptyStoreReturnsEmpty()
+    {
+        Assert.Empty(await _store.ListVersionsAsync(AppDistLayer.Schemas, CancellationToken.None));
+    }
 }

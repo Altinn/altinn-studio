@@ -7,6 +7,8 @@ public interface IAppDistSource
         AppDistLayer layer,
         CancellationToken cancellationToken
     );
+
+    Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken);
 }
 
 public sealed record AppDistFileEntry(string Path, byte[] Content);

@@ -14,10 +14,15 @@ internal sealed class FakeRegistry : HttpMessageHandler
 
     private readonly Dictionary<string, string> _manifestsByTag = new(StringComparer.Ordinal);
     private readonly Dictionary<string, byte[]> _blobsByDigest = new(StringComparer.Ordinal);
+    private readonly List<string> _tags = new();
 
     public int ManifestRequests { get; private set; }
     public int BlobRequests { get; private set; }
+    public int TagListRequests { get; private set; }
+    public int TagPageSize { get; set; }
     public bool Offline { get; set; }
+
+    public void AddTags(params string[] tags) => _tags.AddRange(tags);
 
     public string AddBlob(byte[] bytes)
     {
@@ -81,6 +86,13 @@ internal sealed class FakeRegistry : HttpMessageHandler
             return Task.FromResult(challenge);
         }
 
+        var tagsPrefix = $"https://{Host}/v2/{Repository}/tags/list";
+        if (url.StartsWith(tagsPrefix, StringComparison.Ordinal))
+        {
+            TagListRequests++;
+            return Task.FromResult(TagsPage(url));
+        }
+
         var manifestPrefix = $"https://{Host}/v2/{Repository}/manifests/";
         if (url.StartsWith(manifestPrefix, StringComparison.Ordinal))
         {
@@ -106,6 +118,33 @@ internal sealed class FakeRegistry : HttpMessageHandler
         }
 
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+    }
+
+    private HttpResponseMessage TagsPage(string url)
+    {
+        var last = QueryParam(url, "last");
+        var remaining = last is null ? _tags : _tags.SkipWhile(t => t != last).Skip(1).ToList();
+        var page = TagPageSize > 0 ? remaining.Take(TagPageSize).ToList() : remaining.ToList();
+        var tagsJson = string.Join(",", page.Select(t => $"\"{t}\""));
+        var response = Json($$"""{"name":"{{Repository}}","tags":[{{tagsJson}}]}""");
+        if (TagPageSize > 0 && remaining.Count > page.Count)
+            response.Headers.TryAddWithoutValidation(
+                "Link",
+                $"</v2/{Repository}/tags/list?n={TagPageSize}&last={page[^1]}>; rel=\"next\""
+            );
+        return response;
+    }
+
+    private static string? QueryParam(string url, string name)
+    {
+        var query = new Uri(url).Query.TrimStart('?');
+        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var idx = pair.IndexOf('=');
+            if (idx > 0 && pair[..idx] == name)
+                return Uri.UnescapeDataString(pair[(idx + 1)..]);
+        }
+        return null;
     }
 
     private static HttpResponseMessage Json(string body) =>
