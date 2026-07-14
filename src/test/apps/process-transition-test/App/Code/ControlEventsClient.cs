@@ -43,6 +43,13 @@ public sealed class ControlEventsClient : IEventsClient
         StorageAuthenticationMethod? authenticationMethod = null
     )
     {
+        // Only the forward Task_1 -> Task_2 transition is lever-controlled. MovedToAltinnEvent also
+        // fires on the backwards (reject) Task_2 -> Task_1 transition, which must stay instant.
+        if (eventType != "app.instance.process.movedTo.Task_2")
+        {
+            return Guid.NewGuid().ToString();
+        }
+
         DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");
         if (dataElement is null)
         {
@@ -75,6 +82,7 @@ public sealed class ControlEventsClient : IEventsClient
             );
         }
 
+        AttemptTracker.Reset(instanceGuid, "postCommit");
         return Guid.NewGuid().ToString();
     }
 }

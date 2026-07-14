@@ -19,6 +19,20 @@
         }
       },
       {
+        "id": "buttonGroupTask2",
+        "type": "ButtonGroup",
+        "children": ["backTask2", "sendinnTask2"]
+      },
+      {
+        "id": "backTask2",
+        "type": "ActionButton",
+        "action": "reject",
+        "buttonStyle": "secondary",
+        "textResourceBindings": {
+          "title": "back.title"
+        }
+      },
+      {
         "id": "sendinnTask2",
         "type": "Button",
         "textResourceBindings": {

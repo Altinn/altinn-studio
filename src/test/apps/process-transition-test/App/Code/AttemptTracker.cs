@@ -24,4 +24,14 @@ public static class AttemptTracker
         string key = $"{instanceGuid}:{phase}";
         return _attempts.AddOrUpdate(key, 1, (_, current) => current + 1);
     }
+
+    /// <summary>
+    /// Clears the counter for this (instance, phase) pair. Called by the hooks when a run succeeds,
+    /// so re-running the same transition (after navigating back from Task_2) replays the configured
+    /// failure scenario from attempt 1 instead of inheriting the spent counter.
+    /// </summary>
+    public static void Reset(Guid instanceGuid, string phase)
+    {
+        _attempts.TryRemove($"{instanceGuid}:{phase}", out _);
+    }
 }

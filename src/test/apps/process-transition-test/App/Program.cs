@@ -22,6 +22,10 @@ void RegisterCustomAppServices(
     // Pre-commit lever: fails/delays the Task_1 -> Task_2 transition while committed=Task_1.
     services.AddTransient<IOnTaskEndingHandler, TransitionControlTaskEndingHook>();
 
+    // Lever consistency: forces failKind=retryable while phase=postCommit (permanent is meaningless
+    // there); the frontend mirrors this by hiding the permanent option.
+    services.AddTransient<IDataProcessor, TransitionControlDataProcessor>();
+
     // NB: the post-commit lever (ControlEventsClient) is registered AFTER AddAltinnAppServices in
     // ConfigureServices below, because AddAltinnAppServices registers the default IEventsClient and
     // the last registration wins.

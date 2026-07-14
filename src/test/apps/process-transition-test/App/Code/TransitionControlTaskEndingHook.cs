@@ -59,6 +59,7 @@ public sealed class TransitionControlTaskEndingHook : IOnTaskEndingHandler
                 : HookResult.FailedRetryable(message);
         }
 
+        AttemptTracker.Reset(instanceGuid, "taskEnding");
         return HookResult.Success();
     }
 }

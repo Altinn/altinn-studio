@@ -120,6 +120,11 @@
         "id": "failKind",
         "type": "RadioButtons",
         "preselectedOptionIndex": 0,
+        "optionFilter": [
+          "or",
+          ["notEquals", ["value"], "permanent"],
+          ["notEquals", ["dataModel", "phase"], "postCommit"]
+        ],
         "options": [
           {
             "value": "retryable",

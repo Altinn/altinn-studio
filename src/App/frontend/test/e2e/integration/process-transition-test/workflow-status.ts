@@ -6,7 +6,8 @@ const appFrontend = new AppFrontend();
  * E2E for the live workflow-status state machine (ADR 2026-07-08), driving the REAL workflow engine
  * via the ttd/process-transition-test app instead of intercept stubbing.
  *
- * The app is Task_1 (data) -> Task_2 (data) -> EndEvent. Task_1 has a form of "levers"
+ * The app is Task_1 (data) -> Task_2 (data) -> gateway -> EndEvent, where Task_2's reject action
+ * routes the gateway back to Task_1 (backwards navigation). Task_1 has a form of "levers"
  * (delayMs / failCount / failKind / phase) that two app hooks read to control the Task_1 -> Task_2
  * transition:
  *   - phase "taskEnding": an IOnTaskEndingHandler delays/fails PRE-commit (committed=Task_1), so the
@@ -212,6 +213,14 @@ describe('Live workflow status (real engine)', () => {
     captureInstanceRoot().as('instanceRoot');
     fillLevers({ delayMs: 15000, phase: 'postCommit' });
 
+    // Post-commit failures are always retryable (the events hook wraps throws as retryable), so
+    // selecting postCommit hides the permanent option and the app's data processor force-selects
+    // the retryable one on the next data sync.
+    cy.findByRole('radiogroup', { name: /^Feiltype/ }).within(() => {
+      cy.findByRole('radio', { name: leverLabels.failKind.permanent }).should('not.exist');
+      cy.findByRole('radio', { name: leverLabels.failKind.retryable }).should('be.checked');
+    });
+
     // The pre-commit hook is a no-op here, so the transition commits to Task_2 quickly; the post-commit
     // MovedToAltinnEvent then delays ~15s in the engine.
     cy.findByRole('button', { name: 'Send inn' }).click();
@@ -233,5 +242,28 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('button', { name: 'Send inn' }).should('be.visible');
+  });
+
+  it('backwards: Task_2 rejects back to Task_1, keeping the levers, and the scenario replays', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ delayMs: 3000, failCount: 1, failKind: 'retryable', phase: 'taskEnding' });
+
+    // Forward: the retryable failure auto-retries and eventually commits Task_2 (sync wait covers
+    // the delay + engine backoff, so no reload is needed here).
+    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
+
+    // Backwards: the reject action routes the gateway back to Task_1. The backwards transition is
+    // never lever-controlled, so it completes without delays or failures.
+    cy.findByRole('button', { name: 'Tilbake til Task 1' }).click();
+    cy.findByRole('heading', { name: /Task 1/, timeout: 30000 }).should('be.visible');
+
+    // The levers are kept (the data lives on Task_1), and the attempt counter was reset when the
+    // forward transition succeeded, so re-submitting replays the same scenario from attempt 1.
+    cy.findByRole('radio', { name: leverLabels.delayMs[3000] }).should('be.checked');
+    cy.findByRole('radio', { name: leverLabels.failCount[1] }).should('be.checked');
+    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
   });
 });

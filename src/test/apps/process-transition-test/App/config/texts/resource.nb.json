@@ -90,12 +90,16 @@
       "value": "Send inn"
     },
     {
+      "id": "back.title",
+      "value": "Tilbake til Task 1"
+    },
+    {
       "id": "Task2.header.title",
       "value": "Task 2"
     },
     {
       "id": "Task2.description",
-      "value": "Overgangen fra Task 1 er fullført. Trykk «Send inn» for å avslutte prosessen og gå til kvitteringen."
+      "value": "Overgangen fra Task 1 er fullført. Trykk «Send inn» for å avslutte prosessen og gå til kvitteringen, eller gå tilbake til Task 1 for å prøve et nytt scenario."
     }
   ]
 }
