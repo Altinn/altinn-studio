@@ -7,7 +7,6 @@ import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
-import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 
 export function FormRuntimeEffects({ children }: PropsWithChildren) {
   const isInTaskTransition = useIsInTaskTransition();
@@ -17,11 +16,11 @@ export function FormRuntimeEffects({ children }: PropsWithChildren) {
   }
 
   return (
-    <LayoutPropertiesValidation>
+    <>
       <RunOptionsEffects />
       {window.Cypress && <UpdateAttachmentsForCypress />}
       {children}
-    </LayoutPropertiesValidation>
+    </>
   );
 }
 

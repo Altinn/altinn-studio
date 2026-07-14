@@ -35,6 +35,9 @@ describe('File uploading components', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+  afterEach(() => {
+    window.forceLayoutPropertiesValidation = 'off';
+  });
 
   describe('FileUploadComponent', () => {
     it('should show add attachment button and file counter when number of attachments is less than max', async () => {
@@ -153,9 +156,13 @@ describe('File uploading components', () => {
         .spyOn(window, 'logErrorOnce')
         .mockImplementation(() => {})
         .mockName('window.logErrorOnce');
+
+      window.forceLayoutPropertiesValidation = 'on';
+
       await renderWithInstanceAndLayout({
         renderer: () => <GenericComponent baseComponentId='FileUpload1' />,
         queries: {
+          fetchLayoutSchema: async () => null,
           fetchFormBootstrapForInstance: async () =>
             getFormBootstrapMock((obj) => {
               obj.layouts = {

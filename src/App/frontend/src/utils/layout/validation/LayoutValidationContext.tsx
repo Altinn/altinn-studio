@@ -21,7 +21,7 @@ export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfigura
     queryFn: async () => {
       const schema = await fetchLayoutSchema();
       if (!schema) {
-        return undefined;
+        return null;
       }
       return makeValidateFunc(createLayoutValidator(schema));
     },
@@ -29,11 +29,11 @@ export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfigura
 }
 
 export function shouldValidateLayoutConfiguration() {
-  if (window.forceNodePropertiesValidation === 'on') {
+  if (window.forceLayoutPropertiesValidation === 'on') {
     return true;
   }
 
-  if (window.forceNodePropertiesValidation === 'off') {
+  if (window.forceLayoutPropertiesValidation === 'off') {
     return false;
   }
 

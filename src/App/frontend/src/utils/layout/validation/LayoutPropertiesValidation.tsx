@@ -32,7 +32,7 @@ import type { LayoutValidationResult, ValidateFunc } from 'src/utils/layout/vali
 
 type LayoutPropertiesValidationContext = {
   bootstrap: FormBootstrapContextValue;
-  schemaValidator: ValidateFunc | undefined;
+  schemaValidator: ValidateFunc | null | undefined;
   langAsString: IUseLanguage['langAsString'];
   hasInstance: boolean;
   application: ApplicationMetadata;
@@ -133,7 +133,7 @@ export function validateLayoutProperties({
     }
 
     const def = getComponentDef(component.type);
-    if (implementsDataModelBindingValidation(def, component) && window.forceNodePropertiesValidation !== 'off') {
+    if (implementsDataModelBindingValidation(def, component) && window.forceLayoutPropertiesValidation !== 'off') {
       const validateDataModelBindings = def.validateDataModelBindings as DataModelBindingsValidator;
       for (const error of validateDataModelBindings(component.id, component.dataModelBindings, context)) {
         addNodeError(errors, component.id, error, `Data model binding errors for component '/${component.id}'`);
