@@ -166,15 +166,19 @@ The enriched process state (`AppProcessState`) gains a nested annotation; `curre
   step error history, keyed by the support reference — so nothing is lost for diagnostics.
 - Beyond the support-reference fields we intentionally do **not** expose retry counts, collection
   keys, or raw engine statuses. `processing` covers the first attempt and every automatic retry —
-  the consumer behaviour (wait) is identical, so the distinction is noise (D4).
+  the consumer behaviour (wait) is identical (D4). The one concession is the presentation-only
+  `retrying` hint (true while the head is `Requeued`, i.e. parked between automatic retry
+  attempts, omitted otherwise): it doesn't change what a consumer should do, but lets the waiting
+  UI explain a long wait honestly — "a step is being retried" rather than an unexplained stall.
 
 State mapping (engine → exposed):
 
-| Engine collection-head status                         | Exposed `status` |
-| ----------------------------------------------------- | ---------------- |
-| No active or failed head / `Completed` / `Abandoned`  | `idle`           |
-| `Enqueued` / `Processing` / `Requeued`                | `processing`     |
-| `Failed` / `Canceled` / `DependencyFailed`            | `failed`         |
+| Engine collection-head status                         | Exposed `status`                    |
+| ----------------------------------------------------- | ----------------------------------- |
+| No active or failed head / `Completed` / `Abandoned`  | `idle`                              |
+| `Enqueued` / `Processing`                             | `processing`                        |
+| `Requeued`                                            | `processing` (+ `retrying: true`)   |
+| `Failed` / `Canceled` / `DependencyFailed`            | `failed`                            |
 
 `Abandoned → idle`: an abandoned workflow was written off (e.g. by a bpmn-allowed reject) and no
 longer blocks the current task; the user can act normally.
@@ -246,7 +250,13 @@ Frontend:
   deliberately unchanged.
 - **Polling is jittered** (~2–3s) so many clients waiting on the same engine don't synchronise
   into a thundering herd — which would otherwise peak exactly when the engine is already slow.
-  After ~20s in `processing` the UI adds a "taking longer than usual" reassurance line.
+- **The waiting screen escalates honestly as the wait grows** (spinner + predefined text per the
+  #18935 design discussion; every string is an app-overridable text resource): a "Steg x av y"
+  indicator when the target task resolves against the process' tasks, the `retrying` explanation
+  when the engine reports the transition parked between automatic retries (replacing the generic
+  reassurance), a "taking longer than usual" line after ~20s, and after ~60s an info alert that
+  the user's data is durably stored and the page can safely be closed — the processing continues
+  server-side either way, and a transition can legitimately be stuck retrying for hours.
 - **Transient poll failures don't tear down the UI.** With the hard-fail backend semantics, an
   engine blip now surfaces as failed instance reads — but a client holding renderable data must
   not flash the full error page over a single failed poll. `InstanceProvider` tolerates up to 3
@@ -264,9 +274,19 @@ Frontend:
   terminally failed or timed-out one (500/504 carrying `workflowFailure`) refetch the
   live-enriched instance and let the polled status take over, instead of a hard error toast —
   finally consuming the extensions the frontend previously ignored.
+- **Settling converges the URL, not just the data.** A transition can settle while the session's
+  URL is still parked on the pre-transition task (a mid-transition reload, an ops resume, a
+  concurrent session). The poll converges the data on its own; when the busy status clears and
+  the committed task no longer matches the URL, the page navigates onto the committed task —
+  mirroring what the same-session `process/next` flow does — instead of stranding the user on the
+  stale task's "not available" error. A URL that is stale *on arrival* (an old deep link, no
+  observed busy status) keeps the navigation error and its manual button.
 - **The processing message does not name the target task.** Task ids aren't user-facing and app
   authors rarely give them meaningful names; `targetTask` stays in the contract for diagnostics
-  and other consumers.
+  and other consumers. The "Steg x av y" indicator uses only the target's *position* among the
+  process' tasks (BPMN document order — accurate for the linear processes that dominate real
+  apps), and is omitted whenever the target isn't one of them (task→end transitions, branching
+  shapes where the number would lie).
 
 ## Consequences
 
