@@ -245,7 +245,7 @@ public class UiFoldersService : IUiFoldersService
         )?.DefaultDataType;
         if (!string.IsNullOrEmpty(dataType))
         {
-            await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType);
+            await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType, layoutSetToDeleteId);
         }
 
         altinnAppGitRepository.DeleteLayoutSetFolder(layoutSetToDeleteId, cancellationToken);
@@ -287,12 +287,13 @@ public class UiFoldersService : IUiFoldersService
 
     private static async Task DeleteTaskRefInApplicationMetadata(
         AltinnAppGitRepository altinnAppGitRepository,
-        string dataTypeId
+        string dataTypeId,
+        string connectedTaskId
     )
     {
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         DataType? dataType = applicationMetadata.DataTypes.Find(type => type.Id == dataTypeId);
-        if (dataType == null)
+        if (dataType == null || dataType.TaskId != connectedTaskId)
         {
             return;
         }
