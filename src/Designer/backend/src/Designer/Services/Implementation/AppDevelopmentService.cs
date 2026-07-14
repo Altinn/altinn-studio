@@ -192,8 +192,9 @@ public class AppDevelopmentService : IAppDevelopmentService
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
-        bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-        if (appUsesLayoutSets)
+        // Honor layoutSetName like the read path does. v9 apps use set folders without a
+        // layout-sets.json, so AppUsesLayoutSets() alone would write to the wrong file.
+        if (_appVersionService.IsV9App(altinnRepoEditingContext) || altinnAppGitRepository.AppUsesLayoutSets())
         {
             await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
             return;

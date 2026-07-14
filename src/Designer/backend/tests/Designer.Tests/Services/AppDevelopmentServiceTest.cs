@@ -107,6 +107,51 @@ public class AppDevelopmentServiceTest : IDisposable
     }
 
     [Fact]
+    public async Task SaveLayoutSettings_ToAppWithSetFolderButNoLayoutSetsFile_ShouldPersistPdfLayoutNameForSameSet()
+    {
+        // Regression: v9 apps have set folders but no layout-sets.json. Save and read must resolve
+        // the same Settings.json for a layoutSetName, else pdfLayoutName is lost (PDF convert revert).
+        string layoutSetName = "layoutSet1";
+        string pdfLayoutName = "layoutFile1";
+        string layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            _org,
+            targetRepository,
+            _developer
+        );
+
+        _appVersionServiceMock.Setup(s => s.IsV9App(It.IsAny<AltinnRepoEditingContext>())).Returns(true);
+
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+
+        // Remove layout-sets.json to mimic a v9 app (set folders without the manifest).
+        File.Delete(Path.Combine(CreatedTestRepoPath, "App", "ui", "layout-sets.json"));
+
+        var layoutSettingsToSave = JsonNode.Parse(
+            $@"{{
+            ""$schema"": ""{layoutSettingsSchemaUrl}"",
+            ""pages"": {{
+                ""order"": [],
+                ""pdfLayoutName"": ""{pdfLayoutName}""
+            }}
+        }}"
+        );
+
+        await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettingsToSave, layoutSetName);
+
+        var savedLayoutSettings = await _appDevelopmentService.GetLayoutSettings(editingContext, layoutSetName);
+
+        Assert.NotNull(savedLayoutSettings);
+        Assert.Equal(pdfLayoutName, savedLayoutSettings!["pages"]!["pdfLayoutName"]!.GetValue<string>());
+    }
+
+    [Fact]
     public async Task GetLayoutSettings_FromAppWithLayoutSet_ShouldReturnSettings()
     {
         string layoutSetName = "layoutSet1";
