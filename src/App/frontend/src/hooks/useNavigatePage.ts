@@ -5,6 +5,7 @@ import type { NavigateOptions } from 'react-router';
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
+import { useExpressionDataSourcesForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
@@ -21,7 +22,6 @@ import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { getVisiblePageOrder, useHiddenPages } from 'src/utils/layout/hidden';
-import { useExpressionDataSourcesForStoreSelector } from 'src/utils/layout/useExpressionDataSources';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {

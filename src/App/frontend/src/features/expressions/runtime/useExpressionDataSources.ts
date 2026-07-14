@@ -12,6 +12,7 @@ import { useTextResourcesQueries } from 'src/core/queries/textResources';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
+import { ExpressionObserver } from 'src/features/expressions/runtime/expressionObserver';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
@@ -22,7 +23,10 @@ import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
-import { ExpressionObserver } from 'src/utils/layout/expressionObserver';
+import type {
+  ExpressionDependency,
+  ExpressionSubscriptionOwner,
+} from 'src/features/expressions/runtime/expressionObserver';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { StaticOptionSet } from 'src/features/formBootstrap/types';
@@ -31,7 +35,6 @@ import type { TextResourceMap } from 'src/features/language/textResources';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
-import type { ExpressionDependency, ExpressionSubscriptionOwner } from 'src/utils/layout/expressionObserver';
 
 /**
  * The coarse categories expression functions can read from.

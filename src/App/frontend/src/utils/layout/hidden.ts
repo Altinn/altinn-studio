@@ -4,17 +4,17 @@ import deepEqual from 'fast-deep-equal';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export interface IsHiddenOptions<Reason extends boolean = false> {
   /**

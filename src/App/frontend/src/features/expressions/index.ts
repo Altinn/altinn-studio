@@ -9,9 +9,9 @@ import {
   UnknownTargetType,
 } from 'src/features/expressions/errors';
 import { ExprFunctionDefinitions, ExprFunctionImplementations } from 'src/features/expressions/expression-functions';
+import { type ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { isValidArray, isValidObject } from 'src/features/expressions/validation';
-import { type ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type {
   ExprConfig,
   ExprDate,

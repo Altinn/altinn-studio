@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useGetCachedInstanceData } from 'src/core/queries/instance';
+import { useExpressionDataSourcesBaseForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { FormStore } from 'src/features/form/FormContext';
 import {
   processLayoutSettings,
@@ -21,7 +22,6 @@ import {
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { useExpressionDataSourcesBaseForStoreSelector } from 'src/utils/layout/useExpressionDataSources';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
   DerivedValidationStateInputs,

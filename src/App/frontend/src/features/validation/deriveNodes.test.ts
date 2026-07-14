@@ -6,9 +6,9 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { deriveNodes } from 'src/features/validation/deriveNodes';
 import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
 import { getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 describe('deriveNodes', () => {
   it('can derive only the requested generated node', () => {

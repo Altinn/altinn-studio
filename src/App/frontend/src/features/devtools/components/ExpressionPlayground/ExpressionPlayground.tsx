@@ -9,13 +9,13 @@ import { SplitView } from 'src/features/devtools/components/SplitView/SplitView'
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { optionFilter } from 'src/utils/options';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { Expression, ExprFunctionName } from 'src/features/expressions/types';
