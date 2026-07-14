@@ -126,6 +126,34 @@ public sealed class SchemaSetLoaderTests
     }
 
     [Fact]
+    public void RevisitingFailedVersionDuringInFlightLoad_Retries()
+    {
+        var (loader, loads, sync, _) = Setup();
+
+        lock (sync)
+            loader.Observe("A");
+        WaitFor(() => loads.Requested.Count == 1);
+        loads.Complete("A", null);
+        WaitFor(() => !loader.Loading);
+
+        lock (sync)
+            loader.Observe("B");
+        WaitFor(() => loads.Requested.Count == 2);
+
+        lock (sync)
+            loader.Observe("A");
+
+        loads.Complete("B", Set());
+        WaitFor(() => loads.Requested.Count == 3);
+        string[] expected = ["A", "B", "A"];
+        Assert.Equal(expected, loads.Requested);
+
+        var setA = Set();
+        loads.Complete("A", setA);
+        WaitFor(() => ReferenceEquals(loader.Current, setA));
+    }
+
+    [Fact]
     public void NullVersion_ClearsCurrentWithoutLoading()
     {
         var (loader, loads, sync, loaded) = Setup();
