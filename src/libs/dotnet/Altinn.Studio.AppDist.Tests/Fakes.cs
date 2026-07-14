@@ -1,58 +1,78 @@
+using System.Collections.Concurrent;
 using System.Text;
 
 namespace Altinn.Studio.AppDist.Tests;
 
 internal sealed class FakeAppDistSource : IAppDistSource
 {
-    private readonly Dictionary<string, List<AppDistFileEntry>> _versions = new(StringComparer.Ordinal);
+    private readonly Dictionary<(string Version, AppDistLayer Layer), List<AppDistFileEntry>> _layers = new();
 
     public int FetchRequests { get; private set; }
     public bool Offline { get; set; }
 
-    public void AddFiles(string version, params (string Path, string Content)[] files)
+    public void AddFiles(string version, AppDistLayer layer, params (string Path, string Content)[] files)
     {
-        if (!_versions.TryGetValue(version, out var entries))
-            _versions[version] = entries = new List<AppDistFileEntry>();
+        if (!_layers.TryGetValue((version, layer), out var entries))
+            _layers[(version, layer)] = entries = new List<AppDistFileEntry>();
         entries.AddRange(files.Select(f => new AppDistFileEntry(f.Path, Encoding.UTF8.GetBytes(f.Content))));
     }
 
-    public Task<IReadOnlyList<AppDistFileEntry>> FetchAsync(string version, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<AppDistFileEntry>> FetchLayerAsync(
+        string version,
+        AppDistLayer layer,
+        CancellationToken cancellationToken
+    )
     {
         if (Offline)
             throw new AppDistSourceUnavailableException("offline");
         FetchRequests++;
-        if (!_versions.TryGetValue(version, out var files))
-            throw new AppDistSourceUnavailableException($"no such version: {version}");
+        if (!_layers.TryGetValue((version, layer), out var files))
+            throw new AppDistSourceUnavailableException($"no such layer: {version}/{layer}");
         return Task.FromResult<IReadOnlyList<AppDistFileEntry>>(files);
     }
 }
 
 internal sealed class InMemoryAppDistStore : IAppDistStore
 {
-    private readonly Dictionary<string, Dictionary<string, byte[]>> _entries = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<(string Version, AppDistLayer Layer), Dictionary<string, byte[]>> _entries =
+        new();
 
-    public Task<bool> ContainsAsync(string version, CancellationToken cancellationToken) =>
-        Task.FromResult(_entries.ContainsKey(version));
+    public Task<bool> ContainsAsync(string version, AppDistLayer layer, CancellationToken cancellationToken) =>
+        Task.FromResult(_entries.ContainsKey((version, layer)));
 
-    public Task WriteAsync(string version, IReadOnlyList<AppDistFileEntry> files, CancellationToken cancellationToken)
+    public Task WriteAsync(
+        string version,
+        AppDistLayer layer,
+        IReadOnlyList<AppDistFileEntry> files,
+        CancellationToken cancellationToken
+    )
     {
         var byPath = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         foreach (var file in files)
             byPath[file.Path] = file.Content;
-        _entries[version] = byPath;
+        _entries[(version, layer)] = byPath;
         return Task.CompletedTask;
     }
 
-    public Task<Stream?> OpenFileAsync(string version, string path, CancellationToken cancellationToken) =>
+    public Task<Stream?> OpenFileAsync(
+        string version,
+        AppDistLayer layer,
+        string path,
+        CancellationToken cancellationToken
+    ) =>
         Task.FromResult<Stream?>(
-            _entries.TryGetValue(version, out var entry) && entry.TryGetValue(path, out var content)
+            _entries.TryGetValue((version, layer), out var entry) && entry.TryGetValue(path, out var content)
                 ? new MemoryStream(content)
                 : null
         );
 
-    public Task<IReadOnlyList<string>> ListFilesAsync(string version, CancellationToken cancellationToken) =>
+    public Task<IReadOnlyList<string>> ListFilesAsync(
+        string version,
+        AppDistLayer layer,
+        CancellationToken cancellationToken
+    ) =>
         Task.FromResult<IReadOnlyList<string>>(
-            _entries.TryGetValue(version, out var entry)
+            _entries.TryGetValue((version, layer), out var entry)
                 ? entry.Keys.Order(StringComparer.Ordinal).ToArray()
                 : Array.Empty<string>()
         );

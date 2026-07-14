@@ -12,7 +12,7 @@ public sealed class OciRegistrySourceTests
         new(new HttpClient(handler), $"{FakeRegistry.Host}/{FakeRegistry.Repository}");
 
     [Fact]
-    public async Task Fetch_MergesKnownLayersAndSkipsUnknown()
+    public async Task FetchLayer_DownloadsOnlyRequestedLayer()
     {
         var handler = new FakeRegistry();
         var schemas = FakeRegistry.TarGz(("schemas/json/layout/layout.schema.v1.json", """{"type":"object"}"""));
@@ -25,16 +25,29 @@ public sealed class OciRegistrySourceTests
             ("application/vnd.some.future.layer", handler.AddBlob(unknown), unknown.Length)
         );
 
-        var files = await Source(handler).FetchAsync("4", CancellationToken.None);
+        var files = await Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None);
 
-        Assert.Equal(2, files.Count);
-        var layout = Assert.Single(files, f => f.Path == "schemas/json/layout/layout.schema.v1.json");
+        var layout = Assert.Single(files);
+        Assert.Equal("schemas/json/layout/layout.schema.v1.json", layout.Path);
         Assert.Equal("""{"type":"object"}""", Encoding.UTF8.GetString(layout.Content));
-        Assert.Single(files, f => f.Path == "index.html");
+        Assert.Equal(1, handler.BlobRequests);
     }
 
     [Fact]
-    public async Task Fetch_DigestMismatchThrows()
+    public async Task FetchLayer_MissingLayerInManifestThrows()
+    {
+        var handler = new FakeRegistry();
+        var bundle = FakeRegistry.TarGz(("index.html", "<html/>"));
+        handler.SetManifest("4", (BundleMediaType, handler.AddBlob(bundle), bundle.Length));
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+        );
+        Assert.Contains(SchemasMediaType, ex.Message);
+    }
+
+    [Fact]
+    public async Task FetchLayer_DigestMismatchThrows()
     {
         var handler = new FakeRegistry();
         var blob = FakeRegistry.TarGz(("schemas/json/a.json", "{}"));
@@ -43,39 +56,39 @@ public sealed class OciRegistrySourceTests
         handler.SetManifest("4", (SchemasMediaType, lyingDigest, blob.Length));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            Source(handler).FetchAsync("4", CancellationToken.None)
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains("digest mismatch", ex.Message);
     }
 
     [Fact]
-    public async Task Fetch_PathTraversalEntryThrows()
+    public async Task FetchLayer_PathTraversalEntryThrows()
     {
         var handler = new FakeRegistry();
         var blob = FakeRegistry.TarGz(("../escape.json", "{}"));
         handler.SetManifest("4", (SchemasMediaType, handler.AddBlob(blob), blob.Length));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            Source(handler).FetchAsync("4", CancellationToken.None)
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains("unsafe path", ex.Message);
     }
 
     [Fact]
-    public async Task Fetch_InvalidTagThrows()
+    public async Task FetchLayer_InvalidTagThrows()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            Source(new FakeRegistry()).FetchAsync("../evil", CancellationToken.None)
+            Source(new FakeRegistry()).FetchLayerAsync("../evil", AppDistLayer.Schemas, CancellationToken.None)
         );
     }
 
     [Fact]
-    public async Task Fetch_UnreachableRegistryThrowsUnavailable()
+    public async Task FetchLayer_UnreachableRegistryThrowsUnavailable()
     {
         var handler = new FakeRegistry { Offline = true };
 
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
-            Source(handler).FetchAsync("4", CancellationToken.None)
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
         );
     }
 

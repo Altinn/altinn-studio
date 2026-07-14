@@ -1,10 +1,25 @@
 namespace Altinn.Studio.AppDist;
 
+public enum AppDistLayer
+{
+    Schemas,
+    Bundle,
+}
+
+internal static class AppDistLayers
+{
+    internal static readonly AppDistLayer[] All = Enum.GetValues<AppDistLayer>();
+}
+
 public interface IAppDistProvider
 {
-    Task<Stream?> GetFileAsync(string version, string path, CancellationToken cancellationToken = default);
+    Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<string>?> ListFilesAsync(string version, CancellationToken cancellationToken = default);
+    Task<IAppDistContent?> GetLayerAsync(
+        string version,
+        AppDistLayer layer,
+        CancellationToken cancellationToken = default
+    );
 }
 
 public sealed class AppDist : IAppDistProvider
@@ -38,40 +53,45 @@ public sealed class AppDist : IAppDistProvider
         _store = store;
     }
 
-    public async Task<Stream?> GetFileAsync(string version, string path, CancellationToken cancellationToken = default)
+    public async Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default)
     {
-        if (!await EnsureStoredAsync(version, cancellationToken))
-            return null;
-        return await _store.OpenFileAsync(version, path, cancellationToken)
-            ?? throw new FileNotFoundException($"app-dist {version} has no file \"{path}\"");
+        ArgumentException.ThrowIfNullOrEmpty(version);
+        foreach (var layer in AppDistLayers.All)
+        {
+            if (!await EnsureLayerAsync(version, layer, cancellationToken))
+                return null;
+        }
+        return new VersionContent(_store, version);
     }
 
-    public async Task<IReadOnlyList<string>?> ListFilesAsync(
+    public async Task<IAppDistContent?> GetLayerAsync(
         string version,
+        AppDistLayer layer,
         CancellationToken cancellationToken = default
     )
     {
-        if (!await EnsureStoredAsync(version, cancellationToken))
+        ArgumentException.ThrowIfNullOrEmpty(version);
+        if (!await EnsureLayerAsync(version, layer, cancellationToken))
             return null;
-        return await _store.ListFilesAsync(version, cancellationToken);
+        return new LayerContent(_store, version, layer);
     }
 
-    private async Task<bool> EnsureStoredAsync(string version, CancellationToken ct)
+    private async Task<bool> EnsureLayerAsync(string version, AppDistLayer layer, CancellationToken ct)
     {
-        if (await _store.ContainsAsync(version, ct))
+        if (await _store.ContainsAsync(version, layer, ct))
             return true;
 
         IReadOnlyList<AppDistFileEntry> files;
         try
         {
-            files = await _source.FetchAsync(version, ct);
+            files = await _source.FetchLayerAsync(version, layer, ct);
         }
         catch (AppDistSourceUnavailableException)
         {
             return false;
         }
 
-        await _store.WriteAsync(version, files, ct);
+        await _store.WriteAsync(version, layer, files, ct);
         return true;
     }
 }
