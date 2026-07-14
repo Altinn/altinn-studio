@@ -173,6 +173,60 @@ public sealed class AppDistTests
     }
 
     [Fact]
+    public async Task ConcurrentGetLayer_CoalescesToSingleFetch()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var tasks = Enumerable.Range(0, 8).Select(_ => provider.GetLayerAsync("4", AppDistLayer.Schemas)).ToArray();
+        await source.FetchStarted.Task;
+        source.BlockFetch.SetResult();
+        var handles = await Task.WhenAll(tasks);
+
+        Assert.All(handles, Assert.NotNull);
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task ConcurrentDifferentLayers_DoNotBlockEachOther()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "js"));
+        source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var schemas = provider.GetLayerAsync("4", AppDistLayer.Schemas);
+        var bundle = provider.GetLayerAsync("4", AppDistLayer.Bundle);
+        for (var i = 0; source.FetchRequests < 2 && i < 500; i++)
+            await Task.Delay(10);
+
+        Assert.Equal(2, source.FetchRequests);
+        source.BlockFetch.SetResult();
+        Assert.NotNull(await schemas);
+        Assert.NotNull(await bundle);
+    }
+
+    [Fact]
+    public async Task WaiterCancellationDoesNotAffectFetcher()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var first = provider.GetLayerAsync("4", AppDistLayer.Schemas);
+        await source.FetchStarted.Task;
+        using var cts = new CancellationTokenSource();
+        var second = provider.GetLayerAsync("4", AppDistLayer.Schemas, cts.Token);
+        await cts.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => second);
+        source.BlockFetch.SetResult();
+        Assert.NotNull(await first);
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
     public async Task UnavailableResultIsNotCached()
     {
         var (provider, source, _) = Setup();

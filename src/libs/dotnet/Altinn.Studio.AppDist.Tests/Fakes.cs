@@ -6,9 +6,12 @@ namespace Altinn.Studio.AppDist.Tests;
 internal sealed class FakeAppDistSource : IAppDistSource
 {
     private readonly Dictionary<(string Version, AppDistLayer Layer), List<AppDistFileEntry>> _layers = new();
+    private int _fetchRequests;
 
-    public int FetchRequests { get; private set; }
+    public int FetchRequests => _fetchRequests;
     public bool Offline { get; set; }
+    public TaskCompletionSource FetchStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public TaskCompletionSource? BlockFetch { get; set; }
 
     public void AddFiles(string version, AppDistLayer layer, params (string Path, string Content)[] files)
     {
@@ -17,7 +20,7 @@ internal sealed class FakeAppDistSource : IAppDistSource
         entries.AddRange(files.Select(f => new AppDistFileEntry(f.Path, Encoding.UTF8.GetBytes(f.Content))));
     }
 
-    public Task<IReadOnlyList<AppDistFileEntry>> FetchLayerAsync(
+    public async Task<IReadOnlyList<AppDistFileEntry>> FetchLayerAsync(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -25,10 +28,13 @@ internal sealed class FakeAppDistSource : IAppDistSource
     {
         if (Offline)
             throw new AppDistSourceUnavailableException("offline");
-        FetchRequests++;
+        Interlocked.Increment(ref _fetchRequests);
+        FetchStarted.TrySetResult();
+        if (BlockFetch is not null)
+            await BlockFetch.Task.WaitAsync(cancellationToken);
         if (!_layers.TryGetValue((version, layer), out var files))
             throw new AppDistSourceUnavailableException($"no such layer: {version}/{layer}");
-        return Task.FromResult<IReadOnlyList<AppDistFileEntry>>(files);
+        return files;
     }
 }
 
