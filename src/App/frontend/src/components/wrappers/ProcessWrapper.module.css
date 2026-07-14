@@ -4,6 +4,28 @@
   gap: 10px;
 }
 
+.processingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 48px 16px;
+}
+
+.processingStep {
+  color: var(--ds-color-neutral-text-subtle, #58555f);
+}
+
+.processingNote {
+  max-width: 60ch;
+}
+
+.stillWorkingAlert {
+  margin-top: 24px;
+  max-width: 65ch;
+}
+
 .failedDescription {
   margin-top: 12px;
 }

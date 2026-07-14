@@ -462,7 +462,10 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
-    'process_workflow.advancing': 'Går videre til neste steg …',
+    'process_workflow.advancing_title': 'Vi behandler forespørselen din',
+    'process_workflow.advancing_body':
+      'Dette kan ta litt tid. Du trenger ikke gjøre noe – vi går automatisk videre når alt er klart.',
+    'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Noe gikk galt da skjemaet skulle behandles videre. Feilen er registrert hos oss, og du trenger ikke å sende inn på nytt.',
@@ -476,6 +479,10 @@ export function nb() {
     'process_workflow.failure_kind.timeout': 'Behandlingen brukte for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjent feil',
     'process_workflow.taking_longer': 'Dette tar litt lengre tid enn vanlig. Du trenger ikke gjøre noe – vent litt til.',
+    'process_workflow.retrying':
+      'Et av behandlingsstegene lyktes ikke på første forsøk. Vi prøver automatisk på nytt.',
+    'process_workflow.still_working':
+      'Behandlingen tar uvanlig lang tid. Opplysningene dine er lagret, og behandlingen fortsetter av seg selv – du kan trygt lukke denne siden og komme tilbake senere.',
     'process_workflow.connection_trouble': 'Vi har problemer med å nå serveren akkurat nå. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',

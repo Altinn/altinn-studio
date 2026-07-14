@@ -222,6 +222,12 @@ export interface IProcessWorkflow {
   status: WorkflowActivityStatus;
   /** BPMN element id the in-flight/failed transition targets. Omitted when idle or unresolved. */
   targetTask?: string;
+  /**
+   * True when the transition is parked between automatic retry attempts (a previous attempt
+   * failed and the engine will retry). Only present while status === 'processing'; purely a
+   * presentation hint for explaining a long wait honestly. Omitted when false.
+   */
+  retrying?: boolean;
   /** Present only when status === 'failed'. */
   failure?: IProcessWorkflowFailure;
 }

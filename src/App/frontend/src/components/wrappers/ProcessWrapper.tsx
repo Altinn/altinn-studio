@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { AccordionItem, Button, Flex } from '@app/form-component';
-import { Heading } from '@digdir/designsystemet-react';
+import { AccordionItem, Button, Flex, Spinner } from '@app/form-component';
+import { Alert, Heading } from '@digdir/designsystemet-react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -83,18 +83,43 @@ function NavigationError({ label }: NavigationErrorProps) {
 // leaving them staring at a spinner indefinitely (workflows can retry for a long time server-side).
 const TAKING_LONGER_MS = 20_000;
 
+// From this long we level with the user: the wait is unusual, their data is durably stored and the
+// processing continues server-side whether the page stays open or not - so they can safely leave
+// and come back. A transition can legitimately be stuck retrying for hours (network trouble, a
+// struggling downstream service), and a bare spinner is infuriating at that scale.
+const STILL_WORKING_MS = 60_000;
+
 // From this many consecutive failed poll cycles we tell the user we're having trouble reaching the
 // server (one failed cycle is a swallowed blip; InstanceProvider escalates to the full error page
 // at INSTANCE_POLL_FAILURE_ESCALATION_CYCLES). Staying honest while the poll loop self-recovers.
 const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
 
+// Spinner + predefined text (see #18935 for the design discussion), with escalation tiers as the
+// wait grows. Every string is a text resource, so apps override any of them per app. The layers:
+//   always      - spinner, title, body ("you don't need to do anything, we continue automatically")
+//   resolvable  - "Steg x av y" when the target task is one of the process' tasks
+//   retrying    - the engine reported the transition parked between automatic retry attempts; this
+//                 explains the wait more specifically than (and therefore replaces) taking_longer
+//   >=20s       - taking_longer reassurance
+//   >=60s       - an info alert: data is safely stored, processing continues on its own, the page
+//                 can be closed - the honest answer to a transition stuck retrying for hours
+//   poll issues - connection_trouble (the page itself is having trouble asking for updates)
 function WorkflowProcessing() {
+  const workflow = useProcessWorkflow();
   const pollFailureCount = useInstancePollFailureCount();
+  const { langAsString } = useLanguage();
   const [takingLonger, setTakingLonger] = useState(false);
+  const [stillWorking, setStillWorking] = useState(false);
   useEffect(() => {
-    const timer = setTimeout(() => setTakingLonger(true), TAKING_LONGER_MS);
-    return () => clearTimeout(timer);
+    const takingLongerTimer = setTimeout(() => setTakingLonger(true), TAKING_LONGER_MS);
+    const stillWorkingTimer = setTimeout(() => setStillWorking(true), STILL_WORKING_MS);
+    return () => {
+      clearTimeout(takingLongerTimer);
+      clearTimeout(stillWorkingTimer);
+    };
   }, []);
+
+  const retrying = workflow?.retrying === true;
 
   return (
     <Flex
@@ -102,21 +127,69 @@ function WorkflowProcessing() {
       size={{ xs: 12 }}
       aria-live='polite'
     >
-      <div>
-        <Lang id='process_workflow.advancing' />
+      <div className={classes.processingContainer}>
+        <Spinner
+          aria-hidden='true'
+          aria-label={langAsString('general.loading')}
+          data-size='xl'
+        />
+        <Heading
+          level={2}
+          data-size='sm'
+        >
+          <Lang id='process_workflow.advancing_title' />
+        </Heading>
+        <div className={classes.processingNote}>
+          <Lang id='process_workflow.advancing_body' />
+        </div>
+        <WorkflowProcessingStep targetTask={workflow?.targetTask} />
+        {retrying && (
+          <div className={classes.processingNote}>
+            <Lang id='process_workflow.retrying' />
+          </div>
+        )}
+        {takingLonger && !retrying && (
+          <div className={classes.processingNote}>
+            <Lang id='process_workflow.taking_longer' />
+          </div>
+        )}
+        {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
+          <div className={classes.processingNote}>
+            <Lang id='process_workflow.connection_trouble' />
+          </div>
+        )}
+        {stillWorking && (
+          <Alert
+            data-color='info'
+            className={classes.stillWorkingAlert}
+          >
+            <Lang id='process_workflow.still_working' />
+          </Alert>
+        )}
       </div>
-      <Loader reason='workflow-processing' />
-      {takingLonger && (
-        <div>
-          <Lang id='process_workflow.taking_longer' />
-        </div>
-      )}
-      {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
-        <div>
-          <Lang id='process_workflow.connection_trouble' />
-        </div>
-      )}
     </Flex>
+  );
+}
+
+// "Steg x av y", resolved from the target task's position among the process' tasks. processTasks
+// comes in BPMN document order, which matches flow order for the linear processes that dominate
+// real apps; when the target isn't one of the tasks (a task -> end transition, an unresolved
+// target, a branching process where the label would lie anyway) the line is simply omitted.
+function WorkflowProcessingStep({ targetTask }: { targetTask: string | undefined }) {
+  const { data: process } = useProcessQuery();
+  const tasks = process?.processTasks;
+  const stepIndex = targetTask && tasks ? tasks.findIndex((task) => task.elementId === targetTask) : -1;
+  if (!tasks || stepIndex < 0) {
+    return null;
+  }
+
+  return (
+    <div className={classes.processingStep}>
+      <Lang
+        id='process_workflow.advancing_step'
+        params={[stepIndex + 1, tasks.length]}
+      />
+    </div>
   );
 }
 

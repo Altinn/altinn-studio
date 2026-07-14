@@ -460,7 +460,10 @@ export function nn() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noko gjekk gale med innsending, prøv igjen om nokre minutt.',
-    'process_workflow.advancing': 'Går vidare til neste steg …',
+    'process_workflow.advancing_title': 'Vi behandlar førespurnaden din',
+    'process_workflow.advancing_body':
+      'Dette kan ta litt tid. Du treng ikkje gjere noko – vi går automatisk vidare når alt er klart.',
+    'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noko gjekk gale',
     'process_workflow.failed_description':
       'Noko gjekk gale då skjemaet skulle handsamast vidare. Feilen er registrert hos oss, og du treng ikkje å sende inn på nytt.',
@@ -474,6 +477,10 @@ export function nn() {
     'process_workflow.failure_kind.timeout': 'Handsaminga brukte for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjend feil',
     'process_workflow.taking_longer': 'Dette tek litt lengre tid enn vanleg. Du treng ikkje gjere noko – vent litt til.',
+    'process_workflow.retrying':
+      'Eit av handsamingsstega lukkast ikkje på første forsøk. Vi prøver automatisk på nytt.',
+    'process_workflow.still_working':
+      'Handsaminga tek uvanleg lang tid. Opplysningane dine er lagra, og handsaminga held fram av seg sjølv – du kan trygt lukke denne sida og komme tilbake seinare.',
     'process_workflow.connection_trouble': 'Vi har problem med å nå serveren akkurat no. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikkje førehandsvise PDF',
     'pdfPreview.defaultButtonText': 'Førehandsvis PDF',

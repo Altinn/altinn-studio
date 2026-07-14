@@ -113,7 +113,7 @@ describe('useProcessNext workflow error convergence', () => {
 
     // The engine keeps working after the synchronous wait timed out: the polled processing state
     // replaces the task instead of a scary error.
-    expect(await screen.findByText(/går videre til neste steg/i)).toBeInTheDocument();
+    expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
   });
 
@@ -131,6 +131,6 @@ describe('useProcessNext workflow error convergence', () => {
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
-    expect(await screen.findByText(/går videre til neste steg/i)).toBeInTheDocument();
+    expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
   });
 });
