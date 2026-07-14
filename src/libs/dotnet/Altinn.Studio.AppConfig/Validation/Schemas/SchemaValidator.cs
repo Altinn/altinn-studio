@@ -9,6 +9,7 @@ internal static class SchemaValidator
     public const string RuleId = "JSONSCHEMA-VALID";
 
     private const string ApplicationMetadataSchema = "application/application-metadata.schema.v1.json";
+    private const string ExpressionSchema = "layout/expression.schema.v1.json";
     private const string FooterSchema = "layout/footer.schema.v1.json";
     private const string LayoutSchema = "layout/layout.schema.v1.json";
     private const string LayoutSettingsSchema = "layout/layoutSettings.schema.v1.json";
@@ -17,6 +18,7 @@ internal static class SchemaValidator
     internal static readonly string[] KnownSchemaPaths =
     {
         ApplicationMetadataSchema,
+        ExpressionSchema,
         FooterSchema,
         LayoutSchema,
         LayoutSettingsSchema,
