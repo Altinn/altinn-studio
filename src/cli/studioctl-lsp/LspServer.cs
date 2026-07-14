@@ -25,10 +25,8 @@ public sealed class LspServer
     private readonly DiagnosticsPublisher _diagnostics;
     private readonly LanguageFeatures _features;
 
-    private SchemaSet? _schemas;
-    private string? _schemasVersion;
-    private string? _loadingVersion;
-    private string? _failedVersion;
+    private readonly SchemaSetLoader _schemaLoader;
+
     private bool _shutdownRequested;
 
     public LspServer(Stream input, Stream output)
@@ -37,16 +35,27 @@ public sealed class LspServer
         _transport = new LspTransport(input, output, _log);
         _workspace = new WorkspaceState(_transport, _log);
         _convert = new LspConversions(_workspace);
+        _schemaLoader = new SchemaSetLoader(_sync, LoadSchemasAsync, ScheduleDiagnostics, _log);
         _diagnostics = new DiagnosticsPublisher(
             _sync,
             _workspace,
             _convert,
             _transport,
             _log,
-            () => _schemas,
-            ObserveAppVersion
+            () => _schemaLoader.Current,
+            _schemaLoader.Observe
         );
         _features = new LanguageFeatures(_workspace, _convert, _diagnostics);
+    }
+
+    private void ScheduleDiagnostics() => _diagnostics.Schedule();
+
+    private static async Task<SchemaSet?> LoadSchemasAsync(string version)
+    {
+        if (AppDistConfig.CreateProvider() is not { } appDist)
+            return null;
+        using (appDist)
+            return await AppDistConfig.LoadSchemasAsync(appDist, version);
     }
 
     /// <summary>
@@ -228,61 +237,6 @@ public sealed class LspServer
         );
     }
 
-    private void ObserveAppVersion(string? version)
-    {
-        if (!string.Equals(version, _schemasVersion, StringComparison.Ordinal))
-        {
-            _schemas = null;
-            _schemasVersion = version;
-        }
-        if (version is null || _schemas is not null || _loadingVersion is not null)
-            return;
-        if (string.Equals(version, _failedVersion, StringComparison.Ordinal))
-            return;
-        if (AppDistConfig.CreateProvider() is not { } appDist)
-            return;
-        _loadingVersion = version;
-        Task.Run(async () =>
-        {
-            try
-            {
-                SchemaSet? schemas;
-                using (appDist)
-                    schemas = await AppDistConfig.LoadSchemasAsync(appDist, version);
-                lock (_sync)
-                {
-                    _loadingVersion = null;
-                    if (schemas is null)
-                    {
-                        _failedVersion = version;
-                    }
-                    else if (string.Equals(version, _schemasVersion, StringComparison.Ordinal))
-                    {
-                        _schemas = schemas;
-                        _diagnostics.Schedule();
-                    }
-                }
-                if (schemas is null)
-                {
-                    _log.Log(LogLevel.Info, $"app-dist {version} unreachable and not cached; schema pass disabled");
-                    return;
-                }
-                foreach (var warning in schemas.LoadWarnings)
-                    _log.Log(LogLevel.Warning, $"app-dist {version}: {warning}");
-                _log.Log(LogLevel.Info, $"app-dist {version} schemas loaded");
-            }
-            catch (Exception ex)
-            {
-                lock (_sync)
-                {
-                    _loadingVersion = null;
-                    _failedVersion = version;
-                }
-                _log.Log(LogLevel.Error, $"app-dist schema load failed: {ex}");
-            }
-        });
-    }
-
     private static string ResolveRoot(InitializeParams? p)
     {
         var folders = (p?.WorkspaceFolders ?? [])
@@ -331,7 +285,7 @@ public sealed class LspServer
     private void OnDidChangeWatchedFiles()
     {
         _workspace.InvalidateMappers();
-        _failedVersion = null;
+        _schemaLoader.ResetFailure();
         _diagnostics.Schedule();
     }
 }
