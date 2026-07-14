@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace Altinn.Studio.AppConfig.Models;
 
 internal static class ModelAssembler
@@ -7,11 +9,11 @@ internal static class ModelAssembler
         {
             Root = root,
             ApplicationId = fragments.Select(f => f.ApplicationId).FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? "",
-            DataTypes = fragments.SelectMany(f => f.DataTypes).ToList(),
-            Tasks = fragments.SelectMany(f => f.Tasks).ToList(),
+            DataTypes = Merge(fragments, f => f.DataTypes),
+            Tasks = Merge(fragments, f => f.Tasks),
             LayoutSets = AssembleLayoutSets(fragments),
-            TextResources = fragments.SelectMany(f => f.TextResources).ToList(),
-            TitleLanguages = fragments.SelectMany(f => f.TitleLanguages).ToList(),
+            TextResources = Merge(fragments, f => f.TextResources),
+            TitleLanguages = Merge(fragments, f => f.TitleLanguages),
             SchemaProperties = Fold(fragments, f => f.SchemaProperties),
             SchemaPropertiesByFile = FoldByFile(fragments),
             SchemaPropertyPositions = Fold(fragments, f => f.SchemaPropertyPositions, StringComparer.Ordinal),
@@ -21,13 +23,18 @@ internal static class ModelAssembler
             OptionsProviders = FoldSet(fragments, f => f.OptionsProviders),
             LayoutFiles = FoldSet(fragments, f => f.LayoutFiles),
             Refs = AssembleRefs(fragments),
-            ParserNotes = fragments.SelectMany(f => f.ParserNotes).ToList(),
-            ParseErrors = fragments.SelectMany(f => f.ParseErrors).ToList(),
+            ParserNotes = Merge(fragments, f => f.ParserNotes),
+            ParseErrors = Merge(fragments, f => f.ParseErrors),
             UnsupportedAppVersion = fragments.Select(f => f.UnsupportedAppVersion).FirstOrDefault(v => v is not null),
             AltinnAppVersion = fragments.Select(f => f.AltinnAppVersion).FirstOrDefault(v => v is not null),
         };
 
-    private static Dictionary<string, TValue> Fold<TValue>(
+    private static IReadOnlyList<T> Merge<T>(
+        IReadOnlyList<AppModelBuilder> fragments,
+        Func<AppModelBuilder, IEnumerable<T>> select
+    ) => fragments.SelectMany(select).ToList().AsReadOnly();
+
+    private static IReadOnlyDictionary<string, TValue> Fold<TValue>(
         IReadOnlyList<AppModelBuilder> fragments,
         Func<AppModelBuilder, IEnumerable<KeyValuePair<string, TValue>>> select,
         IEqualityComparer<string>? comparer = null
@@ -39,10 +46,10 @@ internal static class ModelAssembler
             foreach (var kv in select(fragment))
                 result[kv.Key] = kv.Value;
         }
-        return result;
+        return result.ToFrozenDictionary(result.Comparer);
     }
 
-    private static HashSet<string> FoldSet(
+    private static IReadOnlySet<string> FoldSet(
         IReadOnlyList<AppModelBuilder> fragments,
         Func<AppModelBuilder, IEnumerable<string>> select
     )
@@ -50,22 +57,22 @@ internal static class ModelAssembler
         var result = new HashSet<string>(StringComparer.Ordinal);
         foreach (var fragment in fragments)
             result.UnionWith(select(fragment));
-        return result;
+        return result.ToFrozenSet(StringComparer.Ordinal);
     }
 
     private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> FoldByFile(
         IReadOnlyList<AppModelBuilder> fragments
     )
     {
-        var result = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
+        var result = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
         foreach (var fragment in fragments)
         {
             foreach (var (file, props) in fragment.SchemaPropertiesByFile)
             {
-                if (result.TryGetValue(file, out var existing) && existing is Dictionary<string, string> merged)
+                if (result.TryGetValue(file, out var existing))
                 {
                     foreach (var kv in props)
-                        merged[kv.Key] = kv.Value;
+                        existing[kv.Key] = kv.Value;
                 }
                 else
                 {
@@ -73,22 +80,26 @@ internal static class ModelAssembler
                 }
             }
         }
-        return result;
+        return result.ToFrozenDictionary(
+            kv => kv.Key,
+            IReadOnlyDictionary<string, string> (kv) => kv.Value.ToFrozenDictionary(StringComparer.Ordinal),
+            StringComparer.Ordinal
+        );
     }
 
     private static SemanticReferences AssembleRefs(IReadOnlyList<AppModelBuilder> fragments) =>
         new()
         {
-            ComponentIds = fragments.SelectMany(f => f.Refs.ComponentIds).ToList(),
-            LayoutSets = fragments.SelectMany(f => f.Refs.LayoutSets).ToList(),
-            DataTypes = fragments.SelectMany(f => f.Refs.DataTypes).ToList(),
-            TaskIds = fragments.SelectMany(f => f.Refs.TaskIds).ToList(),
-            PageFiles = fragments.SelectMany(f => f.Refs.PageFiles).ToList(),
-            DataModel = fragments.SelectMany(f => f.Refs.DataModel).ToList(),
-            TextResources = fragments.SelectMany(f => f.Refs.TextResources).ToList(),
-            OptionsIds = fragments.SelectMany(f => f.Refs.OptionsIds).ToList(),
-            CSharp = fragments.SelectMany(f => f.Refs.CSharp).ToList(),
-            PolicyOrgApps = fragments.SelectMany(f => f.Refs.PolicyOrgApps).ToList(),
+            ComponentIds = Merge(fragments, f => f.Refs.ComponentIds),
+            LayoutSets = Merge(fragments, f => f.Refs.LayoutSets),
+            DataTypes = Merge(fragments, f => f.Refs.DataTypes),
+            TaskIds = Merge(fragments, f => f.Refs.TaskIds),
+            PageFiles = Merge(fragments, f => f.Refs.PageFiles),
+            DataModel = Merge(fragments, f => f.Refs.DataModel),
+            TextResources = Merge(fragments, f => f.Refs.TextResources),
+            OptionsIds = Merge(fragments, f => f.Refs.OptionsIds),
+            CSharp = Merge(fragments, f => f.Refs.CSharp),
+            PolicyOrgApps = Merge(fragments, f => f.Refs.PolicyOrgApps),
         };
 
     private static IReadOnlyList<LayoutSet> AssembleLayoutSets(IReadOnlyList<AppModelBuilder> fragments)
@@ -114,6 +125,6 @@ internal static class ModelAssembler
                 target.DefaultDataReq ??= fromSet.DefaultDataReq;
             }
         }
-        return targets.Select(t => t.Freeze()).ToList();
+        return targets.Select(t => t.Freeze()).ToList().AsReadOnly();
     }
 }
