@@ -126,6 +126,15 @@ public sealed class AppDistSchemasServiceTests
     }
 
     [Fact]
+    public async Task PartialLayer_ReportsWarnings()
+    {
+        var result = await Service(new FakeAppDist(SchemaFiles)).GetAsync("9.1.0", CancellationToken.None);
+
+        Assert.True(result.Status.Ran);
+        Assert.Contains(result.Status.Warnings, w => w.Contains("text-resources") && w.Contains("missing"));
+    }
+
+    [Fact]
     public async Task FailedLoadIsNotCached()
     {
         var provider = new FakeAppDist(files: null);

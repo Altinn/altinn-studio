@@ -18,7 +18,7 @@ internal sealed record SchemaSetResult(SchemaSet Schemas, SchemaValidationStatus
         new(SchemaSet.Empty, new SchemaValidationStatus(false, version, reason, Array.Empty<string>()));
 
     public static SchemaSetResult Loaded(string version, SchemaSet schemas) =>
-        new(schemas, new SchemaValidationStatus(true, version, null, Array.Empty<string>()));
+        new(schemas, new SchemaValidationStatus(true, version, null, schemas.LoadWarnings));
 }
 
 internal sealed class AppDistSchemasService : IDisposable

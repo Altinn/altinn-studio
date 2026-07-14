@@ -244,6 +244,8 @@ public sealed class LspServer
                         _log.Log(LogLevel.Info, $"app-dist {version} unreachable and not cached; schema pass disabled");
                         return;
                     }
+                    foreach (var warning in schemas.LoadWarnings)
+                        _log.Log(LogLevel.Warning, $"app-dist {version}: {warning}");
                     lock (_sync)
                     {
                         _schemas = schemas;
