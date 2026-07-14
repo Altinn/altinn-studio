@@ -145,10 +145,13 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         Assert.NotNull(processState.Workflow);
         Assert.Equal(WorkflowActivityStatus.Failed, processState.Workflow!.Status);
 
-        // Only the coarse failure kind is exposed on the read path - raw failure detail is
-        // deliberately never serialized to clients (it can contain internal text).
+        // Only the coarse failure kind plus the safe support-reference facts (which workflow,
+        // when) are exposed on the read path - raw failure detail is deliberately never
+        // serialized to clients (it can contain internal text).
         Assert.NotNull(processState.Workflow.Failure);
         Assert.Equal(WorkflowFailureKind.StepFailed, processState.Workflow.Failure!.Kind);
+        Assert.NotNull(processState.Workflow.Failure.WorkflowId);
+        Assert.NotNull(processState.Workflow.Failure.OccurredAt);
 
         // The transition targeted the committed current task; the engine round-trips the
         // processNextTargetId label so the annotation resolves it back.

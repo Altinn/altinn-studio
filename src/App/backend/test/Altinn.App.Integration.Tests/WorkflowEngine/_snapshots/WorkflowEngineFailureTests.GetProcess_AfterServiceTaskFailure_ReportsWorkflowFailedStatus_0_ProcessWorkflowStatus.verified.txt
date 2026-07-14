@@ -96,7 +96,10 @@
     Workflow: {
       Status: Failed,
       TargetTask: Task_Service,
-      Failure: {}
+      Failure: {
+        WorkflowId: Guid_1,
+        OccurredAt: DateTimeOffset_1
+      }
     },
     Started: DateTime_2,
     StartEvent: StartEvent_1

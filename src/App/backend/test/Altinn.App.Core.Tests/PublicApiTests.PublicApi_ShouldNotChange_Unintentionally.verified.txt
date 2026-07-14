@@ -3726,6 +3726,12 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public AppProcessWorkflowFailure() { }
         [System.Text.Json.Serialization.JsonPropertyName("kind")]
         public Altinn.App.Core.Models.Process.WorkflowFailureKind Kind { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("occurredAt")]
+        public System.DateTimeOffset? OccurredAt { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("workflowId")]
+        public System.Guid? WorkflowId { get; init; }
     }
     public sealed class AppProcessWorkflowStatus
     {

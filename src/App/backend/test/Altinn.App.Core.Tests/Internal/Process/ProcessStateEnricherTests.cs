@@ -53,12 +53,15 @@ public class ProcessStateEnricherTests
     }
 
     [Fact]
-    public async Task Enrich_WhenEngineReturnsFailed_MapsFailureKindButNeverRawDetail()
+    public async Task Enrich_WhenEngineReturnsFailed_MapsSafeStructuredFactsButNeverRawDetail()
     {
+        Guid failedWorkflowId = Guid.NewGuid();
+        DateTimeOffset failedAt = DateTimeOffset.UtcNow.AddMinutes(-1);
         var workflowFailure = new WorkflowFailure
         {
             Kind = WorkflowFailureKind.StepFailed,
-            LastError = new WorkflowFailureError { Message = "INTERNAL: raw engine error text" },
+            WorkflowId = failedWorkflowId,
+            LastError = new WorkflowFailureError { Message = "INTERNAL: raw engine error text", Timestamp = failedAt },
         };
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
@@ -74,10 +77,13 @@ public class ProcessStateEnricherTests
         Assert.NotNull(result.Workflow);
         Assert.Equal(WorkflowActivityStatus.Failed, result.Workflow.Status);
         Assert.Equal("Task_2", result.Workflow.TargetTask);
-        // Only the coarse classification is projected; the raw error message must never reach the
-        // consumer-facing model (it can contain internal infrastructure text).
+        // Only the coarse classification and the safe support-reference facts (which workflow,
+        // when) are projected; the raw error message must never reach the consumer-facing model
+        // (it can contain internal infrastructure text).
         Assert.NotNull(result.Workflow.Failure);
         Assert.Equal(WorkflowFailureKind.StepFailed, result.Workflow.Failure.Kind);
+        Assert.Equal(failedWorkflowId, result.Workflow.Failure.WorkflowId);
+        Assert.Equal(failedAt, result.Workflow.Failure.OccurredAt);
     }
 
     [Fact]

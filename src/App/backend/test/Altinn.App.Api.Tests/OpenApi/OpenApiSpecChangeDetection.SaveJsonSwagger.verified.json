@@ -8274,6 +8274,16 @@
         "properties": {
           "kind": {
             "$ref": "#/components/schemas/WorkflowFailureKind"
+          },
+          "workflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false

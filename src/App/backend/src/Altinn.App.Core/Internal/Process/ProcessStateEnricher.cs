@@ -139,8 +139,15 @@ public sealed class ProcessStateEnricher
             {
                 Status = workflowStatus.Status,
                 TargetTask = workflowStatus.TargetTask,
+                // Only the coarse classification and the safe structured support-reference facts
+                // are projected - never the raw error detail (it can contain internal text).
                 Failure = workflowStatus.Failure is { } failure
-                    ? new AppProcessWorkflowFailure { Kind = failure.Kind }
+                    ? new AppProcessWorkflowFailure
+                    {
+                        Kind = failure.Kind,
+                        WorkflowId = failure.WorkflowId,
+                        OccurredAt = failure.LastError?.Timestamp,
+                    }
                     : null,
             };
         }

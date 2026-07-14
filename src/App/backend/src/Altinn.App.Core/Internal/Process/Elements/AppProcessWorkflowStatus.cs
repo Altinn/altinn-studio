@@ -37,11 +37,11 @@ public sealed class AppProcessWorkflowStatus
 }
 
 /// <summary>
-/// A slim, consumer-facing projection of a failed process transition. Intentionally omits engine
-/// internals (workflow ids, collection keys, retry counts) and the raw error detail: the detail
-/// originates from exception/callback messages that can carry internal infrastructure text, so it
-/// is never serialized to clients. It remains available server-side (callback failure logs and the
-/// engine's step error history).
+/// A slim, consumer-facing projection of a failed process transition: the coarse classification
+/// plus the safe structured facts a support dialogue needs (which workflow, when). The raw error
+/// detail is intentionally never serialized to clients - it originates from exception/callback
+/// messages that can carry internal infrastructure text. It remains available server-side
+/// (callback failure logs and the engine's step error history, keyed by <see cref="WorkflowId"/>).
 /// </summary>
 public sealed class AppProcessWorkflowFailure
 {
@@ -50,6 +50,22 @@ public sealed class AppProcessWorkflowFailure
     /// </summary>
     [JsonPropertyName("kind")]
     public WorkflowFailureKind Kind { get; init; }
+
+    /// <summary>
+    /// The id of the failed workflow - a support reference that lets operations find the failure
+    /// (and its full error history) in the engine. Omitted when unknown.
+    /// </summary>
+    [JsonPropertyName("workflowId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? WorkflowId { get; init; }
+
+    /// <summary>
+    /// When the failure was recorded (the failing step's last error timestamp). Omitted when
+    /// unknown.
+    /// </summary>
+    [JsonPropertyName("occurredAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? OccurredAt { get; init; }
 }
 
 /// <summary>
