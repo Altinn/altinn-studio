@@ -14,6 +14,15 @@ internal static class SchemaValidator
     private const string LayoutSettingsSchema = "layout/layoutSettings.schema.v1.json";
     private const string TextResourcesSchema = "text-resources/text-resources.schema.v1.json";
 
+    internal static readonly string[] KnownSchemaPaths =
+    {
+        ApplicationMetadataSchema,
+        FooterSchema,
+        LayoutSchema,
+        LayoutSettingsSchema,
+        TextResourcesSchema,
+    };
+
     public static IReadOnlyList<Finding> Validate(SchemaSet schemas, string filePath, byte[] data)
     {
         var findings = new List<Finding>();

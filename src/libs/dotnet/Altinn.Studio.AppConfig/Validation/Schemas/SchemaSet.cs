@@ -6,17 +6,21 @@ namespace Altinn.Studio.AppConfig.Validation.Schemas;
 
 public sealed class SchemaSet
 {
-    public static SchemaSet Empty { get; } = new(new Dictionary<string, JsonSchema>(StringComparer.Ordinal));
+    public static SchemaSet Empty { get; } =
+        new(new Dictionary<string, JsonSchema>(StringComparer.Ordinal), Array.Empty<string>());
 
     private readonly IReadOnlyDictionary<string, JsonSchema> _byPath;
+
+    public IReadOnlyList<string> LoadWarnings { get; }
 
     internal object EvaluationGate { get; } = new();
 
     internal EvaluationOptions Options { get; }
 
-    private SchemaSet(IReadOnlyDictionary<string, JsonSchema> byPath)
+    private SchemaSet(IReadOnlyDictionary<string, JsonSchema> byPath, IReadOnlyList<string> loadWarnings)
     {
         _byPath = byPath;
+        LoadWarnings = loadWarnings;
         Options = new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical };
         foreach (var (path, schema) in byPath)
             Options.SchemaRegistry.Register(RegistryUri(path), schema);
@@ -35,6 +39,7 @@ public sealed class SchemaSet
     public static SchemaSet FromFiles(IEnumerable<KeyValuePair<string, string>> files)
     {
         var map = new Dictionary<string, JsonSchema>(StringComparer.Ordinal);
+        var warnings = new List<string>();
         foreach (var (path, text) in files)
         {
             var content = text;
@@ -47,11 +52,17 @@ public sealed class SchemaSet
             }
             catch (JsonException)
             {
+                warnings.Add($"schema {path} could not be parsed");
                 continue;
             }
             map[path] = schema;
         }
-        return new SchemaSet(map);
+        foreach (var known in SchemaValidator.KnownSchemaPaths)
+        {
+            if (!map.ContainsKey(known))
+                warnings.Add($"schema {known} is missing from the artifact");
+        }
+        return new SchemaSet(map, warnings);
     }
 
     private const string ExpressionFileName = "expression.schema.v1.json";
