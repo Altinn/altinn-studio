@@ -31,7 +31,7 @@ public interface IAppDistProvider
     );
 }
 
-public sealed class AppDist : IAppDistProvider
+public sealed class AppDist : IAppDistProvider, IDisposable
 {
     public static class JsonSchemas
     {
@@ -53,14 +53,36 @@ public sealed class AppDist : IAppDistProvider
 
     private readonly IAppDistSource _source;
     private readonly IAppDistStore _store;
+    private readonly HttpClient? _ownedHttpClient;
     private readonly ConcurrentDictionary<(string Version, AppDistLayer Layer), SemaphoreSlim> _fetchGates = new();
 
     public AppDist(IAppDistSource source, IAppDistStore store)
+        : this(source, store, ownedHttpClient: null) { }
+
+    private AppDist(IAppDistSource source, IAppDistStore store, HttpClient? ownedHttpClient)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(store);
         _source = source;
         _store = store;
+        _ownedHttpClient = ownedHttpClient;
+    }
+
+    public static AppDist CreateDefault(string cacheDirectory) =>
+        CreateDefault(
+            cacheDirectory,
+            new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) }),
+            OciRegistrySource.DefaultRepository
+        );
+
+    internal static AppDist CreateDefault(string cacheDirectory, HttpClient httpClient, string repository)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(cacheDirectory);
+        return new AppDist(
+            new OciRegistrySource(httpClient, repository),
+            new FileSystemAppDistStore(cacheDirectory),
+            httpClient
+        );
     }
 
     public async Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default)
@@ -102,6 +124,8 @@ public sealed class AppDist : IAppDistProvider
         AppDistLayer layer,
         CancellationToken cancellationToken = default
     ) => _store.ListVersionsAsync(layer, cancellationToken);
+
+    public void Dispose() => _ownedHttpClient?.Dispose();
 
     private async Task<bool> EnsureLayerAsync(string version, AppDistLayer layer, CancellationToken ct)
     {

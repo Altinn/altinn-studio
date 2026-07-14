@@ -45,4 +45,25 @@ public sealed class CompositionTests : IDisposable
         Assert.Equal(expected, byRelativePath.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(1, handler.BlobRequests);
     }
+
+    [Fact]
+    public async Task CreateDefault_ComposesOciSourceAndFileStore()
+    {
+        var handler = RegistryWithVersion("4");
+        using var provider = AppDist.CreateDefault(
+            _root,
+            new HttpClient(handler),
+            $"{FakeRegistry.Host}/{FakeRegistry.Repository}"
+        );
+
+        var dist = await provider.GetVersionAsync("4");
+
+        Assert.NotNull(dist);
+        Assert.Equal("js", await dist.GetFileTextAsync(AppDist.Bundles.AltinnAppFrontendJavascript));
+
+        provider.Dispose();
+        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas);
+        Assert.NotNull(schemas);
+        Assert.Equal("""{"type":"object"}""", await schemas.GetFileTextAsync(AppDist.JsonSchemas.Layout));
+    }
 }
