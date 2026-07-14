@@ -61,21 +61,15 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const workflowStatus = useWorkflowStatus();
   const pollFailureCount = useInstancePollFailureCount();
   const { error: instanceDataError, data } = useInstanceDataQuery({
-    // Poll while a workflow transition is in flight (~2-3s) so we converge on the committed task once
-    // it settles, and poll slowly while it is failed (~10-12s) so an ops-driven resume converges this
-    // page too — the failed screen deliberately offers no Retry (the engine already exhausted its
-    // retry budget), which makes this poll the user's only recovery path. Otherwise fall back to the
-    // slower pending-scans poll. Both workflow polls are jittered so many clients waiting on the same
-    // engine don't synchronise into a thundering herd — which would otherwise peak exactly when the
-    // engine is already slow.
+    // Poll while a workflow transition is in flight (~2-3s, jittered so many clients waiting on the
+    // same engine don't synchronise into a thundering herd — which would otherwise peak exactly when
+    // the engine is already slow) so we converge on the committed task once it settles. The FAILED
+    // state deliberately does NOT poll: a terminal failure requires manual (ops) intervention either
+    // way, so the error page is static and an open tab doesn't pay the expensive failed-path read
+    // (two engine calls) every tick indefinitely — after an ops resume, a manual refresh picks up the
+    // recovered state. Otherwise fall back to the slower pending-scans poll.
     refetchInterval:
-      workflowStatus === 'processing'
-        ? () => 2000 + Math.floor(Math.random() * 1000)
-        : workflowStatus === 'failed'
-          ? () => 10000 + Math.floor(Math.random() * 2000)
-          : hasPendingScans
-            ? 5000
-            : false,
+      workflowStatus === 'processing' ? () => 2000 + Math.floor(Math.random() * 1000) : hasPendingScans ? 5000 : false,
   });
 
   // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've

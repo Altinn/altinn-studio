@@ -22,9 +22,9 @@ const appFrontend = new AppFrontend();
  *                 task; a "Steg x av y" line shows live progress through the transition's
  *                 workflow steps when the engine reports counts)
  *   failed      = heading "Noe gikk galt" + contact-support blurb + safe details expander
- *                 ("Vis detaljer om feilen"); deliberately NO Retry affordance — the engine already
- *                 exhausted its retry budget, so recovery is ops-driven (POST process/resume) and
- *                 the failed-state slow poll auto-converges the page.
+ *                 ("Vis detaljer om feilen"); deliberately NO Retry affordance and NO polling — the
+ *                 engine already exhausted its retry budget, so recovery is ops-driven
+ *                 (POST process/resume) followed by a manual refresh of the page.
  */
 
 type Levers = {
@@ -149,7 +149,7 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
   });
 
-  it('failed (pre-commit permanent): shows the error page; an ops resume auto-recovers the page', () => {
+  it('failed (pre-commit permanent): shows the static error page; ops resume + manual refresh recovers', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ failCount: 1, failKind: 'permanent', phase: 'taskEnding' });
 
@@ -167,9 +167,15 @@ describe('Live workflow status (real engine)', () => {
     cy.contains('Et behandlingssteg feilet').should('be.visible');
     cy.contains('Referanse').should('be.visible');
 
-    // Recovery is ops-driven: resume via the API (as ops tooling would). Attempt 2 succeeds and
-    // commits Task_2 out-of-band, and the failed-state slow poll (~10-12s) auto-recovers the page
-    // without any user interaction or reload.
+    // The failed state deliberately does NOT poll (a terminal failure needs manual intervention
+    // either way, so an open tab must not hammer the expensive failed-path read forever): the error
+    // page is static and stays put until the user refreshes.
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(5000);
+    cy.findByRole('heading', { name: 'Noe gikk galt' }).should('be.visible');
+
+    // Recovery is ops-driven: resume via the API (as ops tooling would). The resume endpoint waits
+    // for the workflow to settle, so when it returns, attempt 2 has succeeded and Task_2 committed.
     cy.url().then((url) => {
       const match = url.match(/\/instance\/([^/]+)\/([^/#?]+)/);
       expect(match, `instance ids in url ${url}`).to.not.equal(null);
@@ -181,12 +187,13 @@ describe('Live workflow status (real engine)', () => {
       );
     });
 
-    // The poll picks up the settled state on its own: the error page disappears and the page - still
-    // parked on the old Task_1 url - navigates onto the committed task, all without a reload or any
-    // user interaction.
-    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('not.exist');
+    // With no poll, the recovered state surfaces on a manual refresh. The reloaded session arrives
+    // on the old Task_1 url with the process already settled on Task_2 (stale on arrival), which
+    // keeps the deliberate navigation-error page - its button takes the user to the committed task.
+    cy.reload();
+    cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
+    cy.findByRole('button', { name: 'Gå til riktig prosessteg', timeout: 30000 }).click();
     cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
-    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
   });
 

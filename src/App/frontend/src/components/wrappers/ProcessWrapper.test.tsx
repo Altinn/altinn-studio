@@ -206,7 +206,7 @@ describe('ProcessWrapper workflow state machine', () => {
 
     // The engine already exhausted its automatic retry budget, so the citizen gets an error page
     // with a contact-support pointer - deliberately NO Retry affordance. Recovery is ops-driven
-    // and the failed-state slow poll converges the page (tested below).
+    // and the page is static: no polling (tested below), a manual refresh picks up the recovery.
     expect(screen.getByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
     expect(screen.getByText(/brukerservice/i)).toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
@@ -296,12 +296,14 @@ describe('ProcessWrapper workflow state machine', () => {
     }
   });
 
-  it('failed auto-recovers when ops resumes the workflow out-of-band', async () => {
-    // There is no Retry affordance; recovery is ops-driven. The failed state keeps polling slowly
-    // (~10-12s jittered), so once an ops resume settles the workflow, the next poll converges the
-    // page back to the task on its own - no reload needed.
+  it('failed is static: no polling, so recovery requires a manual refresh', async () => {
+    // There is no Retry affordance and no poll: a terminal failure requires manual (ops)
+    // intervention either way, so the error page stays put (and an open tab stops paying the
+    // expensive failed-path engine reads). Even after an out-of-band ops resume settles the
+    // workflow, this page only converges on a manual refresh.
     jest.useFakeTimers();
     try {
+      let fetchCount = 0;
       let resumedByOps = false;
       await renderWithInstanceAndLayout({
         renderer: () => (
@@ -312,23 +314,30 @@ describe('ProcessWrapper workflow state machine', () => {
         waitUntilLoaded: false,
         apis: {
           instanceApi: {
-            getInstance: async () =>
-              getInstanceWithWorkflow(resumedByOps ? undefined : { status: 'failed', failure: { kind: 'stepFailed' } }),
+            getInstance: async () => {
+              fetchCount++;
+              return getInstanceWithWorkflow(
+                resumedByOps ? undefined : { status: 'failed', failure: { kind: 'stepFailed' } },
+              );
+            },
           },
         },
       });
 
       expect(await screen.findByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
+      const fetchesAfterLoad = fetchCount;
 
       resumedByOps = true;
 
-      // One failed-state poll window (max 12s jitter) always contains at least one tick.
+      // Well past both the processing (~2-3s) and the old failed (~10-12s) poll windows: no ticks,
+      // so the settled workflow is never observed and the error page deliberately stays.
       await act(async () => {
-        await jest.advanceTimersByTimeAsync(13_000);
+        await jest.advanceTimersByTimeAsync(60_000);
       });
 
-      expect(screen.getByTestId('task-content')).toBeInTheDocument();
-      expect(screen.queryByText(/noe gikk galt da skjemaet skulle behandles videre/i)).not.toBeInTheDocument();
+      expect(fetchCount).toBe(fetchesAfterLoad);
+      expect(screen.getByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
+      expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     } finally {
       jest.useRealTimers();
     }

@@ -237,8 +237,12 @@ Frontend:
   unknown-error page) containing only **safe structured facts** — a localized label for the
   failure `kind`, the failed step, when it failed, and the failed workflow id as a **support
   reference**. Operations resume the workflow via the (unchanged) `POST process/resume`
-  endpoint, and the failed state's slow poll (~10–12s jittered) is the recovery mechanism: the
-  page converges on its own once the resume settles, no reload needed.
+  endpoint. The failed page is **static — it deliberately does not poll**: a terminal failure
+  requires manual intervention either way, so there is nothing an automatic refetch could
+  discover on its own timeline, and an open tab must not pay the expensive failed-path read (two
+  engine calls) every tick indefinitely. After an ops resume, a manual refresh picks up the
+  recovered state (arriving on a now-stale task URL keeps the deliberate navigation error and
+  its "go to the right step" button).
 - **Raw failure detail never reaches the citizen.** The read-path annotation ships only the
   failure `kind` plus the safe support-reference fields (`workflowId`, `occurredAt`); the citizen
   UI renders a localized generic message. Shipping unrendered detail "for diagnostics" would only
@@ -279,12 +283,13 @@ Frontend:
   live-enriched instance and let the polled status take over, instead of a hard error toast —
   finally consuming the extensions the frontend previously ignored.
 - **Settling converges the URL, not just the data.** A transition can settle while the session's
-  URL is still parked on the pre-transition task (a mid-transition reload, an ops resume, a
-  concurrent session). The poll converges the data on its own; when the busy status clears and
-  the committed task no longer matches the URL, the page navigates onto the committed task —
+  URL is still parked on the pre-transition task (a mid-transition reload, a concurrent session).
+  The processing poll converges the data on its own; when the busy status clears and the
+  committed task no longer matches the URL, the page navigates onto the committed task —
   mirroring what the same-session `process/next` flow does — instead of stranding the user on the
   stale task's "not available" error. A URL that is stale *on arrival* (an old deep link, no
-  observed busy status) keeps the navigation error and its manual button.
+  observed busy status — including a manual refresh after an ops resume recovered a failed
+  transition) keeps the navigation error and its manual button.
 - **The processing message does not name the target task.** Task ids aren't user-facing and app
   authors rarely give them meaningful names; `targetTask` stays in the contract for diagnostics
   and other consumers. The "Steg x av y" indicator shows only *numbers* — progress through the
@@ -296,7 +301,8 @@ Frontend:
 - Positive: reads (and therefore reloads, concurrent sessions, and post-504 limbo) reflect the
   live truth; a terminally failed transition is discoverable from a read — surfaced to the citizen
   as an honest error page with a support reference, and recovered by ops resuming the workflow
-  (the page converges via the failed-state poll); no second copy of process truth exists anywhere.
+  (the static failed page picks it up on the next manual refresh); no second copy of process truth
+  exists anywhere.
 - Positive (D5): because the frontend converges purely off the fetched `workflow.status`, the
   backend's synchronous block-and-wait in `process/next` becomes an implementation detail it can
   shed later — `process/next` could return `processing` immediately and the frontend converges

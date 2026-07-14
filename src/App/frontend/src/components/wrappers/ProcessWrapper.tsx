@@ -203,9 +203,11 @@ const NAMED_TASK_TYPES = new Set(['data', 'signing', 'confirmation', 'payment', 
 // a contact-support pointer, and an expandable details section with only SAFE structured facts
 // (failure kind, step, time, support reference). The backend deliberately never ships raw failure
 // detail here (it originates from the engine / a service task and may contain internal text).
-// Recovery is ops-driven: the failed-state slow poll in InstanceProvider picks up an ops resume
-// and this page converges on its own. A future improvement is a first-class, app-authored
-// user-safe failure message.
+// Recovery is ops-driven and this page is STATIC - a terminal failure requires manual intervention
+// either way, so InstanceProvider deliberately stops polling in the failed state (an open tab must
+// not pay the expensive failed-path read forever); after an ops resume, a manual refresh picks up
+// the recovered state. A future improvement is a first-class, app-authored user-safe failure
+// message.
 function WorkflowFailed() {
   const workflow = useProcessWorkflow();
 
@@ -295,13 +297,14 @@ function WorkflowFailedDetails({ failure, targetTask }: WorkflowFailedDetailsPro
   );
 }
 
-// A transition can settle while this session's URL is still parked on the pre-transition task: a
-// reload during the transition, or an ops resume converging the failed page. The same-session flow
-// navigates from useProcessNext's onSuccess/onError, but here the poll only converges the *data*
-// (currentTask advances, workflow settles) - nothing converges the URL, stranding the user on the
-// old task's "not available" error. So when the live status goes from busy (processing/failed) to
-// settled, navigate to the committed task exactly like the sync flow would. A URL that is stale on
-// arrival (no observed busy status - e.g. an old deep link) keeps the navigation error + button.
+// A transition can settle while this session's URL is still parked on the pre-transition task
+// (e.g. a reload during the transition). The same-session flow navigates from useProcessNext's
+// onSuccess/onError, but here the poll only converges the *data* (currentTask advances, workflow
+// settles) - nothing converges the URL, stranding the user on the old task's "not available"
+// error. So when the live status goes from busy (processing/failed) to settled, navigate to the
+// committed task exactly like the sync flow would. A URL that is stale on arrival (no observed
+// busy status - e.g. an old deep link, or a manual refresh after an ops resume recovered a failed
+// transition) keeps the navigation error + its manual button.
 function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) {
   const { data: process } = useProcessQuery();
   const status = process?.workflow?.status;

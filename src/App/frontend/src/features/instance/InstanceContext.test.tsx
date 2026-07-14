@@ -133,40 +133,25 @@ describe('InstanceProvider poll-failure tolerance', () => {
     expect(screen.queryByText(/det har skjedd en ukjent feil/i)).not.toBeInTheDocument();
   });
 
-  it('polls slowly while the workflow is failed, and stops once it settles', async () => {
-    // The failed state must poll (at a slow ~10-12s jittered cadence): the failed screen offers no
-    // Retry, so an ops-driven resume converging through this poll is the user's only recovery path.
+  it('does not poll while the workflow is failed', async () => {
+    // A terminal failure requires manual (ops) intervention either way, so the failed state is
+    // deliberately static: no poll, no expensive failed-path engine reads from an open tab. After
+    // an ops resume, a manual refresh picks up the recovered state.
     let fetchCount = 0;
-    let resumedByOps = false;
     await renderInstanceProvider(async () => {
       fetchCount++;
       const instance = getInstanceWithProcessMock();
-      instance.process.workflow = resumedByOps ? undefined : { status: 'failed', failure: { kind: 'stepFailed' } };
+      instance.process.workflow = { status: 'failed', failure: { kind: 'stepFailed' } };
       return instance;
     });
 
     expect(await screen.findByTestId('instance-probe')).toBeInTheDocument();
     const fetchesAfterLoad = fetchCount;
 
-    // One failed-state poll window (max 12s jitter) always contains at least one tick.
+    // Well past both the processing (~2-3s) and the old failed (~10-12s) poll windows: no ticks.
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(13_000);
+      await jest.advanceTimersByTimeAsync(60_000);
     });
-    expect(fetchCount).toBeGreaterThan(fetchesAfterLoad);
-
-    // Ops resumes the workflow and it settles: the next poll picks up the settled
-    // instance (no annotation -> idle)...
-    resumedByOps = true;
-    await act(async () => {
-      await jest.advanceTimersByTimeAsync(13_000);
-    });
-    expect(screen.getByTestId('instance-probe')).toBeInTheDocument();
-    const fetchesAfterSettle = fetchCount;
-
-    // ...and polling stops: idle with no pending scans means no refetch interval at all.
-    await act(async () => {
-      await jest.advanceTimersByTimeAsync(30_000);
-    });
-    expect(fetchCount).toBe(fetchesAfterSettle);
+    expect(fetchCount).toBe(fetchesAfterLoad);
   });
 });

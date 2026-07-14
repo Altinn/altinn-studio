@@ -172,9 +172,9 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
 }
 
 // NOTE: there is deliberately no frontend mutation for `process/resume`: once the engine deems a
-// failure terminal it has exhausted its retry budget, so the citizen is shown an error page
-// (see WorkflowFailed) and recovery is ops-driven. The backend endpoint stays - ops tooling uses
-// it - and the failed-state slow poll in InstanceProvider converges this UI when it happens.
+// failure terminal it has exhausted its retry budget, so the citizen is shown a static error page
+// (see WorkflowFailed) and recovery is ops-driven - the backend endpoint stays because ops tooling
+// uses it, and the recovered state surfaces when the user next refreshes the page.
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {
   if (!processData) {
