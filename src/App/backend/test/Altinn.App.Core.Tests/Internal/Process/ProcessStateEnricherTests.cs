@@ -50,6 +50,32 @@ public class ProcessStateEnricherTests
         Assert.Equal(WorkflowActivityStatus.Processing, result.Workflow.Status);
         Assert.Equal("Task_2", result.Workflow.TargetTask);
         Assert.Null(result.Workflow.Failure);
+        // Not retrying maps to null (omitted on the wire), never a serialized `false`.
+        Assert.Null(result.Workflow.Retrying);
+    }
+
+    [Fact]
+    public async Task Enrich_WhenEngineReturnsRetrying_PopulatesRetryingHint()
+    {
+        var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        engine
+            .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowTaskStatus(
+                    WorkflowActivityStatus.Processing,
+                    TargetTask: "Task_2",
+                    Failure: null,
+                    Retrying: true
+                )
+            );
+
+        ProcessStateEnricher enricher = CreateEnricher(engine);
+
+        AppProcessState result = await enricher.Enrich(new Instance(), new ProcessState(), CreateUser());
+
+        Assert.NotNull(result.Workflow);
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Workflow.Status);
+        Assert.True(result.Workflow.Retrying);
     }
 
     [Fact]

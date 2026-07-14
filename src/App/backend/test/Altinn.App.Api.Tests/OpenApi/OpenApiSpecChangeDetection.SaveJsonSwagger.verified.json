@@ -8298,6 +8298,10 @@
             "type": "string",
             "nullable": true
           },
+          "retrying": {
+            "type": "boolean",
+            "nullable": true
+          },
           "failure": {
             "$ref": "#/components/schemas/AppProcessWorkflowFailure"
           }

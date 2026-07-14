@@ -77,9 +77,17 @@ internal sealed record ProcessNextWorkflowResult(
 /// <summary>
 /// Presentation projection of the current task's live workflow status, used to enrich the process
 /// state sent to the frontend. <see cref="Failure"/> is only set when <see cref="Status"/> is
-/// <see cref="WorkflowActivityStatus.Failed"/>.
+/// <see cref="WorkflowActivityStatus.Failed"/>. <see cref="Retrying"/> is only meaningful while
+/// <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>: true when the engine
+/// has the transition parked between automatic retry attempts (a previous attempt failed), letting
+/// a waiting UI say "a step is being retried" instead of an unexplained long wait.
 /// </summary>
-internal sealed record WorkflowTaskStatus(WorkflowActivityStatus Status, string? TargetTask, WorkflowFailure? Failure);
+internal sealed record WorkflowTaskStatus(
+    WorkflowActivityStatus Status,
+    string? TargetTask,
+    WorkflowFailure? Failure,
+    bool Retrying = false
+);
 
 /// <summary>
 /// The workflow engine's view of the instance's current task, as a closed set of states.
@@ -355,13 +363,18 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
 
         // A processing transition is fully described by the collection view: the head's labels carry
-        // the target task, so it resolves in the single GetCollection call above.
+        // the target task, so it resolves in the single GetCollection call above. A Requeued head is
+        // parked between automatic retry attempts (a previous attempt failed) - still Processing to
+        // consumers, but flagged so a waiting UI can explain the longer wait honestly. The flag
+        // flickers back off while a retry attempt is actively executing, which is fine: during a
+        // long retry storm the workflow spends nearly all its time parked in Requeued.
         if (activeHead is not null)
         {
             return new WorkflowTaskStatus(
                 WorkflowActivityStatus.Processing,
                 ExtractTargetTask(activeHead.Labels),
-                Failure: null
+                Failure: null,
+                Retrying: activeHead.Status == PersistentItemStatus.Requeued
             );
         }
 

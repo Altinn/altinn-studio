@@ -279,8 +279,61 @@ public class WorkflowEngineServiceTests
         Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
         Assert.Equal("Task_2", result.TargetTask);
         Assert.Null(result.Failure);
+        Assert.False(result.Retrying); // Enqueued = first attempt pending, not a retry
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
         client.VerifyNoOtherCalls(); // ListWorkflows was NOT called for the processing case
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsRequeued_ReturnsProcessingWithRetryingFlag()
+    {
+        // A Requeued head is parked between automatic retry attempts (a previous attempt failed):
+        // still Processing to consumers, but flagged Retrying so a waiting UI can explain the
+        // longer wait. Resolved from the same single GetCollection call as plain processing.
+        Guid headId = Guid.NewGuid();
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Requeued,
+                            Labels = new Dictionary<string, string>(StringComparer.Ordinal)
+                            {
+                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                            },
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.True(result.Retrying);
+        Assert.Null(result.Failure);
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls();
     }
 
     [Fact]

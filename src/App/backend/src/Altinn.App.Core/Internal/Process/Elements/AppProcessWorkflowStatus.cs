@@ -28,6 +28,17 @@ public sealed class AppProcessWorkflowStatus
     public string? TargetTask { get; init; }
 
     /// <summary>
+    /// True when the transition is currently parked between automatic retry attempts (a previous
+    /// attempt failed and the engine will retry it). Only present while <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Processing"/> - it does not change what a consumer should
+    /// do (wait), but lets a waiting UI explain an unusually long wait honestly ("a step is being
+    /// retried") instead of leaving the user guessing. Omitted when false.
+    /// </summary>
+    [JsonPropertyName("retrying")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Retrying { get; init; }
+
+    /// <summary>
     /// Failure detail. Present only when <see cref="Status"/> is
     /// <see cref="WorkflowActivityStatus.Failed"/>.
     /// </summary>
@@ -71,7 +82,8 @@ public sealed class AppProcessWorkflowFailure
 /// <summary>
 /// The consumer-facing activity status of a task's workflow transition. Deliberately coarse:
 /// <see cref="Processing"/> covers the first attempt and every automatic retry, because the
-/// consumer behaviour (wait) is identical and the attempt count is noise.
+/// consumer behaviour (wait) is identical. The presentation-only
+/// <see cref="AppProcessWorkflowStatus.Retrying"/> hint is the one place retries surface.
 /// </summary>
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]
 public enum WorkflowActivityStatus
