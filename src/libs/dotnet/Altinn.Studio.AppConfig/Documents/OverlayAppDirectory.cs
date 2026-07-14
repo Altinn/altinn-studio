@@ -54,7 +54,9 @@ public sealed class OverlayAppDirectory : IHashingAppDirectory
     {
         if (_tombstones.Contains(relativePath))
             return null;
-        return _overlay.TryGetValue(relativePath, out var handle) ? handle.Bytes : _base.ReadAllBytes(relativePath);
+        if (!_overlay.TryGetValue(relativePath, out var handle))
+            return _base.ReadAllBytes(relativePath);
+        return handle.Bytes is { } bytes ? (byte[])bytes.Clone() : null;
     }
 
     public byte[]? ReadExternalBytes(string relativePath) => _base.ReadExternalBytes(relativePath);
