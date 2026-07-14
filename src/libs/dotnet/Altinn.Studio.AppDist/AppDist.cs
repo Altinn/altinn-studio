@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace Altinn.Studio.AppDist;
 
 public enum AppDistLayer
@@ -44,6 +46,7 @@ public sealed class AppDist : IAppDistProvider
 
     private readonly IAppDistSource _source;
     private readonly IAppDistStore _store;
+    private readonly ConcurrentDictionary<(string Version, AppDistLayer Layer), SemaphoreSlim> _fetchGates = new();
 
     public AppDist(IAppDistSource source, IAppDistStore store)
     {
@@ -81,17 +84,30 @@ public sealed class AppDist : IAppDistProvider
         if (await _store.ContainsAsync(version, layer, ct))
             return true;
 
-        IReadOnlyList<AppDistFileEntry> files;
+        var gate = _fetchGates.GetOrAdd((version, layer), static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(ct);
         try
         {
-            files = await _source.FetchLayerAsync(version, layer, ct);
-        }
-        catch (AppDistSourceUnavailableException)
-        {
-            return false;
-        }
+            if (await _store.ContainsAsync(version, layer, ct))
+                return true;
 
-        await _store.WriteAsync(version, layer, files, ct);
-        return true;
+            IReadOnlyList<AppDistFileEntry> files;
+            try
+            {
+                files = await _source.FetchLayerAsync(version, layer, ct);
+            }
+            catch (AppDistSourceUnavailableException)
+            {
+                return false;
+            }
+
+            await _store.WriteAsync(version, layer, files, ct);
+            _fetchGates.TryRemove((version, layer), out _);
+            return true;
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 }
