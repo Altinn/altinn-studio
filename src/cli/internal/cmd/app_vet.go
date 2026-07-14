@@ -25,8 +25,9 @@ type appVetFlags struct {
 }
 
 type appVetOutJSON struct {
-	Findings []studioctlserver.ValidateFinding `json:"findings"`
-	Summary  studioctlserver.ValidateSummary   `json:"summary"`
+	Findings         []studioctlserver.ValidateFinding        `json:"findings"`
+	SchemaValidation studioctlserver.ValidateSchemaValidation `json:"schemaValidation"`
+	Summary          studioctlserver.ValidateSummary          `json:"summary"`
 }
 
 func (c *AppCommand) runVet(ctx context.Context, args []string) error {
@@ -66,7 +67,7 @@ func (c *AppCommand) runVetChecks(ctx context.Context, flags appVetFlags) error 
 	if rpcErr != nil {
 		return fmt.Errorf("vet: %w", rpcErr)
 	}
-	if printErr := printVetOutput(c.out, resp.Findings, resp.Summary, flags.jsonOutput); printErr != nil {
+	if printErr := printVetOutput(c.out, resp, flags.jsonOutput); printErr != nil {
 		return printErr
 	}
 	if resp.Summary.Errors > 0 {
@@ -139,14 +140,13 @@ func (c *AppCommand) printRulesList(ctx context.Context, asJSON bool) error {
 	return nil
 }
 
-func printVetOutput(
-	out *ui.Output,
-	findings []studioctlserver.ValidateFinding,
-	summary studioctlserver.ValidateSummary,
-	asJSON bool,
-) error {
+func printVetOutput(out *ui.Output, resp studioctlserver.ValidateResponse, asJSON bool) error {
 	if asJSON {
-		payload := appVetOutJSON{Findings: findings, Summary: summary}
+		payload := appVetOutJSON{
+			Findings:         resp.Findings,
+			Summary:          resp.Summary,
+			SchemaValidation: resp.SchemaValidation,
+		}
 		data, err := json.MarshalIndent(payload, "", "  ")
 		if err != nil {
 			return fmt.Errorf("marshal findings: %w", err)
@@ -154,6 +154,13 @@ func printVetOutput(
 		out.Println(string(data))
 		return nil
 	}
+	if !resp.SchemaValidation.Ran {
+		out.Printlnf("warning: schema validation skipped: %s", resp.SchemaValidation.Reason)
+	}
+	for _, warning := range resp.SchemaValidation.Warnings {
+		out.Printlnf("warning: schema validation: %s", warning)
+	}
+	findings := resp.Findings
 	if len(findings) == 0 {
 		return nil
 	}
