@@ -80,7 +80,7 @@ export const CreateCustomReceiptFormLegacy = ({
         onChange={() => setDataModelError(null)}
       />
       <div className={classes.buttonWrapper}>
-        <StudioButton disabled={hasAvailableDataModels} type='submit' variant='primary'>
+        <StudioButton disabled={!hasAvailableDataModels} type='submit' variant='primary'>
           {t('process_editor.configuration_panel_custom_receipt_create_button')}
         </StudioButton>
         <StudioButton onClick={onCloseForm} variant='secondary'>

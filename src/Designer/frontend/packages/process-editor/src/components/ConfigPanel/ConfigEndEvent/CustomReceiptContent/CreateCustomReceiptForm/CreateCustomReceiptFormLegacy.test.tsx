@@ -12,27 +12,27 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
-import { queryOptionMock } from '../../../../../../test/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
-const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
+const mockAddCustomReceipt = jest.fn();
 const mockOnCloseForm = jest.fn();
 const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: CreateCustomReceiptFormLegacyProps = {
   onCloseForm: mockOnCloseForm,
+  addCustomReceipt: mockAddCustomReceipt,
+  hasAvailableDataModels: true,
 };
 
 const defaultBpmnApiContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
   allDataModelIds: mockAllDataModelIds,
-  addLayoutSet: mockAddLayoutSet,
 };
 
-describe('CreateCustomReceiptForm', () => {
+describe('CreateCustomReceiptFormLegacy', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('Submits the form with valid inputs and calls "addLayoutSet", "mutateDataTypes", and "onCloseForm" when submit button is clicked', async () => {
+  it('Submits the form with valid inputs and calls "addCustomReceipt" when submit button is clicked', async () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm();
 
@@ -58,20 +58,12 @@ describe('CreateCustomReceiptForm', () => {
     });
     await user.click(createButton);
 
-    expect(mockAddLayoutSet).toHaveBeenCalledTimes(1);
-    expect(mockAddLayoutSet).toHaveBeenCalledWith(
-      {
-        layoutSetConfig: {
-          id: newId,
-          dataType: mockAllDataModelIds[0],
-          taskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-        },
-      },
-      {
-        onSuccess: expect.any(Function),
-      },
-    );
-    expect(mockOnCloseForm).toHaveBeenCalled();
+    expect(mockAddCustomReceipt).toHaveBeenCalledTimes(1);
+    expect(mockAddCustomReceipt).toHaveBeenCalledWith({
+      id: newId,
+      dataType: mockAllDataModelIds[0],
+      taskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
+    });
   });
 
   it('displays error when there are no value present for layout id', async () => {
@@ -101,7 +93,7 @@ describe('CreateCustomReceiptForm', () => {
       textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
     );
     expect(dataModelIdError).not.toBeInTheDocument();
-    expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
+    expect(mockAddCustomReceipt).not.toHaveBeenCalled();
   });
 
   it('Displays error when there is just one character present for layouSetId', async () => {
@@ -138,16 +130,12 @@ describe('CreateCustomReceiptForm', () => {
       textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
     );
     expect(dataModelIdError).not.toBeInTheDocument();
-    expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
+    expect(mockAddCustomReceipt).not.toHaveBeenCalled();
   });
 
   it('shows correct errormessage when layoutSetId is empty when typing in the textbox', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceiptForm({
-      bpmnApiContextProps: {
-        addLayoutSet: mockAddLayoutSet,
-      },
-    });
+    renderCreateCustomReceiptForm();
 
     const inputField = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
@@ -163,16 +151,12 @@ describe('CreateCustomReceiptForm', () => {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
     await user.click(button);
-    expect(mockAddLayoutSet).not.toHaveBeenCalled();
+    expect(mockAddCustomReceipt).not.toHaveBeenCalled();
   });
 
   it('shows correct errormessage when layoutSetId is empty when clicking the submit button', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceiptForm({
-      bpmnApiContextProps: {
-        addLayoutSet: mockAddLayoutSet,
-      },
-    });
+    renderCreateCustomReceiptForm();
 
     const button = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
@@ -182,16 +166,12 @@ describe('CreateCustomReceiptForm', () => {
     const layoutSetIdError = screen.getByText(textMock('validation_errors.required'));
     expect(layoutSetIdError).toBeInTheDocument();
 
-    expect(mockAddLayoutSet).not.toHaveBeenCalled();
+    expect(mockAddCustomReceipt).not.toHaveBeenCalled();
   });
 
   it('shows correct errormessage when layoutSetId is invalid format', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceiptForm({
-      bpmnApiContextProps: {
-        addLayoutSet: mockAddLayoutSet,
-      },
-    });
+    renderCreateCustomReceiptForm();
 
     const invalidFormatLayoutSetName: string = 'Receipt/';
 
@@ -208,14 +188,12 @@ describe('CreateCustomReceiptForm', () => {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
     await user.click(button);
-    expect(mockAddLayoutSet).not.toHaveBeenCalled();
+    expect(mockAddCustomReceipt).not.toHaveBeenCalled();
   });
 
   it('displays error when there are no value present for data model id', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceiptForm({
-      bpmnApiContextProps: { allDataModelIds: mockAllDataModelIds },
-    });
+    renderCreateCustomReceiptForm();
 
     const layoutSetInput = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
@@ -234,7 +212,7 @@ describe('CreateCustomReceiptForm', () => {
       textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
     );
     expect(dataModelIdError).toBeInTheDocument();
-    expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
+    expect(mockAddCustomReceipt).not.toHaveBeenCalled();
   });
 
   it('calls "onCloseForm" when cancel button is clicked', async () => {

@@ -24,7 +24,7 @@ export const CreateCustomReceipt = ({
   const { allDataModelIds, addLayoutSet } = useBpmnApiContext();
   const [dataModelError, setDataModelError] = useState<string>(null);
   const [dataModelId, setDataModelId] = useState<string>(null);
-  const hasAvailableDataModels: boolean = allDataModelIds.length === 0;
+  const hasAvailableDataModels: boolean = allDataModelIds.length > 0;
   const { appVersion } = useBpmnContext();
 
   const addCustomReceipt = (customReceipt: LayoutSetConfig) => {
@@ -75,7 +75,7 @@ export const CreateCustomReceipt = ({
     <div className={classes.customReceiptWrapper}>
       <SelectCustomReceiptDataModelId error={dataModelError} onChange={handleDataModelChange} />
       <div className={classes.buttonWrapper}>
-        <StudioButton disabled={hasAvailableDataModels} onClick={handleSave} variant='primary'>
+        <StudioButton disabled={!hasAvailableDataModels} onClick={handleSave} variant='primary'>
           {t('process_editor.configuration_panel_custom_receipt_create_button')}
         </StudioButton>
         <StudioButton onClick={onCloseForm} variant='secondary'>
