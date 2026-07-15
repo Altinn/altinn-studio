@@ -64,6 +64,11 @@
         "id": "delayMs",
         "type": "Dropdown",
         "preselectedOptionIndex": 0,
+        "hidden": [
+          "and",
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+        ],
         "options": [
           {
             "value": "0",

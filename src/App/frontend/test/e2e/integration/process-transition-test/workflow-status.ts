@@ -42,7 +42,8 @@ type Levers = {
 
 // The levers are Dropdowns whose option labels are the descriptive nb.json strings; dsSelect/have.value
 // match on that visible label. Defaults (preselectedOptionIndex 0): none / no delay / no retries /
-// success — retries and endState are hidden while path is "none".
+// success — delayMs, retries and endState are all hidden while path is "none" (nothing to configure
+// on the instant no-error path).
 const leverLabels = {
   path: {
     none: 'Ingen feil – overgangen går rett gjennom',
@@ -68,8 +69,8 @@ const leverLabels = {
   },
 } as const;
 
-// path is applied first so it reveals the retries/endState dropdowns (hidden while path is "none")
-// before we try to fill them.
+// path is applied first so it reveals the delayMs/retries/endState dropdowns (all hidden while path
+// is "none") before we try to fill them.
 function fillLevers({ path, delayMs, retries, endState }: Levers) {
   cy.get('#finishedLoading').should('exist');
   if (path !== undefined) {
