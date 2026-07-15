@@ -1,9 +1,9 @@
 {
-  "name": "altinn-app-config",
-  "displayName": "Altinn App Config",
-  "description": "Validation and language support for Altinn app configuration, powered by studioctl.",
-  "version": "0.0.2",
-  "publisher": "altinn",
+  "name": "altinn-studio-lsp",
+  "displayName": "Altinn Studio Language Server",
+  "description": "Validation and language support for Altinn Studio projects.",
+  "version": "0.0.4",
+  "publisher": "Altinn Studio",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -22,20 +22,20 @@
   "contributes": {
     "commands": [
       {
-        "command": "altinnAppConfig.restart",
-        "title": "Restart App Config Language Server",
+        "command": "altinnStudioLsp.restart",
+        "title": "Restart Altinn Studio Language Server",
         "category": "Altinn"
       }
     ],
     "configuration": {
-      "title": "Altinn App Config",
+      "title": "Altinn Studio Language Server",
       "properties": {
-        "altinnAppConfig.serverCommand": {
+        "altinnStudioLsp.serverCommand": {
           "type": "string",
           "default": "studioctl",
           "markdownDescription": "The `studioctl` executable that hosts the language server. Must be on your `PATH` or an absolute path."
         },
-        "altinnAppConfig.serverArgs": {
+        "altinnStudioLsp.serverArgs": {
           "type": "array",
           "items": {
             "type": "string"
@@ -46,7 +46,7 @@
           ],
           "description": "Arguments passed to the server command to start the language server over stdio."
         },
-        "altinnAppConfig.logLevel": {
+        "altinnStudioLsp.logLevel": {
           "type": "string",
           "enum": [
             "error",
@@ -58,7 +58,7 @@
           "default": "info",
           "markdownDescription": "Verbosity of the language server's own logging in the output channel. `debug` adds validation summaries; `trace` logs every message received and sent. (Restart the server after changing.)"
         },
-        "altinnAppConfig.trace.server": {
+        "altinnStudioLsp.trace.server": {
           "type": "string",
           "enum": [
             "off",

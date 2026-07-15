@@ -83,7 +83,7 @@ func (c *AppCommand) setupVSCode(ctx context.Context, printOnly bool) error {
 		if len(found) == 0 && !printOnly {
 			c.out.Warninglnf("No VS Code CLI found on PATH (looked for: %s).", strings.Join(vscodeBinaries, ", "))
 		}
-		c.out.Println("Install the bundled Altinn App Config extension with:")
+		c.out.Println("Install the bundled Altinn Studio Language Server extension with:")
 		c.out.Printlnf("  code --install-extension %s --force", vsix)
 		c.out.Println("Substitute 'code-server' or 'codium' for 'code' as appropriate.")
 		return nil
@@ -98,7 +98,7 @@ func (c *AppCommand) setupVSCode(ctx context.Context, printOnly bool) error {
 		if err := install.Run(); err != nil {
 			return fmt.Errorf("install extension via %s: %w", filepath.Base(bin), err)
 		}
-		c.out.Successf("Installed the Altinn App Config extension in %s", bin)
+		c.out.Successf("Installed the Altinn Studio Language Server extension in %s", bin)
 	}
 	return nil
 }

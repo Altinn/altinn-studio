@@ -12,7 +12,7 @@ let client: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     context.subscriptions.push(
-        vscode.commands.registerCommand('altinnAppConfig.restart', async () => {
+        vscode.commands.registerCommand('altinnStudioLsp.restart', async () => {
             await stop();
             await start();
         }),
@@ -58,25 +58,27 @@ export function deactivate(): Thenable<void> | undefined {
 }
 
 async function start(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('altinnAppConfig');
+    const config = vscode.workspace.getConfiguration('altinnStudioLsp');
     const command = config.get<string>('serverCommand', 'studioctl');
     const args = config.get<string[]>('serverArgs', ['app', 'lsp']);
     const logLevel = config.get<string>('logLevel', 'info');
 
     if (!(await canSpawn(command))) {
         const pick = await vscode.window.showErrorMessage(
-            `Altinn App LSP: '${command}' was not found. Install studioctl, or set ` +
-                '"altinnAppConfig.serverCommand" to its full path.',
+            `Altinn Studio Language Server: '${command}' was not found. Install studioctl, or set ` +
+                '"altinnStudioLsp.serverCommand" to its full path.',
             'Open settings',
             'Install studioctl',
         );
         if (pick === 'Open settings') {
             void vscode.commands.executeCommand(
                 'workbench.action.openSettings',
-                'altinnAppConfig.serverCommand',
+                'altinnStudioLsp.serverCommand',
             );
         } else if (pick === 'Install studioctl') {
-            void vscode.env.openExternal(vscode.Uri.parse('https://docs.altinn.studio/'));
+            void vscode.env.openExternal(
+                vscode.Uri.parse('https://docs.altinn.studio/en/altinn-studio/v8/reference/cli/install/'),
+            );
         }
         return;
     }
@@ -111,13 +113,13 @@ async function start(): Promise<void> {
                 vscode.workspace.createFileSystemWatcher('**/App/App.csproj'),
             ],
         },
-        outputChannelName: 'Altinn App Config',
+        outputChannelName: 'Altinn Studio Language Server',
         revealOutputChannelOn: RevealOutputChannelOn.Never,
     };
 
     client = new LanguageClient(
-        'altinnAppConfig',
-        'Altinn App Config',
+        'altinnStudioLsp',
+        'Altinn Studio Language Server',
         serverOptions,
         clientOptions,
     );
@@ -127,7 +129,7 @@ async function start(): Promise<void> {
     } catch (err) {
         client = undefined;
         void vscode.window.showErrorMessage(
-            `Altinn App Config language server failed to start: ${errorMessage(err)}`,
+            `Altinn Studio Language Server failed to start: ${errorMessage(err)}`,
         );
     }
 }
