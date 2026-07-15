@@ -1,5 +1,4 @@
 import { isValid, parseISO } from 'date-fns';
-import dot from 'dot-object';
 
 import {
   ExprRuntimeError,
@@ -60,7 +59,7 @@ function isExpression(input: unknown): input is Expression {
     Array.isArray(input) &&
     input.length >= 1 &&
     typeof input[0] === 'string' &&
-    Object.keys(ExprFunctionDefinitions).includes(input[0])
+    Object.prototype.hasOwnProperty.call(ExprFunctionDefinitions, input[0])
   );
 }
 
@@ -137,18 +136,16 @@ export function argTypeAt(func: ExprFunctionName, argIndex: number): ExprVal | u
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function innerEvalExpr(params: EvaluateExpressionParams): any {
-  const { expr, path } = params;
-  const stringPath = stringifyPath(path);
-
-  const [func, ...args] = stringPath ? dot.pick(stringPath, expr, false) : expr;
+function innerEvalExpr(params: EvaluateExpressionParams, currentExpr = params.expr): any {
+  const { path } = params;
+  const [func, ...args] = currentExpr;
   const returnType = ExprFunctionDefinitions[func].returns;
 
   const computedArgs = args.map((arg: unknown, idx: number) => {
     const realIdx = idx + 1;
 
     const paramsWithNewPath = { ...params, path: [...path, `[${realIdx}]`] };
-    const argValue = Array.isArray(arg) ? innerEvalExpr(paramsWithNewPath) : arg;
+    const argValue = Array.isArray(arg) ? innerEvalExpr(paramsWithNewPath, arg as Expression) : arg;
     const argType = argTypeAt(func, idx);
     return exprCastValue(argValue, argType, paramsWithNewPath);
   });
@@ -158,21 +155,11 @@ function innerEvalExpr(params: EvaluateExpressionParams): any {
   const actualFunc = ExprFunctionImplementations[func];
 
   onBeforeFunctionCall?.(path, func, computedArgs);
-  const returnValue = actualFunc.apply(params, computedArgs);
+  const returnValue = Reflect.apply(actualFunc, params, computedArgs);
   const returnValueCasted = exprCastValue(returnValue, returnType, params);
   onAfterFunctionCall?.(path, func, computedArgs, returnValueCasted);
 
   return returnValueCasted;
-}
-
-function stringifyPath(path: string[]): string | undefined {
-  if (path.length === 0) {
-    return undefined;
-  }
-
-  const [firstKey, ...restKeys] = path;
-  // For some reason dot.pick wants to use the format '0[1][2]' for arrays instead of '[0][1][2]', so we'll rewrite
-  return firstKey.replace('[', '').replace(']', '') + restKeys.join('');
 }
 
 function valueToExprValueType(value: unknown): ExprVal {
