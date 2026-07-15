@@ -235,8 +235,10 @@ Frontend:
   problem onto the wrong actor. The failed screen is an error page: a localized generic message,
   a contact-support pointer, and an expandable details section (the same widget as the
   unknown-error page) containing only **safe structured facts** — a localized label for the
-  failure `kind`, the failed step, when it failed, and the failed workflow id as a **support
-  reference**. Operations resume the workflow via the (unchanged) `POST process/resume`
+  failure `kind`, when it failed, and the failed workflow id as a **support reference**. Nothing
+  about *which* step failed: the engine step identities are internal (raw operation ids, not
+  localizable or user-meaningful), and the transition's target task only says where the process
+  was headed — anyone who needs specifics looks up the support reference in the engine. Operations resume the workflow via the (unchanged) `POST process/resume`
   endpoint. The failed page is **static — it deliberately does not poll**: a terminal failure
   requires manual intervention either way, so there is nothing an automatic refetch could
   discover on its own timeline, and an open tab must not pay the expensive failed-path read (two

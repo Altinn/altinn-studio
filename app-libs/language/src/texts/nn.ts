@@ -468,7 +468,6 @@ export function nn() {
     'process_workflow.failed_description':
       'Noko gjekk gale då skjemaet skulle handsamast vidare. Feilen er registrert hos oss, og du treng ikkje å sende inn på nytt.',
     'process_workflow.failed_details_kind': 'Feiltype',
-    'process_workflow.failed_details_step': 'Steg',
     'process_workflow.failed_details_time': 'Tidspunkt',
     'process_workflow.failed_details_reference': 'Referanse',
     'process_workflow.failure_kind.stepFailed': 'Eit handsamingssteg feila',

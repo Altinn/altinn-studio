@@ -14,12 +14,7 @@ import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstancePollFailureCount } from 'src/features/instance/InstanceContext';
 import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
-import {
-  useGetAltinnTaskType,
-  useGetTaskTypeById,
-  useProcessQuery,
-  useProcessWorkflow,
-} from 'src/features/instance/useProcessQuery';
+import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -195,13 +190,10 @@ function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgre
 // generic label so an unknown/new kind never renders as a raw key.
 const KNOWN_FAILURE_KINDS = new Set(['stepFailed', 'dependencyFailed', 'engineFault', 'timeout']);
 
-// Altinn task types with a localized `taskTypes.*` display name.
-const NAMED_TASK_TYPES = new Set(['data', 'signing', 'confirmation', 'payment', 'receipt']);
-
 // The engine deemed this failure terminal - it already exhausted its automatic retry budget, so
 // offering the citizen a Retry would be wrong. This is an error page: a generic localized message,
 // a contact-support pointer, and an expandable details section with only SAFE structured facts
-// (failure kind, step, time, support reference). The backend deliberately never ships raw failure
+// (failure kind, time, support reference). The backend deliberately never ships raw failure
 // detail here (it originates from the engine / a service task and may contain internal text).
 // Recovery is ops-driven and this page is STATIC - a terminal failure requires manual intervention
 // either way, so InstanceProvider deliberately stops polling in the failed state (an open tab must
@@ -237,31 +229,29 @@ function WorkflowFailed() {
           ]}
         />
       </div>
-      <WorkflowFailedDetails
-        failure={workflow?.failure}
-        targetTask={workflow?.targetTask}
-      />
+      <WorkflowFailedDetails failure={workflow?.failure} />
     </Flex>
   );
 }
 
 interface WorkflowFailedDetailsProps {
   failure: IProcessWorkflowFailure | undefined;
-  targetTask: string | undefined;
 }
 
 // Reuses the unknown-error details expander pattern (see UnknownErrorDetails): an AccordionItem
-// with name/value rows. Contains only safe structured facts - never raw error text.
-function WorkflowFailedDetails({ failure, targetTask }: WorkflowFailedDetailsProps) {
+// with name/value rows. Contains only safe structured facts - never raw error text. Deliberately
+// nothing about *which* step failed: the engine step identities are internal (raw operation ids,
+// not localizable), and the transition's target task is just misleading here (it names where the
+// process was headed, as a generic task-type label) - anyone who needs specifics looks up the
+// support reference in the engine.
+function WorkflowFailedDetails({ failure }: WorkflowFailedDetailsProps) {
   const currentLanguage = useCurrentLanguage();
-  const getAltinnTaskType = useGetAltinnTaskType();
 
   const kindKey =
     failure?.kind && KNOWN_FAILURE_KINDS.has(failure.kind)
       ? `process_workflow.failure_kind.${failure.kind}`
       : 'process_workflow.failure_kind.unknown';
 
-  const taskType = targetTask ? getAltinnTaskType(targetTask) : undefined;
   const occurredAt = failure?.occurredAt ? new Date(failure.occurredAt) : undefined;
 
   return (
@@ -274,12 +264,6 @@ function WorkflowFailedDetails({ failure, targetTask }: WorkflowFailedDetailsPro
           label='process_workflow.failed_details_kind'
           value={<Lang id={kindKey} />}
         />
-        {targetTask && (
-          <WorkflowFailedDetailItem
-            label='process_workflow.failed_details_step'
-            value={taskType && NAMED_TASK_TYPES.has(taskType) ? <Lang id={`taskTypes.${taskType}`} /> : targetTask}
-          />
-        )}
         {occurredAt && (
           <WorkflowFailedDetailItem
             label='process_workflow.failed_details_time'

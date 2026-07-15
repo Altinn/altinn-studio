@@ -468,7 +468,6 @@ export function en() {
     'process_workflow.failed_description':
       'Something went wrong while processing the form. The error has been recorded on our side, and you do not need to submit again.',
     'process_workflow.failed_details_kind': 'Failure type',
-    'process_workflow.failed_details_step': 'Step',
     'process_workflow.failed_details_time': 'Time',
     'process_workflow.failed_details_reference': 'Reference',
     'process_workflow.failure_kind.stepFailed': 'A processing step failed',

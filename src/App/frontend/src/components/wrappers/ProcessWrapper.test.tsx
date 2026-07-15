@@ -213,12 +213,13 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
 
     // The details expander (the same widget the unknown-error page uses) exposes only safe
-    // structured facts: localized failure kind, the failed step, when, and the support reference.
-    // Raw error detail is never shipped by the backend, so it cannot appear here.
+    // structured facts: localized failure kind, when, and the support reference. Raw error detail
+    // is never shipped by the backend, so it cannot appear here - and step/task identities are
+    // deliberately omitted too (internal ids; the target task's type label was just misleading).
     await user.click(screen.getByRole('button', { name: 'Vis detaljer om feilen' }));
     expect(screen.getByText('Et behandlingssteg feilet')).toBeInTheDocument();
-    expect(screen.getByText('Task_2')).toBeInTheDocument();
     expect(screen.getByText('0f1d5f88-1e5c-4c1f-9a25-4d9f66b6e5a1')).toBeInTheDocument();
+    expect(screen.queryByText('Task_2')).not.toBeInTheDocument();
   });
 
   it('failed renders the generic kind label for unknown failure kinds', async () => {

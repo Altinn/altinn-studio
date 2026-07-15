@@ -470,7 +470,6 @@ export function nb() {
     'process_workflow.failed_description':
       'Noe gikk galt da skjemaet skulle behandles videre. Feilen er registrert hos oss, og du trenger ikke å sende inn på nytt.',
     'process_workflow.failed_details_kind': 'Feiltype',
-    'process_workflow.failed_details_step': 'Steg',
     'process_workflow.failed_details_time': 'Tidspunkt',
     'process_workflow.failed_details_reference': 'Referanse',
     'process_workflow.failure_kind.stepFailed': 'Et behandlingssteg feilet',
