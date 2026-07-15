@@ -3,7 +3,7 @@
   "displayName": "Altinn Studio Language Server",
   "description": "Validation and language support for Altinn Studio projects.",
   "version": "0.0.4",
-  "publisher": "Altinn Studio",
+  "publisher": "altinnstudio",
   "engines": {
     "vscode": "^1.84.0"
   },
