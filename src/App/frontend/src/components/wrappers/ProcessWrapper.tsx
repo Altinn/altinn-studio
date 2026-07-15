@@ -93,12 +93,13 @@ const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
 // wait grows. Every string is a text resource, so apps override any of them per app. The layers:
 //   always      - spinner, title, body ("you don't need to do anything, we continue automatically")
 //   resolvable  - "Steg x av y" progress through the transition's workflow steps (engine-reported)
-//   retrying    - the engine reported the transition parked between automatic retry attempts; this
-//                 explains the wait more specifically than (and therefore replaces) taking_longer
-//   >=20s       - taking_longer reassurance
+//   >=20s       - taking_longer reassurance (single escalating status line, see below)
 //   >=60s       - an info alert: data is safely stored, processing continues on its own, the page
-//                 can be closed - the honest answer to a transition stuck retrying for hours
-//   poll issues - connection_trouble (the page itself is having trouble asking for updates)
+//                 can be closed - the honest answer to a transition stuck for hours. It SUPERSEDES
+//                 taking_longer (same "this is slow" topic) rather than stacking on top of it, so
+//                 the user never sees two variations of the same reassurance at once.
+//   poll issues - connection_trouble (orthogonal: the page itself is having trouble asking for
+//                 updates, not the transition being slow, so it may co-exist with the tier above)
 function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
   const pollFailureCount = useInstancePollFailureCount();
@@ -113,8 +114,6 @@ function WorkflowProcessing() {
       clearTimeout(stillWorkingTimer);
     };
   }, []);
-
-  const retrying = workflow?.retrying === true;
 
   return (
     <Flex
@@ -138,12 +137,7 @@ function WorkflowProcessing() {
           <Lang id='process_workflow.advancing_body' />
         </div>
         <WorkflowProcessingStep progress={workflow?.progress} />
-        {retrying && (
-          <div className={classes.processingNote}>
-            <Lang id='process_workflow.retrying' />
-          </div>
-        )}
-        {takingLonger && !retrying && (
+        {takingLonger && !stillWorking && (
           <div className={classes.processingNote}>
             <Lang id='process_workflow.taking_longer' />
           </div>

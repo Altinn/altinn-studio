@@ -476,8 +476,6 @@ export function nn() {
     'process_workflow.failure_kind.timeout': 'Handsaminga brukte for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjend feil',
     'process_workflow.taking_longer': 'Dette tek litt lengre tid enn vanleg. Du treng ikkje gjere noko – vent litt til.',
-    'process_workflow.retrying':
-      'Eit av handsamingsstega lukkast ikkje på første forsøk. Vi prøver automatisk på nytt.',
     'process_workflow.still_working':
       'Handsaminga tek uvanleg lang tid. Opplysningane dine er lagra, og handsaminga held fram av seg sjølv – du kan trygt lukke denne sida og komme tilbake seinare.',
     'process_workflow.connection_trouble': 'Vi har problem med å nå serveren akkurat no. Prøver igjen …',

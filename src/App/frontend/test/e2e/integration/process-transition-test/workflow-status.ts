@@ -25,7 +25,7 @@ const appFrontend = new AppFrontend();
  *     workflow first (the cancellation wins over the retry -> terminal Canceled -> frontend `failed`).
  *
  * UI strings (app-libs nb.ts, keys process_workflow.*):
- *   processing  = spinner + "Vi behandler forespørselen din" (deliberately never names the target
+ *   processing  = spinner + "Vi jobber med skjemaet ditt" (deliberately never names the target
  *                 task; a "Steg x av y" line shows live progress through the transition's
  *                 workflow steps when the engine reports counts)
  *   failed      = heading "Noe gikk galt" + contact-support blurb + safe details expander
@@ -138,7 +138,7 @@ describe('Live workflow status (real engine)', () => {
     // live "advancing" state and the task's Send inn action is suppressed. The step indicator shows
     // live progress through the transition's workflow steps (exact numbers depend on the command
     // sequence, so only the shape is asserted).
-    cy.contains('Vi behandler forespørselen din', { timeout: 15000 }).should('be.visible');
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 15000 }).should('be.visible');
     cy.contains(/Steg \d+ av \d+/).should('be.visible');
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
@@ -210,7 +210,7 @@ describe('Live workflow status (real engine)', () => {
 
     // A transient (retryable) failure keeps the transition in `processing` (the engine auto-retries
     // with backoff); it is NOT the terminal failed state, so the failed error page never shows.
-    cy.contains('Vi behandler forespørselen din', { timeout: 15000 }).should('be.visible');
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 15000 }).should('be.visible');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
     // Attempt 2 (after the auto-retry + engine backoff) succeeds and commits Task_2 out-of-band; the
@@ -238,7 +238,7 @@ describe('Live workflow status (real engine)', () => {
     // Committed currentTask is already Task_2 (not idle/receipt), yet the post-commit step is still in
     // flight -> the advancing UI shows on the committed Task_2 and its Send inn is suppressed. This is
     // exactly what a legacy IProcessEnd (which runs on the process-END transition) could NOT surface.
-    cy.contains('Vi behandler forespørselen din', { timeout: 20000 }).should('be.visible');
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 20000 }).should('be.visible');
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
 
     // Once the post-commit step completes the status settles and Task_2 renders normally. The url

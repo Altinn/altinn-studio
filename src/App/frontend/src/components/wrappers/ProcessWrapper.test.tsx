@@ -41,7 +41,7 @@ describe('ProcessWrapper workflow state machine', () => {
     await renderProcessWrapper({ status: 'idle' });
 
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
-    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/vi jobber med skjemaet ditt/i)).not.toBeInTheDocument();
   });
 
   it('renders children when no workflow annotation is present', async () => {
@@ -55,7 +55,7 @@ describe('ProcessWrapper workflow state machine', () => {
     // targetTask is set but deliberately NOT rendered in the message (task ids aren't user-facing).
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
 
-    expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
+    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
     expect(screen.getByText(/du trenger ikke gjøre noe/i)).toBeInTheDocument();
     expect(screen.queryByText(/task_2/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('ProcessWrapper workflow state machine', () => {
     unmount();
 
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
-    expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
+    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
     expect(screen.queryByText(/steg \d+ av \d+/i)).not.toBeInTheDocument();
   });
 
@@ -87,46 +87,30 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(await screen.findByText('Steg 12 av 12')).toBeInTheDocument();
   });
 
-  it('processing escalates: taking-longer after 20s, then the safe-to-leave alert after 60s', async () => {
-    // A transition can be stuck retrying server-side for hours; a bare spinner is infuriating at
-    // that scale. After 20s we reassure; after 60s we level with the user - the data is durably
-    // stored and the processing continues on its own, so the page can be closed.
+  it('processing escalates: taking-longer after 20s, then the safe-to-leave alert replaces it after 60s', async () => {
+    // A transition can be stuck server-side for hours; a bare spinner is infuriating at that scale.
+    // After 20s we reassure; after 60s we level with the user - the data is durably stored and the
+    // processing continues on its own, so the page can be closed. The two are a single escalating
+    // status line: the 60s alert SUPERSEDES the 20s note (same "this is slow" topic) rather than
+    // stacking a second variation of the same reassurance on top of it.
     jest.useFakeTimers();
     try {
       await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
-      expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
+      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
       expect(screen.queryByText(/dette tar litt lengre tid enn vanlig/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/du kan trygt lukke denne siden/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
       await act(async () => {
         await jest.advanceTimersByTimeAsync(25_000);
       });
       expect(screen.getByText(/dette tar litt lengre tid enn vanlig/i)).toBeInTheDocument();
-      expect(screen.queryByText(/du kan trygt lukke denne siden/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
       await act(async () => {
         await jest.advanceTimersByTimeAsync(40_000);
       });
-      expect(screen.getByText(/du kan trygt lukke denne siden/i)).toBeInTheDocument();
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  it('processing explains an engine retry instead of the generic taking-longer note', async () => {
-    // The backend flags a transition parked between automatic retry attempts. That explains the
-    // wait more specifically than the time-based taking_longer note, so it replaces it - honestly
-    // telling the user a step is being retried rather than leaving them guessing.
-    jest.useFakeTimers();
-    try {
-      await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2', retrying: true }, false);
-
-      expect(await screen.findByText(/lyktes ikke på første forsøk/i)).toBeInTheDocument();
-
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(25_000);
-      });
-      expect(screen.getByText(/lyktes ikke på første forsøk/i)).toBeInTheDocument();
+      // The safe-to-leave alert replaces the taking-longer note - the user never sees both at once.
+      expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
       expect(screen.queryByText(/dette tar litt lengre tid enn vanlig/i)).not.toBeInTheDocument();
     } finally {
       jest.useRealTimers();
@@ -159,7 +143,7 @@ describe('ProcessWrapper workflow state machine', () => {
         },
       });
 
-      expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
+      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
       failing = true;
 
       // Cycle 1: swallowed silently - no hint yet.
@@ -173,7 +157,7 @@ describe('ProcessWrapper workflow state machine', () => {
       await act(async () => {
         await jest.advanceTimersByTimeAsync(12_000);
       });
-      expect(screen.getByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
+      expect(screen.getByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
       expect(screen.getByText(/problemer med å nå serveren/i)).toBeInTheDocument();
     } finally {
       jest.useRealTimers();
@@ -188,7 +172,7 @@ describe('ProcessWrapper workflow state machine', () => {
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, true, 'pdf=1');
 
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
-    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/vi jobber med skjemaet ditt/i)).not.toBeInTheDocument();
   });
 
   it('failed shows the error page with support info and safe structured details - and no Retry', async () => {
@@ -207,7 +191,7 @@ describe('ProcessWrapper workflow state machine', () => {
     // The engine already exhausted its automatic retry budget, so the citizen gets an error page
     // with a contact-support pointer - deliberately NO Retry affordance. Recovery is ops-driven
     // and the page is static: no polling (tested below), a manual refresh picks up the recovery.
-    expect(screen.getByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
+    expect(screen.getByText(/vi klarte ikke å behandle skjemaet videre/i)).toBeInTheDocument();
     expect(screen.getByText(/brukerservice/i)).toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
@@ -277,7 +261,7 @@ describe('ProcessWrapper workflow state machine', () => {
         },
       });
 
-      expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
+      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
 
       // The transition commits out-of-band (this session never called process/next).
       committed = true;
@@ -325,7 +309,7 @@ describe('ProcessWrapper workflow state machine', () => {
         },
       });
 
-      expect(await screen.findByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
+      expect(await screen.findByText(/vi klarte ikke å behandle skjemaet videre/i)).toBeInTheDocument();
       const fetchesAfterLoad = fetchCount;
 
       resumedByOps = true;
@@ -337,7 +321,7 @@ describe('ProcessWrapper workflow state machine', () => {
       });
 
       expect(fetchCount).toBe(fetchesAfterLoad);
-      expect(screen.getByText(/noe gikk galt da skjemaet skulle behandles videre/i)).toBeInTheDocument();
+      expect(screen.getByText(/vi klarte ikke å behandle skjemaet videre/i)).toBeInTheDocument();
       expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     } finally {
       jest.useRealTimers();

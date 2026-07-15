@@ -476,8 +476,6 @@ export function en() {
     'process_workflow.failure_kind.timeout': 'The processing took too long',
     'process_workflow.failure_kind.unknown': 'Unknown error',
     'process_workflow.taking_longer': 'This is taking a little longer than usual. You don’t need to do anything – please wait a moment.',
-    'process_workflow.retrying':
-      'One of the processing steps didn’t succeed on the first try. We’re automatically trying again.',
     'process_workflow.still_working':
       'The processing is taking unusually long. Your information is saved and the processing continues on its own – you can safely close this page and come back later.',
     'process_workflow.connection_trouble': 'We’re having trouble reaching the server right now. Retrying …',
