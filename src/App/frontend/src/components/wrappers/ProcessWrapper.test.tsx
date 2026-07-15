@@ -87,31 +87,28 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(await screen.findByText('Steg 12 av 12')).toBeInTheDocument();
   });
 
-  it('processing escalates: taking-longer after 20s, then the safe-to-leave alert replaces it after 60s', async () => {
+  it('processing escalates once to the safe-to-leave alert after ~40s - a single tier, not a series', async () => {
     // A transition can be stuck server-side for hours; a bare spinner is infuriating at that scale.
-    // After 20s we reassure; after 60s we level with the user - the data is durably stored and the
-    // processing continues on its own, so the page can be closed. The two are a single escalating
-    // status line: the 60s alert SUPERSEDES the 20s note (same "this is slow" topic) rather than
-    // stacking a second variation of the same reassurance on top of it.
+    // We deliberately do NOT graduate through several near-identical "this is slow" notes: nothing
+    // extra before the threshold, then one honest message once the wait is clearly abnormal - the
+    // data is durably stored and the processing continues on its own, so the page can be closed.
     jest.useFakeTimers();
     try {
       await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
       expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
-      expect(screen.queryByText(/dette tar litt lengre tid enn vanlig/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
+      // Just before the threshold: still only the base spinner + body, no escalation yet.
       await act(async () => {
-        await jest.advanceTimersByTimeAsync(25_000);
+        await jest.advanceTimersByTimeAsync(30_000);
       });
-      expect(screen.getByText(/dette tar litt lengre tid enn vanlig/i)).toBeInTheDocument();
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
+      // Past ~40s: the single safe-to-leave alert appears.
       await act(async () => {
-        await jest.advanceTimersByTimeAsync(40_000);
+        await jest.advanceTimersByTimeAsync(15_000);
       });
-      // The safe-to-leave alert replaces the taking-longer note - the user never sees both at once.
       expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
-      expect(screen.queryByText(/dette tar litt lengre tid enn vanlig/i)).not.toBeInTheDocument();
     } finally {
       jest.useRealTimers();
     }
@@ -189,19 +186,25 @@ describe('ProcessWrapper workflow state machine', () => {
     });
 
     // The engine already exhausted its automatic retry budget, so the citizen gets an error page
-    // with a contact-support pointer - deliberately NO Retry affordance. Recovery is ops-driven
-    // and the page is static: no polling (tested below), a manual refresh picks up the recovery.
-    expect(screen.getByText(/vi klarte ikke å behandle skjemaet videre/i)).toBeInTheDocument();
+    // that levels with them: the processing failed and won't self-resolve, so contact support -
+    // deliberately NO Retry affordance and NO false "we've got it" reassurance. Recovery is
+    // ops-driven and the page is static: no polling (tested below), a manual refresh picks it up.
+    expect(screen.getByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).toBeInTheDocument();
     expect(screen.getByText(/brukerservice/i)).toBeInTheDocument();
+    // Both phone and email contact routes are offered (email is a nested Lang param, so it matches
+    // its own element plus the enclosing paragraph - assert presence, not a single match).
+    expect(screen.getAllByText(/servicedesk@altinn\.no/i).length).toBeGreaterThan(0);
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
 
     // The details expander (the same widget the unknown-error page uses) exposes only safe
-    // structured facts: localized failure kind, when, and the support reference. Raw error detail
-    // is never shipped by the backend, so it cannot appear here - and step/task identities are
-    // deliberately omitted too (internal ids; the target task's type label was just misleading).
+    // structured facts: localized failure kind, when, and the two references the user relays to
+    // support (the form/instance id and the workflow id). Raw error detail is never shipped by the
+    // backend, so it cannot appear here - and step/task identities are deliberately omitted too
+    // (internal ids; the target task's type label was just misleading).
     await user.click(screen.getByRole('button', { name: 'Vis detaljer om feilen' }));
     expect(screen.getByText('Et steg i behandlingen feilet')).toBeInTheDocument();
+    expect(screen.getByText('Skjemareferanse')).toBeInTheDocument();
     expect(screen.getByText('0f1d5f88-1e5c-4c1f-9a25-4d9f66b6e5a1')).toBeInTheDocument();
     expect(screen.queryByText('Task_2')).not.toBeInTheDocument();
   });
@@ -309,7 +312,7 @@ describe('ProcessWrapper workflow state machine', () => {
         },
       });
 
-      expect(await screen.findByText(/vi klarte ikke å behandle skjemaet videre/i)).toBeInTheDocument();
+      expect(await screen.findByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).toBeInTheDocument();
       const fetchesAfterLoad = fetchCount;
 
       resumedByOps = true;
@@ -321,7 +324,7 @@ describe('ProcessWrapper workflow state machine', () => {
       });
 
       expect(fetchCount).toBe(fetchesAfterLoad);
-      expect(screen.getByText(/vi klarte ikke å behandle skjemaet videre/i)).toBeInTheDocument();
+      expect(screen.getByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).toBeInTheDocument();
       expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     } finally {
       jest.useRealTimers();

@@ -12,7 +12,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstancePollFailureCount } from 'src/features/instance/InstanceContext';
+import { useInstancePollFailureCount, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -74,43 +74,37 @@ function NavigationError({ label }: NavigationErrorProps) {
   );
 }
 
-// After this long in the processing state we reassure the user it's still working, rather than
-// leaving them staring at a spinner indefinitely (workflows can retry for a long time server-side).
-const TAKING_LONGER_MS = 20_000;
-
-// From this long we level with the user: the wait is unusual, their data is durably stored and the
-// processing continues server-side whether the page stays open or not - so they can safely leave
-// and come back. A transition can legitimately be stuck retrying for hours (network trouble, a
-// struggling downstream service), and a bare spinner is infuriating at that scale.
-const STILL_WORKING_MS = 60_000;
+// After this long in the processing state we stop leaving the user staring at a bare spinner and
+// level with them: the wait is unusual, their data is durably stored and the processing continues
+// server-side whether the page stays open or not - so they can safely leave and come back. A
+// transition can legitimately be stuck retrying for hours (network trouble, a struggling downstream
+// service), and a bare spinner is infuriating at that scale. One escalation, not a graduated series
+// of near-identical "this is slow" notes - a single honest message once the wait is clearly abnormal.
+const STILL_WORKING_MS = 40_000;
 
 // From this many consecutive failed poll cycles we tell the user we're having trouble reaching the
 // server (one failed cycle is a swallowed blip; InstanceProvider escalates to the full error page
 // at INSTANCE_POLL_FAILURE_ESCALATION_CYCLES). Staying honest while the poll loop self-recovers.
 const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
 
-// Spinner + predefined text (see #18935 for the design discussion), with escalation tiers as the
-// wait grows. Every string is a text resource, so apps override any of them per app. The layers:
+// Spinner + predefined text (see #18935 for the design discussion). Every string is a text resource,
+// so apps override any of them per app. The layers:
 //   always      - spinner, title, body ("you don't need to do anything, we continue automatically")
 //   resolvable  - "Steg x av y" progress through the transition's workflow steps (engine-reported)
-//   >=20s       - taking_longer reassurance (single escalating status line, see below)
-//   >=60s       - an info alert: data is safely stored, processing continues on its own, the page
-//                 can be closed - the honest answer to a transition stuck for hours. It SUPERSEDES
-//                 taking_longer (same "this is slow" topic) rather than stacking on top of it, so
-//                 the user never sees two variations of the same reassurance at once.
+//   >=40s       - an info alert: data is safely stored, processing continues on its own, the page can
+//                 be closed - the honest answer to a transition stuck for a long time. Single tier:
+//                 no graduated series of near-identical "this is slow" notes, just one message once
+//                 the wait is clearly abnormal.
 //   poll issues - connection_trouble (orthogonal: the page itself is having trouble asking for
-//                 updates, not the transition being slow, so it may co-exist with the tier above)
+//                 updates, not the transition being slow, so it may co-exist with the alert above)
 function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
   const pollFailureCount = useInstancePollFailureCount();
   const { langAsString } = useLanguage();
-  const [takingLonger, setTakingLonger] = useState(false);
   const [stillWorking, setStillWorking] = useState(false);
   useEffect(() => {
-    const takingLongerTimer = setTimeout(() => setTakingLonger(true), TAKING_LONGER_MS);
     const stillWorkingTimer = setTimeout(() => setStillWorking(true), STILL_WORKING_MS);
     return () => {
-      clearTimeout(takingLongerTimer);
       clearTimeout(stillWorkingTimer);
     };
   }, []);
@@ -137,11 +131,6 @@ function WorkflowProcessing() {
           <Lang id='process_workflow.advancing_body' />
         </div>
         <WorkflowProcessingStep progress={workflow?.progress} />
-        {takingLonger && !stillWorking && (
-          <div className={classes.processingNote}>
-            <Lang id='process_workflow.taking_longer' />
-          </div>
-        )}
         {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
           <div className={classes.processingNote}>
             <Lang id='process_workflow.connection_trouble' />
@@ -185,17 +174,21 @@ function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgre
 const KNOWN_FAILURE_KINDS = new Set(['stepFailed', 'dependencyFailed', 'engineFault', 'timeout']);
 
 // The engine deemed this failure terminal - it already exhausted its automatic retry budget, so
-// offering the citizen a Retry would be wrong. This is an error page: a generic localized message,
-// a contact-support pointer, and an expandable details section with only SAFE structured facts
-// (failure kind, time, support reference). The backend deliberately never ships raw failure
-// detail here (it originates from the engine / a service task and may contain internal text).
-// Recovery is ops-driven and this page is STATIC - a terminal failure requires manual intervention
-// either way, so InstanceProvider deliberately stops polling in the failed state (an open tab must
-// not pay the expensive failed-path read forever); after an ops resume, a manual refresh picks up
-// the recovered state. A future improvement is a first-class, app-authored user-safe failure
-// message.
+// offering the citizen a Retry would be wrong. This is an error page and it does NOT sugar-coat: the
+// processing failed, it will not resolve on its own, and there is no user-facing recovery. Recovery
+// is ops-driven (a manual resume by the service owner) and this page is STATIC - so we tell the user
+// plainly to get in touch rather than implying a safety net (no "we've recorded it" / "no need to
+// resubmit", which over-promise a monitoring/auto-retry that may not exist for a given app). The
+// contact points at Altinn customer service (the service owner - who could actually resume it - is
+// not reachable from here yet) and asks the user to relay the reference so support can find the
+// instance/workflow. Details expander carries only SAFE structured facts (kind, time, the two
+// references) - never raw error text (it originates from the engine / a service task and may contain
+// internal detail). InstanceProvider deliberately stops polling in the failed state (an open tab must
+// not pay the expensive failed-path read forever); after an ops resume, a manual refresh picks up the
+// recovered state.
 function WorkflowFailed() {
   const workflow = useProcessWorkflow();
+  const instanceId = useLaxInstanceId();
 
   return (
     <Flex
@@ -214,31 +207,44 @@ function WorkflowFailed() {
       </div>
       <div className={classes.failedDescription}>
         <Lang
-          id='instantiate.unknown_error_customer_support'
+          id='process_workflow.failed_contact'
           params={[
             <Lang
               key={0}
               id='general.customer_service_phone_number'
             />,
+            <Lang
+              key={1}
+              id='general.customer_service_email'
+            />,
+            <Lang
+              key={2}
+              id='instantiate.unknown_error_show_details'
+            />,
           ]}
         />
       </div>
-      <WorkflowFailedDetails failure={workflow?.failure} />
+      <WorkflowFailedDetails
+        failure={workflow?.failure}
+        instanceId={instanceId}
+      />
     </Flex>
   );
 }
 
 interface WorkflowFailedDetailsProps {
   failure: IProcessWorkflowFailure | undefined;
+  instanceId: string | undefined;
 }
 
 // Reuses the unknown-error details expander pattern (see UnknownErrorDetails): an AccordionItem
 // with name/value rows. Contains only safe structured facts - never raw error text. Deliberately
 // nothing about *which* step failed: the engine step identities are internal (raw operation ids,
 // not localizable), and the transition's target task is just misleading here (it names where the
-// process was headed, as a generic task-type label) - anyone who needs specifics looks up the
-// support reference in the engine.
-function WorkflowFailedDetails({ failure }: WorkflowFailedDetailsProps) {
+// process was headed, as a generic task-type label). Two references are surfaced so the user can
+// relay them to support: the instance id (the form submission, searchable in Storage) and the
+// workflow id (the specific transition, searchable in the engine).
+function WorkflowFailedDetails({ failure, instanceId }: WorkflowFailedDetailsProps) {
   const currentLanguage = useCurrentLanguage();
 
   const kindKey =
@@ -262,6 +268,12 @@ function WorkflowFailedDetails({ failure }: WorkflowFailedDetailsProps) {
           <WorkflowFailedDetailItem
             label='process_workflow.failed_details_time'
             value={occurredAt.toLocaleString(currentLanguage)}
+          />
+        )}
+        {instanceId && (
+          <WorkflowFailedDetailItem
+            label='process_workflow.failed_details_instance'
+            value={instanceId}
           />
         )}
         {failure?.workflowId && (

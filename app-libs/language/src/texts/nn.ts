@@ -466,17 +466,18 @@ export function nn() {
     'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noko gjekk gale',
     'process_workflow.failed_description':
-      'Vi klarte ikkje å handsame skjemaet vidare. Feilen er registrert hos oss, og du treng ikkje å sende inn på nytt.',
+      'Vi klarte ikkje å fullføre handsaminga av skjemaet, og det rettar seg ikkje av seg sjølv. Du må ta kontakt for å få hjelp til å komme vidare.',
+    'process_workflow.failed_contact':
+      'Ta kontakt med Altinn brukarservice på telefon {0} eller e-post {1}. Oppgi referansen under «{2}» når du tek kontakt.',
     'process_workflow.failed_details_kind': 'Feiltype',
     'process_workflow.failed_details_time': 'Tidspunkt',
-    'process_workflow.failed_details_reference': 'Referanse',
+    'process_workflow.failed_details_instance': 'Skjemareferanse',
+    'process_workflow.failed_details_reference': 'Handsamingsreferanse',
     'process_workflow.failure_kind.stepFailed': 'Eit steg i handsaminga feila',
     'process_workflow.failure_kind.dependencyFailed': 'Eit steg i handsaminga feila',
     'process_workflow.failure_kind.engineFault': 'Systemet feila under handsaminga',
     'process_workflow.failure_kind.timeout': 'Handsaminga tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjend årsak',
-    'process_workflow.taking_longer':
-      'Dette tek litt lengre tid enn vanleg. Vi jobbar framleis med det.',
     'process_workflow.still_working':
       'Dette tek uvanleg lang tid. Opplysningane dine er lagra, og vi held fram automatisk – du kan trygt lukke sida og komme tilbake seinare.',
     'process_workflow.connection_trouble': 'Vi har problem med å nå serveren akkurat no. Prøver igjen …',

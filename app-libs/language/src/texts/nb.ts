@@ -468,17 +468,18 @@ export function nb() {
     'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
-      'Vi klarte ikke å behandle skjemaet videre. Feilen er registrert hos oss, og du trenger ikke å sende inn på nytt.',
+      'Vi klarte ikke å fullføre behandlingen av skjemaet, og det retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',
+    'process_workflow.failed_contact':
+      'Ta kontakt med Altinn brukerservice på telefon {0} eller e-post {1}. Oppgi referansen under «{2}» når du tar kontakt.',
     'process_workflow.failed_details_kind': 'Feiltype',
     'process_workflow.failed_details_time': 'Tidspunkt',
-    'process_workflow.failed_details_reference': 'Referanse',
+    'process_workflow.failed_details_instance': 'Skjemareferanse',
+    'process_workflow.failed_details_reference': 'Behandlingsreferanse',
     'process_workflow.failure_kind.stepFailed': 'Et steg i behandlingen feilet',
     'process_workflow.failure_kind.dependencyFailed': 'Et steg i behandlingen feilet',
     'process_workflow.failure_kind.engineFault': 'Systemet feilet under behandlingen',
     'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
-    'process_workflow.taking_longer':
-      'Dette tar litt lengre tid enn vanlig. Vi jobber fortsatt med det.',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og vi fortsetter automatisk – du kan trygt lukke siden og komme tilbake senere.',
     'process_workflow.connection_trouble': 'Vi har problemer med å nå serveren akkurat nå. Prøver igjen …',

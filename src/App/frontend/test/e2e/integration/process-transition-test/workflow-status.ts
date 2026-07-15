@@ -165,10 +165,12 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
 
-    // The details expander exposes only safe structured facts (kind label + support reference).
+    // The details expander exposes only safe structured facts: the kind label plus the two
+    // references the user relays to support (the form/instance id and the workflow id).
     cy.findByRole('button', { name: 'Vis detaljer om feilen' }).click();
     cy.contains('Et steg i behandlingen feilet').should('be.visible');
-    cy.contains('Referanse').should('be.visible');
+    cy.contains('Skjemareferanse').should('be.visible');
+    cy.contains('Behandlingsreferanse').should('be.visible');
 
     // The failed state deliberately does NOT poll (a terminal failure needs manual intervention
     // either way, so an open tab must not hammer the expensive failed-path read forever): the error

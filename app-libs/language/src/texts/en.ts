@@ -466,17 +466,18 @@ export function en() {
     'process_workflow.advancing_step': 'Step {0} of {1}',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
-      'We couldn’t process the form any further. The error has been recorded on our side, and you do not need to submit again.',
+      'We couldn’t complete the processing of the form, and it won’t resolve on its own. You need to get in touch to get help moving forward.',
+    'process_workflow.failed_contact':
+      'Contact Altinn customer service by phone at {0} or email at {1}. Have the reference under “{2}” ready when you get in touch.',
     'process_workflow.failed_details_kind': 'Failure type',
     'process_workflow.failed_details_time': 'Time',
-    'process_workflow.failed_details_reference': 'Reference',
+    'process_workflow.failed_details_instance': 'Form reference',
+    'process_workflow.failed_details_reference': 'Processing reference',
     'process_workflow.failure_kind.stepFailed': 'A step in the processing failed',
     'process_workflow.failure_kind.dependencyFailed': 'A step in the processing failed',
     'process_workflow.failure_kind.engineFault': 'The system failed during processing',
     'process_workflow.failure_kind.timeout': 'The processing took too long',
     'process_workflow.failure_kind.unknown': 'Unknown cause',
-    'process_workflow.taking_longer':
-      'This is taking a little longer than usual. We’re still working on it.',
     'process_workflow.still_working':
       'This is taking unusually long. Your information is saved, and we’ll continue automatically – you can safely close this page and come back later.',
     'process_workflow.connection_trouble': 'We’re having trouble reaching the server right now. Retrying …',
