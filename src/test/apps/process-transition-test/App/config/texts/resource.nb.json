@@ -23,7 +23,7 @@
     },
     {
       "id": "Task2.description",
-      "value": "Overgangen fra Task 1 er fullført. Trykk «Send inn» for å avslutte prosessen og gå til kvitteringen, eller gå tilbake til Task 1 for å prøve et nytt scenario."
+      "value": "Overgangen fra Task 1 er fullført. Trykk **Send inn** for å avslutte prosessen og gå til kvitteringen, eller gå tilbake til Task 1 for å prøve et nytt scenario."
     },
     {
       "id": "path.title",
@@ -114,8 +114,12 @@
       "value": "Feil – behandlingen stopper og feilsiden vises"
     },
     {
-      "id": "Task1.hint",
-      "value": "Tips: Last siden på nytt mens overgangen pågår – ventesiden skal overleve en refresh og navigere deg videre til Task 2 når overgangen er ferdig."
+      "id": "Task1.hint.title",
+      "value": "Tips: prøv å laste siden på nytt underveis"
+    },
+    {
+      "id": "Task1.hint.body",
+      "value": "Mens overgangen pågår kan du laste siden på nytt for å koble deg av den blokkerende forespørselen. Ventesiden skal overleve en refresh og sende deg videre til Task 2 så snart overgangen er ferdig."
     },
     {
       "id": "sendinnTask1.title",

@@ -161,9 +161,11 @@
       },
       {
         "id": "Task1Hint",
-        "type": "Paragraph",
+        "type": "Alert",
+        "severity": "info",
         "textResourceBindings": {
-          "title": "Task1.hint"
+          "title": "Task1.hint.title",
+          "body": "Task1.hint.body"
         }
       },
       {
