@@ -49,18 +49,14 @@ export function ImageLayout({
 }: ImageLayoutProps) {
   const { lang, langAsString } = useTranslation();
   const resolvedAltText = altText ? langAsString(altText) : undefined;
-  const basePath = src.split(/[?#]/)[0].toLowerCase();
-  const renderSvg = basePath.endsWith('.svg') || src.startsWith('data:image/svg');
 
   if (renderedInCardMedia) {
     return (
-      <InnerImage
+      <img
         id={componentId}
-        renderSvg={renderSvg}
-        altText={resolvedAltText}
         src={src}
-        width={width}
-        height={cardMediaHeight}
+        alt={resolvedAltText}
+        style={{ width, height: cardMediaHeight }}
       />
     );
   }
@@ -69,41 +65,14 @@ export function ImageLayout({
     <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
       <Flex container direction='row' justifyContent={align} spacing={2}>
         <Flex item className={classes.imageItem}>
-          <InnerImage
-            id={componentId}
-            renderSvg={renderSvg}
-            altText={resolvedAltText}
-            src={src}
-            width={width}
-          />
+          <img id={componentId} src={src} alt={resolvedAltText} style={{ width }} />
         </Flex>
         {help && (
           <Flex item className={classes.helpItem}>
-            <HelpTextContainer id={componentId} title={altText} helpText={lang(help)} />
+            <HelpTextContainer id={componentId} title={resolvedAltText} helpText={lang(help)} />
           </Flex>
         )}
       </Flex>
     </ComponentStructure>
   );
-}
-
-interface InnerImageProps {
-  renderSvg: boolean;
-  id: string;
-  src: string;
-  altText?: string;
-  width: string;
-  height?: string;
-}
-
-function InnerImage({ renderSvg, id, src, altText, width, height }: InnerImageProps) {
-  if (renderSvg) {
-    return (
-      <object type='image/svg+xml' id={id} data={src} role='presentation'>
-        <img src={src} alt={altText} style={{ width, height }} />
-      </object>
-    );
-  }
-
-  return <img id={id} src={src} alt={altText} style={{ width, height }} />;
 }
