@@ -1,6 +1,6 @@
-# Altinn App Config (VS Code extension)
+# Altinn Studio Language Server (VS Code extension)
 
-A thin language-client extension for Altinn app configuration.
+A thin language-client extension for the Altinn Studio language server.
 Launches a language server via `studioctl app lsp` over stdio.
 
 ## Develop
