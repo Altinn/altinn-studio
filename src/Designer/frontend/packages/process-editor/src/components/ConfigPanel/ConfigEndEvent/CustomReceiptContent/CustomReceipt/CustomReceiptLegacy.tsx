@@ -1,34 +1,24 @@
 import React from 'react';
 import classes from './CustomReceipt.module.css';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton, StudioToggleableTextfield } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import { useBpmnContext } from '../../../../../contexts/BpmnContext';
-import {
-  isVersionEqualOrGreater,
-  MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
-} from '../../../../../utils/processEditorUtils/processEditorUtils';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
 import { EditDataTypes } from '../../../ConfigContent/EditDataTypes';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import { CustomReceiptLegacy } from './CustomReceiptLegacy';
+import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 
-export const CustomReceipt = (): React.ReactElement => {
+export const CustomReceiptLegacy = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { layoutSets, allDataModelIds, existingCustomReceiptLayoutSetId, deleteLayoutSet } =
-    useBpmnApiContext();
-  const { appVersion } = useBpmnContext();
-
-  // From v9 the custom receipt's layout set is named after its task, so the name is fixed and not editable.
-  const hasFixedName: boolean = isVersionEqualOrGreater(
-    appVersion?.backendVersion ?? '',
-    MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
-  );
-
-  if (!hasFixedName) {
-    return <CustomReceiptLegacy />;
-  }
+  const {
+    layoutSets,
+    allDataModelIds,
+    existingCustomReceiptLayoutSetId,
+    deleteLayoutSet,
+    mutateLayoutSetId,
+  } = useBpmnApiContext();
+  const { validateLayoutSetName } = useValidateLayoutSetName();
 
   const existingDataModelId: string = getDataTypeFromLayoutSetsWithExistingId(
     layoutSets,
@@ -39,9 +29,28 @@ export const CustomReceipt = (): React.ReactElement => {
     deleteLayoutSet({ layoutSetIdToUpdate: existingCustomReceiptLayoutSetId });
   };
 
+  const handleEditLayoutSetId = (event: React.FocusEvent<HTMLInputElement, Element>) => {
+    const newLayoutSetId: string = event.target.value;
+
+    if (newLayoutSetId === existingCustomReceiptLayoutSetId) return;
+
+    mutateLayoutSetId({
+      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
+      newLayoutSetId,
+    });
+  };
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.inputFields}>
+        <StudioToggleableTextfield
+          customValidation={(newLayoutSetName: string) =>
+            validateLayoutSetName(newLayoutSetName, layoutSets, existingCustomReceiptLayoutSetId)
+          }
+          label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
+          onBlur={handleEditLayoutSetId}
+          value={existingCustomReceiptLayoutSetId}
+        />
         <EditDataTypes
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
           dataModelIds={allDataModelIds}
