@@ -10,7 +10,7 @@
       <xs:sequence>
         <xs:element name="path" type="xs:string" minOccurs="0" />
         <xs:element name="delayMs" type="xs:int" minOccurs="0" />
-        <xs:element name="retries" type="xs:int" minOccurs="0" />
+        <xs:element name="attempts" type="xs:int" minOccurs="0" />
         <xs:element name="endState" type="xs:string" minOccurs="0" />
       </xs:sequence>
     </xs:complexType>

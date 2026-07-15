@@ -17,9 +17,9 @@ namespace Altinn.App.Logic;
 /// and the engine surfaces the transition as <c>processing</c> (delay / transient retries) or
 /// <c>failed</c> (terminal), so the frontend's live workflow-status state machine is exercised.
 ///
-/// Scenario shape: inject <c>delayMs</c> on every attempt, fail retryably <c>retries</c> times, then
-/// settle on <c>endState</c> — either <c>success</c> (transition completes) or <c>failure</c>
-/// (permanent failure → error page).
+/// Scenario shape: run <c>attempts</c> times with <c>delayMs</c> injected on each; every attempt but
+/// the last fails retryably (the engine auto-retries), and the last settles on <c>endState</c> —
+/// either <c>success</c> (transition completes) or <c>failure</c> (permanent failure → error page).
 /// </summary>
 public sealed class TaskEndingHandler : IOnTaskEndingHandler
 {
@@ -43,7 +43,7 @@ public sealed class TaskEndingHandler : IOnTaskEndingHandler
         }
 
         int delayMs = levers.delayMs ?? 0;
-        int retries = levers.retries ?? 0;
+        int attempts = levers.attempts ?? 1;
         bool endInFailure = levers.endState == "failure";
 
         if (delayMs > 0)
@@ -53,19 +53,20 @@ public sealed class TaskEndingHandler : IOnTaskEndingHandler
 
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/').Last());
         int attempt = AttemptTracker.Next(instanceGuid, "preCommit");
-        if (attempt <= retries)
+        if (attempt < attempts)
         {
+            // Not the last attempt yet: fail retryably so the engine re-invokes this hook.
             return HookResult.FailedRetryable(
-                $"TransitionControl forced a transient preCommit failure (attempt {attempt} of {retries})."
+                $"TransitionControl forced a transient preCommit failure (attempt {attempt} of {attempts})."
             );
         }
 
-        // Retries spent: settle on the configured end state. Reset first so replaying the scenario
+        // Last attempt: settle on the configured end state. Reset first so replaying the scenario
         // (e.g. after navigating back from Task_2) starts again from attempt 1.
         AttemptTracker.Reset(instanceGuid, "preCommit");
         return endInFailure
             ? HookResult.FailedPermanent(
-                $"TransitionControl forced a terminal preCommit failure after {retries} retr{(retries == 1 ? "y" : "ies")}."
+                $"TransitionControl forced a terminal preCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")}."
             )
             : HookResult.Success();
     }

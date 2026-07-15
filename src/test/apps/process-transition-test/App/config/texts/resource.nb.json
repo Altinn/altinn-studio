@@ -74,28 +74,28 @@
       "value": "Svært lang – ca. 30 sekunder"
     },
     {
-      "id": "retries.title",
-      "value": "Antall forbigående feil"
+      "id": "attempts.title",
+      "value": "Antall forsøk"
     },
     {
-      "id": "retries.help",
-      "value": "Antall ganger overgangen feiler forbigående (motoren prøver automatisk på nytt) før den lander på valgt sluttilstand."
+      "id": "attempts.help",
+      "value": "Hvor mange ganger motoren forsøker overgangen. Alle forsøk unntatt det siste feiler forbigående (motoren prøver automatisk på nytt); det siste forsøket lander på valgt sluttilstand. Forsinkelsen legges på hvert forsøk."
     },
     {
-      "id": "retries.none",
-      "value": "Ingen – lander på sluttilstanden med en gang"
+      "id": "attempts.one",
+      "value": "1 forsøk (ingen gjenprøving)"
     },
     {
-      "id": "retries.one",
-      "value": "1 forbigående feil"
+      "id": "attempts.two",
+      "value": "2 forsøk"
     },
     {
-      "id": "retries.two",
-      "value": "2 forbigående feil"
+      "id": "attempts.three",
+      "value": "3 forsøk"
     },
     {
-      "id": "retries.five",
-      "value": "5 forbigående feil"
+      "id": "attempts.five",
+      "value": "5 forsøk"
     },
     {
       "id": "endState.title",
@@ -103,7 +103,7 @@
     },
     {
       "id": "endState.help",
-      "value": "Hva som skjer når de forbigående feilene er brukt opp."
+      "value": "Hva som skjer på det siste forsøket."
     },
     {
       "id": "endState.success",

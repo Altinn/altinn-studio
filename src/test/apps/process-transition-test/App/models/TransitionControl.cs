@@ -16,21 +16,22 @@ namespace Altinn.App.Models.TransitionControl
         [JsonPropertyName("path")]
         public string path { get; set; }
 
-        /// <summary>Delay injected on every attempt, regardless of retries/end state.</summary>
+        /// <summary>Delay injected on every attempt, regardless of attempts/end state.</summary>
         [XmlElement("delayMs", Order = 2)]
         [JsonProperty("delayMs")]
         [JsonPropertyName("delayMs")]
         public int? delayMs { get; set; }
 
-        /// <summary>Number of transient (retryable) failures before the run settles on its
-        /// end state. Only meaningful on an error path.</summary>
-        [XmlElement("retries", Order = 3)]
-        [JsonProperty("retries")]
-        [JsonPropertyName("retries")]
-        public int? retries { get; set; }
+        /// <summary>How many times the engine attempts the transition. Every attempt except the last
+        /// fails transiently (retryable, auto-retried); the last attempt settles on the end state.
+        /// So attempts == 1 means a single attempt with no retries. Only meaningful on an error path.</summary>
+        [XmlElement("attempts", Order = 3)]
+        [JsonProperty("attempts")]
+        [JsonPropertyName("attempts")]
+        public int? attempts { get; set; }
 
-        /// <summary>What happens once the retries are spent: "success" (transition completes)
-        /// or "failure" (terminal failure, error page). Only meaningful on an error path.</summary>
+        /// <summary>What happens on the last attempt: "success" (transition completes) or "failure"
+        /// (terminal failure, error page). Only meaningful on an error path.</summary>
         [XmlElement("endState", Order = 4)]
         [JsonProperty("endState")]
         [JsonPropertyName("endState")]

@@ -28,14 +28,14 @@ namespace Altinn.App.Logic;
 /// unlike the legacy <c>IProcessEnd</c> which runs on the process-END transition (committed = ended
 /// → status short-circuits to idle → receipt).
 ///
-/// Scenario shape: inject <c>delayMs</c> on every attempt, fail retryably <c>retries</c> times, then
-/// settle on <c>endState</c> — either <c>success</c> (dummy event id returned) or <c>failure</c>
-/// (terminal failure).
+/// Scenario shape: run <c>attempts</c> times with <c>delayMs</c> injected on each; every attempt but
+/// the last fails retryably (the engine auto-retries), and the last settles on <c>endState</c> —
+/// either <c>success</c> (dummy event id returned) or <c>failure</c> (terminal failure).
 ///
 /// TERMINAL FAILURE: <c>MovedToAltinnEvent.Execute</c> wraps any thrown exception as a RETRYABLE
 /// engine failure, so a plain throw can only ever produce processing/retrying — never a terminal
-/// state. To honour <c>endState == "failure"</c> here we cheat: once the retries are spent, before
-/// the final throw we POST a cancellation request straight to the workflow engine for the in-flight
+/// state. To honour <c>endState == "failure"</c> here we cheat: on the last attempt, before the
+/// final throw we POST a cancellation request straight to the workflow engine for the in-flight
 /// transition workflow. A requested cancellation "wins" over the imminent retryable failure — the
 /// engine converts it to a terminal <c>Canceled</c> state, which the live workflow-status renders as
 /// <c>failed</c> (no auto-retry, manual-refresh recovery).
@@ -79,7 +79,7 @@ public sealed class EventsClient(
         }
 
         int delayMs = levers.delayMs ?? 0;
-        int retries = levers.retries ?? 0;
+        int attempts = levers.attempts ?? 1;
         bool endInFailure = levers.endState == "failure";
 
         if (delayMs > 0)
@@ -89,16 +89,16 @@ public sealed class EventsClient(
 
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/').Last());
         int attempt = AttemptTracker.Next(instanceGuid, "postCommit");
-        if (attempt <= retries)
+        if (attempt < attempts)
         {
-            // Transient failure: a thrown exception becomes a RETRYABLE failure (see
+            // Not the last attempt yet: a thrown exception becomes a RETRYABLE failure (see
             // MovedToAltinnEvent), so the engine will re-invoke this hook on the next attempt.
             throw new Exception(
-                $"TransitionControl forced a transient postCommit failure (attempt {attempt} of {retries})."
+                $"TransitionControl forced a transient postCommit failure (attempt {attempt} of {attempts})."
             );
         }
 
-        // Retries spent: settle on the configured end state. Reset first so replaying the scenario
+        // Last attempt: settle on the configured end state. Reset first so replaying the scenario
         // (e.g. after navigating back from Task_2) starts again from attempt 1.
         AttemptTracker.Reset(instanceGuid, "postCommit");
         if (endInFailure)
@@ -109,7 +109,7 @@ public sealed class EventsClient(
             // (frontend: failed) instead of retrying.
             await RequestWorkflowCancellation(instance, instanceGuid);
             throw new Exception(
-                $"TransitionControl forced a terminal postCommit failure after {retries} retr{(retries == 1 ? "y" : "ies")}."
+                $"TransitionControl forced a terminal postCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")}."
             );
         }
 

@@ -11,14 +11,15 @@ const appFrontend = new AppFrontend();
  * app hooks read to control the Task_1 -> Task_2 transition. The levers describe a scenario:
  *   - path       WHERE the transition misbehaves: "none" (clean), "preCommit" (fail before the
  *                Storage commit, committed=Task_1) or "postCommit" (fail after it, committed=Task_2).
- *   - delayMs    a delay injected on every attempt, regardless of retries/end state.
- *   - retries    number of transient (retryable) failures before the run settles.
- *   - endState   what happens once the retries are spent: "success" (transition completes) or
+ *   - delayMs    a delay injected on every attempt, regardless of attempts/end state.
+ *   - attempts   how many times the engine tries the transition; every attempt but the last fails
+ *                transiently (auto-retried), and the last settles on endState. attempts=1 => no retry.
+ *   - endState   what happens on the last attempt: "success" (transition completes) or
  *                "failure" (terminal failure -> error page).
  *
  * The two hooks:
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
- *     engine surfaces `processing` (delay / retries) or `failed` (endState failure) on Task_1.
+ *     engine surfaces `processing` (delay / transient retries) or `failed` (endState failure) on Task_1.
  *   - postCommit: a custom IEventsClient runs it POST-commit inside MovedToAltinnEvent
  *     (committed=Task_2 already), so `processing` is observable on the committed Task_2. Throws there
  *     are wrapped as retryable, so an endState "failure" is realised by cancelling the in-flight
@@ -36,13 +37,13 @@ const appFrontend = new AppFrontend();
 type Levers = {
   path?: 'none' | 'preCommit' | 'postCommit';
   delayMs?: 0 | 3000 | 8000 | 15000 | 30000;
-  retries?: 0 | 1 | 2 | 5;
+  attempts?: 1 | 2 | 3 | 5;
   endState?: 'success' | 'failure';
 };
 
 // The levers are Dropdowns whose option labels are the descriptive nb.json strings; dsSelect/have.value
-// match on that visible label. Defaults (preselectedOptionIndex 0): none / no delay / no retries /
-// success — delayMs, retries and endState are all hidden while path is "none" (nothing to configure
+// match on that visible label. Defaults (preselectedOptionIndex 0): none / no delay / 1 attempt /
+// success — delayMs, attempts and endState are all hidden while path is "none" (nothing to configure
 // on the instant no-error path).
 const leverLabels = {
   path: {
@@ -57,11 +58,11 @@ const leverLabels = {
     15000: 'Lang – ca. 15 sekunder',
     30000: 'Svært lang – ca. 30 sekunder',
   },
-  retries: {
-    0: 'Ingen – lander på sluttilstanden med en gang',
-    1: '1 forbigående feil',
-    2: '2 forbigående feil',
-    5: '5 forbigående feil',
+  attempts: {
+    1: '1 forsøk (ingen gjenprøving)',
+    2: '2 forsøk',
+    3: '3 forsøk',
+    5: '5 forsøk',
   },
   endState: {
     success: 'Suksess – overgangen fullføres',
@@ -69,9 +70,9 @@ const leverLabels = {
   },
 } as const;
 
-// path is applied first so it reveals the delayMs/retries/endState dropdowns (all hidden while path
+// path is applied first so it reveals the delayMs/attempts/endState dropdowns (all hidden while path
 // is "none") before we try to fill them.
-function fillLevers({ path, delayMs, retries, endState }: Levers) {
+function fillLevers({ path, delayMs, attempts, endState }: Levers) {
   cy.get('#finishedLoading').should('exist');
   if (path !== undefined) {
     cy.dsSelect('#path', leverLabels.path[path]);
@@ -79,8 +80,8 @@ function fillLevers({ path, delayMs, retries, endState }: Levers) {
   if (delayMs !== undefined) {
     cy.dsSelect('#delayMs', leverLabels.delayMs[delayMs]);
   }
-  if (retries !== undefined) {
-    cy.dsSelect('#retries', leverLabels.retries[retries]);
+  if (attempts !== undefined) {
+    cy.dsSelect('#attempts', leverLabels.attempts[attempts]);
   }
   if (endState !== undefined) {
     cy.dsSelect('#endState', leverLabels.endState[endState]);
@@ -154,8 +155,8 @@ describe('Live workflow status (real engine)', () => {
 
   it('failed (pre-commit): a terminal failure shows the static error page and stays put', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    // retries 0 + endState failure => the first attempt fails terminally.
-    fillLevers({ path: 'preCommit', retries: 0, endState: 'failure' });
+    // attempts 1 + endState failure => the single attempt fails terminally.
+    fillLevers({ path: 'preCommit', attempts: 1, endState: 'failure' });
 
     cy.findByRole('button', { name: 'Send inn' }).click();
 
@@ -186,7 +187,7 @@ describe('Live workflow status (real engine)', () => {
     captureInstanceRoot().as('instanceRoot');
     // Post-commit terminal failure: the pre-commit hook is a no-op, so the transition COMMITS to
     // Task_2 first; then MovedToAltinnEvent cancels the in-flight workflow and fails it terminally.
-    fillLevers({ path: 'postCommit', retries: 0, endState: 'failure' });
+    fillLevers({ path: 'postCommit', attempts: 1, endState: 'failure' });
 
     cy.findByRole('button', { name: 'Send inn' }).click();
 
@@ -206,8 +207,9 @@ describe('Live workflow status (real engine)', () => {
 
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    // retries 1 + endState success => one transient failure, then the engine auto-retries to success.
-    fillLevers({ path: 'preCommit', delayMs: 3000, retries: 1, endState: 'success' });
+    // attempts 2 + endState success => the first attempt fails transiently, then the engine
+    // auto-retries and the second (last) attempt succeeds.
+    fillLevers({ path: 'preCommit', delayMs: 3000, attempts: 2, endState: 'success' });
 
     submitAndReloadDuringTransition();
 
@@ -253,7 +255,7 @@ describe('Live workflow status (real engine)', () => {
 
   it('backwards: Task_2 rejects back to Task_1, keeping the levers, and the scenario replays', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    fillLevers({ path: 'preCommit', delayMs: 3000, retries: 1, endState: 'success' });
+    fillLevers({ path: 'preCommit', delayMs: 3000, attempts: 2, endState: 'success' });
 
     // Forward: the transient failure auto-retries and eventually commits Task_2 (sync wait covers the
     // delay + engine backoff, so no reload is needed here).
@@ -269,7 +271,7 @@ describe('Live workflow status (real engine)', () => {
     // forward transition succeeded, so re-submitting replays the same scenario from attempt 1.
     cy.get('#path').should('have.value', leverLabels.path.preCommit);
     cy.get('#delayMs').should('have.value', leverLabels.delayMs[3000]);
-    cy.get('#retries').should('have.value', leverLabels.retries[1]);
+    cy.get('#attempts').should('have.value', leverLabels.attempts[2]);
     cy.findByRole('button', { name: 'Send inn' }).click();
     cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');

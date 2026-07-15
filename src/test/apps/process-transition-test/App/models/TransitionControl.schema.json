@@ -26,9 +26,9 @@
       "type": "integer",
       "title": "Forsinkelse (ms)"
     },
-    "retries": {
+    "attempts": {
       "type": "integer",
-      "title": "Antall forbigående feil"
+      "title": "Antall forsøk"
     },
     "endState": {
       "type": "string",

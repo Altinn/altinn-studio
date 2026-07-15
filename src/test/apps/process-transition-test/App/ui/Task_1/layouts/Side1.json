@@ -99,11 +99,11 @@
       {
         "dataModelBindings": {
           "simpleBinding": {
-            "field": "retries",
+            "field": "attempts",
             "dataType": "TransitionControl"
           }
         },
-        "id": "retries",
+        "id": "attempts",
         "type": "Dropdown",
         "preselectedOptionIndex": 0,
         "hidden": [
@@ -113,25 +113,25 @@
         ],
         "options": [
           {
-            "value": "0",
-            "label": "retries.none"
-          },
-          {
             "value": "1",
-            "label": "retries.one"
+            "label": "attempts.one"
           },
           {
             "value": "2",
-            "label": "retries.two"
+            "label": "attempts.two"
+          },
+          {
+            "value": "3",
+            "label": "attempts.three"
           },
           {
             "value": "5",
-            "label": "retries.five"
+            "label": "attempts.five"
           }
         ],
         "textResourceBindings": {
-          "title": "retries.title",
-          "help": "retries.help"
+          "title": "attempts.title",
+          "help": "attempts.help"
         }
       },
       {
