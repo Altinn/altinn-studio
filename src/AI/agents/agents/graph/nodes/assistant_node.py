@@ -438,13 +438,20 @@ def _extract_cited_sources_from_response(response: str, all_sources: List[Dict[s
     """
     # Look for SOURCES: line
     sources_match = re.search(r'\n+SOURCES:\s*(.+?)(?:\n|$)', response, re.IGNORECASE)
-    
+
     if not sources_match:
         # No sources line found, return all sources
         return response, all_sources
-    
+
     # Extract cited titles
-    sources_line = sources_match.group(1)
+    sources_line = sources_match.group(1).strip()
+
+    # Explicit "no sources" marker (e.g. the assistant declined an out-of-scope question) —
+    # do not fall back to attaching all sources in this case.
+    if not sources_line or sources_line.lower() in {"none", "n/a"}:
+        clean_response = response[:sources_match.start()].rstrip()
+        return clean_response, []
+
     cited_titles = [title.strip() for title in sources_line.split(',')]
     
     # Match to actual sources with better fuzzy matching
