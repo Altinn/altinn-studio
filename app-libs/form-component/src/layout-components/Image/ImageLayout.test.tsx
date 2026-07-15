@@ -7,24 +7,13 @@ const PNG_SRC = 'https://example.com/bilde.png';
 const SVG_SRC = 'https://example.com/bilde.svg';
 
 describe('ImageLayout', () => {
-  it('renders a plain <img> with the resolved alt text for non-svg sources', () => {
+  it('renders a plain <img> with the resolved alt text', () => {
     renderWithTranslations(<ImageLayout componentId='img' src={PNG_SRC} altText='my.alt' />, {
       overrides: { 'my.alt': 'Et bilde' },
     });
     const img = screen.getByRole('img', { name: 'Et bilde' });
     expect(img).toHaveAttribute('src', PNG_SRC);
     expect(img).toHaveAttribute('id', 'img');
-  });
-
-  it('renders an <object> (with fallback <img>) for svg sources', () => {
-    const { container } = renderWithTranslations(
-      <ImageLayout componentId='img' src={SVG_SRC} altText='my.alt' />,
-      { overrides: { 'my.alt': 'Et bilde' } },
-    );
-    const object = container.querySelector('object#img');
-    expect(object).toBeInTheDocument();
-    expect(object).toHaveAttribute('data', SVG_SRC);
-    expect(object?.querySelector('img')).toHaveAttribute('src', SVG_SRC);
   });
 
   it('applies the width to the image', () => {

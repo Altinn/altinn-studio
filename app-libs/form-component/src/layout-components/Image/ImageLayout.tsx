@@ -69,7 +69,7 @@ export function ImageLayout({
         </Flex>
         {help && (
           <Flex item className={classes.helpItem}>
-            <HelpTextContainer id={componentId} title={resolvedAltText} helpText={lang(help)} />
+            <HelpTextContainer id={componentId} title={altText} helpText={lang(help)} />
           </Flex>
         )}
       </Flex>
