@@ -22,7 +22,9 @@ const mockAllDataModelIds: string[] = [
   mockBpmnApiContextValue.layoutSets[1].dataType,
 ];
 
-const nameFieldLabel = textMock('process_editor.configuration_panel_custom_receipt_textfield_label');
+const nameFieldLabel = textMock(
+  'process_editor.configuration_panel_custom_receipt_textfield_label',
+);
 
 const legacyVersion: AppVersion = { backendVersion: '8.9.0', frontendVersion: '4.25.2' };
 const v9Version: AppVersion = { backendVersion: '9.0.0', frontendVersion: '4.25.2' };
