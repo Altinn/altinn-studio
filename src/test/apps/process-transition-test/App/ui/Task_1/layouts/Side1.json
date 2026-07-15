@@ -12,34 +12,46 @@
         }
       },
       {
-        "id": "Task1Description",
+        "id": "Task1Description1",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "Task1.description"
+          "title": "Task1.description1"
+        }
+      },
+      {
+        "id": "Task1Description2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Task1.description2"
         }
       },
       {
         "dataModelBindings": {
           "simpleBinding": {
-            "field": "phase",
+            "field": "path",
             "dataType": "TransitionControl"
           }
         },
-        "id": "phase",
-        "type": "RadioButtons",
+        "id": "path",
+        "type": "Dropdown",
         "preselectedOptionIndex": 0,
         "options": [
           {
-            "value": "taskEnding",
-            "label": "phase.taskEnding"
+            "value": "none",
+            "label": "path.none"
+          },
+          {
+            "value": "preCommit",
+            "label": "path.preCommit"
           },
           {
             "value": "postCommit",
-            "label": "phase.postCommit"
+            "label": "path.postCommit"
           }
         ],
         "textResourceBindings": {
-          "title": "phase.title"
+          "title": "path.title",
+          "help": "path.help"
         }
       },
       {
@@ -50,7 +62,7 @@
           }
         },
         "id": "delayMs",
-        "type": "RadioButtons",
+        "type": "Dropdown",
         "preselectedOptionIndex": 0,
         "options": [
           {
@@ -75,68 +87,76 @@
           }
         ],
         "textResourceBindings": {
-          "title": "delayMs.title"
+          "title": "delayMs.title",
+          "help": "delayMs.help"
         }
       },
       {
         "dataModelBindings": {
           "simpleBinding": {
-            "field": "failCount",
+            "field": "retries",
             "dataType": "TransitionControl"
           }
         },
-        "id": "failCount",
-        "type": "RadioButtons",
+        "id": "retries",
+        "type": "Dropdown",
         "preselectedOptionIndex": 0,
+        "hidden": [
+          "and",
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+        ],
         "options": [
           {
             "value": "0",
-            "label": "failCount.none"
+            "label": "retries.none"
           },
           {
             "value": "1",
-            "label": "failCount.one"
+            "label": "retries.one"
           },
           {
             "value": "2",
-            "label": "failCount.two"
+            "label": "retries.two"
           },
           {
             "value": "5",
-            "label": "failCount.five"
+            "label": "retries.five"
           }
         ],
         "textResourceBindings": {
-          "title": "failCount.title"
+          "title": "retries.title",
+          "help": "retries.help"
         }
       },
       {
         "dataModelBindings": {
           "simpleBinding": {
-            "field": "failKind",
+            "field": "endState",
             "dataType": "TransitionControl"
           }
         },
-        "id": "failKind",
-        "type": "RadioButtons",
+        "id": "endState",
+        "type": "Dropdown",
         "preselectedOptionIndex": 0,
-        "optionFilter": [
-          "or",
-          ["notEquals", ["value"], "permanent"],
-          ["notEquals", ["dataModel", "phase"], "postCommit"]
+        "hidden": [
+          "and",
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
         ],
         "options": [
           {
-            "value": "retryable",
-            "label": "failKind.retryable"
+            "value": "success",
+            "label": "endState.success"
           },
           {
-            "value": "permanent",
-            "label": "failKind.permanent"
+            "value": "failure",
+            "label": "endState.failure"
           }
         ],
         "textResourceBindings": {
-          "title": "failKind.title"
+          "title": "endState.title",
+          "help": "endState.help"
         }
       },
       {
@@ -147,10 +167,10 @@
         }
       },
       {
-        "id": "sendinn",
+        "id": "sendinnTask1",
         "type": "Button",
         "textResourceBindings": {
-          "title": "sendinn.title"
+          "title": "sendinnTask1.title"
         }
       }
     ]

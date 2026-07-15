@@ -1,9 +1,8 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
-using Altinn.App.Logic;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Logic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -17,16 +16,10 @@ void RegisterCustomAppServices(
     IWebHostEnvironment env
 )
 {
-    // Register your apps custom service implementations here.
-
     // Pre-commit lever: fails/delays the Task_1 -> Task_2 transition while committed=Task_1.
-    services.AddTransient<IOnTaskEndingHandler, TransitionControlTaskEndingHook>();
+    services.AddTransient<IOnTaskEndingHandler, TaskEndingHandler>();
 
-    // Lever consistency: forces failKind=retryable while phase=postCommit (permanent is meaningless
-    // there); the frontend mirrors this by hiding the permanent option.
-    services.AddTransient<IDataProcessor, TransitionControlDataProcessor>();
-
-    // NB: the post-commit lever (ControlEventsClient) is registered AFTER AddAltinnAppServices in
+    // NB: the post-commit lever (EventsClient) is registered AFTER AddAltinnAppServices in
     // ConfigureServices below, because AddAltinnAppServices registers the default IEventsClient and
     // the last registration wins.
 }
@@ -65,7 +58,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     // Post-commit lever: override the default IEventsClient so MovedToAltinnEvent (which runs
     // post-commit, when committed=Task_2) can delay/fail the transition in a frontend-observable way.
     // Must come AFTER AddAltinnAppServices, which registers the default EventsClient (last wins).
-    services.AddTransient<IEventsClient, ControlEventsClient>();
+    services.AddTransient<IEventsClient, EventsClient>();
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>

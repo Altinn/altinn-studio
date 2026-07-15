@@ -18,21 +18,21 @@
   "@xsdRootElement": "TransitionControl",
   "type": "object",
   "properties": {
+    "path": {
+      "type": "string",
+      "title": "Feilscenario"
+    },
     "delayMs": {
       "type": "integer",
       "title": "Forsinkelse (ms)"
     },
-    "failCount": {
+    "retries": {
       "type": "integer",
-      "title": "Antall feil før suksess"
+      "title": "Antall forbigående feil"
     },
-    "failKind": {
+    "endState": {
       "type": "string",
-      "title": "Feiltype"
-    },
-    "phase": {
-      "type": "string",
-      "title": "Fase"
+      "title": "Sluttilstand"
     }
   }
 }

@@ -36,7 +36,7 @@
         "id": "sendinnTask2",
         "type": "Button",
         "textResourceBindings": {
-          "title": "sendinn.title"
+          "title": "sendinnTask2.title"
         }
       }
     ]

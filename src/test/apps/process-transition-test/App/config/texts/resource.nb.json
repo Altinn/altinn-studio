@@ -3,31 +3,55 @@
   "resources": [
     {
       "id": "appName",
-      "value": "Prosessovergang – testapp"
+      "value": "Testapp for prosessovergang"
     },
     {
       "id": "Task1.header.title",
-      "value": "Task 1 – kontroller prosessovergangen"
+      "value": "Task 1: Oppsett"
     },
     {
-      "id": "Task1.description",
-      "value": "Denne testappen styrer overgangen fra Task 1 til Task 2. Velg hvordan overgangen skal oppføre seg og trykk «Send inn» for å se den live prosesstatusen: venteskjermen med stegindikator, automatiske omprøvinger eller feilsiden."
+      "id": "Task1.description1",
+      "value": "Denne testappen styrer overgangen fra Task 1 til Task 2. Velg hvordan overgangen skal oppføre seg og trykk deretter **Neste**."
     },
     {
-      "id": "phase.title",
-      "value": "Når skal forsinkelsen eller feilen inntreffe?"
+      "id": "Task1.description2",
+      "value": "Http-forespørselen knyttet til prosessovergangen blokkerer til fullføring. Men hvis man er koblet av denne forespørselen, for eksempel ved å laste inn siden på nytt, kan man observere ventesteget som vises mens en prosessovergang pågår."
     },
     {
-      "id": "phase.taskEnding",
-      "value": "Før overgangen fullføres – ventingen vises mens skjemaet fortsatt står på Task 1"
+      "id": "Task2.header.title",
+      "value": "Task 2: Ferdig"
     },
     {
-      "id": "phase.postCommit",
-      "value": "Etter overgangen er fullført – ventingen vises på Task 2 (feil her er alltid forbigående)"
+      "id": "Task2.description",
+      "value": "Overgangen fra Task 1 er fullført. Trykk «Send inn» for å avslutte prosessen og gå til kvitteringen, eller gå tilbake til Task 1 for å prøve et nytt scenario."
+    },
+    {
+      "id": "path.title",
+      "value": "Feilscenario"
+    },
+    {
+      "id": "path.help",
+      "value": "Styrer hvor i overgangen Task 1 → Task 2 en eventuell feil skal inntreffe. En forsinkelse kan legges på uansett valg."
+    },
+    {
+      "id": "path.none",
+      "value": "Ingen feil – overgangen går rett gjennom"
+    },
+    {
+      "id": "path.preCommit",
+      "value": "Feil før commit (instansen står fremdeles i Task 1)"
+    },
+    {
+      "id": "path.postCommit",
+      "value": "Feil etter commit (instansen har gått videre til Task 2)"
     },
     {
       "id": "delayMs.title",
-      "value": "Forsinkelse"
+      "value": "Forsinkelse (per forsøk)"
+    },
+    {
+      "id": "delayMs.help",
+      "value": "Legges til på hvert forsøk, uavhengig av gjenprøvinger og sluttilstand. Med en forsinkelse rekker du å observere ventesteget mens overgangen pågår."
     },
     {
       "id": "delayMs.none",
@@ -50,56 +74,60 @@
       "value": "Svært lang – ca. 30 sekunder"
     },
     {
-      "id": "failCount.title",
-      "value": "Antall feil før suksess"
+      "id": "retries.title",
+      "value": "Antall forbigående feil"
     },
     {
-      "id": "failCount.none",
-      "value": "Ingen – lykkes på første forsøk"
+      "id": "retries.help",
+      "value": "Antall ganger overgangen feiler forbigående (motoren prøver automatisk på nytt) før den lander på valgt sluttilstand."
     },
     {
-      "id": "failCount.one",
-      "value": "Én feil – lykkes på andre forsøk"
+      "id": "retries.none",
+      "value": "Ingen – lander på sluttilstanden med en gang"
     },
     {
-      "id": "failCount.two",
-      "value": "To feil – lykkes på tredje forsøk"
+      "id": "retries.one",
+      "value": "1 forbigående feil"
     },
     {
-      "id": "failCount.five",
-      "value": "Fem feil – lykkes på sjette forsøk"
+      "id": "retries.two",
+      "value": "2 forbigående feil"
     },
     {
-      "id": "failKind.title",
-      "value": "Feiltype (brukes når antall feil er større enn null)"
+      "id": "retries.five",
+      "value": "5 forbigående feil"
     },
     {
-      "id": "failKind.retryable",
-      "value": "Forbigående – motoren prøver automatisk på nytt"
+      "id": "endState.title",
+      "value": "Sluttilstand"
     },
     {
-      "id": "failKind.permanent",
-      "value": "Permanent – behandlingen stopper og feilsiden vises"
+      "id": "endState.help",
+      "value": "Hva som skjer når de forbigående feilene er brukt opp."
+    },
+    {
+      "id": "endState.success",
+      "value": "Suksess – overgangen fullføres"
+    },
+    {
+      "id": "endState.failure",
+      "value": "Feil – behandlingen stopper og feilsiden vises"
     },
     {
       "id": "Task1.hint",
       "value": "Tips: Last siden på nytt mens overgangen pågår – ventesiden skal overleve en refresh og navigere deg videre til Task 2 når overgangen er ferdig."
     },
     {
-      "id": "sendinn.title",
+      "id": "sendinnTask1.title",
+      "value": "Gå til Task 2"
+    },
+    {
+      "id": "sendinnTask2.title",
       "value": "Send inn"
     },
     {
       "id": "back.title",
       "value": "Tilbake til Task 1"
-    },
-    {
-      "id": "Task2.header.title",
-      "value": "Task 2"
-    },
-    {
-      "id": "Task2.description",
-      "value": "Overgangen fra Task 1 er fullført. Trykk «Send inn» for å avslutte prosessen og gå til kvitteringen, eller gå tilbake til Task 1 for å prøve et nytt scenario."
     }
   ]
 }

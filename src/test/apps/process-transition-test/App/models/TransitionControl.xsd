@@ -8,10 +8,10 @@
   <xs:element name="TransitionControl">
     <xs:complexType>
       <xs:sequence>
+        <xs:element name="path" type="xs:string" minOccurs="0" />
         <xs:element name="delayMs" type="xs:int" minOccurs="0" />
-        <xs:element name="failCount" type="xs:int" minOccurs="0" />
-        <xs:element name="failKind" type="xs:string" minOccurs="0" />
-        <xs:element name="phase" type="xs:string" minOccurs="0" />
+        <xs:element name="retries" type="xs:int" minOccurs="0" />
+        <xs:element name="endState" type="xs:string" minOccurs="0" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
