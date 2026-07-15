@@ -472,11 +472,11 @@ export function nb() {
     'process_workflow.failed_details_kind': 'Feiltype',
     'process_workflow.failed_details_time': 'Tidspunkt',
     'process_workflow.failed_details_reference': 'Referanse',
-    'process_workflow.failure_kind.stepFailed': 'Et behandlingssteg feilet',
-    'process_workflow.failure_kind.dependencyFailed': 'Et tidligere behandlingssteg feilet',
-    'process_workflow.failure_kind.engineFault': 'Teknisk feil i behandlingen',
-    'process_workflow.failure_kind.timeout': 'Behandlingen brukte for lang tid',
-    'process_workflow.failure_kind.unknown': 'Ukjent feil',
+    'process_workflow.failure_kind.stepFailed': 'Et steg i behandlingen feilet',
+    'process_workflow.failure_kind.dependencyFailed': 'Et steg i behandlingen feilet',
+    'process_workflow.failure_kind.engineFault': 'Systemet feilet under behandlingen',
+    'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
+    'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.taking_longer':
       'Dette tar litt lengre tid enn vanlig. Vi jobber fortsatt med det.',
     'process_workflow.still_working':

@@ -201,7 +201,7 @@ describe('ProcessWrapper workflow state machine', () => {
     // is never shipped by the backend, so it cannot appear here - and step/task identities are
     // deliberately omitted too (internal ids; the target task's type label was just misleading).
     await user.click(screen.getByRole('button', { name: 'Vis detaljer om feilen' }));
-    expect(screen.getByText('Et behandlingssteg feilet')).toBeInTheDocument();
+    expect(screen.getByText('Et steg i behandlingen feilet')).toBeInTheDocument();
     expect(screen.getByText('0f1d5f88-1e5c-4c1f-9a25-4d9f66b6e5a1')).toBeInTheDocument();
     expect(screen.queryByText('Task_2')).not.toBeInTheDocument();
   });
@@ -213,7 +213,7 @@ describe('ProcessWrapper workflow state machine', () => {
     });
 
     // An unknown/new kind must fall back to the generic label, never render a raw lang key.
-    expect(screen.getByText('Ukjent feil')).toBeInTheDocument();
+    expect(screen.getByText('Ukjent årsak')).toBeInTheDocument();
     expect(screen.queryByText(/process_workflow\.failure_kind/)).not.toBeInTheDocument();
   });
 

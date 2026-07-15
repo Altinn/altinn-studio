@@ -167,7 +167,7 @@ describe('Live workflow status (real engine)', () => {
 
     // The details expander exposes only safe structured facts (kind label + support reference).
     cy.findByRole('button', { name: 'Vis detaljer om feilen' }).click();
-    cy.contains('Et behandlingssteg feilet').should('be.visible');
+    cy.contains('Et steg i behandlingen feilet').should('be.visible');
     cy.contains('Referanse').should('be.visible');
 
     // The failed state deliberately does NOT poll (a terminal failure needs manual intervention
