@@ -3,8 +3,8 @@ import classes from './CustomReceiptContent.module.css';
 import { StudioProperty, StudioSpinner } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
-import { CreateCustomReceiptForm } from './CreateCustomReceiptForm';
 import { useTranslation } from 'react-i18next';
+import { CreateCustomReceipt } from './CreateCustomReceiptForm/CreateCustomReceipt';
 
 export const CustomReceiptContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -33,7 +33,7 @@ export const CustomReceiptContent = (): React.ReactElement => {
     );
   }
   if (showCreateCustomReceiptFields) {
-    return <CreateCustomReceiptForm onCloseForm={closeCustomReceiptFields} />;
+    return <CreateCustomReceipt onCloseForm={closeCustomReceiptFields} />;
   }
   return <CustomReceipt />;
 };
