@@ -2,3 +2,4 @@
 .kotlin/
 .intellijPlatform/
 build/
+!gradle/wrapper/gradle-wrapper.jar
