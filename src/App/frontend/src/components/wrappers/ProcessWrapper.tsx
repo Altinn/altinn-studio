@@ -357,18 +357,15 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
-  if (isWrongTask) {
-    return (
-      <PresentationComponent showNavigation={false}>
-        <NavigationError label='general.part_of_form_completed' />
-      </PresentationComponent>
-    );
-  }
-
-  // Live workflow-engine state machine, layered on top of the committed-currentTask routing above.
-  // Sourced from the fetched process state so it survives reloads and concurrent sessions. While a
-  // transition is in flight or has failed, we replace the current task's UI entirely (which also
-  // suppresses its Submit/next affordances, since those live inside the task components below).
+  // Live workflow-engine state machine. Sourced from the fetched process state so it survives reloads
+  // and concurrent sessions. This MUST be checked BEFORE the wrong-task guard below: a transition that
+  // is in flight or has failed post-commit has already committed currentTask forward (e.g. to Task_2)
+  // while the URL still points at the task the user submitted from (Task_1). That lag would otherwise
+  // trip isWrongTask and bury the transition state behind a "part of form completed" page - and since
+  // the failed state is terminal (it never settles), the URL would never be corrected and the user
+  // would be stuck there. While a transition is in flight or has failed we replace the current task's
+  // UI entirely (which also suppresses its Submit/next affordances, since those live inside the task
+  // components below).
   // PDF mode must bypass this replacement: the PDF service task renders the page *during* the
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
@@ -384,6 +381,14 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowFailed />
+      </PresentationComponent>
+    );
+  }
+
+  if (isWrongTask) {
+    return (
+      <PresentationComponent showNavigation={false}>
+        <NavigationError label='general.part_of_form_completed' />
       </PresentationComponent>
     );
   }
