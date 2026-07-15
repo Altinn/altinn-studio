@@ -6,6 +6,7 @@ const selectors = {
   map: '#form-content-MapPage-MapComponent-Geometries',
   zoomAnimation: '.leaflet-zoom-anim',
   path: 'g > path.leaflet-interactive',
+  drawVertex: '.leaflet-marker-icon.leaflet-editing-icon',
 };
 
 describe('Map component', () => {
@@ -22,7 +23,7 @@ describe('Map component', () => {
     assertPath(0, false);
 
     cy.findByText('Click to continue drawing shape.').should('exist');
-    moveAndClick(400, 200);
+    moveAndClick(400, 300);
     assertPath(1, false);
 
     cy.findByText('Click to continue drawing shape.').should('exist');
@@ -30,13 +31,22 @@ describe('Map component', () => {
     assertPath(2, false);
 
     cy.findByText('Click first point to close this shape.').should('exist');
-    moveAndClick(300, 300);
-    assertPath(3, true);
+    moveAndClick(300, 400);
+    assertPath(3, false);
+
+    cy.findByText('Click first point to close this shape.').should('exist');
+    cy.get(selectors.map).trigger('mousemove', 300, 300);
+    cy.findByText('Click first point to close this shape.').should('exist');
+    cy.get(selectors.map).find(selectors.drawVertex).first().should('be.visible').click();
+    assertPath(4, true);
+    // Saving refreshes the Leaflet Draw control, so wait before entering deletion mode.
+    cy.waitUntilSaved();
 
     cy.get('g>path').should('to.be.visible');
 
     cy.get(selectors.map).findByRole('link', { name: 'Delete layers' }).click();
-    cy.get('g>path').click('center');
+    cy.findByRole('link', { name: 'Save' }).should('be.visible');
+    cy.get(selectors.path).click('center');
     cy.findByRole('link', { name: 'Save' }).click();
     cy.get('g>path').should('not.exist');
   });
