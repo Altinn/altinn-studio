@@ -4,13 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
-import {
-  isVersionEqualOrGreater,
-  MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
-} from '../../../../../utils/processEditorUtils/processEditorUtils';
 import { SelectCustomReceiptDataModelId } from './SelectCustomReceiptDataModelId';
 import { CreateCustomReceiptFormLegacy } from './CreateCustomReceiptFormLegacy';
-import { createNewCustomReceipt } from '../CustomReceiptUtils';
+import { createNewCustomReceipt, hasFixedCustomReceiptName } from '../CustomReceiptUtils';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 export type CreateCustomReceiptFormProps = {
@@ -38,13 +34,7 @@ export const CreateCustomReceipt = ({
     );
   };
 
-  // From v9 the custom receipt's layout set is named after its task, so the name is fixed and hidden.
-  const hasFixedName: boolean = isVersionEqualOrGreater(
-    appVersion?.backendVersion ?? '',
-    MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
-  );
-
-  if (!hasFixedName) {
+  if (!hasFixedCustomReceiptName(appVersion)) {
     return (
       <CreateCustomReceiptFormLegacy
         addCustomReceipt={addCustomReceipt}
@@ -56,7 +46,7 @@ export const CreateCustomReceipt = ({
 
   const handleSave = () => {
     if (dataModelId) {
-      const customReceipt = createNewCustomReceipt({ dataModelId }, hasFixedName);
+      const customReceipt = createNewCustomReceipt({ dataModelId }, true);
       setDataModelError(null);
       addCustomReceipt(customReceipt);
     } else {

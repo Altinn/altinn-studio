@@ -3,10 +3,7 @@ import classes from './CustomReceipt.module.css';
 import { StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
-import {
-  isVersionEqualOrGreater,
-  MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
-} from '../../../../../utils/processEditorUtils/processEditorUtils';
+import { hasFixedCustomReceiptName } from '../CustomReceiptUtils';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
@@ -20,13 +17,7 @@ export const CustomReceipt = (): React.ReactElement => {
     useBpmnApiContext();
   const { appVersion } = useBpmnContext();
 
-  // From v9 the custom receipt's layout set is named after its task, so the name is fixed and not editable.
-  const hasFixedName: boolean = isVersionEqualOrGreater(
-    appVersion?.backendVersion ?? '',
-    MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
-  );
-
-  if (!hasFixedName) {
+  if (!hasFixedCustomReceiptName(appVersion)) {
     return <CustomReceiptLegacy />;
   }
 
@@ -41,22 +32,19 @@ export const CustomReceipt = (): React.ReactElement => {
 
   return (
     <div className={classes.wrapper}>
-      <div className={classes.inputFields}>
-        <EditDataTypes
-          connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
-          dataModelIds={allDataModelIds}
-          existingDataTypeForTask={existingDataModelId}
-          hideDeleteButton
-        />
-      </div>
-      <div className={classes.buttonWrapper}>
-        <StudioDeleteButton
-          onDelete={handleDeleteCustomReceipt}
-          confirmMessage={t('process_editor.configuration_panel_custom_receipt_delete_receipt')}
-        >
-          {t('process_editor.configuration_panel_custom_receipt_delete_button')}
-        </StudioDeleteButton>
-      </div>
+      <EditDataTypes
+        connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
+        dataModelIds={allDataModelIds}
+        existingDataTypeForTask={existingDataModelId}
+        hideDeleteButton
+      />
+      <StudioDeleteButton
+        onDelete={handleDeleteCustomReceipt}
+        confirmMessage={t('process_editor.configuration_panel_custom_receipt_delete_receipt')}
+        className={classes.deleteButton}
+      >
+        {t('process_editor.configuration_panel_custom_receipt_delete_button')}
+      </StudioDeleteButton>
       <RedirectToCreatePageButton />
     </div>
   );
