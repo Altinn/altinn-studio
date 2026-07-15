@@ -7,6 +7,27 @@ import type { ExpressionDataSources } from 'src/features/expressions/runtime/use
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
 
+const runtimeNodesByState = new WeakMap<FormStoreState, Map<string, RuntimeNodeRef[]>>();
+
+function getRuntimeNodes(state: FormStoreState, pageKeys: Iterable<string> | undefined): RuntimeNodeRef[] {
+  let cachedByPages = runtimeNodesByState.get(state);
+  if (!cachedByPages) {
+    cachedByPages = new Map();
+    runtimeNodesByState.set(state, cachedByPages);
+  }
+
+  const includedPages = pageKeys ? [...pageKeys] : undefined;
+  const cacheKey = includedPages ? JSON.stringify([...includedPages].sort()) : '*';
+  const cached = cachedByPages.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const nodes = deriveRuntimeNodeRefs(state, includedPages);
+  cachedByPages.set(cacheKey, nodes);
+  return nodes;
+}
+
 export interface DerivedValidationNode extends RuntimeNodeRef {
   hidden: boolean;
   isValid: boolean;
@@ -79,7 +100,7 @@ export function deriveNodes(state: FormStoreState, inputs: DeriveNodesInputs): D
   }
 
   const includedNodeIds = inputs.includedNodeIds ? new Set(inputs.includedNodeIds) : undefined;
-  const layoutNodes = deriveRuntimeNodeRefs(state, inputs.includedPageKeys).filter(
+  const layoutNodes = getRuntimeNodes(state, inputs.includedPageKeys).filter(
     (node) => !includedNodeIds || includedNodeIds.has(node.id),
   );
 
