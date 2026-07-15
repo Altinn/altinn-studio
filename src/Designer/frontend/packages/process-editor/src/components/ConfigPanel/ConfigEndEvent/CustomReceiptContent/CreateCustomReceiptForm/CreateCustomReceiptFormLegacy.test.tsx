@@ -1,7 +1,7 @@
 import {
-  CreateCustomReceiptForm,
-  type CreateCustomReceiptFormProps,
-} from './CreateCustomReceiptForm';
+  CreateCustomReceiptFormLegacy,
+  type CreateCustomReceiptFormLegacyProps,
+} from './CreateCustomReceiptFormLegacy';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContext, type BpmnContextProps } from '../../../../../contexts/BpmnContext';
@@ -19,7 +19,7 @@ const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
 const mockOnCloseForm = jest.fn();
 const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
-const defaultProps: CreateCustomReceiptFormProps = {
+const defaultProps: CreateCustomReceiptFormLegacyProps = {
   onCloseForm: mockOnCloseForm,
 };
 
@@ -253,7 +253,7 @@ describe('CreateCustomReceiptForm', () => {
 type RenderProps = {
   bpmnApiContextProps: Partial<BpmnApiContextProps>;
   rootContextProps: Partial<BpmnContextProps>;
-  componentProps: Partial<CreateCustomReceiptFormProps>;
+  componentProps: Partial<CreateCustomReceiptFormLegacyProps>;
 };
 
 const renderCreateCustomReceiptForm = (props: Partial<RenderProps> = {}) => {
@@ -263,7 +263,7 @@ const renderCreateCustomReceiptForm = (props: Partial<RenderProps> = {}) => {
     <BpmnApiContext.Provider value={{ ...defaultBpmnApiContextProps, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>
-          <CreateCustomReceiptForm {...defaultProps} {...componentProps} />
+          <CreateCustomReceiptFormLegacy {...defaultProps} {...componentProps} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

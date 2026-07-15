@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import classes from './CreateCustomReceiptForm.module.css';
+import classes from './CreateCustomReceiptFormLegacy.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioTextfield } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
