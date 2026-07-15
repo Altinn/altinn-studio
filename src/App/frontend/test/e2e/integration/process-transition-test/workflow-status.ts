@@ -7,15 +7,22 @@ const appFrontend = new AppFrontend();
  * via the ttd/process-transition-test app instead of intercept stubbing.
  *
  * The app is Task_1 (data) -> Task_2 (data) -> gateway -> EndEvent, where Task_2's reject action
- * routes the gateway back to Task_1 (backwards navigation). Task_1 has a form of "levers"
- * (delayMs / failCount / failKind / phase) that two app hooks read to control the Task_1 -> Task_2
- * transition:
- *   - phase "taskEnding": an IOnTaskEndingHandler delays/fails PRE-commit (committed=Task_1), so the
- *     engine surfaces `processing` (delay / retryable) or `failed` (permanent) on the committed Task_1.
- *   - phase "postCommit": a custom IEventsClient delays/fails POST-commit inside MovedToAltinnEvent
- *     (committed=Task_2 already), so `processing` is observable on the committed Task_2. Post-commit
- *     failures are retryable-only (MovedToAltinnEvent wraps throws as retryable), so failKind is not
- *     honoured there.
+ * routes the gateway back to Task_1 (backwards navigation). Task_1 has a form of "levers" that two
+ * app hooks read to control the Task_1 -> Task_2 transition. The levers describe a scenario:
+ *   - path       WHERE the transition misbehaves: "none" (clean), "preCommit" (fail before the
+ *                Storage commit, committed=Task_1) or "postCommit" (fail after it, committed=Task_2).
+ *   - delayMs    a delay injected on every attempt, regardless of retries/end state.
+ *   - retries    number of transient (retryable) failures before the run settles.
+ *   - endState   what happens once the retries are spent: "success" (transition completes) or
+ *                "failure" (terminal failure -> error page).
+ *
+ * The two hooks:
+ *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
+ *     engine surfaces `processing` (delay / retries) or `failed` (endState failure) on Task_1.
+ *   - postCommit: a custom IEventsClient runs it POST-commit inside MovedToAltinnEvent
+ *     (committed=Task_2 already), so `processing` is observable on the committed Task_2. Throws there
+ *     are wrapped as retryable, so an endState "failure" is realised by cancelling the in-flight
+ *     workflow first (the cancellation wins over the retry -> terminal Canceled -> frontend `failed`).
  *
  * UI strings (app-libs nb.ts, keys process_workflow.*):
  *   processing  = spinner + "Vi behandler forespørselen din" (deliberately never names the target
@@ -23,20 +30,25 @@ const appFrontend = new AppFrontend();
  *                 workflow steps when the engine reports counts)
  *   failed      = heading "Noe gikk galt" + contact-support blurb + safe details expander
  *                 ("Vis detaljer om feilen"); deliberately NO Retry affordance and NO polling — the
- *                 engine already exhausted its retry budget, so recovery is ops-driven
- *                 (POST process/resume) followed by a manual refresh of the page.
+ *                 engine already exhausted its retry budget, so the page is static until a refresh.
  */
 
 type Levers = {
+  path?: 'none' | 'preCommit' | 'postCommit';
   delayMs?: 0 | 3000 | 8000 | 15000 | 30000;
-  failCount?: 0 | 1 | 2 | 4;
-  failKind?: 'retryable' | 'permanent';
-  phase?: 'taskEnding' | 'postCommit';
+  retries?: 0 | 1 | 2 | 5;
+  endState?: 'success' | 'failure';
 };
 
-// The levers are user-friendly preselected radios (defaults: taskEnding / no delay / no failures /
-// retryable), so every option maps a lever value to its descriptive label.
+// The levers are Dropdowns whose option labels are the descriptive nb.json strings; dsSelect/have.value
+// match on that visible label. Defaults (preselectedOptionIndex 0): none / no delay / no retries /
+// success — retries and endState are hidden while path is "none".
 const leverLabels = {
+  path: {
+    none: 'Ingen feil – overgangen går rett gjennom',
+    preCommit: 'Feil før commit (instansen står fremdeles i Task 1)',
+    postCommit: 'Feil etter commit (instansen har gått videre til Task 2)',
+  },
   delayMs: {
     0: 'Ingen – overgangen fullføres umiddelbart',
     3000: 'Kort – ca. 3 sekunder',
@@ -44,43 +56,33 @@ const leverLabels = {
     15000: 'Lang – ca. 15 sekunder',
     30000: 'Svært lang – ca. 30 sekunder',
   },
-  failCount: {
-    0: 'Ingen – lykkes på første forsøk',
-    1: 'Én feil – lykkes på andre forsøk',
-    2: 'To feil – lykkes på tredje forsøk',
-    4: 'Fire feil – flere automatiske omprøvinger på rad',
+  retries: {
+    0: 'Ingen – lander på sluttilstanden med en gang',
+    1: '1 forbigående feil',
+    2: '2 forbigående feil',
+    5: '5 forbigående feil',
   },
-  failKind: {
-    retryable: 'Forbigående – motoren prøver automatisk på nytt',
-    permanent: 'Permanent – behandlingen stopper og feilsiden vises',
-  },
-  phase: {
-    taskEnding: 'Før overgangen fullføres – ventingen vises mens skjemaet fortsatt står på Task 1',
-    postCommit: 'Etter overgangen er fullført – ventingen vises på Task 2 (feil her er alltid forbigående)',
+  endState: {
+    success: 'Suksess – overgangen fullføres',
+    failure: 'Feil – behandlingen stopper og feilsiden vises',
   },
 } as const;
 
-function fillLevers({ delayMs, failCount, failKind, phase }: Levers) {
+// path is applied first so it reveals the retries/endState dropdowns (hidden while path is "none")
+// before we try to fill them.
+function fillLevers({ path, delayMs, retries, endState }: Levers) {
   cy.get('#finishedLoading').should('exist');
-  if (phase !== undefined) {
-    cy.findByRole('radiogroup', { name: /^Når skal/ })
-      .findByRole('radio', { name: leverLabels.phase[phase] })
-      .click();
+  if (path !== undefined) {
+    cy.dsSelect('#path', leverLabels.path[path]);
   }
   if (delayMs !== undefined) {
-    cy.findByRole('radiogroup', { name: 'Forsinkelse' })
-      .findByRole('radio', { name: leverLabels.delayMs[delayMs] })
-      .click();
+    cy.dsSelect('#delayMs', leverLabels.delayMs[delayMs]);
   }
-  if (failCount !== undefined) {
-    cy.findByRole('radiogroup', { name: 'Antall feil før suksess' })
-      .findByRole('radio', { name: leverLabels.failCount[failCount] })
-      .click();
+  if (retries !== undefined) {
+    cy.dsSelect('#retries', leverLabels.retries[retries]);
   }
-  if (failKind !== undefined) {
-    cy.findByRole('radiogroup', { name: /^Feiltype/ })
-      .findByRole('radio', { name: leverLabels.failKind[failKind] })
-      .click();
+  if (endState !== undefined) {
+    cy.dsSelect('#endState', leverLabels.endState[endState]);
   }
   // The hooks read the levers from Storage, so they must be persisted before we advance the process.
   cy.waitUntilSaved();
@@ -117,8 +119,8 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('heading', { name: /Task 1/ }).should('be.visible');
 
-    // The preselected defaults (taskEnding / no delay / no failures) are a no-op for both hooks,
-    // so the transition commits immediately.
+    // The preselected default (path "none") is a no-op for both hooks, so the transition commits
+    // immediately.
     cy.findByRole('button', { name: 'Send inn' }).click();
 
     cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
@@ -128,7 +130,7 @@ describe('Live workflow status (real engine)', () => {
 
   it('processing (pre-commit): reload during the delay shows the advancing UI, then converges on Task_2', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    fillLevers({ delayMs: 8000, phase: 'taskEnding' });
+    fillLevers({ path: 'preCommit', delayMs: 8000 });
 
     submitAndReloadDuringTransition();
 
@@ -149,15 +151,16 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
   });
 
-  it('failed (pre-commit permanent): shows the static error page; ops resume + manual refresh recovers', () => {
+  it('failed (pre-commit): a terminal failure shows the static error page and stays put', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    fillLevers({ failCount: 1, failKind: 'permanent', phase: 'taskEnding' });
+    // retries 0 + endState failure => the first attempt fails terminally.
+    fillLevers({ path: 'preCommit', retries: 0, endState: 'failure' });
 
     cy.findByRole('button', { name: 'Send inn' }).click();
 
-    // Attempt 1 fails permanently -> the engine stops (ResumeRequired) -> the failed error page:
-    // generic message + contact support + a safe details expander. The engine already exhausted
-    // its retry budget, so there is deliberately NO Retry affordance.
+    // The engine stops (ResumeRequired) -> the failed error page: generic message + contact support +
+    // a safe details expander. The engine already exhausted its retry budget, so there is deliberately
+    // NO Retry affordance.
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
     cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
@@ -173,38 +176,40 @@ describe('Live workflow status (real engine)', () => {
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(5000);
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('be.visible');
+  });
 
-    // Recovery is ops-driven: resume via the API (as ops tooling would). The resume endpoint waits
-    // for the workflow to settle, so when it returns, attempt 2 has succeeded and Task_2 committed.
-    cy.url().then((url) => {
-      const match = url.match(/\/instance\/([^/]+)\/([^/#?]+)/);
-      expect(match, `instance ids in url ${url}`).to.not.equal(null);
-      const [, partyId, instanceGuid] = match!;
-      const appBase = new URL(url).origin;
-      cy.request(
-        'POST',
-        `${appBase}/ttd/${appFrontend.apps.processTransitionTest}/instances/${partyId}/${instanceGuid}/process/resume`,
-      );
-    });
+  it('failed (post-commit): the terminal state wins over the stale-task guard (ProcessWrapper regression)', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    captureInstanceRoot().as('instanceRoot');
+    // Post-commit terminal failure: the pre-commit hook is a no-op, so the transition COMMITS to
+    // Task_2 first; then MovedToAltinnEvent cancels the in-flight workflow and fails it terminally.
+    fillLevers({ path: 'postCommit', retries: 0, endState: 'failure' });
 
-    // With no poll, the recovered state surfaces on a manual refresh. The reloaded session arrives
-    // on the old Task_1 url with the process already settled on Task_2 (stale on arrival), which
-    // keeps the deliberate navigation-error page - its button takes the user to the committed task.
-    cy.reload();
-    cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
-    cy.findByRole('button', { name: 'Gå til riktig prosessteg', timeout: 30000 }).click();
-    cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
-    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('button', { name: 'Send inn' }).click();
+
+    // The blocking submit returns after the terminal failure, so the failed page shows.
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+
+    // Regression guard for the ProcessWrapper fix. Force the exact stale-url condition by loading the
+    // OLD Task_1 url while Storage has already committed currentTask forward to Task_2. Before the fix
+    // the wrong-task guard pre-empted the workflow branches and rendered the dead-end "part of form
+    // completed" page - and because the failed state is terminal (never settles), the auto-navigate
+    // never fired to correct the url, so the user got stuck there. The terminal failed state must win.
+    cy.get<string>('@instanceRoot').then((root) => cy.visit(`${root}/Task_1`));
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
+    cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
   });
 
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    fillLevers({ delayMs: 3000, failCount: 1, failKind: 'retryable', phase: 'taskEnding' });
+    // retries 1 + endState success => one transient failure, then the engine auto-retries to success.
+    fillLevers({ path: 'preCommit', delayMs: 3000, retries: 1, endState: 'success' });
 
     submitAndReloadDuringTransition();
 
-    // A retryable failure keeps the transition in `processing` (the engine auto-retries with backoff);
-    // it is NOT the terminal failed state, so the failed error page never shows.
+    // A transient (retryable) failure keeps the transition in `processing` (the engine auto-retries
+    // with backoff); it is NOT the terminal failed state, so the failed error page never shows.
     cy.contains('Vi behandler forespørselen din', { timeout: 15000 }).should('be.visible');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
@@ -218,15 +223,7 @@ describe('Live workflow status (real engine)', () => {
   it('processing (post-commit): observable on the committed Task_2, then settles to a normal Task_2', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     captureInstanceRoot().as('instanceRoot');
-    fillLevers({ delayMs: 15000, phase: 'postCommit' });
-
-    // Post-commit failures are always retryable (the events hook wraps throws as retryable), so
-    // selecting postCommit hides the permanent option and the app's data processor force-selects
-    // the retryable one on the next data sync.
-    cy.findByRole('radiogroup', { name: /^Feiltype/ }).within(() => {
-      cy.findByRole('radio', { name: leverLabels.failKind.permanent }).should('not.exist');
-      cy.findByRole('radio', { name: leverLabels.failKind.retryable }).should('be.checked');
-    });
+    fillLevers({ path: 'postCommit', delayMs: 15000 });
 
     // The pre-commit hook is a no-op here, so the transition commits to Task_2 quickly; the post-commit
     // MovedToAltinnEvent then delays ~15s in the engine.
@@ -253,10 +250,10 @@ describe('Live workflow status (real engine)', () => {
 
   it('backwards: Task_2 rejects back to Task_1, keeping the levers, and the scenario replays', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    fillLevers({ delayMs: 3000, failCount: 1, failKind: 'retryable', phase: 'taskEnding' });
+    fillLevers({ path: 'preCommit', delayMs: 3000, retries: 1, endState: 'success' });
 
-    // Forward: the retryable failure auto-retries and eventually commits Task_2 (sync wait covers
-    // the delay + engine backoff, so no reload is needed here).
+    // Forward: the transient failure auto-retries and eventually commits Task_2 (sync wait covers the
+    // delay + engine backoff, so no reload is needed here).
     cy.findByRole('button', { name: 'Send inn' }).click();
     cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
 
@@ -267,8 +264,9 @@ describe('Live workflow status (real engine)', () => {
 
     // The levers are kept (the data lives on Task_1), and the attempt counter was reset when the
     // forward transition succeeded, so re-submitting replays the same scenario from attempt 1.
-    cy.findByRole('radio', { name: leverLabels.delayMs[3000] }).should('be.checked');
-    cy.findByRole('radio', { name: leverLabels.failCount[1] }).should('be.checked');
+    cy.get('#path').should('have.value', leverLabels.path.preCommit);
+    cy.get('#delayMs').should('have.value', leverLabels.delayMs[3000]);
+    cy.get('#retries').should('have.value', leverLabels.retries[1]);
     cy.findByRole('button', { name: 'Send inn' }).click();
     cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
