@@ -1,6 +1,7 @@
 export * from './Accordion';
 export * from './Address';
 export * from './Alert';
+export * from './Audio';
 export * from './ButtonGroup';
 export * from './Datepicker';
 export * from './Divider';
