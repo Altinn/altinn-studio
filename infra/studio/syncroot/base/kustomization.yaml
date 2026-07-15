@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - studio-key-vault.yaml
   - altinn-designer.yaml
   - altinn-repositories.yaml
   - altinn-loadbalancer.yaml
