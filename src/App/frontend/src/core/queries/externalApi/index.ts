@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 
 import { skipToken, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { UseQueryOptions } from '@tanstack/react-query';
+import type { QueryState, UseQueryOptions } from '@tanstack/react-query';
 
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { fetchExternalApi } from 'src/queries/queries';
@@ -29,6 +29,7 @@ function getExternalApiQueryDef({
 export interface ExternalApiQueries {
   ensureLoaded: (instanceId: string | undefined, externalApiIds: string[]) => void;
   getCached: (instanceId: string | undefined, externalApiIds: string[]) => ExternalApisResult;
+  getState: (instanceId: string | undefined, externalApiId: string) => QueryState<unknown, Error> | undefined;
 }
 
 export function useExternalApiQueries(): ExternalApiQueries {
@@ -67,6 +68,8 @@ export function useExternalApiQueries(): ExternalApiQueries {
 
         return { data, errors };
       },
+      getState: (instanceId, externalApiId) =>
+        queryClient.getQueryState(getExternalApiQueryDef({ externalApiId, instanceId }).queryKey),
     }),
     [queryClient],
   );

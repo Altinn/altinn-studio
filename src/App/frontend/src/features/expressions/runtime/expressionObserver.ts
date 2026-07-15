@@ -3,14 +3,14 @@ export type ExpressionDependency =
   | { type: 'currentLanguage' }
   | { type: 'currentPage' }
   | { type: 'displayValue'; componentId: string }
-  | { type: 'externalApi' }
+  | { type: 'externalApi'; externalApiId: string }
   | { type: 'formData'; reference: { dataType: string; field: string } }
   | { type: 'instanceDataElementCount'; dataType: string }
   | { type: 'instanceDataSources' }
-  | { type: 'language'; dataModelPath: { dataType: string; field: string } | undefined }
   | { type: 'layout' }
   | { type: 'options'; optionsId: string }
-  | { type: 'process' };
+  | { type: 'process' }
+  | { type: 'textResources' };
 
 export type ExpressionSubscriptionOwner = 'runtime' | 'storeSelector';
 
@@ -180,8 +180,7 @@ function isHookBackedDependency(dependency: ExpressionDependency) {
   return (
     dependency.type === 'applicationSettings' ||
     dependency.type === 'currentLanguage' ||
-    dependency.type === 'currentPage' ||
-    dependency.type === 'language'
+    dependency.type === 'currentPage'
   );
 }
 
@@ -190,8 +189,8 @@ function isQueryBackedDependency(dependency: ExpressionDependency) {
     dependency.type === 'externalApi' ||
     dependency.type === 'instanceDataElementCount' ||
     dependency.type === 'instanceDataSources' ||
-    dependency.type === 'language' ||
-    dependency.type === 'process'
+    dependency.type === 'process' ||
+    dependency.type === 'textResources'
   );
 }
 
@@ -203,10 +202,10 @@ function makeDependencyKey(dependency: ExpressionDependency) {
       return `instanceDataElementCount:${dependency.dataType}`;
     case 'displayValue':
       return `displayValue:${dependency.componentId}`;
+    case 'externalApi':
+      return `externalApi:${dependency.externalApiId}`;
     case 'options':
       return `options:${dependency.optionsId}`;
-    case 'language':
-      return `language:${dependency.dataModelPath?.dataType ?? ''}:${dependency.dataModelPath?.field ?? ''}`;
     default:
       return dependency.type;
   }

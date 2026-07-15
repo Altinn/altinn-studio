@@ -22,6 +22,7 @@ const mockQueryCacheObserver = { subscribe: jest.fn(() => jest.fn()) };
 const mockExternalApiQueries = {
   ensureLoaded: jest.fn(),
   getCached: jest.fn(() => ({})),
+  getState: jest.fn(() => undefined),
 };
 const mockTextResourceQueries = {
   ensureLoaded: jest.fn(),

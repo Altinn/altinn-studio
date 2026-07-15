@@ -324,7 +324,10 @@ function makeExpressionDataSourcesRuntime({
   return {
     currentDataModelPath,
     langToolsSelector: (dataModelPath) => {
-      observer.track({ type: 'language', dataModelPath });
+      observer.track({ type: 'applicationSettings' });
+      observer.track({ type: 'currentLanguage' });
+      observer.track({ type: 'instanceDataSources' });
+      observer.track({ type: 'textResources' });
       return buildLanguageTools({ inputs: getInputs(), dataModelPath, observer });
     },
     markExpressionEvaluated: () => observer.markEvaluated(),
@@ -389,8 +392,10 @@ function makeExpressionDataSourcesRuntime({
     externalApi: {
       getAll: () => {
         assertDataSourceSupported('externalApi');
-        observer.track({ type: 'externalApi' });
         const latest = getInputs();
+        for (const externalApiId of latest.externalApiIds) {
+          observer.track({ type: 'externalApi', externalApiId });
+        }
         latest.externalApiQueries.ensureLoaded(latest.instanceId, latest.externalApiIds);
         return latest.externalApiQueries.getCached(latest.instanceId, latest.externalApiIds);
       },
@@ -421,26 +426,21 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
     case 'displayValue':
       return dependency.componentId;
     case 'externalApi':
-      return inputs.externalApiQueries.getCached(inputs.instanceId, inputs.externalApiIds);
+      return inputs.externalApiQueries.getState(inputs.instanceId, dependency.externalApiId);
     case 'formData':
       return readFormDataFromStore(inputs.store, dependency.reference);
     case 'instanceDataElementCount':
       return inputs.instanceQueries.countDataElements(inputs.instanceId, dependency.dataType);
     case 'instanceDataSources':
-      return getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId);
-    case 'language':
-      return {
-        applicationSettings: inputs.applicationSettings,
-        currentLanguage: inputs.currentLanguage,
-        textResources: getTextResourcesFromCache(inputs),
-        instanceDataSources: getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId),
-      };
+      return inputs.instanceQueries.getCachedInstance(inputs.instanceId);
     case 'layout':
       return getLayoutLookupsFromStore(inputs.store);
     case 'options':
       return getStaticOptionsFromStore(inputs.store, dependency.optionsId);
     case 'process':
       return getProcessFromCache(inputs.instanceQueries, inputs.instanceId);
+    case 'textResources':
+      return getTextResourcesDependency(inputs);
   }
 }
 
@@ -537,6 +537,17 @@ function getTextResourcesFromCache(inputs: SnapshotInputs): TextResourceMap {
 
   const fromWindow = window.altinnAppGlobalData.textResources;
   return fromWindow?.language === inputs.currentLanguage ? resourcesAsMap(fromWindow.resources) : {};
+}
+
+/** Read a stable source reference for invalidating expressions that use text resources. */
+function getTextResourcesDependency(inputs: SnapshotInputs) {
+  const cached = inputs.textResourceQueries.getCached(inputs.currentLanguage);
+  if (cached) {
+    return cached;
+  }
+
+  const fromWindow = window.altinnAppGlobalData.textResources;
+  return fromWindow?.language === inputs.currentLanguage ? fromWindow : undefined;
 }
 
 /** Start loading text resources into the cache when text-related expression functions touch that data source. */
