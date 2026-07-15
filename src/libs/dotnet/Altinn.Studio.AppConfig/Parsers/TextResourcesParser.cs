@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Text.Json;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
@@ -51,8 +52,8 @@ internal static class TextResourcesParser
                 new TextResources
                 {
                     Language = lang,
-                    Ids = ids,
-                    Values = values,
+                    Ids = ids.ToFrozenDictionary(ids.Comparer),
+                    Values = values.ToFrozenDictionary(values.Comparer),
                     Position = new SourceSpan(file, ""),
                 }
             );

@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+using System.Collections.ObjectModel;
 using Altinn.Studio.AppConfig.Documents.Text;
 
 namespace Altinn.Studio.AppConfig.Models;
@@ -26,9 +28,9 @@ internal sealed class LayoutSetBuilder
         {
             Id = Id,
             DefaultDataReq = DefaultDataReq,
-            PageFileRefs = PageFileRefs,
-            Components = Components,
-            AllComponents = AllComponents,
+            PageFileRefs = PageFileRefs.ToList().AsReadOnly(),
+            Components = Components.ToFrozenDictionary(Components.Comparer),
+            AllComponents = AllComponents.ToList().AsReadOnly(),
             Position = Position,
         };
 }
@@ -49,8 +51,8 @@ public sealed class LayoutComponent
     public string LayoutSet { get; init; } = "";
 
     public IReadOnlyDictionary<string, ComponentBinding> Bindings { get; init; } =
-        new Dictionary<string, ComponentBinding>();
-    public IReadOnlyList<string> Children { get; init; } = new List<string>();
+        FrozenDictionary<string, ComponentBinding>.Empty;
+    public IReadOnlyList<string> Children { get; init; } = ReadOnlyCollection<string>.Empty;
 
     public bool HasOptionSource { get; init; }
     public SourceSpan Position { get; init; }
@@ -60,10 +62,8 @@ public sealed class TextResources
 {
     public string Language { get; init; } = "";
 
-    public IReadOnlyDictionary<string, SourceSpan> Ids { get; init; } =
-        new Dictionary<string, SourceSpan>(StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, SourceSpan> Ids { get; init; } = FrozenDictionary<string, SourceSpan>.Empty;
 
-    public IReadOnlyDictionary<string, string> Values { get; init; } =
-        new Dictionary<string, string>(StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, string> Values { get; init; } = FrozenDictionary<string, string>.Empty;
     public SourceSpan Position { get; init; }
 }

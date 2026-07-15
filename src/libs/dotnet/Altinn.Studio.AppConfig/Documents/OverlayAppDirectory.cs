@@ -15,7 +15,7 @@ public sealed class OverlayAppDirectory : IHashingAppDirectory
     public void Set(string relativePath, byte[] bytes)
     {
         _tombstones.Remove(relativePath);
-        var stripped = Utf8Bom.Strip(bytes);
+        var stripped = Utf8Bom.Strip((byte[])bytes.Clone());
         _overlay[relativePath] = new FileHandle(relativePath, stripped, FileHandle.HashOf(stripped));
     }
 

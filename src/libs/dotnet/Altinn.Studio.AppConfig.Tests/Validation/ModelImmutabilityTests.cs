@@ -71,22 +71,38 @@ public sealed class ModelImmutabilityTests
 
     private static IEnumerable<(string Owner, string Property, object Value)> CollectionProperties(AppModel model)
     {
-        foreach (
-            var (owner, instance) in new (string, object)[]
-            {
-                (nameof(AppModel), model),
-                (nameof(model.Refs), model.Refs),
-            }
-        )
+        var seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        var pending = new Queue<(string Path, object Instance)>();
+        pending.Enqueue((nameof(AppModel), model));
+
+        while (pending.Count > 0)
         {
+            var (path, instance) = pending.Dequeue();
+            if (instance is null or string || !seen.Add(instance))
+                continue;
+
             foreach (var prop in instance.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (
-                    prop.PropertyType == typeof(string)
-                    || prop.GetValue(instance) is not System.Collections.IEnumerable value
-                )
+                if (prop.GetIndexParameters().Length > 0)
                     continue;
-                yield return (owner, prop.Name, value);
+                var value = prop.GetValue(instance);
+                if (value is null or string)
+                    continue;
+
+                var valuePath = $"{path}.{prop.Name}";
+                if (value is System.Collections.IEnumerable enumerable)
+                {
+                    yield return (path, prop.Name, value);
+                    foreach (var element in enumerable)
+                    {
+                        if (element is not null and not string)
+                            pending.Enqueue(($"{valuePath}[]", element));
+                    }
+                }
+                else if (value.GetType().Assembly == typeof(AppModel).Assembly)
+                {
+                    pending.Enqueue((valuePath, value));
+                }
             }
         }
     }
