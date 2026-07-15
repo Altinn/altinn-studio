@@ -5,4 +5,4 @@ USER QUESTION:
 {{citation_note}}
 
 Please answer this question using the information provided above.
-Remember to add "SOURCES: [section names]" at the end.
+Remember to add "SOURCES: [section names]" at the end. Omit this line entirely if the question is out of scope and you declined to answer.
