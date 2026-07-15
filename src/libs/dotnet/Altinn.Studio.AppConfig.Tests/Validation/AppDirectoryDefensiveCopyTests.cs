@@ -28,6 +28,20 @@ public sealed class AppDirectoryDefensiveCopyTests : IDisposable
     }
 
     [Fact]
+    public void OverlaySet_MutatingInputArrayDoesNotAffectStoredBytes()
+    {
+        var overlay = new OverlayAppDirectory(new InMemoryAppDirectory());
+        var input = Encoding.UTF8.GetBytes("""{"id":"ttd/x"}""");
+        overlay.Set("App/config/applicationmetadata.json", input);
+
+        Array.Fill(input, (byte)'!');
+
+        var stored = overlay.ReadAllBytes("App/config/applicationmetadata.json");
+        Assert.NotNull(stored);
+        Assert.Equal("""{"id":"ttd/x"}""", Encoding.UTF8.GetString(stored));
+    }
+
+    [Fact]
     public void OverlayReadAllBytes_MutatingResultDoesNotCorruptLaterReads()
     {
         var overlay = new OverlayAppDirectory(new InMemoryAppDirectory());
