@@ -90,7 +90,7 @@ export function getIndexedDataModelBindings<T extends CompTypes = CompTypes>(
     return bindings;
   }
 
-  const clone = structuredClone(bindings);
+  const clone = { ...bindings };
   for (const key of Object.keys(clone)) {
     const target = clone[key];
     if (isDataModelReference(target)) {
@@ -106,7 +106,7 @@ export function getIndexedMapping(mapping: IMapping | undefined, rowContexts: Ro
     return undefined;
   }
 
-  const clone = structuredClone(mapping);
+  const clone = { ...mapping };
   for (const [markerIndex, { rowIndex }] of rowContexts.entries()) {
     for (const key of Object.keys(clone)) {
       const value = clone[key];
@@ -123,7 +123,7 @@ export function getRuntimeIntermediateItem<T extends CompTypes>(
   component: CompExternal<T>,
   rowContexts: RowContext[],
 ): CompIntermediate<T> {
-  const clone = structuredClone(component) as CompIntermediate<T>;
+  const clone = { ...component } as CompIntermediate<T>;
   if ('mapping' in clone) {
     clone.mapping = getIndexedMapping(clone.mapping, rowContexts);
   }
