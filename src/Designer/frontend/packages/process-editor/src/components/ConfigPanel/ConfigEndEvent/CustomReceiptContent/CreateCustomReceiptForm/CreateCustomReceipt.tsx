@@ -72,7 +72,7 @@ export const CreateCustomReceipt = ({
   };
 
   return (
-    <div className={classes.customReceiptForm}>
+    <div className={classes.customReceiptWrapper}>
       <SelectCustomReceiptDataModelId error={dataModelError} onChange={handleDataModelChange} />
       <div className={classes.buttonWrapper}>
         <StudioButton disabled={hasAvailableDataModels} onClick={handleSave} variant='primary'>
