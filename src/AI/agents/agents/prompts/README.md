@@ -145,6 +145,7 @@ get_prompt_with_langfuse("intent_match", local_path="llm-as-a-judge/intent_match
 | `llm-as-a-judge/intent_match.md`         | `intent_match`          |
 | `llm-as-a-judge/no_hallucination.md`     | `no_hallucination`      |
 | `llm-as-a-judge/implementation_match.md` | `implementation_match`  |
+| `llm-as-a-judge/no_irrelevant_responses.md` | `no_irrelevant_responses` |
 
 ### Required Environment Variables
 

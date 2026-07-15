@@ -254,10 +254,30 @@ async def start_agent(
                                         except Exception:
                                             log.exception("Evaluation pipeline error (no_hallucination, chat mode)")
 
+                                    async def _run_no_irrelevant_responses_chat() -> None:
+                                        import asyncio as _asyncio
+                                        try:
+                                            from agents.services.evaluation.irrelevant_response_judge import (
+                                                run_no_irrelevant_responses_judge,
+                                            )
+                                            await run_no_irrelevant_responses_judge(
+                                                user_goal=req.goal,
+                                                agent_response=ar.get("response", ""),
+                                                trace_id=root_span.trace_id,
+                                            )
+                                        except _asyncio.CancelledError:
+                                            raise
+                                        except Exception:
+                                            log.exception("Evaluation pipeline error (no_irrelevant_responses, chat mode)")
+
                                     import asyncio as _asyncio
                                     eval_task = _asyncio.create_task(_run_no_hallucination_chat())
                                     _active_tasks.add(eval_task)
                                     eval_task.add_done_callback(_active_tasks.discard)
+
+                                    irrelevant_eval_task = _asyncio.create_task(_run_no_irrelevant_responses_chat())
+                                    _active_tasks.add(irrelevant_eval_task)
+                                    irrelevant_eval_task.add_done_callback(_active_tasks.discard)
                     else:
                         await _run_chat_inner()
                 except Exception as outer_error:
