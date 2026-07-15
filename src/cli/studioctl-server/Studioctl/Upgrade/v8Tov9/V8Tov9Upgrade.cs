@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
@@ -28,6 +29,15 @@ internal static class V8Tov9Upgrade
         @"^Program\.cs$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant
     );
+
+    private static readonly Regex _allCSharpFilesMatcher = new(
+        @"\.cs$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
+
+    // Namespace the IServiceTask interface moved from / to between v8 and v9.
+    private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
+    private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
@@ -89,6 +99,26 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(projectFile));
+
+        // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
+        // fails to restore (NU1605). Only relevant when we actually bumped the csproj to v9 packages.
+        if (!options.SkipCsprojUpgrade && !options.ConvertPackageReferences)
+        {
+            options.CancellationToken.ThrowIfCancellationRequested();
+            returnCode = CombineExitCodes(
+                returnCode,
+                await MigrateNuGetDowngrades(projectFolder, projectFile, options.CancellationToken)
+            );
+        }
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
@@ -188,6 +218,134 @@ internal static class V8Tov9Upgrade
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating OpenAPI namespace in Program.cs: {ex.Message}");
             return 1;
+        }
+    }
+
+    /// <summary>
+    /// Raises explicit package versions to the floors the v9 Altinn.App packages require (NU1605
+    /// downgrades), driven dynamically by parsing <c>dotnet restore</c> output.
+    /// </summary>
+    static async Task<int> MigrateNuGetDowngrades(
+        string projectFolder,
+        string projectFile,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Checking for package downgrades against the v9 dependency floors..."
+            );
+
+            var resolver = new NuGetDowngradeResolver();
+            var result = await resolver.ResolveAsync(projectFolder, projectFile, cancellationToken);
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Some package downgrades need manual follow-up. Review the messages above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            return ExitSuccess;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error resolving package downgrades: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
+    static async Task<int> MigrateServiceTaskNamespace(string projectFile)
+    {
+        try
+        {
+            var migration = new UsingNamespaceMigration(projectFile);
+            migration.Migrate(ServiceTaskOldNamespace, ServiceTaskNewNamespace, _allCSharpFilesMatcher);
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating IServiceTask namespace: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
+    /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
+    /// </summary>
+    static async Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
+    {
+        try
+        {
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var migration = new EFormidlingReceiversSignatureMigration(scanner);
+            var result = migration.Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating IEFormidlingReceivers signature: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
+    /// code, and removed internal engine handler types.
+    /// </summary>
+    static async Task<int> CheckRemovedCSharpApis(string projectFile)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Checking for removed or changed v9 C# APIs...");
+
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var result = WarnOnlyDetector.Combine(
+                new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new ServiceTaskResultApiDetector(scanner).Detect(),
+                new LegacyEFormidlingCodeDetector(scanner).Detect(),
+                new RemovedInternalProcessTypeDetector(scanner).Detect()
+            );
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Removed or changed C# APIs need manual follow-up. Review the messages above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error checking for removed C# APIs: {ex.Message}");
+            return ExitError;
         }
     }
 
