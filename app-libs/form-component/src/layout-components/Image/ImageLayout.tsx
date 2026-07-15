@@ -49,7 +49,8 @@ export function ImageLayout({
 }: ImageLayoutProps) {
   const { lang, langAsString } = useTranslation();
   const resolvedAltText = altText ? langAsString(altText) : undefined;
-  const renderSvg = src.slice(-3).toLowerCase() === 'svg';
+  const basePath = src.split(/[?#]/)[0].toLowerCase();
+  const renderSvg = basePath.endsWith('.svg') || src.startsWith('data:image/svg');
 
   if (renderedInCardMedia) {
     return (
