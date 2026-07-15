@@ -4,24 +4,25 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioTextfield } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
-import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDataModelId } from './SelectCustomReceiptDataModelId';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
+import { createNewCustomReceipt } from '../CustomReceiptUtils';
 
-export type CreateCustomReceiptFormProps = {
+export type CreateCustomReceiptFormLegacyProps = {
+  addCustomReceipt: (customReceipt: LayoutSetConfig) => void;
   onCloseForm: () => void;
+  hasAvailableDataModels: boolean;
 };
 
-export const CreateCustomReceiptForm = ({
+export const CreateCustomReceiptFormLegacy = ({
+  addCustomReceipt,
   onCloseForm,
-}: CreateCustomReceiptFormProps): React.ReactElement => {
+  hasAvailableDataModels,
+}: CreateCustomReceiptFormLegacyProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { allDataModelIds, layoutSets, existingCustomReceiptLayoutSetId, addLayoutSet } =
-    useBpmnApiContext();
+  const { layoutSets, existingCustomReceiptLayoutSetId } = useBpmnApiContext();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-
-  const allDataModelIdsEmpty: boolean = allDataModelIds.length === 0;
 
   const [layoutSetError, setLayoutSetError] = useState<string>(null);
   const [dataModelError, setDataModelError] = useState<string>(null);
@@ -34,7 +35,8 @@ export const CreateCustomReceiptForm = ({
     const { layoutSetId, dataModelId } = customReceiptForm;
 
     if (layoutSetId && dataModelId && !layoutSetError) {
-      createNewCustomReceipt(customReceiptForm);
+      const customReceipt = createNewCustomReceipt(customReceiptForm, false);
+      addCustomReceipt(customReceipt);
     }
     updateErrors(customReceiptForm);
   };
@@ -60,22 +62,6 @@ export const CreateCustomReceiptForm = ({
     );
   };
 
-  const createNewCustomReceipt = (customReceipt: CustomReceiptType) => {
-    const customReceiptLayoutSetConfig: LayoutSetConfig = {
-      id: customReceipt.layoutSetId,
-      dataType: customReceipt.dataModelId,
-      taskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-    };
-    addLayoutSet(
-      {
-        layoutSetConfig: customReceiptLayoutSetConfig,
-      },
-      {
-        onSuccess: onCloseForm,
-      },
-    );
-  };
-
   const handleValidateLayoutSetId = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLayoutSetError(validateLayoutSetName(event.target.value, layoutSets));
   };
@@ -94,7 +80,7 @@ export const CreateCustomReceiptForm = ({
         onChange={() => setDataModelError(null)}
       />
       <div className={classes.buttonWrapper}>
-        <StudioButton disabled={allDataModelIdsEmpty} type='submit' variant='primary'>
+        <StudioButton disabled={hasAvailableDataModels} type='submit' variant='primary'>
           {t('process_editor.configuration_panel_custom_receipt_create_button')}
         </StudioButton>
         <StudioButton onClick={onCloseForm} variant='secondary'>
