@@ -4,7 +4,6 @@ import { screen } from '@testing-library/react';
 import { ImageLayout } from './ImageLayout';
 
 const PNG_SRC = 'https://example.com/bilde.png';
-const SVG_SRC = 'https://example.com/bilde.svg';
 
 describe('ImageLayout', () => {
   it('renders a plain <img> with the resolved alt text', () => {
