@@ -1,5 +1,3 @@
-import deepEqual from 'fast-deep-equal';
-
 export type ExpressionDependency =
   | { type: 'applicationSettings' }
   | { type: 'currentLanguage' }
@@ -30,6 +28,7 @@ export class ExpressionObserver {
   private evaluatedDuringCollect = false;
   private unsubscribeStore?: (() => void) | null;
   private unsubscribeQuery?: (() => void) | null;
+  private subscribeQuery?: Subscribe;
   private subscribed = false;
   private rerenderScheduled = false;
 
@@ -61,6 +60,7 @@ export class ExpressionObserver {
 
     this.active = new Map(this.collected);
     this.lastValues = this.readValues(this.active);
+    this.syncQuerySubscription();
   }
 
   getDependencies() {
@@ -86,6 +86,7 @@ export class ExpressionObserver {
   }) {
     this.unsubscribeStore?.();
     this.unsubscribeQuery?.();
+    this.subscribeQuery = subscribeQuery;
     this.subscribed = false;
 
     this.unsubscribeStore =
@@ -93,8 +94,9 @@ export class ExpressionObserver {
         ? subscribeStore(() => this.checkForChanges(isStoreBackedDependency))
         : null;
 
-    this.unsubscribeQuery = subscribeQuery(() => this.checkForChanges(isQueryBackedDependency));
+    this.unsubscribeQuery = null;
     this.subscribed = true;
+    this.syncQuerySubscription();
 
     return () => {
       this.subscribed = false;
@@ -102,6 +104,7 @@ export class ExpressionObserver {
       this.unsubscribeQuery?.();
       this.unsubscribeStore = null;
       this.unsubscribeQuery = null;
+      this.subscribeQuery = undefined;
     };
   }
 
@@ -110,7 +113,13 @@ export class ExpressionObserver {
       return;
     }
 
-    const dependencies = new Map([...this.active].filter(([, dependency]) => shouldCheck(dependency)));
+    const dependencies = new Map<string, ExpressionDependency>();
+    for (const [key, dependency] of this.active) {
+      if (shouldCheck(dependency)) {
+        dependencies.set(key, dependency);
+      }
+    }
+
     if (dependencies.size === 0) {
       return;
     }
@@ -118,11 +127,25 @@ export class ExpressionObserver {
     const nextValues = this.readValues(dependencies);
     for (const [key, nextValue] of nextValues) {
       const previousValue = this.lastValues.get(key);
-      if (!deepEqual(previousValue, nextValue)) {
+      if (!Object.is(previousValue, nextValue)) {
         this.lastValues = new Map([...this.lastValues, ...nextValues]);
         this.scheduleRerender();
         return;
       }
+    }
+  }
+
+  private syncQuerySubscription() {
+    if (!this.subscribed || !this.subscribeQuery) {
+      return;
+    }
+
+    const needsQuerySubscription = [...this.active.values()].some(isQueryBackedDependency);
+    if (needsQuerySubscription && !this.unsubscribeQuery) {
+      this.unsubscribeQuery = this.subscribeQuery(() => this.checkForChanges(isQueryBackedDependency));
+    } else if (!needsQuerySubscription && this.unsubscribeQuery) {
+      this.unsubscribeQuery();
+      this.unsubscribeQuery = null;
     }
   }
 
