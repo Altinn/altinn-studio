@@ -33,6 +33,15 @@ describe('LargeNavigationMenu', () => {
     expect(activeItem).toHaveClass('active');
   });
 
+  it('should keep the parent menu item active when navigating to a sub-page of its route', () => {
+    renderLargeNavigationMenu({
+      routerInitialEntries: [`${menuItems[0].link}/some-sub-page`],
+    });
+
+    const activeItem = screen.getByRole('link', { name: menuItems[0].name });
+    expect(activeItem).toHaveClass('active');
+  });
+
   it('should set "isBeta" className for menu item that is beta', () => {
     renderLargeNavigationMenu();
     const menuItem = screen.getByRole('link', { name: menuItems[0].name });
