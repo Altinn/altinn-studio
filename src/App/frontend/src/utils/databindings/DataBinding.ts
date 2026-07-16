@@ -71,31 +71,47 @@ export function transposeDataBinding({
     return subject;
   }
 
-  const ourBinding = new DataBinding(currentLocation);
-  const theirBinding = new DataBinding(subject);
-  const lastIdx = ourBinding.parts.length - 1;
+  const currentParts = currentLocation.field.split('.');
+  const subjectParts = subject.field.split('.');
+  const lastIdx = currentParts.length - 1;
 
-  for (const ours of ourBinding.parts) {
-    const theirs = theirBinding.at(ours.parentIndex);
+  for (const [index, currentPart] of currentParts.entries()) {
+    const subjectPart = subjectParts[index];
+    const current = parseBindingPart(currentPart);
+    const target = subjectPart === undefined ? undefined : parseBindingPart(subjectPart);
 
-    if (ours.base !== theirs?.base) {
+    if (current.base !== target?.base) {
       break;
     }
 
-    const arrayIndex = ours.parentIndex === lastIdx && currentLocationIsRepGroup ? rowIndex : ours.arrayIndex;
+    const arrayIndex = index === lastIdx && currentLocationIsRepGroup ? rowIndex : current.arrayIndex;
 
     if (arrayIndex === undefined) {
       continue;
     }
 
-    if (theirs.hasArrayIndex()) {
+    if (target.arrayIndex !== undefined) {
       // Stop early. We cannot add our row index here, because it makes no sense when an earlier group
       // index changed.we cannot possibly
       break;
     }
 
-    theirs.arrayIndex = arrayIndex;
+    subjectParts[index] = `${target.base}[${arrayIndex}]`;
   }
 
-  return theirBinding.export();
+  return { dataType: subject.dataType, field: subjectParts.join('.') };
+}
+
+function parseBindingPart(raw: string): { base: string; arrayIndex: number | undefined } {
+  const arrayStart = raw.lastIndexOf('[');
+  if (arrayStart === -1 || !raw.endsWith(']')) {
+    return { base: raw, arrayIndex: undefined };
+  }
+
+  const rawIndex = raw.slice(arrayStart + 1, -1);
+  if (!/^\d+$/.test(rawIndex)) {
+    return { base: raw, arrayIndex: undefined };
+  }
+
+  return { base: raw.slice(0, arrayStart), arrayIndex: Number(rawIndex) };
 }
