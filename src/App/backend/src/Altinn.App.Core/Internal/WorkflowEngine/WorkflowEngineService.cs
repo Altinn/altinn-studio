@@ -393,13 +393,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // terminally means it needs resuming (failed). Active wins if both are somehow present.
         // Everything else (completed / abandoned heads) is settled.
         CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
-        CollectionHeadStatus? resumeRequiredHead = activeHead is null
-            ? collection.Heads.FirstOrDefault(IsResumeRequiredCollectionHeadStatus)
-            : null;
-        if (activeHead is null && resumeRequiredHead is null)
-        {
-            return idle;
-        }
 
         // A processing transition is fully described by the collection view: the head's labels carry
         // the target task, so it resolves in the single GetCollection call above. A Requeued head is
@@ -421,6 +414,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             );
         }
 
+        CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
+            IsResumeRequiredCollectionHeadStatus
+        );
+        if (resumeRequiredHead is null)
+        {
+            return idle;
+        }
+
         // A failed transition additionally needs its failure detail, which lives in the workflow's
         // steps - list the collection's workflows once to build it. The list goes through
         // ScopeToCurrentChain (no anchor) so failure classification here obeys the same visibility
@@ -432,7 +433,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         return new WorkflowTaskStatus(
             WorkflowActivityStatus.Failed,
-            ExtractTargetTask(resumeRequiredHead!.Labels)
+            ExtractTargetTask(resumeRequiredHead.Labels)
                 ?? ExtractTargetTask(collectionWorkflows, resumeRequiredHead.DatabaseId),
             BuildWorkflowFailure(collectionWorkflows)
         );
