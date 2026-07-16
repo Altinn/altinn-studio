@@ -302,21 +302,6 @@ function UpdateShowAllErrors() {
 }
 
 export const validationHooks = {
-  useDataElementsWithErrors: (dataElementIds: string[]) =>
-    FormStore.raw.useShallowSelector((state) => {
-      const elementsWithErrors: string[] = [];
-      for (const dataElementId of Object.keys(state.validation.otherDataElementBackendValidations)) {
-        if (!dataElementIds.includes(dataElementId)) {
-          continue;
-        }
-        const validations = state.validation.otherDataElementBackendValidations[dataElementId];
-        if (Object.values(validations).some((v) => hasValidationErrors(v))) {
-          elementsWithErrors.push(dataElementId);
-        }
-      }
-      return elementsWithErrors;
-    }),
-
   useShowAllUnboundValidations: () => FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations),
   useSetShowAllUnboundValidations: () => {
     const validating = useWaitForValidation();
