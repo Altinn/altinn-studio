@@ -14,7 +14,7 @@ describe('UI Components', () => {
   const newLastNameNb = /nytt etternavn/i;
   const confirmChangeOfName = /ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det/i;
 
-  it.only('Image component with help text', () => {
+  it('Image component with help text', () => {
     cy.goto('message');
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
