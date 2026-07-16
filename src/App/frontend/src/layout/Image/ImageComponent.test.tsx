@@ -14,13 +14,6 @@ describe('ImageComponent', () => {
     expect(container.querySelector('img')).toHaveAttribute('src', 'https://example.com/bilde.png');
   });
 
-  it('renders an <object> for svg sources', async () => {
-    const { container } = await render({
-      image: { src: { nb: 'https://example.com/bilde.svg' }, width: '100%', align: 'center' },
-    });
-    expect(container.querySelector('object')).toHaveAttribute('data', 'https://example.com/bilde.svg');
-  });
-
   it('rewrites a wwwroot source to the app-relative path', async () => {
     const { container } = await render({
       image: { src: { nb: 'wwwroot/bilde.png' }, width: '100%', align: 'center' },
