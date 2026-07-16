@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -26,6 +27,8 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
     private static string SettingsPath(string layoutSetName) => $"App/ui/{layoutSetName}/Settings.json";
 
     private static string InitialLayoutPath(string layoutSetName) => $"App/ui/{layoutSetName}/layouts/Side1.json";
+
+    private const string ApplicationMetadataPath = "App/config/applicationmetadata.json";
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
@@ -253,5 +256,47 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.False(
             TestDataHelper.FileExistsInRepo(org, targetRepository, developer, SettingsPath(LayoutSetToDelete))
         );
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-layoutsets-v9", "testUser")]
+    public async Task DeleteLayoutSet_WhenDataTypeBelongsToAnotherTask_KeepsTaskBinding(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        // A custom receipt reuses an existing task's data type: "model" is bound to "Task_1".
+        const string CustomReceipt = "CustomReceipt";
+        var payload = new LayoutSetPayload
+        {
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = CustomReceipt, DataType = "model" },
+        };
+        using var addRequest = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(org, targetRepository))
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+        using HttpResponseMessage addResponse = await HttpClient.SendAsync(addRequest);
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+
+        // Deleting the receipt must not clear the "model" data type's binding to "Task_1".
+        string deleteUrl = $"{VersionPrefix(org, targetRepository)}/{CustomReceipt}";
+        using var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, deleteUrl);
+        using HttpResponseMessage deleteResponse = await HttpClient.SendAsync(deleteRequest);
+        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+        string metadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, ApplicationMetadataPath);
+        JsonNode modelDataType = JsonNode
+            .Parse(metadata)!["dataTypes"]
+            .AsArray()
+            .Single(dataType => (string)dataType["id"] == "model");
+        Assert.Equal("Task_1", (string)modelDataType["taskId"]);
     }
 }
