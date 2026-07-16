@@ -1,7 +1,7 @@
 # How-to: Ta i bruk KI-beriking i en Altinn-app
 
 Denne guiden er for **tjenesteutviklere** som skal legge til et KI-berikingssteg
-(`kiBeriking`) i en eksisterende Altinn-app. Steget kjører når prosessen forlater
+(`ai`) i en eksisterende Altinn-app. Steget kjører når prosessen forlater
 et datasteg: en agent evaluerer skjemadataene punkt for punkt med en LLM og
 deterministiske verktøy, og resultatet lagres på instansen som JSON (og valgfritt
 PDF) — klart for saksbehandler, arkiv eller eFormidling.
@@ -67,10 +67,10 @@ Legg inn en `<bpmn:serviceTask>` der i prosessen berikingen skal skje (typisk
 rett etter utfyllingssteget), og koble sequence flows gjennom den:
 
 ```xml
-<bpmn:serviceTask id="Task_KiBeriking" name="KI Beriking">
+<bpmn:serviceTask id="Task_AiEnrichment" name="KI Beriking">
   <bpmn:extensionElements>
     <altinn:taskExtension>
-      <altinn:taskType>kiBeriking</altinn:taskType>
+      <altinn:taskType>ai</altinn:taskType>
     </altinn:taskExtension>
   </bpmn:extensionElements>
   <bpmn:incoming>Flow_FraUtfylling</bpmn:incoming>
@@ -86,10 +86,10 @@ igjen — det er retry-mekanismen.
 
 Prosessmotoren autoriserer `process/next` gjennom et steg via en XACML-action
 med **nøyaktig samme navn som task-typen**. Legg til en `AttributeValue` for
-`kiBeriking` i samme regel(er) som gir `write`:
+`ai` i samme regel(er) som gir `write`:
 
 ```xml
-<xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">kiBeriking</xacml:AttributeValue>
+<xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">ai</xacml:AttributeValue>
 ```
 
 Glemmer du dette, får brukeren 403 på `process/next` inn i steget.
@@ -100,8 +100,8 @@ Resultatene lagres som binære data-elementer. Definer datatypene (uten
 `appLogic`):
 
 ```json
-{ "id": "ki-beriking-json", "allowedContentTypes": ["application/json"], "maxCount": 0, "minCount": 0 },
-{ "id": "ki-beriking-pdf",  "allowedContentTypes": ["application/pdf"],  "maxCount": 0, "minCount": 0 }
+{ "id": "ai-enrichment-json", "allowedContentTypes": ["application/json"], "maxCount": 0, "minCount": 0 },
+{ "id": "ai-enrichment-pdf",  "allowedContentTypes": ["application/pdf"],  "maxCount": 0, "minCount": 0 }
 ```
 
 Navnene er standard; de kan overstyres per task i appsettings. Skal resultatet
@@ -114,7 +114,7 @@ vedleggsliste.
 "AiEnrichment": {
   "AgentsRoot": "agents",
   "Tasks": {
-    "Task_KiBeriking": {
+    "Task_AiEnrichment": {
       "Agent": "min-agent",
       "InputDataType": "DataModel"
     }
@@ -128,7 +128,7 @@ vedleggsliste.
 ```
 
 - **`Tasks`**: kobler bpmn-task-id til agent-mappe. Uten oppføring brukes
-  konvensjonen agent-mappe = task-id (`App/agents/Task_KiBeriking/`).
+  konvensjonen agent-mappe = task-id (`App/agents/Task_AiEnrichment/`).
 - **`InputDataType`**: hvilken datatype agenten skal evaluere. Har appen
   nøyaktig én datatype med `appLogic` (én skjemamodell), velges den automatisk;
   har den flere, **må** denne settes.
@@ -261,7 +261,7 @@ dotnet run
    *dens* brukere — endepunktet gir 404 for alle andre userId-er. Sjekk
    `GET <app-url>/testData.json` for gyldige userId/partyId.
 4. Verifiser: `GET` på instansen skal vise nye data-elementer
-   (`ki-beriking-json`/`ki-beriking-pdf`), og JSON-en skal ha ekte statuser og
+   (`ai-enrichment-json`/`ai-enrichment-pdf`), og JSON-en skal ha ekte statuser og
    merknader per punkt. `HTTP/transport error` i merknadene betyr at
    gateway-kallene feilet — sjekk BaseUrl/nøkkel/modellnavn.
 
@@ -269,7 +269,7 @@ dotnet run
 
 | Symptom | Årsak |
 |---|---|
-| 403 på `process/next` inn i steget | Mangler `kiBeriking`-action i policy.xml (steg 4) |
+| 403 på `process/next` inn i steget | Mangler `ai`-action i policy.xml (steg 4) |
 | «Agent definition not found … agent.yaml» | Agent-mappe matcher ikke task-id og `Tasks`-mapping mangler; eller `agents/**` mangler copy-regel (steg 8) |
 | «ambiguous input — N candidate data elements» | Flere datatyper med `appLogic` → sett `InputDataType` (steg 6) |
 | Alle punkter `ikke_vurdert` med HTTP-feil i merknad | Gateway-config/nøkkel feil, modell ikke lastet, eller for høy `concurrency` for gatewayen |

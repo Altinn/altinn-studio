@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Registers AI enrichment for an Altinn app: the enrichment engine plus
-    /// the <c>kiBeriking</c> process service task. Call from
+    /// the <c>ai</c> process service task. Call from
     /// <c>RegisterCustomAppServices</c> in the app's Program.cs — this is the
     /// only line of custom code an app needs. The API key resolves through the
     /// app's secrets client when <c>AiEnrichment:Agent:ApiKey</c> is not set.
@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IApiKeyProvider, SecretsApiKeyProvider>();
         services.AddAiEnrichmentCore(configuration);
 
-        services.Configure<KiBerikingOptions>(configuration.GetSection(KiBerikingOptions.SectionName));
+        services.Configure<AiEnrichmentOptions>(configuration.GetSection(AiEnrichmentOptions.SectionName));
         services.AddTransient<IServiceTask, AiServiceTask>();
 
         return services;

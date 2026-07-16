@@ -32,7 +32,7 @@ public class AiServiceTaskTests
 
         result.Should().BeOfType<ServiceTaskSuccessResult>();
         var entry = stored.Should().ContainSingle().Subject;
-        entry.DataType.Should().Be("ki-beriking-json");
+        entry.DataType.Should().Be("ai-enrichment-json");
         entry.ContentType.Should().Be("application/json");
         entry.Filename.Should().Be("sjekkliste.json");
         using var json = JsonDocument.Parse(entry.Bytes);
@@ -55,11 +55,11 @@ public class AiServiceTaskTests
     {
         var stored = new List<(string DataType, string ContentType, string? Filename, byte[] Bytes)>();
         var mutator = CreateMutator("Task_2", stored);
-        var options = new KiBerikingOptions
+        var options = new AiEnrichmentOptions
         {
             Tasks =
             {
-                ["Task_2"] = new KiBerikingTaskOptions
+                ["Task_2"] = new AiEnrichmentTaskOptions
                 {
                     Agent = "demo-json",
                     InputDataType = FormDataType,
@@ -118,7 +118,7 @@ public class AiServiceTaskTests
 
     // --- helpers ---------------------------------------------------------------------
 
-    private static AiServiceTask CreateSut(KiBerikingOptions? options = null)
+    private static AiServiceTask CreateSut(AiEnrichmentOptions? options = null)
     {
         var factory = new AgentRuntimeFactory(
             new StubChatService(),
@@ -128,7 +128,7 @@ public class AiServiceTaskTests
 
         return new AiServiceTask(
             factory,
-            Options.Create(options ?? new KiBerikingOptions()),
+            Options.Create(options ?? new AiEnrichmentOptions()),
             Options.Create(new AppSettings { AppBasePath = TestPaths.TestDataRoot }),
             NullLogger<AiServiceTask>.Instance);
     }
@@ -149,8 +149,8 @@ public class AiServiceTaskTests
         var dataTypes = new List<DataType>
         {
             new() { Id = FormDataType, AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema" } },
-            new() { Id = "ki-beriking-json" },
-            new() { Id = "ki-beriking-pdf" },
+            new() { Id = "ai-enrichment-json" },
+            new() { Id = "ai-enrichment-pdf" },
             new() { Id = "saksvurdering" },
         };
         if (extraFormDataType is not null)

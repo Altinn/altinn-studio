@@ -11,7 +11,7 @@
 
 Augmenter-kapabilitetene (per-punkt LLM-evaluering med deterministiske verktøy, mapping og
 PDF-rendring) skal bli en førsteklasses egenskap i en standard Altinn-app, eksponert som et
-eget prosess-steg **`kiBeriking`**. En app konfigurerer alt gjennom en `App/agents/`-mappe
+eget prosess-steg **`ai`**. En app konfigurerer alt gjennom en `App/agents/`-mappe
 med én undermappe per steg/agent.
 
 ## Vedtatte retningsvalg
@@ -37,10 +37,10 @@ med én undermappe per steg/agent.
   `Execute(ServiceTaskContext)` får `IInstanceDataMutator` med `AddFormDataElement` /
   `AddBinaryDataElement`; motoren lagrer selv etterpå. Data fra tidligere tasks er låst (les-only).
 - Autorisasjon: `policy.xml` må gi en action med **nøyaktig samme navn som task-typen**
-  (`kiBeriking`) til relevante roller.
+  (`ai`) til relevante roller.
 - Egendefinert `<altinn:...Config>`-XML i bpmn er IKKE utvidbart fra app-kode → all config
   ligger i `App/agents/` + appsettings. Kobling task → agent-mappe: mappenavn = task-id,
-  med overstyring `KiBeriking:Tasks:<taskId>:Agent` i appsettings.
+  med overstyring `AiEnrichment:Tasks:<taskId>:Agent` i appsettings.
 - Designer/Studio: håndredigert bpmn med egen task-type lagres verbatim og deployer fint.
   `App/agents/` brytes ikke av noen validering. Full Designer-støtte (palett, config-panel,
   ikon, i18n — ~8 endringspunkter i process-editor + backend-enum) er valgfritt (fase 5).
@@ -86,7 +86,7 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
   valgfri for orchestrated-steg (JSON-only mulig), aggregator-rootKey schema-styrt,
   DOCX droppet, `publishTo` defaulter til steg-navnet.
 - **Fase 2 — service task** *(ferdig)*: `AiServiceTask : IServiceTask`
-  (`Type => "kiBeriking"`), agent-oppslag fra task-id (overstyrbart via
+  (`Type => "ai"`), agent-oppslag fra task-id (overstyrbart via
   `AiEnrichment:Tasks`), input = eneste dataType med appLogic (ellers config),
   output = JSON/PDF som binære data-elementer. `AddAiEnrichment()` registrerer alt;
   API-nøkkel via `ISecretsClient` (`ApiKeySecretName`) med direkte `ApiKey` som
@@ -96,10 +96,10 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
   gjennomført på branch `feat/ki-beriking` i appens eget repo (fagreglene og
   agent-konfigurasjonen bor der, ikke her). Den gamle augmenter-integrasjonen
   (callback-controller, HTTP-klient, egen service task) er fjernet og erstattet med
-  `kiBeriking` + `AddAiEnrichment()`; app-lib oppgradert 8.9.2 → 8.12.7; lokal
+  `ai` + `AddAiEnrichment()`; app-lib oppgradert 8.9.2 → 8.12.7; lokal
   NuGet-feed i `packages/`.
   **E2E verifisert i app-localtest** med LM Studio som lokal OpenAI-kompatibel gateway:
-  prosess `data → kiBeriking → End`, alle 39 punkter fikk ekte LLM-verdicts,
+  prosess `data → ai → End`, alle 39 punkter fikk ekte LLM-verdicts,
   verktøybruk bekreftet (registry-lookup), berikelses-JSON + begge PDF-ene lagret som
   data-elementer, norske tegn intakte.
   **Kjente forhold**: (1) KI-gatewayen krever nå JWT-bearer — gammel API-nøkkel avvises;
@@ -120,4 +120,4 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
    valideres mot appens faktiske datamodell i fase 3.
 3. **Typst i app-image** → pluggbar rendring; JSON-output er uavhengig av typst.
 4. **Task-type-kollisjon**: `Type` som kolliderer med innebygde (`pdf`, `eFormidling`, …)
-   overstyres ikke — `kiBeriking` er unik.
+   overstyres ikke — `ai` er unik.

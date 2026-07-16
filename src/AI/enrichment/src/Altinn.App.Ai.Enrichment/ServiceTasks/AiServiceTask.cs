@@ -11,8 +11,8 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Ai.Enrichment.ServiceTasks;
 
 /// <summary>
-/// The <c>kiBeriking</c> process step. When the process engine enters a
-/// <c>&lt;bpmn:serviceTask&gt;</c> with <c>&lt;altinn:taskType&gt;kiBeriking&lt;/altinn:taskType&gt;</c>,
+/// The <c>ai</c> process step. When the process engine enters a
+/// <c>&lt;bpmn:serviceTask&gt;</c> with <c>&lt;altinn:taskType&gt;ai&lt;/altinn:taskType&gt;</c>,
 /// this task loads the agent folder mapped to the task id (default:
 /// <c>App/agents/&lt;taskId&gt;/</c>), runs the agent over the instance's form
 /// data, and stores the results on the instance: every published JSON entry as
@@ -23,11 +23,11 @@ namespace Altinn.App.Ai.Enrichment.ServiceTasks;
 /// </summary>
 public sealed class AiServiceTask(
     AgentRuntimeFactory agentRuntimeFactory,
-    IOptions<KiBerikingOptions> options,
+    IOptions<AiEnrichmentOptions> options,
     IOptions<AppSettings> appSettings,
     ILogger<AiServiceTask> logger) : IServiceTask
 {
-    public const string TaskType = "kiBeriking";
+    public const string TaskType = "ai";
 
     // Default serialization on purpose: null fields stay present as null, matching
     // plain JsonSerializer.Serialize(model) — the shape agent rules and mapper
@@ -58,7 +58,7 @@ public sealed class AiServiceTask(
                 JsonSerializer.SerializeToUtf8Bytes(model, ApplicationJsonOptions));
 
             logger.LogInformation(
-                "kiBeriking task {TaskId}: running agent '{AgentName}' over data element {DataElementId} ({DataType})",
+                "ai task {TaskId}: running agent '{AgentName}' over data element {DataElementId} ({DataType})",
                 taskId, runtime.Name, inputElement.Id, inputElement.DataType);
 
             var result = await runtime.ExecuteAsync(application, context.CancellationToken);
@@ -82,12 +82,12 @@ public sealed class AiServiceTask(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "kiBeriking task {TaskId} failed; process halts on this task for retry", taskId);
+            logger.LogError(ex, "ai task {TaskId} failed; process halts on this task for retry", taskId);
             return ServiceTaskResult.FailedAbortProcessNext();
         }
     }
 
-    private string ResolveAgentFolderPath(string taskId, KiBerikingTaskOptions taskOptions)
+    private string ResolveAgentFolderPath(string taskId, AiEnrichmentTaskOptions taskOptions)
     {
         var agentName = string.IsNullOrWhiteSpace(taskOptions.Agent) ? taskId : taskOptions.Agent;
         return Path.Combine(appSettings.Value.AppBasePath, options.Value.AgentsRoot, agentName);
@@ -112,7 +112,7 @@ public sealed class AiServiceTask(
                 .ToList();
             if (candidates.Count == 0)
                 throw new InvalidOperationException(
-                    $"kiBeriking task '{taskId}': no data element of type '{configuredDataType}' on the instance.");
+                    $"ai task '{taskId}': no data element of type '{configuredDataType}' on the instance.");
         }
         else
         {
@@ -121,15 +121,15 @@ public sealed class AiServiceTask(
                 .ToList();
             if (candidates.Count == 0)
                 throw new InvalidOperationException(
-                    $"kiBeriking task '{taskId}': the instance has no form-data element (data type with appLogic).");
+                    $"ai task '{taskId}': the instance has no form-data element (data type with appLogic).");
         }
 
         if (candidates.Count > 1)
         {
             throw new InvalidOperationException(
-                $"kiBeriking task '{taskId}': ambiguous input — {candidates.Count} candidate data elements " +
+                $"ai task '{taskId}': ambiguous input — {candidates.Count} candidate data elements " +
                 $"({string.Join(", ", candidates.Select(c => c.DataType))}). " +
-                $"Set {KiBerikingOptions.SectionName}:Tasks:{taskId}:InputDataType.");
+                $"Set {AiEnrichmentOptions.SectionName}:Tasks:{taskId}:InputDataType.");
         }
 
         return candidates[0];
