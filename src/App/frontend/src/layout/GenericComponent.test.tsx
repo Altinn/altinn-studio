@@ -3,7 +3,8 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { findElementToFocus, GenericComponent } from 'src/layout/GenericComponent';
+import { findElementToFocus } from 'src/layout/focusComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal } from 'src/layout/layout';
 
