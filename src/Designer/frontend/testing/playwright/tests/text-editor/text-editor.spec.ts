@@ -215,6 +215,9 @@ const navigateToUiEditorAndVerifyPage = async (
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.clickOnPageAccordion(PAGE_1);
+  const currentUrl = new URL(uiEditorPage.getCurrentUrl());
+  if (currentUrl.searchParams.get('layout') !== PAGE_1) {
+    await uiEditorPage.clickOnPageAccordion(PAGE_1);
+  }
   await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, PAGE_1);
 };

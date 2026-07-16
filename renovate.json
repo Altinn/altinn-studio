@@ -84,7 +84,7 @@
       "groupName": "Design system in App"
     },
     {
-      "matchFileNames": ["src/App/**"],
+      "matchFileNames": ["src/App/**", "app-libs/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
     },

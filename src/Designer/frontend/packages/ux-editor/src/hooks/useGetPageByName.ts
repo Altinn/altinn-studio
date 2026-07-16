@@ -1,5 +1,5 @@
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
-import { usePagesQuery } from './queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 
 type UseGetPageByName = {

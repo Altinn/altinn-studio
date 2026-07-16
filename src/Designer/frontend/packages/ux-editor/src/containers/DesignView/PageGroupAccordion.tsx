@@ -32,7 +32,7 @@ import { pageGroupAccordionHeader } from '@studio/testing/testids';
 import { Accordion } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
-import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 import { pageGroupDisplayName } from '@altinn/ux-editor/utils/pageGroupUtils';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
