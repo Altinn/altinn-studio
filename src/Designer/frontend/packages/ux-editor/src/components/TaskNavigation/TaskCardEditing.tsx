@@ -19,6 +19,7 @@ import classes from './TaskCardEditing.module.css';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 export type TaskCardEditingProps = {
   layoutSetModel: UiFolderLayoutSetModel;
@@ -86,11 +87,14 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
     new Set(dataType ? [dataType, ...(dataModels || [])] : dataModels || []),
   );
 
+  const isNameProtected = PROTECTED_TASK_NAME_CUSTOM_RECEIPT === layoutSetModel.id;
+
   return (
     <StudioCard className={classes.editCard}>
       <StudioParagraph data-size='xs'>{t(taskName)}</StudioParagraph>
       <StudioTextfield
         label={taskNameFieldLabel}
+        disabled={isNameProtected}
         value={id}
         error={idValidationError}
         onKeyUp={(event) => {
