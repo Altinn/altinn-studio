@@ -3,6 +3,8 @@ import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
 import { StudioPageHeader } from '@studio/components';
+import { UrlUtils } from '@studio/pure-functions';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 
 export type LargeNavigationMenuProps = {
@@ -26,7 +28,12 @@ type HeaderButtonListItemProps = {
 };
 const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactElement => {
   const location = useLocation();
-  const isActive: boolean = location.pathname.includes(menuItem.link);
+  const { app } = useStudioEnvironmentParams();
+
+  const appNameMatchesMenuItemLink = menuItem.link === app;
+  const isActive: boolean = appNameMatchesMenuItemLink
+    ? UrlUtils.extractThirdRouterParam(location.pathname) === menuItem.link
+    : location.pathname.includes(menuItem.link);
   return (
     <li key={menuItem.name}>
       <StudioPageHeader.HeaderLink
