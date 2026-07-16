@@ -23,11 +23,10 @@ def _parse_judge_response(response: str) -> tuple[bool | None, str]:
             raw_score = data.get("score")
             if raw_score is None:
                 return None, f"Missing score field — raw response: {response[:200]}"
-            score = int(raw_score)
-            if score not in (0, 1):
+            if type(raw_score) is not int or raw_score not in (0, 1):
                 return None, f"Invalid score value — raw response: {response[:200]}"
             reasoning = str(data.get("reasoning", ""))
-            return score == 1, reasoning
+            return raw_score == 1, reasoning
     except Exception as e:
         log.warning("Failed to parse no_irrelevant_responses judge response: %s | raw: %.200s", e, response)
     return None, f"Parse error — raw response: {response[:200]}"
