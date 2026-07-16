@@ -1,0 +1,49 @@
+name: CLI (Rider plugin) - Build and verify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/cli/studioctl-lsp/rider/**"
+      - .github/workflows/cli-rider-plugin.yaml
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - "src/cli/studioctl-lsp/rider/**"
+      - .github/workflows/cli-rider-plugin.yaml
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-verify:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    name: Build and verify plugin
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+
+      - name: Setup Java
+        uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build plugin
+        working-directory: src/cli/studioctl-lsp/rider
+        run: ./gradlew buildPlugin
+
+      - name: Verify plugin
+        working-directory: src/cli/studioctl-lsp/rider
+        run: ./gradlew verifyPlugin
