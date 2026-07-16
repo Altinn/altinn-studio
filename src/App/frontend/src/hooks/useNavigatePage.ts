@@ -17,7 +17,6 @@ import {
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-import { focusComponentIfMounted, setFocusComponentRequest } from 'src/layout/focusComponent';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
@@ -475,7 +474,7 @@ export function useNavigateToComponent() {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { navigateToPage } = useNavigatePage();
   const currentPageId = useCurrentView();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   return async (
     indexedId: string,
@@ -483,25 +482,22 @@ export function useNavigateToComponent() {
     options: Omit<NavigateToComponentOptions, 'shouldFocus'> | undefined,
   ) => {
     const targetPage = layoutLookups.componentToPage[baseComponentId];
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set(SearchParams.FocusComponentId, indexedId);
     const errorBindingKey = options?.error?.['bindingKey'];
-    const focusRequest = { nodeId: indexedId, errorBinding: errorBindingKey ?? null };
+    if (errorBindingKey) {
+      newSearchParams.set(SearchParams.FocusErrorBinding, errorBindingKey);
+    }
 
     if (targetPage && targetPage !== currentPageId) {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete(SearchParams.FocusComponentId);
-      newSearchParams.delete(SearchParams.FocusErrorBinding);
-      setFocusComponentRequest(focusRequest);
       await navigateToPage(targetPage, {
         ...options?.pageNavOptions,
-        preventScrollReset: true,
-        searchParams: newSearchParams.size > 0 ? newSearchParams : undefined,
-        replace: !!newSearchParams.get(SearchParams.ExitSubform),
+        searchParams: newSearchParams,
+        replace:
+          !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      const focused = focusComponentIfMounted(focusRequest);
-      if (!focused) {
-        setFocusComponentRequest(focusRequest);
-      }
+      setSearchParams(newSearchParams, preventFocusAndScrollResetOptions);
     }
   };
 }

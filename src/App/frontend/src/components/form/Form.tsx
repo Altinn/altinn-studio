@@ -28,7 +28,6 @@ import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
-import { FocusComponentRequestFromUrl } from 'src/layout/focusComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
@@ -146,7 +145,6 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
       </Flex>
       <ReadyForPrint type='load' />
       <HandleNavigationFocusComponent />
-      <FocusComponentRequestFromUrl />
     </>
   );
 }
