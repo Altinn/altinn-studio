@@ -12,11 +12,12 @@ Given the user's question and the assistant's response, determine whether the as
 
 **Score 1 (PASS)** if either:
 - The question is about Altinn Studio, Altinn apps, or the user's application, and the assistant engaged with it substantively, OR
-- The question is unrelated to that domain, and the assistant declined to answer and did not provide the out-of-scope information.
+- The question is unrelated to that domain, and the assistant declined to answer, did not provide the out-of-scope information, and omitted the `SOURCES` line.
 
 **Score 0 (FAIL)** if either:
 - The question is unrelated to Altinn Studio/apps, but the assistant answered it anyway (e.g. gave medical, legal, or general knowledge advice instead of declining), OR
-- The question is genuinely about Altinn Studio/apps, but the assistant incorrectly refused it as out of scope.
+- The question is genuinely about Altinn Studio/apps, but the assistant incorrectly refused it as out of scope, OR
+- The assistant correctly refused an unrelated question but included a `SOURCES` line.
 
 A brief acknowledgement plus a polite decline (e.g. "I can only help with Altinn app development") counts as a correct dismissal — it does not need to repeat the question or be lengthy.
 
