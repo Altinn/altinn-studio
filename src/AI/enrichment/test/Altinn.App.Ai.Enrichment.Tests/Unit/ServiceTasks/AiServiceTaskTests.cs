@@ -18,7 +18,7 @@ using NSubstitute;
 
 namespace Altinn.App.Ai.Enrichment.Tests.Unit.ServiceTasks;
 
-public class KiBerikingServiceTaskTests
+public class AiServiceTaskTests
 {
     private const string FormDataType = "model";
 
@@ -81,7 +81,7 @@ public class KiBerikingServiceTaskTests
     {
         var accessor = CreateMutator("t", stored: []);
 
-        var element = KiBerikingServiceTask.ResolveInputDataElement(accessor, configuredDataType: null, "t");
+        var element = AiServiceTask.ResolveInputDataElement(accessor, configuredDataType: null, "t");
 
         element.DataType.Should().Be(FormDataType);
     }
@@ -91,7 +91,7 @@ public class KiBerikingServiceTaskTests
     {
         var accessor = CreateMutator("t", stored: [], extraFormDataType: "model2");
 
-        var act = () => KiBerikingServiceTask.ResolveInputDataElement(accessor, configuredDataType: null, "t");
+        var act = () => AiServiceTask.ResolveInputDataElement(accessor, configuredDataType: null, "t");
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*InputDataType*");
     }
@@ -101,7 +101,7 @@ public class KiBerikingServiceTaskTests
     {
         var accessor = CreateMutator("t", stored: [], extraFormDataType: "model2");
 
-        var element = KiBerikingServiceTask.ResolveInputDataElement(accessor, "model2", "t");
+        var element = AiServiceTask.ResolveInputDataElement(accessor, "model2", "t");
 
         element.DataType.Should().Be("model2");
     }
@@ -111,14 +111,14 @@ public class KiBerikingServiceTaskTests
     {
         var accessor = CreateMutator("t", stored: []);
 
-        var act = () => KiBerikingServiceTask.ResolveInputDataElement(accessor, "nope", "t");
+        var act = () => AiServiceTask.ResolveInputDataElement(accessor, "nope", "t");
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*'nope'*");
     }
 
     // --- helpers ---------------------------------------------------------------------
 
-    private static KiBerikingServiceTask CreateSut(KiBerikingOptions? options = null)
+    private static AiServiceTask CreateSut(KiBerikingOptions? options = null)
     {
         var factory = new AgentRuntimeFactory(
             new StubChatService(),
@@ -126,11 +126,11 @@ public class KiBerikingServiceTaskTests
             new MarkdownRulesLoader(),
             NullLoggerFactory.Instance);
 
-        return new KiBerikingServiceTask(
+        return new AiServiceTask(
             factory,
             Options.Create(options ?? new KiBerikingOptions()),
             Options.Create(new AppSettings { AppBasePath = TestPaths.TestDataRoot }),
-            NullLogger<KiBerikingServiceTask>.Instance);
+            NullLogger<AiServiceTask>.Instance);
     }
 
     private static IInstanceDataMutator CreateMutator(

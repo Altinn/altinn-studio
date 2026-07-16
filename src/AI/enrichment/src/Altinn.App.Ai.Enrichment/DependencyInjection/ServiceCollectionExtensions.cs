@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
         services.AddAiEnrichmentCore(configuration);
 
         services.Configure<KiBerikingOptions>(configuration.GetSection(KiBerikingOptions.SectionName));
-        services.AddTransient<IServiceTask, KiBerikingServiceTask>();
+        services.AddTransient<IServiceTask, AiServiceTask>();
 
         return services;
     }

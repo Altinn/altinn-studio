@@ -85,7 +85,7 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
   Bevisste avvik fra v0.4: steg-feil propagerer (var logg-og-fortsett), `template`
   valgfri for orchestrated-steg (JSON-only mulig), aggregator-rootKey schema-styrt,
   DOCX droppet, `publishTo` defaulter til steg-navnet.
-- **Fase 2 — service task** *(ferdig)*: `KiBerikingServiceTask : IServiceTask`
+- **Fase 2 — service task** *(ferdig)*: `AiServiceTask : IServiceTask`
   (`Type => "kiBeriking"`), agent-oppslag fra task-id (overstyrbart via
   `AiEnrichment:Tasks`), input = eneste dataType med appLogic (ellers config),
   output = JSON/PDF som binære data-elementer. `AddAiEnrichment()` registrerer alt;

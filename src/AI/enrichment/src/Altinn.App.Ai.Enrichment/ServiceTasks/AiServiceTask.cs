@@ -21,11 +21,11 @@ namespace Altinn.App.Ai.Enrichment.ServiceTasks;
 /// on failure the process halts on this task and the next <c>process/next</c>
 /// retries.
 /// </summary>
-public sealed class KiBerikingServiceTask(
+public sealed class AiServiceTask(
     AgentRuntimeFactory agentRuntimeFactory,
     IOptions<KiBerikingOptions> options,
     IOptions<AppSettings> appSettings,
-    ILogger<KiBerikingServiceTask> logger) : IServiceTask
+    ILogger<AiServiceTask> logger) : IServiceTask
 {
     public const string TaskType = "kiBeriking";
 
