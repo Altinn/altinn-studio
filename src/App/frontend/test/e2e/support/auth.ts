@@ -164,15 +164,14 @@ Cypress.Commands.add('interceptPermissions', () => {
 type CyUserLoginParams = {
   cyUser: CyUser;
   authenticationLevel: string;
-  appName: string;
 };
 
-export function cyUserLogin({ cyUser, authenticationLevel, appName }: CyUserLoginParams) {
+export function cyUserLogin({ cyUser, authenticationLevel }: CyUserLoginParams) {
   cy.log(`Logging in as user: ${cyUser}`);
   const user = cyUserCredentials[cyUser];
 
   if (Cypress.env('type') === 'localtest') {
-    return localLogin({ partyId: user.localPartyId, authenticationLevel, appName });
+    return localLogin({ partyId: user.localPartyId, authenticationLevel });
   }
 
   const { userName, userPassword } = user;
@@ -187,54 +186,47 @@ type LocalLoginParams =
   | {
       partyId: string;
       authenticationLevel: string;
-      appName: string;
     }
   | {
       displayName: string;
       authenticationLevel: string;
-      appName: string;
     };
 
-function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams) {
-  cy.visit(`${Cypress.config('baseUrl')}`);
-
+function localLogin({ authenticationLevel, ...rest }: LocalLoginParams) {
   if ('partyId' in rest) {
-    const partyId = rest.partyId;
-    cy.log(`Logging in as local user: ${partyId} with authentication level: ${authenticationLevel}`);
-    cy.get('select#UserSelect').select(partyId);
-    cy.get('select#UserSelect').should('have.value', partyId);
-  } else if ('displayName' in rest) {
-    const displayName = rest.displayName;
-    cy.log(`Logging in as local user: ${displayName} with authentication level: ${authenticationLevel}`);
-    cy.findByRole('combobox', { name: /select test users/i })
-      .find('option')
-      .contains(new RegExp(displayName, 'i'))
-      .then(($option) => {
-        cy.get('select#UserSelect').select($option.val() as string);
-        cy.get('select#UserSelect').should('have.value', $option.val() as string);
-      });
+    return logInLocalUser(rest.partyId, authenticationLevel);
   }
 
-  cy.findByRole('combobox', { name: /select app to test/i }).select(`ttd/${appName}`);
+  // Tenor users do not have a party ID in the Cypress configuration. Fetching the page is still much
+  // cheaper than visiting it, and lets us resolve the value expected by Localtest's UserSelect field.
+  return cy.request<string>('/').then(({ body }) => {
+    const document = new DOMParser().parseFromString(body, 'text/html');
+    const userSelect = Array.from(document.querySelectorAll<HTMLOptionElement>('#UserSelect option')).find((option) =>
+      option.textContent?.toLowerCase().includes(rest.displayName.toLowerCase()),
+    )?.value;
+    expect(userSelect, `Localtest user matching ${rest.displayName}`).to.not.be.empty;
+    return logInLocalUser(userSelect!, authenticationLevel);
+  });
+}
 
-  cy.findByRole('combobox', { name: /authentication level/i })
-    .should('exist')
-    .find('option')
-    .contains(new RegExp(authenticationLevel, 'i'))
-    .then(($option) => {
-      cy.get('select#AuthenticationLevel').select($option.val() as string);
-      cy.get('select#AuthenticationLevel').should('have.value', $option.val() as string);
-    });
+function logInLocalUser(userSelect: string, authenticationLevel: string) {
+  cy.log(`Logging in as local user: ${userSelect} with authentication level: ${authenticationLevel}`);
 
-  cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 1 }, (req) => {
-    req.on('response', (res) => {
-      expect(res.statusCode).to.eq(302);
-      res.send(200, emptyPageHtml);
-    });
-  }).as('login');
-
-  cy.findByRole('button', { name: 'Proceed to app' }).click();
-  cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
+  // Localtest's reauthenticate action creates the same authentication and party cookies as the login form,
+  // but deliberately responds without redirecting. Cypress persists cookies from cy.request(), allowing the
+  // following cy.visit() to open the app already authenticated.
+  cy.request({
+    method: 'POST',
+    url: '/Home/LogInTestUser',
+    form: true,
+    body: {
+      action: 'reauthenticate',
+      UserSelect: userSelect,
+      AuthenticationLevel: authenticationLevel,
+    },
+  })
+    .its('status')
+    .should('eq', 204);
 }
 
 function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
@@ -278,7 +270,7 @@ export function tenorUserLogin(props: TenorLoginParams) {
   cy.log(`Logging in as Tenor user: ${props.tenorUser.name}`);
 
   if (Cypress.env('type') === 'localtest') {
-    return localLogin({ displayName: props.tenorUser.name, ...props });
+    return localLogin({ displayName: props.tenorUser.name, authenticationLevel: props.authenticationLevel });
   }
 
   return tenorTt02Login(props);
