@@ -52,6 +52,14 @@ public sealed class ModelImmutabilityTests
                 ["App/ui/Task_1/layouts/P1.json"] =
                     """{"data":{"layout":[{"id":"a","type":"Input","dataModelBindings":{"simpleBinding":"x"}}]}}""",
                 ["App/config/texts/resource.nb.json"] = """{"language":"nb","resources":[{"id":"t","value":"v"}]}""",
+                ["App/models/Model.cs"] = """
+                namespace App.Models;
+                public class Model
+                {
+                    [System.Text.Json.Serialization.JsonPropertyName("x")]
+                    public string? X { get; set; }
+                }
+                """,
             }
         );
         var model = AppConfigEngine.Open(dir).Build();

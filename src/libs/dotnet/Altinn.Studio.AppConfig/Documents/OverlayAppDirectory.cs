@@ -12,14 +12,16 @@ public sealed class OverlayAppDirectory : IHashingAppDirectory
 
     public string Root => _base.Root;
 
-    public void Set(string relativePath, byte[] bytes)
+    public void Set(string relativePath, byte[] bytes) => SetOwned(relativePath, (byte[])bytes.Clone());
+
+    public void Set(string relativePath, string text) => SetOwned(relativePath, Encoding.UTF8.GetBytes(text));
+
+    private void SetOwned(string relativePath, byte[] owned)
     {
         _tombstones.Remove(relativePath);
-        var stripped = Utf8Bom.Strip((byte[])bytes.Clone());
+        var stripped = Utf8Bom.Strip(owned);
         _overlay[relativePath] = new FileHandle(relativePath, stripped, FileHandle.HashOf(stripped));
     }
-
-    public void Set(string relativePath, string text) => Set(relativePath, Encoding.UTF8.GetBytes(text));
 
     public void Clear(string relativePath)
     {

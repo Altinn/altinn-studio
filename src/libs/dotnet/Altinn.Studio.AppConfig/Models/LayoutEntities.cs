@@ -28,9 +28,9 @@ internal sealed class LayoutSetBuilder
         {
             Id = Id,
             DefaultDataReq = DefaultDataReq,
-            PageFileRefs = PageFileRefs.ToList().AsReadOnly(),
-            Components = Components.ToFrozenDictionary(Components.Comparer),
-            AllComponents = AllComponents.ToList().AsReadOnly(),
+            PageFileRefs = PageFileRefs.AsReadOnly(),
+            Components = Components.AsReadOnly(),
+            AllComponents = AllComponents.AsReadOnly(),
             Position = Position,
         };
 }
