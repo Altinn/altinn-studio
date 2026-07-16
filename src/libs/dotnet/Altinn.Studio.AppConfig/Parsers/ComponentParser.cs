@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Text.Json;
 using Altinn.Studio.AppConfig.Documents.Text;
 using Altinn.Studio.AppConfig.Models;
@@ -31,7 +30,7 @@ internal static class ComponentParser
                 Type = type,
                 Page = page,
                 LayoutSet = set.Id,
-                Bindings = ExtractBindings(c).ToFrozenDictionary(StringComparer.Ordinal),
+                Bindings = ExtractBindings(c).AsReadOnly(),
                 Children = ExtractChildren(c, multiPage).AsReadOnly(),
                 HasOptionSource =
                     c.TryGetProperty("optionsId", out _)

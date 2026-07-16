@@ -48,10 +48,11 @@ internal sealed class RoslynSyntaxIntrospector
                 var attrs = member
                     .AttributeLists.SelectMany(al => al.Attributes)
                     .Select(a => a.Name.ToString())
-                    .ToArray();
+                    .ToList()
+                    .AsReadOnly();
                 props.Add(new ModelProperty(pname, typeRef, attrs, SpanOf(member, file), JsonNameOf(member) ?? pname));
             }
-            app.CSharpModel[fqn] = new ModelTypeInfo(fqn, props, SpanOf(td, file, td.Identifier.Span));
+            app.CSharpModel[fqn] = new ModelTypeInfo(fqn, props.AsReadOnly(), SpanOf(td, file, td.Identifier.Span));
         }
     }
 
