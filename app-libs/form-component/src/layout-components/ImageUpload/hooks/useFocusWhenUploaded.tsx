@@ -39,7 +39,7 @@ export function useFocusWhenUploaded(
   }, [attachment, elementRef]);
 }
 
-function isAttachmentUploaded(attachment: StoredImage | undefined): attachment is StoredImage {
+function isAttachmentUploaded(attachment: StoredImage | undefined): boolean {
   return !!attachment?.uploaded;
 }
 
