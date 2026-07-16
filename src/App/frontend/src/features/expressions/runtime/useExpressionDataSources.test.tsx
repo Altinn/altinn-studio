@@ -50,17 +50,13 @@ jest.mock('src/core/contexts/ApiProvider', () => ({
 jest.mock('src/features/formData/FormDataReaders', () => ({
   useDataModelReaders: () => ({}),
 }));
-jest.mock('src/core/queries/instance', () => ({
-  useCachedInstanceQueries: () => mockInstanceQueries,
-}));
-jest.mock('src/core/queries/queryCache', () => ({
-  useQueryCacheObserver: () => mockQueryCacheObserver,
-}));
-jest.mock('src/core/queries/externalApi', () => ({
-  useExternalApiQueries: () => mockExternalApiQueries,
-}));
-jest.mock('src/core/queries/textResources', () => ({
-  useTextResourcesQueries: () => mockTextResourceQueries,
+jest.mock('src/core/queries/expressionQueryReaders', () => ({
+  useExpressionQueryReaders: () => ({
+    instanceQueries: mockInstanceQueries,
+    queryCacheObserver: mockQueryCacheObserver,
+    externalApiQueries: mockExternalApiQueries,
+    textResourceQueries: mockTextResourceQueries,
+  }),
 }));
 
 beforeEach(() => {

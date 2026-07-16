@@ -5,10 +5,8 @@ import type { StoreApi } from 'zustand';
 
 import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { type ExternalApisResult, useExternalApiQueries } from 'src/core/queries/externalApi';
-import { useCachedInstanceQueries } from 'src/core/queries/instance';
-import { useQueryCacheObserver } from 'src/core/queries/queryCache';
-import { useTextResourcesQueries } from 'src/core/queries/textResources';
+import { useExpressionQueryReaders } from 'src/core/queries/expressionQueryReaders';
+import { type ExternalApisResult } from 'src/core/queries/externalApi';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
@@ -20,7 +18,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { resourcesAsMap } from 'src/features/language/textResources/TextResourcesProvider';
 import { staticUseLanguage } from 'src/features/language/useLanguage';
 import { useAllNavigationParams } from 'src/hooks/navigation';
-import { useShallowMemo } from 'src/hooks/useShallowMemo';
+import { objectOrArrayShallowEqual } from 'src/hooks/useShallowMemo';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type {
@@ -117,10 +115,17 @@ type SnapshotInputs = {
   store: StoreApi<FormStoreState> | typeof ContextNotProvided;
   textResourcesApi: ReturnType<typeof useTextResourcesApi>;
   dataModelReaders: DataModelReaders;
-  instanceQueries: ReturnType<typeof useCachedInstanceQueries>;
-  queryCacheObserver: ReturnType<typeof useQueryCacheObserver>;
-  externalApiQueries: ReturnType<typeof useExternalApiQueries>;
-  textResourceQueries: ReturnType<typeof useTextResourcesQueries>;
+  instanceQueries: ReturnType<typeof useExpressionQueryReaders>['instanceQueries'];
+  queryCacheObserver: ReturnType<typeof useExpressionQueryReaders>['queryCacheObserver'];
+  externalApiQueries: ReturnType<typeof useExpressionQueryReaders>['externalApiQueries'];
+  textResourceQueries: ReturnType<typeof useExpressionQueryReaders>['textResourceQueries'];
+};
+
+type ExpressionRuntimeState = {
+  hookInputsChanged: boolean;
+  inputs: SnapshotInputs;
+  observer: ExpressionObserver;
+  runtimeOverrides: Partial<ExpressionDataSources>;
 };
 
 /**
@@ -225,10 +230,7 @@ function useExpressionDataSourcesRuntime(
   const store = FormStore.raw.useLaxStore();
   const textResourcesApi = useTextResourcesApi();
   const dataModelReaders = useDataModelReaders();
-  const instanceQueries = useCachedInstanceQueries();
-  const queryCacheObserver = useQueryCacheObserver();
-  const externalApiQueries = useExternalApiQueries();
-  const textResourceQueries = useTextResourcesQueries();
+  const { instanceQueries, queryCacheObserver, externalApiQueries, textResourceQueries } = useExpressionQueryReaders();
 
   const [observerRevision, forceRender] = useReducer((n: number) => n + 1, 0);
 
@@ -250,28 +252,42 @@ function useExpressionDataSourcesRuntime(
     textResourceQueries,
   };
 
-  const inputsRef = useRef(inputs);
-  inputsRef.current = inputs;
-  const observerRef = useRef<ExpressionObserver>(undefined);
-  if (!observerRef.current) {
-    observerRef.current = new ExpressionObserver(
+  const { runtime: runtimeOverridesFromProps, unsupportedDataSources, errorSuffix } = overrides ?? {};
+  const nextRuntimeOverrides = runtimeOverridesFromProps ?? emptyRuntimeOverrides;
+  const stateRef = useRef<ExpressionRuntimeState>(undefined);
+  let state = stateRef.current;
+  if (!state) {
+    const observer = new ExpressionObserver(
       () => forceRender(),
-      (dependency) => readDependencyValue(inputsRef.current, dependency),
+      (dependency) => readDependencyValue(stateRef.current!.inputs, dependency),
     );
+    state = { hookInputsChanged: true, inputs, observer, runtimeOverrides: nextRuntimeOverrides };
+    stateRef.current = state;
+  } else {
+    state.hookInputsChanged ||=
+      state.inputs.applicationSettings !== inputs.applicationSettings ||
+      state.inputs.currentLanguage !== inputs.currentLanguage ||
+      state.inputs.currentPage !== inputs.currentPage;
+    state.inputs = inputs;
+    if (!objectOrArrayShallowEqual(nextRuntimeOverrides, state.runtimeOverrides)) {
+      state.runtimeOverrides = nextRuntimeOverrides;
+    }
   }
+  const runtimeOverrides = state.runtimeOverrides;
 
-  observerRef.current.beginCollect();
-
-  useLayoutEffect(() => {
-    observerRef.current!.checkHookInputs();
-  }, [applicationSettings, currentLanguage, currentPage]);
+  state.observer.beginCollect();
 
   useLayoutEffect(() => {
-    observerRef.current!.commitCollect();
+    const currentState = stateRef.current!;
+    if (currentState.hookInputsChanged) {
+      currentState.hookInputsChanged = false;
+      currentState.observer.checkHookInputs();
+    }
+    currentState.observer.commitCollect();
   });
 
   useLayoutEffect(() => {
-    const observer = observerRef.current!;
+    const observer = stateRef.current!.observer;
     return observer.subscribe({
       owner: subscriptionOwner,
       subscribeStore: store !== ContextNotProvided ? (onStoreChange) => store.subscribe(onStoreChange) : undefined,
@@ -279,8 +295,6 @@ function useExpressionDataSourcesRuntime(
     });
   }, [queryCacheObserver, store, subscriptionOwner]);
 
-  const { runtime: runtimeOverridesFromProps, unsupportedDataSources, errorSuffix } = overrides ?? {};
-  const runtimeOverrides = useShallowMemo(runtimeOverridesFromProps ?? emptyRuntimeOverrides);
   const assertDataSourceSupported = useCallback(
     (dataSource: ExpressionDataSource) => {
       if (unsupportedDataSources?.has(dataSource)) {
@@ -300,8 +314,8 @@ function useExpressionDataSourcesRuntime(
 
     return makeExpressionDataSourcesRuntime({
       currentDataModelPath,
-      getInputs: () => inputsRef.current,
-      observer: observerRef.current!,
+      getInputs: () => stateRef.current!.inputs,
+      observer: stateRef.current!.observer,
       assertDataSourceSupported,
       runtimeOverrides,
     });
