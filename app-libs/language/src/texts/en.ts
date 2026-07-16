@@ -466,7 +466,7 @@ export function en() {
     'process_workflow.advancing_step': 'Step {0} of {1}',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
-      'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch to get help moving forward.',
+      'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',
     'process_workflow.failed_contact':
       'Contact Altinn customer service by phone ({0}) or email ({1}), and provide the references shown under _“{2}”_.',
     'process_workflow.failed_details_kind': 'Failure type',
