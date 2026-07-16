@@ -2,7 +2,7 @@
   "name": "altinn-studio-lsp",
   "displayName": "Altinn Studio Language Server",
   "description": "Validation and language support for Altinn Studio projects.",
-  "version": "0.0.4",
+  "version": "0.0.0-dev",
   "publisher": "altinnstudio",
   "engines": {
     "vscode": "^1.84.0"
@@ -82,6 +82,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.84.0",
+    "@vscode/vsce": "3.9.2",
     "typescript": "^5.4.0"
   }
 }
