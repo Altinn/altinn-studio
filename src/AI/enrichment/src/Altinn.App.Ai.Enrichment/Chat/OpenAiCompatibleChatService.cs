@@ -54,15 +54,16 @@ public sealed class OpenAiCompatibleChatService(
         var apiKey = await apiKeyProvider.GetApiKeyAsync(cancellationToken);
 
         var endpoint = new Uri(new Uri(opts.BaseUrl.TrimEnd('/') + "/"), "chat/completions");
+        var streaming = request.Stream ?? opts.UseStreaming;
         var body = new ChatCompletionsBody
         {
             Model = request.Model ?? opts.Model!,
             Messages = request.Messages,
-            MaxTokens = request.MaxTokens,
+            MaxTokens = request.MaxTokens ?? opts.MaxTokens,
             Temperature = request.Temperature,
             Tools = request.Tools is { Count: > 0 } ? request.Tools : null,
             ToolChoice = request.Tools is { Count: > 0 } ? request.ToolChoice : null,
-            Stream = request.Stream ? true : null,
+            Stream = streaming ? true : null,
         };
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -74,7 +75,7 @@ public sealed class OpenAiCompatibleChatService(
         {
             try
             {
-                lastResponse = await SendOnceAsync(endpoint, body, apiKey, request.Stream, cts.Token);
+                lastResponse = await SendOnceAsync(endpoint, body, apiKey, streaming, cts.Token);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
