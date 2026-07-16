@@ -15,9 +15,11 @@ repositories {
     }
 }
 
+val platformVersion = providers.gradleProperty("platformVersion")
+
 dependencies {
     intellijPlatform {
-        rider("2025.1") {
+        rider(platformVersion) {
             useInstaller = false
         }
         plugin("com.redhat.devtools.lsp4ij", "0.20.1")
@@ -40,7 +42,7 @@ intellijPlatform {
     }
     pluginVerification {
         ides {
-            create(IntelliJPlatformType.Rider, "2025.1")
+            create(IntelliJPlatformType.Rider, platformVersion)
         }
     }
 }
