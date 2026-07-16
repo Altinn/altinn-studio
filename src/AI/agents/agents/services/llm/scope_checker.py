@@ -50,11 +50,13 @@ async def check_scope_async(query: str) -> ScopeCheckResult:
 
     try:
         data = json.loads(cleaned)
+        if not isinstance(data, dict):
+            raise ValueError("Parsed JSON is not an object")
         return ScopeCheckResult(
             in_scope=bool(data.get("in_scope", True)),
             decline_message=data.get("decline_message"),
             reason=data.get("reason"),
         )
-    except (json.JSONDecodeError, TypeError) as e:
+    except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as e:
         log.warning(f"Failed to parse scope check response, defaulting to in-scope: {response!r} ({e})")
         return ScopeCheckResult(in_scope=True, reason="Failed to parse scope check response")
