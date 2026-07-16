@@ -38,6 +38,7 @@ internal sealed class ProcessNextRequestFactory
     internal const string ProcessNextIdLabel = "processNextId";
     internal const string ProcessNextSourceIdLabel = "processNextSourceId";
     internal const string ProcessNextTargetIdLabel = "processNextTargetId";
+    internal const string ProcessNextTargetTaskLabel = "processNextTargetTask";
     internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
     private readonly AppImplementationFactory _appImplementationFactory;
@@ -162,9 +163,13 @@ internal sealed class ProcessNextRequestFactory
             labels[ProcessNextSourceIdLabel] = sourceId;
         }
 
-        if (CreateProcessNextId(processStateChange.NewProcessState?.CurrentTask) is { } targetId)
+        if (processStateChange.NewProcessState?.CurrentTask is { ElementId.Length: > 0 } targetTask)
         {
+            string targetId = CreateProcessNextId(targetTask.ElementId, targetTask.Flow ?? 0);
             labels[ProcessNextTargetIdLabel] = targetId;
+
+            // The bare element id, so status reads never have to parse the ":{flow}" suffix back off.
+            labels[ProcessNextTargetTaskLabel] = targetTask.ElementId;
 
             // Keep the original label for existing workflow lookups and dashboard filters.
             labels[ProcessNextIdLabel] = targetId;

@@ -94,7 +94,33 @@ internal sealed record WorkflowTaskStatus(
     bool Retrying = false,
     WorkflowStepProgress? Progress = null,
     DateTimeOffset? StartedAt = null
-);
+)
+{
+    /// <summary>
+    /// Projects this status onto the client-facing wire shape. Only the coarse failure
+    /// classification and the safe structured support-reference facts are projected - never the
+    /// raw error detail (it can contain internal text).
+    /// </summary>
+    internal AppProcessWorkflowStatus ToAppProcessWorkflowStatus() =>
+        new()
+        {
+            Status = Status,
+            TargetTask = TargetTask,
+            Retrying = Retrying ? true : null,
+            Progress = Progress is { } progress
+                ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
+                : null,
+            StartedAt = StartedAt,
+            Failure = Failure is { } failure
+                ? new AppProcessWorkflowFailure
+                {
+                    Kind = failure.Kind,
+                    WorkflowId = failure.WorkflowId,
+                    OccurredAt = failure.LastError?.Timestamp,
+                }
+                : null,
+        };
+}
 
 /// <summary>
 /// Progress through a transition's engine steps: <see cref="Completed"/> of <see cref="Total"/>
@@ -732,24 +758,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 or PersistentItemStatus.DependencyFailed;
 
     /// <summary>
-    /// Reads the target task's element id from a set of process-next labels. The
-    /// <c>processNextTargetId</c> label is stored as <c>"{elementId}:{flow}"</c>, so the flow suffix
-    /// is stripped. Returns null when the label is absent.
+    /// Reads the target task's element id from a set of process-next labels
+    /// (<c>processNextTargetTask</c>). Returns null when the label is absent.
     /// </summary>
-    private static string? ExtractTargetTask(Dictionary<string, string>? labels)
-    {
-        if (
-            labels is null
-            || !labels.TryGetValue(ProcessNextRequestFactory.ProcessNextTargetIdLabel, out string? targetLabel)
-            || string.IsNullOrEmpty(targetLabel)
-        )
-        {
-            return null;
-        }
-
-        int flowSeparatorIndex = targetLabel.LastIndexOf(':');
-        return flowSeparatorIndex > 0 ? targetLabel[..flowSeparatorIndex] : targetLabel;
-    }
+    private static string? ExtractTargetTask(Dictionary<string, string>? labels) =>
+        labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextTargetTaskLabel) is { Length: > 0 } targetTask
+            ? targetTask
+            : null;
 
     /// <summary>
     /// Reads the target task from the process-next workflow behind a collection head (fallback used

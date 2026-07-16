@@ -241,9 +241,9 @@ public class WorkflowEngineServiceTests
     public async Task ResolveWorkflowTaskStatus_WhenHeadIsActive_ReturnsProcessingFromHeadLabelInSingleCall()
     {
         // A collection head that is Enqueued/Processing/Requeued means the transition is in flight.
-        // The target task is read straight from the head's own processNextTargetId label ("Task_2:3",
-        // ":flow" suffix stripped), so processing resolves in a SINGLE GetCollection call - the
-        // collection's workflows must NOT be listed.
+        // The target task is read straight from the head's own processNextTargetTask label, so
+        // processing resolves in a SINGLE GetCollection call - the collection's workflows must NOT
+        // be listed.
         Guid headId = Guid.NewGuid();
         Guid instanceGuid = Guid.NewGuid();
         string collectionKey = instanceGuid.ToString();
@@ -267,6 +267,7 @@ public class WorkflowEngineServiceTests
                             Labels = new Dictionary<string, string>(StringComparer.Ordinal)
                             {
                                 [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
                             },
                             StepsCompleted = 4,
                             StepsTotal = 12,
@@ -324,6 +325,7 @@ public class WorkflowEngineServiceTests
                             Labels = new Dictionary<string, string>(StringComparer.Ordinal)
                             {
                                 [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
                             },
                             StepsCompleted = 7,
                             StepsTotal = 12,
@@ -368,6 +370,7 @@ public class WorkflowEngineServiceTests
             labels: new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
             },
             steps:
             [

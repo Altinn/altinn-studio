@@ -351,6 +351,11 @@ public sealed class ProcessEngineTest
             .Be("Task_2:3");
         capturedRequest
             .Labels.Should()
+            .ContainKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel)
+            .WhoseValue.Should()
+            .Be("Task_2");
+        capturedRequest
+            .Labels.Should()
             .ContainKey(ProcessNextRequestFactory.ProcessNextIdLabel)
             .WhoseValue.Should()
             .Be("Task_2:3");

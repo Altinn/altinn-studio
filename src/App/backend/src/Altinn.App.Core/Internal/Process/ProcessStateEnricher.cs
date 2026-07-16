@@ -16,18 +16,16 @@ public sealed class ProcessStateEnricher
 {
     private readonly IProcessReader _processReader;
     private readonly IAuthorizationService _authorization;
-
-    // Resolved lazily via the service provider: IWorkflowEngineService is internal, and this type
-    // is public because the (public) process controllers inject it, so it cannot appear in a public
-    // constructor signature.
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IWorkflowEngineService _workflowEngineService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessStateEnricher"/>
     /// </summary>
     /// <param name="processReader"></param>
     /// <param name="authorization"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="serviceProvider">
+    /// Resolves internal collaborators that cannot appear in this public constructor signature.
+    /// </param>
     public ProcessStateEnricher(
         IProcessReader processReader,
         IAuthorizationService authorization,
@@ -36,7 +34,7 @@ public sealed class ProcessStateEnricher
     {
         _processReader = processReader;
         _authorization = authorization;
-        _serviceProvider = serviceProvider;
+        _workflowEngineService = serviceProvider.GetRequiredService<IWorkflowEngineService>();
     }
 
     /// <summary>
@@ -126,35 +124,15 @@ public sealed class ProcessStateEnricher
     /// </summary>
     private async Task<AppProcessWorkflowStatus> ResolveWorkflowStatus(Instance instance, CancellationToken ct)
     {
-        var workflowEngineService = _serviceProvider.GetRequiredService<IWorkflowEngineService>();
         using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         budgetCts.CancelAfter(WorkflowStatusResolutionBudget);
         try
         {
-            WorkflowTaskStatus workflowStatus = await workflowEngineService.ResolveWorkflowTaskStatus(
+            WorkflowTaskStatus workflowStatus = await _workflowEngineService.ResolveWorkflowTaskStatus(
                 instance,
                 budgetCts.Token
             );
-            return new AppProcessWorkflowStatus
-            {
-                Status = workflowStatus.Status,
-                TargetTask = workflowStatus.TargetTask,
-                Retrying = workflowStatus.Retrying ? true : null,
-                Progress = workflowStatus.Progress is { } progress
-                    ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
-                    : null,
-                StartedAt = workflowStatus.StartedAt,
-                // Only the coarse classification and the safe structured support-reference facts
-                // are projected - never the raw error detail (it can contain internal text).
-                Failure = workflowStatus.Failure is { } failure
-                    ? new AppProcessWorkflowFailure
-                    {
-                        Kind = failure.Kind,
-                        WorkflowId = failure.WorkflowId,
-                        OccurredAt = failure.LastError?.Timestamp,
-                    }
-                    : null,
-            };
+            return workflowStatus.ToAppProcessWorkflowStatus();
         }
         catch (OperationCanceledException e) when (!ct.IsCancellationRequested)
         {

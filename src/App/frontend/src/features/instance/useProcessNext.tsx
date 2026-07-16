@@ -91,13 +91,6 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
             return [null, null] as const;
           }
 
-          if (error.response?.status === 500 && error.response?.data?.['detail'] === 'Pdf generation failed') {
-            // Legacy fallback: a v9 backend reports PDF service task failures with a workflowFailure
-            // extension (handled above); this branch only catches older backends' bare PDF error.
-            toast(<Lang id='process_error.submit_error_please_retry' />, { type: 'error', autoClose: false });
-            return [null, null];
-          }
-
           throw error;
         });
     },
@@ -170,11 +163,6 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
 export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps = {}) {
   return useProcessNextInternal({ action });
 }
-
-// NOTE: there is deliberately no frontend mutation for `process/resume`: once the engine deems a
-// failure terminal it has exhausted its retry budget, so the citizen is shown a static error page
-// (see WorkflowFailed) and recovery is ops-driven - the backend endpoint stays because ops tooling
-// uses it, and the recovered state surfaces when the user next refreshes the page.
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {
   if (!processData) {

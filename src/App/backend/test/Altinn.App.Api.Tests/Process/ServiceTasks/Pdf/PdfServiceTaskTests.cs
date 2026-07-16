@@ -169,13 +169,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         JObject problem = JObject.Parse(responseAsString);
         problem["title"]!.Value<string>().Should().Be("Something went wrong while moving to the next task.");
         problem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.InternalServerError);
-        // The raw failure detail ("Pdf generation failed" from the step's recorded error) is never
-        // serialized to clients - the detail is a stable generic message derived from the failure
-        // kind, and the workflowFailure extension is stripped of its recorded error.
-        problem["detail"]!
-            .Value<string>()
-            .Should()
-            .Be("A workflow step failed while performing the process action.");
+        problem["detail"]!.Value<string>().Should().Be("A workflow step failed while performing the process action.");
         problem["workflowFailure"]!["kind"]!.Value<string>().Should().Be("stepFailed");
         problem["workflowFailure"]!["retryAction"]!.Value<string>().Should().Be("resumeWorkflow");
         problem["workflowFailure"]!["lastError"].Should().BeNull();

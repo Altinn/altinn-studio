@@ -154,7 +154,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         Assert.NotNull(processState.Workflow.Failure.OccurredAt);
 
         // The transition targeted the committed current task; the engine round-trips the
-        // processNextTargetId label so the annotation resolves it back.
+        // processNextTargetTask label so the annotation resolves it back.
         Assert.Equal("Task_Service", processState.Workflow.TargetTask);
 
         await verifier.Verify(process, snapshotName: "ProcessWorkflowStatus", scrubbers: scrubbers);

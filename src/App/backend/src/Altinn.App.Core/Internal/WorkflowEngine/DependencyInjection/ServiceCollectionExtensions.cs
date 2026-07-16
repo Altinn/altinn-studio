@@ -24,10 +24,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
 
-        // The engine is a low-latency internal service; never let a single call hold a request for
-        // the framework-default 100s. Application-level waits poll with repeated short calls (see
-        // WorkflowEngineService.WorkflowPollingTimeoutMs), and the read-path status lookup applies
-        // a tighter budget on top of this (see ProcessStateEnricher.WorkflowStatusResolutionBudget).
         services
             .AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>()
             .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(30));
