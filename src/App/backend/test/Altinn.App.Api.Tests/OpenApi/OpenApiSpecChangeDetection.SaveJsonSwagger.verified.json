@@ -8323,6 +8323,11 @@
           "progress": {
             "$ref": "#/components/schemas/AppProcessWorkflowProgress"
           },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "failure": {
             "$ref": "#/components/schemas/AppProcessWorkflowFailure"
           }

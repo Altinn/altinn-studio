@@ -81,4 +81,12 @@ internal sealed record CollectionHeadStatus
     [JsonPropertyName("stepsTotal")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? StepsTotal { get; init; }
+
+    /// <summary>
+    /// Gets when the head workflow was created (enqueued) - the engine-clock anchor for how long
+    /// the head has been running. Null when the engine predates the field.
+    /// </summary>
+    [JsonPropertyName("createdAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CreatedAt { get; init; }
 }

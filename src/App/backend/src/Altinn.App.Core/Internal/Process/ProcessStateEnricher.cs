@@ -143,6 +143,7 @@ public sealed class ProcessStateEnricher
                 Progress = workflowStatus.Progress is { } progress
                     ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
                     : null,
+                StartedAt = workflowStatus.StartedAt,
                 // Only the coarse classification and the safe structured support-reference facts
                 // are projected - never the raw error detail (it can contain internal text).
                 Failure = workflowStatus.Failure is { } failure

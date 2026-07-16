@@ -80,7 +80,11 @@ function NavigationError({ label }: NavigationErrorProps) {
 // transition can legitimately be stuck retrying for hours (network trouble, a struggling downstream
 // service), and a bare spinner is infuriating at that scale. One escalation, not a graduated series
 // of near-identical "this is slow" notes - a single honest message once the wait is clearly abnormal.
-const STILL_WORKING_MS = 40_000;
+// The wait is measured from the transition's server-reported start (workflow.startedAt) when
+// present, so a page refresh or a second session doesn't restart the clock: reconnecting to a
+// transition that has already been running this long shows the message immediately. Without the
+// timestamp (older backend) we fall back to measuring from mount.
+const STILL_WORKING_MS = 30_000;
 
 // From this many consecutive failed poll cycles we tell the user we're having trouble reaching the
 // server (one failed cycle is a swallowed blip; InstanceProvider escalates to the full error page
@@ -91,10 +95,10 @@ const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
 // so apps override any of them per app. The layers:
 //   always      - spinner, title, body ("you don't need to do anything, we continue automatically")
 //   resolvable  - "Steg x av y" progress through the transition's workflow steps (engine-reported)
-//   >=40s       - an info alert: data is safely stored, processing continues on its own, the page can
+//   >=30s       - an info alert: data is safely stored, processing continues on its own, the page can
 //                 be closed - the honest answer to a transition stuck for a long time. Single tier:
 //                 no graduated series of near-identical "this is slow" notes, just one message once
-//                 the wait is clearly abnormal.
+//                 the wait is clearly abnormal. Measured from the transition's start, not the page's.
 //   poll issues - connection_trouble (orthogonal: the page itself is having trouble asking for
 //                 updates, not the transition being slow, so it may co-exist with the alert above)
 function WorkflowProcessing() {
@@ -102,12 +106,17 @@ function WorkflowProcessing() {
   const pollFailureCount = useInstancePollFailureCount();
   const { langAsString } = useLanguage();
   const [stillWorking, setStillWorking] = useState(false);
+  const startedAt = workflow?.startedAt;
   useEffect(() => {
-    const stillWorkingTimer = setTimeout(() => setStillWorking(true), STILL_WORKING_MS);
+    // Clamping elapsed at 0 guards against client-clock skew: a reconnect must never wait longer
+    // than a fresh mount would.
+    const startedMs = startedAt ? Date.parse(startedAt) : Number.NaN;
+    const elapsedMs = Number.isFinite(startedMs) ? Math.max(0, Date.now() - startedMs) : 0;
+    const stillWorkingTimer = setTimeout(() => setStillWorking(true), Math.max(0, STILL_WORKING_MS - elapsedMs));
     return () => {
       clearTimeout(stillWorkingTimer);
     };
-  }, []);
+  }, [startedAt]);
 
   return (
     <Flex

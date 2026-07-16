@@ -160,6 +160,28 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task GetCollection_IncludesHeadCreatedAt()
+    {
+        // The collection detail exposes each head's creation time so a consumer can anchor
+        // "how long has this been running" to the engine's clock without a per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var results = await EnqueueWithCollection(repo, "created-at-collection", [CreateWorkflowRequest("a")]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var collection = await repo.GetCollection(
+            "created-at-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        Assert.Equal(workflow.CreatedAt, head.CreatedAt);
+    }
+
+    [Fact]
     public async Task Enqueue_WithoutCollectionKey_DoesNotCreateCollection()
     {
         // Arrange

@@ -82,14 +82,18 @@ internal sealed record ProcessNextWorkflowResult(
 /// <see cref="WorkflowActivityStatus.Processing"/>: retrying means the engine has the transition
 /// parked between automatic retry attempts (a previous attempt failed), letting a waiting UI say
 /// "a step is being retried" instead of an unexplained long wait; progress is how far through the
-/// transition's engine steps execution has come.
+/// transition's engine steps execution has come. <see cref="StartedAt"/> (also processing-only) is
+/// when the transition was enqueued, on the engine's clock - it lets a client that reconnects
+/// mid-transition (page refresh, second session) anchor "how long has this been running" to server
+/// truth instead of its own page load.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,
     string? TargetTask,
     WorkflowFailure? Failure,
     bool Retrying = false,
-    WorkflowStepProgress? Progress = null
+    WorkflowStepProgress? Progress = null,
+    DateTimeOffset? StartedAt = null
 );
 
 /// <summary>
@@ -386,7 +390,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 Retrying: activeHead.Status == PersistentItemStatus.Requeued,
                 Progress: activeHead is { StepsCompleted: int completed, StepsTotal: int total and > 0 }
                     ? new WorkflowStepProgress(completed, total)
-                    : null
+                    : null,
+                StartedAt: activeHead.CreatedAt
             );
         }
 

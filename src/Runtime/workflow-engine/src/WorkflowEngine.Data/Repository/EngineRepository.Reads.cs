@@ -89,6 +89,7 @@ internal sealed partial class EngineRepository
                             Labels = w.Labels,
                             StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
                             StepsTotal = w.Steps.Count,
+                            CreatedAt = w.CreatedAt,
                         })
                         .ToListAsync(cancellationToken)
                     : [];

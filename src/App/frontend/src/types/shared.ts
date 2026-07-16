@@ -234,6 +234,13 @@ export interface IProcessWorkflow {
    * reported step counts; presentation-only.
    */
   progress?: IProcessWorkflowProgress;
+  /**
+   * When the in-flight transition was started (enqueued), on the server's clock (ISO timestamp).
+   * Only present while status === 'processing'. Lets a client that reconnects mid-transition
+   * (page refresh, second session) measure how long the transition has actually been running
+   * instead of measuring from its own page load.
+   */
+  startedAt?: string;
   /** Present only when status === 'failed'. */
   failure?: IProcessWorkflowFailure;
 }

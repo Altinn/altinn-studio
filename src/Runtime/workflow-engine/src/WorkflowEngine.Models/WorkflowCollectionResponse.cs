@@ -119,4 +119,14 @@ public sealed record CollectionHeadStatus
     [JsonPropertyName("stepsTotal")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? StepsTotal { get; init; }
+
+    /// <summary>
+    /// Gets when the head workflow was created (enqueued). Lets a consumer anchor "how long has
+    /// this been running" to the engine's clock directly from the collection view, without a
+    /// per-workflow lookup. Nullable for the same additive-contract reason as
+    /// <see cref="StepsCompleted"/>; always populated by the engine.
+    /// </summary>
+    [JsonPropertyName("createdAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CreatedAt { get; init; }
 }

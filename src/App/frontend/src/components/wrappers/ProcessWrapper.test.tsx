@@ -87,11 +87,12 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(await screen.findByText('Steg 12 av 12')).toBeInTheDocument();
   });
 
-  it('processing escalates once to the safe-to-leave alert after ~40s - a single tier, not a series', async () => {
+  it('processing escalates once to the safe-to-leave alert after ~30s - a single tier, not a series', async () => {
     // A transition can be stuck server-side for hours; a bare spinner is infuriating at that scale.
     // We deliberately do NOT graduate through several near-identical "this is slow" notes: nothing
     // extra before the threshold, then one honest message once the wait is clearly abnormal - the
     // data is durably stored and the processing continues on its own, so the page can be closed.
+    // No startedAt here (older backend), so the wait falls back to being measured from mount.
     jest.useFakeTimers();
     try {
       await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
@@ -100,13 +101,67 @@ describe('ProcessWrapper workflow state machine', () => {
 
       // Just before the threshold: still only the base spinner + body, no escalation yet.
       await act(async () => {
-        await jest.advanceTimersByTimeAsync(30_000);
+        await jest.advanceTimersByTimeAsync(25_000);
       });
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
-      // Past ~40s: the single safe-to-leave alert appears.
+      // Past ~30s: the single safe-to-leave alert appears.
       await act(async () => {
-        await jest.advanceTimersByTimeAsync(15_000);
+        await jest.advanceTimersByTimeAsync(10_000);
+      });
+      expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('processing anchors the escalation to the server-reported transition start, not the page load', async () => {
+    // A page refresh or a second session reconnecting mid-transition must not restart the clock:
+    // when startedAt says the transition has already been running past the threshold, the
+    // safe-to-leave alert shows immediately instead of after another full local wait.
+    jest.useFakeTimers();
+    try {
+      await renderProcessWrapper(
+        {
+          status: 'processing',
+          targetTask: 'Task_2',
+          startedAt: new Date(Date.now() - 10 * 60_000).toISOString(),
+        },
+        false,
+      );
+      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(0);
+      });
+      expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('processing subtracts the already-elapsed server-side wait from the escalation threshold', async () => {
+    // Reconnecting 20s into the transition leaves ~10s of the 30s threshold: still quiet just
+    // before that remainder elapses, escalated just after.
+    jest.useFakeTimers();
+    try {
+      await renderProcessWrapper(
+        {
+          status: 'processing',
+          targetTask: 'Task_2',
+          startedAt: new Date(Date.now() - 20_000).toISOString(),
+        },
+        false,
+      );
+      expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5_000);
+      });
+      expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(6_000);
       });
       expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
     } finally {
@@ -147,7 +202,7 @@ describe('ProcessWrapper workflow state machine', () => {
       await act(async () => {
         await jest.advanceTimersByTimeAsync(12_000);
       });
-      expect(screen.queryByText(/problemer med å nå serveren/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/får ikke kontakt med tjenesten/i)).not.toBeInTheDocument();
 
       // Cycle 2: the advancing view is still alive (below the escalation threshold) and now
       // carries the honest connection-trouble note.
@@ -155,7 +210,7 @@ describe('ProcessWrapper workflow state machine', () => {
         await jest.advanceTimersByTimeAsync(12_000);
       });
       expect(screen.getByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
-      expect(screen.getByText(/problemer med å nå serveren/i)).toBeInTheDocument();
+      expect(screen.getByText(/får ikke kontakt med tjenesten/i)).toBeInTheDocument();
     } finally {
       jest.useRealTimers();
       logWarnOnce.mockRestore();

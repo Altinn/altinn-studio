@@ -193,6 +193,11 @@
     "Name": "CollectionHeadStatus",
     "Fields": [
       {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "databaseId",
         "Kind": "guid",
         "Nullable": false
