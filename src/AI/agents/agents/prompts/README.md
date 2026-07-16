@@ -188,6 +188,7 @@ The Langfuse SDK caches prompts internally (default 60s TTL). You can override t
 - `assistant_tool_orchestration.md` - Tool selection for Q&A assistant
 - `assistant_response_generation.md` - Answer generation for Q&A responses
 - `chat_assistant.md` - Simple chat-based Q&A assistance
+- `scope_check.md` - Pre-gate classifier: is a Q&A question in scope for Altinn app development
 
 ### User Templates
 
