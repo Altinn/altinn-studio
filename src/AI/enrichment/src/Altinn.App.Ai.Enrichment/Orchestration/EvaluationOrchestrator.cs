@@ -96,12 +96,13 @@ public sealed partial class EvaluationOrchestrator(
 
         for (var iteration = 0; iteration < options.MaxToolIterations; iteration++)
         {
+            // MaxTokens and Stream are left unset so the chat service applies the
+            // configured AgentOptions (MaxTokens/UseStreaming).
             var chatReq = new ChatRequest
             {
                 Messages = messages,
                 Tools = toolRegistry.Definitions,
                 ToolChoice = "auto",
-                MaxTokens = 2048,
                 Temperature = 0.0,
             };
 

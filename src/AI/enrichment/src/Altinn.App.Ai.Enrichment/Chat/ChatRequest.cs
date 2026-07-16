@@ -17,13 +17,14 @@ public sealed record ChatRequest
     /// <summary>OpenAI <c>tool_choice</c> override. Common values: "auto", "none", "required", or { "type": "function", "function": { "name": "..." } }.</summary>
     public string? ToolChoice { get; init; }
 
-    public int MaxTokens { get; init; } = 2048;
+    /// <summary>Override <c>AgentOptions.MaxTokens</c> for this call only. Null uses the configured value.</summary>
+    public int? MaxTokens { get; init; }
 
     public double Temperature { get; init; }
 
     /// <summary>Override the model from AgentOptions for this call only.</summary>
     public string? Model { get; init; }
 
-    /// <summary>Request SSE streaming. Defaults to off because per-punkt responses fit comfortably under the 60s gateway window.</summary>
-    public bool Stream { get; init; }
+    /// <summary>Override <c>AgentOptions.UseStreaming</c> for this call only. Null uses the configured value.</summary>
+    public bool? Stream { get; init; }
 }
