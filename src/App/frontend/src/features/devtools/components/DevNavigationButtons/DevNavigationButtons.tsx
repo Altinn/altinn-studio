@@ -8,7 +8,7 @@ import classes from 'src/features/devtools/components/DevNavigationButtons/DevNa
 import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useNavigateToPage } from 'src/hooks/useNavigatePage';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import { optionFilter } from 'src/utils/options';
 
@@ -23,7 +23,7 @@ export function DevNavigationButtons() {
 
 const InnerDevNavigationButtons = () => {
   const pageKey = useNavigationParam('pageKey');
-  const navigateToPage = useNavigateToPage();
+  const { navigateToPage } = useNavigatePage();
   const hiddenPages = useHiddenPages();
   const rawOrder = useRawPageOrder();
   const allPages = Object.keys(FormStore.bootstrap.useLayouts() ?? {});

@@ -17,7 +17,7 @@ import { getValidationsForNode } from 'src/features/validation/deriveValidationS
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useGetDerivedValidationState, usePageValidations } from 'src/features/validation/validationHooks';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { usePageOrder, useVisitedPages } from 'src/hooks/useNavigatePage';
+import { useNavigatePage, useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { ContextNotProvided } from 'src/core/contexts/context';
 import type { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
@@ -131,7 +131,7 @@ export function useGetNavigationIsPrevented() {
   const currentPageId = useNavigationParam('pageKey') ?? '';
   const layoutCollection = FormStore.bootstrap.useLayoutCollection();
   const globalValidationOnNavigation = usePageSettings().validationOnNavigation;
-  const order = usePageOrder();
+  const { order } = useNavigatePage();
   const getDerivedValidationState = useGetDerivedValidationState();
 
   return (targetPageKey: string): boolean => {

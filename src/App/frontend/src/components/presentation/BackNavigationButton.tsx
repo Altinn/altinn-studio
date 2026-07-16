@@ -13,7 +13,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { useExitSubform } from 'src/hooks/useNavigatePage';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
@@ -24,7 +24,7 @@ export function BackNavigationButton(props: { className?: string }) {
   const mainPageKey = useNavigationParam('mainPageKey');
   const isSubform = useIsSubformPage();
 
-  const exitSubform = useExitSubform();
+  const { exitSubform } = useNavigatePage();
   const performProcess = useProcessingMutation('exit-subform');
   const isExitingSubform = useIsThisProcessing('exit-subform');
   const isAnyProcessing = useIsAnyProcessing();

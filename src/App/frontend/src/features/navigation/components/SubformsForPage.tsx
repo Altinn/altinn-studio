@@ -12,7 +12,7 @@ import classes from 'src/features/navigation/components/SubformsForPage.module.c
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useEnterSubform } from 'src/hooks/useNavigatePage';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import {
   getSubformEntryDisplayName,
@@ -124,7 +124,7 @@ function SubformLink({
   hasErrors: boolean;
 }) {
   const disabled = useIsAnyProcessing();
-  const enterSubform = useEnterSubform();
+  const { enterSubform } = useNavigatePage();
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
