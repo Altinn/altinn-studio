@@ -18,10 +18,9 @@ func (c *AppCommand) runLsp(ctx context.Context, args []string) error {
 		c.out.Print(c.appLspUsage())
 		return nil
 	}
-	if len(args) > 0 && args[0] == "setup" {
-		return c.runLspSetup(ctx, args[1:])
+	if len(args) > 0 {
+		return fmt.Errorf("%w: unexpected argument %q", ErrInvalidFlagValue, args[0])
 	}
-
 	binary := c.server.cfg.StudioctlServerBinaryPath()
 	if _, err := os.Stat(binary); err != nil {
 		return fmt.Errorf("%w: %s", studioctlserver.ErrBinaryMissing, binary)
@@ -45,12 +44,20 @@ func (c *AppCommand) runLsp(ctx context.Context, args []string) error {
 func (c *AppCommand) appLspUsage() string {
 	bin := osutil.CurrentBin()
 	return joinLines(
-		fmt.Sprintf("Usage: %s app lsp [setup <editor>]", bin),
+		fmt.Sprintf("Usage: %s app lsp", bin),
 		"",
-		"Run the Altinn app-config language server (LSP) over stdio.",
+		"Language server for Altinn app projects, speaking LSP over stdio.",
+		"Editors start it automatically; you normally don't run it yourself.",
 		"",
-		"Subcommands:",
-		fmt.Sprintf("  setup <editor>   Configure an editor (run '%s app lsp setup' for the list)", bin),
+		"Editor setup:",
+		"  Rider / JetBrains IDEs:",
+		"    Install 'Altinn Studio Language Server' from JetBrains Marketplace.",
+		"  VS Code:",
+		"    Install 'Altinn Studio Language Server' (altinnstudio.altinn-studio-lsp)",
+		"    from the Visual Studio Marketplace.",
+		"  Other editors with LSP client support:",
+		fmt.Sprintf("    Configure '%s app lsp' as an stdio language server with root marker", bin),
+		"    config/applicationmetadata.json.",
 		"",
 		"Options:",
 		"  -h, --help   Show this help",

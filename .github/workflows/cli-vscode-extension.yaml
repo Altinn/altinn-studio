@@ -36,4 +36,4 @@ jobs:
 
       - name: Package
         working-directory: src/cli/studioctl-lsp/vscode
-        run: npx --yes @vscode/vsce package -o altinn-studio-lsp.vsix --allow-missing-repository --skip-license
+        run: npx vsce package -o altinn-studio-lsp.vsix --skip-license

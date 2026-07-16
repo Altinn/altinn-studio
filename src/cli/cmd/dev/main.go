@@ -320,19 +320,13 @@ func buildPlatformResources(
 		return "", publishErr
 	}
 
-	vsixPath, err := packageVSCodeExtension()
-	if err != nil {
-		return "", err
-	}
-
 	fmt.Println("Creating resources archive...")
 	archivePath, err = installpkg.CreateResourcesArchive(installpkg.ResourcesArchiveOptions{
-		GOOS:                    goos,
-		GOARCH:                  goarch,
-		OutputDir:               outputDir,
-		ServerDir:               serverDir,
-		LocaltestDir:            localtestDir,
-		VSCodeExtensionVsixPath: vsixPath,
+		GOOS:         goos,
+		GOARCH:       goarch,
+		OutputDir:    outputDir,
+		ServerDir:    serverDir,
+		LocaltestDir: localtestDir,
 	})
 	if err != nil {
 		return "", fmt.Errorf("create resources archive: %w", err)

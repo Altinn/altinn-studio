@@ -46,13 +46,6 @@ const (
 	// StudioctlServerResourcesDirName is the resources archive directory containing the host service payload.
 	StudioctlServerResourcesDirName = StudioctlServerName
 
-	// VSCodeExtensionResourcesDirName is the resources archive directory holding the bundled VS Code
-	// extension VSIX.
-	VSCodeExtensionResourcesDirName = "vscode"
-
-	// VSCodeExtensionVsixName is the file name of the bundled VS Code extension package.
-	VSCodeExtensionVsixName = "altinn-app-config.vsix"
-
 	// EnvHome overrides the home directory.
 	EnvHome = "STUDIOCTL_HOME"
 
@@ -271,17 +264,6 @@ func (c *Config) StudioctlServerBinaryPath() string {
 // StudioctlServerInstallDir returns the directory containing the installed studioctl server payload.
 func (c *Config) StudioctlServerInstallDir() string {
 	return filepath.Join(c.BinDir, StudioctlServerName)
-}
-
-// VSCodeExtensionDir returns the directory containing the bundled VS Code extension.
-func (c *Config) VSCodeExtensionDir() string {
-	return filepath.Join(c.BinDir, VSCodeExtensionResourcesDirName)
-}
-
-// VSCodeExtensionVsixPath returns the path to the bundled VS Code extension VSIX. The file exists
-// only when the build environment had npm to package it; callers must handle its absence.
-func (c *Config) VSCodeExtensionVsixPath() string {
-	return filepath.Join(c.VSCodeExtensionDir(), VSCodeExtensionVsixName)
 }
 
 // BoundTopologyConfigDir returns the directory containing generated bound topology files.

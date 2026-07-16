@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "studio.altinn"
-version = "0.1.1"
+version = providers.gradleProperty("pluginVersion").getOrElse("0.0.0-dev")
 
 repositories {
     mavenCentral()
@@ -35,6 +35,9 @@ kotlin {
 intellijPlatform {
     pluginConfiguration {
         version = project.version.toString()
+        changeNotes = providers.environmentVariable("PLUGIN_CHANGE_NOTES_FILE")
+            .map { file(it).readText() }
+            .orElse("See CHANGELOG.md in the repository.")
         ideaVersion {
             sinceBuild = "251"
             untilBuild = provider { null }
@@ -44,5 +47,11 @@ intellijPlatform {
         ides {
             create(IntelliJPlatformType.Rider, platformVersion)
         }
+    }
+    publishing {
+        token = providers.environmentVariable("JETBRAINS_MARKETPLACE_TOKEN")
+        channels = providers.environmentVariable("JETBRAINS_PUBLISH_CHANNEL")
+            .map { listOf(it) }
+            .orElse(listOf("default"))
     }
 }
