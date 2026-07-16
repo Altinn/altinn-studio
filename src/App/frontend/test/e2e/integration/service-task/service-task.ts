@@ -14,7 +14,9 @@ describe('Service task', () => {
       'be.visible',
     );
 
-    assertAndDismissNotification("Service task 'fail' failed: Form data requested the service task to fail.");
+    // Deliberately no error toast: the v9 backend never ships the raw failure detail to the client
+    // (a user-safe app-authored failure message is a known follow-up in the live workflow-status
+    // ADR), and the swallowed process/next failure converges on this screen instead.
 
     // This layout-set does not have a pdfLayoutName, so it will auto-generate a PDF
     cy.testPdf({
@@ -47,7 +49,6 @@ describe('Service task', () => {
     cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
     cy.findByText(/Du kan prøve å utføre behandlingen på nytt/).should('be.visible');
     cy.visualTesting('service-task-no-layout-set');
-    assertAndDismissNotification("Service task 'fail' failed: Form data requested the service task to fail.");
 
     cy.testPdf({
       snapshotName: 'service-task-with-multiple-tasks',
@@ -107,17 +108,6 @@ function startAppAndFillToFailure() {
     .click();
   cy.waitUntilSaved();
   cy.findByRole('button', { name: 'Neste' }).click();
-}
-
-function assertAndDismissNotification(notificationText: string) {
-  cy.findByRole('region', { name: /Notifications/ }).should('be.visible');
-  cy.findByRole('region', { name: /Notifications/ })
-    .findByText(notificationText)
-    .should('exist');
-  cy.findByRole('region', { name: /Notifications/ })
-    .findByRole('button', { name: 'close' })
-    .click();
-  cy.findByRole('region', { name: /Notifications/ }).should('not.be.visible');
 }
 
 function goBackAndAchieveSuccess() {

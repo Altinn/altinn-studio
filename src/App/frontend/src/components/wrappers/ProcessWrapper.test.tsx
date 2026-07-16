@@ -275,6 +275,37 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/process_workflow\.failure_kind/)).not.toBeInTheDocument();
   });
 
+  it('failed on the current service task falls through to the task view, not the error page', async () => {
+    // A failed workflow that targeted the CURRENT task, when that task is a service task, is owned
+    // by the service task's own view (the app's custom layout, or the default ServiceTask screen
+    // with retry + go-back): the backend explicitly permits the bpmn-allowed reject from that
+    // screen (it abandons the failed workflow), so replacing it with the terminal error page would
+    // strand the user. The terminal page is only for failures no task UI can recover from (e.g.
+    // the pre-commit failure above, which targets ANOTHER task). The harness registers a layout
+    // for the task, so this exercises the custom-layout variant (the task's children render); the
+    // default-screen variant is covered by the service-task e2e suite.
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.workflow = { status: 'failed', targetTask: 'Task_1', failure: { kind: 'stepFailed' } };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    expect(await screen.findByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Vis detaljer om feilen' })).not.toBeInTheDocument();
+  });
+
   it('navigates to the committed task when the workflow settles while parked on the old task url', async () => {
     // A reload during a transition parks the session on the pre-transition task's URL (the
     // same-session flow instead navigates from useProcessNext's onSuccess). When the poll then

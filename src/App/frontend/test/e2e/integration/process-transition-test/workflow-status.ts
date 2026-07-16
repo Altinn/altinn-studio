@@ -41,6 +41,11 @@ type Levers = {
   endState?: 'success' | 'failure';
 };
 
+// Button labels from the app's resource.nb.json: Task_1 advances with "Gå til Task 2", Task_2
+// submits with "Send inn". Named here so an app-side rename breaks in one visible place.
+const task1AdvanceButton = 'Gå til Task 2';
+const task2SubmitButton = 'Send inn';
+
 // The levers are Dropdowns whose option labels are the descriptive nb.json strings; dsSelect/have.value
 // match on that visible label. Defaults (preselectedOptionIndex 0): none / no delay / 1 attempt /
 // success — delayMs, attempts and endState are all hidden while path is "none" (nothing to configure
@@ -100,9 +105,9 @@ function captureInstanceRoot(): Cypress.Chainable<string> {
   });
 }
 
-// Clicks "Send inn" and reloads while the transition is still running server-side. We wait until the
-// process/next request has actually left the browser (so the engine has the work enqueued) before
-// reloading, so the reloaded read reliably observes the in-flight transition.
+// Clicks Task_1's advance button and reloads while the transition is still running server-side. We
+// wait until the process/next request has actually left the browser (so the engine has the work
+// enqueued) before reloading, so the reloaded read reliably observes the in-flight transition.
 function submitAndReloadDuringTransition() {
   let requestIssued = false;
   // process/next is a PUT; wait until it has actually left the browser before reloading.
@@ -110,7 +115,7 @@ function submitAndReloadDuringTransition() {
     requestIssued = true;
     req.continue();
   });
-  cy.findByRole('button', { name: 'Send inn' }).click();
+  cy.findByRole('button', { name: task1AdvanceButton }).click();
   cy.wrap(null).should(() => expect(requestIssued, 'process/next request issued').to.equal(true));
   cy.reload();
 }
@@ -123,11 +128,11 @@ describe('Live workflow status (real engine)', () => {
 
     // The preselected default (path "none") is a no-op for both hooks, so the transition commits
     // immediately.
-    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
+    cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
-    cy.findByRole('button', { name: 'Send inn' }).should('be.visible');
+    cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
   it('processing (pre-commit): reload during the delay shows the advancing UI, then converges on Task_2', () => {
@@ -137,18 +142,18 @@ describe('Live workflow status (real engine)', () => {
     submitAndReloadDuringTransition();
 
     // Committed task is still Task_1 during the pre-commit delay, so the reloaded session renders the
-    // live "advancing" state and the task's Send inn action is suppressed. The step indicator shows
+    // live "advancing" state and the task's advance action is suppressed. The step indicator shows
     // live progress through the transition's workflow steps (exact numbers depend on the command
     // sequence, so only the shape is asserted).
     cy.contains('Vi jobber med skjemaet ditt', { timeout: 15000 }).should('be.visible');
     cy.contains(/Steg \d+ av \d+/).should('be.visible');
-    cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
+    cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
     // After the delay the transition commits to Task_2 out-of-band. The reloaded session is parked on
     // the old Task_1 url, but the poll observes the settled workflow and the page navigates onto the
     // committed task on its own - no reload, no manual navigation, and never the stale-task error.
-    cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
+    cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
   });
@@ -158,13 +163,13 @@ describe('Live workflow status (real engine)', () => {
     // attempts 1 + endState failure => the single attempt fails terminally.
     fillLevers({ path: 'preCommit', attempts: 1, endState: 'failure' });
 
-    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
 
     // The engine stops (ResumeRequired) -> the failed error page: generic message + contact support +
     // a safe details expander. The engine already exhausted its retry budget, so there is deliberately
     // NO Retry affordance.
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
-    cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
+    cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
 
     // The details expander exposes only safe structured facts: the kind label plus the two
@@ -189,7 +194,7 @@ describe('Live workflow status (real engine)', () => {
     // Task_2 first; then MovedToAltinnEvent cancels the in-flight workflow and fails it terminally.
     fillLevers({ path: 'postCommit', attempts: 1, endState: 'failure' });
 
-    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
 
     // The blocking submit returns after the terminal failure, so the failed page shows.
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
@@ -202,7 +207,7 @@ describe('Live workflow status (real engine)', () => {
     cy.get<string>('@instanceRoot').then((root) => cy.visit(`${root}/Task_1`));
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
-    cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
+    cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
   });
 
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {
@@ -220,7 +225,7 @@ describe('Live workflow status (real engine)', () => {
 
     // Attempt 2 (after the auto-retry + engine backoff) succeeds and commits Task_2 out-of-band; the
     // polling page then navigates onto the committed task on its own - no reload, no manual nav.
-    cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
   });
@@ -232,7 +237,7 @@ describe('Live workflow status (real engine)', () => {
 
     // The pre-commit hook is a no-op here, so the transition commits to Task_2 quickly; the post-commit
     // MovedToAltinnEvent then delays ~15s in the engine.
-    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
 
     // Give the pre-commit steps time to commit Task_2, then open the committed task in a fresh load
     // (concurrent-session style) while the post-commit step is still running.
@@ -244,13 +249,13 @@ describe('Live workflow status (real engine)', () => {
     // flight -> the advancing UI shows on the committed Task_2 and its Send inn is suppressed. This is
     // exactly what a legacy IProcessEnd (which runs on the process-END transition) could NOT surface.
     cy.contains('Vi jobber med skjemaet ditt', { timeout: 20000 }).should('be.visible');
-    cy.findByRole('button', { name: 'Send inn' }).should('not.exist');
+    cy.findByRole('button', { name: task2SubmitButton }).should('not.exist');
 
     // Once the post-commit step completes the status settles and Task_2 renders normally. The url
     // already matches the committed task, so the polling page converges on its own.
-    cy.findByRole('heading', { name: 'Task 2', timeout: 30000 }).should('be.visible');
+    cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
-    cy.findByRole('button', { name: 'Send inn' }).should('be.visible');
+    cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
   it('backwards: Task_2 rejects back to Task_1, keeping the levers, and the scenario replays', () => {
@@ -259,8 +264,8 @@ describe('Live workflow status (real engine)', () => {
 
     // Forward: the transient failure auto-retries and eventually commits Task_2 (sync wait covers the
     // delay + engine backoff, so no reload is needed here).
-    cy.findByRole('button', { name: 'Send inn' }).click();
-    cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
 
     // Backwards: the reject action routes the gateway back to Task_1. The backwards transition is
     // never lever-controlled, so it completes without delays or failures.
@@ -272,8 +277,8 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#path').should('have.value', leverLabels.path.preCommit);
     cy.get('#delayMs').should('have.value', leverLabels.delayMs[3000]);
     cy.get('#attempts').should('have.value', leverLabels.attempts[2]);
-    cy.findByRole('button', { name: 'Send inn' }).click();
-    cy.findByRole('heading', { name: 'Task 2', timeout: 45000 }).should('be.visible');
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
   });
 });

@@ -29,6 +29,7 @@ import { getComponentDef, implementsSubRouting } from 'src/layout';
 import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { IProcessWorkflowFailure, IProcessWorkflowProgress } from 'src/types/shared';
 
@@ -296,6 +297,24 @@ function WorkflowFailedDetails({ failure, instanceId }: WorkflowFailedDetailsPro
   );
 }
 
+// A failed workflow that targeted the CURRENT task, when that task is a service task, is the
+// service task's own failure: its view (the app's custom layout for the task, or the default
+// ServiceTask screen) owns the recovery affordances - retry, and the bpmn-allowed reject the
+// backend explicitly permits from that screen (it abandons the failed workflow so the reject can
+// run). Replacing that view with the terminal error page would leave the user with no way out.
+// Only failures no task UI can own - a transition failing before it committed the target task, an
+// engine fault, a failure targeting some other task - show the terminal error page.
+function useIsWorkflowFailedOnCurrentServiceTask() {
+  const { data: process } = useProcessQuery();
+  const workflow = process?.workflow;
+  const currentTask = process?.currentTask;
+  return (
+    workflow?.status === 'failed' &&
+    currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK &&
+    workflow.targetTask === currentTask.elementId
+  );
+}
+
 // A transition can settle while this session's URL is still parked on the pre-transition task
 // (e.g. a reload during the transition). The same-session flow navigates from useProcessNext's
 // onSuccess/onError, but here the poll only converges the *data* (currentTask advances, workflow
@@ -308,14 +327,27 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
   const { data: process } = useProcessQuery();
   const status = process?.workflow?.status;
   const navigateToTask = useNavigateToTask();
+  const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const wasBusyRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) {
       return;
     }
-    if (status === 'processing' || status === 'failed') {
+    if (status === 'processing' || (status === 'failed' && !failedOnCurrentServiceTask)) {
       wasBusyRef.current = true;
+      return;
+    }
+    if (failedOnCurrentServiceTask) {
+      // A failure owned by the current service task renders as that task's view, so the URL must
+      // converge onto the committed task unconditionally - the submitting session never navigated
+      // (useProcessNext swallows the failure), and a reconnecting session should land on the same
+      // screen a successful transition would have shown.
+      wasBusyRef.current = false;
+      const settledTask = getTargetTaskFromProcess(process);
+      if (settledTask && settledTask !== taskId) {
+        navigateToTask(settledTask);
+      }
       return;
     }
     if (!wasBusyRef.current) {
@@ -327,7 +359,7 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
     if (settledTask && settledTask !== taskId) {
       navigateToTask(settledTask);
     }
-  }, [enabled, status, process, taskId, navigateToTask]);
+  }, [enabled, status, failedOnCurrentServiceTask, process, taskId, navigateToTask]);
 }
 
 function WorkflowFailedDetailItem({ label, value }: { label: string; value: React.ReactNode }) {
@@ -350,6 +382,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
   const workflow = useProcessWorkflow();
+  const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
@@ -392,7 +425,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
-  if (!isPdfMode && workflow?.status === 'failed') {
+  // A failure owned by the current service task falls through to the task's own view (see
+  // useIsWorkflowFailedOnCurrentServiceTask) - the terminal error page is only for failures no
+  // task UI can recover from.
+  if (!isPdfMode && workflow?.status === 'failed' && !failedOnCurrentServiceTask) {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowFailed />
