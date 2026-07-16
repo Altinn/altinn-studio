@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { useSearchParams } from 'react-router';
 import type React from 'react';
 
@@ -39,37 +39,29 @@ export function useFocusComponentRequest(nodeId: string): FocusComponentRequest 
 
 export function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObject<HTMLDivElement | null>) {
   const focusRequest = useFocusComponentRequest(nodeId);
-  const abortController = useRef(new AbortController());
   const pathnameWas = window.location.pathname;
 
   useEffect(() => {
     const div = containerDivRef.current;
     if (focusRequest && div) {
-      try {
-        requestAnimationFrame(() => {
-          if (!abortController.current.signal.aborted) {
-            div.scrollIntoView({ behavior: 'instant' });
-          }
-        });
+      const animationFrame = requestAnimationFrame(() => {
+        div.scrollIntoView({ behavior: 'instant' });
+      });
 
+      try {
         const field = findElementToFocus(div, focusRequest.errorBinding);
-        if (field && !abortController.current.signal.aborted) {
+        if (field) {
           field.focus();
         }
       } finally {
-        if (!abortController.current.signal.aborted && pathnameWas === window.location.pathname) {
+        if (pathnameWas === window.location.pathname) {
           cleanupFocusComponentUrl?.();
         }
       }
+
+      return () => cancelAnimationFrame(animationFrame);
     }
   }, [containerDivRef, focusRequest, pathnameWas]);
-
-  useEffect(
-    () => () => {
-      abortController.current.abort();
-    },
-    [],
-  );
 }
 
 export function FocusComponentRequestFromUrl() {
