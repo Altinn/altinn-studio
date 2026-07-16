@@ -466,9 +466,9 @@ export function nn() {
     'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noko gjekk gale',
     'process_workflow.failed_description':
-      'Vi klarte ikkje å fullføre handsaminga av skjemaet, og det rettar seg ikkje av seg sjølv. Du må ta kontakt for å få hjelp til å komme vidare.',
+      'Vi klarte ikkje å fullføre handsaminga av skjemaet ditt, og feilen rettar seg ikkje av seg sjølv. Du må ta kontakt for å få hjelp til å komme vidare.',
     'process_workflow.failed_contact':
-      'Ta kontakt med Altinn brukarservice på telefon {0} eller e-post {1}. Oppgi referansen under «{2}» når du tek kontakt.',
+      'Ta kontakt med Altinn brukarservice på telefon {0} eller e-post {1}, og oppgi referansane du finn under _«{2}»_.',
     'process_workflow.failed_details_kind': 'Feiltype',
     'process_workflow.failed_details_time': 'Tidspunkt',
     'process_workflow.failed_details_instance': 'Skjemareferanse',
@@ -480,7 +480,7 @@ export function nn() {
     'process_workflow.failure_kind.unknown': 'Ukjend årsak',
     'process_workflow.still_working':
       'Dette tek uvanleg lang tid. Opplysningane dine er lagra, og vi held fram automatisk – du kan trygt lukke sida og komme tilbake seinare.',
-    'process_workflow.connection_trouble': 'Vi har problem med å nå serveren akkurat no. Prøver igjen …',
+    'process_workflow.connection_trouble': 'Vi får ikkje kontakt med tenesta akkurat no. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikkje førehandsvise PDF',
     'pdfPreview.defaultButtonText': 'Førehandsvis PDF',
     'taskTypes.data': 'Utfylling',

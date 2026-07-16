@@ -468,9 +468,9 @@ export function nb() {
     'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
-      'Vi klarte ikke å fullføre behandlingen av skjemaet, og det retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',
+      'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',
     'process_workflow.failed_contact':
-      'Ta kontakt med Altinn brukerservice på telefon {0} eller e-post {1}. Oppgi referansen under «{2}» når du tar kontakt.',
+      'Ta kontakt med Altinn brukerservice på telefon {0} eller e-post {1}, og oppgi referansene du finner under _«{2}»_.',
     'process_workflow.failed_details_kind': 'Feiltype',
     'process_workflow.failed_details_time': 'Tidspunkt',
     'process_workflow.failed_details_instance': 'Skjemareferanse',
@@ -482,7 +482,7 @@ export function nb() {
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og vi fortsetter automatisk – du kan trygt lukke siden og komme tilbake senere.',
-    'process_workflow.connection_trouble': 'Vi har problemer med å nå serveren akkurat nå. Prøver igjen …',
+    'process_workflow.connection_trouble': 'Vi får ikke kontakt med tjenesten akkurat nå. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',
     'taskTypes.data': 'Utfylling',
