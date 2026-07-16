@@ -1,11 +1,11 @@
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { deriveRuntimeNodeRefs, type RuntimeNodeRef } from 'src/utils/layout/deriveRuntimeNodeRefs';
-import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
+import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/runtimeHiddenUtils';
 import { getCurrentDataModelPath } from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
-import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
+import type { HiddenSource } from 'src/utils/layout/runtimeHiddenUtils';
 
 const runtimeNodesByState = new WeakMap<FormStoreState, Map<string, RuntimeNodeRef[]>>();
 

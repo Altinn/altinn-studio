@@ -3,6 +3,8 @@ import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/ty
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CompExternal } from 'src/layout/layout';
 
+// Runtime-specific visibility helpers. The main-compatible helpers remain in hiddenUtils.ts.
+
 interface HiddenExprSource {
   type: 'hidden' | 'hiddenRow' | 'hiddenPage';
   expr: ExprValToActualOrExpr<ExprVal.Boolean>;
