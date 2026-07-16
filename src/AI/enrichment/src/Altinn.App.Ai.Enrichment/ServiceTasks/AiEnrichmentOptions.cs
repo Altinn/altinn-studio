@@ -1,11 +1,11 @@
 namespace Altinn.App.Ai.Enrichment.ServiceTasks;
 
 /// <summary>
-/// App-level configuration for the kiBeriking process step. Everything has a
+/// App-level configuration for the ai process step. Everything has a
 /// convention-based default so a minimal app configures nothing here: the agent
 /// folder defaults to the bpmn task id, and outputs go to the default data types.
 /// </summary>
-public sealed class KiBerikingOptions
+public sealed class AiEnrichmentOptions
 {
     public const string SectionName = "AiEnrichment";
 
@@ -16,16 +16,16 @@ public sealed class KiBerikingOptions
     public string AgentsRoot { get; set; } = "agents";
 
     /// <summary>Per-task overrides, keyed by bpmn task id.</summary>
-    public Dictionary<string, KiBerikingTaskOptions> Tasks { get; set; } = new(StringComparer.Ordinal);
+    public Dictionary<string, AiEnrichmentTaskOptions> Tasks { get; set; } = new(StringComparer.Ordinal);
 
-    public KiBerikingTaskOptions ForTask(string taskId) =>
-        Tasks.TryGetValue(taskId, out var options) ? options : new KiBerikingTaskOptions();
+    public AiEnrichmentTaskOptions ForTask(string taskId) =>
+        Tasks.TryGetValue(taskId, out var options) ? options : new AiEnrichmentTaskOptions();
 }
 
-/// <summary>Overrides for a single kiBeriking task.</summary>
-public sealed class KiBerikingTaskOptions
+/// <summary>Overrides for a single ai task.</summary>
+public sealed class AiEnrichmentTaskOptions
 {
-    /// <summary>Agent folder name under <see cref="KiBerikingOptions.AgentsRoot"/>. Default: the bpmn task id.</summary>
+    /// <summary>Agent folder name under <see cref="AiEnrichmentOptions.AgentsRoot"/>. Default: the bpmn task id.</summary>
     public string? Agent { get; set; }
 
     /// <summary>
@@ -36,8 +36,8 @@ public sealed class KiBerikingTaskOptions
     public string? InputDataType { get; set; }
 
     /// <summary>Data type (from applicationmetadata.json, without appLogic) that receives the enrichment JSON.</summary>
-    public string JsonOutputDataType { get; set; } = "ki-beriking-json";
+    public string JsonOutputDataType { get; set; } = "ai-enrichment-json";
 
     /// <summary>Data type (from applicationmetadata.json, without appLogic) that receives generated PDFs.</summary>
-    public string PdfOutputDataType { get; set; } = "ki-beriking-pdf";
+    public string PdfOutputDataType { get; set; } = "ai-enrichment-pdf";
 }
