@@ -209,7 +209,10 @@ jobs:
             --browser "${CHROME_PATH:-chrome}"
             --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}"
             --spec test/e2e/integration
-            --env environment=localtest
+            # CYPRESS_LOGS_COLLECTOR prints the browser logs of failed tests to the CI log
+            # (cypress-terminal-report) - without it the assertion failures only exist on
+            # Cypress Cloud.
+            --env environment=localtest,CYPRESS_LOGS_COLLECTOR=true
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
@@ -224,6 +227,7 @@ jobs:
           name: app-frontend-logs
           path: |
             src/App/frontend/test/logs/*
+            src/App/frontend/test/screenshots/**
             ${{ env.STUDIOCTL_HOME }}/logs/**
 
       - name: Stop localtest
