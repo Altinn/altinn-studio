@@ -1,4 +1,4 @@
-import { AddItemUtils } from './AddItemUtils';
+import { getComponentSelection } from './AddItemUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import {
@@ -39,31 +39,22 @@ describe('AddItemUtils', () => {
   describe('getComponentSelection', () => {
     describe('without a configuration mode', () => {
       it('returns the default components as the quick-add list for the base container', () => {
-        const { quickAddComponents } = AddItemUtils.getComponentSelection(
-          layout,
-          BASE_CONTAINER_ID,
-        );
+        const { quickAddComponents } = getComponentSelection(layout, BASE_CONTAINER_ID);
         expect(typesOf(quickAddComponents)).toEqual(defaultComponents);
       });
 
       it('returns all component categories as available for the base container', () => {
-        const { availableComponents } = AddItemUtils.getComponentSelection(
-          layout,
-          BASE_CONTAINER_ID,
-        );
+        const { availableComponents } = getComponentSelection(layout, BASE_CONTAINER_ID);
         expect(Object.keys(availableComponents)).toEqual(Object.keys(allComponents));
       });
 
       it('shows the show all button when more components are available than shown', () => {
-        const { shouldShowAllComponentsButton } = AddItemUtils.getComponentSelection(
-          layout,
-          BASE_CONTAINER_ID,
-        );
+        const { shouldShowAllComponentsButton } = getComponentSelection(layout, BASE_CONTAINER_ID);
         expect(shouldShowAllComponentsButton).toBe(true);
       });
 
       it('limits both lists to the container valid child types', () => {
-        const { quickAddComponents, availableComponents } = AddItemUtils.getComponentSelection(
+        const { quickAddComponents, availableComponents } = getComponentSelection(
           layout,
           buttonGroupId,
         );
@@ -76,8 +67,11 @@ describe('AddItemUtils', () => {
 
     describe('with a configuration mode', () => {
       it('limits the components to the allowed set and hides the show all button for receipt', () => {
-        const { quickAddComponents, shouldShowAllComponentsButton } =
-          AddItemUtils.getComponentSelection(layout, BASE_CONTAINER_ID, 'receipt');
+        const { quickAddComponents, shouldShowAllComponentsButton } = getComponentSelection(
+          layout,
+          BASE_CONTAINER_ID,
+          'receipt',
+        );
         expect(typesOf(quickAddComponents).sort()).toEqual(
           confOnScreenComponents.map((component) => component.name).sort(),
         );
@@ -85,27 +79,22 @@ describe('AddItemUtils', () => {
       });
 
       it('includes the payment component in the quick-add list for payment', () => {
-        const { quickAddComponents } = AddItemUtils.getComponentSelection(
-          layout,
-          BASE_CONTAINER_ID,
-          'payment',
-        );
+        const { quickAddComponents } = getComponentSelection(layout, BASE_CONTAINER_ID, 'payment');
         expect(typesOf(quickAddComponents)).toContain(ComponentType.Payment);
       });
 
       it('caps the quick-add list at the default components amount and shows the show all button for subform', () => {
-        const { quickAddComponents, shouldShowAllComponentsButton } =
-          AddItemUtils.getComponentSelection(layout, BASE_CONTAINER_ID, 'subform');
+        const { quickAddComponents, shouldShowAllComponentsButton } = getComponentSelection(
+          layout,
+          BASE_CONTAINER_ID,
+          'subform',
+        );
         expect(quickAddComponents.length).toEqual(defaultComponents.length);
         expect(shouldShowAllComponentsButton).toBe(true);
       });
 
       it('includes allowed components outside the standard taxonomy in the available list', () => {
-        const { availableComponents } = AddItemUtils.getComponentSelection(
-          layout,
-          BASE_CONTAINER_ID,
-          'subform',
-        );
+        const { availableComponents } = getComponentSelection(layout, BASE_CONTAINER_ID, 'subform');
         expect(availableTypes(availableComponents)).toContain(
           CustomComponentType.CloseSubformButton,
         );

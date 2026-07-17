@@ -1,6 +1,7 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { ArrayUtils } from '@studio/pure-functions';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
 import { allComponents, defaultComponents, formItemConfigs } from '../../../data/formItemConfig';
 import { mapComponentToToolbarElement } from '../../../utils/formLayoutUtils';
@@ -11,33 +12,30 @@ type AddableComponentType = ComponentType | CustomComponentType;
 
 const OTHER_COMPONENT_CATEGORY = 'other';
 
-export type ComponentSelection = {
+const categorizedComponentTypes: ComponentType[] = Object.values(allComponents).flat();
+
+type ComponentSelection = {
   quickAddComponents: IToolbarElement[];
   availableComponents: KeyValuePairs<IToolbarElement[]>;
   shouldShowAllComponentsButton: boolean;
 };
 
-export class AddItemUtils {
-  public static getComponentSelection(
-    layout: IInternalLayout,
-    containerId: string,
-    configurationMode?: ConfPageType,
-  ): ComponentSelection {
-    const allowedComponentTypes = ElementsUtils.getAllowedComponentTypes(configurationMode);
-    const quickAddComponents = getQuickAddComponents(layout, containerId, allowedComponentTypes);
-    const availableComponents = getAvailableComponents(layout, containerId, allowedComponentTypes);
-    const availableComponentCount = Object.values(availableComponents).reduce(
-      (count, components) => count + components.length,
-      0,
-    );
+export const getComponentSelection = (
+  layout: IInternalLayout,
+  containerId: string,
+  configurationMode?: ConfPageType,
+): ComponentSelection => {
+  const allowedComponentTypes = ElementsUtils.getAllowedComponentTypes(configurationMode);
+  const quickAddComponents = getQuickAddComponents(layout, containerId, allowedComponentTypes);
+  const availableComponents = getAvailableComponents(layout, containerId, allowedComponentTypes);
+  const availableComponentCount = Object.values(availableComponents).flat().length;
 
-    return {
-      quickAddComponents,
-      availableComponents,
-      shouldShowAllComponentsButton: availableComponentCount > quickAddComponents.length,
-    };
-  }
-}
+  return {
+    quickAddComponents,
+    availableComponents,
+    shouldShowAllComponentsButton: availableComponentCount > quickAddComponents.length,
+  };
+};
 
 const getQuickAddComponents = (
   layout: IInternalLayout,
@@ -100,9 +98,10 @@ const getUncategorizedAllowedComponents = (
   allowedComponentTypes?: AddableComponentType[],
 ): KeyValuePairs<AddableComponentType[]> => {
   if (!allowedComponentTypes) return {};
-  const categorizedComponents = new Set<AddableComponentType>(Object.values(allComponents).flat());
-  const uncategorized = allowedComponentTypes.filter(
-    (element) => !categorizedComponents.has(element),
+  const uncategorized = ArrayUtils.intersection(
+    allowedComponentTypes,
+    categorizedComponentTypes,
+    false,
   );
   return uncategorized.length > 0 ? { [OTHER_COMPONENT_CATEGORY]: uncategorized } : {};
 };

@@ -13,7 +13,7 @@ import classes from './AddItem.module.css';
 import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandlerWithCallback';
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
 import { useConfigurationMode } from '../../../hooks';
-import { AddItemUtils } from './AddItemUtils';
+import { getComponentSelection } from './AddItemUtils';
 
 export type AddItemProps = {
   containerId: string;
@@ -107,7 +107,7 @@ const DefaultItemButtons = ({
 }) => {
   const configurationMode = useConfigurationMode();
   const { quickAddComponents, availableComponents, shouldShowAllComponentsButton } =
-    AddItemUtils.getComponentSelection(layout, containerId, configurationMode);
+    getComponentSelection(layout, containerId, configurationMode);
 
   return (
     <div className={classes.addItemButtons}>
