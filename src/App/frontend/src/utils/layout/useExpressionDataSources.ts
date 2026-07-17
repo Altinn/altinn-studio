@@ -57,6 +57,7 @@ export type ExpressionDependency =
   | { type: 'applicationSettings' }
   | { type: 'currentLanguage' }
   | { type: 'currentPage' }
+  | { type: 'dataElementCount'; dataType: string }
   | { type: 'displayValue'; componentId: string }
   | { type: 'externalApi' }
   | { type: 'formData'; reference: IDataModelReference }
@@ -154,6 +155,8 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
   const textResourceQueries = useTextResourcesQueries();
 
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
+  // Expression definitions are static for a mounted component. Avoid requiring FormStore in non-form expression
+  // contexts when displayValue is not used.
   // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
 
@@ -180,12 +183,12 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
     externalApiQueries,
     textResourceQueries,
   };
-  observerRef.current.updateInputs(inputs);
-  observerRef.current.beginCollect();
+  const collected = new Map<string, ExpressionDependency>();
+  const track = (dependency: ExpressionDependency) => collected.set(makeDependencyKey(dependency), dependency);
 
   useLayoutEffect(() => {
     const observer = observerRef.current!;
-    observer.commitCollect();
+    observer.commit(inputs, collected);
     return observer.subscribe();
   });
 
@@ -203,18 +206,18 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
   const output: ExpressionDataSources = {
     currentDataModelPath,
     langToolsSelector: (dataModelPath) => {
-      observerRef.current!.track({ type: 'language', dataModelPath });
-      return buildLanguageTools({ inputs, dataModelPath });
+      track({ type: 'language', dataModelPath });
+      return buildLanguageTools({ inputs, dataModelPath, track });
     },
-    track: (dependency) => observerRef.current!.track(dependency),
-    getDependencies: () => observerRef.current!.getDependencies(),
+    track,
+    getDependencies: () => [...collected.values()],
     context: {
       currentLanguage: () => {
-        observerRef.current!.track({ type: 'currentLanguage' });
+        track({ type: 'currentLanguage' });
         return currentLanguage;
       },
       currentPage: () => {
-        observerRef.current!.track({ type: 'currentPage' });
+        track({ type: 'currentPage' });
         return currentPage;
       },
       currentDataModelPath: () => currentDataModelPath,
@@ -222,7 +225,7 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
     },
     application: {
       getSettings: () => {
-        observerRef.current!.track({ type: 'applicationSettings' });
+        track({ type: 'applicationSettings' });
         return applicationSettings;
       },
     },
@@ -230,38 +233,41 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
       defaultDataType: () => getDefaultDataTypeFromStore(store),
       hasDataType: (dataType) => getReadableDataTypesFromStore(store).includes(dataType),
       read: (reference) => {
-        observerRef.current!.track({ type: 'formData', reference });
+        track({ type: 'formData', reference });
         return readFormDataFromStore(store, reference);
       },
     },
     layout: {
       getLookups: () => {
         assertDataSourceSupported('layout');
-        observerRef.current!.track({ type: 'layout' });
+        track({ type: 'layout' });
         return getLayoutLookupsFromStore(store);
       },
     },
     options: {
       getStaticOptions: (optionsId) => {
-        observerRef.current!.track({ type: 'options', optionsId });
+        track({ type: 'options', optionsId });
         return getStaticOptionsFromStore(store, optionsId);
       },
     },
     instance: {
-      countDataElements: (dataType) => instanceQueries.countDataElements(instanceId, dataType),
+      countDataElements: (dataType) => {
+        track({ type: 'dataElementCount', dataType });
+        return instanceQueries.countDataElements(instanceId, dataType);
+      },
       getDataSources: () => {
-        observerRef.current!.track({ type: 'instanceDataSources' });
+        track({ type: 'instanceDataSources' });
         return getInstanceDataSourcesFromCache(instanceQueries, instanceId);
       },
       getProcess: () => {
-        observerRef.current!.track({ type: 'process' });
+        track({ type: 'process' });
         return getProcessFromCache(instanceQueries, instanceId);
       },
     },
     externalApi: {
       getAll: () => {
         assertDataSourceSupported('externalApi');
-        observerRef.current!.track({ type: 'externalApi' });
+        track({ type: 'externalApi' });
         externalApiQueries.ensureLoaded(instanceId, externalApiIds);
         return externalApiQueries.getCached(instanceId, externalApiIds);
       },
@@ -269,7 +275,7 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
     displayValue: {
       get: (componentId) => {
         assertDataSourceSupported('displayValue');
-        observerRef.current!.track({ type: 'displayValue', componentId });
+        track({ type: 'displayValue', componentId });
         return displayValues[componentId];
       },
     },
@@ -285,7 +291,6 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
  */
 class ExpressionObserver {
   private inputs?: SnapshotInputs;
-  private collected = new Map<string, ExpressionDependency>();
   private active = new Map<string, ExpressionDependency>();
   private lastValues = new Map<string, unknown>();
   private unsubscribeStore?: (() => void) | null;
@@ -293,25 +298,10 @@ class ExpressionObserver {
 
   constructor(private readonly onChange: () => void) {}
 
-  updateInputs(inputs: SnapshotInputs) {
+  commit(inputs: SnapshotInputs, dependencies: Map<string, ExpressionDependency>) {
     this.inputs = inputs;
-  }
-
-  beginCollect() {
-    this.collected.clear();
-  }
-
-  track(dependency: ExpressionDependency) {
-    this.collected.set(makeDependencyKey(dependency), dependency);
-  }
-
-  commitCollect() {
-    this.active = new Map(this.collected);
+    this.active = new Map(dependencies);
     this.lastValues = this.readValues(this.active);
-  }
-
-  getDependencies() {
-    return [...this.active.values()];
   }
 
   subscribe() {
@@ -378,6 +368,8 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
       return inputs.currentLanguage;
     case 'currentPage':
       return inputs.currentPage;
+    case 'dataElementCount':
+      return inputs.instanceQueries.countDataElements(inputs.instanceId, dependency.dataType);
     case 'displayValue':
       return dependency.componentId;
     case 'externalApi':
@@ -408,9 +400,11 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
 function buildLanguageTools({
   inputs,
   dataModelPath,
+  track,
 }: {
   inputs: SnapshotInputs;
   dataModelPath: IDataModelReference | undefined;
+  track: (dependency: ExpressionDependency) => void;
 }): IUseLanguage {
   ensureTextResourcesFetched(inputs);
   const textResources = getTextResourcesFromCache(inputs);
@@ -423,7 +417,10 @@ function buildLanguageTools({
     dataModels: inputs.dataModelReaders,
     defaultDataType: getDefaultDataTypeFromStore(inputs.store),
     formDataTypes: getReadableDataTypesFromStore(inputs.store),
-    formDataSelector: (reference) => readFormDataFromStore(inputs.store, reference),
+    formDataSelector: (reference) => {
+      track({ type: 'formData', reference });
+      return readFormDataFromStore(inputs.store, reference);
+    },
   });
 }
 
@@ -538,6 +535,8 @@ function makeDependencyKey(dependency: ExpressionDependency) {
       return `formData:${dependency.reference.dataType}:${dependency.reference.field}`;
     case 'displayValue':
       return `displayValue:${dependency.componentId}`;
+    case 'dataElementCount':
+      return `dataElementCount:${dependency.dataType}`;
     case 'options':
       return `options:${dependency.optionsId}`;
     case 'language':
