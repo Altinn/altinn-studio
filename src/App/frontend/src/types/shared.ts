@@ -211,37 +211,51 @@ export type WorkflowActivityStatus = 'idle' | 'processing' | 'failed';
  * support-reference fields. The backend never ships raw error detail here.
  */
 export interface IProcessWorkflowFailure {
-  kind?: string;
+  kind: string;
   /** Id of the failed workflow - the support reference ops can look up in the engine. */
   workflowId?: string;
   /** When the failure was recorded (ISO timestamp). */
   occurredAt?: string;
 }
 
-export interface IProcessWorkflow {
-  status: WorkflowActivityStatus;
-  /** BPMN element id the in-flight/failed transition targets. Omitted when idle or unresolved. */
+export type IProcessWorkflow = IProcessWorkflowIdle | IProcessWorkflowProcessing | IProcessWorkflowFailed;
+
+/** No transition is currently in flight or awaiting manual intervention. */
+interface IProcessWorkflowIdle {
+  status: 'idle';
+}
+
+/** A transition is in flight. */
+interface IProcessWorkflowProcessing {
+  status: 'processing';
+  /** BPMN element id the in-flight transition targets. Omitted when unresolved. */
   targetTask?: string;
   /**
    * True when the transition is parked between automatic retry attempts (a previous attempt
-   * failed and the engine will retry). Only present while status === 'processing'; purely a
-   * presentation hint for explaining a long wait honestly. Omitted when false.
+   * failed and the engine will retry). Purely a presentation hint for explaining a long wait
+   * honestly. Omitted when false.
    */
   retrying?: boolean;
   /**
    * Progress through the in-flight transition's workflow steps (execution is on step
-   * `completed + 1` of `total`). Only present while status === 'processing' and the engine
-   * reported step counts; presentation-only.
+   * `completed + 1` of `total`). Omitted when the engine did not report step counts;
+   * presentation-only.
    */
   progress?: IProcessWorkflowProgress;
   /**
    * When the in-flight transition was started (enqueued), on the server's clock (ISO timestamp).
-   * Only present while status === 'processing'. Lets a client that reconnects mid-transition
-   * (page refresh, second session) measure how long the transition has actually been running
-   * instead of measuring from its own page load.
+   * Lets a client that reconnects mid-transition (page refresh, second session) measure how long
+   * the transition has actually been running instead of measuring from its own page load.
    */
   startedAt?: string;
-  /** Present only when status === 'failed'. */
+}
+
+/** A transition failed terminally and awaits an ops-driven resume. */
+interface IProcessWorkflowFailed {
+  status: 'failed';
+  /** BPMN element id the failed transition targets. Omitted when unresolved. */
+  targetTask?: string;
+  /** Safe structured facts about the failed transition. Omitted if the backend cannot classify it. */
   failure?: IProcessWorkflowFailure;
 }
 

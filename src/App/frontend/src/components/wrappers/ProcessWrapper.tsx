@@ -107,7 +107,8 @@ function WorkflowProcessing() {
   const pollFailureCount = useInstancePollFailureCount();
   const { langAsString } = useLanguage();
   const [stillWorking, setStillWorking] = useState(false);
-  const startedAt = workflow?.startedAt;
+  const startedAt = workflow?.status === 'processing' ? workflow.startedAt : undefined;
+
   useEffect(() => {
     // Clamping elapsed at 0 guards against client-clock skew: a reconnect must never wait longer
     // than a fresh mount would.
@@ -140,7 +141,9 @@ function WorkflowProcessing() {
         <div className={classes.processingNote}>
           <Lang id='process_workflow.advancing_body' />
         </div>
-        <WorkflowProcessingStep progress={workflow?.progress} />
+        {workflow?.status === 'processing' && workflow.progress ? (
+          <WorkflowProcessingStep progress={workflow.progress} />
+        ) : null}
         {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
           <div className={classes.processingNote}>
             <Lang id='process_workflow.connection_trouble' />
@@ -163,8 +166,8 @@ function WorkflowProcessing() {
 // engine on the workflow annotation (completed of total; execution is on step completed + 1). The
 // step identities stay internal - only the numbers surface, showing *movement* during the wait.
 // Omitted when the engine didn't report counts (e.g. an older engine).
-function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgress | undefined }) {
-  if (!progress || progress.total <= 0) {
+function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgress }) {
+  if (progress.total <= 0) {
     return null;
   }
 
@@ -234,16 +237,18 @@ function WorkflowFailed() {
           ]}
         />
       </div>
-      <WorkflowFailedDetails
-        failure={workflow?.failure}
-        instanceId={instanceId}
-      />
+      {workflow?.status === 'failed' && workflow.failure ? (
+        <WorkflowFailedDetails
+          failure={workflow.failure}
+          instanceId={instanceId}
+        />
+      ) : null}
     </Flex>
   );
 }
 
 interface WorkflowFailedDetailsProps {
-  failure: IProcessWorkflowFailure | undefined;
+  failure: IProcessWorkflowFailure;
   instanceId: string | undefined;
 }
 
@@ -257,12 +262,11 @@ interface WorkflowFailedDetailsProps {
 function WorkflowFailedDetails({ failure, instanceId }: WorkflowFailedDetailsProps) {
   const currentLanguage = useCurrentLanguage();
 
-  const kindKey =
-    failure?.kind && KNOWN_FAILURE_KINDS.has(failure.kind)
-      ? `process_workflow.failure_kind.${failure.kind}`
-      : 'process_workflow.failure_kind.unknown';
+  const kindKey = KNOWN_FAILURE_KINDS.has(failure.kind)
+    ? `process_workflow.failure_kind.${failure.kind}`
+    : 'process_workflow.failure_kind.unknown';
 
-  const occurredAt = failure?.occurredAt ? new Date(failure.occurredAt) : undefined;
+  const occurredAt = failure.occurredAt ? new Date(failure.occurredAt) : undefined;
 
   return (
     <AccordionItem
@@ -286,7 +290,7 @@ function WorkflowFailedDetails({ failure, instanceId }: WorkflowFailedDetailsPro
             value={instanceId}
           />
         )}
-        {failure?.workflowId && (
+        {failure.workflowId && (
           <WorkflowFailedDetailItem
             label='process_workflow.failed_details_reference'
             value={failure.workflowId}
