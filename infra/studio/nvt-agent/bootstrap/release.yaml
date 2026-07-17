@@ -1,0 +1,21 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: nvt-release
+  namespace: default
+spec:
+  dependsOn:
+    - name: nvt-secrets
+  interval: 5m
+  path: ./release
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: nvt-deployment-metadata
+  prune: true
+  sourceRef:
+    kind: OCIRepository
+    name: nvt-agent-config
+    namespace: default
+  timeout: 10m
+  wait: true
