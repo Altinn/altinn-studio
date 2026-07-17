@@ -4,7 +4,6 @@ import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { getDefaultChildComponentsForContainer } from '../../../utils/formLayoutUtils';
 import { DefaultItems } from './DefaultItems';
 import { AddItemModal } from './AddItemModal';
 import type { AddedItem } from './types';
@@ -13,6 +12,8 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
 import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandlerWithCallback';
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
+import { useConfigurationMode } from '../../../hooks';
+import { AddItemUtils } from './AddItemUtils';
 
 export type AddItemProps = {
   containerId: string;
@@ -104,21 +105,21 @@ const DefaultItemButtons = ({
   onAddComponent: (item: AddedItem) => void;
   onCancel: () => void;
 }) => {
-  const defaultComponents = getDefaultChildComponentsForContainer(layout, containerId);
-  const shouldShowAllComponentsButton = defaultComponents.length > 8;
+  const configurationMode = useConfigurationMode();
+  const { quickAddComponents, availableComponents, shouldShowAllComponentsButton } =
+    AddItemUtils.getComponentSelection(layout, containerId, configurationMode);
 
   return (
     <div className={classes.addItemButtons}>
       <DefaultItems
         onAddItem={onAddComponent}
         onCancel={onCancel}
-        availableComponents={defaultComponents}
+        availableComponents={quickAddComponents}
         showAllButton={
           shouldShowAllComponentsButton && (
             <AddItemModal
-              containerId={containerId}
-              layout={layout}
               onAddComponent={onAddComponent}
+              availableComponents={availableComponents}
             />
           )
         }
