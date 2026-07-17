@@ -10,6 +10,12 @@ namespace Altinn.App.Core.Features.Process;
 /// default retry behaviour for its own step. This is the app contract; the workflow engine has its
 /// own internal wire model that this is mapped onto at enqueue time.
 /// </summary>
+/// <remarks>
+/// Deliberately narrower than the engine's wire model: whether an individual failure is worth
+/// retrying is expressed semantically by the handler itself (returning a permanent vs retryable
+/// failure result, e.g. <see cref="HookResult.FailedPermanent"/> vs
+/// <see cref="HookResult.FailedRetryable"/>), never by tuning transport-level details here.
+/// </remarks>
 public sealed record ProcessStepRetryStrategy
 {
     /// <summary>
@@ -19,7 +25,7 @@ public sealed record ProcessStepRetryStrategy
 
     /// <summary>
     /// The base interval between attempts. The actual delay grows or stays constant based on
-    /// <see cref="BackoffType"/>.
+    /// <see cref="BackoffType"/>. Must be positive unless <see cref="MaxRetries"/> is 0.
     /// </summary>
     public TimeSpan BaseInterval { get; init; }
 
@@ -40,20 +46,13 @@ public sealed record ProcessStepRetryStrategy
     public TimeSpan? MaxDuration { get; init; }
 
     /// <summary>
-    /// HTTP status codes that should never be retried. When a callback returns one of these, the step
-    /// fails immediately instead of being requeued. Null falls back to the engine's defaults.
-    /// </summary>
-    public IReadOnlyList<int>? NonRetryableHttpStatusCodes { get; init; }
-
-    /// <summary>
     /// Creates an exponential backoff retry strategy.
     /// </summary>
     public static ProcessStepRetryStrategy Exponential(
         TimeSpan baseInterval,
         int? maxRetries = null,
         TimeSpan? maxDelay = null,
-        TimeSpan? maxDuration = null,
-        IReadOnlyList<int>? nonRetryableHttpStatusCodes = null
+        TimeSpan? maxDuration = null
     ) =>
         new()
         {
@@ -62,7 +61,6 @@ public sealed record ProcessStepRetryStrategy
             MaxRetries = maxRetries,
             MaxDelay = maxDelay,
             MaxDuration = maxDuration,
-            NonRetryableHttpStatusCodes = nonRetryableHttpStatusCodes,
         };
 
     /// <summary>
@@ -72,8 +70,7 @@ public sealed record ProcessStepRetryStrategy
         TimeSpan baseInterval,
         int? maxRetries = null,
         TimeSpan? maxDelay = null,
-        TimeSpan? maxDuration = null,
-        IReadOnlyList<int>? nonRetryableHttpStatusCodes = null
+        TimeSpan? maxDuration = null
     ) =>
         new()
         {
@@ -82,7 +79,6 @@ public sealed record ProcessStepRetryStrategy
             MaxRetries = maxRetries,
             MaxDelay = maxDelay,
             MaxDuration = maxDuration,
-            NonRetryableHttpStatusCodes = nonRetryableHttpStatusCodes,
         };
 
     /// <summary>
@@ -91,8 +87,7 @@ public sealed record ProcessStepRetryStrategy
     public static ProcessStepRetryStrategy Constant(
         TimeSpan interval,
         int? maxRetries = null,
-        TimeSpan? maxDuration = null,
-        IReadOnlyList<int>? nonRetryableHttpStatusCodes = null
+        TimeSpan? maxDuration = null
     ) =>
         new()
         {
@@ -101,7 +96,6 @@ public sealed record ProcessStepRetryStrategy
             MaxRetries = maxRetries,
             MaxDelay = interval,
             MaxDuration = maxDuration,
-            NonRetryableHttpStatusCodes = nonRetryableHttpStatusCodes,
         };
 
     /// <summary>
@@ -119,21 +113,58 @@ public sealed record ProcessStepRetryStrategy
     /// <summary>
     /// Maps this app-facing strategy onto the engine's internal wire retry-strategy model. Internal so it
     /// stays off the public app surface while keeping the mapping next to the type it maps.
+    /// Validates the strategy first, so a misconfigured handler fails fast at enqueue time with an
+    /// actionable message instead of producing a degenerate retry loop in the engine.
     /// </summary>
-    internal EngineRetryStrategy ToRetryStrategy() =>
-        new()
+    internal EngineRetryStrategy ToRetryStrategy()
+    {
+        Validate();
+
+        return new EngineRetryStrategy
         {
             BackoffType = this.BackoffType switch
             {
                 ProcessStepBackoffType.Constant => EngineBackoffType.Constant,
                 ProcessStepBackoffType.Linear => EngineBackoffType.Linear,
                 ProcessStepBackoffType.Exponential => EngineBackoffType.Exponential,
-                _ => EngineBackoffType.Constant,
+                _ => throw new InvalidOperationException(
+                    $"Unknown {nameof(ProcessStepBackoffType)} value: {this.BackoffType}"
+                ),
             },
             BaseInterval = BaseInterval,
             MaxRetries = MaxRetries,
             MaxDelay = MaxDelay,
             MaxDuration = MaxDuration,
-            NonRetryableHttpStatusCodes = NonRetryableHttpStatusCodes,
         };
+    }
+
+    private void Validate()
+    {
+        if (BaseInterval < TimeSpan.Zero)
+            throw new InvalidOperationException(
+                $"{nameof(ProcessStepRetryStrategy)}.{nameof(BaseInterval)} cannot be negative (was {BaseInterval})."
+            );
+
+        if (MaxRetries is < 0)
+            throw new InvalidOperationException(
+                $"{nameof(ProcessStepRetryStrategy)}.{nameof(MaxRetries)} cannot be negative (was {MaxRetries})."
+            );
+
+        if (BaseInterval == TimeSpan.Zero && MaxRetries != 0)
+            throw new InvalidOperationException(
+                $"{nameof(ProcessStepRetryStrategy)}.{nameof(BaseInterval)} must be positive when retries are enabled — "
+                    + "a zero interval would retry the step in a tight loop. Use "
+                    + $"{nameof(ProcessStepRetryStrategy)}.{nameof(None)}() to disable retries."
+            );
+
+        if (MaxDelay is { } maxDelay && maxDelay < TimeSpan.Zero)
+            throw new InvalidOperationException(
+                $"{nameof(ProcessStepRetryStrategy)}.{nameof(MaxDelay)} cannot be negative (was {maxDelay})."
+            );
+
+        if (MaxDuration is { } maxDuration && maxDuration <= TimeSpan.Zero)
+            throw new InvalidOperationException(
+                $"{nameof(ProcessStepRetryStrategy)}.{nameof(MaxDuration)} must be positive (was {maxDuration})."
+            );
+    }
 }

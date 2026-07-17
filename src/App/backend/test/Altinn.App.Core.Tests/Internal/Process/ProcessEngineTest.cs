@@ -20,6 +20,7 @@ using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -3280,6 +3281,7 @@ public sealed class ProcessEngineTest
             services.TryAddSingleton<IWorkflowCallbackSecretProvider>(_ => secretProviderMock.Object);
 
             services.TryAddTransient<ProcessNextRequestFactory>();
+            services.TryAddSingleton<CommandDefaultStepOptionsProvider>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
 

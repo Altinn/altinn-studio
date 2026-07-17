@@ -422,6 +422,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
             new EngineSettings
             {
                 DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                MaxStepCommandTimeout = TimeSpan.FromHours(24),
                 DefaultStepRetryStrategy = null!,
                 DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
                 DatabaseRetryStrategy = null!,

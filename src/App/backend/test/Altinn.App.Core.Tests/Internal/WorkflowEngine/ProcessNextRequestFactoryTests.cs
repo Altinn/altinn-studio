@@ -61,7 +61,7 @@ public class ProcessNextRequestFactoryTests
 
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
-        IWorkflowEngineCommand[] commands = [new ExecuteServiceTask(appImplFactory)];
+        var commandDefaultStepOptions = new CommandDefaultStepOptionsProvider([new ExecuteServiceTask(appImplFactory)]);
 
         var authContextMock = new Mock<IAuthenticationContext>();
         authContextMock.Setup(x => x.Current).Returns(authentication ?? TestAuthentication.GetUserAuthentication());
@@ -101,7 +101,7 @@ public class ProcessNextRequestFactoryTests
             appSettings,
             appMetadataMock.Object,
             callbackTokenGeneratorMock.Object,
-            commands
+            commandDefaultStepOptions
         );
     }
 
@@ -860,6 +860,65 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(3, step.RetryStrategy.MaxRetries);
         Assert.Equal(TimeSpan.FromMinutes(1), step.RetryStrategy.MaxDelay);
         Assert.Equal(TimeSpan.FromMinutes(30), step.RetryStrategy.MaxDuration);
+    }
+
+    [Fact]
+    public async Task StepOptions_NegativeMaxExecutionTime_ThrowsAtEnqueue()
+    {
+        // Arrange - a misconfigured handler (e.g. arithmetic slip producing a negative timeout)
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-10) });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act + Assert - fails fast with an actionable message instead of poisoning the engine workflow
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            factory.Create(TestInstance, stateChange, "lock-token", "{}")
+        );
+        Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), ex.Message);
+    }
+
+    [Fact]
+    public async Task StepOptions_ZeroIntervalRetryWithRetriesEnabled_ThrowsAtEnqueue()
+    {
+        // Arrange - a bare strategy (Constant, zero interval, unbounded) would hot-loop in the engine
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(new ProcessStepOptions { RetryStrategy = new ProcessStepRetryStrategy() });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act + Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            factory.Create(TestInstance, stateChange, "lock-token", "{}")
+        );
+        Assert.Contains(nameof(ProcessStepRetryStrategy.BaseInterval), ex.Message);
+    }
+
+    [Fact]
+    public async Task StepOptions_RetryStrategyNone_IsAcceptedAndMapped()
+    {
+        // Arrange - None() is the sanctioned zero-interval strategy (retries disabled)
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(new ProcessStepOptions { RetryStrategy = ProcessStepRetryStrategy.None() });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.NotNull(step.RetryStrategy);
+        Assert.Equal(0, step.RetryStrategy.MaxRetries);
     }
 
     [Fact]

@@ -52,12 +52,11 @@ internal sealed class ProcessNextRequestFactory
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
 
     /// <summary>
-    /// The per-command default step options (tier 2), keyed by command key. Built once from the
-    /// registered <see cref="IWorkflowEngineCommand"/> set; overridden per-step by a per-implementation
-    /// <see cref="IProcessStepConfigurable.StepOptions"/> (tier 3) and falling back to the engine's
-    /// global defaults (tier 1) when both are null.
+    /// Singleton lookup of per-command default step options (tier 2). Overridden per-step by a
+    /// per-implementation <see cref="IProcessStepConfigurable.StepOptions"/> (tier 3) and falling back
+    /// to the engine's global defaults (tier 1) when both are null.
     /// </summary>
-    private readonly IReadOnlyDictionary<string, ProcessStepOptions?> _commandDefaultStepOptions;
+    private readonly CommandDefaultStepOptionsProvider _commandDefaultStepOptions;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -66,7 +65,7 @@ internal sealed class ProcessNextRequestFactory
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
         IWorkflowCallbackTokenGenerator callbackTokenGenerator,
-        IEnumerable<IWorkflowEngineCommand> commands
+        CommandDefaultStepOptionsProvider commandDefaultStepOptions
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -75,9 +74,7 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
-        _commandDefaultStepOptions = commands
-            .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
-            .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
+        _commandDefaultStepOptions = commandDefaultStepOptions;
     }
 
     /// <summary>
@@ -391,7 +388,7 @@ internal sealed class ProcessNextRequestFactory
     /// </summary>
     private StepRequest StampStepOptions(StepRequest step, string? taskId, string? serviceTaskType)
     {
-        ProcessStepOptions? commandDefault = _commandDefaultStepOptions.GetValueOrDefault(step.OperationId);
+        ProcessStepOptions? commandDefault = _commandDefaultStepOptions.GetDefaultStepOptions(step.OperationId);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
             step.OperationId,
             taskId,
@@ -405,6 +402,15 @@ internal sealed class ProcessNextRequestFactory
         if (maxExecutionTime is null && retryStrategy is null)
         {
             return step;
+        }
+
+        if (maxExecutionTime is { } timeout && timeout <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                $"Resolved {nameof(ProcessStepOptions)}.{nameof(ProcessStepOptions.MaxExecutionTime)} for step "
+                    + $"'{step.OperationId}' must be positive (was {timeout}). Check the handler's "
+                    + $"{nameof(IProcessStepConfigurable.StepOptions)} implementation."
+            );
         }
 
         return step with
