@@ -57,7 +57,7 @@ jobs:
           kubectl kustomize infra/studio/nvt-agent/bootstrap >/dev/null
           yq '.spec.values' infra/studio/nvt-agent/release/helm-release.yaml | \
             helm template nvt oci://ghcr.io/mirkosekulic/helm/nvt \
-              --version 0.8.1 \
+              --version 0.8.2 \
               --namespace nvt \
               --values - >/dev/null
           yq '.spec.values |
@@ -68,7 +68,7 @@ jobs:
             .agentSchedule.suspend = false' \
             infra/studio/nvt-agent/release/helm-release.yaml | \
             helm template nvt oci://ghcr.io/mirkosekulic/helm/nvt \
-              --version 0.8.1 \
+              --version 0.8.2 \
               --namespace nvt \
               --values - >/dev/null
 

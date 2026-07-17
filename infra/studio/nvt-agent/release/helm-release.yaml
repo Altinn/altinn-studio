@@ -411,7 +411,7 @@ spec:
           secure: true
       baseDomain: ""
       enabled: true
-      publicURL: https://agents.altinn.studio
+      publicURL: https://staging.altinn.studio/agents
       replicas: 1
       routing:
         mode: path

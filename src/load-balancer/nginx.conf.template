@@ -96,6 +96,11 @@ http {
     ''      close;
   }
 
+  map $host $nvt_gateway_enabled {
+    staging.altinn.studio 1;
+    default               0;
+  }
+
   server {
     listen ${LISTEN_DIRECTIVE};
     server_name ${SERVER_NAME};
