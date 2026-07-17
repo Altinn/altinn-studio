@@ -75,33 +75,25 @@ function NavigationError({ label }: NavigationErrorProps) {
   );
 }
 
-// After this long in the processing state we stop leaving the user staring at a bare spinner and
-// level with them: the wait is unusual, their data is durably stored and the processing continues
-// server-side whether the page stays open or not - so they can safely leave and come back. A
-// transition can legitimately be stuck retrying for hours (network trouble, a struggling downstream
-// service), and a bare spinner is infuriating at that scale. One escalation, not a graduated series
-// of near-identical "this is slow" notes - a single honest message once the wait is clearly abnormal.
-// The wait is measured from the transition's server-reported start (workflow.startedAt) when
-// present, so a page refresh or a second session doesn't restart the clock: reconnecting to a
-// transition that has already been running this long shows the message immediately. Without the
-// timestamp (older backend) we fall back to measuring from mount.
+/**
+ * Delay before explaining that processing is taking unusually long. The server-reported start
+ * time keeps the threshold stable across refreshes and sessions; older backends fall back to the
+ * page-mount time. A single escalation avoids a series of near-identical slow-wait messages.
+ */
 const STILL_WORKING_MS = 30_000;
 
-// From this many consecutive failed poll cycles we tell the user we're having trouble reaching the
-// server (one failed cycle is a swallowed blip; InstanceProvider escalates to the full error page
-// at INSTANCE_POLL_FAILURE_ESCALATION_CYCLES). Staying honest while the poll loop self-recovers.
+/**
+ * Consecutive failed poll cycles before the waiting view reports connection trouble. A single
+ * failed cycle is treated as a transient blip while the poll loop recovers.
+ */
 const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
 
-// Spinner + predefined text (see #18935 for the design discussion). Every string is a text resource,
-// so apps override any of them per app. The layers:
-//   always      - spinner, title, body ("you don't need to do anything, we continue automatically")
-//   resolvable  - "Steg x av y" progress through the transition's workflow steps (engine-reported)
-//   >=30s       - an info alert: data is safely stored, processing continues on its own, the page can
-//                 be closed - the honest answer to a transition stuck for a long time. Single tier:
-//                 no graduated series of near-identical "this is slow" notes, just one message once
-//                 the wait is clearly abnormal. Measured from the transition's start, not the page's.
-//   poll issues - connection_trouble (orthogonal: the page itself is having trouble asking for
-//                 updates, not the transition being slow, so it may co-exist with the alert above)
+/**
+ * Renders the live workflow-transition state. Every message is a text resource, so an app can
+ * override it. The spinner, title, and body are always present; engine-reported progress is shown
+ * when available; the slow-processing alert is shown after 30 seconds; and connection trouble is
+ * shown independently when polling has repeatedly failed.
+ */
 function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
   const pollFailureCount = useInstancePollFailureCount();
@@ -162,10 +154,10 @@ function WorkflowProcessing() {
   );
 }
 
-// "Steg x av y" - progress through the in-flight transition's workflow steps, reported live by the
-// engine on the workflow annotation (completed of total; execution is on step completed + 1). The
-// step identities stay internal - only the numbers surface, showing *movement* during the wait.
-// Omitted when the engine didn't report counts (e.g. an older engine).
+/**
+ * Renders engine-reported progress through an in-flight transition. Step identities remain
+ * internal; only the completed and total counts are shown to demonstrate movement during the wait.
+ */
 function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgress }) {
   if (progress.total <= 0) {
     return null;
@@ -182,23 +174,18 @@ function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgre
   );
 }
 
-// Failure kinds the backend can emit (camelCase on the wire); anything else falls back to the
-// generic label so an unknown/new kind never renders as a raw key.
+/**
+ * Failure kinds emitted by the backend. Unknown values use the generic label rather than exposing
+ * a raw translation key.
+ */
 const KNOWN_FAILURE_KINDS = new Set(['stepFailed', 'dependencyFailed', 'engineFault', 'timeout']);
 
-// The engine deemed this failure terminal - it already exhausted its automatic retry budget, so
-// offering the citizen a Retry would be wrong. This is an error page and it does NOT sugar-coat: the
-// processing failed, it will not resolve on its own, and there is no user-facing recovery. Recovery
-// is ops-driven (a manual resume by the service owner) and this page is STATIC - so we tell the user
-// plainly to get in touch rather than implying a safety net (no "we've recorded it" / "no need to
-// resubmit", which over-promise a monitoring/auto-retry that may not exist for a given app). The
-// contact points at Altinn customer service (the service owner - who could actually resume it - is
-// not reachable from here yet) and asks the user to relay the reference so support can find the
-// instance/workflow. Details expander carries only SAFE structured facts (kind, time, the two
-// references) - never raw error text (it originates from the engine / a service task and may contain
-// internal detail). InstanceProvider deliberately stops polling in the failed state (an open tab must
-// not pay the expensive failed-path read forever); after an ops resume, a manual refresh picks up the
-// recovered state.
+/**
+ * Renders the terminal workflow-failure page. Recovery requires an ops-driven resume, so the page
+ * offers no user-facing retry and directs the user to support instead. Its optional details contain
+ * only safe structured facts and never raw engine or service-task error text. Polling stops while
+ * this page is shown; after an ops resume, the user refreshes to load the recovered state.
+ */
 function WorkflowFailed() {
   const workflow = useProcessWorkflow();
   const instanceId = useLaxInstanceId();
@@ -252,13 +239,11 @@ interface WorkflowFailedDetailsProps {
   instanceId: string | undefined;
 }
 
-// Reuses the unknown-error details expander pattern (see UnknownErrorDetails): an AccordionItem
-// with name/value rows. Contains only safe structured facts - never raw error text. Deliberately
-// nothing about *which* step failed: the engine step identities are internal (raw operation ids,
-// not localizable), and the transition's target task is just misleading here (it names where the
-// process was headed, as a generic task-type label). Two references are surfaced so the user can
-// relay them to support: the instance id (the form submission, searchable in Storage) and the
-// workflow id (the specific transition, searchable in the engine).
+/**
+ * Renders an unknown-error-style accordion with safe structured failure facts. It deliberately
+ * excludes raw error text, internal engine step identities, and the target task. The instance and
+ * workflow identifiers give support enough information to find the submission and transition.
+ */
 function WorkflowFailedDetails({ failure, instanceId }: WorkflowFailedDetailsProps) {
   const currentLanguage = useCurrentLanguage();
 
@@ -301,13 +286,10 @@ function WorkflowFailedDetails({ failure, instanceId }: WorkflowFailedDetailsPro
   );
 }
 
-// A failed workflow that targeted the CURRENT task, when that task is a service task, is the
-// service task's own failure: its view (the app's custom layout for the task, or the default
-// ServiceTask screen) owns the recovery affordances - retry, and the bpmn-allowed reject the
-// backend explicitly permits from that screen (it abandons the failed workflow so the reject can
-// run). Replacing that view with the terminal error page would leave the user with no way out.
-// Only failures no task UI can own - a transition failing before it committed the target task, an
-// engine fault, a failure targeting some other task - show the terminal error page.
+/**
+ * Determines whether the current service task owns its workflow failure. Those failures retain
+ * the task view and its recovery actions; failures without a task UI owner use the terminal page.
+ */
 function useIsWorkflowFailedOnCurrentServiceTask() {
   const { data: process } = useProcessQuery();
   const workflow = process?.workflow;
@@ -319,14 +301,11 @@ function useIsWorkflowFailedOnCurrentServiceTask() {
   );
 }
 
-// A transition can settle while this session's URL is still parked on the pre-transition task
-// (e.g. a reload during the transition). The same-session flow navigates from useProcessNext's
-// onSuccess/onError, but here the poll only converges the *data* (currentTask advances, workflow
-// settles) - nothing converges the URL, stranding the user on the old task's "not available"
-// error. So when the live status goes from busy (processing/failed) to settled, navigate to the
-// committed task exactly like the sync flow would. A URL that is stale on arrival (no observed
-// busy status - e.g. an old deep link, or a manual refresh after an ops resume recovered a failed
-// transition) keeps the navigation error + its manual button.
+/**
+ * Synchronizes a URL that was parked on a transition's previous task. Navigation happens only
+ * after this session observed a busy workflow settle, preserving the manual recovery path for a
+ * stale URL opened after the transition already completed.
+ */
 function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) {
   const { data: process } = useProcessQuery();
   const status = process?.workflow?.status;
