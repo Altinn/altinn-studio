@@ -34,15 +34,18 @@ describe('AddItem', () => {
     expect(
       screen.queryByRole('button', { name: textMock('ux_editor.component_title.Input') }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText(textMock('ux_editor.add_item.show_all'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('ux_editor.add_item.show_all') }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows the show all button when more components are available than the quick-add list', async () => {
     const user = userEvent.setup();
     renderAddItem({}, seedLayoutSet({ type: 'subform' }));
     await user.click(getAddComponentButton());
-
-    expect(screen.getByText(textMock('ux_editor.add_item.show_all'))).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('ux_editor.add_item.show_all') }),
+    ).toBeInTheDocument();
   });
 });
 
