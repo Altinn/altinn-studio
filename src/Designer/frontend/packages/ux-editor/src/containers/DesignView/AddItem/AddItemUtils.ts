@@ -122,7 +122,7 @@ const getDefaultComponentTypesForContainer = (
     return capToDefaultComponentAmount(prioritizeDefaultComponents(allowedInContainer));
   }
 
-  if (validChildTypes && validChildTypes.length < 10) {
+  if (validChildTypes && validChildTypes.length <= defaultComponents.length) {
     return validChildTypes;
   }
   return defaultComponents;
