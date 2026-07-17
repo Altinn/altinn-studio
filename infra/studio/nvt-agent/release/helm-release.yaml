@@ -370,11 +370,16 @@ spec:
         admission:
           default: deny
           rules:
-            - claimPath: organization_membership
+            - claimPath: oauth2_subject
               effect: allow
-              id: allowed-organization
+              id: mirkoSekulic
               values:
-                - active
+                - "23359247"
+            - claimPath: oauth2_subject
+              effect: allow
+              id: jondyr
+              values:
+                - "1525466"
         authorization:
           default: deny
           rules:
@@ -382,12 +387,8 @@ spec:
               id: agent-owner
               owner: true
         claimEnrichment:
-          allowedHosts:
-            - api.github.com
-          sources:
-            - endpoint: https://api.github.com/user/memberships/orgs/Altinn
-              outputClaim: organization_membership
-              valuePath: state
+          allowedHosts: []
+          sources: []
         mode: oauth2
         oauth2:
           authorizationURL: https://github.com/login/oauth/authorize
