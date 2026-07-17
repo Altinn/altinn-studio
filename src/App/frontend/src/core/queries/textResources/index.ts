@@ -34,9 +34,9 @@ function useTextResourcesQueries(): TextResourcesQueries {
         if (queryClient.getQueryData(textResourcesQueryKeys.textResources(selectedLanguage))) {
           return;
         }
-        void queryClient.ensureQueryData(
-          textResourcesQuery({ selectedLanguage, textResourcesFromWindow, textResourcesApi }),
-        );
+        void queryClient
+          .ensureQueryData(textResourcesQuery({ selectedLanguage, textResourcesFromWindow, textResourcesApi }))
+          .catch(() => undefined);
       },
       getCached: (selectedLanguage) =>
         queryClient.getQueryData<TextResourceMap>(textResourcesQueryKeys.textResources(selectedLanguage)),

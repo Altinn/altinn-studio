@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { skipToken, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
@@ -49,7 +49,7 @@ export function useExternalApiQueries(): ExternalApiQueries {
           if (queryClient.getQueryData(queryDef.queryKey) !== undefined) {
             continue;
           }
-          void queryClient.ensureQueryData(queryDef);
+          void queryClient.ensureQueryData(queryDef).catch(() => undefined);
         }
       },
       getCached: (instanceId, externalApiIds) => {
@@ -78,7 +78,7 @@ export function useExternalApis(ids: string[]): ExternalApisResult {
     ...getExternalApiQueryDef({ externalApiId, instanceId }),
   }));
 
-  return useQueries({
+  const combined = useQueries({
     queries,
     combine: (results) => {
       const data: Record<string, unknown> = {};
@@ -91,13 +91,17 @@ export function useExternalApis(ids: string[]): ExternalApisResult {
         }
       });
 
-      Object.entries(errors).forEach(([id, error]) => {
-        window.logErrorOnce(`Failed to fetch external API ${id}`, error);
-      });
-
       return { data, errors };
     },
   });
+
+  useEffect(() => {
+    Object.entries(combined.errors).forEach(([id, error]) => {
+      window.logErrorOnce(`Failed to fetch external API ${id}`, error);
+    });
+  }, [combined.errors]);
+
+  return combined;
 }
 
 export function useExternalApi(id: string): unknown {
