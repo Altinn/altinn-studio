@@ -27,8 +27,8 @@ const appFrontend = new AppFrontend();
  *
  * UI strings (app-libs nb.ts, keys process_workflow.*):
  *   processing  = spinner + "Vi jobber med skjemaet ditt" (deliberately never names the target
- *                 task; a "Steg x av y" line shows live progress through the transition's
- *                 workflow steps when the engine reports counts)
+ *                 task and never shows engine step counts - internal progress means nothing to
+ *                 the user)
  *   failed      = heading "Noe gikk galt" + contact-support blurb + safe details expander
  *                 ("Vis detaljer om feilen"); deliberately NO Retry affordance and NO polling — the
  *                 engine already exhausted its retry budget, so the page is static until a refresh.
@@ -164,11 +164,8 @@ describe('Live workflow status (real engine)', () => {
     submitAndReloadDuringTransition();
 
     // Committed task is still Task_1 during the pre-commit delay, so the reloaded session renders the
-    // live "advancing" state and the task's advance action is suppressed. The step indicator shows
-    // live progress through the transition's workflow steps (exact numbers depend on the command
-    // sequence, so only the shape is asserted).
+    // live "advancing" state and the task's advance action is suppressed.
     cy.contains('Vi jobber med skjemaet ditt', { timeout: 15000 }).should('be.visible');
-    cy.contains(/Steg \d+ av \d+/).should('be.visible');
     cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 

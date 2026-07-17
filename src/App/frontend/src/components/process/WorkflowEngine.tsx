@@ -10,7 +10,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ELEMENT_TYPE } from 'src/types/shared';
-import type { IProcessWorkflowFailure, IProcessWorkflowProgress } from 'src/types/shared';
+import type { IProcessWorkflowFailure } from 'src/types/shared';
 
 /**
  * Delay before explaining that processing is taking unusually long. The server-reported start
@@ -26,9 +26,10 @@ const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
 
 /**
  * Renders the live workflow-transition state. Every message is a text resource, so an app can
- * override it. The spinner, title, and body are always present; engine-reported progress is shown
- * when available; the slow-processing alert is shown after 30 seconds; and connection trouble is
- * shown independently when polling has repeatedly failed.
+ * override it. The spinner, title, and body are always present; the slow-processing alert is shown
+ * after 30 seconds; and connection trouble is shown independently when polling has repeatedly
+ * failed. The wire model also reports step progress, but it is deliberately not rendered - internal
+ * engine step counts mean nothing to the user.
  */
 export function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
@@ -69,9 +70,6 @@ export function WorkflowProcessing() {
         <div className={classes.processingNote}>
           <Lang id='process_workflow.advancing_body' />
         </div>
-        {workflow?.status === 'processing' && workflow.progress ? (
-          <WorkflowProcessingStep progress={workflow.progress} />
-        ) : null}
         {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
           <div className={classes.processingNote}>
             <Lang id='process_workflow.connection_trouble' />
@@ -87,26 +85,6 @@ export function WorkflowProcessing() {
         )}
       </div>
     </Flex>
-  );
-}
-
-/**
- * Renders engine-reported progress through an in-flight transition. Step identities remain
- * internal; only the completed and total counts are shown to demonstrate movement during the wait.
- */
-function WorkflowProcessingStep({ progress }: { progress: IProcessWorkflowProgress }) {
-  if (progress.total <= 0) {
-    return null;
-  }
-
-  const currentStep = Math.min(progress.completed + 1, progress.total);
-  return (
-    <div className={classes.processingStep}>
-      <Lang
-        id='process_workflow.advancing_step'
-        params={[currentStep, progress.total]}
-      />
-    </div>
   );
 }
 

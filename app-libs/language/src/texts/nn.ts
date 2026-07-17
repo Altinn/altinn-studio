@@ -463,7 +463,6 @@ export function nn() {
     'process_workflow.advancing_title': 'Vi jobbar med skjemaet ditt',
     'process_workflow.advancing_body':
       'Du treng ikkje gjere noko. Vi sender deg vidare så snart alt er klart.',
-    'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noko gjekk gale',
     'process_workflow.failed_description':
       'Vi klarte ikkje å fullføre handsaminga av skjemaet ditt, og feilen rettar seg ikkje av seg sjølv. Du må ta kontakt for å få hjelp til å komme vidare.',

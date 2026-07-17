@@ -463,7 +463,6 @@ export function en() {
     'process_workflow.advancing_title': 'We’re working on your form',
     'process_workflow.advancing_body':
       'You don’t need to do anything. We’ll take you to the next step as soon as everything is ready.',
-    'process_workflow.advancing_step': 'Step {0} of {1}',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',

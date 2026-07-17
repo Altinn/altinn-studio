@@ -238,8 +238,9 @@ interface IProcessWorkflowProcessing {
   retrying?: boolean;
   /**
    * Progress through the in-flight transition's workflow steps (execution is on step
-   * `completed + 1` of `total`). Omitted when the engine did not report step counts;
-   * presentation-only.
+   * `completed + 1` of `total`). Omitted when the engine did not report step counts. Kept in the
+   * wire model for observability, but deliberately not rendered - internal engine step counts
+   * mean nothing to the user.
    */
   progress?: IProcessWorkflowProgress;
   /**

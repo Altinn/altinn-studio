@@ -62,29 +62,13 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
-  it('processing shows "Steg x av y" from the transition step progress - and omits it when unreported', async () => {
-    // The step line is progress through the transition's engine steps: 7 of 12 completed means
-    // execution is on step 8. An older engine reports no counts, so the line is simply omitted.
-    const { unmount } = await renderProcessWrapper(
+  it('processing never renders the wire-model step progress - engine step counts are not user-facing', async () => {
+    await renderProcessWrapper(
       { status: 'processing', targetTask: 'Task_2', progress: { completed: 7, total: 12 } },
       false,
     );
-    expect(await screen.findByText('Steg 8 av 12')).toBeInTheDocument();
-    unmount();
-
-    await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
     expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
     expect(screen.queryByText(/steg \d+ av \d+/i)).not.toBeInTheDocument();
-  });
-
-  it('processing caps the step indicator at the total while the last step finishes', async () => {
-    // completed === total happens in the window where the last step is done but the workflow
-    // status hasn't settled yet - the indicator must not overshoot to "Steg 13 av 12".
-    await renderProcessWrapper(
-      { status: 'processing', targetTask: 'Task_2', progress: { completed: 12, total: 12 } },
-      false,
-    );
-    expect(await screen.findByText('Steg 12 av 12')).toBeInTheDocument();
   });
 
   it('processing escalates once to the safe-to-leave alert after ~30s - a single tier, not a series', async () => {

@@ -465,7 +465,6 @@ export function nb() {
     'process_workflow.advancing_title': 'Vi jobber med skjemaet ditt',
     'process_workflow.advancing_body':
       'Du trenger ikke gjøre noe. Vi sender deg videre så snart alt er klart.',
-    'process_workflow.advancing_step': 'Steg {0} av {1}',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',

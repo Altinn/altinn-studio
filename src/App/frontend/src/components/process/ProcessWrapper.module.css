@@ -13,10 +13,6 @@
   padding: 48px 16px;
 }
 
-.processingStep {
-  color: var(--ds-color-neutral-text-subtle, #58555f);
-}
-
 .processingNote {
   max-width: 60ch;
 }
