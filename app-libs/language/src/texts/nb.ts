@@ -481,7 +481,7 @@ export function nb() {
     'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.still_working':
-      'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og vi fortsetter automatisk – du kan trygt lukke siden og komme tilbake senere.',
+      'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og vi fortsetter automatisk – du kan trygt lukke siden og komme tilbake på et senere tidspunkt. Allerede påbegynte skjema kan åpnes fra innboksen eller utkast-mappen.',
     'process_workflow.connection_trouble': 'Vi får ikke kontakt med tjenesten akkurat nå. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',
