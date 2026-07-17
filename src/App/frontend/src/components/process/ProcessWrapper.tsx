@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Button, Flex } from '@app/form-component';
-import { useIsMutating } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/process/ProcessWrapper.module.css';
@@ -246,16 +247,28 @@ export const ComponentRouting = () => {
   throw new Error(`Component ${componentId} does not have subRouting`);
 };
 
+function isRunningProcessNext(queryClient: QueryClient) {
+  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
+}
+
 function useIsRunningProcessNext() {
-  const runningMutationCount = useIsMutating({ mutationKey: getProcessNextMutationKey() });
+  const queryClient = useQueryClient();
   const [isMutating, setIsMutating] = useState<boolean | null>(null);
 
   // Intentionally wrapped in a useEffect() and saved as a state. If this happens, we'll seemingly be locked out
   // with a <Loader /> forever, but when this happens, we also know we'll be re-rendered soon. This is only meant to
   // block rendering when we're calling process/next.
+  //
+  // Deliberately sampled once (not subscribed via useIsMutating): the mutation's pre-request phase
+  // (beforeProcessNext -> onFormSubmitValidation -> useWaitForValidation) only resolves while the
+  // form/validation providers stay mounted. Subscribing here swaps the task tree for the <Loader />
+  // as soon as the mutation starts, unmounting those providers and deadlocking the mutation - it
+  // never reaches process/next and never settles, so the Loader stays forever. This check only
+  // exists to cover mounting mid-mutation; while mounted, blocking is driven by the server-side
+  // workflow annotation instead.
   useEffect(() => {
-    setIsMutating(runningMutationCount > 0);
-  }, [runningMutationCount]);
+    setIsMutating(isRunningProcessNext(queryClient));
+  }, [queryClient]);
 
   return isMutating;
 }
