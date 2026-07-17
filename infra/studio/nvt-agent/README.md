@@ -11,7 +11,8 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
 
 The public chart is pinned to `0.8.2` (verified OCI digest
 `sha256:0d76d3332097d7c5e32aa9ff0af4b57ea7bf159f54fadd32866d1e0e15c6bfc7`),
-which resolves the coordinated `0.8.2-3d2aacf` production images without
+using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
+tag. It resolves the coordinated `0.8.2-3d2aacf` production images without
 component overrides. The initial release keeps
 `agentSchedule.suspend: true` and `producer.enabled: false`; broker, operator,
 gateway, CRDs, TLS, PVCs, and network policy configuration can therefore be
@@ -42,6 +43,11 @@ Keep the unresolved App, installation, and OAuth client IDs explicit in
   installation ID, or webhook secret. Register
   `https://staging.altinn.studio/agents/oauth2/callback`; its OAuth permissions
   and Altinn approval must allow the bounded organization-membership lookup.
+
+The pull-request merge gate deliberately fails while any
+`REPLACE_WITH_*` value remains. This keeps the deployment non-mergeable until
+all five non-secret identifiers are supplied, while the separate manifest and
+load-balancer validation job can still demonstrate the rest of the draft.
 
 The working checkout is `mirkoSekulic/altinn-studio`, with
 `Altinn/altinn-studio` configured as the `upstream` remote. Both broker
