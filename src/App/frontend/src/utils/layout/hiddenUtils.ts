@@ -54,7 +54,7 @@ export function collectHiddenSources(
     if (
       parentComponent.type === 'RepeatingGroup' &&
       parentComponent.hiddenRow !== undefined &&
-      isInRepeatingGroupChildren(parentComponent, childId)
+      isInRepeatingGroupChildrenProperty(parentComponent, childId)
     ) {
       out.push({ type: 'hiddenRow', expr: parentComponent.hiddenRow, id: parent.id });
     }
@@ -102,10 +102,10 @@ export function evaluateHiddenSources({
 }
 
 /**
- * Checks if a baseComponentId is in the repeating group children (returns false if the baseComponentId is included
- * via rowsBefore/rowsAfter).
+ * Checks if a baseComponentId is in the repeating group children property (returns false if the baseComponentId is
+ * in other properties, like rowsBefore/rowsAfter).
  */
-function isInRepeatingGroupChildren(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
+function isInRepeatingGroupChildrenProperty(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
   const multiPage = parent.edit?.multiPage ?? false;
   if (!multiPage) {
     return parent.children.includes(baseComponentId);
