@@ -40,9 +40,10 @@ Keep the unresolved App, installation, and OAuth client IDs explicit in
   projected from the same Key Vault PEM, handles upstream PRs, reviews,
   comments, and checks. Do not duplicate the PEM in Key Vault.
 - `nvt-agent-gateway` is OAuth-only. It has no App private key, App ID,
-  installation ID, or webhook secret. Register
-  `https://staging.altinn.studio/agents/oauth2/callback`; its OAuth permissions
-  and Altinn approval must allow the bounded organization-membership lookup.
+  installation ID, webhook secret, repository permission, organization
+  permission, or account permission. It is owned by `mirkoSekulic` and is not
+  installed in the Altinn organization. Register
+  `https://staging.altinn.studio/agents/oauth2/callback`.
 
 The pull-request merge gate deliberately fails while any
 `REPLACE_WITH_*` value remains. This keeps the deployment non-mergeable until
@@ -74,7 +75,7 @@ routing init container and capture sidecar contract.
 ## Activation
 
 After ExternalSecrets, broker, operator, and gateway are Ready, verify GitHub
-login and Altinn membership admission while the schedule remains suspended.
+login and subject-based gateway admission while the schedule remains suspended.
 Then make a small reviewed values change that sets `producer.enabled: true`,
 sets the verified `agentSchedule.template.runtimeClassName`, and finally sets
 `agentSchedule.suspend: false`. Test with one disposable
