@@ -2,8 +2,8 @@ import type { ConfPageType } from './types/ConfigPageType';
 
 type GetConfigurationModeArgs = {
   selectedLayoutIsCustomReceipt: boolean;
-  processTaskType: string;
-  selectedLayoutSetType: string;
+  processTaskType?: string;
+  selectedLayoutSetType?: string;
 };
 
 export class ElementsUtils {
