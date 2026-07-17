@@ -85,8 +85,8 @@ public sealed partial class OciRegistrySource : IAppDistSource
     private static string LayerMediaType(AppDistLayer layer) =>
         layer switch
         {
-            AppDistLayer.Schemas => "application/vnd.altinn.app.schemas.tar+gzip",
-            AppDistLayer.Bundle => "application/vnd.altinn.app.bundle.tar+gzip",
+            AppDistLayer.Content => "application/vnd.altinn.app-dist.content.v1.tar+gzip",
+            AppDistLayer.Schemas => "application/vnd.altinn.app-dist.schemas.v1.tar+gzip",
             _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, "unknown app-dist layer"),
         };
 

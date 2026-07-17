@@ -1,0 +1,67 @@
+name: Publish app-dist OCI artifact
+description: Publish an Altinn Studio app frontend distribution artifact to GHCR
+
+inputs:
+  token:
+    description: GitHub token with packages write permission
+    required: true
+  actor:
+    description: GitHub actor used to authenticate with GHCR
+    required: true
+  version:
+    description: Exact SemVer tag without a leading v
+    required: true
+  revision:
+    description: Git revision used to build the distribution
+    required: true
+  working-directory:
+    description: Directory containing the app frontend distribution
+    required: false
+    default: src/App/frontend/dist
+
+runs:
+  using: composite
+  steps:
+    - name: Install ORAS
+      uses: oras-project/setup-oras@38de303aac69abb66f3e6255b7198bff35f323e3 # v2.0.0
+
+    - name: Log in to GHCR
+      shell: bash
+      env:
+        GHCR_ACTOR: ${{ inputs.actor }}
+        GHCR_TOKEN: ${{ inputs.token }}
+      run: echo "$GHCR_TOKEN" | oras login ghcr.io -u "$GHCR_ACTOR" --password-stdin
+
+    - name: Ensure app-dist version does not already exist in the container registry
+      shell: bash
+      env:
+        REPOSITORY: ghcr.io/altinn/altinn-studio/app-dist
+        VERSION: ${{ inputs.version }}
+      run: |
+        if output="$(oras manifest fetch "$REPOSITORY:$VERSION" 2>&1)"; then
+          echo "OCI artifact already exists: $REPOSITORY:$VERSION" >&2
+          exit 1
+        fi
+
+        shopt -s nocasematch
+        if [[ "$output" != *"MANIFEST_UNKNOWN"* && "$output" != *"not found"* ]]; then
+          echo "$output" >&2
+          echo "Unable to determine whether OCI artifact exists: $REPOSITORY:$VERSION" >&2
+          exit 1
+        fi
+
+    - name: Push app-dist artifact
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        REPOSITORY: ghcr.io/altinn/altinn-studio/app-dist
+        REVISION: ${{ inputs.revision }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        oras push "$REPOSITORY:$VERSION" \
+          --artifact-type application/vnd.altinn.app-dist.v1 \
+          --annotation "org.opencontainers.image.version=$VERSION" \
+          --annotation "org.opencontainers.image.revision=$REVISION" \
+          --annotation "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+          .:application/vnd.altinn.app-dist.content.v1.tar+gzip \
+          schemas/json:application/vnd.altinn.app-dist.schemas.v1.tar+gzip

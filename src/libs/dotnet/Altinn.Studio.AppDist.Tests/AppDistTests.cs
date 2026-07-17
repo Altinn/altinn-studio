@@ -33,7 +33,7 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "js"));
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
 
         await provider.GetLayerAsync("4", AppDistLayer.Schemas);
 
@@ -65,16 +65,16 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
-    public async Task GetVersion_MaterializesAllLayers()
+    public async Task GetVersion_DownloadsOnlySelfContainedContentLayer()
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "js"));
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"), ("schemas/json/a.json", "{}"));
 
         var dist = await provider.GetVersionAsync("4");
 
         Assert.NotNull(dist);
-        Assert.Equal(2, source.FetchRequests);
+        Assert.Equal(1, source.FetchRequests);
         string[] expected = ["altinn-app-frontend.js", "schemas/json/a.json"];
         Assert.Equal(expected, await dist.ListFilesAsync());
         Assert.Equal("{}", await dist.GetFileTextAsync("schemas/json/a.json"));
@@ -82,7 +82,7 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
-    public async Task GetVersion_NullWhenAnyLayerUnavailable()
+    public async Task GetVersion_NullWhenContentLayerUnavailable()
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
@@ -91,17 +91,16 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
-    public async Task GetVersion_ReusesCachedLayers()
+    public async Task GetVersion_ReusesCachedContentLayer()
     {
         var (provider, source, _) = Setup();
-        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "js"));
-        await provider.GetLayerAsync("4", AppDistLayer.Schemas);
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
+        await provider.GetLayerAsync("4", AppDistLayer.Content);
 
         var dist = await provider.GetVersionAsync("4");
 
         Assert.NotNull(dist);
-        Assert.Equal(2, source.FetchRequests);
+        Assert.Equal(1, source.FetchRequests);
     }
 
     [Fact]
@@ -197,18 +196,18 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "js"));
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
         source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var schemas = provider.GetLayerAsync("4", AppDistLayer.Schemas);
-        var bundle = provider.GetLayerAsync("4", AppDistLayer.Bundle);
+        var content = provider.GetLayerAsync("4", AppDistLayer.Content);
         for (var i = 0; source.FetchRequests < 2 && i < 500; i++)
             await Task.Delay(10);
 
         Assert.Equal(2, source.FetchRequests);
         source.BlockFetch.SetResult();
         Assert.NotNull(await schemas);
-        Assert.NotNull(await bundle);
+        Assert.NotNull(await content);
     }
 
     [Fact]
@@ -248,8 +247,12 @@ public sealed class AppDistTests : IDisposable
     public async Task CopyToDirectory_ExportsAllFiles()
     {
         var (provider, source, _) = Setup();
-        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/layout/a.json", "{}"));
-        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "js"));
+        source.AddFiles(
+            "4",
+            AppDistLayer.Content,
+            ("altinn-app-frontend.js", "js"),
+            ("schemas/json/layout/a.json", "{}")
+        );
         var dist = await provider.GetVersionAsync("4");
         Assert.NotNull(dist);
 
@@ -264,15 +267,15 @@ public sealed class AppDistTests : IDisposable
     public async Task CopyToDirectory_OverwritesExistingAndKeepsUnrelatedFiles()
     {
         var (provider, source, _) = Setup();
-        source.AddFiles("4", AppDistLayer.Bundle, ("altinn-app-frontend.js", "new"));
-        var bundle = await provider.GetLayerAsync("4", AppDistLayer.Bundle);
-        Assert.NotNull(bundle);
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "new"));
+        var content = await provider.GetLayerAsync("4", AppDistLayer.Content);
+        Assert.NotNull(content);
         var target = Path.Combine(_tempDir, "www");
         Directory.CreateDirectory(target);
         await File.WriteAllTextAsync(Path.Combine(target, "altinn-app-frontend.js"), "old");
         await File.WriteAllTextAsync(Path.Combine(target, "unrelated.txt"), "keep");
 
-        await bundle.CopyToDirectoryAsync(target);
+        await content.CopyToDirectoryAsync(target);
 
         Assert.Equal("new", await File.ReadAllTextAsync(Path.Combine(target, "altinn-app-frontend.js")));
         Assert.Equal("keep", await File.ReadAllTextAsync(Path.Combine(target, "unrelated.txt")));
@@ -324,6 +327,6 @@ public sealed class AppDistTests : IDisposable
         await provider.GetLayerAsync("4", AppDistLayer.Schemas);
 
         Assert.Equal(["4"], await provider.ListCachedVersionsAsync(AppDistLayer.Schemas));
-        Assert.Empty(await provider.ListCachedVersionsAsync(AppDistLayer.Bundle));
+        Assert.Empty(await provider.ListCachedVersionsAsync(AppDistLayer.Content));
     }
 }

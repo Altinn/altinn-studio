@@ -111,8 +111,8 @@ public sealed partial class FileSystemAppDistStore(string rootDirectory) : IAppD
     private static string LayerName(AppDistLayer layer) =>
         layer switch
         {
+            AppDistLayer.Content => "content",
             AppDistLayer.Schemas => "schemas",
-            AppDistLayer.Bundle => "bundle",
             _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, "unknown app-dist layer"),
         };
 

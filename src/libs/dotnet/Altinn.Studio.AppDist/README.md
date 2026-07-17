@@ -1,7 +1,8 @@
 # Altinn.Studio.AppDist
 
-Shared library for fetching and caching Altinn App resource files.
-Contents are fetched per layer and cached locally.
+Shared library for fetching and caching Altinn App resource files. The content layer is a complete copy of the
+frontend distribution. The schemas layer duplicates `schemas/**` so validation tooling can fetch only that small
+subset. Both are cached independently.
 
 Example usage:
 
@@ -16,7 +17,7 @@ var schemasByPath = await schemas.GetFilesAsync("schemas/json");
 ```
 
 
-Checkout and copy all resource files:
+Fetch the self-contained content layer and copy the complete frontend distribution:
 
 ```csharp
 using var appDist = AppDist.CreateDefault(cacheDirectory);

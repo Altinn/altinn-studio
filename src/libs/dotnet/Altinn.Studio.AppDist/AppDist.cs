@@ -4,13 +4,8 @@ namespace Altinn.Studio.AppDist;
 
 public enum AppDistLayer
 {
+    Content,
     Schemas,
-    Bundle,
-}
-
-internal static class AppDistLayers
-{
-    internal static readonly AppDistLayer[] All = Enum.GetValues<AppDistLayer>();
 }
 
 public interface IAppDistProvider
@@ -45,7 +40,7 @@ public sealed class AppDist : IAppDistProvider, IDisposable
         public const string Validation = "schemas/json/validation/validation.schema.v1.json";
     }
 
-    public static class Bundles
+    public static class Frontend
     {
         public const string AltinnAppFrontendJavascript = "altinn-app-frontend.js";
         public const string AltinnAppFrontendStyles = "altinn-app-frontend.css";
@@ -88,12 +83,9 @@ public sealed class AppDist : IAppDistProvider, IDisposable
     public async Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(version);
-        foreach (var layer in AppDistLayers.All)
-        {
-            if (!await EnsureLayerAsync(version, layer, cancellationToken))
-                return null;
-        }
-        return new VersionContent(_store, version);
+        if (!await EnsureLayerAsync(version, AppDistLayer.Content, cancellationToken))
+            return null;
+        return new LayerContent(_store, version, AppDistLayer.Content);
     }
 
     public async Task<IAppDistContent?> GetLayerAsync(
