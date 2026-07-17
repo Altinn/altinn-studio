@@ -715,7 +715,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         [
             ProcessNextRequestFactory.ProcessNextSourceIdLabel,
             ProcessNextRequestFactory.ProcessNextTargetIdLabel,
-            ProcessNextRequestFactory.ProcessNextIdLabel,
         ];
         var workflowsById = new Dictionary<Guid, WorkflowStatusResponse>();
 

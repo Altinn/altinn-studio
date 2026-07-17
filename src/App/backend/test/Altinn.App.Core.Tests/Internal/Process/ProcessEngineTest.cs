@@ -354,11 +354,6 @@ public sealed class ProcessEngineTest
             .ContainKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel)
             .WhoseValue.Should()
             .Be("Task_2");
-        capturedRequest
-            .Labels.Should()
-            .ContainKey(ProcessNextRequestFactory.ProcessNextIdLabel)
-            .WhoseValue.Should()
-            .Be("Task_2:3");
         capturedCollectionKey.Should().Be(_collectionKey);
     }
 
@@ -2944,7 +2939,6 @@ public sealed class ProcessEngineTest
             && (
                 label.Key == ProcessNextRequestFactory.ProcessNextSourceIdLabel
                 || label.Key == ProcessNextRequestFactory.ProcessNextTargetIdLabel
-                || label.Key == ProcessNextRequestFactory.ProcessNextIdLabel
             )
         );
 

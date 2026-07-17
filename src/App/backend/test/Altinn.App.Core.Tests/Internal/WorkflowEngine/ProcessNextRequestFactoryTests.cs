@@ -483,7 +483,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToTask_LabelsSourceTargetAndLegacyTarget()
+    public void CreateProcessNextLabels_TaskToTask_LabelsSourceAndTarget()
     {
         // Arrange
         var stateChange = new ProcessStateChange
@@ -503,11 +503,10 @@ public class ProcessNextRequestFactoryTests
 
         // Assert
         Assert.NotNull(labels);
-        Assert.Equal(4, labels.Count);
+        Assert.Equal(3, labels.Count);
         Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
         Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
         Assert.Equal("Task_2", labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
-        Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextIdLabel]);
     }
 
     [Fact]
