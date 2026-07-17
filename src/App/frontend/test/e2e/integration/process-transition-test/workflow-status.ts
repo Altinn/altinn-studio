@@ -105,19 +105,41 @@ function captureInstanceRoot(): Cypress.Chainable<string> {
   });
 }
 
-// Clicks Task_1's advance button and reloads while the transition is still running server-side. We
-// wait until the process/next request has actually left the browser (so the engine has the work
-// enqueued) before reloading, so the reloaded read reliably observes the in-flight transition.
-function submitAndReloadDuringTransition() {
-  let requestIssued = false;
-  // process/next is a PUT; wait until it has actually left the browser before reloading.
-  cy.intercept('PUT', '**/process/next*', (req) => {
-    requestIssued = true;
-    req.continue();
+type ExpectedProcessState = {
+  workflowStatus: 'processing' | 'failed' | 'idle';
+  currentTask: string;
+};
+
+function waitForProcessState(expected: ExpectedProcessState): Cypress.Chainable<string> {
+  return captureInstanceRoot().then((instanceRoot) => {
+    const processUrl = `${instanceRoot.replace('/instance/', '/instances/')}/process`;
+
+    return cy
+      .waitUntil(
+        () =>
+          cy
+            .request({ url: processUrl, failOnStatusCode: false, log: false })
+            .then(
+              ({ status, body }) =>
+                status === 200 &&
+                body?.workflow?.status === expected.workflowStatus &&
+                body?.currentTask?.elementId === expected.currentTask,
+            ),
+        {
+          timeout: 30000,
+          interval: 250,
+          errorMsg: `Expected ${expected.currentTask} with workflow status ${expected.workflowStatus}`,
+        },
+      )
+      .then(() => instanceRoot);
   });
+}
+
+// Clicks Task_1's advance button and reloads only after the server reports that the transition is
+// processing and the committed task is still Task_1.
+function submitAndReloadDuringTransition() {
   cy.findByRole('button', { name: task1AdvanceButton }).click();
-  cy.wrap(null).should(() => expect(requestIssued, 'process/next request issued').to.equal(true));
-  cy.reload();
+  waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_1' }).then(() => cy.reload());
 }
 
 describe('Live workflow status (real engine)', () => {
@@ -239,11 +261,11 @@ describe('Live workflow status (real engine)', () => {
     // MovedToAltinnEvent then delays ~15s in the engine.
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    // Give the pre-commit steps time to commit Task_2, then open the committed task in a fresh load
-    // (concurrent-session style) while the post-commit step is still running.
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(3000);
-    cy.get<string>('@instanceRoot').then((root) => cy.visit(`${root}/Task_2`));
+    // Open the committed task in a fresh load (concurrent-session style) once /process confirms
+    // that Task_2 is committed while the post-commit step is still running.
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_2' }).then((root) =>
+      cy.visit(`${root}/Task_2`),
+    );
 
     // Committed currentTask is already Task_2 (not idle/receipt), yet the post-commit step is still in
     // flight -> the advancing UI shows on the committed Task_2 and its Send inn is suppressed. This is
