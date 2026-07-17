@@ -406,7 +406,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     }
 
     const instanceDataSources = this.dataSources.instance.getDataSources();
-    return (instanceDataSources && instanceDataSources[key]) || null;
+    return instanceDataSources?.[key] ?? null;
   },
   frontendSettings(key) {
     if (key === null) {
@@ -414,7 +414,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     }
 
     const applicationSettings = this.dataSources.application.getSettings();
-    return (applicationSettings && applicationSettings[key]) || null;
+    return applicationSettings?.[key] ?? null;
   },
   authContext(key) {
     if (key === null) {
