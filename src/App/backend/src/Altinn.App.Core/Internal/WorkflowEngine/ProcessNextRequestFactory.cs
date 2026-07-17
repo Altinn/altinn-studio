@@ -7,6 +7,10 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
@@ -47,13 +51,22 @@ internal sealed class ProcessNextRequestFactory
     private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
 
+    /// <summary>
+    /// The per-command default step options (tier 2), keyed by command key. Built once from the
+    /// registered <see cref="IWorkflowEngineCommand"/> set; overridden per-step by a per-implementation
+    /// <see cref="IProcessStepConfigurable.StepOptions"/> (tier 3) and falling back to the engine's
+    /// global defaults (tier 1) when both are null.
+    /// </summary>
+    private readonly IReadOnlyDictionary<string, ProcessStepOptions?> _commandDefaultStepOptions;
+
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
         IAuthenticationContext authenticationContext,
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
-        IWorkflowCallbackTokenGenerator callbackTokenGenerator
+        IWorkflowCallbackTokenGenerator callbackTokenGenerator,
+        IEnumerable<IWorkflowEngineCommand> commands
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -62,6 +75,9 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
+        _commandDefaultStepOptions = commands
+            .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -193,19 +209,27 @@ internal sealed class ProcessNextRequestFactory
             );
             if (workflowCommands != null)
             {
+                // The task this event's commands run against (start hooks/service task read the entering
+                // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
+                // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
+                string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
+                string? serviceTaskType = GetServiceTaskType(altinnTaskType);
+
                 // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
                 // Task-start and process-end commands go in the second group (they need NEW CurrentTask).
                 // MutateProcessState is inserted between the two groups to transition in-memory state.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
-                    taskEndSteps.AddRange(workflowCommands.Commands);
+                    taskEndSteps.AddRange(StampStepOptions(workflowCommands.Commands, eventTaskId, serviceTaskType));
                 }
                 else
                 {
-                    taskStartSteps.AddRange(workflowCommands.Commands);
+                    taskStartSteps.AddRange(StampStepOptions(workflowCommands.Commands, eventTaskId, serviceTaskType));
                 }
 
-                postCommitSteps.AddRange(workflowCommands.PostProcessNextCommittedCommands);
+                postCommitSteps.AddRange(
+                    StampStepOptions(workflowCommands.PostProcessNextCommittedCommands, eventTaskId, serviceTaskType)
+                );
             }
         }
 
@@ -323,11 +347,11 @@ internal sealed class ProcessNextRequestFactory
         };
     }
 
-    private static StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
+    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
     {
         var payload = new SaveProcessStateToStoragePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        var step = new StepRequest
         {
             OperationId = MutateProcessState.Key,
             Command = CommandDefinition.Create(
@@ -335,13 +359,14 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = MutateProcessState.Key, Payload = serializedPayload }
             ),
         };
+        return StampStepOptions(step, taskId: null, serviceTaskType: null);
     }
 
-    private static StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
+    private StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
     {
         var payload = new SaveProcessStateToStoragePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        var step = new StepRequest
         {
             OperationId = SaveProcessStateToStorage.Key,
             Command = CommandDefinition.Create(
@@ -349,5 +374,108 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
             ),
         };
+        return StampStepOptions(step, taskId: null, serviceTaskType: null);
+    }
+
+    private IEnumerable<StepRequest> StampStepOptions(
+        IEnumerable<StepRequest> steps,
+        string? taskId,
+        string? serviceTaskType
+    ) => steps.Select(step => StampStepOptions(step, taskId, serviceTaskType));
+
+    /// <summary>
+    /// Resolves the effective execution timeout and retry strategy for a step and stamps them onto the
+    /// outgoing request. Resolution is per-field: a per-implementation override (tier 3) wins over the
+    /// command's own default (tier 2); a null on both leaves the wire field unset so the engine applies
+    /// its global default (tier 1).
+    /// </summary>
+    private StepRequest StampStepOptions(StepRequest step, string? taskId, string? serviceTaskType)
+    {
+        ProcessStepOptions? commandDefault = _commandDefaultStepOptions.GetValueOrDefault(step.OperationId);
+        ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
+            step.OperationId,
+            taskId,
+            serviceTaskType
+        );
+
+        TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
+        ProcessStepRetryStrategy? retryStrategy =
+            implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
+
+        if (maxExecutionTime is null && retryStrategy is null)
+        {
+            return step;
+        }
+
+        return step with
+        {
+            Command = maxExecutionTime is not null
+                ? step.Command with
+                {
+                    MaxExecutionTime = maxExecutionTime,
+                }
+                : step.Command,
+            RetryStrategy = retryStrategy?.ToRetryStrategy() ?? step.RetryStrategy,
+        };
+    }
+
+    /// <summary>
+    /// Resolves the app-provided handler backing a command and returns its per-implementation step
+    /// options (tier 3), or null when the command has no app-facing handler or none matches. Mirrors the
+    /// handler selection each command performs at execute time so build-time and run-time agree.
+    /// </summary>
+    private ProcessStepOptions? ResolveImplementationStepOptions(
+        string operationId,
+        string? taskId,
+        string? serviceTaskType
+    )
+    {
+        if (operationId == ExecuteServiceTask.Key)
+        {
+            if (serviceTaskType is null)
+                return null;
+
+            return _appImplementationFactory
+                .GetAll<IServiceTask>()
+                .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase))
+                ?.StepOptions;
+        }
+
+        if (operationId == OnTaskStartingHook.Key)
+        {
+            return taskId is null
+                ? null
+                : _appImplementationFactory
+                    .GetAll<IOnTaskStartingHandler>()
+                    .FirstOrDefault(h => h.ShouldRunForTask(taskId))
+                    ?.StepOptions;
+        }
+
+        if (operationId == OnTaskEndingHook.Key)
+        {
+            return taskId is null
+                ? null
+                : _appImplementationFactory
+                    .GetAll<IOnTaskEndingHandler>()
+                    .FirstOrDefault(h => h.ShouldRunForTask(taskId))
+                    ?.StepOptions;
+        }
+
+        if (operationId == OnTaskAbandonHook.Key)
+        {
+            return taskId is null
+                ? null
+                : _appImplementationFactory
+                    .GetAll<IOnTaskAbandonHandler>()
+                    .FirstOrDefault(h => h.ShouldRunForTask(taskId))
+                    ?.StepOptions;
+        }
+
+        if (operationId == OnProcessEndingHook.Key)
+        {
+            return _appImplementationFactory.GetAll<IOnProcessEndingHandler>().FirstOrDefault()?.StepOptions;
+        }
+
+        return null;
     }
 }
