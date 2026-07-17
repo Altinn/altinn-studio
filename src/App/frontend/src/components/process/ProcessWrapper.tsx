@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Button, Flex } from '@app/form-component';
-import { useQueryClient } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
+import { useIsMutating } from '@tanstack/react-query';
 
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/process/ProcessWrapper.module.css';
@@ -247,20 +246,16 @@ export const ComponentRouting = () => {
   throw new Error(`Component ${componentId} does not have subRouting`);
 };
 
-function isRunningProcessNext(queryClient: QueryClient) {
-  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
-}
-
 function useIsRunningProcessNext() {
-  const queryClient = useQueryClient();
+  const runningMutationCount = useIsMutating({ mutationKey: getProcessNextMutationKey() });
   const [isMutating, setIsMutating] = useState<boolean | null>(null);
 
   // Intentionally wrapped in a useEffect() and saved as a state. If this happens, we'll seemingly be locked out
   // with a <Loader /> forever, but when this happens, we also know we'll be re-rendered soon. This is only meant to
   // block rendering when we're calling process/next.
   useEffect(() => {
-    setIsMutating(isRunningProcessNext(queryClient));
-  }, [queryClient]);
+    setIsMutating(runningMutationCount > 0);
+  }, [runningMutationCount]);
 
   return isMutating;
 }
