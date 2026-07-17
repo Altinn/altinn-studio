@@ -192,6 +192,137 @@ const collectionButtonHTML = (wf, interactive) => {
     return `<span class="seg collection" onclick="toggleLabelFilter('collectionKey','${esc(wf.collectionKey)}')" title="${title}">${COLLECTION_ICON}collection</span>`;
 };
 
+/* ── Relation chips (dependsOn / dependents / links) ──────── */
+
+/** Chain-link icon for the links relation chip. */
+const LINK_ICON =
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>';
+
+/** The three relation groups shown as chips: property, glyph, tooltip label. */
+const REL_GROUPS = /** @type {['dependsOn'|'dependents'|'links', string, string][]} */ ([
+    ['dependsOn', '↑', 'Depends on'],
+    ['dependents', '↓', 'Dependents'],
+    ['links', LINK_ICON, 'Linked to'],
+]);
+
+/**
+ * Build the relation chips for a card: one chip per non-empty relation group, with a
+ * status-colored dot per related workflow. When relations were not loaded by the source query
+ * (recent/query cards), renders a single ghost chip that fetches them on demand — full cards
+ * only, so compact rows stay clean.
+ * @param {import('../core/state.js').Workflow} wf
+ * @param {boolean} [showUnknown] - render the ghost load chip when relations are unknown
+ * @returns {string}
+ */
+const buildRelationsHTML = (wf, showUnknown) => {
+    if (wf.dependsOn === undefined && wf.dependents === undefined && wf.links === undefined) {
+        return showUnknown
+            ? `<span class="seg rel-chip rel-unknown" onclick="loadRelations(event,'${esc(wf.databaseId)}')" title="Load related workflows (dependencies and links)">rel?</span>`
+            : '';
+    }
+    let html = '';
+    for (const [group, glyph, label] of REL_GROUPS) {
+        const rels = wf[group];
+        if (!rels?.length) continue;
+        const title = `${label}: ${rels.map((r) => `${r.operationId} (${r.status})`).join(', ')}`;
+        let dots = rels
+            .slice(0, 5)
+            .map((r) => `<span class="compact-dot rel-dot ${esc(r.status)}"></span>`)
+            .join('');
+        if (rels.length > 5) dots += `<span class="rel-more">+${rels.length - 5}</span>`;
+        html += `<span class="seg rel-chip" onclick="relChipClick(event,'${esc(wf.databaseId)}','${group}')" title="${esc(title)}">${glyph}${dots}</span>`;
+    }
+    return html;
+};
+
+/**
+ * Badge for workflows deliberately invisible to collection head tracking (IsHead=false), e.g.
+ * the fire-and-forget process-next side-effects workflows.
+ * @param {import('../core/state.js').Workflow} wf
+ * @returns {string}
+ */
+const sideChainBadgeHTML = (wf) =>
+    wf.isHead === false
+        ? `<span class="side-chain-badge" title="Invisible to collection head tracking (IsHead=false): never gates dependents or the collection frontier">side chain</span>`
+        : '';
+
+/**
+ * Scroll to and flash a workflow's card if one is rendered and visible in any section.
+ * @param {string} wfId
+ * @returns {boolean} true when a card was revealed
+ */
+const revealCard = (wfId) => {
+    for (const el of document.querySelectorAll(`[data-wfkey="${wfId}"]`)) {
+        const card = /** @type {HTMLElement} */ (el);
+        if (card.offsetParent === null) continue;
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.remove('rel-flash');
+        void card.offsetWidth; // restart the animation when flashing the same card twice
+        card.classList.add('rel-flash');
+        setTimeout(() => card.classList.remove('rel-flash'), 1600);
+        return true;
+    }
+    return false;
+};
+
+/**
+ * Re-render every card showing this workflow (a workflow can appear in multiple sections),
+ * preserving each card's compact/full mode. Scheduled cards are skipped (different builders,
+ * and their relations are always loaded inline).
+ * @param {string} wfKey
+ */
+const rerenderCards = (wfKey) => {
+    const wf = workflowData[wfKey];
+    if (!wf) return;
+    for (const el of document.querySelectorAll(`[data-wfkey="${wfKey}"]`)) {
+        const card = /** @type {HTMLElement} */ (el);
+        if (card.closest('#scheduled-workflows')) continue;
+        const isStatic = !card.closest('#live-workflows');
+        const compact = card.classList.contains('compact');
+        card.innerHTML = compact ? buildCompactCardHTML(wf, isStatic) : buildCardHTML(wf, isStatic);
+        setCardFilterData(card, wf);
+    }
+};
+
+/**
+ * Relation chip click: jump to the single related card when there is exactly one and it is on
+ * screen; otherwise fall back to the collection filter, which groups the connected workflows.
+ * @param {Event} e @param {string} wfKey @param {'dependsOn'|'dependents'|'links'} group
+ */
+window.relChipClick = (e, wfKey, group) => {
+    e.stopPropagation();
+    const wf = workflowData[wfKey];
+    const rels = wf?.[group];
+    if (!rels?.length) return;
+    if (rels.length === 1 && revealCard(rels[0].databaseId)) return;
+    if (wf.collectionKey) window.toggleLabelFilter('collectionKey', wf.collectionKey);
+};
+
+/**
+ * On-demand relations fetch for cards whose source query did not eager-load them (the recent
+ * section and the query tab). Mutates the shared workflow object and re-renders its cards.
+ * @param {Event | null} e @param {string} wfKey
+ */
+window.loadRelations = async (e, wfKey) => {
+    e?.stopPropagation();
+    const wf = workflowData[wfKey];
+    if (!wf || wf.dependsOn !== undefined) return;
+    try {
+        const res = await fetch(
+            `/dashboard/relations?wf=${encodeURIComponent(wfKey)}&ns=${encodeURIComponent(wf.namespace)}`,
+        );
+        if (!res.ok) return;
+        const rel = await res.json();
+        if (rel.isHead !== undefined) wf.isHead = rel.isHead;
+        wf.dependsOn = rel.dependsOn ?? [];
+        wf.dependents = rel.dependents ?? [];
+        wf.links = rel.links ?? [];
+    } catch {
+        return;
+    }
+    rerenderCards(wfKey);
+};
+
 /**
  * @param {import('../core/state.js').Workflow} wf
  * @param {boolean} [isStatic]
@@ -204,9 +335,11 @@ export const buildCardHTML = (wf, isStatic) => {
     html += nameSpanHTML(wf, 'wf-name');
     html += `<span class="header-spacer"></span>`;
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
+    html += sideChainBadgeHTML(wf);
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
     html += buildTimestampsHTML(wf, isStatic);
     html += primaryCopyHTML(wf);
+    html += buildRelationsHTML(wf, true);
     html += collectionButtonHTML(wf, true);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
@@ -239,9 +372,11 @@ export const buildCompactCardHTML = (wf, isStatic) => {
     html += `</div>`;
 
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
+    html += sideChainBadgeHTML(wf);
     html += `<span class="status-pill ${wf.status} compact-pill">${wf.status}</span>`;
     html += buildTimestampsHTML(wf, isStatic);
     html += primaryCopyHTML(wf);
+    html += buildRelationsHTML(wf, false);
     html += collectionButtonHTML(wf, true);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
@@ -265,6 +400,7 @@ export const buildScheduledCardHTML = (wf) => {
     }
     html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
     html += primaryCopyHTML(wf);
+    html += buildRelationsHTML(wf, false);
     html += collectionButtonHTML(wf, false);
     html += `</div>`;
     html += buildPipelineHTML(wf, true);
@@ -322,6 +458,9 @@ const buildFilterText = (wf) => {
     }
     if (wf.collectionKey) parts.push(wf.collectionKey);
     for (const s of wf.steps) parts.push(s.commandDetail, s.operationId);
+    for (const rels of [wf.dependsOn, wf.dependents, wf.links]) {
+        for (const r of rels ?? []) parts.push(r.databaseId, r.operationId);
+    }
     return parts.join(' ').toLowerCase();
 };
 

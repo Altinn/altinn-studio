@@ -543,6 +543,33 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        // On-demand relations for cards whose source query does not eager-load them (the recent
+        // section and the query tab); active cards get relations inline from the live stream.
+        app.MapGet(
+                "/dashboard/relations",
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
+                {
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wf, ns, ct);
+
+                    if (workflow is null)
+                        return Results.NotFound();
+
+                    return Results.Json(
+                        new
+                        {
+                            isHead = workflow.IsHead,
+                            dependsOn = DashboardMapper.MapRelations(workflow.Dependencies) ?? [],
+                            dependents = DashboardMapper.MapRelations(workflow.Dependents) ?? [],
+                            links = DashboardMapper.MapRelations(workflow.Links) ?? [],
+                        },
+                        _jsonCompact
+                    );
+                }
+            )
+            .ExcludeFromDescription();
+
         app.MapPost(
                 "/dashboard/retry",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
