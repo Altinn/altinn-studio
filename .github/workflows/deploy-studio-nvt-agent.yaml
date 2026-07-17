@@ -1,19 +1,58 @@
 name: Deploy Studio nvt-agent configuration
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infra/studio/nvt-agent/**'
+      - 'charts/altinn-loadbalancer/templates/networkpolicy.yaml'
+      - 'scripts/validate-studio-nvt-agent.sh'
+      - 'src/load-balancer/k8s/extra-locations.conf'
+      - 'src/load-balancer/k8s/extra-upstreams.conf'
+      - 'src/load-balancer/nginx.conf.template'
+      - 'src/load-balancer/tests/nvt-*'
+      - '.github/workflows/deploy-studio-nvt-agent.yaml'
   push:
     branches: [main]
     paths:
       - 'infra/studio/nvt-agent/**'
+      - 'scripts/validate-studio-nvt-agent.sh'
       - '.github/workflows/deploy-studio-nvt-agent.yaml'
   workflow_dispatch: {}
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
+  validate:
+    name: Validate NVT configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Validate manifests and policy
+        run: ./scripts/validate-studio-nvt-agent.sh
+
+      - name: Verify NVT cookie path preservation
+        run: ./src/load-balancer/tests/nvt-cookie-path-smoke.sh
+
+  deployment-metadata-merge-gate:
+    name: Require resolved NVT deployment metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Reject unresolved deployment metadata
+        run: |
+          if rg --line-number 'REPLACE_WITH_[A-Z0-9_]+' \
+            infra/studio/nvt-agent/bootstrap/deployment-metadata.yaml; then
+            echo '::error::Replace every REPLACE_WITH_* deployment metadata value before merge.'
+            exit 1
+          fi
+
   construct-environments-array:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [validate, deployment-metadata-merge-gate]
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
       inputs: '{"environments":"staging"}'
@@ -21,8 +60,13 @@ jobs:
 
   push-artifact:
     name: Push Studio nvt-agent configuration as OCI artifact
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [validate, deployment-metadata-merge-gate, construct-environments-array]
     runs-on: ubuntu-latest
     environment: dev
+    permissions:
+      id-token: write
+      contents: read
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     outputs:
@@ -49,29 +93,6 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@1fd61a06264d71cf445ed55c4f14d401d26a1c64 # v2.8.8
 
-      - name: Validate artifact
-        run: |
-          kubectl kustomize infra/studio/nvt-agent/platform >/dev/null
-          kubectl kustomize infra/studio/nvt-agent/secrets >/dev/null
-          kubectl kustomize infra/studio/nvt-agent/release >/dev/null
-          kubectl kustomize infra/studio/nvt-agent/bootstrap >/dev/null
-          yq '.spec.values' infra/studio/nvt-agent/release/helm-release.yaml | \
-            helm template nvt oci://ghcr.io/mirkosekulic/helm/nvt \
-              --version 0.8.2 \
-              --namespace nvt \
-              --values - >/dev/null
-          yq '.spec.values |
-            .producer.enabled = true |
-            .producer.githubApp.appID = 12345 |
-            .producer.githubApp.installationID = 67890 |
-            .agentSchedule.template.runtimeClassName = "kata-vm-isolation" |
-            .agentSchedule.suspend = false' \
-            infra/studio/nvt-agent/release/helm-release.yaml | \
-            helm template nvt oci://ghcr.io/mirkosekulic/helm/nvt \
-              --version 0.8.2 \
-              --namespace nvt \
-              --values - >/dev/null
-
       - name: Push artifact
         run: |
           flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
@@ -84,8 +105,12 @@ jobs:
   tag:
     name: Tag artifact
     needs: [push-artifact, construct-environments-array]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
+    permissions:
+      id-token: write
+      contents: read
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     strategy:
