@@ -121,7 +121,7 @@ graph = build_graph()
 
 from langfuse import get_client, propagate_attributes
 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client
-from agents.services.llm import parse_intent_async, suggest_goal_correction
+from agents.services.llm import parse_intent_async, suggest_goal_correction, check_scope_async
 
 import logging as _logging
 _log = _logging.getLogger(__name__)
@@ -135,7 +135,13 @@ class GoalRejected(Exception):
 
 
 async def _validate_intent(state: AgentState):
-    """Parse intent and reject unsafe or unclear goals."""
+    """Reject out-of-scope, unsafe, or unclear goals before the implementation graph runs."""
+    scope_result = await check_scope_async(state.user_goal)
+    if not scope_result.in_scope:
+        _log.info("Out-of-scope goal rejected for session %s: %s", state.session_id, scope_result.reason)
+        decline_text = scope_result.decline_message or "I can only help with Altinn app development."
+        raise GoalRejected(f"{decline_text}|")
+
     parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
 
     if not parsed.safe:
