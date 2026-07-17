@@ -1,21 +1,24 @@
 import React, { useId, useRef } from 'react';
 
+import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import { useFocusWhenUploaded } from '@app/form-component/layout-components/ImageUpload/hooks/useFocusWhenUploaded';
+import {
+  isAnimationFile,
+  logToNormalZoom,
+  normalToLogZoom,
+} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 import { Button, Input, Label } from '@digdir/designsystemet-react';
 import { ArrowUndoIcon, TrashIcon, UploadIcon } from '@navikt/aksel-icons';
+import type { StoredImage } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
-import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { useFocusWhenUploaded } from 'src/layout/ImageUpload/hooks/useFocusWhenUploaded';
-import classes from 'src/layout/ImageUpload/ImageControllers.module.css';
-import { isAnimationFile, logToNormalZoom, normalToLogZoom } from 'src/layout/ImageUpload/imageUploadUtils';
-import type { UploadedAttachment } from 'src/features/attachments';
+import classes from './ImageControllers.module.css';
 
 type ImageControllersProps = {
   imageType: string;
   readOnly: boolean;
   zoom: number;
   zoomLimits: { minZoom: number; maxZoom: number };
-  storedImage?: UploadedAttachment;
+  storedImage?: StoredImage;
   onSave: () => void;
   onDelete: () => void;
   onCancel: () => void;
@@ -37,7 +40,7 @@ export function ImageControllers({
   onFileUploaded,
   onReset,
 }: ImageControllersProps) {
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useTranslation();
   const uid = useId();
   const zoomId = `${uid}-zoom`;
   const inputId = `${uid}-image-upload`;
@@ -79,22 +82,16 @@ export function ImageControllers({
         disabled={!storedImage.uploaded || storedImage.deleting || readOnly}
       >
         <TrashIcon />
-        <Lang id='image_upload_component.button_delete' />
+        {lang('image_upload_component.button_delete')}
       </Button>
     );
   }
 
   return (
     <div className={classes.controlsContainer}>
-      {isAnimationFile(imageType) && (
-        <span>
-          <Lang id='image_upload_component.animated_warning' />
-        </span>
-      )}
+      {isAnimationFile(imageType) && <span>{lang('image_upload_component.animated_warning')}</span>}
       <div>
-        <Label htmlFor={zoomId}>
-          <Lang id='image_upload_component.slider_zoom' />
-        </Label>
+        <Label htmlFor={zoomId}>{lang('image_upload_component.slider_zoom')}</Label>
         <div className={classes.zoomControls}>
           <input
             id={zoomId}
@@ -106,11 +103,7 @@ export function ImageControllers({
             onChange={handleSliderZoom}
             className={classes.zoomSlider}
           />
-          <Button
-            onClick={onReset}
-            variant='tertiary'
-            icon={true}
-          >
+          <Button onClick={onReset} variant='tertiary' icon={true}>
             <ArrowUndoIcon
               title={langAsString('image_upload_component.reset')}
               className={classes.resetButton}
@@ -119,12 +112,8 @@ export function ImageControllers({
         </div>
       </div>
       <div className={classes.actionButtons}>
-        <Button
-          onClick={onSave}
-          data-size='sm'
-          data-color='accent'
-        >
-          <Lang id='image_upload_component.button_save' />
+        <Button onClick={onSave} data-size='sm' data-color='accent'>
+          {lang('image_upload_component.button_save')}
         </Button>
         <Input
           id={inputId}
@@ -143,15 +132,10 @@ export function ImageControllers({
           onClick={handleFileSelectClick}
         >
           <UploadIcon aria-hidden />
-          <Lang id='image_upload_component.button_change' />
+          {lang('image_upload_component.button_change')}
         </Button>
-        <Button
-          data-size='sm'
-          variant='tertiary'
-          onClick={onCancel}
-          data-color='accent'
-        >
-          <Lang id='general.cancel' />
+        <Button data-size='sm' variant='tertiary' onClick={onCancel} data-color='accent'>
+          {lang('general.cancel')}
         </Button>
       </div>
     </div>

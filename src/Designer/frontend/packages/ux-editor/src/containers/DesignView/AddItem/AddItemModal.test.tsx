@@ -1,7 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddItemModal, type AddItemModalProps } from './AddItemModal';
-import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
@@ -34,26 +33,8 @@ describe('AddItemModal', () => {
 
 const renderAddItemModal = (props: Partial<AddItemModalProps>) => {
   const defaultProps: AddItemModalProps = {
-    containerId: BASE_CONTAINER_ID,
-    layout: {
-      order: {
-        [BASE_CONTAINER_ID]: [],
-      },
-      containers: {
-        [BASE_CONTAINER_ID]: {
-          id: BASE_CONTAINER_ID,
-          itemType: 'CONTAINER',
-          type: null,
-        },
-      },
-      components: {},
-      customDataProperties: {},
-      customRootProperties: {},
-    },
     onAddComponent: jest.fn(),
-    availableComponents: {
-      formComponents: [],
-    },
+    availableComponents: {},
   };
   return renderWithProviders(<AddItemModal {...defaultProps} {...props} />);
 };

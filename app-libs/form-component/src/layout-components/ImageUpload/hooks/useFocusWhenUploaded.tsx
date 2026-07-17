@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import type React from 'react';
 
-import type { UploadedAttachment } from 'src/features/attachments';
+import type { StoredImage } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 export function useFocusWhenUploaded(
-  attachment: UploadedAttachment | undefined,
+  attachment: StoredImage | undefined,
   elementRef: React.RefObject<HTMLElement | null>,
 ) {
   const prevAttachmentIdRef = useRef<string | undefined>(undefined);
@@ -39,15 +39,18 @@ export function useFocusWhenUploaded(
   }, [attachment, elementRef]);
 }
 
-function isAttachmentUploaded(attachment: UploadedAttachment | undefined): attachment is UploadedAttachment {
+function isAttachmentUploaded(attachment: StoredImage | undefined): boolean {
   return !!attachment?.uploaded;
 }
 
-function getAttachmentId(attachment: UploadedAttachment | undefined): string | undefined {
+function getAttachmentId(attachment: StoredImage | undefined): string | undefined {
   return attachment?.data.id;
 }
 
-function hasAttachmentIdChanged(currentId: string | undefined, previousId: string | undefined): boolean {
+function hasAttachmentIdChanged(
+  currentId: string | undefined,
+  previousId: string | undefined,
+): boolean {
   return !!currentId && currentId !== previousId;
 }
 

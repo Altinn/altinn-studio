@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import type React from 'react';
 
-import { MAX_ZOOM } from 'src/layout/ImageUpload/imageUploadUtils';
+import { MAX_ZOOM } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 interface UseZoomInteractionProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -10,7 +10,12 @@ interface UseZoomInteractionProps {
   onZoomChange: (newZoom: number) => void;
 }
 
-export const useZoomInteraction = ({ canvasRef, zoom, minAllowedZoom, onZoomChange }: UseZoomInteractionProps) => {
+export const useZoomInteraction = ({
+  canvasRef,
+  zoom,
+  minAllowedZoom,
+  onZoomChange,
+}: UseZoomInteractionProps) => {
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       e.preventDefault();

@@ -1,21 +1,28 @@
 import React, { useCallback } from 'react';
 
-import { useLanguage } from 'src/features/language/useLanguage';
-import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
-import { useCanvasDraw } from 'src/layout/ImageUpload/ImageCanvas/hooks/useCanvasDraw';
-import { useDragInteraction } from 'src/layout/ImageUpload/ImageCanvas/hooks/useDragInteraction';
-import { useKeyboardNavigation } from 'src/layout/ImageUpload/ImageCanvas/hooks/useKeyboardNavigation';
-import { useZoomInteraction } from 'src/layout/ImageUpload/ImageCanvas/hooks/useZoomInteraction';
-import classes from 'src/layout/ImageUpload/ImageCanvas/ImageCanvas.module.css';
-import { ImagePreview } from 'src/layout/ImageUpload/ImageCanvas/ImagePreview';
-import { constrainToArea, type CropInternal, type Position } from 'src/layout/ImageUpload/imageUploadUtils';
+import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import { useCanvasDraw } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useCanvasDraw';
+import { useDragInteraction } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useDragInteraction';
+import { useKeyboardNavigation } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useKeyboardNavigation';
+import { useZoomInteraction } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useZoomInteraction';
+import { ImagePreview } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/ImagePreview';
+import {
+  constrainToArea,
+  type CropInternal,
+  type Position,
+  type StoredImage,
+} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+
+import classes from './ImageCanvas.module.css';
+
 interface ImageCanvasProps {
   imageRef: React.RefObject<HTMLImageElement | null>;
   zoom: number;
   minAllowedZoom: number;
   position: Position;
   cropArea: CropInternal;
-  baseComponentId: string;
+  storedImage?: StoredImage;
+  imageUrl?: string;
   setPosition: (newPosition: Position) => void;
   onZoomChange: (newZoom: number) => void;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -30,13 +37,13 @@ export function ImageCanvas({
   minAllowedZoom,
   position,
   cropArea,
-  baseComponentId,
+  storedImage,
+  imageUrl,
   setPosition,
   onZoomChange,
   canvasRef,
 }: ImageCanvasProps) {
-  const { storedImage, imageUrl } = useImageFile(baseComponentId);
-  const { langAsString } = useLanguage();
+  const { langAsString } = useTranslation();
 
   const handlePositionChange = useCallback(
     (newPosition: Position) => {
@@ -57,16 +64,18 @@ export function ImageCanvas({
 
   useCanvasDraw({ canvasRef, imageRef, zoom, position, cropArea });
   useZoomInteraction({ canvasRef, zoom, minAllowedZoom, onZoomChange });
-  const { handlePointerDown } = useDragInteraction({ canvasRef, position, onPositionChange: handlePositionChange });
-  const { handleKeyDown } = useKeyboardNavigation({ position, onPositionChange: handlePositionChange });
+  const { handlePointerDown } = useDragInteraction({
+    canvasRef,
+    position,
+    onPositionChange: handlePositionChange,
+  });
+  const { handleKeyDown } = useKeyboardNavigation({
+    position,
+    onPositionChange: handlePositionChange,
+  });
 
   if (storedImage) {
-    return (
-      <ImagePreview
-        storedImage={storedImage}
-        imageUrl={imageUrl}
-      />
-    );
+    return <ImagePreview storedImage={storedImage} imageUrl={imageUrl} />;
   }
 
   return (
