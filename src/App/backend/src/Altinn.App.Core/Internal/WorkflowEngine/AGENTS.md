@@ -95,7 +95,7 @@ them to the engine as a separate **side-effects workflow**: an independent root
 `links`-related to the Main workflow, with an OperationId prefixed `Process next side-effects:`.
 The enqueue is idempotent per Main workflow (idempotency key `{mainWorkflowId}:side-effects`), so
 step retries dedup. Because the step runs inside Main before it settles, the side effects exist
-**iff** the transition committed — a pre-commit failure schedules nothing, and a committed
+**if and only if** the transition committed — a pre-commit failure schedules nothing, and a committed
 transition's side effects run independently of whatever happens to Main afterwards (post-commit
 failure, reject/abandon). The ProcessNext wait and the next transition key off Main only: a slow or
 failing event registration can never gate the API response or wedge the instance's process

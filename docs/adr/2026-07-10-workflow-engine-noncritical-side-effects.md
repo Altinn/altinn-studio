@@ -2,8 +2,7 @@
 
 - Status: Proposed
 - Deciders: Daniel Skovli + App backend / Workflow Engine
-- Date: 10.07.2026 (revised 17.07.2026: pivoted from a dependency-bound side chain + engine state
-  inheritance to enqueue-at-commit; the `InheritStateFrom` primitive was removed again)
+- Date: 10.07.2026
 
 ## Problem
 
@@ -32,9 +31,9 @@ not (`MovedToAltinnEvent`, `InstanceCreatedAltinnEvent`, `CompletedAltinnEvent`,
 
 Why this shape:
 
-- **Exists iff committed.** The enqueue sits inside Main's retry envelope, before Main settles: a
-  pre-commit failure schedules nothing, step retries dedup, and a committed transition's events
-  survive a later reject/abandon of Main. No cancel logic, no races — and a failed side-effects
+- **Exists if and only if committed.** The enqueue sits inside Main's retry envelope, before Main
+  settles: a pre-commit failure schedules nothing, step retries dedup, and a committed transition's
+  events survive a later reject/abandon of Main. No cancel logic, no races — and a failed side-effects
   workflow is always redrivable (own state, committed transition).
 - **Prompt.** Events fire at the commit, not after the service task.
 - **No engine primitive.** The engine only persists/exposes `is_head` and tags the failure metric
@@ -66,10 +65,12 @@ block every later event for the instance.
 
 ## Superseded / rejected
 
-- **A1+S2 — side chain `dependsOn: [main]` + engine `InheritStateFrom` (first implementation).**
-  Events waited for the whole Main; the reject path had to cancel the sibling (racy, best-effort)
-  and discarded a committed transition's events when Main failed post-commit; required a new engine
-  primitive with sharp mixed-version behavior. Removed.
+- **Side-effects workflow as a dependent of Main (`dependsOn: [main]`, first implementation).**
+  A dependency means "start after Main settles", which is the wrong contract: events waited for
+  the whole Main instead of the commit; the reject path had to cancel the sibling (racy,
+  best-effort); and a committed transition's events were discarded when Main failed post-commit.
+  It also required a new engine primitive (`InheritStateFrom`) to hand the final state across.
+  Removed.
 - **Three-workflow diamond** (commit as its own workflow): enqueue-at-commit gets the same
   promptness without breaking the per-step state chain.
 - **Step-level non-critical flag**: not expressible — the workflow, not the step, is the unit of
@@ -79,9 +80,7 @@ block every later event for the instance.
 
 ## Related
 
-- `src/App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md` — command sequences,
-  state passthrough, observability + redrive runbook.
 - `src/Runtime/workflow-engine/docs/workflow-collections.md` — collections, heads frontier,
   `IsHead`, `DependsOnHeads`.
-- `docs/adr/2026-07-08-process-live-workflow-status.md` — the read-path `workflow` status
-  annotation; side-effects workflows never surface there (non-blocking by design).
+- [PR #19506](https://github.com/Altinn/altinn-studio/pull/19506) — the read-path `workflow`
+  status annotation; side-effects workflows never surface there (non-blocking by design).
