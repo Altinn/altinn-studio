@@ -10,7 +10,7 @@ import { JmespathFunctionEvaluator } from 'src/features/expressions/function-eva
 import { ObjectFunctionEvaluator } from 'src/features/expressions/function-evaluators/ObjectFunctionEvaluator';
 import { SumFunctionEvaluator } from 'src/features/expressions/function-evaluators/SumFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
-import { addError, ExprValidation } from 'src/features/expressions/validation';
+import { addError, ExprValidation, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
@@ -268,32 +268,26 @@ export const ExprFunctionDefinitions = {
   list: {
     args: args(rest(ExprVal.Any)),
     returns: ExprVal.List,
-    needs: noSources,
   },
   object: {
     args: args(rest(ExprVal.Any)),
     returns: ExprVal.Object,
-    needs: noSources,
   },
   jmespath: {
     args: args(required(ExprVal.Any), required(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: noSources,
   },
   sum: {
     args: args(required(ExprVal.List)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   average: {
     args: args(required(ExprVal.List), required(ExprVal.Number)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   count: {
     args: args(required(ExprVal.List)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   _experimentalSelectAndMap: {
     args: args(
@@ -889,7 +883,7 @@ function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionPa
   }
 
   const value = params.dataSources.formData.read(path);
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (isValidValue(value)) {
     return value;
   }
   return null;
