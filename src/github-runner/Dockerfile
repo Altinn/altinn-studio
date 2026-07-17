@@ -130,7 +130,7 @@ RUN apt-get update \
     && git config --system checkout.workers 4 \
     && git config --system checkout.thresholdForParallelism 100 \
     && usermod -aG docker runner \
-    && chown -R runner:runner /home/runner/.cache /home/runner/.npm /home/runner/.nuget /home/runner/go /home/runner/_work /opt/tools /opt/corepack
+    && chown -R runner:runner /home/runner/.cache /home/runner/.npm /home/runner/.nuget /home/runner/go /home/runner/_work /opt/tools /opt/corepack /usr/share/dotnet
 
 ENV CGO_ENABLED=1
 ENV DOTNET_ROOT=/usr/share/dotnet

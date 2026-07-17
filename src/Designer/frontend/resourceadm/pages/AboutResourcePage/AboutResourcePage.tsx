@@ -325,30 +325,6 @@ export const AboutResourcePage = ({
           errors={validationErrors.filter((error) => error.field === 'status')}
         />
         {resourceData.resourceType !== 'MaskinportenSchema' && (
-          <ResourceSwitchInput
-            id='selfIdentifiedUserEnabled'
-            label={t('resourceadm.about_resource_self_identified_label')}
-            description={t('resourceadm.about_resource_self_identified_text')}
-            value={resourceData.selfIdentifiedUserEnabled ?? false}
-            onChange={(isChecked: boolean) =>
-              handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
-            }
-            toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
-          />
-        )}
-        {resourceData.resourceType !== 'MaskinportenSchema' && (
-          <ResourceSwitchInput
-            id='enterpriseUserEnabled'
-            label={t('resourceadm.about_resource_enterprise_label')}
-            description={t('resourceadm.about_resource_enterprise_text')}
-            value={resourceData.enterpriseUserEnabled ?? false}
-            onChange={(isChecked: boolean) =>
-              handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
-            }
-            toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
-          />
-        )}
-        {resourceData.resourceType !== 'MaskinportenSchema' && (
           <ResourceCheckboxGroup
             id='availableForType'
             options={availableForOptions}

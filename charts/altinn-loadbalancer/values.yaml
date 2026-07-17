@@ -30,6 +30,7 @@ env:
   OTEL_ENDPOINT: http://otel-router.observability.svc.cluster.local:4317
   OTEL_SERVICE_NAME: studio-loadbalancer
   OTEL_TRACE: "on"
+  SSL_CERT_RELOAD_ENABLED: "true"
 
 volumeMounts:
   - name: altinn-loadbalancer-ssl

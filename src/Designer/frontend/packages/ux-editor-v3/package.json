@@ -11,11 +11,12 @@
     "react-dom": "19.2.7",
     "react-redux": "9.3.0",
     "redux": "5.0.1",
-    "typescript": "6.0.3",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "uuid": "13.0.2"
   },
   "devDependencies": {
     "@studio/ui-test": "workspace:^",
+    "@typescript/native": "npm:typescript@7.0.2",
     "jest": "29.7.0",
     "redux-mock-store": "1.5.5"
   },

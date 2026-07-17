@@ -197,6 +197,11 @@ describe('taskCard', () => {
     const placeholder = screen.getByPlaceholderText(/ux_editor.task_card.choose_datamodel/);
     expect(placeholder).toBeInTheDocument();
   });
+
+  it('should disable task name input when editing a protected task', () => {
+    render({ layoutSetModel: customReceiptLayoutSet });
+    expect(layoutSetNameTextbox()).toBeDisabled();
+  });
 });
 
 const render = (props?: Partial<TaskCardEditingProps>) => {
