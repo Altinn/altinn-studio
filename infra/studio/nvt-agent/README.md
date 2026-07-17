@@ -9,9 +9,9 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.1` (verified OCI digest
-`sha256:3c2aa084dacca0f765f4669fe5c9788e03b6648287fd37d9bfe7929ba19ef298`),
-which resolves the coordinated `0.8.1-4d21db7` production images without
+The public chart is pinned to `0.8.2` (verified OCI digest
+`sha256:0d76d3332097d7c5e32aa9ff0af4b57ea7bf159f54fadd32866d1e0e15c6bfc7`),
+which resolves the coordinated `0.8.2-3d2aacf` production images without
 component overrides. The initial release keeps
 `agentSchedule.suspend: true` and `producer.enabled: false`; broker, operator,
 gateway, CRDs, TLS, PVCs, and network policy configuration can therefore be
@@ -40,18 +40,18 @@ Keep the unresolved App, installation, and OAuth client IDs explicit in
   comments, and checks. Do not duplicate the PEM in Key Vault.
 - `nvt-agent-gateway` is OAuth-only. It has no App private key, App ID,
   installation ID, or webhook secret. Register
-  `https://agents.altinn.studio/oauth2/callback`; its OAuth permissions and
-  Altinn approval must allow the bounded organization-membership lookup.
+  `https://staging.altinn.studio/agents/oauth2/callback`; its OAuth permissions
+  and Altinn approval must allow the bounded organization-membership lookup.
 
 The working checkout is `mirkoSekulic/altinn-studio`, with
 `Altinn/altinn-studio` configured as the `upstream` remote. Both broker
 providers are granted to every run, while provider-scoped mediated proxies
 keep fork and upstream operations deterministic.
 
-DNS is not owned by either repository. Before gateway testing, the external
-DNS owner must point `agents.altinn.studio` at the declared Studio staging load
-balancer address (`52.157.218.253`). The existing `*.altinn.studio` certificate
-covers this dedicated origin.
+The existing Studio load balancer exposes the gateway below
+`https://staging.altinn.studio/agents`. It preserves the `/agents` prefix for
+the gateway's native base-path routing and forwards WebSocket upgrades without
+requiring a separate DNS record or origin.
 
 Profile selection uses the verified immutable GitHub subjects `23359247`
 (`mirkoSekulic`) and `1525466` (`Jondyr`). The second profile remains named
@@ -60,7 +60,7 @@ login spelling.
 
 Before activation, verify that AKS exposes the exact `kata-vm-isolation`
 RuntimeClass and that its scheduling rules target/tolerate the NVT pool. Chart
-`0.8.1` does not expose raw AgentRun node selectors or tolerations, so this is
+`0.8.2` does not expose raw AgentRun node selectors or tolerations, so this is
 an activation gate rather than a guessed value in the initial release. Also
 verify that admission policy accepts the operator's one-shot `NET_ADMIN`
 routing init container and capture sidecar contract.
