@@ -86,24 +86,3 @@ internal sealed class LayerContent(IAppDistStore store, string version, AppDistL
     public override Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken cancellationToken = default) =>
         Store.ListFilesAsync(Version, layer, cancellationToken);
 }
-
-internal sealed class VersionContent(IAppDistStore store, string version) : AppDistContent(store, version)
-{
-    protected override async Task<Stream?> OpenStoredFileAsync(string path, CancellationToken ct)
-    {
-        foreach (var layer in AppDistLayers.All)
-        {
-            if (await Store.OpenFileAsync(Version, layer, path, ct) is { } stream)
-                return stream;
-        }
-        return null;
-    }
-
-    public override async Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken cancellationToken = default)
-    {
-        var files = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var layer in AppDistLayers.All)
-            files.UnionWith(await Store.ListFilesAsync(Version, layer, cancellationToken));
-        return files.ToArray();
-    }
-}

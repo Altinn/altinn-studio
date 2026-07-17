@@ -56,12 +56,7 @@ jobs:
         run: |
           version="$(go run . resolve-version --component app --base-branch "$BASE_BRANCH")"
 
-          environment="prod"
-          if [[ "$version" == *"-preview."* ]]; then
-            environment="dev"
-          elif [[ "$version" == *"-rc."* ]]; then
-            environment="staging"
-          fi
+          environment="$("$GITHUB_WORKSPACE/.github/scripts/resolve-app-release-environment.sh" "$version")"
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "environment=$environment" >> "$GITHUB_OUTPUT"
@@ -74,6 +69,8 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      packages: write
+    concurrency: app-dist-${{ needs.resolve-release-context.outputs.version }}
     environment: ${{ needs.resolve-release-context.outputs.environment }}
 
     steps:
@@ -158,6 +155,22 @@ jobs:
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
           done
+
+      - name: Resolve app-dist context
+        id: app-dist-context
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-release-context.outputs.version }}
+        run: |
+          echo "version=${RELEASE_VERSION#v}" >> "$GITHUB_OUTPUT"
+          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish app-dist OCI artifact
+        uses: ./.github/actions/publish-app-dist
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          actor: ${{ github.actor }}
+          version: ${{ steps.app-dist-context.outputs.version }}
+          revision: ${{ steps.app-dist-context.outputs.revision }}
 
       - name: Summary
         if: always()

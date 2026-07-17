@@ -5,8 +5,8 @@ namespace Altinn.Studio.AppDist.Tests;
 
 public sealed class OciRegistrySourceTests
 {
-    private const string SchemasMediaType = "application/vnd.altinn.app.schemas.tar+gzip";
-    private const string BundleMediaType = "application/vnd.altinn.app.bundle.tar+gzip";
+    private const string ContentMediaType = "application/vnd.altinn.app-dist.content.v1.tar+gzip";
+    private const string SchemasMediaType = "application/vnd.altinn.app-dist.schemas.v1.tar+gzip";
 
     private static OciRegistrySource Source(FakeRegistry handler) =>
         new(new HttpClient(handler), $"{FakeRegistry.Host}/{FakeRegistry.Repository}");
@@ -16,12 +16,12 @@ public sealed class OciRegistrySourceTests
     {
         var handler = new FakeRegistry();
         var schemas = FakeRegistry.TarGz(("schemas/json/layout/layout.schema.v1.json", """{"type":"object"}"""));
-        var bundle = FakeRegistry.TarGz(("index.html", "<html/>"));
+        var content = FakeRegistry.TarGz(("index.html", "<html/>"));
         var unknown = FakeRegistry.TarGz(("future.bin", "??"));
         handler.SetManifest(
             "4",
             (SchemasMediaType, handler.AddBlob(schemas), schemas.Length),
-            (BundleMediaType, handler.AddBlob(bundle), bundle.Length),
+            (ContentMediaType, handler.AddBlob(content), content.Length),
             ("application/vnd.some.future.layer", handler.AddBlob(unknown), unknown.Length)
         );
 
@@ -37,8 +37,8 @@ public sealed class OciRegistrySourceTests
     public async Task FetchLayer_MissingLayerInManifestThrows()
     {
         var handler = new FakeRegistry();
-        var bundle = FakeRegistry.TarGz(("index.html", "<html/>"));
-        handler.SetManifest("4", (BundleMediaType, handler.AddBlob(bundle), bundle.Length));
+        var content = FakeRegistry.TarGz(("index.html", "<html/>"));
+        handler.SetManifest("4", (ContentMediaType, handler.AddBlob(content), content.Length));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)

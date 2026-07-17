@@ -4,8 +4,8 @@ namespace Altinn.Studio.AppDist.Tests;
 
 public sealed class CompositionTests : IDisposable
 {
-    private const string SchemasMediaType = "application/vnd.altinn.app.schemas.tar+gzip";
-    private const string BundleMediaType = "application/vnd.altinn.app.bundle.tar+gzip";
+    private const string ContentMediaType = "application/vnd.altinn.app-dist.content.v1.tar+gzip";
+    private const string SchemasMediaType = "application/vnd.altinn.app-dist.schemas.v1.tar+gzip";
 
     private readonly string _root = Directory.CreateTempSubdirectory("appdist-composition-tests-").FullName;
 
@@ -18,11 +18,15 @@ public sealed class CompositionTests : IDisposable
             ("schemas/json/layout/layout.schema.v1.json", """{"type":"object"}"""),
             ("schemas/json/layout/expression.schema.v1.json", "{}")
         );
-        var bundle = FakeRegistry.TarGz(("altinn-app-frontend.js", "js"));
+        var content = FakeRegistry.TarGz(
+            ("altinn-app-frontend.js", "js"),
+            ("schemas/json/layout/layout.schema.v1.json", """{"type":"object"}"""),
+            ("schemas/json/layout/expression.schema.v1.json", "{}")
+        );
         handler.SetManifest(
             tag,
-            (SchemasMediaType, handler.AddBlob(schemas), schemas.Length),
-            (BundleMediaType, handler.AddBlob(bundle), bundle.Length)
+            (ContentMediaType, handler.AddBlob(content), content.Length),
+            (SchemasMediaType, handler.AddBlob(schemas), schemas.Length)
         );
         return handler;
     }
@@ -59,11 +63,13 @@ public sealed class CompositionTests : IDisposable
         var dist = await provider.GetVersionAsync("4");
 
         Assert.NotNull(dist);
-        Assert.Equal("js", await dist.GetFileTextAsync(AppDist.Bundles.AltinnAppFrontendJavascript));
+        Assert.Equal("js", await dist.GetFileTextAsync(AppDist.Frontend.AltinnAppFrontendJavascript));
+        Assert.Equal("""{"type":"object"}""", await dist.GetFileTextAsync(AppDist.JsonSchemas.Layout));
+        Assert.Equal(1, handler.BlobRequests);
 
-        provider.Dispose();
         var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas);
         Assert.NotNull(schemas);
         Assert.Equal("""{"type":"object"}""", await schemas.GetFileTextAsync(AppDist.JsonSchemas.Layout));
+        Assert.Equal(2, handler.BlobRequests);
     }
 }

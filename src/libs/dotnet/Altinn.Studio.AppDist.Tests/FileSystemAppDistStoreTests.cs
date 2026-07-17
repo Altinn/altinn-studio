@@ -70,10 +70,10 @@ public sealed class FileSystemAppDistStoreTests : IDisposable
         );
 
         Assert.True(await _store.ContainsAsync("4", AppDistLayer.Schemas, CancellationToken.None));
-        Assert.False(await _store.ContainsAsync("4", AppDistLayer.Bundle, CancellationToken.None));
-        Assert.Empty(await _store.ListFilesAsync("4", AppDistLayer.Bundle, CancellationToken.None));
+        Assert.False(await _store.ContainsAsync("4", AppDistLayer.Content, CancellationToken.None));
+        Assert.Empty(await _store.ListFilesAsync("4", AppDistLayer.Content, CancellationToken.None));
         Assert.Null(
-            await _store.OpenFileAsync("4", AppDistLayer.Bundle, "schemas/json/a.json", CancellationToken.None)
+            await _store.OpenFileAsync("4", AppDistLayer.Content, "schemas/json/a.json", CancellationToken.None)
         );
     }
 
@@ -125,14 +125,14 @@ public sealed class FileSystemAppDistStoreTests : IDisposable
         );
         await _store.WriteAsync(
             "5",
-            AppDistLayer.Bundle,
+            AppDistLayer.Content,
             [new AppDistFileEntry("b.js", "js"u8.ToArray())],
             CancellationToken.None
         );
         Directory.CreateDirectory(Path.Combine(_root, "contents", "6", "schemas"));
 
         Assert.Equal(["4"], await _store.ListVersionsAsync(AppDistLayer.Schemas, CancellationToken.None));
-        Assert.Equal(["5"], await _store.ListVersionsAsync(AppDistLayer.Bundle, CancellationToken.None));
+        Assert.Equal(["5"], await _store.ListVersionsAsync(AppDistLayer.Content, CancellationToken.None));
     }
 
     [Fact]
