@@ -12,3 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Initial release: language client for the Altinn app-config language server (`studioctl app lsp`) with diagnostics, hover, go-to-definition, find-references, rename, completion, quick fixes, and reference code lenses across app config files, layouts, texts, process definitions, and C# data models.
+
+### Fixed
+
+- Removed `--stdio` from `studioctl app lsp` launch arguments.

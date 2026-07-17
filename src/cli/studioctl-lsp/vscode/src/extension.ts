@@ -5,7 +5,6 @@ import {
     LanguageClientOptions,
     RevealOutputChannelOn,
     ServerOptions,
-    TransportKind,
 } from 'vscode-languageclient/node';
 
 let client: LanguageClient | undefined;
@@ -86,8 +85,6 @@ async function start(): Promise<void> {
     const serverOptions: ServerOptions = {
         command,
         args,
-        transport: TransportKind.stdio,
-        // Pass the configured verbosity to the server; it reads STUDIOCTL_LSP_LOG.
         options: { env: { ...process.env, STUDIOCTL_LSP_LOG: logLevel } },
     };
 
