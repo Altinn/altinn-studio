@@ -37,17 +37,18 @@ export const getCropArea = (crop?: CropConfig): CropInternal => {
     return { width: defaultSize, height: defaultSize, shape: CropForm.Circle };
   }
 
-  const isCircle = !crop?.shape || crop.shape === CropForm.Circle;
-
-  const width =
-    (isCircle ? (crop as CropConfigCircle).diameter : (crop as CropConfigRect).width) ??
-    defaultSize;
-  const height =
-    (isCircle ? (crop as CropConfigCircle).diameter : (crop as CropConfigRect).height) ??
-    defaultSize;
-  const shape = isCircle ? CropForm.Circle : CropForm.Rectangle;
-
-  return { width, height, shape };
+  if (crop.shape === CropForm.Rectangle) {
+    return {
+      width: crop.width ?? defaultSize,
+      height: crop.height ?? defaultSize,
+      shape: CropForm.Rectangle,
+    };
+  }
+  return {
+    width: crop.diameter ?? defaultSize,
+    height: crop.diameter ?? defaultSize,
+    shape: CropForm.Circle,
+  };
 };
 
 interface ConstrainToAreaParams {
