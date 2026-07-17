@@ -1768,6 +1768,7 @@
   "ux_editor.component_category.container": "Gruppering",
   "ux_editor.component_category.form": "Skjema",
   "ux_editor.component_category.info": "Informasjon",
+  "ux_editor.component_category.other": "Annet",
   "ux_editor.component_category.select": "Flervalg",
   "ux_editor.component_category.text": "Tekst",
   "ux_editor.component_deletion_confirm": "Ja, slett komponenten",

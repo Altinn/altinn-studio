@@ -5,6 +5,10 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { IInternalLayout } from '../../../types/global';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { QueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, layoutSet as layoutSetId, org } from '@studio/testing/testids';
 
 describe('AddItem', () => {
   it('should render AddItem', () => {
@@ -18,7 +22,41 @@ describe('AddItem', () => {
     await user.click(getAddComponentButton());
     expect(getSelectComponentHeader()).toBeInTheDocument();
   });
+
+  it('limits the components to the allowed set for the configuration mode and hides the show all button when everything fits', async () => {
+    const user = userEvent.setup();
+    renderAddItem({}, seedLayoutSet({ taskType: 'payment' }));
+    await user.click(getAddComponentButton());
+
+    expect(
+      screen.getByRole('button', { name: textMock('ux_editor.component_title.Payment') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('ux_editor.component_title.Input') }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('ux_editor.add_item.show_all') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the show all button when more components are available than the quick-add list', async () => {
+    const user = userEvent.setup();
+    renderAddItem({}, seedLayoutSet({ type: 'subform' }));
+    await user.click(getAddComponentButton());
+    expect(
+      screen.getByRole('button', { name: textMock('ux_editor.add_item.show_all') }),
+    ).toBeInTheDocument();
+  });
 });
+
+const seedLayoutSet = (overrides: { taskType?: string; type?: string }): QueryClient => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.LayoutSetsExtended, org, app],
+    [{ id: layoutSetId, dataType: '', type: '', ...overrides }],
+  );
+  return queryClient;
+};
 
 describe('InlineItemAdder', () => {
   it('should render InlineItemAdder', () => {
@@ -55,8 +93,10 @@ const createDefaultInlineItemAdderProps = (): InlineItemAdderProps => ({
   saveAtIndexPosition: 0,
 });
 
-const renderAddItem = (props: Partial<AddItemProps> = {}) => {
-  return renderWithProviders(<AddItem {...createDefaultAddItemProps()} {...props} />);
+const renderAddItem = (props: Partial<AddItemProps> = {}, queryClient?: QueryClient) => {
+  return renderWithProviders(<AddItem {...createDefaultAddItemProps()} {...props} />, {
+    queryClient,
+  });
 };
 
 const renderInlineItemAdder = (props: Partial<InlineItemAdderProps> = {}) => {
