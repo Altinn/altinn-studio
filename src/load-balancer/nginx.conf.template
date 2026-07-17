@@ -9,6 +9,8 @@ events {
 http {
   server_tokens off;
 
+  resolver 10.250.0.10 valid=30s ipv6=off;
+
   proxy_buffer_size 128k;
   proxy_buffers 8 256k;
   proxy_busy_buffers_size 512k;
@@ -87,6 +89,11 @@ http {
     info          1;
     settings      1;
     default       0;
+  }
+
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
   }
 
   server {
