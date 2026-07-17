@@ -3,7 +3,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
-import { exprCastValue } from 'src/features/expressions';
+import { evalExpr, exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
 import { AverageFunctionEvaluator } from 'src/features/expressions/function-evaluators/AverageFunctionEvaluator';
@@ -11,11 +11,12 @@ import { JmespathFunctionEvaluator } from 'src/features/expressions/function-eva
 import { ObjectFunctionEvaluator } from 'src/features/expressions/function-evaluators/ObjectFunctionEvaluator';
 import { SumFunctionEvaluator } from 'src/features/expressions/function-evaluators/SumFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
-import { addError, isValidValue } from 'src/features/expressions/validation';
+import { addError, ExprValidation, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
+import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type {
   AnyExprArg,
@@ -24,6 +25,7 @@ import type {
   ExprFunctionName,
   ExprFunctions,
   ExprValToActual,
+  ExprValToActualOrExpr,
   ValidObject,
   ValidValue,
 } from 'src/features/expressions/types';
@@ -192,13 +194,7 @@ export const ExprFunctionDefinitions = {
   component: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources(
-      'layoutLookups',
-      'currentDataModelPath',
-      'hiddenComponents',
-      'dataModelNames',
-      'formDataSelector',
-    ),
+    needs: dataSources('layoutLookups', 'currentDataModelPath', 'dataModelNames', 'formDataSelector'),
   },
   dataModel: {
     args: args(required(ExprVal.String), optional(ExprVal.String)),
@@ -218,7 +214,7 @@ export const ExprFunctionDefinitions = {
   displayValue: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('displayValues', 'hiddenComponents', 'currentDataModelPath', 'layoutLookups'),
+    needs: dataSources('displayValues', 'currentDataModelPath', 'layoutLookups'),
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
@@ -520,7 +516,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.hiddenComponents[id] === true) {
+    if (isComponentOrAncestorHidden(this, id)) {
       return null;
     }
 
@@ -602,7 +598,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.hiddenComponents[id] === true) {
+    if (isComponentOrAncestorHidden(this, id)) {
       return null;
     }
 
@@ -963,6 +959,45 @@ function pickSimpleValue(
     return value;
   }
   return null;
+}
+
+function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams<['layoutLookups']>, componentId: string) {
+  const layoutLookups = ctx.dataSources.layoutLookups;
+  const hiddenSources = collectHiddenSources(componentId, layoutLookups).reverse();
+  const pageKey = layoutLookups.componentToPage[componentId];
+  return evaluateHiddenSources({
+    hiddenSources,
+    pageOrder: [],
+    pageKey,
+    evalHiddenExpression: (expr, source) =>
+      evalEmbeddedExpression(
+        ctx as EvaluateExpressionParams,
+        expr,
+        source.type === 'hiddenPage'
+          ? `Hidden expression for page ${source.id} failed`
+          : `Expression in property ${source.type} for component ${source.id} failed`,
+      ),
+  }).hidden;
+}
+
+function evalEmbeddedExpression(
+  ctx: EvaluateExpressionParams,
+  expr: ExprValToActualOrExpr<ExprVal.Boolean> | undefined,
+  errorIntroText: string,
+) {
+  if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean)) {
+    return false;
+  }
+
+  return evalExpr(expr, ctx.dataSources, {
+    errorIntroText,
+    defaultValue: false,
+    returnType: ExprVal.Boolean,
+    onBeforeFunctionCall: ctx.callbacks.onBeforeFunctionCall,
+    onAfterFunctionCall: ctx.callbacks.onAfterFunctionCall,
+    positionalArguments: ctx.positionalArguments,
+    valueArguments: ctx.valueArguments,
+  });
 }
 
 /**
