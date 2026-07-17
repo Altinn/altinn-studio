@@ -20,6 +20,7 @@ using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -336,12 +337,15 @@ public sealed class ProcessEngineTest
                 "SaveProcessStateToStorage"
             );
 
-        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow.
+        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow,
+        // enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
         commandKeys.Should().NotContain("MovedToAltinnEvent");
-        capturedRequest.Workflows.Should().HaveCount(2);
-        var sideEffectsWorkflow = capturedRequest.Workflows[1];
+        commandKeys.Should().Contain("EnqueueSideEffectsWorkflow");
+        capturedRequest.Workflows.Should().HaveCount(1);
+        var sideEffectsWorkflow = ExtractSideEffectsWorkflow(capturedRequest.Workflows[0]);
         sideEffectsWorkflow.OperationId.Should().Be("Process next side-effects: Task_1 -> Task_2");
         sideEffectsWorkflow.IsHead.Should().BeFalse();
+        sideEffectsWorkflow.DependsOnHeads.Should().BeFalse();
         ExtractCommandKeys(sideEffectsWorkflow).Should().Equal("MovedToAltinnEvent");
 
         // Verify OperationId contains transition info
@@ -531,11 +535,13 @@ public sealed class ProcessEngineTest
                 "SaveProcessStateToStorage"
             );
 
-        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow.
+        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow,
+        // enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
         commandKeys.Should().NotContain("MovedToAltinnEvent");
-        capturedRequest.Workflows.Should().HaveCount(2);
-        capturedRequest.Workflows[1].IsHead.Should().BeFalse();
-        ExtractCommandKeys(capturedRequest.Workflows[1]).Should().Equal("MovedToAltinnEvent");
+        capturedRequest.Workflows.Should().HaveCount(1);
+        var abandonSideEffectsWorkflow = ExtractSideEffectsWorkflow(capturedRequest.Workflows[0]);
+        abandonSideEffectsWorkflow.IsHead.Should().BeFalse();
+        ExtractCommandKeys(abandonSideEffectsWorkflow).Should().Equal("MovedToAltinnEvent");
     }
 
     [Fact]
@@ -703,11 +709,13 @@ public sealed class ProcessEngineTest
                 "EndProcessLegacyHook"
             );
 
-        // The non-critical CompletedAltinnEvent runs in the invisible side-effects workflow.
+        // The non-critical CompletedAltinnEvent runs in the invisible side-effects workflow,
+        // enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
         commandKeys.Should().NotContain("CompletedAltinnEvent");
-        capturedRequest.Workflows.Should().HaveCount(2);
-        capturedRequest.Workflows[1].IsHead.Should().BeFalse();
-        ExtractCommandKeys(capturedRequest.Workflows[1]).Should().Equal("CompletedAltinnEvent");
+        capturedRequest.Workflows.Should().HaveCount(1);
+        var endSideEffectsWorkflow = ExtractSideEffectsWorkflow(capturedRequest.Workflows[0]);
+        endSideEffectsWorkflow.IsHead.Should().BeFalse();
+        ExtractCommandKeys(endSideEffectsWorkflow).Should().Equal("CompletedAltinnEvent");
 
         // Verify OperationId contains transition info for process end
         capturedRequest.Workflows[0].OperationId.Should().Be("Process next: Task_2 -> EndEvent_1");
@@ -1943,181 +1951,6 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task Next_reject_cancels_pending_side_effects_workflow_of_abandoned_batch()
-    {
-        // An Abandoned dependency satisfies dependents instead of condemning them, so the abandoned
-        // Main workflow's not-yet-condemned side-effects sibling would become runnable and emit
-        // events for a transition that never committed. The abandon must cancel it explicitly.
-        Guid failedWorkflowId = Guid.NewGuid();
-        Guid sideEffectsWorkflowId = Guid.NewGuid();
-        Guid rejectWorkflowId = Guid.NewGuid();
-        string collectionKey = _collectionKey;
-        bool failedWorkflowAbandoned = false;
-        DateTimeOffset failedBatchCreatedAt = DateTimeOffset.UtcNow.AddMinutes(-1);
-
-        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        processEngineClientMock
-            .Setup(c =>
-                c.ListWorkflows(
-                    It.IsAny<string>(),
-                    null,
-                    It.Is<Dictionary<string, string>>(labels =>
-                        IsProcessNextLabel(labels, ProcessNextRequestFactory.ProcessNextSourceIdLabel, "Task_1:2")
-                    ),
-                    null,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([
-                CreateWorkflowStatusResponse(
-                    failedWorkflowId,
-                    "Process next: Task_1 -> Task_2",
-                    PersistentItemStatus.Failed,
-                    collectionKey,
-                    failedBatchCreatedAt
-                ),
-            ]);
-        processEngineClientMock
-            .Setup(c =>
-                c.ListWorkflows(
-                    It.IsAny<string>(),
-                    null,
-                    It.Is<Dictionary<string, string>>(labels =>
-                        MatchesCurrentTaskLookupLabel(labels, "Task_1:2")
-                        && !labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
-                    ),
-                    null,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([]);
-        processEngineClientMock
-            .Setup(c =>
-                c.GetCollection(
-                    It.IsAny<string>(),
-                    It.Is<string>(key => key == collectionKey),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (string _, string key, CancellationToken _) =>
-                    CreateWorkflowCollectionDetailResponse(
-                        key,
-                        failedWorkflowAbandoned
-                            ? CreateCollectionHeadStatus(rejectWorkflowId, PersistentItemStatus.Completed)
-                            : CreateCollectionHeadStatus(failedWorkflowId, PersistentItemStatus.Failed)
-                    )
-            );
-        processEngineClientMock
-            .Setup(c =>
-                c.ListWorkflows(
-                    It.IsAny<string>(),
-                    It.Is<string>(key => key == collectionKey),
-                    null,
-                    null,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    string _,
-                    string? key,
-                    Dictionary<string, string>? _,
-                    IReadOnlyList<PersistentItemStatus>? _,
-                    CancellationToken _
-                ) =>
-                {
-                    List<WorkflowStatusResponse> workflows =
-                    [
-                        CreateWorkflowStatusResponse(
-                            failedWorkflowId,
-                            "Process next: Task_1 -> Task_2",
-                            failedWorkflowAbandoned ? PersistentItemStatus.Abandoned : PersistentItemStatus.Failed,
-                            key,
-                            failedBatchCreatedAt
-                        ),
-                        // The side-effects sibling from the failed batch: same idempotency key,
-                        // still Enqueued because no worker has condemned it yet.
-                        CreateWorkflowStatusResponse(
-                            sideEffectsWorkflowId,
-                            "Process next side-effects: Task_1 -> Task_2",
-                            PersistentItemStatus.Enqueued,
-                            key,
-                            failedBatchCreatedAt
-                        ),
-                    ];
-                    if (failedWorkflowAbandoned)
-                    {
-                        workflows.Add(
-                            CreateWorkflowStatusResponse(
-                                rejectWorkflowId,
-                                "Process next: Task_1 -> Task_2",
-                                PersistentItemStatus.Completed,
-                                key
-                            )
-                        );
-                    }
-
-                    return workflows;
-                }
-            );
-        processEngineClientMock
-            .Setup(c => c.AbandonWorkflow(It.IsAny<string>(), failedWorkflowId, It.IsAny<CancellationToken>()))
-            .Callback(() => failedWorkflowAbandoned = true)
-            .ReturnsAsync(true);
-        processEngineClientMock
-            .Setup(c => c.CancelWorkflow(It.IsAny<string>(), sideEffectsWorkflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CancelWorkflowResponse(sideEffectsWorkflowId, DateTimeOffset.UtcNow, true));
-        processEngineClientMock
-            .Setup(c =>
-                c.EnqueueWorkflows(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                new WorkflowEnqueueResponse.Accepted
-                {
-                    Workflows = [new WorkflowResult { DatabaseId = rejectWorkflowId, Namespace = "org/app" }],
-                }
-            );
-
-        var services = new ServiceCollection();
-        services.AddSingleton(processEngineClientMock.Object);
-
-        await using var fixture = Fixture.Create(services);
-        fixture
-            .Mock<IProcessReader>()
-            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
-            .Returns(new AltinnTaskExtension { AltinnActions = [new AltinnAction("reject")] });
-        LegacyProcessEngine processEngine = fixture.ProcessEngine;
-
-        ProcessChangeResult result = await processEngine.Next(
-            new ProcessNextRequest
-            {
-                Instance = CreateTask1Instance(),
-                User = CreateUserClaimsPrincipal(),
-                Action = "reject",
-                Language = null,
-            }
-        );
-
-        result.Success.Should().BeTrue();
-        processEngineClientMock.Verify(
-            c => c.CancelWorkflow(It.IsAny<string>(), sideEffectsWorkflowId, It.IsAny<CancellationToken>()),
-            Times.Once
-        );
-        // Only the side-effects sibling is cancelled - never the abandoned Main or the reject.
-        processEngineClientMock.Verify(
-            c => c.CancelWorkflow(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-            Times.Once
-        );
-    }
-
-    [Fact]
     public async Task Next_reject_blocks_as_retrying_when_abandon_loses_race_with_concurrent_resume()
     {
         Guid failedWorkflowId = Guid.NewGuid();
@@ -3158,6 +2991,26 @@ public sealed class ProcessEngineTest
 
     private static CollectionHeadStatus CreateCollectionHeadStatus(Guid workflowId, PersistentItemStatus status) =>
         new() { DatabaseId = workflowId, Status = status };
+
+    /// <summary>
+    /// Unwraps the side-effects workflow embedded in the Main workflow's EnqueueSideEffectsWorkflow
+    /// step payload (the request that step submits to the engine at the commit boundary).
+    /// </summary>
+    private static WorkflowRequest ExtractSideEffectsWorkflow(WorkflowRequest mainWorkflow)
+    {
+        StepRequest enqueueStep = mainWorkflow.Steps.Single(step =>
+            step.Command.Type == "app"
+            && step.Command.Data is { } data
+            && System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey
+                == EnqueueSideEffectsWorkflow.Key
+        );
+        AppCommandData commandData = System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(
+            enqueueStep.Command.Data!.Value
+        )!;
+        EnqueueSideEffectsWorkflowPayload payload =
+            CommandPayloadSerializer.Deserialize<EnqueueSideEffectsWorkflowPayload>(commandData.Payload)!;
+        return payload.EnqueueRequest.Workflows.Single();
+    }
 
     private static List<string> ExtractCommandKeys(WorkflowRequest workflow) =>
         workflow

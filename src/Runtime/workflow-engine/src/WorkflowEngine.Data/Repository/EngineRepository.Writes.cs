@@ -519,16 +519,6 @@ internal sealed partial class EngineRepository
                 var wfReq = workflowRequests[j];
                 var wfId = workflows[j].DatabaseId;
 
-                // Resolve the state-inheritance source to a persisted id before the entity is
-                // mapped. Validation guarantees the ref exists in the batch (it is a DependsOn
-                // entry, and DependsOn refs are validated against the batch).
-                if (wfReq.InheritStateFrom is { } inheritStateFrom)
-                {
-                    workflows[j].InheritStateFromWorkflowId = inheritStateFrom.IsRef
-                        ? refToGuid[inheritStateFrom.Ref]
-                        : inheritStateFrom.Id;
-                }
-
                 entities.Add(WorkflowEntity.FromDomainModel(workflows[j]));
 
                 if (wfReq.DependsOn is not null)

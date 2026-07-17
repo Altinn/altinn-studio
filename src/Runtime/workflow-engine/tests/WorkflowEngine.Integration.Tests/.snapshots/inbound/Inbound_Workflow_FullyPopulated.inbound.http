@@ -45,7 +45,6 @@ Content-Type: application/json; charset=utf-8
       ],
       "startAt": "{Scrubbed}",
       "state": "{\u0022initial\u0022:\u0022state\u0022}",
-      "inheritStateFrom": null,
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,

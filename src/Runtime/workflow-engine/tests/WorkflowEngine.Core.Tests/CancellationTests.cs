@@ -3,7 +3,6 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -36,7 +35,6 @@ public class CancellationTests
         return new WorkflowHandler(
             executor,
             buffer.Object,
-            new Mock<IEngineRepository>(MockBehavior.Strict).Object,
             Options.Create(settings),
             TimeProvider.System,
             NullLogger<WorkflowHandler>.Instance

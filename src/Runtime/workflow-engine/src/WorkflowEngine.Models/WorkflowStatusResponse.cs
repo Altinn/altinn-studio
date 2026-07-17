@@ -116,14 +116,6 @@ public sealed record WorkflowStatusResponse
     public string? InitialState { get; init; }
 
     /// <summary>
-    /// The id of the dependency workflow whose final state this workflow inherits as its initial
-    /// state, when state inheritance was requested at enqueue.
-    /// </summary>
-    [JsonPropertyName("inheritStateFromWorkflowId")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Guid? InheritStateFromWorkflowId { get; init; }
-
-    /// <summary>
     /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>).
     /// <c>false</c> identifies workflows deliberately invisible to collection head tracking (e.g.
     /// non-blocking side chains); <c>null</c>/omitted means natural leaf detection applied.
@@ -157,7 +149,6 @@ public sealed record WorkflowStatusResponse
             Labels = workflow.Labels,
             OverallStatus = workflow.Status,
             InitialState = workflow.InitialState,
-            InheritStateFromWorkflowId = workflow.InheritStateFromWorkflowId,
             IsHead = workflow.IsHead,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),

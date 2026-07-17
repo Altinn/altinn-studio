@@ -3,7 +3,6 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience.Models;
@@ -41,13 +40,11 @@ public class WorkflowHandlerTests
     private static WorkflowHandler CreateHandler(
         IWorkflowExecutor executor,
         EngineSettings? settings = null,
-        IWorkflowUpdateBuffer? buffer = null,
-        IEngineRepository? repository = null
+        IWorkflowUpdateBuffer? buffer = null
     ) =>
         new(
             executor,
             buffer ?? MockBuffer().Object,
-            repository ?? new Mock<IEngineRepository>(MockBehavior.Strict).Object,
             Options.Create(settings ?? _defaultSettings),
             _fixedTime,
             NullLogger<WorkflowHandler>.Instance
@@ -125,95 +122,6 @@ public class WorkflowHandlerTests
             });
 
         return mock;
-    }
-
-    // === State inheritance ===
-
-    [Fact]
-    public async Task Handle_InheritStateFromCompletedSource_ReplacesInitialStateBeforeFirstStep()
-    {
-        var sourceWorkflowId = Guid.NewGuid();
-        const string inheritedState = """{"inherited":"state"}""";
-
-        string? observedStateIn = null;
-        var executor = new Mock<IWorkflowExecutor>();
-        executor
-            .Setup(e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                (Workflow w, Step _, CancellationToken _) =>
-                {
-                    observedStateIn = w.InitialState;
-                    return ExecutionResult.Success();
-                }
-            );
-
-        var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
-        repository
-            .Setup(r => r.GetCompletedWorkflowFinalState(sourceWorkflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(inheritedState);
-
-        var workflow = CreateWorkflow(CreateStep());
-        workflow.InheritStateFromWorkflowId = sourceWorkflowId;
-
-        await CreateHandler(executor.Object, repository: repository.Object).Handle(workflow, CancellationToken.None);
-
-        Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
-        Assert.Equal(inheritedState, observedStateIn);
-    }
-
-    [Fact]
-    public async Task Handle_InheritStateFromNonCompletedSource_KeepsOwnInitialState()
-    {
-        // A source that did not complete successfully (e.g. abandoned, with this workflow released
-        // anyway) yields no state - the workflow proceeds with its own initial state.
-        var sourceWorkflowId = Guid.NewGuid();
-
-        var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
-        repository
-            .Setup(r => r.GetCompletedWorkflowFinalState(sourceWorkflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
-
-        var executor = MockExecutor(ExecutionResult.Success());
-        var workflow = CreateWorkflow(CreateStep());
-        workflow.InheritStateFromWorkflowId = sourceWorkflowId;
-
-        await CreateHandler(executor.Object, repository: repository.Object).Handle(workflow, CancellationToken.None);
-
-        Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
-        Assert.Null(workflow.InitialState);
-    }
-
-    [Fact]
-    public async Task Handle_InheritedStateLookupFails_RequeuesWithBackoffWithoutRunningSteps()
-    {
-        var sourceWorkflowId = Guid.NewGuid();
-        var backoffDelay = TimeSpan.FromSeconds(5);
-
-        var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
-        repository
-            .Setup(r => r.GetCompletedWorkflowFinalState(sourceWorkflowId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("database unavailable"));
-
-        var executor = MockExecutor(ExecutionResult.Success());
-        var workflow = CreateWorkflow(CreateStep());
-        workflow.InheritStateFromWorkflowId = sourceWorkflowId;
-
-        var settings = _defaultSettings with { DefaultStepRetryStrategy = RetryStrategy.Constant(backoffDelay) };
-        var before = DateTimeOffset.UtcNow;
-        await CreateHandler(executor.Object, settings: settings, repository: repository.Object)
-            .Handle(workflow, CancellationToken.None);
-        var after = DateTimeOffset.UtcNow;
-
-        Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
-        executor.Verify(
-            e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-
-        // Backed off before the next attempt - without this the workflow is immediately
-        // fetchable again and a persistently failing lookup would spin at fetch cadence.
-        Assert.NotNull(workflow.BackoffUntil);
-        Assert.InRange(workflow.BackoffUntil.Value, before.Add(backoffDelay), after.Add(backoffDelay));
     }
 
     [Fact]

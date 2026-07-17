@@ -202,53 +202,6 @@ Step 2 (sign)     → StateIn:  {"validated": true}  →  StateOut: {"signed": t
 Step 3 (confirm)  → StateIn:  {"signed": true}
 ```
 
-### State Inheritance Across Dependencies
-
-State normally stays within one workflow: the first step receives the workflow's own `state` from the
-enqueue request, and later steps receive the previous step's `StateOut`. A workflow can instead opt in to
-starting from a dependency's **final** state with `inheritStateFrom` on the enqueue request:
-
-```jsonc
-{
-    "workflows": [
-        { "ref": "main", "operationId": "op-main", "state": "{...}", "steps": [ ... ] },
-        {
-            "ref": "side",
-            "operationId": "op-side",
-            "dependsOn": ["main"],
-            "inheritStateFrom": "main", // batch ref or persisted database ID
-            "steps": [ ... ]
-        }
-    ]
-}
-```
-
-Rules:
-
-- `inheritStateFrom` is **mutually exclusive** with `state`, and must reference one of the workflow's own
-  `dependsOn` entries — only a dependency is guaranteed to be terminal before the workflow starts.
-- Resolution happens when the workflow starts executing: if the source workflow `Completed`, its final
-  state (last step-produced `StateOut`, falling back to its initial state) becomes this workflow's
-  initial state. The persisted `initial_state` column is never rewritten; resolution is deterministic on
-  retries because a terminal workflow's state is immutable.
-- If the source did **not** complete successfully (e.g. it was `Abandoned` and this workflow was released
-  anyway), the workflow runs with a null initial state.
-- A transient lookup failure requeues the workflow (with a backoff) instead of failing it.
-- The resolved source id is exposed as `inheritStateFromWorkflowId` in workflow status responses.
-
-One deliberate semantic difference from intra-workflow state chaining: within a workflow, a step whose
-predecessors never produced any `StateOut` receives **null** — not the workflow's initial state. The
-inheritance fallback is different: a `Completed` source whose steps never produced state hands the
-inheritor the source's **initial state** ("the workflow started with state X and nothing changed it, so
-its final state is X"). So for a stateless-step source, an inheriting workflow sees the source's initial
-state where a step appended to the source itself would have seen null. If your inheriting steps must
-behave exactly like appended steps, ensure the source's steps always emit `StateOut` (commands that pass
-state through unchanged, as the app callback commands do, make the two views identical).
-
-The canonical use is a fire-and-forget side chain (`IsHead = false`, see
-[workflow-collections.md](workflow-collections.md)) that continues from the main workflow's evolved state
-without blocking the collection frontier.
-
 ## Retry & Error Handling
 
 ### RetryStrategy

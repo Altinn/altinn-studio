@@ -488,11 +488,6 @@
         "Nullable": false
       },
       {
-        "Name": "inheritStateFrom",
-        "Kind": "string",
-        "Nullable": true
-      },
-      {
         "Name": "isHead",
         "Kind": "bool",
         "Nullable": true
@@ -591,11 +586,6 @@
         "Name": "idempotencyKey",
         "Kind": "string",
         "Nullable": false
-      },
-      {
-        "Name": "inheritStateFromWorkflowId",
-        "Kind": "guid",
-        "Nullable": true
       },
       {
         "Name": "initialState",

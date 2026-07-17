@@ -3,7 +3,6 @@ using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Constants;
-using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
@@ -24,7 +23,6 @@ namespace WorkflowEngine.Core;
 internal sealed class WorkflowHandler(
     IWorkflowExecutor executor,
     IWorkflowUpdateBuffer statusWriteBuffer,
-    IEngineRepository repository,
     IOptions<EngineSettings> settings,
     TimeProvider timeProvider,
     ILogger<WorkflowHandler> logger
@@ -104,27 +102,6 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"), ("is_head", IsHeadTagValue(workflow)));
-
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
-
-            return;
-        }
-
-        if (!await TryResolveInheritedState(workflow, ct))
-        {
-            // The lookup failed transiently - requeue for another attempt rather than failing the
-            // workflow terminally before any step has run. Back off before the retry: without a
-            // backoff the workflow is immediately fetchable again (backoff_until NULLS FIRST), so a
-            // persistently failing lookup would spin at fetch cadence. There is no attempt counter
-            // at the workflow level, so use the default step strategy's first-retry delay as a
-            // constant pause.
-            workflow.Status = PersistentItemStatus.Requeued;
-            workflow.BackoffUntil = timeProvider.GetUtcNow().Add(_settings.DefaultStepRetryStrategy.CalculateDelay(1));
-
-            RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow);
-
-            Metrics.WorkflowsRequeued.Add(1, ("reason", "inherited_state_lookup_failed"));
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -216,39 +193,6 @@ internal sealed class WorkflowHandler(
         }
 
         await statusWriteBuffer.Submit(workflow, ct);
-    }
-
-    /// <summary>
-    /// Resolves state inheritance before the first step runs. The workflow was fetched, so its
-    /// dependencies are all terminal; a Completed source's final state is immutable and replaces
-    /// this workflow's <see cref="Workflow.InitialState"/> in memory (the persisted column is
-    /// untouched). A source that did not complete successfully - e.g. one that was abandoned and
-    /// whose dependents were released anyway - yields no state, and the workflow proceeds with its
-    /// own initial state. Retries re-resolve deterministically: step 0 only re-runs while the
-    /// source stays terminal. Returns <see langword="false"/> when the lookup itself failed and
-    /// the workflow should be requeued.
-    /// </summary>
-    private async Task<bool> TryResolveInheritedState(Workflow workflow, CancellationToken ct)
-    {
-        if (workflow.InheritStateFromWorkflowId is not Guid stateSourceWorkflowId)
-            return true;
-
-        try
-        {
-            string? inheritedState = await repository.GetCompletedWorkflowFinalState(stateSourceWorkflowId, ct);
-            if (inheritedState is not null)
-            {
-                workflow.InitialState = inheritedState;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            workflow.EngineActivity?.Errored(ex);
-            logger.InheritedStateLookupFailed(workflow, stateSourceWorkflowId, ex.Message, ex);
-            return false;
-        }
     }
 
     private async Task ProcessSteps(Workflow workflow, CancellationToken ct)
@@ -562,16 +506,4 @@ internal static partial class WorkflowHandlerLogs
         "Lease lost for workflow {Workflow} — another host has reclaimed it; exiting local processing without retry"
     )]
     internal static partial void WorkflowLeaseLost(this ILogger<WorkflowHandler> logger, Workflow workflow);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "Failed to resolve inherited state for workflow {Workflow} from source workflow {StateSourceWorkflowId}: {Message}. Requeuing."
-    )]
-    internal static partial void InheritedStateLookupFailed(
-        this ILogger<WorkflowHandler> logger,
-        Workflow workflow,
-        Guid stateSourceWorkflowId,
-        string message,
-        Exception? ex
-    );
 }

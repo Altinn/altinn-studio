@@ -56,8 +56,6 @@ internal sealed class WorkflowEntity
 
     public string? InitialState { get; set; }
 
-    public Guid? InheritStateFromWorkflowId { get; set; }
-
     public bool? IsHead { get; set; }
 
     public ICollection<StepEntity> Steps { get; set; } = [];
@@ -88,7 +86,6 @@ internal sealed class WorkflowEntity
             EngineTraceContext = workflow.EngineTraceContext,
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             InitialState = workflow.InitialState,
-            InheritStateFromWorkflowId = workflow.InheritStateFromWorkflowId,
             IsHead = workflow.IsHead,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
@@ -134,7 +131,6 @@ internal sealed class WorkflowEntity
             EngineTraceContext = EngineTraceContext,
             CancellationRequestedAt = CancellationRequestedAt,
             InitialState = InitialState,
-            InheritStateFromWorkflowId = InheritStateFromWorkflowId,
             IsHead = IsHead,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
             Dependencies = includeRelations

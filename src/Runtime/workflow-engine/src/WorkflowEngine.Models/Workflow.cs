@@ -102,18 +102,8 @@ public sealed record Workflow : PersistentItem
     /// <summary>
     /// Optional opaque state passed as <see cref="CommandExecutionContext.StateIn"/> to the first step.
     /// Subsequent steps receive the previous step's <see cref="Step.StateOut"/>.
-    /// Settable because state inheritance (see <see cref="InheritStateFromWorkflowId"/>) overrides it
-    /// in memory at execution start; the persisted <c>initial_state</c> column is never rewritten.
     /// </summary>
-    public string? InitialState { get; set; }
-
-    /// <summary>
-    /// Optional id of a dependency workflow whose final state becomes this workflow's initial state.
-    /// Resolved at execution start: when the referenced workflow completed successfully, its final
-    /// state (last non-null <see cref="Step.StateOut"/>, falling back to its initial state) replaces
-    /// this workflow's <see cref="InitialState"/> in memory before the first step runs.
-    /// </summary>
-    public Guid? InheritStateFromWorkflowId { get; set; }
+    public string? InitialState { get; init; }
 
     /// <summary>
     /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>),

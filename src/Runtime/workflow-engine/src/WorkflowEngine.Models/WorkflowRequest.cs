@@ -34,25 +34,9 @@ public sealed record WorkflowRequest
 
     /// <summary>
     /// Opaque state passed through from the app. The engine never inspects this.
-    /// Mutually exclusive with <see cref="InheritStateFrom"/>.
     /// </summary>
     [JsonPropertyName("state")]
     public string? State { get; init; }
-
-    /// <summary>
-    /// Optional reference to a workflow in <see cref="DependsOn"/> whose final state becomes this
-    /// workflow's initial state. Resolved when this workflow starts executing: if the referenced
-    /// dependency completed successfully, its final state (last step-produced state, falling back
-    /// to its own initial state) is passed to this workflow's first step. If the dependency did
-    /// not complete — e.g. it was abandoned and this workflow was released anyway — this workflow
-    /// runs with its own initial state, which is null since <see cref="State"/> and
-    /// <see cref="InheritStateFrom"/> are mutually exclusive.
-    /// The entry is either a batch-scoped ref string or an already-persisted database ID, and must
-    /// also be present in <see cref="DependsOn"/>: state can only be inherited from a workflow
-    /// that is guaranteed to be terminal before this one starts.
-    /// </summary>
-    [JsonPropertyName("inheritStateFrom")]
-    public WorkflowRef? InheritStateFrom { get; init; }
 
     /// <summary>
     /// Workflows that must complete before this one can execute.

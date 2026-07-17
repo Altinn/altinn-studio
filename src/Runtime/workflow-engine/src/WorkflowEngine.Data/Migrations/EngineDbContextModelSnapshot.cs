@@ -212,10 +212,6 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("idempotency_key");
 
-                    b.Property<Guid?>("InheritStateFromWorkflowId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("inherit_state_from_workflow_id");
-
                     b.Property<string>("InitialState")
                         .HasColumnType("text")
                         .HasColumnName("initial_state");

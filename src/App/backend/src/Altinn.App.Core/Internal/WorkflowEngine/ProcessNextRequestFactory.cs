@@ -41,20 +41,16 @@ internal sealed class ProcessNextRequestFactory
     internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
     /// <summary>
-    /// Batch-scoped ref for the Main workflow, only set when a side-effects workflow references it.
-    /// </summary>
-    internal const string MainWorkflowRef = "main";
-
-    /// <summary>
     /// OperationId prefix for the Main process-next workflow (the visible collection head carrying
-    /// the pre-commit, commit, and critical post-commit steps).
+    /// the pre-commit, commit, and post-commit steps).
     /// </summary>
     internal const string MainOperationIdPrefix = "Process next:";
 
     /// <summary>
-    /// OperationId prefix for the fire-and-forget side-effects workflow. A human-readable naming
-    /// convention for ops queries and logs only - identification (wait/settle scoping, failure
-    /// classification, abandon-cancel) is by the engine-persisted <c>IsHead == false</c> directive
+    /// OperationId prefix for the fire-and-forget side-effects workflow (enqueued at the commit
+    /// boundary by <see cref="EnqueueSideEffectsWorkflow"/>). A human-readable naming convention
+    /// for ops queries and logs only - identification (wait/settle scoping, failure
+    /// classification) is by the engine-persisted <c>IsHead == false</c> directive
     /// (see <see cref="WorkflowEngineService.IsSideEffectsWorkflow"/>), not by this string.
     /// </summary>
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
@@ -138,45 +134,54 @@ internal sealed class ProcessNextRequestFactory
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
 
-        // Main must stay Workflows[0]: the enqueue response's first workflow id is used to scope the wait.
-        bool hasSideEffects = commands.SideEffects.Count > 0;
-        var workflows = new List<WorkflowRequest>
-        {
-            new()
-            {
-                Ref = hasSideEffects ? MainWorkflowRef : null,
-                OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                Steps = commands.Main,
-                State = state,
-                DependsOn = dependsOn,
-            },
-        };
+        JsonElement serializedContext = JsonSerializer.SerializeToElement(context);
 
-        if (hasSideEffects)
+        // The Main workflow's step sequence: everything through the SaveProcessStateToStorage
+        // commit, then - when the transition has side effects - the EnqueueSideEffectsWorkflow
+        // step that schedules them, then the critical post-commit commands. Enqueueing at the
+        // commit boundary makes the side effects exist if and only if the transition committed,
+        // and lets them run promptly without waiting for e.g. a service task.
+        var mainSteps = new List<StepRequest>(commands.ThroughCommit);
+        if (commands.SideEffects.Count > 0)
         {
-            workflows.Add(
-                new WorkflowRequest
-                {
-                    OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                    Steps = commands.SideEffects,
-                    // The side-effects workflow inherits Main's final evolved state blob - the
-                    // exact view the trailing post-commit steps had pre-split: the committed (NEW)
-                    // process state plus every data change Main's commands made. The engine
-                    // resolves it when this workflow starts, i.e. after Main completed.
-                    InheritStateFrom = WorkflowRef.FromRefString(MainWorkflowRef),
-                    DependsOn = [WorkflowRef.FromRefString(MainWorkflowRef)],
-                    // Invisible to the collection heads frontier: the next transition and the
-                    // enqueue wait key off Main only. DependsOnHeads is a no-op (not a root).
-                    IsHead = false,
-                }
-            );
+            var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
+            {
+                Labels = labels,
+                Context = serializedContext,
+                Workflows =
+                [
+                    new WorkflowRequest
+                    {
+                        OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId}",
+                        Steps = commands.SideEffects,
+                        // The command injects State (this step's commit-time state blob) and
+                        // Links (the Main workflow id) when it executes.
+                        // Invisible to the collection heads frontier and started immediately:
+                        // an independent root that neither consumes nor becomes a head, so the
+                        // ProcessNext wait and the next transition never key off it.
+                        IsHead = false,
+                        DependsOnHeads = false,
+                    },
+                ],
+            };
+            mainSteps.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
         }
+        mainSteps.AddRange(commands.CriticalPostCommit);
 
         var request = new WorkflowEnqueueRequest
         {
             Labels = labels,
-            Context = JsonSerializer.SerializeToElement(context),
-            Workflows = workflows,
+            Context = serializedContext,
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
+                    Steps = mainSteps,
+                    State = state,
+                    DependsOn = dependsOn,
+                },
+            ],
         };
 
         return new WorkflowEnqueueEnvelope(request, ns, effectiveIdempotencyKey, collectionKey);
@@ -218,10 +223,16 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The assembled step lists for one transition: the Main workflow's full sequence and the
-    /// non-critical side-effect steps destined for the separate side-effects workflow.
+    /// The assembled step lists for one transition: the Main workflow's sequence through the
+    /// SaveProcessStateToStorage commit, the critical post-commit commands that follow it, and the
+    /// non-critical side-effect steps destined for the separate side-effects workflow (enqueued at
+    /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>).
     /// </summary>
-    private readonly record struct AssembledCommands(List<StepRequest> Main, List<StepRequest> SideEffects);
+    private readonly record struct AssembledCommands(
+        List<StepRequest> ThroughCommit,
+        List<StepRequest> CriticalPostCommit,
+        List<StepRequest> SideEffects
+    );
 
     private async Task<AssembledCommands> AssembleCommandSequence(
         ProcessStateChange processStateChange,
@@ -279,9 +290,8 @@ internal sealed class ProcessNextRequestFactory
         }
         commands.AddRange(taskStartSteps);
         commands.Add(CreateSaveProcessStateToStorageCommand(processStateChange));
-        commands.AddRange(criticalPostCommitSteps);
 
-        return new AssembledCommands(commands, sideEffectSteps);
+        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps);
     }
 
     private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(
@@ -409,6 +419,20 @@ internal sealed class ProcessNextRequestFactory
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
+            ),
+        };
+    }
+
+    private static StepRequest CreateEnqueueSideEffectsWorkflowCommand(WorkflowEnqueueRequest sideEffectsEnqueueRequest)
+    {
+        var payload = new EnqueueSideEffectsWorkflowPayload(sideEffectsEnqueueRequest);
+        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
+        return new StepRequest
+        {
+            OperationId = EnqueueSideEffectsWorkflow.Key,
+            Command = CommandDefinition.Create(
+                "app",
+                new AppCommandData { CommandKey = EnqueueSideEffectsWorkflow.Key, Payload = serializedPayload }
             ),
         };
     }

@@ -82,12 +82,10 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
             bool isCollectionRoot = workflow.DependsOn is null || workflow.DependsOn.All(dependency => dependency.IsId);
             List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
-            Guid? inheritStateFromWorkflowId = workflow.InheritStateFrom is { } inheritStateFrom
-                ? inheritStateFrom.IsRef
-                    ? refMap[inheritStateFrom.Ref]
-                    : inheritStateFrom.Id
-                : null;
-            if (isCollectionRoot)
+            // Mirrors the engine: only roots that opted in via DependsOnHeads pick up the current
+            // collection heads as dependencies. A DependsOnHeads=false root (e.g. the side-effects
+            // workflow enqueued at the commit boundary) starts independently.
+            if (isCollectionRoot && workflow.DependsOnHeads)
             {
                 foreach (Guid headId in currentCollectionHeads)
                 {
@@ -104,7 +102,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     DatabaseId = databaseId,
                     Ref = workflow.Ref,
                     IsHead = workflow.IsHead,
-                    InheritStateFromWorkflowId = inheritStateFromWorkflowId,
                     Namespace = ns,
                     CollectionKey = collectionKey,
                     IdempotencyKey = idempotencyKey,
@@ -400,16 +397,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         string? currentState = workflow.State;
 
-        // Mirrors the engine's state inheritance: when the workflow inherits state from a
-        // completed dependency, its initial state is that dependency's final evolved state.
-        if (
-            workflow.InheritStateFromWorkflowId is Guid stateSourceId
-            && _workflows.TryGetValue(stateSourceId, out StoredWorkflow? stateSource)
-            && stateSource.Status == PersistentItemStatus.Completed
-        )
-        {
-            currentState = stateSource.State;
-        }
         var controller = new WorkflowEngineCallbackController(
             _serviceProvider,
             _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
@@ -706,8 +693,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public string? Ref { get; init; }
 
         public bool? IsHead { get; init; }
-
-        public Guid? InheritStateFromWorkflowId { get; init; }
 
         public required string Namespace { get; init; }
 
