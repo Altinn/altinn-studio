@@ -175,20 +175,13 @@ export function useIsValidTaskId() {
   );
 }
 
-export function useNavigatePage() {
-  const isStateless = useIsStateless();
-  const navigate = useOurNavigate();
+export function useIsValidPageId() {
   const navParams = useAllNavigationParamsAsRef();
   const getTaskType = useGetTaskTypeById();
-  const refetchInitialValidations = useRefetchInitialValidations();
-  const [_searchParams] = useSearchParams();
-  const searchParamsRef = useAsRef(_searchParams);
-
-  const { autoSaveBehavior } = usePageSettings();
   const order = usePageOrder();
   const orderRef = useAsRef(order);
 
-  const isValidPageId = useCallback(
+  return useCallback(
     (_pageId: string) => {
       // The page ID may be URL encoded already, if we got this from react-router.
       const pageId = decodeURIComponent(_pageId);
@@ -199,31 +192,28 @@ export function useNavigatePage() {
     },
     [getTaskType, navParams, orderRef],
   );
+}
 
-  /**
-   * For stateless apps, this is how we redirect to the
-   * initial page of the app. We replace the url, to not
-   * have the initial page (i.e. the page without a
-   * pageKey) in the history.
-   */
-  useEffect(() => {
-    const currentPageId = navParams.current.pageKey ?? '';
-    if (isStateless && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
-      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, undefined, replaceAndPreventResetOptions);
-    }
-  }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
-
+export function useMaybeSaveOnPageChange() {
+  const { autoSaveBehavior } = usePageSettings();
   const waitForSave = FormStore.data.useWaitForSave();
-  const maybeSaveOnPageChange = useCallback(async () => {
+
+  return useCallback(async () => {
     await waitForSave(autoSaveBehavior === 'onChangePage');
   }, [autoSaveBehavior, waitForSave]);
+}
 
+export function useNavigateToPage() {
+  const isStateless = useIsStateless();
+  const navigate = useOurNavigate();
+  const navParams = useAllNavigationParamsAsRef();
+  const orderRef = useAsRef(usePageOrder());
+  const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
   const [_, setVisitedPages] = useVisitedPages();
 
-  const navigateToPage = useCallback(
+  return useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
       const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
-      const shouldExitSubform = options?.searchParams?.has(SearchParams.ExitSubform, 'true') ?? false;
       const navOptions: NavigateOptions = {
         replace: options?.replace ?? false,
         ...(preventScrollReset ? preventFocusAndScrollResetOptions : undefined),
@@ -232,16 +222,13 @@ export function useNavigatePage() {
         window.logWarn('navigateToPage called without page');
         return;
       }
-      if (!orderRef.current.includes(page) && !shouldExitSubform) {
+      if (!orderRef.current.includes(page)) {
         window.logWarn('navigateToPage called with invalid page:', `"${page}"`);
         return;
       }
 
       if (options?.skipAutoSave !== true) {
         await maybeSaveOnPageChange();
-      }
-      if (shouldExitSubform) {
-        await refetchInitialValidations();
       }
 
       setVisitedPages((visitedPages) => {
@@ -261,7 +248,7 @@ export function useNavigatePage() {
       const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
 
       // Subform
-      if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
+      if (mainPageKey && componentId && dataElementId) {
         const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`;
         return navigate(url, options, navOptions);
       }
@@ -269,15 +256,119 @@ export function useNavigatePage() {
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, navOptions);
     },
-    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations, setVisitedPages],
+    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, setVisitedPages],
   );
+}
+
+export function useExitSubform() {
+  const isStateless = useIsStateless();
+  const navigate = useOurNavigate();
+  const navParams = useAllNavigationParamsAsRef();
+  const refetchInitialValidations = useRefetchInitialValidations();
+  const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
+  const [_, setVisitedPages] = useVisitedPages();
+
+  return useCallback(async () => {
+    const { mainPageKey, componentId, pageKey, instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
+    if (!mainPageKey) {
+      window.logWarn('Tried to close subform page while not in a subform.');
+      return;
+    }
+
+    await maybeSaveOnPageChange();
+    await refetchInitialValidations();
+
+    setVisitedPages((visitedPages) => {
+      if (!pageKey || visitedPages.includes(pageKey)) {
+        return visitedPages;
+      }
+      return [...visitedPages, pageKey];
+    });
+
+    const searchParams = new URLSearchParams();
+    searchParams.set(SearchParams.ExitSubform, 'true');
+    if (componentId) {
+      searchParams.set(SearchParams.FocusComponentId, componentId);
+    }
+
+    const search = `?${searchParams.toString()}`;
+    if (isStateless) {
+      return navigate(`/${mainPageKey}${search}`, { resetReturnToView: false }, preventFocusAndScrollResetOptions);
+    }
+
+    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}${search}`;
+    return navigate(url, { resetReturnToView: false }, preventFocusAndScrollResetOptions);
+  }, [isStateless, maybeSaveOnPageChange, navigate, navParams, refetchInitialValidations, setVisitedPages]);
+}
+
+export function useEnterSubform() {
+  const navigate = useOurNavigate();
+  const navParams = useAllNavigationParamsAsRef();
+  const refetchInitialValidations = useRefetchInitialValidations();
+  const orderRef = useAsRef(usePageOrder());
+  const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
+
+  return useCallback(
+    async ({
+      nodeId,
+      dataElementId,
+      page,
+      validate,
+    }: {
+      nodeId: string;
+      dataElementId: string;
+      page?: string;
+      validate?: boolean;
+    }) => {
+      if (page && !orderRef.current.includes(page)) {
+        window.logWarn('enterSubform called with invalid page:', `"${page}"`);
+        return;
+      }
+      const { instanceOwnerPartyId, instanceGuid, taskId, pageKey } = navParams.current;
+      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`;
+
+      await maybeSaveOnPageChange();
+      refetchInitialValidations();
+      return navigate(url);
+    },
+    [maybeSaveOnPageChange, navigate, navParams, orderRef, refetchInitialValidations],
+  );
+}
+
+function useEnsureValidCurrentPage() {
+  const isStateless = useIsStateless();
+  const navigate = useOurNavigate();
+  const navParams = useAllNavigationParamsAsRef();
+  const [_searchParams] = useSearchParams();
+  const searchParamsRef = useAsRef(_searchParams);
+  const orderRef = useAsRef(usePageOrder());
+  const isValidPageId = useIsValidPageId();
+
+  /**
+   * For stateless apps, this is how we redirect to the
+   * initial page of the app. We replace the url, to not
+   * have the initial page (i.e. the page without a
+   * pageKey) in the history.
+   */
+  useEffect(() => {
+    const currentPageId = navParams.current.pageKey ?? '';
+    if (isStateless && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
+      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, undefined, replaceAndPreventResetOptions);
+    }
+  }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
+}
+
+export function useNavigateToNextPage() {
+  const navParams = useAllNavigationParamsAsRef();
+  const navigateToPage = useNavigateToPage();
+  const orderRef = useAsRef(usePageOrder());
 
   /**
    * This function fetch the next page index on function
    * invocation and then navigates to the next page. This is
    * to be able to chain multiple ClientActions together.
    */
-  const navigateToNextPage = useCallback(
+  return useCallback(
     async (options?: NavigateToPageOptions) => {
       const currentPage = navParams.current.pageKey;
       const nextPage = getNextPageKey(orderRef.current, currentPage);
@@ -290,6 +381,12 @@ export function useNavigatePage() {
     },
     [navParams, navigateToPage, orderRef],
   );
+}
+
+export function useNavigateToPreviousPage() {
+  const navParams = useAllNavigationParamsAsRef();
+  const navigateToPage = useNavigateToPage();
+  const orderRef = useAsRef(usePageOrder());
 
   /**
    * This function fetches the previous page index on
@@ -297,7 +394,7 @@ export function useNavigatePage() {
    * page. This is to be able to chain multiple ClientActions
    * together.
    */
-  const navigateToPreviousPage = useCallback(
+  return useCallback(
     async (options?: NavigateToPageOptions) => {
       const previousPage = getPreviousPageKey(orderRef.current, navParams.current.pageKey);
 
@@ -309,44 +406,19 @@ export function useNavigatePage() {
     },
     [navParams, navigateToPage, orderRef],
   );
+}
 
-  const exitSubform = async () => {
-    if (!navParams.current.mainPageKey) {
-      window.logWarn('Tried to close subform page while not in a subform.');
-      return;
-    }
+export function useNavigatePage() {
+  useEnsureValidCurrentPage();
 
-    const searchParams = new URLSearchParams();
-    searchParams.set(SearchParams.ExitSubform, 'true');
-    const componentToNavigateTo = navParams.current.componentId;
-    if (componentToNavigateTo) {
-      searchParams.set(SearchParams.FocusComponentId, componentToNavigateTo);
-    }
-    await navigateToPage(navParams.current.mainPageKey, { searchParams, resetReturnToView: false });
-  };
-
-  const enterSubform = async ({
-    nodeId,
-    dataElementId,
-    page,
-    validate,
-  }: {
-    nodeId: string;
-    dataElementId: string;
-    page?: string;
-    validate?: boolean;
-  }) => {
-    if (page && !orderRef.current.includes(page)) {
-      window.logWarn('enterSubform called with invalid page:', `"${page}"`);
-      return;
-    }
-    const { instanceOwnerPartyId, instanceGuid, taskId, pageKey } = navParams.current;
-    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`;
-
-    await maybeSaveOnPageChange();
-    refetchInitialValidations();
-    return navigate(url);
-  };
+  const order = usePageOrder();
+  const isValidPageId = useIsValidPageId();
+  const navigateToPage = useNavigateToPage();
+  const navigateToNextPage = useNavigateToNextPage();
+  const navigateToPreviousPage = useNavigateToPreviousPage();
+  const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
+  const exitSubform = useExitSubform();
+  const enterSubform = useEnterSubform();
 
   return {
     navigateToPage,
@@ -376,7 +448,7 @@ const emptyArray = [];
 
 export function useNavigateToComponent() {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const { navigateToPage } = useNavigatePage();
+  const navigateToPage = useNavigateToPage();
   const currentPageId = useCurrentView();
   const [searchParams, setSearchParams] = useSearchParams();
 
