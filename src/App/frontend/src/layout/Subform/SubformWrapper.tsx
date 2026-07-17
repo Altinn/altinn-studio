@@ -9,7 +9,7 @@ import { FormProvider } from 'src/features/form/FormProvider';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useNavigateToPage } from 'src/hooks/useNavigatePage';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<{ baseComponentId: string }>) {
@@ -47,7 +47,7 @@ export function SubformForm() {
 
 export const RedirectBackToMainForm = () => {
   const mainPageKey = useNavigationParam('mainPageKey');
-  const { navigateToPage } = useNavigatePage();
+  const navigateToPage = useNavigateToPage();
 
   useEffect(() => {
     navigateToPage(mainPageKey);

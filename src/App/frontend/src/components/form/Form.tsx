@@ -25,7 +25,7 @@ import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onF
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
+import { useCurrentView, useIsValidPageId, useNavigateToPage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -49,7 +49,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
-  const { isValidPageId } = useNavigatePage();
+  const isValidPageId = useIsValidPageId();
   const shouldNavigateToStart = !currentPageId || !isValidPageId(currentPageId);
 
   useEffect(() => {
@@ -155,7 +155,8 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
  */
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
-  const { isValidPageId, navigateToPage } = useNavigatePage();
+  const isValidPageId = useIsValidPageId();
+  const navigateToPage = useNavigateToPage();
   const applicationMetadataId = getApplicationMetadata()?.id;
 
   const instanceId = useLaxInstanceId();

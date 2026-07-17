@@ -19,9 +19,9 @@ describe('UI Components', () => {
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.header).should('contain.text', appFrontend.apps.frontendTest).and('contain.text', texts.ttd);
-    cy.get(appFrontend.message.logo).then((image) => {
-      cy.wrap(image).find('img').should('have.attr', 'alt', 'Altinn logo').should('exist');
-    });
+    cy.findAllByAltText(/Altinn logo/i)
+      .last()
+      .should('exist');
     cy.findByRole('button', { name: /Hjelpetekst for Altinn logo/i }).click();
     cy.get(appFrontend.helpText.alert).eq(0).should('be.visible');
     cy.get(appFrontend.helpText.alert).eq(0).should('contain.text', 'Altinn logo');

@@ -245,7 +245,7 @@ public class UiFoldersService : IUiFoldersService
         )?.DefaultDataType;
         if (!string.IsNullOrEmpty(dataType))
         {
-            await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType);
+            await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType, layoutSetToDeleteId);
         }
 
         altinnAppGitRepository.DeleteLayoutSetFolder(layoutSetToDeleteId, cancellationToken);
@@ -287,12 +287,14 @@ public class UiFoldersService : IUiFoldersService
 
     private static async Task DeleteTaskRefInApplicationMetadata(
         AltinnAppGitRepository altinnAppGitRepository,
-        string dataTypeId
+        string dataTypeId,
+        string connectedTaskId
     )
     {
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         DataType? dataType = applicationMetadata.DataTypes.Find(type => type.Id == dataTypeId);
-        if (dataType == null)
+        // dataType.taskId != connectedTaskId means that the data type is used by another task, so we should not delete it.
+        if (dataType == null || dataType.TaskId != connectedTaskId)
         {
             return;
         }
@@ -512,10 +514,11 @@ public class UiFoldersService : IUiFoldersService
                 continue;
             }
 
-            bool isSubform = layoutSettings.Type == "subform";
+            bool isSubform = layoutSettings.Type == Constants.General.SubformId;
             bool hasMatchingTask = taskOrderById.ContainsKey(layoutSetName);
+            bool isCustomReceipt = layoutSetName == Constants.General.CustomReceiptId;
 
-            if (!isSubform && !hasMatchingTask)
+            if (!isSubform && !hasMatchingTask && !isCustomReceipt)
             {
                 continue;
             }
