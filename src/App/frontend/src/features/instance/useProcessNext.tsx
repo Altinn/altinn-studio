@@ -20,8 +20,14 @@ import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext } from 'src/queries/queries';
 import { TaskKeys } from 'src/routesBuilder';
 import type { BackendValidationIssue } from 'src/features/validation';
-import type { IActionType, IInstance, IProcess, ProblemDetails } from 'src/types/shared';
+import type { IActionType, IInstance, IProcess, IProcessWorkflowFailure, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
+
+type ProcessNextProblemDetails = ProblemDetails & {
+  validationIssues?: BackendValidationIssue[] | null;
+  processNextState?: 'retrying' | 'resumeRequired';
+  workflowFailure?: IProcessWorkflowFailure;
+};
 
 interface ProcessNextProps {
   action?: IActionType;
@@ -67,10 +73,11 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
 
       return doProcessNext(instanceId, language, action)
         .then(({ data: instance }) => [instance, null] as const)
-        .catch(async (error) => {
-          if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
+        .catch(async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
+          const validationIssues = error.response?.data?.validationIssues;
+          if (error.response?.status === 409 && validationIssues?.length) {
             // If process next failed due to validation, return validationIssues instead of throwing
-            return [null, error.response.data['validationIssues'] as BackendValidationIssue[]] as const;
+            return [null, validationIssues] as const;
           }
 
           // The workflow engine can report a live status synchronously via the process/next error body.
@@ -84,10 +91,13 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           // a hard toast — the refetched workflow.status takes over. The backend deliberately ships no raw
           // failure detail on these responses (only the coarse classification), so there is nothing more
           // meaningful to show than the state machine's localized screens.
-          const processNextState = error.response?.data?.['processNextState'];
-          const workflowFailure = error.response?.data?.['workflowFailure'];
+          const processNextState = error.response?.data?.processNextState;
+          const workflowFailure = error.response?.data?.workflowFailure;
           if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
-            await reFetchInstanceData();
+            const refetchResult = await reFetchInstanceData();
+            if (refetchResult.isError) {
+              throw refetchResult.error;
+            }
             return [null, null] as const;
           }
 
@@ -122,7 +132,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
         await onValidationIssues(validationIssues);
       }
     },
-    onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
+    onError: async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
       window.logError('Process next failed:\n', error);
 
       const { data: newInstance } = await reFetchInstanceData();
