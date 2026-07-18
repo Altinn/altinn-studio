@@ -99,6 +99,7 @@ namespace Altinn.Platform.Storage.Authorization
             if (!DecisionHelper.ValidatePdpDecision(response.Response, context.User))
             {
                 context.Fail();
+                return;
             }
 
             context.Succeed(requirement);
