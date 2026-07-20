@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models.Process;
@@ -12,6 +13,8 @@ public sealed record ProcessNextRequest
     /// The instance that is being processed
     /// </summary>
     public required Instance Instance { get; init; }
+
+    internal StorageVersionMetadata InstanceVersions { get; init; } = StorageVersionMetadata.Empty;
 
     /// <summary>
     /// The user that is performing the action

@@ -52,6 +52,15 @@ internal sealed class DataElementCache<T>
         return false;
     }
 
+    public void Clear()
+    {
+        lock (_cache)
+        {
+            _cache.Clear();
+            _keys.Clear();
+        }
+    }
+
     public IEnumerable<(DataElementIdentifier, T)> GetCachedEntries()
     {
         List<DataElementIdentifier> entries;

@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 
 namespace Altinn.App.Integration.Tests;
@@ -21,6 +22,25 @@ public partial class AppFixture : IAsyncDisposable
     {
         private readonly AppFixture _fixture = fixture;
 
+        /// <summary>
+        /// Waits until a freshly minted token's <c>nbf</c> has passed on this machine's clock.
+        /// LocalTest mints tokens on its container clock while the process-mode app validates on
+        /// the host clock with zero skew, so Docker VM clock drift can make a brand-new token
+        /// momentarily invalid. LocalTest backdates <c>nbf</c> to compensate; this wait is the
+        /// test-side safety net in case drift ever exceeds that tolerance.
+        /// </summary>
+        private static async Task<string> WaitUntilTokenValid(string token)
+        {
+            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+            TimeSpan delay = jwt.ValidFrom - DateTime.UtcNow;
+            if (delay > TimeSpan.Zero)
+            {
+                await Task.Delay(delay + TimeSpan.FromMilliseconds(100));
+            }
+
+            return token;
+        }
+
         public async Task<string> GetOldUserToken(int userId = 1337)
         {
             var client = _fixture.GetLocaltestClient();
@@ -29,7 +49,7 @@ public partial class AppFixture : IAsyncDisposable
             var token = await response.Content.ReadAsStringAsync();
             Assert.NotNull(token);
             Assert.NotEmpty(token);
-            return token;
+            return await WaitUntilTokenValid(token);
         }
 
         public async Task<string> GetOldServiceOwnerToken(
@@ -45,7 +65,7 @@ public partial class AppFixture : IAsyncDisposable
             var token = await response.Content.ReadAsStringAsync();
             Assert.NotNull(token);
             Assert.NotEmpty(token);
-            return token;
+            return await WaitUntilTokenValid(token);
         }
 
         public async Task<string> GetUserToken(
@@ -70,7 +90,7 @@ public partial class AppFixture : IAsyncDisposable
             var token = await response.Content.ReadAsStringAsync();
             Assert.NotNull(token);
             Assert.NotEmpty(token);
-            return token;
+            return await WaitUntilTokenValid(token);
         }
 
         public async Task<string> GetServiceOwnerToken(string? scope = null)
@@ -88,7 +108,7 @@ public partial class AppFixture : IAsyncDisposable
             var token = await response.Content.ReadAsStringAsync();
             Assert.NotNull(token);
             Assert.NotEmpty(token);
-            return token;
+            return await WaitUntilTokenValid(token);
         }
 
         public async Task<string> GetOrgToken(string? orgNumber = null, string? scope = null)
@@ -107,7 +127,7 @@ public partial class AppFixture : IAsyncDisposable
             var token = await response.Content.ReadAsStringAsync();
             Assert.NotNull(token);
             Assert.NotEmpty(token);
-            return token;
+            return await WaitUntilTokenValid(token);
         }
 
         public async Task<string> GetSystemUserToken(
@@ -132,7 +152,7 @@ public partial class AppFixture : IAsyncDisposable
             var token = await response.Content.ReadAsStringAsync();
             Assert.NotNull(token);
             Assert.NotEmpty(token);
-            return token;
+            return await WaitUntilTokenValid(token);
         }
 
         public async Task<string> GetSelfIdentifiedUserToken(string? username = null, string? scope = null)
@@ -151,7 +171,7 @@ public partial class AppFixture : IAsyncDisposable
             var token = await response.Content.ReadAsStringAsync();
             Assert.NotNull(token);
             Assert.NotEmpty(token);
-            return token;
+            return await WaitUntilTokenValid(token);
         }
 
         public async Task<(bool, string)> IntrospectAuthentication(string token)

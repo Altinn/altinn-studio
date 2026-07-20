@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -76,12 +77,17 @@ public class WorkflowEngineServiceTests
                 },
             ]);
 
-        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        var versions = new StorageVersionMetadata(InstanceVersion: 17, ProcessStateVersion: 9);
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
         instanceClient
             .Setup(c =>
-                c.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
 
         // ProcessNextRequestFactory is not exercised on the resume path, so it can be left null here.
         var service = new WorkflowEngineService(
@@ -101,6 +107,7 @@ public class WorkflowEngineServiceTests
 
         // Assert
         Assert.Null(result.WorkflowFailure);
+        Assert.Equal(versions, result.InstanceVersions);
         client.Verify(
             c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()),
             Times.Once,
@@ -318,7 +325,7 @@ public class WorkflowEngineServiceTests
         var service = new WorkflowEngineService(
             processNextRequestFactory: null!,
             client.Object,
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             new AppIdentifier(Org, App)
         );
 
@@ -374,7 +381,7 @@ public class WorkflowEngineServiceTests
         var service = new WorkflowEngineService(
             processNextRequestFactory: null!,
             client.Object,
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             new AppIdentifier(Org, App)
         );
 
@@ -431,7 +438,7 @@ public class WorkflowEngineServiceTests
         var service = new WorkflowEngineService(
             processNextRequestFactory: null!,
             client.Object,
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             new AppIdentifier(Org, App)
         );
 
@@ -515,7 +522,7 @@ public class WorkflowEngineServiceTests
         var service = new WorkflowEngineService(
             processNextRequestFactory: null!,
             client.Object,
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             new AppIdentifier(Org, App)
         );
 
@@ -563,7 +570,7 @@ public class WorkflowEngineServiceTests
         var service = new WorkflowEngineService(
             processNextRequestFactory: null!,
             client.Object,
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             new AppIdentifier(Org, App)
         );
 

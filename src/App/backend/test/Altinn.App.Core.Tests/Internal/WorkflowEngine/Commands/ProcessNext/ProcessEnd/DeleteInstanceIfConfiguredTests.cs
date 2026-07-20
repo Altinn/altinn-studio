@@ -1,29 +1,38 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Options;
 using Moq;
-using StorageAuthenticationMethod = Altinn.App.Core.Features.StorageAuthenticationMethod;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 
 public class DeleteInstanceIfConfiguredTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance)
+    private static ProcessEngineCommandContext CreateContext(Instance instance, IInstanceDataMutator? mutator = null)
     {
-        var mutatorMock = new Mock<IInstanceDataMutator>();
-        mutatorMock.Setup(x => x.Instance).Returns(instance);
+        if (mutator is null)
+        {
+            var mutatorMock = new Mock<IInstanceDataMutator>();
+            mutatorMock.Setup(x => x.Instance).Returns(instance);
+            mutator = mutatorMock.Object;
+        }
 
         return new ProcessEngineCommandContext
         {
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
-            InstanceDataMutator = mutatorMock.Object,
+            InstanceDataMutator = mutator,
             CancellationToken = CancellationToken.None,
             Payload = new AppCallbackPayload
             {
@@ -32,6 +41,7 @@ public class DeleteInstanceIfConfiguredTests
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
     }
@@ -46,6 +56,7 @@ public class DeleteInstanceIfConfiguredTests
             AppId = "ttd/test-app",
             InstanceOwner = new InstanceOwner { PartyId = "1337" },
             Process = new ProcessState(),
+            Data = [],
         };
 
         if (processEnded)
@@ -57,134 +68,164 @@ public class DeleteInstanceIfConfiguredTests
         return instance;
     }
 
-    [Fact]
-    public async Task Execute_WhenAutoDeleteOnProcessEndTrueAndProcessEnded_DeletesInstanceAndReturnsSuccess()
+    private static InstanceDataUnitOfWork CreateUnitOfWork(
+        Instance instance,
+        ApplicationMetadata applicationMetadata,
+        Mock<IDataClientWithStorageMetadata>? dataClientMock = null
+    )
     {
-        // Arrange
-        var instance = CreateInstance(processEnded: true);
-        var context = CreateContext(instance);
-
-        var appMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = true };
-        var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-
-        var instanceClientMock = new Mock<IInstanceClient>();
-        var command = new DeleteInstanceIfConfigured(instanceClientMock.Object, appMetadataMock.Object);
-
-        // Act
-        var result = await command.Execute(context);
-
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        var instanceIdentifier = new InstanceIdentifier(instance);
-        instanceClientMock.Verify(
-            x =>
-                x.DeleteInstance(
-                    1337,
-                    instanceIdentifier.InstanceGuid,
-                    true,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
+        dataClientMock ??= new Mock<IDataClientWithStorageMetadata>();
+        var mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
+        return new(
+            instance,
+            new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
+            dataClientMock.Object,
+            mutationClientMock.Object,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            applicationMetadata,
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            taskId: null,
+            language: null
         );
     }
 
     [Fact]
-    public async Task Execute_WhenAutoDeleteOnProcessEndFalse_DoesNotDeleteAndReturnsSuccess()
+    public async Task Execute_WhenAutoDeleteOnProcessEndTrueAndProcessEnded_StagesInstanceDeletion()
     {
-        // Arrange
         var instance = CreateInstance(processEnded: true);
-        var context = CreateContext(instance);
-
-        var appMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = false };
+        var applicationMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = true };
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-
-        var instanceClientMock = new Mock<IInstanceClient>();
-        var command = new DeleteInstanceIfConfigured(instanceClientMock.Object, appMetadataMock.Object);
-
-        // Act
-        var result = await command.Execute(context);
-
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        instanceClientMock.Verify(
-            x =>
-                x.DeleteInstance(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task Execute_WhenProcessNotEnded_DoesNotDeleteAndReturnsSuccess()
-    {
-        // Arrange
-        var instance = CreateInstance(processEnded: false);
-        var context = CreateContext(instance);
-
-        var appMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = true };
-        var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-
-        var instanceClientMock = new Mock<IInstanceClient>();
-        var command = new DeleteInstanceIfConfigured(instanceClientMock.Object, appMetadataMock.Object);
-
-        // Act
-        var result = await command.Execute(context);
-
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        instanceClientMock.Verify(
-            x =>
-                x.DeleteInstance(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task Execute_WhenDeleteInstanceThrows_ReturnsFailedResult()
-    {
-        // Arrange
-        var instance = CreateInstance(processEnded: true);
-        var context = CreateContext(instance);
-
-        var appMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = true };
-        var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-
-        var instanceClientMock = new Mock<IInstanceClient>();
-        instanceClientMock
+        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        var mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
+        StorageInstanceMutationRequest? capturedMutation = null;
+        mutationClientMock
             .Setup(x =>
-                x.DeleteInstance(
-                    It.IsAny<int>(),
+                x.CommitInstanceMutationWithStorageMetadata(
+                    1337,
                     It.IsAny<Guid>(),
-                    It.IsAny<bool>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ThrowsAsync(new Exception("Delete failed"));
-        var command = new DeleteInstanceIfConfigured(instanceClientMock.Object, appMetadataMock.Object);
+            .ReturnsAsync(
+                (
+                    int _,
+                    Guid _,
+                    StorageInstanceMutationRequest mutation,
+                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
+                    StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? _,
+                    CancellationToken _
+                ) =>
+                {
+                    capturedMutation = mutation;
+                    return new InstanceMutationWithStorageMetadata(
+                        new Instance
+                        {
+                            Id = instance.Id,
+                            Org = instance.Org,
+                            AppId = instance.AppId,
+                            InstanceOwner = instance.InstanceOwner,
+                            Process = instance.Process,
+                            Status = new InstanceStatus
+                            {
+                                IsHardDeleted = true,
+                                IsSoftDeleted = true,
+                                HardDeleted = DateTime.UtcNow,
+                                SoftDeleted = DateTime.UtcNow,
+                            },
+                            Data = [],
+                        },
+                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 8)
+                    );
+                }
+            );
+        var unitOfWork = CreateUnitOfWork(instance, applicationMetadata, dataClientMock);
+        var command = new DeleteInstanceIfConfigured(appMetadataMock.Object);
 
-        // Act
-        var result = await command.Execute(context);
+        var result = await command.Execute(CreateContext(instance, unitOfWork));
 
-        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
+        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+            changes,
+            "delete-instance-step-id",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.NotNull(capturedMutation?.DeleteInstance);
+        Assert.True(capturedMutation.DeleteInstance.Hard);
+    }
+
+    [Fact]
+    public async Task Execute_WhenAutoDeleteOnProcessEndFalse_DoesNotStageDeletion()
+    {
+        var instance = CreateInstance(processEnded: true);
+        var applicationMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = false };
+        var appMetadataMock = new Mock<IAppMetadata>();
+        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        var unitOfWork = CreateUnitOfWork(instance, applicationMetadata, dataClientMock);
+        var command = new DeleteInstanceIfConfigured(appMetadataMock.Object);
+
+        var result = await command.Execute(CreateContext(instance, unitOfWork));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
+        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+            changes,
+            "delete-instance-step-id",
+            CancellationToken.None
+        );
+        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, outcome);
+        dataClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Execute_WhenProcessNotEnded_DoesNotStageDeletion()
+    {
+        var instance = CreateInstance(processEnded: false);
+        var applicationMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = true };
+        var appMetadataMock = new Mock<IAppMetadata>();
+        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        var unitOfWork = CreateUnitOfWork(instance, applicationMetadata, dataClientMock);
+        var command = new DeleteInstanceIfConfigured(appMetadataMock.Object);
+
+        var result = await command.Execute(CreateContext(instance, unitOfWork));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
+        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+            changes,
+            "delete-instance-step-id",
+            CancellationToken.None
+        );
+        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, outcome);
+        dataClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Execute_WhenCallbackMutatorIsNotUnitOfWork_ReturnsPermanentFailure()
+    {
+        var instance = CreateInstance(processEnded: true);
+        var applicationMetadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = true };
+        var appMetadataMock = new Mock<IAppMetadata>();
+        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        var command = new DeleteInstanceIfConfigured(appMetadataMock.Object);
+
+        var result = await command.Execute(CreateContext(instance));
+
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.Equal("Delete failed", failed.ErrorMessage);
-        Assert.Equal("Exception", failed.ExceptionType);
+        Assert.True(failed.NonRetryable);
+        Assert.Contains("InstanceDataUnitOfWork", failed.ErrorMessage, StringComparison.Ordinal);
     }
 }

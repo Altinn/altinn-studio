@@ -107,7 +107,12 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     };
     services.AddSingleton<IOptions<PlatformSettings>>(Options.Create(platformSettings));
     services.AddTransient<IAuthorizationClient, AuthorizationMock>();
-    services.AddTransient<IInstanceClient, InstanceClientMockSi>();
+    services.AddSingleton<ApiTestStorageMetadata>();
+    services.AddTransient<InstanceClientMockSi>();
+    services.AddTransient<IInstanceClientWithStorageMetadata>(sp =>
+        (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+    );
+    services.AddTransient<IInstanceClient>(sp => sp.GetRequiredService<InstanceClientMockSi>());
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
     services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
@@ -116,7 +121,12 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IEventHandler, DummySuccessEventHandler>();
     services.AddTransient<IAppMetadata, AppMetadataMock>();
     services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
-    services.AddTransient<IDataClient, DataClientMock>();
+    services.AddTransient<DataClientMock>();
+    services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+        (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+    );
+    services.AddTransient<IInstanceMutationClient>(sp => (IInstanceMutationClient)sp.GetRequiredService<IDataClient>());
+    services.AddTransient<IDataClient>(sp => sp.GetRequiredService<DataClientMock>());
     services.AddTransient<AltinnPartyClientInterceptor>();
     services
         .AddHttpClient<IAltinnPartyClient, AltinnPartyClient>()

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -68,11 +69,17 @@ public class ProcessChangeResult
     internal Instance? MutatedInstance { get; init; }
 
     /// <summary>
+    /// The storage versions associated with <see cref="MutatedInstance"/>.
+    /// </summary>
+    internal StorageVersionMetadata MutatedInstanceVersions { get; init; } = StorageVersionMetadata.Empty;
+
+    /// <summary>
     /// Initializes a new <see cref="ProcessChangeResult"/> instance with a mutated instance.
     /// </summary>
-    internal ProcessChangeResult(Instance mutatedInstance)
+    internal ProcessChangeResult(Instance mutatedInstance, StorageVersionMetadata mutatedInstanceVersions)
     {
         MutatedInstance = mutatedInstance;
+        MutatedInstanceVersions = mutatedInstanceVersions;
     }
 }
 

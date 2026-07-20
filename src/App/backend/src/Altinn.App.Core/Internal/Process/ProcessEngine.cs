@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -147,6 +148,7 @@ internal class ProcessEngine : IProcessEngine
     /// <inheritdoc/>
     public async Task<Instance> SubmitInitialProcessState(
         Instance instance,
+        StorageVersionMetadata versions,
         ProcessStateChange processStateChange,
         string lockToken,
         bool isInstantiation = false,
@@ -160,13 +162,18 @@ internal class ProcessEngine : IProcessEngine
         try
         {
             string? taskId = instance.Process?.CurrentTask?.ElementId;
-            var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+            InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
                 instance,
+                versions,
                 taskId,
                 language: null,
                 StorageAuthenticationMethod.ServiceOwner()
             );
             state = await _workflowCallbackStateService.CaptureState(unitOfWork);
+        }
+        catch (DataElementContentConflictException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -294,7 +301,7 @@ internal class ProcessEngine : IProcessEngine
 
         if (workflowResult.WorkflowFailure is not null)
         {
-            var failureResult = new ProcessChangeResult(mutatedInstance: workflowResult.Instance)
+            var failureResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Internal,
@@ -307,7 +314,7 @@ internal class ProcessEngine : IProcessEngine
             return failureResult;
         }
 
-        var changeResult = new ProcessChangeResult(mutatedInstance: workflowResult.Instance)
+        var changeResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
         {
             Success = true,
             ProcessStateChange = new ProcessStateChange
@@ -334,6 +341,7 @@ internal class ProcessEngine : IProcessEngine
         using Activity? activity = _telemetry?.StartProcessNextActivity(request.Instance, request.Action);
 
         Instance instance = request.Instance;
+        StorageVersionMetadata versions = request.InstanceVersions;
 
         if (
             !TryGetCurrentTaskIdAndAltinnTaskType(
@@ -444,7 +452,13 @@ internal class ProcessEngine : IProcessEngine
         {
             if (request.Action is not null)
             {
-                UserActionResult userActionResult = await HandleUserAction(instance, request, ct);
+                (UserActionResult userActionResult, StorageVersionMetadata updatedVersions) = await HandleUserAction(
+                    instance,
+                    request,
+                    versions,
+                    ct
+                );
+                versions = updatedVersions;
 
                 if (userActionResult.ResultType is ResultType.Failure)
                 {
@@ -475,10 +489,10 @@ internal class ProcessEngine : IProcessEngine
         {
             InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
                 instance,
+                versions,
                 currentTaskId,
                 request.Language
             );
-
             List<ValidationIssueWithSource> validationIssues = await _validationService.ValidateInstanceAtTask(
                 dataAccessor,
                 currentTaskId, // run full validation
@@ -509,6 +523,7 @@ internal class ProcessEngine : IProcessEngine
         {
             moveToNextResult = await HandleMoveToNext(
                 instance,
+                versions,
                 processNextAction,
                 checkedAction,
                 _instanceLocker.CurrentLockToken
@@ -545,7 +560,7 @@ internal class ProcessEngine : IProcessEngine
 
         if (moveToNextResult.WorkflowFailure is not null)
         {
-            var failureResult = new ProcessChangeResult(mutatedInstance: moveToNextResult.Instance)
+            var failureResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Internal,
@@ -558,7 +573,7 @@ internal class ProcessEngine : IProcessEngine
             return failureResult;
         }
 
-        var changeResult = new ProcessChangeResult(mutatedInstance: moveToNextResult.Instance)
+        var changeResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
         {
             Success = true,
             ProcessStateChange = moveToNextResult.ProcessStateChange,
@@ -568,9 +583,10 @@ internal class ProcessEngine : IProcessEngine
         return changeResult;
     }
 
-    private async Task<UserActionResult> HandleUserAction(
+    private async Task<(UserActionResult Result, StorageVersionMetadata Versions)> HandleUserAction(
         Instance instance,
         ProcessNextRequest request,
+        StorageVersionMetadata versions,
         CancellationToken ct
     )
     {
@@ -580,10 +596,11 @@ internal class ProcessEngine : IProcessEngine
         IUserAction? actionHandler = _userActionService.GetActionHandler(request.Action);
 
         if (actionHandler is null)
-            return UserActionResult.SuccessResult();
+            return (UserActionResult.SuccessResult(), versions);
 
         InstanceDataUnitOfWork cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
+            versions,
             taskId: null,
             request.Language
         );
@@ -607,7 +624,7 @@ internal class ProcessEngine : IProcessEngine
 
         if (actionResult.ResultType == ResultType.Failure)
         {
-            return actionResult;
+            return (actionResult, versions);
         }
 
         if (cachedDataMutator.HasAbandonIssues)
@@ -618,10 +635,10 @@ internal class ProcessEngine : IProcessEngine
         }
 
         DataElementChanges changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        await cachedDataMutator.UpdateInstanceData(changes);
         await cachedDataMutator.SaveChanges(changes);
+        StorageVersionMetadata updatedVersions = cachedDataMutator.StorageVersions;
 
-        return actionResult;
+        return (actionResult, updatedVersions);
     }
 
     /// <summary>
@@ -812,6 +829,7 @@ internal class ProcessEngine : IProcessEngine
 
     private async Task<MoveToNextResult> HandleMoveToNext(
         Instance instance,
+        StorageVersionMetadata versions,
         string? action,
         string resolvedAction,
         string lockToken,
@@ -822,15 +840,19 @@ internal class ProcessEngine : IProcessEngine
 
         // Compute the transition without mutating instance.Process, then capture the old instance/form-data
         // snapshot before mutating instance.Process so the callback starts from the task being left.
+        string state;
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
-        InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-            instance,
-            currentTaskId,
-            language: null,
-            StorageAuthenticationMethod.ServiceOwner()
-        );
+        {
+            InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+                instance,
+                versions,
+                currentTaskId,
+                language: null,
+                StorageAuthenticationMethod.ServiceOwner()
+            );
+            state = await _workflowCallbackStateService.CaptureState(unitOfWork);
+        }
 
-        string state = await _workflowCallbackStateService.CaptureState(unitOfWork);
         ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
         if (processStateChange is null)
         {
@@ -855,6 +877,7 @@ internal class ProcessEngine : IProcessEngine
 
         return new MoveToNextResult(
             result.Instance,
+            result.InstanceVersions,
             finalProcessStateChange,
             result.WorkflowFailure,
             result.ProcessStateChanged
@@ -948,6 +971,7 @@ internal class ProcessEngine : IProcessEngine
 
     private sealed record MoveToNextResult(
         Instance Instance,
+        StorageVersionMetadata Versions,
         ProcessStateChange? ProcessStateChange,
         WorkflowFailure? WorkflowFailure = null,
         bool ProcessStateChanged = false

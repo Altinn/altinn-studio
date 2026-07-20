@@ -2,11 +2,10 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +23,6 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
     private readonly ILogger<EFormidlingServiceTask> _logger;
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IInstanceClient _instanceClient;
     private readonly IEFormidlingService? _eFormidlingService;
 
     /// <summary>
@@ -34,14 +32,12 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
         ILogger<EFormidlingServiceTask> logger,
         IProcessReader processReader,
         IHostEnvironment hostEnvironment,
-        IInstanceClient instanceClient,
         IEFormidlingService? eFormidlingService = null
     )
     {
         _logger = logger;
         _processReader = processReader;
         _hostEnvironment = hostEnvironment;
-        _instanceClient = instanceClient;
         _eFormidlingService = eFormidlingService;
     }
 
@@ -78,6 +74,13 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
             );
         }
 
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            throw new ProcessException(
+                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to record shipment ownership."
+            );
+        }
+
         // The message id sent to eFormidling is the instance guid, so only one shipment can ever be
         // sent per instance (see docs/adr/2026-07-24-eformidling-shipment-id.md). The workflow id of
         // the pass that sent it is recorded on the instance: a matching (or absent) owner means this
@@ -106,7 +109,7 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
         );
         try
         {
-            await _eFormidlingService.SendEFormidlingShipment(instance, configuration);
+            await _eFormidlingService.SendEFormidlingShipment(instance, configuration, context.InstanceDataMutator);
         }
         catch (EformidlingDeliveryException e)
         {
@@ -117,14 +120,12 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
             LogSanitizer.Sanitize(taskId)
         );
 
-        // Record ownership after the send: if this write fails the step retries, and the retry
-        // resumes/no-ops the already-sent message before writing the owner again.
-        await _instanceClient.UpdateDataValue(
-            instance,
+        // Record ownership after the send: the value is staged on the unit of work and commits with
+        // this callback's version-fenced workflow-owned save. If that save fails the step retries,
+        // and the retry resumes/no-ops the already-sent message before staging the owner again.
+        unitOfWork.UpdateInstanceDataValue(
             EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
-            workflowId.ToString(),
-            StorageAuthenticationMethod.ServiceOwner(),
-            context.CancellationToken
+            workflowId.ToString()
         );
 
         return ServiceTaskResult.Success();

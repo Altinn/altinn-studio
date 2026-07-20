@@ -3,6 +3,7 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
@@ -129,7 +130,11 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
         // Setup eFormidling service to throw exception
         _eFormidlingServiceMock
             .Setup(x =>
-                x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>())
+                x.SendEFormidlingShipment(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<IInstanceDataAccessor?>()
+                )
             )
             .ThrowsAsync(new Exception());
 

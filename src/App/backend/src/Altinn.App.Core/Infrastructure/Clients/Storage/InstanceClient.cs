@@ -10,6 +10,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.WebUtilities;
@@ -23,7 +24,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// A client for handling actions on instances in Altinn Platform.
 /// </summary>
-internal sealed class InstanceClient : IInstanceClient
+internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStorageMetadata
 {
     private readonly ILogger _logger;
     private readonly IAuthenticationTokenResolver _tokenResolver;
@@ -70,6 +71,19 @@ internal sealed class InstanceClient : IInstanceClient
         Guid instanceId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken ct = default
+    ) =>
+        (
+            await GetInstanceWithStorageMetadata(app, org, instanceOwnerPartyId, instanceId, authenticationMethod, ct)
+        ).Instance;
+
+    /// <inheritdoc />
+    public async Task<InstanceWithStorageMetadata> GetInstanceWithStorageMetadata(
+        string app,
+        string org,
+        int instanceOwnerPartyId,
+        Guid instanceId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken ct = default
     )
     {
         using var activity = _telemetry?.StartGetInstanceByGuidActivity(instanceId);
@@ -82,7 +96,7 @@ internal sealed class InstanceClient : IInstanceClient
         if (response.StatusCode == HttpStatusCode.OK)
         {
             Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
-            return instance;
+            return CreateInstanceResult(instance, response);
         }
         else
         {
@@ -96,6 +110,13 @@ internal sealed class InstanceClient : IInstanceClient
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken ct = default
+    ) => (await GetInstanceWithStorageMetadata(instance, authenticationMethod, ct)).Instance;
+
+    /// <inheritdoc />
+    public async Task<InstanceWithStorageMetadata> GetInstanceWithStorageMetadata(
+        Instance instance,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken ct = default
     )
     {
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -104,7 +125,14 @@ internal sealed class InstanceClient : IInstanceClient
         string org = instance.Org;
         int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
-        return await GetInstance(app, org, instanceOwnerPartyId, instanceGuid, authenticationMethod, ct);
+        return await GetInstanceWithStorageMetadata(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod,
+            ct
+        );
     }
 
     /// <inheritdoc />
@@ -187,7 +215,7 @@ internal sealed class InstanceClient : IInstanceClient
         if (response.StatusCode == HttpStatusCode.OK)
         {
             Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
-            return updatedInstance;
+            return CreateInstanceResult(updatedInstance, response).Instance;
         }
         else
         {
@@ -201,6 +229,15 @@ internal sealed class InstanceClient : IInstanceClient
         Instance instance,
         List<InstanceEvent> events,
         StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken ct = default
+    ) => (await UpdateProcessAndEventsWithStorageMetadata(instance, events, authenticationMethod, ct: ct)).Instance;
+
+    /// <inheritdoc />
+    public async Task<InstanceWithStorageMetadata> UpdateProcessAndEventsWithStorageMetadata(
+        Instance instance,
+        List<InstanceEvent> events,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        StorageWritePreconditions? preconditions = null,
         CancellationToken ct = default
     )
     {
@@ -218,20 +255,21 @@ internal sealed class InstanceClient : IInstanceClient
         _logger.LogInformation($"update process state: {updateString}");
 
         StringContent httpContent = new(updateString, Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Put,
             token,
             apiUrl,
             httpContent,
-            lockToken: _instanceLocker.CurrentLockToken,
+            preconditions,
+            ct,
             // This app runs its own task-generated data cleanup at task start, so Storage must not
             // also prune elements generated from the entered task (which would race our own writes).
-            skipTaskDataCleanup: true,
-            cancellationToken: ct
+            skipTaskDataCleanup: true
         );
         if (response.StatusCode == HttpStatusCode.OK)
         {
             Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
-            return updatedInstance;
+            return CreateInstanceResult(updatedInstance, response);
         }
         else
         {
@@ -242,6 +280,15 @@ internal sealed class InstanceClient : IInstanceClient
 
     /// <inheritdoc/>
     public async Task<Instance> CreateInstance(
+        string org,
+        string app,
+        Instance instanceTemplate,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken ct = default
+    ) => (await CreateInstanceWithStorageMetadata(org, app, instanceTemplate, authenticationMethod, ct)).Instance;
+
+    /// <inheritdoc/>
+    public async Task<InstanceWithStorageMetadata> CreateInstanceWithStorageMetadata(
         string org,
         string app,
         Instance instanceTemplate,
@@ -266,7 +313,7 @@ internal sealed class InstanceClient : IInstanceClient
         {
             Instance createdInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
             _telemetry?.InstanceCreated(createdInstance);
-            return createdInstance;
+            return CreateInstanceResult(createdInstance, response);
         }
 
         _logger.LogError(
@@ -299,7 +346,7 @@ internal sealed class InstanceClient : IInstanceClient
         {
             Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
             _telemetry?.InstanceCompleted(instance);
-            return instance;
+            return CreateInstanceResult(instance, response).Instance;
         }
 
         throw await PlatformHttpException.CreateAsync(response);
@@ -329,7 +376,7 @@ internal sealed class InstanceClient : IInstanceClient
         if (response.StatusCode == HttpStatusCode.OK)
         {
             Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
-            return instance;
+            return CreateInstanceResult(instance, response).Instance;
         }
 
         _logger.LogError(
@@ -364,7 +411,7 @@ internal sealed class InstanceClient : IInstanceClient
         if (response.StatusCode == HttpStatusCode.OK)
         {
             Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
-            return instance;
+            return CreateInstanceResult(instance, response).Instance;
         }
 
         throw await PlatformHttpException.CreateAsync(response);
@@ -377,24 +424,44 @@ internal sealed class InstanceClient : IInstanceClient
         PresentationTexts presentationTexts,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken ct = default
+    ) =>
+        (
+            await UpdatePresentationTextsWithStorageMetadata(
+                instanceOwnerPartyId,
+                instanceGuid,
+                presentationTexts,
+                authenticationMethod,
+                ct: ct
+            )
+        ).Instance;
+
+    /// <inheritdoc />
+    public async Task<InstanceWithStorageMetadata> UpdatePresentationTextsWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        PresentationTexts presentationTexts,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        StorageWritePreconditions? preconditions = null,
+        CancellationToken ct = default
     )
     {
         using var activity = _telemetry?.StartUpdatePresentationTextActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Put,
             token,
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json"),
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: ct
+            preconditions,
+            ct
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
             Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
-            return instance;
+            return CreateInstanceResult(instance, response);
         }
 
         throw await PlatformHttpException.CreateAsync(response);
@@ -407,24 +474,44 @@ internal sealed class InstanceClient : IInstanceClient
         DataValues dataValues,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken ct = default
+    ) =>
+        (
+            await UpdateDataValuesWithStorageMetadata(
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataValues,
+                authenticationMethod,
+                ct: ct
+            )
+        ).Instance;
+
+    /// <inheritdoc />
+    public async Task<InstanceWithStorageMetadata> UpdateDataValuesWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        DataValues dataValues,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        StorageWritePreconditions? preconditions = null,
+        CancellationToken ct = default
     )
     {
         using var activity = _telemetry?.StartUpdateDataValuesActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Put,
             token,
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json"),
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: ct
+            preconditions,
+            ct
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
             Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
-            return instance;
+            return CreateInstanceResult(instance, response);
         }
 
         throw await PlatformHttpException.CreateAsync(response);
@@ -453,9 +540,43 @@ internal sealed class InstanceClient : IInstanceClient
         {
             Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
             _telemetry?.InstanceDeleted(instance);
-            return instance;
+            return CreateInstanceResult(instance, response).Instance;
         }
 
         throw await PlatformHttpException.CreateAsync(response);
+    }
+
+    private async Task<HttpResponseMessage> SendStorageRequestAsync(
+        HttpMethod method,
+        string token,
+        string apiUrl,
+        HttpContent? content,
+        StorageWritePreconditions? preconditions,
+        CancellationToken ct,
+        bool skipTaskDataCleanup = false
+    )
+    {
+        if (skipTaskDataCleanup)
+        {
+            char separator = apiUrl.Contains('?', StringComparison.Ordinal) ? '&' : '?';
+            apiUrl = $"{apiUrl}{separator}deleteGeneratedElements=false";
+        }
+
+        using HttpRequestMessage request = new(method, apiUrl) { Content = content };
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        StoragePreconditionHeaders.Add(request.Headers, preconditions);
+
+        if (!string.IsNullOrEmpty(_instanceLocker.CurrentLockToken))
+        {
+            request.Headers.Add(General.LockTokenHeaderName, _instanceLocker.CurrentLockToken);
+        }
+
+        return await _client.SendAsync(request, ct);
+    }
+
+    private static InstanceWithStorageMetadata CreateInstanceResult(Instance instance, HttpResponseMessage response)
+    {
+        StorageVersionMetadata metadata = StorageResponseMetadata.ReadVersionMetadata(response);
+        return new InstanceWithStorageMetadata(instance, metadata);
     }
 }

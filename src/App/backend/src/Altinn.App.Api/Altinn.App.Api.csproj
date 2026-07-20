@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP"/>
-    <PackageReference Include="Altinn.Platform.Storage.Interface"/>
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore"/>
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
@@ -32,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../../_vendor/Storage.Interface/Altinn.Platform.Storage.Interface.csproj" />
     <ProjectReference Include="../Altinn.App.Core/Altinn.App.Core.csproj" />
   </ItemGroup>
 

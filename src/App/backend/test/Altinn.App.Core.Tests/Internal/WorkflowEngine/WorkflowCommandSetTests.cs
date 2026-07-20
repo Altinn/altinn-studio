@@ -23,6 +23,7 @@ public class WorkflowCommandSetTests
         var commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
+                TaskId = "Task_1",
                 ServiceTaskType = "pdf",
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
@@ -58,6 +59,7 @@ public class WorkflowCommandSetTests
         var commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
+                TaskId = "Task_1",
                 ServiceTaskType = null,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
@@ -94,7 +96,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskEndSteps();
+        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1");
 
         Assert.Equal(
             [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],

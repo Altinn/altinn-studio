@@ -131,7 +131,7 @@ internal sealed record AppCommandTestFixture(
             StateIn = stateIn,
         };
 
-    public static Workflow CreateWorkflow(Step step) =>
+    public static Workflow CreateWorkflow(Step step, DateTimeOffset? startAt = null) =>
         new()
         {
             CollectionKey = EngineAppFixture.DefaultCollectionKey,
@@ -139,16 +139,28 @@ internal sealed record AppCommandTestFixture(
             IdempotencyKey = "test-wf-key",
             Namespace = "test-namespace",
             Context = DefaultWorkflowContext,
+            StartAt = startAt,
             Steps = [step],
         };
 
-    public static Step CreateStep(CommandDefinition command, string operationId = "test-step-op") =>
-        new()
+    public static Step CreateStep(
+        CommandDefinition command,
+        string operationId = "test-step-op",
+        Guid databaseId = default,
+        DateTimeOffset createdAt = default
+    )
+    {
+        var step = new Step
         {
+            CreatedAt = createdAt,
             OperationId = operationId,
             ProcessingOrder = 0,
             Command = command,
         };
+
+        typeof(PersistentItem).GetProperty(nameof(PersistentItem.DatabaseId))!.SetValue(step, databaseId);
+        return step;
+    }
 
     public void Dispose()
     {

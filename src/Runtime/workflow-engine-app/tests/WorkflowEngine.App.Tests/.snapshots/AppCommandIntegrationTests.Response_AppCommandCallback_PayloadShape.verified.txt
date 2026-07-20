@@ -7,5 +7,6 @@
   lockToken: e2e-lock-token-abc123,
   payload: test-payload,
   workflowId: {Scrubbed},
+  executionReferenceTime: DateTimeOffset_1,
   state: null
 }

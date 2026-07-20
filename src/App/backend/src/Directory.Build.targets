@@ -5,4 +5,12 @@
     <ItemGroup>
         <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)" />
     </ItemGroup>
+
+    <Target
+        Name="BlockAppPackagePackWhileStorageInterfaceIsVendored"
+        BeforeTargets="GenerateNuspec"
+        Condition="('$(MSBuildProjectName)' == 'Altinn.App.Core' OR '$(MSBuildProjectName)' == 'Altinn.App.Api') AND Exists('$(MSBuildThisFileDirectory)../../../_vendor/Storage.Interface/Altinn.Platform.Storage.Interface.csproj')"
+    >
+        <Error Text="The temporary vendored Storage.Interface must be removed and the released package reference restored before packing this app package." />
+    </Target>
 </Project>

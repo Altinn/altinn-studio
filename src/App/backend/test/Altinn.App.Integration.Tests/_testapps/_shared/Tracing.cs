@@ -437,7 +437,10 @@ internal sealed class FileValidator : IFileValidator
 
 internal sealed class EFormidlingMetadata : IEFormidlingMetadata
 {
-    public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance)
+    public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(
+        Instance instance,
+        IInstanceDataAccessor? dataAccessor = null
+    )
     {
         SnapshotLogger.LogInfo("IEFormidlingMetadata.GenerateEFormidlingMetadata");
         return Task.FromResult(("metadata.xml", (Stream)new MemoryStream()));
@@ -446,7 +449,11 @@ internal sealed class EFormidlingMetadata : IEFormidlingMetadata
 
 internal sealed class EFormidlingReceivers : IEFormidlingReceivers
 {
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)
+    public Task<List<Receiver>> GetEFormidlingReceivers(
+        Instance instance,
+        string? receiverFromConfig,
+        IInstanceDataAccessor? dataAccessor = null
+    )
     {
         SnapshotLogger.LogInfo("IEFormidlingReceivers.GetEFormidlingReceivers");
         return Task.FromResult(new List<Receiver>());

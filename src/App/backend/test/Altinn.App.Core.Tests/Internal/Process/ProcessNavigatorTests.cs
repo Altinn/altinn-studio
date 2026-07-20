@@ -287,11 +287,14 @@ public class ProcessNavigatorTests
         services.AddSingleton<IProcessReader>(sp => ProcessTestUtils.SetupProcessReader(bpmnfile));
         services.AddTransient<IProcessNavigator, ProcessNavigator>();
         services.AddTransient<ExclusiveGatewayFactory>();
-        services.AddSingleton(new Mock<IInstanceClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict).Object);
         var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
         appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         services.AddSingleton(appMetadata.Object);
-        services.AddSingleton(new Mock<IDataClient>(MockBehavior.Strict).Object);
+        var dataClient = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        var mutationClient = dataClient.As<IInstanceMutationClient>();
+        services.AddSingleton(dataClient.Object);
+        services.AddSingleton(mutationClient.Object);
         services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<ITranslationService>(MockBehavior.Strict).Object);

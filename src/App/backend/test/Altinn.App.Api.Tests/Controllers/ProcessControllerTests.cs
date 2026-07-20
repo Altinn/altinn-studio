@@ -7,9 +7,11 @@ using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
@@ -26,6 +28,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
+[Collection("Process version admission file-backed tests")]
 public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     // Define constants
@@ -636,6 +639,42 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Fact]
+    public async Task RunCompleteProcess_TwoTasks_CarriesVersionsAndEndsProcess()
+    {
+        const string org = "ttd";
+        const string app = "process-version-admission";
+        const int instanceOwnerPartyId = 501337;
+        var instanceGuid = new Guid("d2af1cfd-db99-45f9-9625-9dfa1223485f");
+        var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+        TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        var storageMetadata = new ApiTestStorageMetadata();
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IFormDataValidator>();
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+        };
+        int initialProcessStateVersion = storageMetadata.GetVersions(instanceId).ProcessStateVersion!.Value;
+
+        using var client = GetRootedUserClient(org, app);
+        using var response = await client.PutAsync($"{org}/{app}/instances/{instanceId}/process/completeProcess", null);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        var processState = JsonSerializer.Deserialize<AppProcessState>(responseContent, _jsonSerializerOptions);
+        processState.Should().NotBeNull();
+        processState!.CurrentTask.Should().BeNull();
+        processState.EndEvent.Should().Be("EndEvent_1");
+
+        var instance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        instance.Process.CurrentTask.Should().BeNull();
+        instance.Process.EndEvent.Should().Be("EndEvent_1");
+        storageMetadata.AggregateMutationRequestCount.Should().BeGreaterThanOrEqualTo(2);
+        storageMetadata.GetVersions(instanceId).ProcessStateVersion.Should().BeGreaterThan(initialProcessStateVersion);
+    }
+
+    [Fact]
     public async Task RunNextWithAction_WhenActionIsNotDefinedInBpmn_ReturnsOk()
     {
         var pdfMock = SetupPdfGeneratorMock();
@@ -843,6 +882,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Setup(p =>
                 p.SubmitInitialProcessState(
                     It.IsAny<Instance>(),
+                    It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<Altinn.App.Core.Models.Process.ProcessStateChange>(),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),

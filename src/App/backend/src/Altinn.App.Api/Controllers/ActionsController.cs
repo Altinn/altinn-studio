@@ -6,12 +6,12 @@ using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
@@ -26,7 +26,7 @@ namespace Altinn.App.Api.Controllers;
 public class ActionsController : ControllerBase
 {
     private readonly IAuthorizationService _authorization;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly UserActionService _userActionService;
     private readonly IValidationService _validationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
@@ -45,9 +45,9 @@ public class ActionsController : ControllerBase
     )
     {
         _authorization = authorization;
-        _instanceClient = instanceClient;
         _userActionService = userActionService;
         _validationService = validationService;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
     }
@@ -99,15 +99,16 @@ public class ActionsController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
-        if (instance?.Process is null)
+        InstanceWithStorageMetadata? fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
+        if (fetchedInstance?.Instance is not { } instance || instance.Process is null)
         {
             return Conflict($"Process is not started.");
         }
@@ -140,7 +141,12 @@ public class ActionsController : ControllerBase
             return Forbid();
         }
         var taskId = instance.Process?.CurrentTask?.ElementId;
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            fetchedInstance.Metadata,
+            taskId,
+            language
+        );
 
         UserActionContext userActionContext = new(
             dataMutator,
@@ -220,9 +226,7 @@ public class ActionsController : ControllerBase
 
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 
-        await dataMutator.UpdateInstanceData(changes);
-
-        var saveTask = dataMutator.SaveChanges(changes);
+        await dataMutator.SaveChanges(changes);
 
         var validationIssues = await GetIncrementalValidations(
             dataMutator,
@@ -230,7 +234,6 @@ public class ActionsController : ControllerBase
             actionRequest.IgnoredValidators,
             language
         );
-        await saveTask;
 
         var updatedDataModels = changes
             .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)

@@ -16,11 +16,15 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -52,6 +56,7 @@ public sealed class ProcessEngineTest
     private static readonly Guid _instanceGuid = new("00000000-ABCD-EF00-0000-001230000000");
     private static readonly string _instanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}";
     private static readonly string _collectionKey = _instanceGuid.ToString();
+    private static readonly StorageVersionMetadata _storageVersions = new(InstanceVersion: 1, ProcessStateVersion: 1);
 
     public ProcessEngineTest(ITestOutputHelper output)
     {
@@ -298,6 +303,7 @@ public sealed class ProcessEngineTest
         var processNextRequest = new ProcessNextRequest()
         {
             Instance = instance,
+            InstanceVersions = _storageVersions,
             User = user,
             Action = null,
             Language = null,
@@ -329,12 +335,14 @@ public sealed class ProcessEngineTest
                 "CommonTaskFinalization",
                 "OnTaskEndingHook",
                 "LockTaskData",
+                "MutateProcessState",
                 // StartTask commands
                 "UnlockTaskData",
+                "CleanupGeneratedFromTask",
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
                 "StartTask",
-                "SaveProcessStateToStorage"
+                "CommitProcessState"
             );
 
         // The non-critical MovedToAltinnEvent runs in its own invisible side-effects sibling
@@ -498,6 +506,7 @@ public sealed class ProcessEngineTest
         var processNextRequest = new ProcessNextRequest()
         {
             Instance = instance,
+            InstanceVersions = _storageVersions,
             User = user,
             Action = "reject",
             Language = null,
@@ -527,12 +536,14 @@ public sealed class ProcessEngineTest
                 // AbandonTask commands
                 "AbandonTask",
                 "OnTaskAbandonHook",
+                "MutateProcessState",
                 // StartTask commands
                 "UnlockTaskData",
+                "CleanupGeneratedFromTask",
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
                 "StartTask",
-                "SaveProcessStateToStorage"
+                "CommitProcessState"
             );
 
         // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow,
@@ -671,6 +682,7 @@ public sealed class ProcessEngineTest
             Action = null,
             Language = null,
             Instance = instance,
+            InstanceVersions = _storageVersions,
         };
 
         // Act
@@ -704,7 +716,7 @@ public sealed class ProcessEngineTest
                 // ProcessEnd commands (see NEW state)
                 "OnProcessEndingHook",
                 // Persist to Storage
-                "SaveProcessStateToStorage",
+                "CommitProcessState",
                 // Critical post-commit (stays in Main)
                 "EndProcessLegacyHook"
             );
@@ -830,6 +842,7 @@ public sealed class ProcessEngineTest
         ProcessNextRequest processNextRequest = new ProcessNextRequest()
         {
             Instance = instance,
+            InstanceVersions = _storageVersions,
             User = user,
             Action = "sign",
             Language = null,
@@ -838,6 +851,234 @@ public sealed class ProcessEngineTest
         ProcessChangeResult result = await processEngine.Next(processNextRequest, CancellationToken.None);
         result.Success.Should().BeTrue();
         result.ErrorType.Should().Be(null);
+    }
+
+    [Fact]
+    public async Task Next_WithUserActionDataWrite_CapturesPostActionStorageVersionsInWorkflowState()
+    {
+        Guid dataElementGuid = Guid.NewGuid();
+        DataElement dataElement = new()
+        {
+            Id = dataElementGuid.ToString(),
+            InstanceGuid = _instanceGuid.ToString(),
+            DataType = "payment",
+            ContentType = "application/json",
+            Filename = "payment.json",
+        };
+        byte[] initialBytes = System.Text.Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = System.Text.Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        Mock<IUserAction> userActionMock = new(MockBehavior.Strict);
+        userActionMock.Setup(u => u.Id).Returns("sign");
+        userActionMock
+            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>()))
+            .ReturnsAsync(
+                (UserActionContext context) =>
+                {
+                    context.DataMutator.UpdateBinaryDataElement(dataElement, dataElement.ContentType!, updatedBytes);
+                    return UserActionResult.SuccessResult();
+                }
+            );
+
+        Mock<IDataClient> dataClientMock = new(MockBehavior.Strict);
+        Mock<IDataClientWithStorageMetadata> dataClientWithStorageMetadataMock =
+            dataClientMock.As<IDataClientWithStorageMetadata>();
+        Mock<IInstanceMutationClient> mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
+        dataClientWithStorageMetadataMock
+            .Setup(c =>
+                c.GetDataBytesWithExpectedContentETag(
+                    _instanceOwnerPartyId,
+                    _instanceGuid,
+                    dataElementGuid,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(initialBytes);
+        dataClientWithStorageMetadataMock
+            .Setup(c =>
+                c.UpdateBinaryDataWithStorageMetadata(
+                    It.Is<InstanceIdentifier>(id =>
+                        id.InstanceOwnerPartyId == _instanceOwnerPartyId && id.InstanceGuid == _instanceGuid
+                    ),
+                    dataElement.ContentType,
+                    dataElement.Filename,
+                    dataElementGuid,
+                    It.IsAny<Stream>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageWritePreconditions?>(preconditions =>
+                        preconditions != null
+                        && preconditions.ProcessStateVersion == 1
+                        && preconditions.InstanceVersion == null
+                    ),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new DataElementWithStorageMetadata(
+                    dataElement,
+                    new StorageVersionMetadata(InstanceVersion: 6, ProcessStateVersion: 1)
+                )
+            );
+
+        WorkflowEnqueueRequest? capturedRequest = null;
+        string? capturedCollectionKey = null;
+        Guid workflowId = Guid.NewGuid();
+        Mock<IWorkflowEngineClient> workflowEngineClientMock = new(MockBehavior.Strict);
+        workflowEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, _, collectionKey, req, _) =>
+                {
+                    capturedCollectionKey = collectionKey;
+                    capturedRequest = req;
+                }
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
+                }
+            );
+        workflowEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        workflowEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(It.IsAny<string>(), It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (
+                    string _,
+                    string? collectionKey,
+                    Dictionary<string, string>? _,
+                    IReadOnlyList<PersistentItemStatus>? _,
+                    CancellationToken _
+                ) =>
+                    [
+                        CreateWorkflowStatusResponse(
+                            workflowId,
+                            "Process next",
+                            PersistentItemStatus.Completed,
+                            collectionKey
+                        ),
+                    ]
+            );
+        workflowEngineClientMock
+            .Setup(c => c.GetCollection(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                (string _, string key, CancellationToken _) =>
+                    CreateWorkflowCollectionDetailResponse(
+                        key,
+                        CreateCollectionHeadStatus(workflowId, PersistentItemStatus.Completed)
+                    )
+            );
+
+        Instance instance = CreateTask2Instance();
+        instance.Data = [dataElement];
+        var versions = new StorageVersionMetadata(InstanceVersion: 5, ProcessStateVersion: 1);
+        var instanceClientMock = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClientMock
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new InstanceWithStorageMetadata(
+                    instance,
+                    new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 2)
+                )
+            );
+        var services = new ServiceCollection();
+        services.AddSingleton<IDataClient>(dataClientMock.Object);
+        services.AddSingleton<IDataClientWithStorageMetadata>(dataClientWithStorageMetadataMock.Object);
+        services.AddSingleton<IInstanceMutationClient>(mutationClientMock.Object);
+        services.AddSingleton(workflowEngineClientMock.Object);
+        services.AddSingleton(instanceClientMock.Object);
+
+        await using var fixture = Fixture.Create(services, userActions: [userActionMock.Object]);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(
+                new ApplicationMetadata("org/app")
+                {
+                    DataTypes =
+                    [
+                        new DataType
+                        {
+                            Id = "payment",
+                            AllowedContentTypes = ["application/json"],
+                            TaskId = "Task_2",
+                        },
+                    ],
+                }
+            );
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+        mutationClientMock
+            .Setup(c =>
+                c.CommitInstanceMutationWithStorageMetadata(
+                    _instanceOwnerPartyId,
+                    _instanceGuid,
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageWritePreconditions?>(preconditions =>
+                        preconditions != null
+                        && preconditions.ProcessStateVersion == 1
+                        && preconditions.InstanceVersion == null
+                    ),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new InstanceMutationWithStorageMetadata(
+                    instance,
+                    new StorageVersionMetadata(InstanceVersion: 6, ProcessStateVersion: 1)
+                )
+            );
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                User = CreateUserClaimsPrincipal(),
+                Action = "sign",
+                Language = null,
+                InstanceVersions = versions,
+            },
+            CancellationToken.None
+        );
+
+        result.Success.Should().BeTrue();
+        capturedCollectionKey.Should().Be(_collectionKey);
+        capturedRequest.Should().NotBeNull();
+        // The captured state is a signed envelope; the workflow callback state is its inner payload.
+        string state = capturedRequest!.Workflows.Single().State!;
+        using System.Text.Json.JsonDocument envelope = System.Text.Json.JsonDocument.Parse(state);
+        string payload = envelope.RootElement.GetProperty("payload").GetString()!;
+        using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(payload);
+        document.RootElement.GetProperty("instanceVersion").GetInt32().Should().Be(6);
+        document.RootElement.GetProperty("processStateVersion").GetInt32().Should().Be(1);
     }
 
     [Fact]
@@ -978,6 +1219,7 @@ public sealed class ProcessEngineTest
         var processNextRequest = new ProcessNextRequest()
         {
             Instance = instance,
+            InstanceVersions = _storageVersions,
             User = user,
             Action = null,
             Language = null,
@@ -1097,6 +1339,7 @@ public sealed class ProcessEngineTest
             new ProcessNextRequest
             {
                 Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
                 User = CreateUserClaimsPrincipal(),
                 Action = null,
                 Language = null,
@@ -1192,16 +1435,17 @@ public sealed class ProcessEngineTest
             ]);
 
         Instance endedInstance = CreateEndedInstance();
-        var instanceClientMock = new Mock<IInstanceClient>(MockBehavior.Strict);
+        var versions = new StorageVersionMetadata(InstanceVersion: 21, ProcessStateVersion: 11);
+        var instanceClientMock = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
         instanceClientMock
             .Setup(c =>
-                c.GetInstance(
+                c.GetInstanceWithStorageMetadata(
                     It.IsAny<Instance>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(endedInstance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(endedInstance, versions));
 
         var services = new ServiceCollection();
         services.AddSingleton(workflowEngineClientMock.Object);
@@ -1214,6 +1458,7 @@ public sealed class ProcessEngineTest
             new ProcessNextRequest
             {
                 Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
                 User = CreateUserClaimsPrincipal(),
                 Action = null,
                 Language = null,
@@ -1222,9 +1467,164 @@ public sealed class ProcessEngineTest
 
         result.Success.Should().BeTrue();
         result.MutatedInstance.Should().BeSameAs(endedInstance);
+        result.MutatedInstanceVersions.Should().Be(versions);
         result.ProcessStateChange.Should().NotBeNull();
         result.ProcessStateChange!.NewProcessState.Should().BeSameAs(endedInstance.Process);
         result.ProcessStateChange.NewProcessState!.Ended.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Next_RefetchesWorkflowResultThroughInstanceClientAfterCaptureUnitOfWorkCompletes()
+    {
+        Guid workflowId = Guid.NewGuid();
+        string collectionKey = _collectionKey;
+        Instance submittedInstance = CreateTask1Instance();
+        string submittedInstanceId = submittedInstance.Id;
+        const string ExpectedRefetchTaskId = "Task_2";
+        bool callbackStateCaptureCompleted = false;
+        var workflowEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        workflowEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        workflowEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string?>(key => key == collectionKey),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, _, _, request, _) =>
+                {
+                    WorkflowRequest workflow = Assert.Single(request.Workflows);
+                    Assert.False(string.IsNullOrWhiteSpace(workflow.State));
+                    callbackStateCaptureCompleted = true;
+                }
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
+                }
+            );
+        workflowEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    collectionKey,
+                    CreateCollectionHeadStatus(workflowId, PersistentItemStatus.Completed)
+                )
+            );
+        workflowEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Completed,
+                    collectionKey
+                ),
+            ]);
+
+        Instance endedInstance = CreateEndedInstance();
+        var versions = new StorageVersionMetadata(InstanceVersion: 21, ProcessStateVersion: 11);
+        var instanceClientMock = new Mock<IInstanceClient>(MockBehavior.Strict);
+        var instanceClientWithStorageMetadataMock = instanceClientMock.As<IInstanceClientWithStorageMetadata>();
+        instanceClientWithStorageMetadataMock
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    It.Is<Instance>(instance =>
+                        ReferenceEquals(instance, submittedInstance)
+                        && instance.Id == submittedInstanceId
+                        && instance.Process != null
+                        && instance.Process.CurrentTask != null
+                        && instance.Process.CurrentTask.ElementId == ExpectedRefetchTaskId
+                    ),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+            {
+                Assert.True(callbackStateCaptureCompleted);
+                return new InstanceWithStorageMetadata(endedInstance, versions);
+            });
+
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowEngineClientMock.Object);
+        services.AddSingleton<IInstanceClient>(instanceClientMock.Object);
+        services.AddSingleton<IInstanceClientWithStorageMetadata>(instanceClientWithStorageMetadataMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = submittedInstance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeTrue();
+        result.MutatedInstance.Should().BeSameAs(endedInstance);
+        result.MutatedInstanceVersions.Should().Be(versions);
+        workflowEngineClientMock.Verify(
+            c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string?>(key => key == collectionKey),
+                    It.Is<WorkflowEnqueueRequest>(request =>
+                        request.Workflows.Count == 1 && !string.IsNullOrWhiteSpace(request.Workflows[0].State)
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        instanceClientWithStorageMetadataMock.Verify(
+            c =>
+                c.GetInstanceWithStorageMetadata(
+                    It.Is<Instance>(instance =>
+                        ReferenceEquals(instance, submittedInstance)
+                        && instance.Id == submittedInstanceId
+                        && instance.Process != null
+                        && instance.Process.CurrentTask != null
+                        && instance.Process.CurrentTask.ElementId == ExpectedRefetchTaskId
+                    ),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -1287,6 +1687,7 @@ public sealed class ProcessEngineTest
         ProcessNextRequest processNextRequest = new ProcessNextRequest()
         {
             Instance = instance,
+            InstanceVersions = _storageVersions,
             User = user,
             Action = "reject",
             Language = null,
@@ -1442,6 +1843,7 @@ public sealed class ProcessEngineTest
             Action = null,
             Language = null,
             Instance = instance,
+            InstanceVersions = _storageVersions,
         };
 
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
@@ -1924,6 +2326,7 @@ public sealed class ProcessEngineTest
             new ProcessNextRequest
             {
                 Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
                 User = CreateUserClaimsPrincipal(),
                 Action = "reject",
                 Language = null,
@@ -2173,6 +2576,7 @@ public sealed class ProcessEngineTest
             new ProcessNextRequest
             {
                 Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
                 User = CreateUserClaimsPrincipal(),
                 Action = "reject",
                 Language = null,
@@ -2335,6 +2739,7 @@ public sealed class ProcessEngineTest
             new()
             {
                 Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
                 User = CreateUserClaimsPrincipal(),
                 Action = "reject",
                 Language = null,
@@ -2526,18 +2931,19 @@ public sealed class ProcessEngineTest
                 ),
             ]);
 
-        Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+        Mock<IInstanceClientWithStorageMetadata> instanceClientMock = new(MockBehavior.Strict);
         Instance instance = CreateTask1Instance();
         Instance updatedInstance = CreateTask2Instance();
+        var versions = new StorageVersionMetadata(InstanceVersion: 23, ProcessStateVersion: 12);
         instanceClientMock
             .Setup(c =>
-                c.GetInstance(
+                c.GetInstanceWithStorageMetadata(
                     It.IsAny<Instance>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(updatedInstance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(updatedInstance, versions));
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -2562,6 +2968,7 @@ public sealed class ProcessEngineTest
         result.WorkflowFailure.Should().BeNull();
         result.ProcessStateChanged.Should().BeFalse();
         result.Instance.Should().BeSameAs(updatedInstance);
+        result.InstanceVersions.Should().Be(versions);
     }
 
     [Fact]
@@ -2614,18 +3021,19 @@ public sealed class ProcessEngineTest
                 ),
             ]);
 
-        Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+        Mock<IInstanceClientWithStorageMetadata> instanceClientMock = new(MockBehavior.Strict);
         Instance instance = CreateTask1Instance();
         Instance updatedInstance = CreateTask2Instance();
+        var versions = new StorageVersionMetadata(InstanceVersion: 23, ProcessStateVersion: 12);
         instanceClientMock
             .Setup(c =>
-                c.GetInstance(
+                c.GetInstanceWithStorageMetadata(
                     It.IsAny<Instance>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(updatedInstance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(updatedInstance, versions));
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -2649,6 +3057,7 @@ public sealed class ProcessEngineTest
 
         result.WorkflowFailure.Should().BeNull();
         result.Instance.Should().BeSameAs(updatedInstance);
+        result.InstanceVersions.Should().Be(versions);
     }
 
     [Fact]
@@ -2679,7 +3088,14 @@ public sealed class ProcessEngineTest
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new ProcessNextWorkflowResult(instance, workflowFailure, ProcessStateChanged: true));
+            .ReturnsAsync(
+                new ProcessNextWorkflowResult(
+                    instance,
+                    StorageVersionMetadata.Empty,
+                    workflowFailure,
+                    ProcessStateChanged: true
+                )
+            );
 
         var services = new ServiceCollection();
         services.AddSingleton(workflowEngineServiceMock.Object);
@@ -2696,6 +3112,7 @@ public sealed class ProcessEngineTest
         WorkflowExecutionFailedException exception = await Assert.ThrowsAsync<WorkflowExecutionFailedException>(() =>
             fixture.ProcessEngine.SubmitInitialProcessState(
                 instance,
+                new StorageVersionMetadata(InstanceVersion: 1, ProcessStateVersion: 1),
                 processStateChange,
                 "lock-token",
                 isInstantiation: true
@@ -2782,18 +3199,19 @@ public sealed class ProcessEngineTest
             .Setup(c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
 
-        Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+        Mock<IInstanceClientWithStorageMetadata> instanceClientMock = new(MockBehavior.Strict);
         Instance originalInstance = CreateTask1Instance();
         Instance resumedInstance = CreateTask2Instance();
+        var versions = new StorageVersionMetadata(InstanceVersion: 23, ProcessStateVersion: 12);
         instanceClientMock
             .Setup(c =>
-                c.GetInstance(
+                c.GetInstanceWithStorageMetadata(
                     It.IsAny<Instance>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(resumedInstance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(resumedInstance, versions));
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -2814,6 +3232,7 @@ public sealed class ProcessEngineTest
 
         result.Success.Should().BeTrue();
         result.MutatedInstance.Should().BeSameAs(resumedInstance);
+        result.MutatedInstanceVersions.Should().Be(versions);
         result.ProcessStateChange.Should().NotBeNull();
         result.ProcessStateChange!.OldProcessState.Should().BeEquivalentTo(originalInstance.Process);
         result.ProcessStateChange.NewProcessState.Should().BeEquivalentTo(resumedInstance.Process);
@@ -2821,6 +3240,126 @@ public sealed class ProcessEngineTest
             c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, true, It.IsAny<CancellationToken>()),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task EnqueueProcessNext_AutoAdvanceSameTaskLoop_RunsCommonTaskInitializationBeforeServiceTaskExecution()
+    {
+        // Arrange
+        Guid parentWorkflowId = Guid.NewGuid();
+        Guid dependentWorkflowId = Guid.NewGuid();
+        WorkflowEnqueueRequest? capturedRequest = null;
+        string? capturedIdempotencyKey = null;
+
+        var workflowEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        workflowEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string?>(key => key == _collectionKey),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, idempotencyKey, _, request, _) =>
+                {
+                    capturedIdempotencyKey = idempotencyKey;
+                    capturedRequest = request;
+                }
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = dependentWorkflowId, Namespace = "org/app" }],
+                }
+            );
+
+        var subformPdfServiceTask = new Mock<IServiceTask>();
+        subformPdfServiceTask.Setup(x => x.Type).Returns("subformPdf");
+
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowEngineClientMock.Object);
+        services.AddSingleton(subformPdfServiceTask.Object);
+
+        await using var fixture = Fixture.Create(services);
+        fixture.Mock<IProcessReader>().Setup(r => r.IsEndEvent("Task_SubformPdf")).Returns(false);
+        fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_SubformPdf")).Returns(true);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_SubformPdf", It.IsAny<string?>()))
+            .ReturnsAsync(
+                new ServiceTask
+                {
+                    Id = "Task_SubformPdf",
+                    Incoming = ["Flow_4"],
+                    Outgoing = ["Flow_5"],
+                    Name = "Subform PDF",
+                    ExtensionElements = new() { TaskExtension = new() { TaskType = "subformPdf" } },
+                }
+            );
+
+        var instance = new Instance
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = new()
+                {
+                    ElementId = "Task_SubformPdf",
+                    AltinnTaskType = "subformPdf",
+                    Flow = 4,
+                },
+            },
+        };
+
+        // Act
+        await fixture.ProcessEngine.EnqueueProcessNext(
+            instance,
+            new Actor { UserId = 1337, AuthenticationLevel = 2 },
+            "test-lock-token",
+            parentWorkflowId,
+            _collectionKey,
+            "state"
+        );
+
+        // Assert
+        capturedRequest.Should().NotBeNull();
+        capturedIdempotencyKey.Should().Be($"process-next-dependent-{parentWorkflowId:N}");
+
+        var workflow = capturedRequest!.Workflows.Single();
+        workflow.OperationId.Should().Be("Process next: Task_SubformPdf -> Task_SubformPdf");
+        workflow.State.Should().Be("state");
+        WorkflowRef dependency = workflow.DependsOn.Should().ContainSingle().Subject;
+        dependency.IsId.Should().BeTrue();
+        dependency.Id.Should().Be(parentWorkflowId);
+
+        ExtractCommandKeys(capturedRequest)
+            .Should()
+            .Equal(
+                EndTask.Key,
+                CommonTaskFinalization.Key,
+                OnTaskEndingHook.Key,
+                LockTaskData.Key,
+                MutateProcessState.Key,
+                UnlockTaskData.Key,
+                CleanupGeneratedFromTask.Key,
+                OnTaskStartingHook.Key,
+                CommonTaskInitialization.Key,
+                StartTask.Key,
+                CommitProcessState.Key,
+                EnqueueSideEffectsWorkflow.Key,
+                ExecuteServiceTask.Key
+            );
+
+        // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
+        var sideEffectsWorkflow = ExtractSideEffectsWorkflow(workflow);
+        ExtractCommandKeys(sideEffectsWorkflow).Should().Equal(MovedToAltinnEvent.Key);
     }
 
     [Fact]
@@ -3124,6 +3663,20 @@ public sealed class ProcessEngineTest
             },
         };
 
+    private static List<string> ExtractCommandKeys(WorkflowEnqueueRequest request)
+    {
+        return request
+            .Workflows[0]
+            .Steps.Select(step =>
+                step.Command.Type == "app" && step.Command.Data is { } data
+                    ? System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey
+                    : null
+            )
+            .Where(key => key is not null)
+            .Select(key => key!)
+            .ToList();
+    }
+
     private sealed record Fixture(IServiceProvider ServiceProvider) : IAsyncDisposable
     {
         public LegacyProcessEngine ProcessEngine =>
@@ -3166,7 +3719,12 @@ public sealed class ProcessEngineTest
             Mock<IAuthenticationContext> authenticationContextMock = new(MockBehavior.Strict);
             Mock<IProcessNavigator> processNavigatorMock = new(MockBehavior.Strict);
             Mock<IDataClient> dataClientMock = new(MockBehavior.Strict);
+            Mock<IDataClientWithStorageMetadata> dataClientWithStorageMetadataMock =
+                dataClientMock.As<IDataClientWithStorageMetadata>();
+            Mock<IInstanceMutationClient> mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
             Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+            Mock<IInstanceClientWithStorageMetadata> instanceClientWithStorageMetadataMock =
+                instanceClientMock.As<IInstanceClientWithStorageMetadata>();
             instanceClientMock
                 .Setup(c =>
                     c.GetInstance(
@@ -3176,6 +3734,18 @@ public sealed class ProcessEngineTest
                     )
                 )
                 .ReturnsAsync((Instance i, StorageAuthenticationMethod? _, CancellationToken _) => i);
+            instanceClientWithStorageMetadataMock
+                .Setup(c =>
+                    c.GetInstanceWithStorageMetadata(
+                        It.IsAny<Instance>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(
+                    (Instance i, StorageAuthenticationMethod? _, CancellationToken _) =>
+                        new InstanceWithStorageMetadata(i, StorageVersionMetadata.Empty)
+                );
             Mock<IAppModel> appModelMock = new(MockBehavior.Strict);
             Mock<IAppMetadata> appMetadataMock = new(MockBehavior.Strict);
             Mock<IAppResources> appResourcesMock = new(MockBehavior.Strict);
@@ -3254,7 +3824,16 @@ public sealed class ProcessEngineTest
             services.TryAddTransient<IProcessNavigator>(_ => processNavigatorMock.Object);
             services.TryAddTransient<IProcessEngineAuthorizer>(_ => processEngineAuthorizerMock.Object);
             services.TryAddTransient<IDataClient>(_ => dataClientMock.Object);
+            services.TryAddTransient<IDataClientWithStorageMetadata>(sp =>
+                (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+            );
+            services.TryAddTransient<IInstanceMutationClient>(sp =>
+                (IInstanceMutationClient)sp.GetRequiredService<IDataClient>()
+            );
             services.TryAddTransient<IInstanceClient>(_ => instanceClientMock.Object);
+            services.TryAddTransient<IInstanceClientWithStorageMetadata>(sp =>
+                (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+            );
             services.TryAddTransient<IAppModel>(_ => appModelMock.Object);
             services.TryAddTransient<IAppMetadata>(_ => appMetadataMock.Object);
             services.TryAddTransient<IAppResources>(_ => appResourcesMock.Object);

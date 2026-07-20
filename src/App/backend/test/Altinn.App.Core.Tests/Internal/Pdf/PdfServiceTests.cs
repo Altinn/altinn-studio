@@ -962,8 +962,9 @@ public class PdfServiceTests
     {
         // Setup a mock service provider with InstanceDataUnitOfWorkInitializer (used by hideAppNameInPdf evaluation)
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var mockDataClient = new Mock<IDataClient>();
-        var mockInstanceClient = new Mock<IInstanceClient>();
+        var mockDataClient = new Mock<IDataClientWithStorageMetadata>();
+        var mockMutationClient = mockDataClient.As<IInstanceMutationClient>();
+        var mockInstanceClient = new Mock<IInstanceClientWithStorageMetadata>();
         var mockAppMetadata = new Mock<IAppMetadata>();
 
         var dataType = new DataType() { Id = "Model" };
@@ -977,6 +978,7 @@ public class PdfServiceTests
 
         var initializer = new InstanceDataUnitOfWorkInitializer(
             mockDataClient.Object,
+            mockMutationClient.Object,
             mockInstanceClient.Object,
             mockAppMetadata.Object,
             new TranslationService(

@@ -8,7 +8,9 @@ using System.Text;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
 using KS.Fiks.IO.Client.Models;
@@ -252,8 +254,14 @@ internal static class TestHelpers
             Instance instance,
             FiksArkivRecipient recipient,
             string messageType,
+            IInstanceDataAccessor? dataAccessor = null,
             CancellationToken cancellationToken = default
         ) => throw new NotImplementedException();
+
+        public Task ValidateConfiguration(
+            IReadOnlyList<DataType> configuredDataTypes,
+            IReadOnlyList<ProcessTask> configuredProcessTasks
+        ) => Task.CompletedTask;
     }
 
     public class CustomFiksArkivResponseHandler : IFiksArkivResponseHandler

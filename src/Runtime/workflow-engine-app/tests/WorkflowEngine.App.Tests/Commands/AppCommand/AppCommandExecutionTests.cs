@@ -63,6 +63,91 @@ public class AppCommandExecutionTests
     }
 
     [Fact]
+    public async Task Execute_SendsStepIdentityAndScheduledExecutionReferenceTime()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var stepId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+        var createdAt = new DateTimeOffset(2026, 7, 20, 8, 15, 0, TimeSpan.Zero);
+        var startAt = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
+        var step = AppCommandTestFixture.CreateStep(
+            CreateCommand("test-command"),
+            databaseId: stepId,
+            createdAt: createdAt
+        );
+        var workflow = AppCommandTestFixture.CreateWorkflow(step, startAt);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = Assert.Single(fixture.HttpHandler.Requests);
+        Assert.Equal(
+            stepId.ToString(),
+            Assert.Single(captured.Headers[WorkflowMetadataConstants.Headers.IdempotencyKey])
+        );
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+        Assert.NotNull(payload);
+        Assert.Equal(startAt, payload.ExecutionReferenceTime);
+        Assert.NotEqual(createdAt, payload.ExecutionReferenceTime);
+    }
+
+    [Fact]
+    public async Task Execute_ImmediateWorkflowUsesPersistedStepCreatedAt()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var createdAt = new DateTimeOffset(2026, 7, 20, 8, 15, 0, TimeSpan.Zero);
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"), createdAt: createdAt);
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = Assert.Single(fixture.HttpHandler.Requests);
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+        Assert.NotNull(payload);
+        Assert.Equal(createdAt, payload.ExecutionReferenceTime);
+    }
+
+    [Fact]
+    public async Task Execute_RetryOfSamePersistedStepKeepsIdentityAndExecutionReferenceTime()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var stepId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var createdAt = new DateTimeOffset(2026, 7, 20, 8, 15, 0, TimeSpan.Zero);
+        var step = AppCommandTestFixture.CreateStep(
+            CreateCommand("test-command"),
+            databaseId: stepId,
+            createdAt: createdAt
+        );
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var firstResult = await command.Execute(context, TestContext.Current.CancellationToken);
+        var retryResult = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, firstResult.Status);
+        Assert.Equal(ExecutionStatus.Success, retryResult.Status);
+        Assert.Equal(2, fixture.HttpHandler.Requests.Count);
+        foreach (var captured in fixture.HttpHandler.Requests)
+        {
+            Assert.Equal(
+                stepId.ToString(),
+                Assert.Single(captured.Headers[WorkflowMetadataConstants.Headers.IdempotencyKey])
+            );
+            var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+            Assert.NotNull(payload);
+            Assert.Equal(createdAt, payload.ExecutionReferenceTime);
+        }
+    }
+
+    [Fact]
     public async Task Execute_ReplaysCallbackTokenAsBearerToken()
     {
         using var fixture = AppCommandTestFixture.Create();

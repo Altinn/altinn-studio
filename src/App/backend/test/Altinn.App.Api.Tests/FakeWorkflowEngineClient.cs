@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
@@ -75,6 +76,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         foreach (WorkflowRequest workflow in request.Workflows)
         {
             Guid databaseId = Guid.NewGuid();
+            DateTimeOffset createdAt = DateTimeOffset.UtcNow;
             if (workflow.Ref is not null)
             {
                 refMap[workflow.Ref] = databaseId;
@@ -106,6 +108,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     CollectionKey = collectionKey,
                     IdempotencyKey = idempotencyKey,
                     OperationId = workflow.OperationId,
+                    StartAt = workflow.StartAt,
                     Labels = request.Labels,
                     Context = context,
                     InitialState = workflow.State,
@@ -124,11 +127,12 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                                     CommandType = step.Command.Type,
                                     CommandData = step.Command.Data,
                                     RetryStrategy = step.RetryStrategy,
+                                    CreatedAt = createdAt,
                                 }
                         )
                         .ToList(),
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
+                    CreatedAt = createdAt,
+                    UpdatedAt = createdAt,
                 }
             );
         }
@@ -456,7 +460,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     LockToken = workflow.Context.LockToken,
                     State = currentState,
                     WorkflowId = workflow.DatabaseId,
+                    ExecutionReferenceTime = workflow.StartAt ?? step.CreatedAt,
                 };
+
+                controller.HttpContext.Request.Headers[StoragePreconditionHeaders.IdempotencyKeyHeaderName] =
+                    step.DatabaseId.ToString();
 
                 IActionResult result = await controller.ExecuteCommand(
                     workflow.Context.Org,
@@ -712,6 +720,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         public required string OperationId { get; init; }
 
+        public DateTimeOffset? StartAt { get; init; }
+
         public required AppWorkflowContext Context { get; init; }
 
         public required IReadOnlyDictionary<string, string>? Labels { get; init; }
@@ -748,6 +758,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public required JsonElement? CommandData { get; init; }
 
         public required RetryStrategy? RetryStrategy { get; init; }
+
+        public required DateTimeOffset CreatedAt { get; init; }
 
         public DateTimeOffset? UpdatedAt { get; set; }
 

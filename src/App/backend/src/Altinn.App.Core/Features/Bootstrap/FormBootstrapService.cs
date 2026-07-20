@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -77,6 +78,25 @@ public sealed class FormBootstrapService
         bool isPdf,
         string language,
         CancellationToken cancellationToken = default
+    ) =>
+        await GetInstanceFormBootstrap(
+            instance,
+            StorageVersionMetadata.Empty,
+            uiFolder,
+            dataElementIdOverride,
+            isPdf,
+            language,
+            cancellationToken
+        );
+
+    internal async Task<FormBootstrapResponse> GetInstanceFormBootstrap(
+        Instance instance,
+        StorageVersionMetadata versions,
+        string uiFolder,
+        string? dataElementIdOverride,
+        bool isPdf,
+        string language,
+        CancellationToken cancellationToken = default
     )
     {
         var defaultDataType = GetDefaultDataType(uiFolder);
@@ -100,7 +120,7 @@ public sealed class FormBootstrapService
         var taskId = instance.Process?.CurrentTask?.ElementId;
         var dataAccessor = await _serviceProvider
             .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
-            .Init(instance, taskId, language);
+            .Init(instance, versions, taskId, language);
         var dataModels = await LoadInstanceDataModels(
             dataAccessor,
             referencedDataTypes,
@@ -604,7 +624,6 @@ public sealed class FormBootstrapService
         var filteredChanges = new DataElementChanges(persistableChanges);
         try
         {
-            await dataAccessor.UpdateInstanceData(filteredChanges);
             await dataAccessor.SaveChanges(filteredChanges);
         }
         catch (PlatformHttpException e) when (e.Response.StatusCode is System.Net.HttpStatusCode.Forbidden)

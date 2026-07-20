@@ -17,6 +17,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
 using Altinn.App.PlatformServices.Tests.Data;
@@ -114,6 +115,521 @@ public class DataClientTests
         );
 
         await Verify(telemetrySink.GetSnapshot(), verifySettings);
+    }
+
+    [Fact]
+    public async Task InsertBinaryDataWithStorageMetadata_UsesBodyContentETagAndParsesVersionHeaders()
+    {
+        await using var fixture = Fixture.Create(
+            async (_, _) =>
+            {
+                DataElement dataElement = new DataElement
+                {
+                    Id = "DataElement.Id",
+                    InstanceGuid = "InstanceGuid",
+                    ContentEtag = "\"etag-body\"",
+                };
+                await Task.CompletedTask;
+                var response = new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.Created,
+                    Content = JsonContent.Create(dataElement),
+                };
+                response.Headers.ETag = EntityTagHeaderValue.Parse("\"etag-1\"");
+                response.Headers.Add("Instance-Version", "21");
+                response.Headers.Add("Process-State-Version", "4");
+                return response;
+            }
+        );
+
+        DataElementWithStorageMetadata result = await (
+            (IDataClientWithStorageMetadata)fixture.DataClient
+        ).InsertBinaryDataWithStorageMetadata(
+            "123/3fbf6371-f8ba-4c09-a292-f732d6bf2346",
+            "catstories",
+            "application/pdf",
+            "story.pdf",
+            new MemoryStream("hello"u8.ToArray()),
+            generatedFromTask: null,
+            authenticationMethod: null
+        );
+
+        Assert.Equal("\"etag-body\"", result.DataElement.ContentEtag);
+        Assert.Equal(21, result.Versions.InstanceVersion);
+        Assert.Equal(4, result.Versions.ProcessStateVersion);
+    }
+
+    [Fact]
+    public async Task UpdateBinaryDataWithStorageMetadata_ParsesVersionHeaders()
+    {
+        var instanceIdentifier = new InstanceIdentifier("123/3fbf6371-f8ba-4c09-a292-f732d6bf2346");
+        var dataGuid = Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28");
+        await using var fixture = Fixture.Create(
+            async (_, _) =>
+            {
+                DataElement dataElement = new DataElement
+                {
+                    Id = dataGuid.ToString(),
+                    InstanceGuid = "InstanceGuid",
+                    ContentEtag = "\"etag-body\"",
+                };
+                await Task.CompletedTask;
+                var response = new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = JsonContent.Create(dataElement),
+                };
+                response.Headers.ETag = EntityTagHeaderValue.Parse("\"etag-3\"");
+                response.Headers.Add("Instance-Version", "22");
+                response.Headers.Add("Process-State-Version", "5");
+                return response;
+            }
+        );
+
+        DataElementWithStorageMetadata result = await (
+            (IDataClientWithStorageMetadata)fixture.DataClient
+        ).UpdateBinaryDataWithStorageMetadata(
+            instanceIdentifier,
+            "application/pdf",
+            "story.pdf",
+            dataGuid,
+            new MemoryStream("hello"u8.ToArray()),
+            authenticationMethod: null
+        );
+
+        Assert.Equal("\"etag-body\"", result.DataElement.ContentEtag);
+        Assert.Equal(22, result.Versions.InstanceVersion);
+        Assert.Equal(5, result.Versions.ProcessStateVersion);
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_SendsMultipartMutationAndParsesMetadata()
+    {
+        Guid instanceGuid = Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346");
+        Guid dataGuid = Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28");
+        HttpRequestMessage? platformRequest = null;
+        string? requestBody = null;
+        string? requestContentType = null;
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                platformRequest = request;
+                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                requestContentType = request.Content.Headers.ContentType?.ToString();
+                var response = new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        $$"""
+                        {
+                          "instance": {
+                            "id": "123/{{instanceGuid}}",
+                            "data": [
+                              {
+                                "id": "{{dataGuid}}",
+                                "dataType": "catstories",
+                                "contentEtag": "\"etag-2\""
+                              },
+                              {
+                                "id": "00000000-0000-0000-0000-000000000001",
+                                "dataType": "legacy",
+                                "contentEtag": ""
+                              },
+                              {
+                                "id": "00000000-0000-0000-0000-000000000002",
+                                "dataType": "on-demand"
+                              }
+                            ]
+                          },
+                          "createdDataElementIds": ["{{dataGuid}}"],
+                          "replayed": true
+                        }
+                        """,
+                        Encoding.UTF8,
+                        "application/json"
+                    ),
+                };
+                response.Headers.Add("Instance-Version", "30");
+                response.Headers.Add("Process-State-Version", "9");
+                return response;
+            }
+        );
+        var mutation = new StorageInstanceMutationRequest();
+        mutation.CreateDataElements.Add(
+            new StorageInstanceMutationCreateDataElement
+            {
+                DataType = "catstories",
+                ContentPartName = "content-create",
+                ContentType = "application/pdf",
+                Filename = "story.pdf",
+            }
+        );
+
+        InstanceMutationWithStorageMetadata result = await (
+            (IInstanceMutationClient)fixture.DataClient
+        ).CommitInstanceMutationWithStorageMetadata(
+            123,
+            instanceGuid,
+            mutation,
+            new Dictionary<string, StorageInstanceMutationContent>
+            {
+                ["content-create"] = new("hello"u8.ToArray(), "application/pdf", "story.pdf"),
+            },
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 9)
+        );
+
+        AssertHttpRequest(
+            platformRequest,
+            new Uri($"{ApiStorageEndpoint}instances/123/{instanceGuid}/mutations", UriKind.RelativeOrAbsolute),
+            HttpMethod.Post
+        );
+        Assert.StartsWith("multipart/form-data", requestContentType, StringComparison.Ordinal);
+        Assert.Contains("\"createDataElements\"", requestBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"dataElementId\"", requestBody, StringComparison.Ordinal);
+        Assert.Contains("content-create", requestBody, StringComparison.Ordinal);
+        Assert.Equal("9", platformRequest.Headers.GetValues("If-Process-State-Version-Match").Single());
+        Assert.False(platformRequest.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName));
+        Assert.Equal($"123/{instanceGuid}", result.Instance.Id);
+        Assert.Equal([dataGuid], result.CreatedDataElementIds);
+        Assert.Equal(
+            "\"etag-2\"",
+            Assert.Single(result.Instance.Data, dataElement => dataElement.Id == dataGuid.ToString()).ContentEtag
+        );
+        Assert.Equal(30, result.Metadata.InstanceVersion);
+        Assert.Equal(9, result.Metadata.ProcessStateVersion);
+        Assert.True(result.Replayed);
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_WhenNoContentParts_SendsJsonMutation()
+    {
+        Guid instanceGuid = Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346");
+        HttpRequestMessage? platformRequest = null;
+        string? requestBody = null;
+        string? requestContentType = null;
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                platformRequest = request;
+                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                requestContentType = request.Content.Headers.ContentType?.ToString();
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        $$"""
+                        {
+                          "instance": {
+                            "id": "123/{{instanceGuid}}",
+                            "data": []
+                          }
+                        }
+                        """,
+                        Encoding.UTF8,
+                        "application/json"
+                    ),
+                };
+            }
+        );
+        var mutation = new StorageInstanceMutationRequest();
+        mutation.DataValues["status"] = "paid";
+
+        await ((IInstanceMutationClient)fixture.DataClient).CommitInstanceMutationWithStorageMetadata(
+            123,
+            instanceGuid,
+            mutation,
+            new Dictionary<string, StorageInstanceMutationContent>()
+        );
+
+        AssertHttpRequest(
+            platformRequest,
+            new Uri($"{ApiStorageEndpoint}instances/123/{instanceGuid}/mutations", UriKind.RelativeOrAbsolute),
+            HttpMethod.Post
+        );
+        Assert.StartsWith("application/json", requestContentType, StringComparison.Ordinal);
+        Assert.Contains("\"dataValues\":{\"status\":\"paid\"}", requestBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_WhenDeletingInstance_SendsDeleteInstanceMutation()
+    {
+        Guid instanceGuid = Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346");
+        string? requestBody = null;
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        $$"""
+                        {
+                          "instance": {
+                            "id": "123/{{instanceGuid}}",
+                            "data": []
+                          }
+                        }
+                        """,
+                        Encoding.UTF8,
+                        "application/json"
+                    ),
+                };
+            }
+        );
+        var mutation = new StorageInstanceMutationRequest
+        {
+            DeleteInstance = new StorageInstanceMutationDeleteInstance { Hard = true },
+        };
+
+        await ((IInstanceMutationClient)fixture.DataClient).CommitInstanceMutationWithStorageMetadata(
+            123,
+            instanceGuid,
+            mutation,
+            new Dictionary<string, StorageInstanceMutationContent>()
+        );
+
+        Assert.Contains("\"deleteInstance\":{\"hard\":true}", requestBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task InsertBinaryDataWithStorageMetadata_SendsProcessPreconditionWithoutInstancePrecondition()
+    {
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                DataElement dataElement = new DataElement { Id = "DataElement.Id", InstanceGuid = "InstanceGuid" };
+                await Task.CompletedTask;
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.Created,
+                    Content = JsonContent.Create(dataElement),
+                };
+            }
+        );
+
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).InsertBinaryDataWithStorageMetadata(
+            "123/3fbf6371-f8ba-4c09-a292-f732d6bf2346",
+            "catstories",
+            "application/pdf",
+            "story.pdf",
+            new MemoryStream("hello"u8.ToArray()),
+            generatedFromTask: null,
+            authenticationMethod: null,
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 4)
+        );
+
+        Assert.NotNull(platformRequest);
+        Assert.Equal("4", platformRequest.Headers.GetValues("If-Process-State-Version-Match").Single());
+        Assert.False(platformRequest.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName));
+    }
+
+    [Fact]
+    public async Task UpdateBinaryDataWithStorageMetadata_SendsContentAndProcessPreconditionsWithoutInstancePrecondition()
+    {
+        var instanceIdentifier = new InstanceIdentifier("123/3fbf6371-f8ba-4c09-a292-f732d6bf2346");
+        var dataGuid = Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28");
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                DataElement dataElement = new DataElement { Id = dataGuid.ToString(), InstanceGuid = "InstanceGuid" };
+                await Task.CompletedTask;
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = JsonContent.Create(dataElement),
+                };
+            }
+        );
+
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).UpdateBinaryDataWithStorageMetadata(
+            instanceIdentifier,
+            "application/pdf",
+            "story.pdf",
+            dataGuid,
+            new MemoryStream("hello"u8.ToArray()),
+            authenticationMethod: null,
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 5, ContentETag: "\"etag-3\"")
+        );
+
+        Assert.NotNull(platformRequest);
+        Assert.Equal("5", platformRequest.Headers.GetValues("If-Process-State-Version-Match").Single());
+        Assert.Equal("\"etag-3\"", platformRequest.Headers.IfMatch.Single().ToString());
+        Assert.False(platformRequest.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName));
+    }
+
+    [Fact]
+    public async Task UpdateBinaryDataWithStorageMetadata_WhenStorageReturnsPreconditionFailed_ThrowsPlatformHttpException()
+    {
+        var instanceIdentifier = new InstanceIdentifier("123/3fbf6371-f8ba-4c09-a292-f732d6bf2346");
+        var dataGuid = Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28");
+        await using var fixture = Fixture.Create(
+            async (_, _) =>
+            {
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.PreconditionFailed };
+            }
+        );
+
+        var exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            ((IDataClientWithStorageMetadata)fixture.DataClient).UpdateBinaryDataWithStorageMetadata(
+                instanceIdentifier,
+                "application/pdf",
+                "story.pdf",
+                dataGuid,
+                new MemoryStream("hello"u8.ToArray()),
+                authenticationMethod: null,
+                preconditions: new StorageWritePreconditions(ProcessStateVersion: 5, ContentETag: "\"etag-3\"")
+            )
+        );
+
+        Assert.Equal(HttpStatusCode.PreconditionFailed, exception.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteDataWithStorageMetadata_ParsesVersionHeaders()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        await using var fixture = Fixture.Create(
+            async (_, _) =>
+            {
+                await Task.CompletedTask;
+                return new HttpResponseMessage()
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Headers = { { "Instance-Version", "23" }, { "Process-State-Version", "6" } },
+                };
+            }
+        );
+
+        DeleteDataWithStorageMetadata result = await (
+            (IDataClientWithStorageMetadata)fixture.DataClient
+        ).DeleteDataWithStorageMetadata(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid,
+            delay: false,
+            authenticationMethod: null
+        );
+
+        Assert.True(result.Deleted);
+        Assert.Equal(23, result.Metadata.InstanceVersion);
+        Assert.Equal(6, result.Metadata.ProcessStateVersion);
+    }
+
+    [Fact]
+    public async Task DeleteDataWithStorageMetadata_SendsProcessPreconditionWithoutInstancePrecondition()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK };
+            }
+        );
+
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).DeleteDataWithStorageMetadata(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid,
+            delay: false,
+            authenticationMethod: null,
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 6)
+        );
+
+        Assert.NotNull(platformRequest);
+        Assert.Equal("6", platformRequest.Headers.GetValues("If-Process-State-Version-Match").Single());
+        Assert.False(platformRequest.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName));
+    }
+
+    [Fact]
+    public async Task GetDataBytes_ReturnsBytesWithoutCapturingETagHeader()
+    {
+        byte[] expectedBytes = "hello"u8.ToArray();
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new ByteArrayContent(expectedBytes),
+                    Headers = { ETag = EntityTagHeaderValue.Parse("\"etag-2\"") },
+                };
+            }
+        );
+
+        byte[] result = await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
+            123,
+            Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+            Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+            authenticationMethod: null
+        );
+
+        Assert.Equal(expectedBytes, result);
+        Assert.NotNull(platformRequest);
+        Assert.Empty(platformRequest.Headers.IfMatch);
+    }
+
+    [Fact]
+    public async Task GetDataBytes_WithExpectedContentETag_SendsIfMatch()
+    {
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new ByteArrayContent([]) };
+            }
+        );
+
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
+            123,
+            Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+            Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+            authenticationMethod: null,
+            expectedContentETag: "\"etag-expected\""
+        );
+
+        Assert.NotNull(platformRequest);
+        Assert.Equal("\"etag-expected\"", Assert.Single(platformRequest.Headers.IfMatch).ToString());
+    }
+
+    [Fact]
+    public async Task GetDataBytes_WithEmptyExpectedContentETag_DoesNotSendIfMatch()
+    {
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new ByteArrayContent([]) };
+            }
+        );
+
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
+            123,
+            Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+            Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+            authenticationMethod: null,
+            expectedContentETag: string.Empty
+        );
+
+        Assert.NotNull(platformRequest);
+        Assert.Empty(platformRequest.Headers.IfMatch);
     }
 
     [Theory]
@@ -629,7 +1145,7 @@ public class DataClientTests
             $"{ApiStorageEndpoint}instances/{instanceIdentifier}/dataelements",
             UriKind.RelativeOrAbsolute
         );
-        var response = await fixture.DataClient.GetBinaryDataList(
+        var response = await ((IDataClient)fixture.DataClient).GetBinaryDataList(
             "ttd",
             "app",
             instanceIdentifier.InstanceOwnerPartyId,
@@ -687,7 +1203,7 @@ public class DataClientTests
         );
 
         var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
-            await fixture.DataClient.GetBinaryDataList(
+            await ((IDataClient)fixture.DataClient).GetBinaryDataList(
                 "ttd",
                 "app",
                 instanceIdentifier.InstanceOwnerPartyId,
@@ -799,7 +1315,7 @@ public class DataClientTests
             $"{ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}?delay=True",
             UriKind.RelativeOrAbsolute
         );
-        var result = await fixture.DataClient.DeleteData(
+        var result = await ((IDataClient)fixture.DataClient).DeleteData(
             "ttd",
             "app",
             instanceIdentifier.InstanceOwnerPartyId,
@@ -1148,7 +1664,7 @@ public class DataClientTests
 
     private sealed record Fixture : IAsyncDisposable
     {
-        public required IDataClient DataClient { get; init; }
+        public required DataClient DataClient { get; init; }
         public required ServiceProvider ServiceProvider { get; init; }
         public required FixtureMocks Mocks { get; init; }
         public required HttpClient BaseHttpClient { get; init; }

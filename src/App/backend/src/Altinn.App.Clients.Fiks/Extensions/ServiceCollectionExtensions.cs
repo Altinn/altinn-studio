@@ -51,13 +51,15 @@ public static class ServiceCollectionExtensions
         services.AddFiksIOClient();
         services.AddAltinnCdnClient();
         services.AddSingleton<IServiceTask, FiksArkivServiceTask>();
-        services.AddSingleton<IFiksArkivHost, FiksArkivHost>();
+        services.AddSingleton<FiksArkivHost>();
+        services.AddSingleton<IFiksArkivHost>(sp => sp.GetRequiredService<FiksArkivHost>());
+        services.AddSingleton<IFiksArkivServiceTaskHost>(sp => sp.GetRequiredService<FiksArkivHost>());
         services.AddSingleton<IFiksArkivPayloadGenerator, FiksArkivDefaultPayloadGenerator>();
         services.AddSingleton<IFiksArkivResponseHandler, FiksArkivDefaultResponseHandler>();
         services.AddSingleton<IFiksArkivInstanceClient, FiksArkivInstanceClient>();
         services.AddSingleton<IFiksArkivConfigResolver, FiksArkivConfigResolver>();
         services.AddHostedService<FiksArkivConfigValidationService>();
-        services.AddHostedService(sp => (FiksArkivHost)sp.GetRequiredService<IFiksArkivHost>());
+        services.AddHostedService(sp => sp.GetRequiredService<FiksArkivHost>());
 
         return new FiksArkivSetupBuilder(services);
     }

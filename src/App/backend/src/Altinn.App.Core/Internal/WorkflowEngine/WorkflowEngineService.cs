@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -74,6 +75,7 @@ internal interface IWorkflowEngineService
 
 internal sealed record ProcessNextWorkflowResult(
     Instance Instance,
+    StorageVersionMetadata InstanceVersions,
     WorkflowFailure? WorkflowFailure,
     bool ProcessStateChanged
 );
@@ -166,13 +168,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClient;
     private readonly AppIdentifier _appIdentifier;
 
     public WorkflowEngineService(
         ProcessNextRequestFactory processNextRequestFactory,
         IWorkflowEngineClient workflowEngineClient,
-        IInstanceClient instanceClient,
+        IInstanceClientWithStorageMetadata instanceClient,
         AppIdentifier appIdentifier
     )
     {
@@ -642,18 +644,27 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
                     if (anchoredChainSettled)
                     {
-                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                        InstanceWithStorageMetadata freshInstance =
+                            await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
                         lastObservedCollectionWorkflows = currentChain;
                         WorkflowFailure? workflowFailure = BuildWorkflowFailure(currentChain);
                         bool processStateChanged = HasCommittedProcessState(currentChain);
-                        return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
+                        return new ProcessNextWorkflowResult(
+                            freshInstance.Instance,
+                            freshInstance.Metadata,
+                            workflowFailure,
+                            processStateChanged
+                        );
                     }
                 }
             }
 
             if (stopwatch.ElapsedMilliseconds > WorkflowPollingTimeoutMs)
             {
-                Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
+                    instance,
+                    ct: ct
+                );
                 if (lastObservedCollectionWorkflows.Count == 0)
                 {
                     lastObservedCollectionWorkflows = ScopeToCurrentChain(
@@ -662,7 +673,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     );
                 }
                 return new ProcessNextWorkflowResult(
-                    freshInstance,
+                    freshInstance.Instance,
+                    freshInstance.Metadata,
                     new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
                     HasCommittedProcessState(lastObservedCollectionWorkflows)
                 );
@@ -829,7 +841,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>
             workflow.Steps.Any(step =>
-                step.OperationId == SaveProcessStateToStorage.Key && step.Status == PersistentItemStatus.Completed
+                step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
             )
         );
 

@@ -45,12 +45,13 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
+        ContentEtag: "AAAAAAAAAAAAAAAAAAAAAg",
         Locked: false,
-        IsRead: true
+        IsRead: true,
+        LastChanged: DateTime_3
       }
     ],
-    LastChanged: DateTime_3,
-    LastChangedBy: 
+    LastChanged: DateTime_4
   },
   ReadInstance: {
     Id: <instancOwnerPartyId>/<instanceGuid>,
@@ -98,11 +99,12 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
+        ContentEtag: "AAAAAAAAAAAAAAAAAAAAAg",
         Locked: false,
-        IsRead: true
+        IsRead: true,
+        LastChanged: DateTime_3
       }
     ],
-    LastChanged: DateTime_3,
-    LastChangedBy: 
+    LastChanged: DateTime_4
   }
 }

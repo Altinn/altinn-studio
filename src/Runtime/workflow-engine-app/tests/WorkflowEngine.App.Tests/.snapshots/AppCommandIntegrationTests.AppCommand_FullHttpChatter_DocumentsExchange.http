@@ -100,6 +100,7 @@ Workflow-Id: Guid_3
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-1-payload",
   "workflowId": "Guid_3",
+  "executionReferenceTime": "{Scrubbed}",
   "state": "initial-workflow-state"
 }
 
@@ -133,6 +134,7 @@ Workflow-Id: Guid_3
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-2-payload",
   "workflowId": "Guid_3",
+  "executionReferenceTime": "{Scrubbed}",
   "state": "step-1-result"
 }
 

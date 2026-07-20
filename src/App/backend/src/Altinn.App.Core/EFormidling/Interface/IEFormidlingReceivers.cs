@@ -20,7 +20,12 @@ public interface IEFormidlingReceivers
     /// </remarks>
     /// <param name="instance">Instance data</param>
     /// <param name="receiverFromConfig">Receiver organization number from the eFormidling service task configuration (BPMN).</param>
+    /// <param name="dataAccessor">The active instance data accessor, when receivers are resolved from a unit of work.</param>
     /// <returns>List of eFormidling receivers</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null</exception>
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig);
+    public Task<List<Receiver>> GetEFormidlingReceivers(
+        Instance instance,
+        string? receiverFromConfig,
+        IInstanceDataAccessor? dataAccessor = null
+    );
 }

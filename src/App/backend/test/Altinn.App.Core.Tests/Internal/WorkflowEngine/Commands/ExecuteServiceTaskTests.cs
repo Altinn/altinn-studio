@@ -12,6 +12,8 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 public class ExecuteServiceTaskTests
 {
+    private static readonly DateTimeOffset FixtureExecutionReferenceTime = new(2025, 3, 14, 9, 26, 53, TimeSpan.Zero);
+
     private static ProcessEngineCommandContext CreateContext(Instance instance, string serviceTaskType)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
@@ -26,6 +28,8 @@ public class ExecuteServiceTaskTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
+            IdempotencyKey = "test-step-id",
+            ExecutionReferenceTime = FixtureExecutionReferenceTime,
             Payload = new AppCallbackPayload
             {
                 CommandKey = ExecuteServiceTask.Key,
@@ -34,9 +38,26 @@ public class ExecuteServiceTaskTests
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                ExecutionReferenceTime = FixtureExecutionReferenceTime,
             },
         };
     }
+
+    private static ProcessEngineCommandContext WithExecutionMetadata(
+        ProcessEngineCommandContext context,
+        string idempotencyKey,
+        DateTimeOffset executionReferenceTime
+    ) =>
+        new()
+        {
+            AppId = context.AppId,
+            InstanceId = context.InstanceId,
+            InstanceDataMutator = context.InstanceDataMutator,
+            CancellationToken = context.CancellationToken,
+            Payload = context.Payload with { ExecutionReferenceTime = executionReferenceTime },
+            IdempotencyKey = idempotencyKey,
+            ExecutionReferenceTime = executionReferenceTime,
+        };
 
     private static Instance CreateInstance(string taskId = "Task_1")
     {
@@ -69,7 +90,9 @@ public class ExecuteServiceTaskTests
         // Arrange
         var serviceTask = new Mock<IServiceTask>();
         serviceTask.Setup(x => x.Type).Returns("myServiceTask");
-        serviceTask.Setup(x => x.Execute(It.IsAny<ServiceTaskContext>())).ReturnsAsync(ServiceTaskResult.Success());
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .ReturnsAsync(ServiceTaskResult.Success("reject"));
         var command = CreateCommand(serviceTask.Object);
         var context = CreateContext(CreateInstance(), "myServiceTask");
 
@@ -79,6 +102,7 @@ public class ExecuteServiceTaskTests
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("reject", success.AutoAdvanceAction);
         serviceTask.Verify(x => x.Execute(It.IsAny<ServiceTaskContext>()), Times.Once);
     }
 
@@ -100,6 +124,33 @@ public class ExecuteServiceTaskTests
             x => x.Execute(It.Is<ServiceTaskContext>(c => c.WorkflowId == context.Payload.WorkflowId)),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task Execute_PassesWorkflowStepMetadataToServiceTaskContext()
+    {
+        const string idempotencyKey = "11111111-2222-3333-4444-555555555555";
+        var executionReferenceTime = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
+        ServiceTaskContext? receivedContext = null;
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .Callback<ServiceTaskContext>(context => receivedContext = context)
+            .ReturnsAsync(ServiceTaskResult.SuccessWithoutAutoAdvance());
+        var command = CreateCommand(serviceTask.Object);
+        var context = WithExecutionMetadata(
+            CreateContext(CreateInstance(), "myServiceTask"),
+            idempotencyKey,
+            executionReferenceTime
+        );
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(receivedContext);
+        Assert.Equal(idempotencyKey, receivedContext.IdempotencyKey);
+        Assert.Equal(executionReferenceTime, receivedContext.ExecutionReferenceTime);
     }
 
     [Fact]
@@ -145,6 +196,25 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
+    public async Task Execute_WhenServiceTaskReturnsRetryableFailure_ReturnsRetryableFailure()
+    {
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .ReturnsAsync(ServiceTaskResult.FailedRetryable("Try again"));
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.Equal("Service task 'myServiceTask' failed: Try again", failed.ErrorMessage);
+        Assert.Equal("ServiceTaskFailedException", failed.ExceptionType);
+        Assert.False(failed.NonRetryable);
+    }
+
+    [Fact]
     public async Task Execute_WhenNoMatchingServiceTask_ReturnsFailedResult()
     {
         // Arrange
@@ -179,5 +249,39 @@ public class ExecuteServiceTaskTests
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal("Service task exploded", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
+    }
+
+    [Fact]
+    public async Task Execute_MutatorApiUseInsideServiceTaskStillWorks()
+    {
+        // Arrange
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+        var dataElementIdentifier = new DataElementIdentifier(Guid.NewGuid());
+        Mock.Get(context.InstanceDataMutator).Setup(x => x.RemoveDataElement(dataElementIdentifier));
+
+        var serviceTask = new DelegateServiceTask(
+            "myServiceTask",
+            context =>
+            {
+                context.InstanceDataMutator.RemoveDataElement(dataElementIdentifier);
+                return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+            }
+        );
+        var command = CreateCommand(serviceTask);
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.False(success.AutoAdvanceProcess);
+    }
+
+    private sealed class DelegateServiceTask(string type, Func<ServiceTaskContext, Task<ServiceTaskResult>> execute)
+        : IServiceTask
+    {
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => execute(context);
     }
 }

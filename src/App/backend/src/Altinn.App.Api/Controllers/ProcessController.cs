@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models.Process;
@@ -35,6 +36,7 @@ public class ProcessController : ControllerBase
 
     private readonly ILogger<ProcessController> _logger;
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IProcessClient _processClient;
     private readonly IProcessEngine _processEngine;
     private readonly IProcessReader _processReader;
@@ -64,6 +66,7 @@ public class ProcessController : ControllerBase
         _instanceClient = instanceClient;
         _processClient = processClient;
         _processReader = processReader;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _processEngine = serviceProvider.GetRequiredService<IProcessEngine>();
         _processEngineAuthorizer = processEngineAuthorizer;
         _validationService = validationService;
@@ -147,7 +150,7 @@ public class ProcessController : ControllerBase
     [HttpPost("start")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_INSTANTIATE)]
     public async Task<ActionResult<AppProcessState>> StartProcess(
@@ -162,7 +165,7 @@ public class ProcessController : ControllerBase
 
         try
         {
-            instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -170,6 +173,7 @@ public class ProcessController : ControllerBase
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            instance = fetchedInstance.Instance;
 
             var request = new ProcessStartRequest()
             {
@@ -189,6 +193,7 @@ public class ProcessController : ControllerBase
                 await instanceLock.Lock();
                 instance = await _processEngine.SubmitInitialProcessState(
                     instance,
+                    fetchedInstance.Metadata,
                     result.ProcessStateChange,
                     _instanceLocker.CurrentLockToken
                         ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock")
@@ -225,7 +230,7 @@ public class ProcessController : ControllerBase
                 $"Unable to start the process for instance {instance?.Id} of {instance?.AppId}"
             );
         }
-        catch (Exception startException)
+        catch (Exception startException) when (startException is not InstanceStateConflictException)
         {
             _logger.LogError(
                 $"Unable to start the process for instance {instance?.Id} of {instance?.AppId}. Due to {startException}"
@@ -324,7 +329,7 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult> NextElement(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -339,7 +344,7 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -347,11 +352,13 @@ public class ProcessController : ControllerBase
                 null,
                 ct
             );
+            Instance instance = fetchedInstance.Instance;
 
             var processNextRequest = new ProcessNextRequest
             {
                 User = User,
                 Instance = instance,
+                InstanceVersions = fetchedInstance.Metadata,
                 Action = processNext?.Action,
                 ActionOnBehalfOf = processNext?.ActionOnBehalfOf,
                 Language = language,
@@ -413,7 +420,7 @@ public class ProcessController : ControllerBase
             _logger.LogError("Platform exception when processing next. {Message}", e.Message);
             return HandlePlatformHttpException(e, "Process next failed.");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             return ExceptionResponse(exception, "Process next failed.");
         }
@@ -425,7 +432,7 @@ public class ProcessController : ControllerBase
     [HttpPost("resume")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AppProcessState>> ResumeCurrentTask(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -436,7 +443,7 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -444,12 +451,14 @@ public class ProcessController : ControllerBase
                 null,
                 ct
             );
+            Instance instance = fetchedInstance.Instance;
 
             ProcessChangeResult result = await _processEngine.ResumeCurrentTask(
                 new ProcessNextRequest
                 {
                     User = User,
                     Instance = instance,
+                    InstanceVersions = fetchedInstance.Metadata,
                     Action = null,
                     Language = null,
                 },
@@ -476,7 +485,7 @@ public class ProcessController : ControllerBase
             _logger.LogError("Platform exception when resuming current task. {Message}", e.Message);
             return HandlePlatformHttpException(e, "Resume current task failed.");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             return ExceptionResponse(exception, "Resume current task failed.");
         }
@@ -495,7 +504,7 @@ public class ProcessController : ControllerBase
     [HttpPut("completeProcess")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AppProcessState>> CompleteProcess(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -505,10 +514,11 @@ public class ProcessController : ControllerBase
     )
     {
         Instance instance;
+        StorageVersionMetadata versions;
 
         try
         {
-            instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -516,6 +526,8 @@ public class ProcessController : ControllerBase
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            instance = fetchedInstance.Instance;
+            versions = fetchedInstance.Metadata;
         }
         catch (PlatformHttpException e)
         {
@@ -563,8 +575,9 @@ public class ProcessController : ControllerBase
                 return Forbid();
             }
 
-            var validationProblem = await GetValidationProblemDetails(
+            ProblemDetails? validationProblem = await GetValidationProblemDetails(
                 instance,
+                versions,
                 instance.Process.CurrentTask.ElementId,
                 language
             );
@@ -578,6 +591,7 @@ public class ProcessController : ControllerBase
                 ProcessNextRequest request = new()
                 {
                     Instance = instance,
+                    InstanceVersions = versions,
                     User = User,
                     Action = Altinn.App.Core.Internal.Process.ProcessEngine.ConvertTaskTypeToAction(
                         instance.Process.CurrentTask.AltinnTaskType
@@ -591,9 +605,13 @@ public class ProcessController : ControllerBase
                     return GetResultForError(result);
                 }
 
-                instance = result.MutatedInstance ?? instance;
+                if (result.MutatedInstance is { } mutatedInstance)
+                {
+                    instance = mutatedInstance;
+                    versions = result.MutatedInstanceVersions;
+                }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not InstanceStateConflictException)
             {
                 return ExceptionResponse(ex, "Complete process failed.");
             }
@@ -850,11 +868,12 @@ public class ProcessController : ControllerBase
 
     private async Task<ProblemDetails?> GetValidationProblemDetails(
         Instance instance,
+        StorageVersionMetadata versions,
         string currentTaskId,
         string? language
     )
     {
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, currentTaskId, language);
+        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, versions, currentTaskId, language);
 
         var validationIssues = await _validationService.ValidateInstanceAtTask(
             dataAccessor,

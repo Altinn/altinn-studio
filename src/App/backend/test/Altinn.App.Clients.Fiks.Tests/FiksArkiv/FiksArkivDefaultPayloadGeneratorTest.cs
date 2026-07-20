@@ -8,6 +8,7 @@ using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Auth;
@@ -172,6 +173,93 @@ public class FiksArkivDefaultPayloadGeneratorTest
         Assert.Contains("Unsupported message type", ex.Message);
     }
 
+    [Fact]
+    internal async Task GeneratePayload_WithDataAccessor_ReadsDocumentBytesFromAccessor()
+    {
+        var fixture = PayloadGeneratorFixture.Create(
+            Factories.DocumentSettings("model"),
+            [Factories.DocumentSettings("ref-data-as-pdf")],
+            archiveDocumentMetadata: null,
+            recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
+            instanceOwnerParty: null,
+            instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
+        );
+        var dataAccessor = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessor
+            .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync("Accessor content"u8.ToArray());
+
+        var result = await fixture.FiksArkivDefaultPayloadGenerator.GeneratePayload(
+            "",
+            _defaultInstance,
+            Factories.Recipient(),
+            FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+            dataAccessor.Object
+        );
+
+        Assert.NotNull(result);
+        dataAccessor.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Exactly(2));
+        fixture.DataClientMock.Verify(
+            x =>
+                x.GetDataBytes(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    internal async Task GeneratePayload_WithExecutionReferenceTime_UsesOneLocalTimeForEveryGeneratedDate()
+    {
+        var fixture = PayloadGeneratorFixture.Create(
+            Factories.DocumentSettings("model"),
+            [Factories.DocumentSettings("ref-data-as-pdf")],
+            archiveDocumentMetadata: null,
+            recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
+            instanceOwnerParty: null,
+            instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
+        );
+        TimeZoneInfo localTimeZone = TimeZoneInfo.CreateCustomTimeZone(
+            "Fiks-Test-UTC-05-45",
+            TimeSpan.FromMinutes(345),
+            "Fiks test time",
+            "Fiks test time"
+        );
+        fixture.FakeTime.SetLocalTimeZone(localTimeZone);
+        DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2025-12-31T20:30:45Z");
+        DateTime expectedLocalTime = new(2026, 1, 1, 2, 15, 45);
+
+        IEnumerable<FiksIOMessagePayload> result = await fixture.FiksArkivDefaultPayloadGenerator.GeneratePayload(
+            "Task_1",
+            _defaultInstance,
+            Factories.Recipient(),
+            FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+            executionReferenceTime
+        );
+
+        string archiveMessageXml = result
+            .Single(x => x.Filename == FiksArkivConstants.Filenames.ArchiveRecord)
+            .Data.ReadToString();
+        Arkivmelding archiveMessage = archiveMessageXml.DeserializeXml<Arkivmelding>()!;
+        Saksmappe caseFile = Assert.IsType<Saksmappe>(archiveMessage.Mappe);
+        Journalpost journalEntry = Assert.IsType<Journalpost>(archiveMessage.Registrering);
+
+        Assert.Equal(expectedLocalTime.Year, caseFile.Saksaar);
+        Assert.Equal(expectedLocalTime.Date, caseFile.Saksdato);
+        Assert.Equal(expectedLocalTime.Year, journalEntry.Journalaar);
+        Assert.Equal(expectedLocalTime.Date, journalEntry.DokumentetsDato);
+        Assert.Equal(expectedLocalTime, journalEntry.SendtDato);
+        Assert.NotEmpty(journalEntry.Dokumentbeskrivelse);
+        Assert.All(
+            journalEntry.Dokumentbeskrivelse,
+            document => Assert.Equal(expectedLocalTime, document.OpprettetDato)
+        );
+    }
+
     internal sealed record TestCase(
         PayloadGeneratorFixture Fixture,
         string MessageType,
@@ -282,6 +370,8 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 loggerMock.Object,
                 Mock.Of<IHostEnvironment>(x => x.EnvironmentName == Environments.Development),
                 configResolverMock.Object,
+                Mock.Of<IAppModel>(),
+                Options.Create(TestHelpers.DefaultFiksArkivSettings),
                 Options.Create(Factories.FiksIOSettings(_fiksIOSenderAccount)),
                 fakeTime
             );

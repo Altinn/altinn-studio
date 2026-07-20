@@ -22,6 +22,13 @@ internal sealed record AppCallbackPayload
     [JsonPropertyName("workflowId")]
     public required Guid WorkflowId { get; init; }
 
+    /// <summary>
+    /// Stable reference time for this execution: the explicit workflow schedule when present,
+    /// otherwise the persisted time when the step was enqueued.
+    /// </summary>
+    [JsonPropertyName("executionReferenceTime")]
+    public required DateTimeOffset ExecutionReferenceTime { get; init; }
+
     [JsonPropertyName("state")]
     public string? State { get; init; }
 }

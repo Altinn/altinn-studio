@@ -119,6 +119,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             LockToken = workflowContext.LockToken,
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
+            ExecutionReferenceTime = context.Workflow.StartAt ?? context.Step.CreatedAt,
             State = context.StateIn,
         };
 

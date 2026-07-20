@@ -54,6 +54,7 @@ public class EnqueueSideEffectsWorkflowTests
                 LockToken = "lock-token",
                 WorkflowId = _mainWorkflowId,
                 State = SignedTestState,
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
 

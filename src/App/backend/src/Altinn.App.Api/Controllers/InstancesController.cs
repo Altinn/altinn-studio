@@ -26,6 +26,7 @@ using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models;
@@ -61,6 +62,7 @@ public class InstancesController : ControllerBase
     private readonly ILogger<InstancesController> _logger;
 
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IDataClient _dataClient;
     private readonly IAltinnPartyClient _altinnPartyClient;
     private readonly IRegisterClient _registerClient;
@@ -111,6 +113,7 @@ public class InstancesController : ControllerBase
     {
         _logger = logger;
         _instanceClient = instanceClient;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _altinnPartyClient = altinnPartyClient;
@@ -320,6 +323,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> Post(
@@ -463,6 +467,7 @@ public class InstancesController : ControllerBase
         ConditionallySetReadStatus(instanceTemplate);
 
         Instance instance;
+        StorageVersionMetadata versions;
         instanceTemplate.Process = null;
         ProcessStateChange? processStateChange;
 
@@ -480,13 +485,15 @@ public class InstancesController : ControllerBase
             processStateChange = result.ProcessStateChange;
 
             // create the instance
-            instance = await _instanceClient.CreateInstance(
+            var createdInstance = await _instanceClientWithStorageMetadata.CreateInstanceWithStorageMetadata(
                 org,
                 app,
                 instanceTemplate,
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            instance = createdInstance.Instance;
+            versions = createdInstance.Metadata;
         }
         catch (Exception exception)
         {
@@ -498,7 +505,7 @@ public class InstancesController : ControllerBase
 
         try
         {
-            var prefillProblem = await StoreParts(instance, application, requestParts, language);
+            var prefillProblem = await StoreParts(instance, versions, application, requestParts, language);
             if (prefillProblem is not null)
             {
                 await TryDeleteInstance(instance);
@@ -506,7 +513,7 @@ public class InstancesController : ControllerBase
             }
 
             // Get the updated instance
-            instance = await _instanceClient.GetInstance(
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
@@ -514,6 +521,8 @@ public class InstancesController : ControllerBase
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            instance = fetchedInstance.Instance;
+            versions = fetchedInstance.Metadata;
 
             // An instance must never exist without a process to enqueue in the workflow engine.
             if (processStateChange is null)
@@ -530,12 +539,18 @@ public class InstancesController : ControllerBase
             await instanceLock.Lock();
             instance = await _processEngine.SubmitInitialProcessState(
                 instance,
+                versions,
                 processStateChange,
                 _instanceLocker.CurrentLockToken
                     ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
                 isInstantiation: true,
                 notification: notification
             );
+        }
+        catch (InstanceStateConflictException)
+        {
+            await TryDeleteInstance(instance);
+            throw;
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -554,7 +569,7 @@ public class InstancesController : ControllerBase
                 app
             );
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             await TryDeleteInstance(instance);
             return ExceptionResponse(
@@ -610,6 +625,7 @@ public class InstancesController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
@@ -774,10 +790,11 @@ public class InstancesController : ControllerBase
                     instansiationInstance.SourceInstanceId?.Split("/")
                     ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
                 Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+                InstanceWithStorageMetadata fetchedSource;
 
                 try
                 {
-                    source = await _instanceClient.GetInstance(
+                    fetchedSource = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                         app,
                         org,
                         party.PartyId,
@@ -785,6 +802,7 @@ public class InstancesController : ControllerBase
                         authenticationMethod: null,
                         CancellationToken.None
                     );
+                    source = fetchedSource.Instance;
                 }
                 catch (PlatformHttpException exception)
                 {
@@ -803,7 +821,8 @@ public class InstancesController : ControllerBase
                 if (copyInstanceValidator is not null)
                 {
                     var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-                        source,
+                        fetchedSource.Instance,
+                        fetchedSource.Metadata,
                         null,
                         language
                     );
@@ -850,7 +869,8 @@ public class InstancesController : ControllerBase
                 await CopyDataFromSourceInstance(application, instance, source);
             }
 
-            instance = await _instanceClient.GetInstance(instance);
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(instance);
+            instance = fetchedInstance.Instance;
 
             // An instance must never exist without a process to enqueue in the workflow engine.
             if (processStateChange is null)
@@ -867,6 +887,7 @@ public class InstancesController : ControllerBase
             await instanceLock.Lock();
             instance = await _processEngine.SubmitInitialProcessState(
                 instance,
+                fetchedInstance.Metadata,
                 processStateChange,
                 _instanceLocker.CurrentLockToken
                     ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
@@ -874,6 +895,11 @@ public class InstancesController : ControllerBase
                 prefill: instansiationInstance.Prefill,
                 notification: instansiationInstance.Notification
             );
+        }
+        catch (InstanceStateConflictException)
+        {
+            await TryDeleteInstance(instance);
+            throw;
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -892,7 +918,7 @@ public class InstancesController : ControllerBase
                 app
             );
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             await TryDeleteInstance(instance);
 
@@ -935,6 +961,7 @@ public class InstancesController : ControllerBase
     [HttpGet("/{org}/{app}/legacy/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/copy")]
     [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CopyInstance(
         [FromRoute] string org,
@@ -968,9 +995,17 @@ public class InstancesController : ControllerBase
             return Forbidden(readAccess);
         }
 
-        Instance? sourceInstance = await GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        InstanceWithStorageMetadata? fetchedSourceInstance = await GetInstanceWithStorageMetadata(
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid
+        );
 
-        if (sourceInstance?.Status?.IsArchived is null or false)
+        if (
+            fetchedSourceInstance?.Instance is not { } sourceInstance
+            || sourceInstance.Status?.IsArchived is null or false
+        )
         {
             return BadRequest("The instance being copied must be archived.");
         }
@@ -1014,6 +1049,7 @@ public class InstancesController : ControllerBase
         {
             var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
                 sourceInstance,
+                fetchedSourceInstance.Metadata,
                 null,
                 language
             );
@@ -1051,11 +1087,12 @@ public class InstancesController : ControllerBase
 
             await CopyDataFromSourceInstance(application, targetInstance, sourceInstance);
 
-            targetInstance = await _instanceClient.GetInstance(
+            var fetchedTargetInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 targetInstance,
                 authenticationMethod: null,
                 CancellationToken.None
             );
+            targetInstance = fetchedTargetInstance.Instance;
 
             // Dispatch process state change to async engine
             if (startResult.ProcessStateChange is not null)
@@ -1066,6 +1103,7 @@ public class InstancesController : ControllerBase
                 await instanceLock.Lock();
                 targetInstance = await _processEngine.SubmitInitialProcessState(
                     targetInstance,
+                    fetchedTargetInstance.Metadata,
                     startResult.ProcessStateChange,
                     _instanceLocker.CurrentLockToken
                         ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
@@ -1076,6 +1114,11 @@ public class InstancesController : ControllerBase
             string url = SelfLinkHelper.BuildFrontendSelfLink(targetInstance, Request);
 
             return Redirect(url);
+        }
+        catch (InstanceStateConflictException)
+        {
+            await TryDeleteInstance(targetInstance);
+            throw;
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -1096,7 +1139,7 @@ public class InstancesController : ControllerBase
                 app
             );
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not InstanceStateConflictException)
         {
             // Any other failure after CreateInstance (e.g. data copy or storage read) leaves an orphaned
             // instance, so clean it up before surfacing the error.
@@ -1341,11 +1384,16 @@ public class InstancesController : ControllerBase
         return Ok(SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(activeInstances, userAndOrgLookup));
     }
 
-    private async Task<Instance?> GetInstance(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
+    private async Task<InstanceWithStorageMetadata?> GetInstanceWithStorageMetadata(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
     {
         try
         {
-            return await _instanceClient.GetInstance(
+            return await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 app,
                 org,
                 instanceOwnerPartyId,
@@ -1746,12 +1794,13 @@ public class InstancesController : ControllerBase
 
     private async Task<ProblemDetails?> StoreParts(
         Instance instance,
+        StorageVersionMetadata versions,
         ApplicationMetadata appInfo,
         List<RequestPart> parts,
         string? language
     )
     {
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId: null, language);
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, versions, taskId: null, language);
 
         for (int partIndex = 0; partIndex < parts.Count; partIndex++)
         {
@@ -1847,7 +1896,6 @@ public class InstancesController : ControllerBase
 
         // Update the changes list if it changed in data processors
         changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-        await dataMutator.UpdateInstanceData(changes);
         await dataMutator.SaveChanges(changes);
 
         return null;

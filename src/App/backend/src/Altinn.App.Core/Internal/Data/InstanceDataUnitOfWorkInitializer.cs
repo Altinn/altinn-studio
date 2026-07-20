@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
@@ -14,8 +15,9 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 internal class InstanceDataUnitOfWorkInitializer
 {
-    private readonly IDataClient _dataClient;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IDataClientWithStorageMetadata _dataClient;
+    private readonly IInstanceMutationClient _mutationClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClient;
     private readonly ITranslationService _translationService;
     private readonly ModelSerializationService _modelSerializationService;
     private readonly IAppResources _appResources;
@@ -27,8 +29,9 @@ internal class InstanceDataUnitOfWorkInitializer
     /// Constructor with services from dependency injection
     /// </summary>
     public InstanceDataUnitOfWorkInitializer(
-        IDataClient dataClient,
-        IInstanceClient instanceClient,
+        IDataClientWithStorageMetadata dataClient,
+        IInstanceMutationClient mutationClient,
+        IInstanceClientWithStorageMetadata instanceClient,
         IAppMetadata applicationMetadata,
         ITranslationService translationService,
         ModelSerializationService modelSerializationService,
@@ -38,6 +41,7 @@ internal class InstanceDataUnitOfWorkInitializer
     )
     {
         _dataClient = dataClient;
+        _mutationClient = mutationClient;
         _instanceClient = instanceClient;
         _translationService = translationService;
         _modelSerializationService = modelSerializationService;
@@ -53,6 +57,7 @@ internal class InstanceDataUnitOfWorkInitializer
     /// </summary>
     internal async Task<InstanceDataUnitOfWork> Init(
         Instance instance,
+        StorageVersionMetadata versions,
         string? taskId,
         string? language,
         StorageAuthenticationMethod? authenticationMethodForAllDataTypes = null
@@ -61,7 +66,9 @@ internal class InstanceDataUnitOfWorkInitializer
         var applicationMetadata = await _applicationMetadata.GetApplicationMetadata();
         var uow = new InstanceDataUnitOfWork(
             instance,
+            versions,
             _dataClient,
+            _mutationClient,
             _instanceClient,
             applicationMetadata,
             _translationService,
