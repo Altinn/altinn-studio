@@ -12,10 +12,10 @@ const mockUseAllAttachments = jest.fn();
 const mockUseHasPendingAttachments = jest.fn(() => false);
 const mockUseAttachmentState = jest.fn(() => ({ hasPending: false, state: 'ready' }));
 
-jest.mock('src/features/attachments', () => ({
-  ...jest.requireActual('src/features/attachments'),
+jest.mock('src/features/attachments/hooks/attachmentReadModel', () => ({
+  ...jest.requireActual('src/features/attachments/hooks/attachmentReadModel'),
   AttachmentReadModel: {
-    ...jest.requireActual('src/features/attachments').AttachmentReadModel,
+    ...jest.requireActual('src/features/attachments/hooks/attachmentReadModel').AttachmentReadModel,
     useAllAttachments: () => mockUseAllAttachments(),
     useHasPendingAttachments: () => mockUseHasPendingAttachments(),
     useAttachmentState: () => mockUseAttachmentState(),
