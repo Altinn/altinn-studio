@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router';
 
-import { ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
+import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 

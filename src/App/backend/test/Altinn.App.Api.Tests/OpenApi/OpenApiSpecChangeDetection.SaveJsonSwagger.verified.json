@@ -3485,6 +3485,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "includeWorkflowStatus",
+            "in": "query",
+            "description": "When false, the live `workflow` annotation is omitted from the enriched process state\nand the read does not consult the workflow engine. Opt-out for bulk/machine-to-machine\nconsumers that don't need liveness.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
           }
         ],
         "responses": {
@@ -5107,6 +5116,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "includeWorkflowStatus",
+            "in": "query",
+            "description": "When false, the live `workflow` annotation is omitted from the response and the read\ndoes not consult the workflow engine. Opt-out for bulk/machine-to-machine consumers that\ndon't need liveness.",
+            "schema": {
+              "type": "boolean",
+              "default": true
             }
           }
         ],
@@ -8226,6 +8244,9 @@
               "$ref": "#/components/schemas/AppProcessTaskTypeInfo"
             },
             "nullable": true
+          },
+          "workflow": {
+            "$ref": "#/components/schemas/AppProcessWorkflowStatus"
           }
         },
         "additionalProperties": false
@@ -8244,6 +8265,71 @@
           "elementType": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessWorkflowFailure": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WorkflowFailureKind"
+          },
+          "workflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessWorkflowProgress": {
+        "required": [
+          "completed",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessWorkflowStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/WorkflowActivityStatus"
+          },
+          "targetTask": {
+            "type": "string",
+            "nullable": true
+          },
+          "retrying": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "progress": {
+            "$ref": "#/components/schemas/AppProcessWorkflowProgress"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failure": {
+            "$ref": "#/components/schemas/AppProcessWorkflowFailure"
           }
         },
         "additionalProperties": false
@@ -11760,6 +11846,14 @@
           }
         },
         "additionalProperties": false
+      },
+      "WorkflowActivityStatus": {
+        "enum": [
+          "idle",
+          "processing",
+          "failed"
+        ],
+        "type": "string"
       },
       "WorkflowFailure": {
         "type": "object",
