@@ -27,6 +27,7 @@ using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.Common.PEP.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -144,6 +145,7 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IProcessReader>(MockBehavior.Loose).Object);
         services.AddSingleton(new Mock<IAuthorizationService>(MockBehavior.Loose).Object);
+        services.AddSingleton(new Mock<IWorkflowEngineService>(MockBehavior.Loose).Object);
         services.AddTransient<ProcessStateEnricher>();
         services.AddSingleton(new Mock<INotificationService>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IFileService>(MockBehavior.Loose).Object);

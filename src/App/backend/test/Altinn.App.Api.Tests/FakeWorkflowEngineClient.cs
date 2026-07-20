@@ -169,7 +169,17 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 .Where(headId =>
                     _workflows.TryGetValue(headId, out StoredWorkflow? workflow) && workflow.Namespace == ns
                 )
-                .Select(headId => new CollectionHeadStatus { DatabaseId = headId, Status = _workflows[headId].Status })
+                .Select(headId =>
+                {
+                    StoredWorkflow workflow = _workflows[headId];
+                    return new CollectionHeadStatus
+                    {
+                        DatabaseId = headId,
+                        Status = workflow.Status,
+                        StepsCompleted = workflow.Steps.Count(step => step.Status == PersistentItemStatus.Completed),
+                        StepsTotal = workflow.Steps.Count,
+                    };
+                })
                 .ToList(),
             CreatedAt = collectionWorkflows[0].CreatedAt,
             UpdatedAt = collectionWorkflows.Max(workflow => workflow.UpdatedAt),

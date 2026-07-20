@@ -40,12 +40,11 @@ public class WorkflowEngineConfigurationTests(ITestOutputHelper output, AppFixtu
         Assert.Equal("stepFailed", workflowFailure.GetProperty("kind").GetString());
         Assert.Equal("OnTaskEndingHook", workflowFailure.GetProperty("stepOperationId").GetString());
 
-        JsonElement lastError = workflowFailure.GetProperty("lastError");
-        Assert.False(lastError.GetProperty("wasRetryable").GetBoolean());
-        Assert.Contains(
-            "Multiple IOnTaskEndingHandler hooks are registered",
-            lastError.GetProperty("message").GetString()
-        );
+        // The recorded error (raw hook/exception text) is never serialized to clients - only the
+        // coarse classification and structured retry metadata ship; the raw detail is logged
+        // server-side and persisted in the engine's step error history.
+        Assert.False(workflowFailure.TryGetProperty("lastError", out _));
+        Assert.DoesNotContain("Multiple IOnTaskEndingHandler hooks are registered", processNext.Data.Body);
 
         using var refreshedInstanceResponse = await fixture.Instances.Get(token, instance);
         using var refreshedInstance = await refreshedInstanceResponse.Read<Instance>();
