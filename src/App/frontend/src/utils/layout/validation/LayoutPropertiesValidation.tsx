@@ -62,10 +62,12 @@ export function LayoutPropertiesValidation({ children }: PropsWithChildren) {
     return <Loader reason='layout-validation-schema' />;
   }
 
+  const validationCompleted = completedValidationRun === validationRun;
+
   return (
     <>
-      <ComponentLayoutValidators bootstrap={bootstrap} />
-      {completedValidationRun === validationRun ? children : <Loader reason='layout-validation' />}
+      {validationCompleted && <ComponentLayoutValidators bootstrap={bootstrap} />}
+      {validationCompleted ? children : <Loader reason='layout-validation' />}
     </>
   );
 }
