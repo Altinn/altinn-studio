@@ -362,9 +362,9 @@ public sealed class ProcessEngineTest
             .Be("Task_2:3");
         capturedRequest
             .Labels.Should()
-            .ContainKey(ProcessNextRequestFactory.ProcessNextIdLabel)
+            .ContainKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel)
             .WhoseValue.Should()
-            .Be("Task_2:3");
+            .Be("Task_2");
         capturedCollectionKey.Should().Be(_collectionKey);
     }
 
@@ -2964,7 +2964,6 @@ public sealed class ProcessEngineTest
             && (
                 label.Key == ProcessNextRequestFactory.ProcessNextSourceIdLabel
                 || label.Key == ProcessNextRequestFactory.ProcessNextTargetIdLabel
-                || label.Key == ProcessNextRequestFactory.ProcessNextIdLabel
             )
         );
 
@@ -2990,7 +2989,13 @@ public sealed class ProcessEngineTest
         };
 
     private static CollectionHeadStatus CreateCollectionHeadStatus(Guid workflowId, PersistentItemStatus status) =>
-        new() { DatabaseId = workflowId, Status = status };
+        new()
+        {
+            DatabaseId = workflowId,
+            Status = status,
+            StepsCompleted = 0,
+            StepsTotal = 1,
+        };
 
     /// <summary>
     /// Unwraps the side-effects workflow embedded in the Main workflow's EnqueueSideEffectsWorkflow

@@ -35,9 +35,29 @@ internal sealed record WorkflowEnqueueEnvelope(
 /// </summary>
 internal sealed class ProcessNextRequestFactory
 {
-    internal const string ProcessNextIdLabel = "processNextId";
+    /// <summary>
+    /// Composite process-next id (<c>"{taskId}:{flow}"</c>, see <see cref="CreateProcessNextId(string, int)"/>)
+    /// of the task the transition left. Absent on initial task start.
+    /// </summary>
     internal const string ProcessNextSourceIdLabel = "processNextSourceId";
+
+    /// <summary>
+    /// Composite process-next id (<c>"{taskId}:{flow}"</c>) of the task the transition moves to.
+    /// Absent on process end. Together with the source id this lets current-task lookups match a
+    /// transition leaving or entering the task.
+    /// </summary>
     internal const string ProcessNextTargetIdLabel = "processNextTargetId";
+
+    /// <summary>
+    /// Bare element id of the task the transition moves to, so status reads never have to parse the
+    /// <c>":{flow}"</c> suffix back off <see cref="ProcessNextTargetIdLabel"/>. Absent on process end.
+    /// </summary>
+    internal const string ProcessNextTargetTaskLabel = "processNextTargetTask";
+
+    /// <summary>
+    /// The instance guid ("N" format), present on every process-next workflow. Groups all
+    /// transitions of an instance for label-based lookups (mirrors the collection key).
+    /// </summary>
     internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
     /// <summary>
@@ -211,12 +231,10 @@ internal sealed class ProcessNextRequestFactory
             labels[ProcessNextSourceIdLabel] = sourceId;
         }
 
-        if (CreateProcessNextId(processStateChange.NewProcessState?.CurrentTask) is { } targetId)
+        if (processStateChange.NewProcessState?.CurrentTask is { ElementId.Length: > 0 } targetTask)
         {
-            labels[ProcessNextTargetIdLabel] = targetId;
-
-            // Keep the original label for existing workflow lookups and dashboard filters.
-            labels[ProcessNextIdLabel] = targetId;
+            labels[ProcessNextTargetIdLabel] = CreateProcessNextId(targetTask.ElementId, targetTask.Flow ?? 0);
+            labels[ProcessNextTargetTaskLabel] = targetTask.ElementId;
         }
 
         return labels.Count > 0 ? labels : null;

@@ -43,10 +43,11 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         string collectionKey,
         IReadOnlyList<WorkflowRequest> workflows,
         string ns = "test-ns",
-        string? idempotencyKey = null
+        string? idempotencyKey = null,
+        Dictionary<string, string>? labels = null
     )
     {
-        var request = new WorkflowEnqueueRequest { Workflows = workflows };
+        var request = new WorkflowEnqueueRequest { Workflows = workflows, Labels = labels };
 
         var metadata = new WorkflowRequestMetadata(
             ns,
@@ -82,6 +83,102 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         var collection = Assert.Single(collections);
         Assert.Equal("my-collection", collection.Key);
         Assert.Single(collection.Heads);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadWorkflowLabels()
+    {
+        // The collection detail exposes each head's labels so a consumer can identify a head by an
+        // application-specific label (e.g. a target task) without a second per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a");
+        var labels = new Dictionary<string, string> { ["processNextTargetId"] = "Task_2:3" };
+
+        await EnqueueWithCollection(repo, "labeled-collection", [wf], labels: labels);
+
+        var collection = await repo.GetCollection(
+            "labeled-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+        Assert.NotNull(head.Labels);
+        Assert.Equal("Task_2:3", head.Labels["processNextTargetId"]);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadStepProgress()
+    {
+        // The collection detail exposes each head's step progress (completed / total) so a consumer
+        // can show how far an executing head has come without a second per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a");
+        wf = wf with
+        {
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "step-1",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-2",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-3",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+        var results = await EnqueueWithCollection(repo, "progress-collection", [wf]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var before = await repo.GetCollection("progress-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(before);
+        var headBefore = Assert.Single(before.Heads);
+        Assert.Equal(0, headBefore.StepsCompleted);
+        Assert.Equal(3, headBefore.StepsTotal);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        var firstStep = workflow.Steps.OrderBy(s => s.ProcessingOrder).First();
+        firstStep.Status = PersistentItemStatus.Completed;
+        await repo.UpdateStep(firstStep, cancellationToken: TestContext.Current.CancellationToken);
+
+        var after = await repo.GetCollection("progress-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(after);
+        var headAfter = Assert.Single(after.Heads);
+        Assert.Equal(1, headAfter.StepsCompleted);
+        Assert.Equal(3, headAfter.StepsTotal);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadCreatedAt()
+    {
+        // The collection detail exposes each head's creation time so a consumer can anchor
+        // "how long has this been running" to the engine's clock without a per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var results = await EnqueueWithCollection(repo, "created-at-collection", [CreateWorkflowRequest("a")]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var collection = await repo.GetCollection(
+            "created-at-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        Assert.Equal(workflow.CreatedAt, head.CreatedAt);
     }
 
     [Fact]

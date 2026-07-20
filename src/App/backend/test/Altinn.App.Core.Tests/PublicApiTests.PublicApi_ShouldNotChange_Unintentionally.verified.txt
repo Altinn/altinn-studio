@@ -3709,6 +3709,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public AppProcessState(Altinn.Platform.Storage.Interface.Models.ProcessState? processState) { }
         public new Altinn.App.Core.Internal.Process.Elements.AppProcessElementInfo? CurrentTask { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AppProcessTaskTypeInfo>? ProcessTasks { get; set; }
+        public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowStatus? Workflow { get; set; }
     }
     public class AppProcessTaskTypeInfo
     {
@@ -3719,6 +3720,47 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public string? ElementId { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("elementType")]
         public string? ElementType { get; set; }
+    }
+    public sealed class AppProcessWorkflowFailure
+    {
+        public AppProcessWorkflowFailure() { }
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
+        public Altinn.App.Core.Models.Process.WorkflowFailureKind Kind { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("occurredAt")]
+        public System.DateTimeOffset? OccurredAt { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("workflowId")]
+        public System.Guid? WorkflowId { get; init; }
+    }
+    public sealed class AppProcessWorkflowProgress
+    {
+        public AppProcessWorkflowProgress() { }
+        [System.Text.Json.Serialization.JsonPropertyName("completed")]
+        public required int Completed { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public required int Total { get; init; }
+    }
+    public sealed class AppProcessWorkflowStatus
+    {
+        public AppProcessWorkflowStatus() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("failure")]
+        public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowFailure? Failure { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("progress")]
+        public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowProgress? Progress { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("retrying")]
+        public bool? Retrying { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("startedAt")]
+        public System.DateTimeOffset? StartedAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public Altinn.App.Core.Internal.Process.Elements.WorkflowActivityStatus Status { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("targetTask")]
+        public string? TargetTask { get; init; }
     }
     [System.Xml.Serialization.XmlRoot("definitions", Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
     [System.Xml.Serialization.XmlType(Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
@@ -3815,6 +3857,13 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public bool Authorized { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("id")]
         public required string Id { get; set; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
+    public enum WorkflowActivityStatus
+    {
+        Idle = 0,
+        Processing = 1,
+        Failed = 2,
     }
 }
 namespace Altinn.App.Core.Internal.Process.Elements.Base
@@ -3921,8 +3970,8 @@ namespace Altinn.App.Core.Internal.Process
     }
     public sealed class ProcessStateEnricher
     {
-        public ProcessStateEnricher(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> Enrich(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user) { }
+        public ProcessStateEnricher(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization, System.IServiceProvider serviceProvider) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> Enrich(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user, bool includeWorkflowStatus = true, System.Threading.CancellationToken ct = default) { }
     }
 }
 namespace Altinn.App.Core.Internal.Process.ProcessTasks
@@ -5439,14 +5488,22 @@ namespace Altinn.App.Core.Models.Process
     public sealed class WorkflowFailure
     {
         public WorkflowFailure() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? CommandType { get; init; }
         public Altinn.App.Core.Models.Process.WorkflowFailureKind Kind { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Altinn.App.Core.Models.Process.WorkflowFailureError? LastError { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? RetryAction { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? RetryCount { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public System.Guid? RetryTargetWorkflowId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? StepOperationId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public System.Guid? WorkflowId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? WorkflowOperationId { get; init; }
     }
     public sealed class WorkflowFailureError

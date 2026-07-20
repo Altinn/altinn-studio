@@ -1,20 +1,14 @@
 import React from 'react';
-import { useAppContext, useGetLayoutSetByName } from '../../hooks';
+import { useAppContext, useConfigurationMode } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioButton, StudioError, StudioHeading, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import { SidebarLeftIcon } from '@studio/icons';
-import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
-import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { ElementsUtils } from './ElementsUtils';
-import type { ConfPageType } from './types/ConfigPageType';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -23,57 +17,11 @@ export interface ElementsProps {
 
 export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutName } = useAppContext();
-  const { layoutSet } = useUxEditorParams();
-  const selectedLayoutSet = useGetLayoutSetByName({
-    name: layoutSet,
-    org,
-    app,
-  });
+  const configToolbarMode = useConfigurationMode();
 
-  const {
-    data: processTaskType,
-    isPending: isFetchingProcessTaskType,
-    isError: hasProcessTaskTypeError,
-  } = useProcessTaskTypeQuery(org, app, layoutSet);
-
-  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const hideComponents =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
-
-  if (isFetchingProcessTaskType) {
-    return (
-      <div className={classes.root}>
-        <StudioSpinner spinnerTitle={t('schema_editor.loading_available_components')} aria-hidden />
-      </div>
-    );
-  }
-
-  if (hasProcessTaskTypeError) {
-    return (
-      <div>
-        <div className={classes.errorMessage}>
-          <StudioError>
-            <Heading level={3} size='xsmall' spacing>
-              {t('schema_editor.error_could_not_detect_taskType', {
-                layout: layoutSet,
-              })}
-            </Heading>
-            <Paragraph>{t('schema_editor.error_could_not_detect_taskType_description')}</Paragraph>
-          </StudioError>
-        </div>
-      </div>
-    );
-  }
-
-  const selectedLayoutIsCustomReceipt = layoutSet === existingCustomReceiptName;
-
-  const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
-    selectedLayoutIsCustomReceipt,
-    processTaskType,
-    selectedLayoutSetType: selectedLayoutSet?.type,
-  });
 
   const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
 

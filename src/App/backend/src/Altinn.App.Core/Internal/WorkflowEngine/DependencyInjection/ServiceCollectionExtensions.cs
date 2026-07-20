@@ -23,7 +23,10 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
-        services.AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>();
+
+        services
+            .AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>()
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(30));
 
         // Callback authentication (app signs at enqueue, app validates at callback)
         services.TryAddSingleton<IWorkflowCallbackSecretProvider, WorkflowCallbackSecretProvider>();

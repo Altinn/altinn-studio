@@ -78,7 +78,6 @@ function useOverriddenDataSourcesForSubform(
 }
 
 const dataSourcesNotSupportedInSubform = new Set([
-  'hiddenComponents',
   'layoutLookups',
   'displayValues',
 ] satisfies (keyof ExpressionDataSources)[]);

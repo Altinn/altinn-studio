@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -39,7 +40,13 @@ public class WorkflowEngineServiceTests
                     Namespace = Namespace,
                     Heads =
                     [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Completed },
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = workflowId,
+                            Status = PersistentItemStatus.Completed,
+                            StepsCompleted = 12,
+                            StepsTotal = 12,
+                        },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
                 }
@@ -302,21 +309,302 @@ public class WorkflowEngineServiceTests
         Assert.Null(WorkflowEngineService.BuildWorkflowFailure([abandoned, newerCompleted]));
     }
 
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenCurrentTaskIsNull_ReturnsIdleWithoutQueryingEngine()
+    {
+        // Not started / ended: there is nothing transitioning, so the engine must not be queried.
+        var instance = new Instance { Id = $"1337/{Guid.NewGuid()}" };
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Status);
+        Assert.Null(result.TargetTask);
+        Assert.Null(result.Failure);
+        client.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsActive_ReturnsProcessingFromHeadLabelInSingleCall()
+    {
+        // A collection head that is Enqueued/Processing/Requeued means the transition is in flight.
+        // The target task is read straight from the head's own processNextTargetTask label, so
+        // processing resolves in a SINGLE GetCollection call - the collection's workflows must NOT
+        // be listed.
+        Guid headId = Guid.NewGuid();
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+        DateTimeOffset headCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-42);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Enqueued,
+                            Labels = new Dictionary<string, string>(StringComparer.Ordinal)
+                            {
+                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
+                            },
+                            StepsCompleted = 4,
+                            StepsTotal = 12,
+                            CreatedAt = headCreatedAt,
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.Null(result.Failure);
+        Assert.False(result.Retrying); // Enqueued = first attempt pending, not a retry
+        Assert.Equal(new WorkflowStepProgress(Completed: 4, Total: 12), result.Progress);
+        Assert.Equal(headCreatedAt, result.StartedAt); // the head's enqueue time is the wait anchor
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls(); // ListWorkflows was NOT called for the processing case
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsRequeued_ReturnsProcessingWithRetryingFlag()
+    {
+        // A Requeued head is parked between automatic retry attempts (a previous attempt failed):
+        // still Processing to consumers, but flagged Retrying so a waiting UI can explain the
+        // longer wait. Resolved from the same single GetCollection call as plain processing.
+        Guid headId = Guid.NewGuid();
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Requeued,
+                            Labels = new Dictionary<string, string>(StringComparer.Ordinal)
+                            {
+                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
+                            },
+                            StepsCompleted = 7,
+                            StepsTotal = 12,
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.True(result.Retrying);
+        Assert.Null(result.Failure);
+        Assert.Equal(new WorkflowStepProgress(Completed: 7, Total: 12), result.Progress);
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsFailed_ReturnsFailedWithFailureDetail()
+    {
+        // A resume-required head (Failed/Canceled/DependencyFailed) surfaces as Failed with the
+        // failure detail built from the collection's workflows.
+        Guid headId = Guid.NewGuid();
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+        WorkflowStatusResponse failedWorkflow = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow,
+            status: PersistentItemStatus.Failed,
+            databaseId: headId,
+            collectionKey: collectionKey,
+            labels: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
+            },
+            steps:
+            [
+                new StepStatusResponse
+                {
+                    OperationId = "step-op",
+                    ProcessingOrder = 0,
+                    Command = new StepStatusResponse.CommandDetails { Type = "app" },
+                    Status = PersistentItemStatus.Failed,
+                    RetryCount = 1,
+                    ErrorHistory = [new ErrorEntry(DateTimeOffset.UtcNow, "The service task failed.", 422, false)],
+                },
+            ]
+        );
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    It.IsAny<string?>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([failedWorkflow]);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Failed,
+                            StepsCompleted = 7,
+                            StepsTotal = 12,
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Failed, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.NotNull(result.Failure);
+        Assert.Equal(WorkflowFailureKind.StepFailed, result.Failure.Kind);
+        Assert.Equal("The service task failed.", result.Failure.LastError?.Message);
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadsAreSettled_ReturnsIdleWithSingleCollectionCall()
+    {
+        // Heads exist but are all terminal-completed: the current task is settled. The common (idle)
+        // read must resolve in a SINGLE GetCollection call — the collection's workflows are only
+        // listed when a head is actually processing or failed.
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = Guid.NewGuid(),
+                            Status = PersistentItemStatus.Completed,
+                            StepsCompleted = 12,
+                            StepsTotal = 12,
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Status);
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls(); // crucially, ListWorkflows was NOT called for the settled case
+    }
+
+    private static Instance CreateInstanceOnTask(string elementId, Guid? instanceGuid = null) =>
+        new()
+        {
+            Id = $"1337/{instanceGuid ?? Guid.NewGuid()}",
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = elementId, Flow = 0 },
+            },
+        };
+
     private static WorkflowStatusResponse CreateWorkflowStatus(
         DateTimeOffset createdAt,
         PersistentItemStatus status = PersistentItemStatus.Completed,
         string operationId = "op",
-        bool? isHead = null
+        bool? isHead = null,
+        Guid? databaseId = null,
+        string? collectionKey = null,
+        Dictionary<string, string>? labels = null,
+        IReadOnlyList<StepStatusResponse>? steps = null
     ) =>
         new()
         {
-            DatabaseId = Guid.NewGuid(),
+            DatabaseId = databaseId ?? Guid.NewGuid(),
             OperationId = operationId,
             IdempotencyKey = Guid.NewGuid().ToString(),
             Namespace = Namespace,
+            CollectionKey = collectionKey,
             CreatedAt = createdAt,
             OverallStatus = status,
             IsHead = isHead,
-            Steps = [],
+            Labels = labels,
+            Steps = steps ?? [],
         };
 }
