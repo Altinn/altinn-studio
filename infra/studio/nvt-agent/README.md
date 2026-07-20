@@ -45,10 +45,11 @@ Keep the unresolved App, installation, and OAuth client IDs explicit in
   installed in the Altinn organization. Register
   `https://staging.altinn.studio/agents/oauth2/callback`.
 
-The pull-request merge gate deliberately fails while any
-`REPLACE_WITH_*` value remains. This keeps the deployment non-mergeable until
-all five non-secret identifiers are supplied, while the separate manifest and
-load-balancer validation job can still demonstrate the rest of the draft.
+The five non-secret application and installation identifiers are resolved in
+the deployment metadata. The remaining rollout gates are external: populate
+the documented Key Vault secrets, verify the AKS RuntimeClass and NET_ADMIN
+admission policy, and complete the staged health and OAuth checks before
+activation.
 
 The working checkout is `mirkoSekulic/altinn-studio`, with
 `Altinn/altinn-studio` configured as the `upstream` remote. Both broker
