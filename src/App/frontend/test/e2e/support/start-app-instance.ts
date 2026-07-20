@@ -89,11 +89,11 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
   }
 
   if (tenorUser && cyUser && Cypress.env('type') === 'localtest') {
-    cyUserLogin({ cyUser, authenticationLevel, appName });
+    cyUserLogin({ cyUser, authenticationLevel });
   } else if (tenorUser) {
     tenorUserLogin({ appName, tenorUser, authenticationLevel });
   } else if (cyUser) {
-    cyUserLogin({ cyUser, authenticationLevel, appName });
+    cyUserLogin({ cyUser, authenticationLevel });
   }
 
   cy.visit(targetUrlRaw, visitOptions);

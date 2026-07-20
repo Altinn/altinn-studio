@@ -1,0 +1,185 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "size": "L",
+        "id": "Task1Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Task1.header.title"
+        }
+      },
+      {
+        "id": "Task1Description1",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Task1.description1"
+        }
+      },
+      {
+        "id": "Task1Description2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Task1.description2"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "path",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "path",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "options": [
+          {
+            "value": "none",
+            "label": "path.none"
+          },
+          {
+            "value": "preCommit",
+            "label": "path.preCommit"
+          },
+          {
+            "value": "postCommit",
+            "label": "path.postCommit"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "path.title",
+          "help": "path.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "delayMs",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "delayMs",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "and",
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+        ],
+        "options": [
+          {
+            "value": "0",
+            "label": "delayMs.none"
+          },
+          {
+            "value": "3000",
+            "label": "delayMs.short"
+          },
+          {
+            "value": "8000",
+            "label": "delayMs.medium"
+          },
+          {
+            "value": "15000",
+            "label": "delayMs.long"
+          },
+          {
+            "value": "30000",
+            "label": "delayMs.veryLong"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "delayMs.title",
+          "help": "delayMs.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "attempts",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "attempts",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "and",
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+        ],
+        "options": [
+          {
+            "value": "1",
+            "label": "attempts.one"
+          },
+          {
+            "value": "2",
+            "label": "attempts.two"
+          },
+          {
+            "value": "3",
+            "label": "attempts.three"
+          },
+          {
+            "value": "5",
+            "label": "attempts.five"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "attempts.title",
+          "help": "attempts.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "endState",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "endState",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "and",
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+        ],
+        "options": [
+          {
+            "value": "success",
+            "label": "endState.success"
+          },
+          {
+            "value": "failure",
+            "label": "endState.failure"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "endState.title",
+          "help": "endState.help"
+        }
+      },
+      {
+        "id": "Task1Hint",
+        "type": "Alert",
+        "severity": "info",
+        "textResourceBindings": {
+          "title": "Task1.hint.title",
+          "body": "Task1.hint.body"
+        }
+      },
+      {
+        "id": "sendinnTask1",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "sendinnTask1.title"
+        }
+      }
+    ]
+  }
+}

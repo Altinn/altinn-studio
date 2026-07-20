@@ -84,10 +84,10 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
             "OnTaskEndingHook",
             failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
         );
-        Assert.Contains(
-            "Scenario task ending failed permanently.",
-            failureRoot.GetProperty("workflowFailure").GetProperty("lastError").GetProperty("message").GetString()
-        );
+        // The raw failure detail (the hook's exception text) is never serialized to clients -
+        // only the coarse classification and structured retry metadata ship.
+        Assert.False(failureRoot.GetProperty("workflowFailure").TryGetProperty("lastError", out _));
+        Assert.DoesNotContain("Scenario task ending failed permanently.", failedProcessNext.Data.Body);
         using var instanceAfterFailureResponse = await fixture.Instances.Get(token, instance);
         using var instanceAfterFailure = await instanceAfterFailureResponse.Read<Instance>();
         Assert.Equal("Task_1", instanceAfterFailure.Data.Model!.Process.CurrentTask!.ElementId);

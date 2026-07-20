@@ -193,14 +193,34 @@
     "Name": "CollectionHeadStatus",
     "Fields": [
       {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "databaseId",
         "Kind": "guid",
         "Nullable": false
       },
       {
+        "Name": "labels",
+        "Kind": "map<string,string>",
+        "Nullable": true
+      },
+      {
         "Name": "status",
         "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7}",
         "Nullable": false
+      },
+      {
+        "Name": "stepsCompleted",
+        "Kind": "int",
+        "Nullable": true
+      },
+      {
+        "Name": "stepsTotal",
+        "Kind": "int",
+        "Nullable": true
       }
     ]
   },

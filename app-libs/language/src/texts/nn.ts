@@ -460,6 +460,26 @@ export function nn() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noko gjekk gale med innsending, prøv igjen om nokre minutt.',
+    'process_workflow.advancing_title': 'Vi jobbar med skjemaet ditt',
+    'process_workflow.advancing_body':
+      'Du treng ikkje gjere noko. Vi sender deg vidare så snart alt er klart.',
+    'process_workflow.failed_heading': 'Noko gjekk gale',
+    'process_workflow.failed_description':
+      'Vi klarte ikkje å fullføre handsaminga av skjemaet ditt, og feilen rettar seg ikkje av seg sjølv. Du må ta kontakt for å få hjelp til å komme vidare.',
+    'process_workflow.failed_contact':
+      'Ta kontakt med Altinn brukarservice på telefon {0} eller e-post {1}, og oppgi referansane du finn under _«{2}»_.',
+    'process_workflow.failed_details_kind': 'Feiltype',
+    'process_workflow.failed_details_time': 'Tidspunkt',
+    'process_workflow.failed_details_instance': 'Skjemareferanse',
+    'process_workflow.failed_details_reference': 'Handsamingsreferanse',
+    'process_workflow.failure_kind.stepFailed': 'Eit steg i handsaminga feila',
+    'process_workflow.failure_kind.dependencyFailed': 'Eit steg i handsaminga feila',
+    'process_workflow.failure_kind.engineFault': 'Systemet feila under handsaminga',
+    'process_workflow.failure_kind.timeout': 'Handsaminga tok for lang tid',
+    'process_workflow.failure_kind.unknown': 'Ukjend årsak',
+    'process_workflow.still_working':
+      'Dette tek uvanleg lang tid. Opplysningane dine er lagra, og vi held fram automatisk – du kan trygt lukke sida og komme tilbake seinare.',
+    'process_workflow.connection_trouble': 'Vi får ikkje kontakt med tenesta akkurat no. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikkje førehandsvise PDF',
     'pdfPreview.defaultButtonText': 'Førehandsvis PDF',
     'taskTypes.data': 'Utfylling',

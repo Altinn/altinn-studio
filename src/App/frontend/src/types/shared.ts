@@ -195,6 +195,74 @@ export interface IProcess {
   ended?: string | null;
   endEvent?: string | null;
   processTasks?: IProcessTask[];
+  /**
+   * Live workflow-engine annotation resolved on every process/instance read. It sits next to the
+   * (unchanged) committed `currentTask`: `idle` means render normally, `processing` means a
+   * transition is in flight, and `failed` means the transition failed terminally and awaits an
+   * ops-driven resume. Optional so older backends that don't emit it are treated as `idle`.
+   */
+  workflow?: IProcessWorkflow;
+}
+
+export type WorkflowActivityStatus = 'idle' | 'processing' | 'failed';
+
+/**
+ * Safe structured facts about a failed transition - the coarse classification plus the
+ * support-reference fields. The backend never ships raw error detail here.
+ */
+export interface IProcessWorkflowFailure {
+  kind: string;
+  /** Id of the failed workflow - the support reference ops can look up in the engine. */
+  workflowId?: string;
+  /** When the failure was recorded (ISO timestamp). */
+  occurredAt?: string;
+}
+
+export type IProcessWorkflow = IProcessWorkflowIdle | IProcessWorkflowProcessing | IProcessWorkflowFailed;
+
+/** No transition is currently in flight or awaiting manual intervention. */
+interface IProcessWorkflowIdle {
+  status: 'idle';
+}
+
+/** A transition is in flight. */
+interface IProcessWorkflowProcessing {
+  status: 'processing';
+  /** BPMN element id the in-flight transition targets. Omitted when unresolved. */
+  targetTask?: string;
+  /**
+   * True when the transition is parked between automatic retry attempts (a previous attempt
+   * failed and the engine will retry). Purely a presentation hint for explaining a long wait
+   * honestly. Omitted when false.
+   */
+  retrying?: boolean;
+  /**
+   * Progress through the in-flight transition's workflow steps (execution is on step
+   * `completed + 1` of `total`). Omitted when the engine did not report step counts. Kept in the
+   * wire model for observability, but deliberately not rendered - internal engine step counts
+   * mean nothing to the user.
+   */
+  progress?: IProcessWorkflowProgress;
+  /**
+   * When the in-flight transition was started (enqueued), on the server's clock (ISO timestamp).
+   * Lets a client that reconnects mid-transition (page refresh, second session) measure how long
+   * the transition has actually been running instead of measuring from its own page load.
+   */
+  startedAt?: string;
+}
+
+/** A transition failed terminally and awaits an ops-driven resume. */
+interface IProcessWorkflowFailed {
+  status: 'failed';
+  /** BPMN element id the failed transition targets. Omitted when unresolved. */
+  targetTask?: string;
+  /** Safe structured facts about the failed transition. Omitted if the backend cannot classify it. */
+  failure?: IProcessWorkflowFailure;
+}
+
+export interface IProcessWorkflowProgress {
+  completed: number;
+  total: number;
 }
 
 export interface IProfile {

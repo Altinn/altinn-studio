@@ -1,20 +1,14 @@
 import React from 'react';
-import { useAppContext } from '../../hooks';
+import { useAppContext, useConfigurationMode } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
 import { StudioButton, StudioHeading } from '@studio/components';
 import { SidebarLeftIcon } from '@studio/icons';
-import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
-import { useLayoutSetsExtendedQuery } from '../../hooks/queries/useLayoutSetsExtendedQuery';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { ElementsUtils } from './ElementsUtils';
-import type { ConfPageType } from './types/ConfigPageType';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -23,21 +17,11 @@ export interface ElementsProps {
 
 export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutName } = useAppContext();
-  const { layoutSet } = useUxEditorParams();
-  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const configToolbarMode = useConfigurationMode();
 
   const hideComponents =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
-
-  const selectedLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
-
-  const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
-    selectedLayoutIsCustomReceipt: selectedLayoutSet?.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-    processTaskType: selectedLayoutSet?.taskType,
-    selectedLayoutSetType: selectedLayoutSet?.type,
-  });
 
   const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
 
