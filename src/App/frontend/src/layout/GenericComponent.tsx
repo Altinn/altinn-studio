@@ -1,18 +1,14 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router';
-import type { SetURLSearchParams } from 'react-router';
+import React, { useEffect, useMemo } from 'react';
 
 import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
 import classNames from 'classnames';
 
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
-import { SearchParams } from 'src/core/routing/types';
-import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
-import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
+import { useHandleFocusComponent } from 'src/layout/focusComponent';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -230,89 +226,4 @@ export function ComponentErrorList({ baseComponentId, errors }: { baseComponentI
       </p>
     </FatalError>
   );
-}
-
-function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObject<HTMLDivElement | null>) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const indexedId = searchParams.get(SearchParams.FocusComponentId);
-  const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
-
-  const abortController = useRef(new AbortController());
-  const pathnameWas = window.location.pathname;
-  const isNavigating = useIsNavigating();
-  const shouldFocus = indexedId && indexedId === nodeId && !isNavigating;
-
-  useEffect(() => {
-    const div = containerDivRef.current;
-    if (shouldFocus && div) {
-      try {
-        requestAnimationFrame(() => {
-          if (!abortController.current.signal.aborted) {
-            div.scrollIntoView({ behavior: 'instant' });
-          }
-        });
-
-        const field = findElementToFocus(div, errorBinding);
-        if (field && !abortController.current.signal.aborted) {
-          field.focus();
-        }
-      } finally {
-        if (!abortController.current.signal.aborted && pathnameWas === window.location.pathname) {
-          cleanupQuery(searchParams, setSearchParams);
-        }
-      }
-    }
-  }, [containerDivRef, errorBinding, pathnameWas, nodeId, searchParams, setSearchParams, shouldFocus]);
-
-  useEffect(
-    () => () => {
-      abortController.current.abort();
-    },
-    [],
-  );
-}
-
-function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSearchParams) {
-  if (searchParams.has(SearchParams.FocusComponentId) || searchParams.has(SearchParams.FocusErrorBinding)) {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.delete(SearchParams.FocusComponentId);
-    newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, replaceAndPreventResetOptions);
-  }
-}
-
-export function findElementToFocus(div: HTMLDivElement | null, binding: string | null) {
-  if (!div) {
-    return undefined;
-  }
-
-  const targetElements = Array.from(
-    div.querySelectorAll<HTMLElement>(
-      ['input', 'textarea', 'select', 'button', '[tabindex]:not([tabindex="-1"])', '[contenteditable="true"]'].join(
-        ',',
-      ),
-    ),
-  );
-
-  if (targetElements.length === 0) {
-    return undefined;
-  }
-
-  if (binding !== null) {
-    const matchesBinding = (element: HTMLElement) => element.dataset.bindingkey === binding;
-    const bindingInput = targetElements.find(
-      (element) => matchesBinding(element) && element.matches('input,textarea,select'),
-    );
-    if (bindingInput) {
-      return bindingInput;
-    }
-
-    const anyBinding = targetElements.find(matchesBinding);
-    if (anyBinding) {
-      return anyBinding;
-    }
-  }
-
-  const firstInputLike = targetElements.find((element) => element.matches('input,textarea,select'));
-  return firstInputLike ?? targetElements[0];
 }

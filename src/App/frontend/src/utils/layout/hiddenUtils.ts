@@ -3,8 +3,6 @@ import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/ty
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CompExternal } from 'src/layout/layout';
 
-// Runtime-specific visibility helpers. The main-compatible helpers remain in hiddenUtils.ts.
-
 interface HiddenExprSource {
   type: 'hidden' | 'hiddenRow' | 'hiddenPage';
   expr: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -23,7 +21,6 @@ export type HiddenReason = HiddenSource['type'] | 'pageOrder';
 interface EvaluateHiddenSourcesProps {
   hiddenSources: HiddenSource[];
   pageOrder: string[];
-  pageOrderSet?: Set<string>;
   pageKey: string | undefined;
   respectPageOrder?: boolean;
   evalHiddenExpression: (expr: HiddenExprSource['expr'], source: HiddenExprSource) => boolean;
@@ -57,7 +54,7 @@ export function collectHiddenSources(
     if (
       parentComponent.type === 'RepeatingGroup' &&
       parentComponent.hiddenRow !== undefined &&
-      isInRepeatingGroupChildren(parentComponent, childId)
+      isInRepeatingGroupChildrenProperty(parentComponent, childId)
     ) {
       out.push({ type: 'hiddenRow', expr: parentComponent.hiddenRow, id: parent.id });
     }
@@ -74,19 +71,17 @@ export function collectHiddenSources(
     out.push({ type: 'hiddenPage', expr: hiddenExpr, id: page });
   }
 
-  return out.reverse();
+  return out;
 }
 
 export function evaluateHiddenSources({
   hiddenSources,
   pageOrder,
-  pageOrderSet,
   pageKey,
   respectPageOrder = false,
   evalHiddenExpression,
 }: EvaluateHiddenSourcesProps): { hidden: boolean; reason: HiddenReason | undefined } {
-  const includedPages = pageOrderSet ?? new Set(pageOrder);
-  if (respectPageOrder && pageKey !== undefined && !includedPages.has(pageKey)) {
+  if (respectPageOrder && pageKey !== undefined && !pageOrder.includes(pageKey)) {
     return { reason: 'pageOrder', hidden: true };
   }
 
@@ -107,10 +102,10 @@ export function evaluateHiddenSources({
 }
 
 /**
- * Checks if a baseComponentId is in the repeating group children (returns false if the baseComponentId is included
- * via rowsBefore/rowsAfter).
+ * Checks if a baseComponentId is in the repeating group children property (returns false if the baseComponentId is
+ * in other properties, like rowsBefore/rowsAfter).
  */
-function isInRepeatingGroupChildren(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
+function isInRepeatingGroupChildrenProperty(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
   const multiPage = parent.edit?.multiPage ?? false;
   if (!multiPage) {
     return parent.children.includes(baseComponentId);

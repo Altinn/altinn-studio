@@ -8,8 +8,11 @@ import type { ComponentValidationContext } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-export function validateRepGroupMinCount(minCount: number, visibleRows: number): ComponentValidation | undefined {
-  if (visibleRows >= minCount) {
+export function validateRepGroupMinCount(
+  minCount: number | undefined,
+  visibleRows: number,
+): ComponentValidation | undefined {
+  if (minCount === undefined || !Number.isFinite(minCount) || minCount <= 0 || visibleRows >= minCount) {
     return undefined;
   }
 
@@ -60,11 +63,15 @@ function getVisibleRows(ctx: ComponentValidationContext<'RepeatingGroup'>): numb
 export function validateRepGroupMinCountForNode(
   ctx: ComponentValidationContext<'RepeatingGroup'>,
 ): ComponentValidation[] {
+  if (ctx.component.minCount === undefined) {
+    return [];
+  }
+
   const validation = validateRepGroupMinCount(
-    evalExpr(ctx.component.minCount, ctx.expressionDataSources, {
+    evalExpr<ExprVal.Number>(ctx.component.minCount, ctx.expressionDataSources, {
       returnType: ExprVal.Number,
       defaultValue: 0,
-    }) as number,
+    }),
     getVisibleRows(ctx),
   );
   return validation ? [validation] : [];

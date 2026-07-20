@@ -177,7 +177,7 @@ export function useIsValidTaskId() {
   );
 }
 
-function useIsValidPageId() {
+export function useIsValidPageId() {
   const navParams = useAllNavigationParamsAsRef();
   const getTaskType = useGetTaskTypeById();
   const getVisibleOrder = useVisiblePageOrderSnapshot();
@@ -214,7 +214,7 @@ function useVisiblePageOrderSnapshot() {
   );
 }
 
-function useMaybeSaveOnPageChange() {
+export function useMaybeSaveOnPageChange() {
   const { autoSaveBehavior } = usePageSettings();
   const waitForSave = FormStore.data.useWaitForSave();
 
@@ -223,7 +223,7 @@ function useMaybeSaveOnPageChange() {
   }, [autoSaveBehavior, waitForSave]);
 }
 
-function useNavigateToPage() {
+export function useNavigateToPage() {
   const isStateless = useIsStateless();
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
@@ -284,7 +284,7 @@ function useNavigateToPage() {
   );
 }
 
-function useExitSubform() {
+export function useExitSubform() {
   const isStateless = useIsStateless();
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
@@ -325,7 +325,7 @@ function useExitSubform() {
   }, [isStateless, maybeSaveOnPageChange, navigate, navParams, refetchInitialValidations, setVisitedPages]);
 }
 
-function useEnterSubform() {
+export function useEnterSubform() {
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const refetchInitialValidations = useRefetchInitialValidations();
@@ -382,7 +382,7 @@ function useEnsureValidCurrentPage() {
   }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 }
 
-function useNavigateToNextPage() {
+export function useNavigateToNextPage() {
   const navParams = useAllNavigationParamsAsRef();
   const navigateToPage = useNavigateToPage();
   const orderRef = useAsRef(usePageOrder());
@@ -407,7 +407,7 @@ function useNavigateToNextPage() {
   );
 }
 
-function useNavigateToPreviousPage() {
+export function useNavigateToPreviousPage() {
   const navParams = useAllNavigationParamsAsRef();
   const navigateToPage = useNavigateToPage();
   const orderRef = useAsRef(usePageOrder());
@@ -472,7 +472,7 @@ const emptyArray = [];
 
 export function useNavigateToComponent() {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const { navigateToPage } = useNavigatePage();
+  const navigateToPage = useNavigateToPage();
   const currentPageId = useCurrentView();
   const [searchParams, setSearchParams] = useSearchParams();
 

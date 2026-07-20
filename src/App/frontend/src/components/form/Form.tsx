@@ -26,8 +26,9 @@ import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { usePageHasVisibleRequiredValidations } from 'src/features/validation/validationHooks';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
+import { useCurrentView, useIsValidPageId, useNavigateToPage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
+import { FocusComponentRequestFromUrl } from 'src/layout/focusComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
@@ -50,7 +51,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
-  const { isValidPageId } = useNavigatePage();
+  const isValidPageId = useIsValidPageId();
   const shouldNavigateToStart = !currentPageId || !isValidPageId(currentPageId);
 
   useEffect(() => {
@@ -145,6 +146,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
       </Flex>
       <ReadyForPrint type='load' />
       <HandleNavigationFocusComponent />
+      <FocusComponentRequestFromUrl />
     </>
   );
 }
@@ -156,7 +158,8 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
  */
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
-  const { isValidPageId, navigateToPage } = useNavigatePage();
+  const isValidPageId = useIsValidPageId();
+  const navigateToPage = useNavigateToPage();
   const applicationMetadataId = getApplicationMetadata()?.id;
 
   const instanceId = useLaxInstanceId();
@@ -178,19 +181,15 @@ function useRedirectToStoredPage() {
  */
 function useSetExpandedWidth() {
   const currentPageId = useCurrentView();
-  const expandedPagesFromLayout = FormStore.bootstrap.useExpandedWidthLayouts();
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const expandedWidthFromLayout = currentPageId ? layoutCollection[currentPageId]?.data.expandedWidth : undefined;
   const expandedWidthFromSettings = usePageSettings().expandedWidth;
+  const expandedWidth = expandedWidthFromLayout ?? expandedWidthFromSettings ?? false;
   const { setExpandedWidth } = useUiConfigContext();
 
   useEffect(() => {
-    let defaultExpandedWidth = false;
-    if (currentPageId && expandedPagesFromLayout[currentPageId] !== undefined) {
-      defaultExpandedWidth = !!expandedPagesFromLayout[currentPageId];
-    } else if (expandedWidthFromSettings !== undefined) {
-      defaultExpandedWidth = expandedWidthFromSettings;
-    }
-    setExpandedWidth(defaultExpandedWidth);
-  }, [currentPageId, expandedPagesFromLayout, expandedWidthFromSettings, setExpandedWidth]);
+    setExpandedWidth(expandedWidth);
+  }, [expandedWidth, setExpandedWidth]);
 }
 
 const emptyArray = [];

@@ -95,7 +95,7 @@ describe('deriveNodes', () => {
         },
       },
     } satisfies ILayoutCollection;
-    const { processedLayouts: layouts } = processLayouts(layoutCollection, defaultDataTypeMock);
+    const layouts = processLayouts(layoutCollection, defaultDataTypeMock);
     const state = {
       bootstrap: {
         layoutLookups: makeLayoutLookups(layouts, layoutCollection),
