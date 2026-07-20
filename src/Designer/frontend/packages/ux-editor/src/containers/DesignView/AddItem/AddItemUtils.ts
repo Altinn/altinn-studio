@@ -28,7 +28,7 @@ export const getComponentSelection = (
   const allowedComponentTypes = ElementsUtils.getAllowedComponentTypes(configurationMode);
   const quickAddComponents = getQuickAddComponents(layout, containerId, allowedComponentTypes);
   const availableComponents = getAvailableComponents(layout, containerId, allowedComponentTypes);
-  const availableComponentCount = Object.values(availableComponents).flat().length;
+  const availableComponentCount = getAvailableComponentTypes(availableComponents).length;
 
   return {
     quickAddComponents,
@@ -36,6 +36,19 @@ export const getComponentSelection = (
     shouldShowAllComponentsButton: availableComponentCount > quickAddComponents.length,
   };
 };
+
+const getAvailableComponentTypes = (
+  availableComponents: KeyValuePairs<IToolbarElement[]>,
+): AddableComponentType[] =>
+  Object.values(availableComponents)
+    .flat()
+    .map((component) => component.type);
+
+export const getAvailableFavorites = (
+  availableComponents: KeyValuePairs<IToolbarElement[]>,
+  favorites: AddableComponentType[],
+): AddableComponentType[] =>
+  ArrayUtils.intersection(favorites, getAvailableComponentTypes(availableComponents));
 
 const getQuickAddComponents = (
   layout: IInternalLayout,
