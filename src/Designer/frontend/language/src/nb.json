@@ -1741,6 +1741,7 @@
   "ux_editor.add_item.component_more_info_description": "Klikk på en komponent for å se mer informasjon om den.",
   "ux_editor.add_item.component_search_label": "Søk etter komponent",
   "ux_editor.add_item.components_header": "Komponenter",
+  "ux_editor.add_item.favorite_component_label": "{{component}} (favoritt)",
   "ux_editor.add_item.favorites_header": "Dine favoritter",
   "ux_editor.add_item.new_component": "Ny komponent",
   "ux_editor.add_item.no_favorites_message": "Du har ingen favoritter ennå. Åpne Vis alle, velg en komponent og merk den som favoritt.",

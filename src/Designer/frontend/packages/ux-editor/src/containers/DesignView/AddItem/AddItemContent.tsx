@@ -61,6 +61,7 @@ export const AddItemContent = ({
                 selectedItemType={item?.componentType}
                 setAddedItem={setItem}
                 generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
+                isFavorite={isFavorite}
               />
             );
           })}
