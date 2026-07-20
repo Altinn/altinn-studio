@@ -15,6 +15,14 @@ public sealed record ProcessStepOptions
     /// default. Use this for handlers that legitimately run long (e.g. a service task calling a slow
     /// external system).
     /// </summary>
+    /// <remarks>
+    /// App callbacks are synchronous, so the step holds a workflow-engine worker — and its in-memory
+    /// state — for the entire call. A generous timeout on a step that calls a slow or hanging external
+    /// system can, under load, delay other instances' transitions, so keep it close to what the call
+    /// realistically needs. For blocking calls to stateless services (e.g. an LLM or image generator),
+    /// prefer a short timeout with few or no retries so a downstream slowdown fails fast rather than
+    /// tying up capacity.
+    /// </remarks>
     public TimeSpan? MaxExecutionTime { get; init; }
 
     /// <summary>
