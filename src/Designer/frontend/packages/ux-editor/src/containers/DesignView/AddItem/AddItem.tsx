@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React, { useState } from 'react';
 import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon, XMarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { DefaultItems } from './DefaultItems';
@@ -14,6 +14,7 @@ import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandl
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
 import { useConfigurationMode } from '../../../hooks';
 import { getComponentSelection } from './AddItemUtils';
+import { FavoriteItems } from './FavoriteItems';
 
 export type AddItemProps = {
   containerId: string;
@@ -105,15 +106,22 @@ const DefaultItemButtons = ({
   onAddComponent: (item: AddedItem) => void;
   onCancel: () => void;
 }) => {
+  const { t } = useTranslation(['translation', 'addComponentModal']);
   const configurationMode = useConfigurationMode();
   const { quickAddComponents, availableComponents, shouldShowAllComponentsButton } =
     getComponentSelection(layout, containerId, configurationMode);
 
   return (
     <div className={classes.addItemButtons}>
+      <StudioButton
+        icon={<XMarkIcon title={t('general.close')} />}
+        onClick={onCancel}
+        variant='tertiary'
+        className={classes.closeButton}
+      />
+      <FavoriteItems onAddItem={onAddComponent} />
       <DefaultItems
         onAddItem={onAddComponent}
-        onCancel={onCancel}
         availableComponents={quickAddComponents}
         showAllButton={
           shouldShowAllComponentsButton && (
