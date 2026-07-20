@@ -21,4 +21,22 @@ public sealed record ProcessStepOptions
     /// The retry strategy for the step. Null falls back to the command/engine default.
     /// </summary>
     public ProcessStepRetryStrategy? RetryStrategy { get; init; }
+
+    /// <summary>
+    /// Validates the declared options, throwing <see cref="InvalidOperationException"/> with an
+    /// actionable message when a field is degenerate (a non-positive timeout, or a retry strategy that
+    /// would requeue in a tight loop). Called once per handler at startup and again per-step at enqueue
+    /// time, so a misconfiguration fails fast instead of breaking every transition of the affected task.
+    /// </summary>
+    internal void Validate()
+    {
+        if (MaxExecutionTime is { } maxExecutionTime && maxExecutionTime <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(ProcessStepOptions)}.{nameof(MaxExecutionTime)} must be positive when set (was {maxExecutionTime})."
+            );
+        }
+
+        RetryStrategy?.Validate();
+    }
 }

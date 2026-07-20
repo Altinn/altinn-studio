@@ -77,5 +77,8 @@ internal static class ServiceCollectionExtensions
 
         // Validate all commands are registered
         WorkflowEngineCommandValidator.Validate(services);
+
+        // Fail fast at startup if any app handler declares invalid step execution options.
+        services.AddHostedService<WorkflowStepOptionsValidator>();
     }
 }

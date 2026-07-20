@@ -138,7 +138,7 @@ public sealed record ProcessStepRetryStrategy
         };
     }
 
-    private void Validate()
+    internal void Validate()
     {
         if (BaseInterval < TimeSpan.Zero)
             throw new InvalidOperationException(
