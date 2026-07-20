@@ -13,7 +13,7 @@ import classes from './AddItem.module.css';
 import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandlerWithCallback';
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
 import { useConfigurationMode } from '../../../hooks';
-import { getComponentSelection } from './AddItemUtils';
+import { getAvailableFavorites, getComponentSelection } from './AddItemUtils';
 import { FavoriteItems } from './FavoriteItems';
 import { useFavoriteComponents } from './hooks/useFavoriteComponents';
 
@@ -113,6 +113,8 @@ const DefaultItemButtons = ({
   const { quickAddComponents, availableComponents, shouldShowAllComponentsButton } =
     getComponentSelection(layout, containerId, configurationMode);
 
+  const availableFavorites = getAvailableFavorites(availableComponents, favorites);
+
   return (
     <div className={classes.addItemButtons}>
       <StudioButton
@@ -121,7 +123,9 @@ const DefaultItemButtons = ({
         variant='tertiary'
         className={classes.closeButton}
       />
-      <FavoriteItems onAddItem={onAddComponent} favorites={favorites} />
+      {shouldShowAllComponentsButton && (
+        <FavoriteItems onAddItem={onAddComponent} favorites={availableFavorites} />
+      )}
       <DefaultItems
         onAddItem={onAddComponent}
         availableComponents={quickAddComponents}
