@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - "src/cli/**"
+      - "src/libs/dotnet/**"
       - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
       - "!**/AGENTS.md"

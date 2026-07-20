@@ -1,0 +1,198 @@
+name: Release - studioctl-vscode
+
+# Stable versions publish to the marketplace; prereleases publish to GitHub only.
+# Reruns reuse releases, replace assets, and skip published versions.
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - 'release/studioctl-vscode/v*'
+    paths:
+      - 'src/cli/studioctl-lsp/vscode/CHANGELOG.md'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-release-context:
+    name: Resolve release context
+    runs-on: ubuntu-latest
+    # Fork PRs require a manual rerun from main.
+    if: >
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main'
+      ) ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        contains(github.event.pull_request.labels.*.name, 'release/studioctl-vscode')
+      )
+    outputs:
+      environment: ${{ steps.context.outputs.environment }}
+      version: ${{ steps.context.outputs.version }}
+      publish: ${{ steps.context.outputs.publish }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Resolve environment
+        id: context
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+        run: |
+          version="$(go run . resolve-version --component studioctl-vscode --base-branch "$BASE_BRANCH")"
+
+          environment="prod"
+          publish="true"
+          if [[ "$version" == *"-preview."* ]]; then
+            environment="dev"
+          elif [[ "$version" == *"-rc."* ]]; then
+            environment="staging"
+          fi
+          if [[ "$version" == *"-"* ]]; then
+            publish="false"
+          fi
+
+          {
+            echo "version=$version"
+            echo "environment=$environment"
+            echo "publish=$publish"
+          } >> "$GITHUB_OUTPUT"
+        working-directory: src/tools/releaser
+
+  release:
+    name: Build, release and publish
+    runs-on: ubuntu-latest
+    needs: resolve-release-context
+    permissions:
+      contents: write
+    environment: ${{ needs.resolve-release-context.outputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Checkout base branch
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          MERGE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "Manual studioctl-vscode releases must be dispatched from main"
+            exit 1
+          fi
+
+          if [[ "${BASE_BRANCH}" != "main" && ! "${BASE_BRANCH}" =~ ^release/studioctl-vscode/v[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid base branch: ${BASE_BRANCH}"
+            exit 1
+          fi
+
+          git fetch origin "$BASE_BRANCH"
+          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          VERSION: ${{ needs.resolve-release-context.outputs.version }}
+        run: |
+          if gh release view "studioctl-vscode/${VERSION}" >/dev/null 2>&1; then
+            echo "Release studioctl-vscode/${VERSION} already exists; continuing in retry mode"
+          else
+            go run . workflow --component studioctl-vscode --base-branch "$BASE_BRANCH"
+          fi
+        working-directory: src/tools/releaser
+
+      - name: Stamp version and package
+        env:
+          VERSION: ${{ needs.resolve-release-context.outputs.version }}
+        run: |
+          npm ci
+          npm version "${VERSION#v}" --no-git-tag-version
+          npx vsce package -o "altinn-studio-lsp-${VERSION#v}.vsix" --skip-license
+        working-directory: src/cli/studioctl-lsp/vscode
+
+      - name: Attach vsix to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.resolve-release-context.outputs.version }}
+        run: gh release upload "studioctl-vscode/${VERSION}" src/cli/studioctl-lsp/vscode/*.vsix --clobber
+
+      - name: Publish to Visual Studio Marketplace
+        if: needs.resolve-release-context.outputs.publish == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          VERSION: ${{ needs.resolve-release-context.outputs.version }}
+        run: |
+          # A missing extension is reported as successful output containing "undefined".
+          listing="$(npx vsce show altinnstudio.altinn-studio-lsp --json)"
+          if [[ -z "$listing" || "$listing" == "undefined" ]]; then
+            echo "Extension not yet on the marketplace; publishing for the first time"
+            already_published="false"
+          else
+            already_published="$(jq -r --arg v "${VERSION#v}" '[.versions[]?.version] | any(. == $v)' <<<"$listing")"
+          fi
+
+          if [[ "$already_published" == "true" ]]; then
+            echo "Version ${VERSION#v} is already on the marketplace; skipping publish"
+          else
+            npx vsce publish --packagePath "altinn-studio-lsp-${VERSION#v}.vsix"
+          fi
+        working-directory: src/cli/studioctl-lsp/vscode
+
+      - name: Summary
+        if: always()
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
+          RELEASE_VERSION: ${{ needs.resolve-release-context.outputs.version }}
+          MARKETPLACE_PUBLISH: ${{ needs.resolve-release-context.outputs.publish }}
+        run: |
+          {
+            echo "## Release Summary"
+            echo ""
+            if [[ -n "${PR_NUMBER}" ]]; then
+              echo "- **PR**: #${PR_NUMBER}"
+            fi
+            echo "- **Base branch**: ${BASE_BRANCH}"
+            echo "- **Version**: ${RELEASE_VERSION}"
+            echo "- **Environment**: ${{ needs.resolve-release-context.outputs.environment }}"
+            echo "- **Marketplace publish**: ${MARKETPLACE_PUBLISH}"
+            echo "- **Version source**: latest released section in src/cli/studioctl-lsp/vscode/CHANGELOG.md"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"

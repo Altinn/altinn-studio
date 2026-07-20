@@ -50,7 +50,10 @@ func CreateResourcesArchive(opts ResourcesArchiveOptions) (path string, err erro
 	); err != nil {
 		return "", err
 	}
-	if err := createTarGz(archivePath, stagingDir, resourcesServerDir, resourcesLocaltestDir); err != nil {
+
+	entries := []string{resourcesServerDir, resourcesLocaltestDir}
+
+	if err := createTarGz(archivePath, stagingDir, entries...); err != nil {
 		return "", fmt.Errorf("create resources archive: %w", err)
 	}
 	return archivePath, nil

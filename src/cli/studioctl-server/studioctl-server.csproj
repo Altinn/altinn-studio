@@ -33,4 +33,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../libs/dotnet/Altinn.Studio.AppConfig/Altinn.Studio.AppConfig.csproj" />
+    <ProjectReference Include="../../libs/dotnet/Altinn.Studio.AppDist/Altinn.Studio.AppDist.csproj" />
+    <ProjectReference Include="../studioctl-lsp/studioctl-lsp.csproj" />
+  </ItemGroup>
 </Project>

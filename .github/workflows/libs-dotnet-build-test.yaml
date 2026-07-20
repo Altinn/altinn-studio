@@ -1,0 +1,48 @@
+name: Libs (.NET) - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - "src/libs/dotnet/**"
+      - "src/test/apps/**"
+      - .github/workflows/libs-dotnet-build-test.yaml
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    name: Build and test
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.os == 'windows-latest'
+        run: git config --system core.longpaths true
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        with:
+          global-json-file: src/common/global.json
+
+      - name: Build
+        working-directory: src/libs/dotnet
+        run: dotnet build libs.slnx
+
+      - name: Check formatting
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: src/libs/dotnet
+        run: git diff --exit-code -- .
+
+      - name: Test
+        working-directory: src/libs/dotnet
+        run: dotnet test libs.slnx --no-restore --no-build

@@ -173,6 +173,9 @@ dotnet_diagnostic.CS1591.severity = suggestion
 # S125: Sections of code should not be commented out
 dotnet_diagnostic.S125.severity = suggestion
 
+[BuiltinTextKeys.cs]
+dotnet_diagnostic.S1135.severity = none
+
 [*.{yml,yaml}]
 indent_size = 2
 end_of_line = lf

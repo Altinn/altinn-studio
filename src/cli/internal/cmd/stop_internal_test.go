@@ -389,6 +389,17 @@ func (f *fakeStudioctlServerClient) UpgradeApp(
 	return studioctlserver.AppUpgradeResult{}, nil
 }
 
+func (f *fakeStudioctlServerClient) Validate(
+	context.Context,
+	studioctlserver.ValidateRequest,
+) (studioctlserver.ValidateResponse, error) {
+	return studioctlserver.ValidateResponse{}, nil
+}
+
+func (f *fakeStudioctlServerClient) ListValidationRules(context.Context) ([]studioctlserver.ValidateRule, error) {
+	return nil, nil
+}
+
 func testConfig(t *testing.T) *config.Config {
 	t.Helper()
 
