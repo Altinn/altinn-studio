@@ -17,6 +17,8 @@ export type AddItemContentProps = {
   onAddItem: (addedItem: AddedItem) => void;
   onCancel: () => void;
   availableComponents: KeyValuePairs<IToolbarElement[]>;
+  isFavorite: (componentType: AddedItem['componentType']) => boolean;
+  toggleFavorite: (componentType: AddedItem['componentType']) => void;
 };
 
 export const AddItemContent = ({
@@ -25,6 +27,8 @@ export const AddItemContent = ({
   onAddItem,
   onCancel,
   availableComponents,
+  isFavorite,
+  toggleFavorite,
 }: AddItemContentProps) => {
   const layouts = useFormLayouts();
   const { t } = useTranslation(['translation', 'addComponentModal']);
@@ -63,7 +67,14 @@ export const AddItemContent = ({
         </div>
       </div>
       <div className={classes.componentsInfoWrapper}>
-        <ItemInfo onAddItem={onAddItem} onCancel={onCancel} item={item} setItem={setItem} />
+        <ItemInfo
+          onAddItem={onAddItem}
+          onCancel={onCancel}
+          item={item}
+          setItem={setItem}
+          isFavorite={isFavorite}
+          toggleFavorite={toggleFavorite}
+        />
       </div>
     </div>
   );

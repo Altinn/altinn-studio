@@ -12,7 +12,6 @@ import {
 import type { AddedItem } from '../types';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon, StarFillIcon, StarIcon } from '@studio/icons';
-import { useFavoriteComponents } from '../hooks/useFavoriteComponents';
 import classes from './ItemInfo.module.css';
 
 export type ItemInfoProps = {
@@ -20,11 +19,19 @@ export type ItemInfoProps = {
   onAddItem: (item: AddedItem) => void;
   onCancel: () => void;
   setItem: (item: AddedItem | null) => void;
+  isFavorite: (componentType: AddedItem['componentType']) => boolean;
+  toggleFavorite: (componentType: AddedItem['componentType']) => void;
 };
 
-export const ItemInfo = ({ item, onAddItem, onCancel, setItem }: ItemInfoProps) => {
+export const ItemInfo = ({
+  item,
+  onAddItem,
+  onCancel,
+  setItem,
+  isFavorite,
+  toggleFavorite,
+}: ItemInfoProps) => {
   const { t } = useTranslation(['translation', 'addComponentModal']);
-  const { isFavorite, toggleFavorite } = useFavoriteComponents();
 
   if (!item) {
     return (

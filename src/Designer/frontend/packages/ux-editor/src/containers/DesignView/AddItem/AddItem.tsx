@@ -15,6 +15,7 @@ import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSile
 import { useConfigurationMode } from '../../../hooks';
 import { getComponentSelection } from './AddItemUtils';
 import { FavoriteItems } from './FavoriteItems';
+import { useFavoriteComponents } from './hooks/useFavoriteComponents';
 
 export type AddItemProps = {
   containerId: string;
@@ -106,6 +107,7 @@ const DefaultItemButtons = ({
   onAddComponent: (item: AddedItem) => void;
   onCancel: () => void;
 }) => {
+  const { favorites, isFavorite, toggleFavorite } = useFavoriteComponents();
   const { t } = useTranslation(['translation', 'addComponentModal']);
   const configurationMode = useConfigurationMode();
   const { quickAddComponents, availableComponents, shouldShowAllComponentsButton } =
@@ -119,7 +121,7 @@ const DefaultItemButtons = ({
         variant='tertiary'
         className={classes.closeButton}
       />
-      <FavoriteItems onAddItem={onAddComponent} />
+      <FavoriteItems onAddItem={onAddComponent} favorites={favorites} />
       <DefaultItems
         onAddItem={onAddComponent}
         availableComponents={quickAddComponents}
@@ -128,6 +130,8 @@ const DefaultItemButtons = ({
             <AddItemModal
               onAddComponent={onAddComponent}
               availableComponents={availableComponents}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
             />
           )
         }
