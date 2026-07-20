@@ -462,6 +462,26 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
+    'process_workflow.advancing_title': 'Vi jobber med skjemaet ditt',
+    'process_workflow.advancing_body':
+      'Du trenger ikke gjøre noe. Vi sender deg videre så snart alt er klart.',
+    'process_workflow.failed_heading': 'Noe gikk galt',
+    'process_workflow.failed_description':
+      'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',
+    'process_workflow.failed_contact':
+      'Ta kontakt med Altinn brukerservice på telefon {0} eller e-post {1}, og oppgi referansene du finner under _«{2}»_.',
+    'process_workflow.failed_details_kind': 'Feiltype',
+    'process_workflow.failed_details_time': 'Tidspunkt',
+    'process_workflow.failed_details_instance': 'Skjemareferanse',
+    'process_workflow.failed_details_reference': 'Behandlingsreferanse',
+    'process_workflow.failure_kind.stepFailed': 'Et steg i behandlingen feilet',
+    'process_workflow.failure_kind.dependencyFailed': 'Et steg i behandlingen feilet',
+    'process_workflow.failure_kind.engineFault': 'Systemet feilet under behandlingen',
+    'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
+    'process_workflow.failure_kind.unknown': 'Ukjent årsak',
+    'process_workflow.still_working':
+      'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og vi fortsetter automatisk – du kan trygt lukke siden og komme tilbake på et senere tidspunkt. Allerede påbegynte skjema kan åpnes fra innboksen eller utkast-mappen.',
+    'process_workflow.connection_trouble': 'Vi får ikke kontakt med tjenesten akkurat nå. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',
     'taskTypes.data': 'Utfylling',

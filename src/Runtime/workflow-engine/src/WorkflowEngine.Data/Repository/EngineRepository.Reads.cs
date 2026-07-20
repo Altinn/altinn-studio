@@ -75,12 +75,22 @@ internal sealed partial class EngineRepository
             if (entity is null)
                 return null;
 
-            // Fetch statuses for the head workflow IDs
+            // Fetch statuses for the head workflow IDs. The step counts are correlated subqueries
+            // (cheap for a head set) giving consumers a progress indication without a per-workflow
+            // lookup.
             var headStatuses =
                 entity.Heads.Length > 0
                     ? await context
                         .Workflows.Where(w => entity.Heads.Contains(w.Id))
-                        .Select(w => new CollectionHeadStatus { DatabaseId = w.Id, Status = w.Status })
+                        .Select(w => new CollectionHeadStatus
+                        {
+                            DatabaseId = w.Id,
+                            Status = w.Status,
+                            Labels = w.Labels,
+                            StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
+                            StepsTotal = w.Steps.Count,
+                            CreatedAt = w.CreatedAt,
+                        })
                         .ToListAsync(cancellationToken)
                     : [];
 

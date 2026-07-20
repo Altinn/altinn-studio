@@ -58,7 +58,7 @@
   Response: {
     Title: Something went wrong while moving to the next task.,
     Status: 500,
-    Detail: Service task 'failing-service' failed: Scenario service task failed permanently.,
+    Detail: A workflow step failed while performing the process action.,
     Extensions: {
       processState: {
         ValueKind: Object
