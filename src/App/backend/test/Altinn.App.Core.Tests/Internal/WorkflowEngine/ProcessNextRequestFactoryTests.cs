@@ -45,6 +45,7 @@ public class ProcessNextRequestFactoryTests
         bool registerEvents = true,
         bool autoDeleteOnProcessEnd = false,
         bool hasAutoDeleteDataTypes = true,
+        Action<IServiceCollection>? configureServices = null,
         params IServiceTask[] serviceTasks
     )
     {
@@ -54,8 +55,16 @@ public class ProcessNextRequestFactoryTests
         {
             services.AddSingleton(st);
         }
+        configureServices?.Invoke(services);
         var sp = services.BuildServiceProvider();
         var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
+
+        // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
+        // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
+        var stepOptionsResolver = new ProcessStepOptionsResolver(
+            [new ExecuteServiceTask(appImplFactory)],
+            appImplFactory
+        );
 
         var authContextMock = new Mock<IAuthenticationContext>();
         authContextMock.Setup(x => x.Current).Returns(authentication ?? TestAuthentication.GetUserAuthentication());
@@ -94,9 +103,21 @@ public class ProcessNextRequestFactoryTests
             TestAppIdentifier,
             appSettings,
             appMetadataMock.Object,
-            callbackTokenGeneratorMock.Object
+            callbackTokenGeneratorMock.Object,
+            stepOptionsResolver
         );
     }
+
+    private static StepRequest GetStep(WorkflowEnqueueEnvelope bundle, string commandKey) =>
+        bundle
+            .Request.Workflows[0]
+            .Steps.Single(s =>
+            {
+                if (s.Command.Data is not { } data)
+                    return false;
+                var appData = JsonSerializer.Deserialize<AppCommandData>(data);
+                return appData?.CommandKey == commandKey;
+            });
 
     private static ProcessStateChange CreateTaskToTaskTransition(
         string fromTaskId = "Task_1",
@@ -749,5 +770,209 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractCommandKeys(bundle);
         Assert.Contains(DeleteDataElementsIfConfigured.Key, keys);
         Assert.DoesNotContain(DeleteInstanceIfConfigured.Key, keys);
+    }
+
+    // ---- Step options resolution (execution timeout / retry strategy): tier 1/2/3 ----
+
+    [Fact]
+    public async Task StepOptions_OrdinaryCommand_LeavesEngineDefaults()
+    {
+        // Arrange - tier 1: a command with no per-command default and no app handler
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert - nothing stamped, so the engine applies its own global defaults
+        var startTaskStep = GetStep(bundle, StartTask.Key);
+        Assert.Null(startTaskStep.Command.MaxExecutionTime);
+        Assert.Null(startTaskStep.RetryStrategy);
+    }
+
+    [Fact]
+    public async Task StepOptions_ServiceTask_NoOverride_UsesCommandDefaultTimeout()
+    {
+        // Arrange - tier 2: service task without its own options → ExecuteServiceTask's 10 min default
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, step.Command.MaxExecutionTime);
+        Assert.Equal(TimeSpan.FromMinutes(10), step.Command.MaxExecutionTime);
+        Assert.Null(step.RetryStrategy);
+    }
+
+    [Fact]
+    public async Task StepOptions_ServiceTask_ImplementationTimeout_OverridesCommandDefault()
+    {
+        // Arrange - tier 3: a greedy service task asks for two hours
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.Equal(TimeSpan.FromHours(2), step.Command.MaxExecutionTime);
+        // The non-specified field falls through: no retry override and no tier-2 retry default → unset.
+        Assert.Null(step.RetryStrategy);
+    }
+
+    [Fact]
+    public async Task StepOptions_ServiceTask_ImplementationBothFields_HonorsBoth()
+    {
+        // Arrange - tier 3 sets BOTH timeout and retry; both must land on the wire, resolved per-field
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(
+                new ProcessStepOptions
+                {
+                    MaxExecutionTime = TimeSpan.FromHours(2),
+                    RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(5), maxRetries: 3),
+                }
+            );
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert - timeout overrides the 10 min tier-2 default AND retry is mapped to the wire model
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.Equal(TimeSpan.FromHours(2), step.Command.MaxExecutionTime);
+        Assert.NotNull(step.RetryStrategy);
+        Assert.Equal(BackoffType.Exponential, step.RetryStrategy.BackoffType);
+        Assert.Equal(TimeSpan.FromSeconds(5), step.RetryStrategy.BaseInterval);
+        Assert.Equal(3, step.RetryStrategy.MaxRetries);
+    }
+
+    [Fact]
+    public async Task StepOptions_ServiceTask_ImplementationRetryOnly_FallsBackToCommandTimeout()
+    {
+        // Arrange - tier 3 sets only the retry strategy; timeout must fall back to the tier-2 default
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(
+                new ProcessStepOptions
+                {
+                    RetryStrategy = ProcessStepRetryStrategy.Exponential(
+                        baseInterval: TimeSpan.FromSeconds(5),
+                        maxRetries: 3,
+                        maxDelay: TimeSpan.FromMinutes(1),
+                        maxDuration: TimeSpan.FromMinutes(30)
+                    ),
+                }
+            );
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert - timeout from tier 2, retry from tier 3, mapped to the wire model
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, step.Command.MaxExecutionTime);
+        Assert.NotNull(step.RetryStrategy);
+        Assert.Equal(BackoffType.Exponential, step.RetryStrategy.BackoffType);
+        Assert.Equal(TimeSpan.FromSeconds(5), step.RetryStrategy.BaseInterval);
+        Assert.Equal(3, step.RetryStrategy.MaxRetries);
+        Assert.Equal(TimeSpan.FromMinutes(1), step.RetryStrategy.MaxDelay);
+        Assert.Equal(TimeSpan.FromMinutes(30), step.RetryStrategy.MaxDuration);
+    }
+
+    [Fact]
+    public async Task StepOptions_NegativeMaxExecutionTime_ThrowsAtEnqueue()
+    {
+        // Arrange - a misconfigured handler (e.g. arithmetic slip producing a negative timeout)
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-10) });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act + Assert - fails fast with an actionable message instead of poisoning the engine workflow
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            factory.Create(TestInstance, stateChange, "lock-token", "{}")
+        );
+        Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), ex.Message);
+    }
+
+    [Fact]
+    public async Task StepOptions_ZeroIntervalRetryWithRetriesEnabled_ThrowsAtEnqueue()
+    {
+        // Arrange - a bare strategy (Constant, zero interval, unbounded) would hot-loop in the engine
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(new ProcessStepOptions { RetryStrategy = new ProcessStepRetryStrategy() });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act + Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            factory.Create(TestInstance, stateChange, "lock-token", "{}")
+        );
+        Assert.Contains(nameof(ProcessStepRetryStrategy.BaseInterval), ex.Message);
+    }
+
+    [Fact]
+    public async Task StepOptions_RetryStrategyNone_IsAcceptedAndMapped()
+    {
+        // Arrange - None() is the sanctioned zero-interval strategy (retries disabled)
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(new ProcessStepOptions { RetryStrategy = ProcessStepRetryStrategy.None() });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.NotNull(step.RetryStrategy);
+        Assert.Equal(0, step.RetryStrategy.MaxRetries);
+    }
+
+    [Fact]
+    public async Task StepOptions_TaskStartingHook_ImplementationOverride_IsApplied()
+    {
+        // Arrange - tier 3 on a lifecycle hook (not just service tasks)
+        var hookMock = new Mock<IOnTaskStartingHandler>();
+        hookMock.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns(true);
+        hookMock
+            .Setup(h => h.StepOptions)
+            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) });
+        var factory = CreateFactory(configureServices: s => s.AddSingleton(hookMock.Object));
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var step = GetStep(bundle, OnTaskStartingHook.Key);
+        Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
     }
 }

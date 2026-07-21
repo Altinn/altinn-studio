@@ -148,11 +148,6 @@
       HasParent: true
     },
     {
-      Name: ProcessClient.GetProcessDefinition,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ProcessReader.GetAltinnTaskExtension,
       IdFormat: W3C,
       HasParent: true

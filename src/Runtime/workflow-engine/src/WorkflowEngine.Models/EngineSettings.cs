@@ -74,6 +74,14 @@ public sealed record EngineSettings
     public required TimeSpan DefaultStepCommandTimeout { get; set; }
 
     /// <summary>
+    /// The maximum per-step command timeout a client may request via a step's
+    /// <c>command.maxExecutionTime</c>. Enqueue requests exceeding this cap are rejected, protecting the
+    /// shared worker and HTTP pools from steps that would hold a slot for an unbounded amount of time.
+    /// </summary>
+    [JsonPropertyName("maxStepCommandTimeout")]
+    public required TimeSpan MaxStepCommandTimeout { get; set; }
+
+    /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
     [JsonPropertyName("defaultStepRetryStrategy")]

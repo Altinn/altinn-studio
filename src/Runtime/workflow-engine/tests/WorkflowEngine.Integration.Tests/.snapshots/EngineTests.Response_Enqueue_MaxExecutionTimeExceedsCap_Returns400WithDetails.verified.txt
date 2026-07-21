@@ -1,0 +1,7 @@
+﻿{
+  type: https://tools.ietf.org/html/rfc9110#section-15.5.1,
+  title: Bad Request,
+  status: 400,
+  detail: Step '/ping' in workflow 'wf' has maxExecutionTime 03:00:00, maximum is 02:00:00.,
+  traceId: {Scrubbed}
+}
