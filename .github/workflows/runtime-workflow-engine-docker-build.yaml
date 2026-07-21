@@ -1,0 +1,57 @@
+name: Runtime Workflow Engine - Docker build
+
+# Verifies both workflow-engine Docker images actually build on PRs.
+#
+# The existing *-tests workflows already cover source: they run
+# `dotnet build`/`dotnet test`, so compile/restore breakage fails there and
+# would fail an equivalent docker build too. What they DON'T cover is the
+# Dockerfiles themselves — COPY layout, publish flags, the ENTRYPOINT, and
+# the pinned base-image digests (they use actions/setup-dotnet, not the base
+# images). Nothing builds the standalone workflow-engine/Dockerfile at all
+# (only the app image is built, and only on push to main), so a Dockerfile
+# regression could otherwise stay dormant until someone builds it locally.
+#
+# This job is therefore scoped to the Dockerfiles and their .dockerignore
+# only — the parts no other workflow exercises. Source changes intentionally
+# do NOT trigger it, since the dotnet workflows already gate those.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/Runtime/workflow-engine/Dockerfile'
+      - 'src/Runtime/workflow-engine/Dockerfile.dockerignore'
+      - 'src/Runtime/workflow-engine-app/Dockerfile'
+      - 'src/Runtime/workflow-engine-app/Dockerfile.dockerignore'
+      - '.github/workflows/runtime-workflow-engine-docker-build.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  docker-build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build ${{ matrix.name }} image
+    runs-on: self-hosted-single
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: workflow-engine
+            dockerfile: Runtime/workflow-engine/Dockerfile
+          - name: workflow-engine-app
+            dockerfile: Runtime/workflow-engine-app/Dockerfile
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Build image
+        run: docker build -f ${{ matrix.dockerfile }} .
