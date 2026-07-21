@@ -219,7 +219,7 @@ Each workflow renders as a card with a header row and a pipeline of step nodes.
 Left to right:
 
 1. **Label segments** — Clickable spans for namespace, collectionKey, and labels. Clicking toggles a label filter. CSS class `seg key` for namespace/collectionKey (bold cyan), `seg` for label values.
-2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`. Since this parsing collapses distinct operationId prefixes into the same transition text, side-chain workflows (`isHead === false`) append a violet `· side chain` qualifier so they never display identically to their head sibling.
+2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`. Note this parsing collapses distinct operationId prefixes into the same transition text (a head and its side-effects sibling display the same name) — the side-chain badge and card chrome carry the distinction; the full operationId is in the name's tooltip.
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
 5. **Side-chain badge** — Shown when the workflow was enqueued with `IsHead = false` (deliberately invisible to collection head tracking, e.g. the process-next side-effects workflows). Dashed violet "side chain" pill. The card itself also carries the side-chain identity: dashed violet border plus a violet inset left edge (`.workflow-card.side-chain`, toggled in `setCardFilterData` — and inline for scheduled cards — so it survives re-renders in every section).

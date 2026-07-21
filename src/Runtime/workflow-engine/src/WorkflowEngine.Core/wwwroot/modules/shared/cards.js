@@ -122,10 +122,7 @@ const wfDisplayName = (wf) => {
 /** @param {import('../core/state.js').Workflow} wf @param {string} cls @returns {string} */
 const nameSpanHTML = (wf, cls) => {
     const n = wfDisplayName(wf);
-    // The transition parser collapses distinct operationId prefixes (e.g. "Process next
-    // side-effects:") into the same "from → to" text, so side chains re-qualify the name here.
-    const suffix = wf.isHead === false ? ` <span class="side-chain-name">· side chain</span>` : '';
-    return `<span class="${cls}" title="${esc(n.title)}">${esc(n.text)}${suffix}</span>`;
+    return `<span class="${cls}" title="${esc(n.title)}">${esc(n.text)}</span>`;
 };
 
 /** Filter-funnel icon shown on the collection chip to signal it filters connected workflows. */

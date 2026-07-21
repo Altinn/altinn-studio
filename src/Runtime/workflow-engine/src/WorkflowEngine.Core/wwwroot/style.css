@@ -2472,11 +2472,6 @@ pre.diff-remove {
     white-space: nowrap;
     flex-shrink: 0;
 }
-.side-chain-name {
-    color: var(--violet);
-    opacity: 0.85;
-    font-weight: 400;
-}
 .workflow-card.side-chain {
     border-style: dashed;
     border-color: rgba(var(--violet-rgb), 0.4);
