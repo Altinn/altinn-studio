@@ -3350,6 +3350,7 @@ public sealed class ProcessEngineTest
             services.TryAddSingleton<IWorkflowCallbackSecretProvider>(_ => secretProviderMock.Object);
 
             services.TryAddTransient<ProcessNextRequestFactory>();
+            services.TryAddSingleton<ProcessStepOptionsResolver>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
 

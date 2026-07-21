@@ -17,6 +17,14 @@ internal interface IWorkflowExecutor
 
 internal class WorkflowExecutor : IWorkflowExecutor
 {
+    /// <summary>
+    /// The largest delay <see cref="CancellationTokenSource.CancelAfter(TimeSpan)"/> accepts. Timeouts
+    /// outside (0, this] would throw <see cref="ArgumentOutOfRangeException"/> from the executor, which
+    /// upstream treats as an engine fault (workflow reclaim → poisoned), so they are rejected as a
+    /// critical step error instead. Enqueue validation bounds new requests; this guards persisted steps.
+    /// </summary>
+    private static readonly TimeSpan _maxSupportedExecutionTimeout = TimeSpan.FromMilliseconds(uint.MaxValue - 2);
+
     private readonly EngineSettings _engineSettings;
     private readonly ICommandRegistry _registry;
     private readonly ILogger<WorkflowExecutor> _logger;
@@ -42,7 +50,15 @@ internal class WorkflowExecutor : IWorkflowExecutor
         );
         _logger.ExecutingStep(step, workflow);
 
-        using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
+        var timeout = step.Command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
+        if (timeout <= TimeSpan.Zero || timeout > _maxSupportedExecutionTimeout)
+        {
+            return ExecutionResult.CriticalError(
+                $"Step has an invalid execution timeout ({timeout}); it must be positive and at most {_maxSupportedExecutionTimeout}."
+            );
+        }
+
+        using CancellationTokenSource cts = CreateExecutionTokenSource(timeout, cancellationToken);
         var startTimestamp = Stopwatch.GetTimestamp();
 
         try
@@ -150,10 +166,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
             .FirstOrDefault(s => s is not null);
     }
 
-    private CancellationTokenSource CreateExecutionTokenSource(Step step, CancellationToken cancellationToken)
+    private static CancellationTokenSource CreateExecutionTokenSource(
+        TimeSpan timeout,
+        CancellationToken cancellationToken
+    )
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var timeout = step.Command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
         cts.CancelAfter(timeout);
 
         return cts;
