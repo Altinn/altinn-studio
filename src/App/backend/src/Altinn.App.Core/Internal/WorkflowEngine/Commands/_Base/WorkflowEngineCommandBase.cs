@@ -1,3 +1,5 @@
+using Altinn.App.Core.Features.Process;
+
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
@@ -9,6 +11,14 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
     where TRequestPayload : CommandRequestPayload
 {
     public abstract string GetKey();
+
+    /// <summary>
+    /// The command's default per-step execution options (tier 2). Concrete payload commands override
+    /// this to declare a non-default timeout or retry strategy; the base returns null so the engine's
+    /// global defaults apply. This surfaces the <see cref="IWorkflowEngineCommand.DefaultStepOptions"/>
+    /// interface member as a virtual so derived commands can override it.
+    /// </summary>
+    public virtual ProcessStepOptions? DefaultStepOptions => null;
 
     Task<ProcessEngineCommandResult> IWorkflowEngineCommand.Execute(ProcessEngineCommandContext context)
     {

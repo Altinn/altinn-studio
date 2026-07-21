@@ -66,6 +66,7 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppSettings _appSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
+    private readonly ProcessStepOptionsResolver _stepOptionsResolver;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -73,7 +74,8 @@ internal sealed class ProcessNextRequestFactory
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
-        IWorkflowCallbackTokenGenerator callbackTokenGenerator
+        IWorkflowCallbackTokenGenerator callbackTokenGenerator,
+        ProcessStepOptionsResolver stepOptionsResolver
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -82,6 +84,7 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
+        _stepOptionsResolver = stepOptionsResolver;
     }
 
     /// <summary>
@@ -221,19 +224,35 @@ internal sealed class ProcessNextRequestFactory
             );
             if (workflowCommands != null)
             {
+                // The task this event's commands run against (start hooks/service task read the entering
+                // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
+                // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
+                string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
+                string? serviceTaskType = GetServiceTaskType(altinnTaskType);
+
                 // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
                 // Task-start and process-end commands go in the second group (they need NEW CurrentTask).
                 // MutateProcessState is inserted between the two groups to transition in-memory state.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
-                    taskEndSteps.AddRange(workflowCommands.Commands);
+                    taskEndSteps.AddRange(
+                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                    );
                 }
                 else
                 {
-                    taskStartSteps.AddRange(workflowCommands.Commands);
+                    taskStartSteps.AddRange(
+                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                    );
                 }
 
-                postCommitSteps.AddRange(workflowCommands.PostProcessNextCommittedCommands);
+                postCommitSteps.AddRange(
+                    workflowCommands.PostProcessNextCommittedCommands.ApplyStepOptions(
+                        _stepOptionsResolver,
+                        eventTaskId,
+                        serviceTaskType
+                    )
+                );
             }
         }
 
@@ -351,11 +370,11 @@ internal sealed class ProcessNextRequestFactory
         };
     }
 
-    private static StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
+    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
     {
         var payload = new SaveProcessStateToStoragePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        var step = new StepRequest
         {
             OperationId = MutateProcessState.Key,
             Command = CommandDefinition.Create(
@@ -363,13 +382,14 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = MutateProcessState.Key, Payload = serializedPayload }
             ),
         };
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private static StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
+    private StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
     {
         var payload = new SaveProcessStateToStoragePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        var step = new StepRequest
         {
             OperationId = SaveProcessStateToStorage.Key,
             Command = CommandDefinition.Create(
@@ -377,5 +397,6 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
             ),
         };
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 }
