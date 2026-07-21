@@ -2,7 +2,7 @@ import { ExprFunctionDefinitions } from 'src/features/expressions/expression-fun
 import { evalExpr } from 'src/features/expressions/index';
 import { ExprVal } from 'src/features/expressions/types';
 import type { AnyFuncDef } from 'src/features/expressions/expression-functions';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 
 describe('Expressions', () => {
   it('should return default value if expression evaluates to null', () => {
@@ -14,6 +14,7 @@ describe('Expressions', () => {
           langToolsSelector: () => {
             throw new Error('not used');
           },
+          markExpressionEvaluated: () => {},
           track: () => {},
           getDependencies: () => [],
           context: {

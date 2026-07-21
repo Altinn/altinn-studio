@@ -189,7 +189,7 @@ function PaginationComponent({
 function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: string): number[] {
   const rows = RepGroupHooks.useAllRowsWithHidden(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);
-  const deepValidations = useVisibleValidationsDeep(indexedId, 'visible', false, undefined, 'error');
+  const deepValidations = useVisibleValidationsDeep(baseComponentId, indexedId, 'visible', false, undefined, 'error');
 
   return useMemo(() => {
     if (typeof rowsPerPage !== 'number') {

@@ -50,7 +50,12 @@ function pickDebounced(state: FormStoreState, reference: { dataType: string; fie
   return dot.pick(reference.field, state.data.models[reference.dataType]?.debouncedCurrentData);
 }
 
-function isCanonicalAttachment(data: IData, node: AttachmentNode, application: ApplicationMetadata, taskId?: string) {
+export function isCanonicalAttachmentData(
+  data: IData,
+  node: AttachmentNode,
+  application: ApplicationMetadata,
+  taskId?: string,
+) {
   if (data.dataType !== node.baseId) {
     return false;
   }
@@ -86,7 +91,7 @@ export function selectUploadedAttachments(
 
   return instanceData
     .filter((data) => {
-      if (seen.has(data.id) || !isCanonicalAttachment(data, node, application, taskId)) {
+      if (seen.has(data.id) || !isCanonicalAttachmentData(data, node, application, taskId)) {
         return false;
       }
       if (simpleValue && simpleValue === data.id) {
