@@ -8,7 +8,7 @@ import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.
 import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
 import { OrganisationLookupSummary } from 'src/layout/OrganisationLookup/OrganisationLookupSummary';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';

@@ -21,12 +21,12 @@ import {
 } from 'src/layout';
 import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
 import { getCurrentDataModelPath, getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompIntermediate } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type BindingEntry = [bindingKey: string, reference: IDataModelReference];
 type BoundFieldValidation = FieldValidation & { bindingKey: string };

@@ -46,6 +46,7 @@ import { createValidationSlice, ValidationEffects } from 'src/features/validatio
 import { useNavigationParam } from 'src/hooks/navigation';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
+import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { FormBootstrapBase } from 'src/features/formBootstrap/types';
 import type { FormDataSliceProps } from 'src/features/formData/FormDataWrite';
@@ -120,13 +121,15 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <AttachmentEffects />
       <ValidationEffects />
       <LayoutRevisionBoundary>
-        <FormRuntimeEffects>
-          <PaymentInformationProvider>
-            <OrderDetailsProvider>
-              <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
-            </OrderDetailsProvider>
-          </PaymentInformationProvider>
-        </FormRuntimeEffects>
+        <LayoutPropertiesValidation>
+          <FormRuntimeEffects>
+            <PaymentInformationProvider>
+              <OrderDetailsProvider>
+                <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
+              </OrderDetailsProvider>
+            </PaymentInformationProvider>
+          </FormRuntimeEffects>
+        </LayoutPropertiesValidation>
       </LayoutRevisionBoundary>
     </FormStoreProvider>
   );

@@ -109,11 +109,11 @@ interface FormBootstrapSliceState extends FormBootstrapContextValue {
 
 export function processBootstrap(bootstrap: FormBootstrapBase): FormBootstrapContextValue {
   const processedLayouts = processLayouts(bootstrap.layouts, bootstrap.defaultDataType);
-  const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts, bootstrap.layouts);
+  const layoutLookups = makeLayoutLookups(processedLayouts, bootstrap.layouts);
 
   return {
     ...bootstrap,
-    ...processedLayouts,
+    processedLayouts,
     layoutLookups,
   };
 }

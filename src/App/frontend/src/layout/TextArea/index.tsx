@@ -7,7 +7,7 @@ import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { TextAreaSummary } from 'src/layout/TextArea/TextAreaSummary';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';

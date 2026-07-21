@@ -4,10 +4,10 @@ import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 
-export function SubformValidator(props: NodeValidationProps<'Subform'>) {
-  const { intermediateItem, externalItem } = props;
+export function SubformValidator(props: ComponentLayoutValidationProps<'Subform'>) {
+  const { externalItem } = props;
   const { langAsString } = useLanguage();
   const applicationMetadata = getApplicationMetadata();
 
@@ -30,10 +30,10 @@ export function SubformValidator(props: NodeValidationProps<'Subform'>) {
     }
 
     if (error) {
-      addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      addError(error, externalItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${externalItem.id}': ${error}`);
     }
-  }, [addError, dataType, externalItem, langAsString, intermediateItem.id, targetType]);
+  }, [addError, dataType, externalItem, langAsString, targetType]);
 
   return null;
 }

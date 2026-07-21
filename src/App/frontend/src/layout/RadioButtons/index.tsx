@@ -11,7 +11,7 @@ import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGro
 import { RadioButtonsSummary } from 'src/layout/RadioButtons/RadioButtonsSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,

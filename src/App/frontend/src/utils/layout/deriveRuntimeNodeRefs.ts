@@ -2,17 +2,13 @@ import dot from 'dot-object';
 
 import { MissingRowIdException } from 'src/features/formData/MissingRowIdException';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
-import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
-import {
-  appendRowContext,
-  applyRowContextToComponentId,
-  getIndexedDataModelReference,
-} from 'src/utils/layout/rowContext';
+import { getComponentDef } from 'src/layout';
+import { applyRowContextToComponentId } from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompExternal } from 'src/layout/layout';
+import type { CompExternal, CompTypes } from 'src/layout/layout';
+import type { AnyComponent, RuntimeChild } from 'src/layout/LayoutComponent';
 import type { RowContext } from 'src/utils/layout/rowContext';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -54,6 +50,22 @@ type WalkNodesArgs = {
 
 const emptyArray: never[] = [];
 
+function getRuntimeChildren<Type extends CompTypes>(
+  component: CompExternal<Type>,
+  childBaseIds: string[],
+  rowContexts: RowContext[],
+  context: DeriveNodesContext,
+): RuntimeChild[] {
+  // The generated component registry cannot retain the correlation between a generic type key and its definition.
+  const def = getComponentDef(component.type) as unknown as AnyComponent<Type>;
+  return def.getRuntimeChildren({
+    item: component,
+    childBaseIds,
+    rowContexts,
+    getRows: (binding) => getRows(context, binding),
+  });
+}
+
 /**
  * Reads and caches repeating-group rows for one derivation pass.
  * Generated nodes require stable row IDs, so incomplete row data fails loudly.
@@ -88,17 +100,6 @@ function getRows(context: DeriveNodesContext, binding: IDataModelReference | und
   return rows;
 }
 
-function splitRepeatingChildren(component: CompExternal<'RepeatingGroup'>, childIds: string[]) {
-  const rawRepeated = component.edit?.multiPage
-    ? component.children.map((childId) => childId.split(':', 2)[1])
-    : component.children;
-  const repeated = new Set(rawRepeated);
-  return {
-    repeated: childIds.filter((childId) => repeated.has(childId)),
-    staticChildren: childIds.filter((childId) => !repeated.has(childId)),
-  };
-}
-
 function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
   const component = context.lookups.getComponent(args.baseId);
   const node: RuntimeNodeRef = {
@@ -117,44 +118,14 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
     return;
   }
 
-  if (component.type === 'RepeatingGroup') {
-    const { repeated, staticChildren } = splitRepeatingChildren(component, childBaseIds);
-    for (const childId of staticChildren) {
-      walkNodes(context, { ...args, baseId: childId, parent: { type: 'node', id: node.id, baseId: args.baseId } });
-    }
-
-    const groupBinding = getIndexedDataModelReference(component.dataModelBindings.group, args.rowContexts);
-    for (const row of getRows(context, groupBinding)) {
-      for (const childId of repeated) {
-        walkNodes(context, {
-          ...args,
-          baseId: childId,
-          parent: { type: 'node', id: node.id, baseId: args.baseId },
-          rowContexts: appendRowContext(args.rowContexts, groupBinding, row),
-        });
-      }
-    }
-    return;
-  }
-
-  if (component.type === 'Likert') {
-    const questionsBinding = getIndexedDataModelReference(component.dataModelBindings.questions, args.rowContexts);
-    const rows = getRows(context, questionsBinding);
-    const { startIndex, stopIndex } = getLikertStartStopIndex(rows.length - 1, component.filter);
-    const childId = makeLikertChildId(args.baseId);
-    for (const row of rows.slice(startIndex, stopIndex + 1)) {
-      walkNodes(context, {
-        ...args,
-        baseId: childId,
-        parent: { type: 'node', id: node.id, baseId: args.baseId },
-        rowContexts: appendRowContext(args.rowContexts, questionsBinding, row),
-      });
-    }
-    return;
-  }
-
-  for (const childId of childBaseIds) {
-    walkNodes(context, { ...args, baseId: childId, parent: { type: 'node', id: node.id, baseId: args.baseId } });
+  const runtimeChildren = getRuntimeChildren(component, childBaseIds, args.rowContexts, context);
+  for (const child of runtimeChildren) {
+    walkNodes(context, {
+      ...args,
+      baseId: child.baseId,
+      parent: { type: 'node', id: node.id, baseId: args.baseId },
+      rowContexts: child.rowContexts,
+    });
   }
 }
 

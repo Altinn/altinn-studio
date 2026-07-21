@@ -14,7 +14,7 @@ import { ListSummary } from 'src/layout/List/ListSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { indexDataModelReferenceForValidation, validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,
@@ -22,7 +22,7 @@ import type {
   PropsFromGenericComponent,
 } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -93,7 +93,7 @@ export class List extends ListDef {
     return validateGroupIsEmpty(ctx);
   }
 
-  renderLayoutValidators(props: NodeValidationProps<'List'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'List'>): JSX.Element | null {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 
@@ -135,7 +135,14 @@ export class List extends ListDef {
         }
         const fieldWithoutGroup = binding.field.replace(`${groupBinding.field}.`, '');
         const fieldWithIndex = `${groupBinding.field}[0].${fieldWithoutGroup}`;
-        const [schema, err] = lookupBinding?.({ field: fieldWithIndex, dataType: binding.dataType }) ?? [];
+        const [schema, err] =
+          lookupBinding?.(
+            indexDataModelReferenceForValidation(
+              baseComponentId,
+              { field: fieldWithIndex, dataType: binding.dataType },
+              layoutLookups,
+            ),
+          ) ?? [];
         if (err) {
           errors.push(lookupErrorAsText(err));
         } else if (typeof schema?.type !== 'string' || !allowedLeafTypes.includes(schema.type)) {
