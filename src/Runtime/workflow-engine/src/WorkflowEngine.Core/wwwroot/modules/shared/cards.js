@@ -122,7 +122,10 @@ const wfDisplayName = (wf) => {
 /** @param {import('../core/state.js').Workflow} wf @param {string} cls @returns {string} */
 const nameSpanHTML = (wf, cls) => {
     const n = wfDisplayName(wf);
-    return `<span class="${cls}" title="${esc(n.title)}">${esc(n.text)}</span>`;
+    // The transition parser collapses distinct operationId prefixes (e.g. "Process next
+    // side-effects:") into the same "from → to" text, so side chains re-qualify the name here.
+    const suffix = wf.isHead === false ? ` <span class="side-chain-name">· side chain</span>` : '';
+    return `<span class="${cls}" title="${esc(n.title)}">${esc(n.text)}${suffix}</span>`;
 };
 
 /** Filter-funnel icon shown on the collection chip to signal it filters connected workflows. */
@@ -478,6 +481,7 @@ const buildStatusTags = (wf) => {
 
 /** @param {HTMLElement} card @param {import('../core/state.js').Workflow} wf */
 export const setCardFilterData = (card, wf) => {
+    card.classList.toggle('side-chain', wf.isHead === false);
     card.dataset.wfkey = wf.databaseId;
     workflowData[wf.databaseId] = wf;
     card.dataset.filter = buildFilterText(wf);
