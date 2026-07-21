@@ -92,7 +92,6 @@ export type CompWithBinding<BindingKey extends string> = {
     : never;
 }[CompTypes];
 
-export interface NodeValidationProps<T extends CompTypes> {
+export interface ComponentLayoutValidationProps<T extends CompTypes> {
   externalItem: CompExternal<T>;
-  intermediateItem: CompIntermediate<T>;
 }

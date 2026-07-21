@@ -3,7 +3,7 @@ import React from 'react';
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useAttachmentsFor } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import classes from 'src/features/devtools/components/NodeInspector/ValidationInspector.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
@@ -35,7 +35,7 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
   const nodeVisibility = rawVisibility.effective;
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const type = useExternalItem(baseComponentId).type;
-  const attachments = useAttachmentsFor(baseComponentId);
+  const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
 
   const def = getComponentDef(type);
   if (!implementsAnyValidation(def)) {

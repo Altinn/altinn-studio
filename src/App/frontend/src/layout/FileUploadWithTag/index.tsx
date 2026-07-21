@@ -1,7 +1,7 @@
 import React, { forwardRef, type JSX } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useAttachmentsFor } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
@@ -20,7 +20,7 @@ import type {
   PropsFromGenericComponent,
   ValidateComponent,
 } from 'src/layout';
-import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -40,7 +40,7 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
   }
 
   useDisplayData(baseComponentId: string): string {
-    const attachments = useAttachmentsFor(baseComponentId);
+    const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
     return attachments.map((a) => a.data.filename).join(', ');
   }
 
@@ -61,7 +61,7 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     return <AttachmentSummaryComponent2 {...props} />;
   }
 
-  renderLayoutValidators(props: NodeValidationProps<'FileUploadWithTag'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'FileUploadWithTag'>): JSX.Element | null {
     return <FileUploadLayoutValidator {...props} />;
   }
 

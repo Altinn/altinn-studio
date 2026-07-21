@@ -8,7 +8,7 @@ import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { MapSummary } from 'src/layout/Map/Summary2/MapSummary';
 import { parseLocation } from 'src/layout/Map/utils';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';

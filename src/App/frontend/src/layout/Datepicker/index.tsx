@@ -13,7 +13,7 @@ import { validateDatepicker } from 'src/layout/Datepicker/useDatepickerValidatio
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {

@@ -8,7 +8,7 @@ import { AddressDef } from 'src/layout/Address/config.def.generated';
 import { validateAddress } from 'src/layout/Address/useAddressValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,

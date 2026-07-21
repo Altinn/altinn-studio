@@ -13,7 +13,7 @@ import { isDev } from 'src/utils/isDev';
 export type LayoutValidationResult = Record<string, string[]>;
 export type ValidateFunc = ReturnType<typeof makeValidateFunc>;
 
-export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfiguration()): ValidateFunc | undefined {
+export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfiguration()) {
   const { fetchLayoutSchema } = useAppQueries();
   return useQuery({
     enabled,
@@ -21,19 +21,19 @@ export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfigura
     queryFn: async () => {
       const schema = await fetchLayoutSchema();
       if (!schema) {
-        return undefined;
+        return null;
       }
       return makeValidateFunc(createLayoutValidator(schema));
     },
-  }).data;
+  });
 }
 
 export function shouldValidateLayoutConfiguration() {
-  if (window.forceNodePropertiesValidation === 'on') {
+  if (window.forceLayoutPropertiesValidation === 'on') {
     return true;
   }
 
-  if (window.forceNodePropertiesValidation === 'off') {
+  if (window.forceLayoutPropertiesValidation === 'off') {
     return false;
   }
 

@@ -38,13 +38,3 @@ export type DataPostResponse = {
 export type DataPostErrorResponse = ProblemDetails & {
   uploadValidationIssues: BackendValidationIssue[];
 };
-
-export function isDataPostError(error: unknown): error is DataPostErrorResponse {
-  return (
-    typeof error === 'object' &&
-    error != null &&
-    !Array.isArray(error) &&
-    'uploadValidationIssues' in error &&
-    Array.isArray(error.uploadValidationIssues)
-  );
-}

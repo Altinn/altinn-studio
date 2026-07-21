@@ -3,6 +3,7 @@ import type { ReactNode, RefObject } from 'react';
 import { getComponentConfigs } from 'src/layout/components.generated';
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { DisplayData } from 'src/features/displayData';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation, ComponentValidation } from 'src/features/validation';
@@ -11,7 +12,6 @@ import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 import type { BaseRow } from 'src/utils/layout/types';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ComponentConfigs = ReturnType<typeof getComponentConfigs>;
 

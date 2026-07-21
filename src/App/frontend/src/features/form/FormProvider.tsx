@@ -23,7 +23,7 @@ import {
   getRootFormStore,
   processBootstrap,
 } from 'src/features/form/FormContext';
-import { FormEffectsProvider } from 'src/features/form/FormEffectsProvider';
+import { FormRuntimeEffects } from 'src/features/form/FormRuntimeEffects';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
@@ -46,6 +46,7 @@ import { createValidationSlice, ValidationEffects } from 'src/features/validatio
 import { useNavigationParam } from 'src/hooks/navigation';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
+import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { FormBootstrapBase } from 'src/features/formBootstrap/types';
 import type { FormDataSliceProps } from 'src/features/formData/FormDataWrite';
@@ -120,13 +121,15 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <AttachmentEffects />
       <ValidationEffects />
       <LayoutRevisionBoundary>
-        <FormEffectsProvider>
-          <PaymentInformationProvider>
-            <OrderDetailsProvider>
-              <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
-            </OrderDetailsProvider>
-          </PaymentInformationProvider>
-        </FormEffectsProvider>
+        <LayoutPropertiesValidation>
+          <FormRuntimeEffects>
+            <PaymentInformationProvider>
+              <OrderDetailsProvider>
+                <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
+              </OrderDetailsProvider>
+            </PaymentInformationProvider>
+          </FormRuntimeEffects>
+        </LayoutPropertiesValidation>
       </LayoutRevisionBoundary>
     </FormStoreProvider>
   );

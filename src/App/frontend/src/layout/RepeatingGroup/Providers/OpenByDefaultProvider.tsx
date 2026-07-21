@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
+import { SearchParams } from 'src/core/routing/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useLatestFocusComponentRequest } from 'src/layout/focusComponent';
 import {
   RepGroupContext,
   useRepeatingGroupRowState,
@@ -96,7 +97,7 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
  * @param baseComponentId
  */
 function useIsFocussingAChild(baseComponentId: string): boolean {
-  const focusComponentId = useLatestFocusComponentRequest()?.nodeId;
+  const focusComponentId = useSearchParams()[0].get(SearchParams.FocusComponentId);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   if (!focusComponentId) {
     return false;

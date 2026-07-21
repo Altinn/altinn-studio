@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useAttachmentsAwaiter, useAttachmentsRemover } from 'src/features/attachments/hooks';
-import { isAttachmentUploaded } from 'src/features/attachments/index';
+import { isAttachmentUploaded } from 'src/features/attachments';
+import { AttachmentRemoval } from 'src/features/attachments/hooks/attachmentRemoval';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
 import { FormStore } from 'src/features/form/FormContext';
 import { useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
@@ -10,7 +11,9 @@ import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentBehaviors } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { deriveLayoutNodes, getLayoutDescendantIds } from 'src/utils/layout/deriveLayoutNodes';
+import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
+import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
+import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 
 /**
  * When deleting a row in a repeating group, we need to find any attachments that are uploaded
@@ -23,8 +26,8 @@ import { deriveLayoutNodes, getLayoutDescendantIds } from 'src/utils/layout/deri
  * attachments were successfully removed, or false if any of them failed to be removed.
  */
 export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
-  const remove = useAsRef(useAttachmentsRemover());
-  const awaiter = useAttachmentsAwaiter();
+  const remove = useAsRef(AttachmentRemoval.useAttachmentsRemover());
+  const awaiter = AttachmentUpload.useAttachmentsAwaiter();
   const idRef = useAsRef(useIndexedId(baseComponentId));
   const formStore = FormStore.raw.useStore();
   const selectFromInstance = useSelectFromInstanceData();
@@ -33,13 +36,13 @@ export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
   return useCallback(
     async (restriction: number | undefined): Promise<boolean> => {
       const state = formStore.getState();
-      const nodes = deriveLayoutNodes(state);
-      const recursiveChildren = new Set<string>(getLayoutDescendantIds(nodes, idRef.current, restriction));
+      const nodes = deriveRuntimeNodeRefs(state);
+      const recursiveChildren = new Set<string>(getDerivedNodeDescendantIds(nodes, idRef.current, restriction));
       const instanceData = selectFromInstance((instance) => instance.data) ?? [];
-      const uploaderNodes = nodes.filter(
-        (node) =>
-          recursiveChildren.has(node.id) && getComponentBehaviors(node.intermediateItem.type)?.canHaveAttachments,
-      );
+      const uploaderNodes = nodes.filter((node) => {
+        const component = state.bootstrap.layoutLookups.getComponent(node.baseId);
+        return recursiveChildren.has(node.id) && getComponentBehaviors(component.type)?.canHaveAttachments;
+      });
 
       // This code is intentionally not parallelized, as especially LocalTest can't handle parallel requests to
       // delete attachments. It might return a 500 if you try. To be safe, we do them one by one.
@@ -47,7 +50,10 @@ export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
         const attachmentNode: AttachmentNode = {
           id: uploader.id,
           baseId: uploader.baseId,
-          dataModelBindings: uploader.intermediateItem.dataModelBindings as AttachmentNode['dataModelBindings'],
+          dataModelBindings: getIndexedDataModelBindings(
+            state.bootstrap.layoutLookups.getComponent(uploader.baseId).dataModelBindings,
+            uploader.rowContexts,
+          ) as AttachmentNode['dataModelBindings'],
         };
 
         const files = attachmentSelector(attachmentNode, state, instanceData, getApplicationMetadata(), taskId.current);

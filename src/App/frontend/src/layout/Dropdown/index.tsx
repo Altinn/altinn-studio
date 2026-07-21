@@ -11,7 +11,7 @@ import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { DropdownSummary } from 'src/layout/Dropdown/DropdownSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,
