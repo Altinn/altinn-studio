@@ -200,6 +200,7 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         className={classes.buttonAsInvisibleLink}
         onClick={handleErrorClick}
         onKeyDown={handleErrorClick}
+        data-target-node={error.nodeId}
       >
         <DataModelLocationProviderFromNode nodeId={error.nodeId}>
           <Lang
