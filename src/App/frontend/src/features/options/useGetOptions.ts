@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
@@ -12,7 +13,6 @@ import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGe
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { verifyAndDeduplicateOptions } from 'src/utils/options';
 import type { ExprValueArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -100,12 +100,15 @@ export function useSetOptions(
     [setValue, valueType],
   );
 
-  return {
-    rawData: value,
-    selectedValues,
-    unsafeSelectedValues: currentValues,
-    setData,
-  };
+  return useMemo(
+    () => ({
+      rawData: value,
+      selectedValues,
+      unsafeSelectedValues: currentValues,
+      setData,
+    }),
+    [currentValues, selectedValues, setData, value],
+  );
 }
 
 function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {

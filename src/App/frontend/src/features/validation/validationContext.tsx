@@ -14,7 +14,6 @@ import {
   type FieldValidations,
   ValidationMask,
   type ValidationsProcessedLast,
-  type WaitForValidation,
 } from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
 import {
@@ -178,7 +177,7 @@ export function ValidationEffects() {
   );
 }
 
-export function useWaitForValidation(): WaitForValidation {
+export function useWaitForValidation() {
   const waitForSave = FormStore.data.useWaitForSave();
   const store = FormStore.raw.useStore();
   const waitForState = useWaitForState<undefined, FormStoreState>(store);
@@ -195,38 +194,35 @@ export function useWaitForValidation(): WaitForValidation {
     () => waitForAttachments(store, queryClient, getInstanceData),
     [getInstanceData, queryClient, store],
   );
+  const initialBackendValidationsAreProcessed = useCallback(
+    () => (state: FormStoreState) => {
+      const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
+      return !isFetching && deepEqual(state.validation.processedLast.initial, cachedInitialValidations);
+    },
+    [getCachedInitialValidations],
+  );
 
   return useCallback(
     async (forceSave = true) => {
       if (!hasWritableDataTypes) {
-        // Even when validation is not enabled, we may still have pending query data written by
-        // updateInitialValidations() (e.g. from process/next returning task validation issues).
-        // Wait for BackendValidation to process it into the zustand store before returning.
-        await waitForState((state) => {
-          const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
-          return !isFetching && deepEqual(state.validation.processedLast.initial, cachedInitialValidations);
-        });
+        // A read-only/non-data task can still receive backend validation query results, for example from process/next.
+        await waitForState(initialBackendValidationsAreProcessed());
         await waitForActiveAttachments();
         return;
       }
 
-      // Wait until we've saved changed to backend, and we've processed the backend validations we got from that save
-      const waitForSaveAndValidations = () =>
-        waitForSave(forceSave, (state) => {
-          const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
-          return deepEqual(state.validation.processedLast.initial, cachedInitialValidations) && !isFetching;
-        });
+      const waitForSaveAndBackendValidations = () => waitForSave(forceSave, initialBackendValidationsAreProcessed());
+      await waitForSaveAndBackendValidations();
 
-      await waitForSaveAndValidations();
       do {
         await waitForActiveAttachments();
-        await waitForSaveAndValidations();
+        await waitForSaveAndBackendValidations();
       } while (hasPendingAttachments(store.getState(), queryClient, getInstanceData()));
     },
     [
-      getCachedInitialValidations,
       getInstanceData,
       hasWritableDataTypes,
+      initialBackendValidationsAreProcessed,
       queryClient,
       store,
       waitForActiveAttachments,
@@ -306,21 +302,6 @@ function UpdateShowAllErrors() {
 }
 
 export const validationHooks = {
-  useDataElementsWithErrors: (dataElementIds: string[]) =>
-    FormStore.raw.useShallowSelector((state) => {
-      const elementsWithErrors: string[] = [];
-      for (const dataElementId of Object.keys(state.validation.otherDataElementBackendValidations)) {
-        if (!dataElementIds.includes(dataElementId)) {
-          continue;
-        }
-        const validations = state.validation.otherDataElementBackendValidations[dataElementId];
-        if (Object.values(validations).some((v) => hasValidationErrors(v))) {
-          elementsWithErrors.push(dataElementId);
-        }
-      }
-      return elementsWithErrors;
-    }),
-
   useShowAllUnboundValidations: () => FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations),
   useSetShowAllUnboundValidations: () => {
     const validating = useWaitForValidation();

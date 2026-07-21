@@ -1,7 +1,9 @@
 import type { ReactNode, RefObject } from 'react';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
+import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { DisplayData } from 'src/features/displayData';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation, ComponentValidation } from 'src/features/validation';
@@ -10,7 +12,6 @@ import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 import type { BaseRow } from 'src/utils/layout/types';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ComponentConfigs = ReturnType<typeof getComponentConfigs>;
 
@@ -109,6 +110,13 @@ export interface ValidationFilter {
   getValidationFilters: (baseComponentId: string, layoutLookups: LayoutLookups) => ValidationFilterFunction[];
 }
 
+export type DataModelBindingValidationContext = {
+  lookupBinding:
+    | ((reference: IDataModelReference) => ReturnType<DataModelSchemaResult['lookupTool']['getSchemaForPath']>)
+    | undefined;
+  layoutLookups: LayoutLookups;
+};
+
 export type FormDataSelector = (reference: IDataModelReference) => unknown;
 export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[];
 
@@ -120,9 +128,13 @@ export function implementsDataModelBindingValidation<T extends CompTypes>(
   def: CompDef<T>,
   _item?: CompIntermediate<T>,
 ): def is CompDef<T> & {
-  useDataModelBindingValidation: (baseComponentId: string, bindings: CompIntermediate['dataModelBindings']) => string[];
+  validateDataModelBindings: (
+    baseComponentId: string,
+    bindings: CompIntermediate['dataModelBindings'],
+    context: DataModelBindingValidationContext,
+  ) => string[];
 } {
-  return 'useDataModelBindingValidation' in def;
+  return 'validateDataModelBindings' in def;
 }
 
 export function implementsIsDataModelBindingsRequired<T extends CompTypes>(

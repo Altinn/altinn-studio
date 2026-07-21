@@ -1,20 +1,20 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { FormStore } from 'src/features/form/FormContext';
 import {
+  indexDataModelReferenceForValidation,
   validateDataModelBindingsAny,
   validateDataModelBindingsSimple,
-} from 'src/utils/layout/generator/validation/hooks';
+} from 'src/utils/layout/validation/utils';
+import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(
+export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
+  { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
 ) {
   const errors: string[] = [];
   const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
   const { group: groupBinding, simpleBinding, label: labelBinding, metadata: metadataBinding } = bindings ?? {};
-  const lookupBinding = FormStore.bootstrap.useLookupBinding();
-  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   if (groupBinding) {
     const [groupErrors] = validateDataModelBindingsAny(
@@ -41,10 +41,16 @@ export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes'
     const simpleBindingsWithoutGroup = simpleBinding.field.replace(`${groupBinding.field}.`, '');
     const fieldWithIndex = `${groupBinding.field}[0].${simpleBindingsWithoutGroup}`;
     const [schema, err] =
-      lookupBinding?.({
-        field: fieldWithIndex,
-        dataType: simpleBinding.dataType,
-      }) ?? [];
+      lookupBinding?.(
+        indexDataModelReferenceForValidation(
+          baseComponentId,
+          {
+            field: fieldWithIndex,
+            dataType: simpleBinding.dataType,
+          },
+          layoutLookups,
+        ),
+      ) ?? [];
 
     if (err) {
       errors.push(lookupErrorAsText(err));

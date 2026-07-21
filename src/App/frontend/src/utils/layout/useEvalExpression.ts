@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 

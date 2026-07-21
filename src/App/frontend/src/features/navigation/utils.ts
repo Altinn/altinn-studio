@@ -13,9 +13,9 @@ import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
-import { ValidationMask } from 'src/features/validation';
+import { getValidationsForNode } from 'src/features/validation/deriveValidationState';
 import { getVisibilityMask } from 'src/features/validation/utils';
-import { useValidationsSelectorWithNodeIdsByPage } from 'src/features/validation/validationHooks';
+import { useGetDerivedValidationState, usePageValidations } from 'src/features/validation/validationHooks';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { usePageOrder, useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
@@ -90,7 +90,7 @@ export function getTaskIcon(taskType: string | undefined) {
  * 4. A group is marked as completed if all of its pages have no nodes with any validations errors (visible or not), and all of the pages are marked as 'visited'.
  */
 export function useValidationsForPages(order: string[], shouldMarkWhenCompleted = false) {
-  const { nodeIdsByPage: allNodeIds, validationsSelector } = useValidationsSelectorWithNodeIdsByPage(order);
+  const pageValidations = usePageValidations(order);
   const [visitedPages] = useVisitedPages();
 
   const isCompleted = useMemo(() => {
@@ -99,13 +99,7 @@ export function useValidationsForPages(order: string[], shouldMarkWhenCompleted 
     }
 
     const pageHasNoErrors = Object.fromEntries(
-      order.map((page) => [
-        page,
-        allNodeIds[page].every((nodeId) => {
-          const allValidations = validationsSelector(nodeId, ValidationMask.All, 'error');
-          return allValidations.length === 0;
-        }),
-      ]),
+      order.map((page) => [page, pageValidations[page].allErrors.length === 0]),
     );
 
     const completedPages = Object.fromEntries(
@@ -115,23 +109,17 @@ export function useValidationsForPages(order: string[], shouldMarkWhenCompleted 
     const groupIsComplete = order.every((page) => pageHasNoErrors[page] && visitedPages.includes(page));
 
     return { pages: completedPages, group: groupIsComplete };
-  }, [order, allNodeIds, validationsSelector, shouldMarkWhenCompleted, visitedPages]);
+  }, [order, pageValidations, shouldMarkWhenCompleted, visitedPages]);
 
   const hasErrors = useMemo(() => {
     const pageHasErrors = Object.fromEntries(
-      order.map((page) => [
-        page,
-        allNodeIds[page].some((nodeId) => {
-          const visibleValidations = validationsSelector(nodeId, 'visible', 'error');
-          return visibleValidations.length > 0;
-        }),
-      ]),
+      order.map((page) => [page, pageValidations[page].visibleErrors.length > 0]),
     );
 
     const groupHasErrors = Object.values(pageHasErrors).some((p) => p);
 
     return { pages: pageHasErrors, group: groupHasErrors };
-  }, [order, allNodeIds, validationsSelector]);
+  }, [order, pageValidations]);
 
   return { isCompleted, hasErrors } as
     | { isCompleted: typeof isCompleted; hasErrors: typeof hasErrors }
@@ -144,9 +132,10 @@ export function useGetNavigationIsPrevented() {
   const layoutCollection = FormStore.bootstrap.useLayoutCollection();
   const globalValidationOnNavigation = usePageSettings().validationOnNavigation;
   const order = usePageOrder();
-  const { nodeIdsByPage: allNodeIds, validationsSelector } = useValidationsSelectorWithNodeIdsByPage(order);
+  const getDerivedValidationState = useGetDerivedValidationState();
 
   return (targetPageKey: string): boolean => {
+    const derived = getDerivedValidationState();
     const currentIndex = order.indexOf(currentPageId);
     const targetIndex = order.indexOf(targetPageKey);
 
@@ -163,8 +152,8 @@ export function useGetNavigationIsPrevented() {
       }
 
       const mask = getVisibilityMask(validationOnNavigation.show);
-      return (allNodeIds[pageId] ?? []).some((nodeId) => {
-        const validations = validationsSelector(nodeId, mask, 'error');
+      return (derived.nodeIdsByPage.get(pageId) ?? []).some((nodeId) => {
+        const validations = getValidationsForNode(derived, nodeId, mask, 'error');
         return validations.length > 0;
       });
     });

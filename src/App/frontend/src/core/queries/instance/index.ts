@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -9,8 +7,8 @@ import {
   instanceDataQuery,
   instanceQueryKeys,
   useCreateInstance as useCreateInstanceInternal,
+  useGetCachedInstanceData,
 } from 'src/core/queries/instance/instance.queries';
-import { parseInstanceId } from 'src/core/queries/instance/utils';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { BaseQueryResult } from 'src/core/queries/types';
 import type { ISimpleInstance } from 'src/types';
@@ -20,13 +18,13 @@ interface UseActiveInstancesResult extends BaseQueryResult {
   instances: ISimpleInstance[] | undefined;
 }
 
-function useActiveInstances(partyId: string): UseActiveInstancesResult {
+export function useActiveInstances(partyId: string): UseActiveInstancesResult {
   const instanceApi = useInstanceApi();
   const query = useQuery(activeInstancesQuery({ partyId, instanceApi }));
   return { instances: query.data, isLoading: query.isLoading, error: query.error };
 }
 
-function useCurrentInstance(): IInstance | undefined {
+export function useCurrentInstance(): IInstance | undefined {
   const queryClient = useQueryClient();
   return queryClient
     .getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() })
@@ -38,18 +36,14 @@ export interface CachedInstanceQueries {
   getCachedInstance: (instanceId: string | undefined) => IInstance | undefined;
 }
 
-function useCachedInstanceQueries(): CachedInstanceQueries {
-  const queryClient = useQueryClient();
-  return useMemo(
-    () => ({
-      countDataElements: (instanceId, dataType) => {
-        const data = getCachedInstance(queryClient, instanceId)?.data;
-        return data ? data.filter((element) => element.dataType === dataType).length : 0;
-      },
-      getCachedInstance: (instanceId) => getCachedInstance(queryClient, instanceId),
-    }),
-    [queryClient],
-  );
+export function createCachedInstanceQueries(queryClient: QueryClient): CachedInstanceQueries {
+  return {
+    countDataElements: (instanceId, dataType) => {
+      const data = getCachedInstance(queryClient, instanceId)?.data;
+      return data ? data.filter((element) => element.dataType === dataType).length : 0;
+    },
+    getCachedInstance: (instanceId) => getCachedInstance(queryClient, instanceId),
+  };
 }
 
 function getCachedInstance(queryClient: QueryClient, instanceId: string | undefined): IInstance | undefined {
@@ -60,7 +54,7 @@ function getCachedInstance(queryClient: QueryClient, instanceId: string | undefi
   return queryClient.getQueryData<IInstance>(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }));
 }
 
-function useCreateInstance(language: string) {
+export function useCreateInstance(language: string) {
   const mutation = useCreateInstanceInternal(language);
   return {
     createInstance: mutation.mutate,
@@ -70,36 +64,36 @@ function useCreateInstance(language: string) {
   };
 }
 
-function prefetchActiveInstances(queryClient: QueryClient, partyId: string, instanceApi: InstanceApi) {
+export function prefetchActiveInstances(queryClient: QueryClient, partyId: string, instanceApi: InstanceApi) {
   return queryClient.ensureQueryData(activeInstancesQuery({ partyId, instanceApi }));
 }
 
-function prefetchInstanceData(
+export function prefetchInstanceData(
   queryClient: QueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
 ) {
   return queryClient.prefetchQuery(instanceDataQuery(params));
 }
 
-function ensureInstanceData(
+export function ensureInstanceData(
   queryClient: QueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
 ) {
   return queryClient.ensureQueryData(instanceDataQuery(params));
 }
 
-function fetchFreshInstanceData(
+export function fetchFreshInstanceData(
   queryClient: QueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
 ) {
   return queryClient.fetchQuery({ ...instanceDataQuery(params), staleTime: 0 });
 }
 
-function invalidateInstanceData(queryClient: QueryClient) {
+export function invalidateInstanceData(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
 }
 
-function useOptimisticallyUpdateInstance() {
+export function useOptimisticallyUpdateInstance() {
   const queryClient = useQueryClient();
 
   return (updater: (oldData: IInstance) => IInstance) => {
@@ -114,17 +108,20 @@ function useOptimisticallyUpdateInstance() {
   };
 }
 
-export {
-  parseInstanceId,
-  invalidateInstanceData,
-  prefetchActiveInstances,
-  fetchFreshInstanceData,
-  prefetchInstanceData,
-  ensureInstanceData,
-  instanceQueryKeys,
-  useActiveInstances,
-  useCreateInstance,
-  useCachedInstanceQueries,
-  useCurrentInstance,
-  useOptimisticallyUpdateInstance,
-};
+export function parseInstanceId(instanceId: string): {
+  instanceGuid: string;
+  instanceOwnerPartyId: string;
+} {
+  if (!isInstanceId(instanceId)) {
+    throw new Error('The provided string is not an instance id.');
+  }
+
+  const [instanceOwnerPartyId, instanceGuid] = instanceId.split('/');
+  return { instanceOwnerPartyId, instanceGuid };
+}
+
+function isInstanceId(instanceId: string): instanceId is `${string}/${string}` {
+  return instanceId.includes('/');
+}
+
+export { instanceDataQuery, activeInstancesQuery, useGetCachedInstanceData, instanceQueryKeys };

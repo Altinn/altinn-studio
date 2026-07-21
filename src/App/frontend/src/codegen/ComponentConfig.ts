@@ -348,6 +348,10 @@ export class ComponentConfig {
       import: 'IDataModelBindings',
       from: 'src/layout/layout',
     });
+    const DataModelBindingValidationContext = new CG.import({
+      import: 'DataModelBindingValidationContext',
+      from: 'src/layout',
+    });
 
     const isFormComponent = this.config.category === CompCategory.Form;
     const isSummarizable = this.behaviors.isSummarizable;
@@ -382,7 +386,7 @@ export class ComponentConfig {
     if (this.hasDataModelBindings()) {
       additionalMethods.push(
         `// You must implement this because the component has data model bindings defined
-        abstract useDataModelBindingValidation(baseComponentId: string, bindings: ${IDataModelBindings}<'${this.type}'>): string[];`,
+        abstract validateDataModelBindings(baseComponentId: string, bindings: ${IDataModelBindings}<'${this.type}'>, context: ${DataModelBindingValidationContext}): string[];`,
       );
     }
 

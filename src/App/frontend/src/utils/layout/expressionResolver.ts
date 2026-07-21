@@ -1,60 +1,14 @@
-import React, { useMemo } from 'react';
-import type { PropsWithChildren } from 'react';
+import { useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
-import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
-import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
 import type { SimpleEval } from 'src/features/expressions';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
-import type {
-  CompExternal,
-  CompExternalExact,
-  CompIntermediate,
-  CompIntermediateExact,
-  CompTypes,
-  ITextResourceBindings,
-} from 'src/layout/layout';
-import type { ExprResolver, NodeGeneratorProps } from 'src/layout/LayoutComponent';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-
-/**
- * A node generator will always be rendered when a component is present in a layout, even if the component
- * normally is hidden, the user is on another page, or the component is not visible for some other reason.
- *
- * Its job is to use relevant data sources to evaluate expressions in the item/component configuration,
- * and update other states needed by the component to function. We do this so that the node hierarchy
- * can always be up-to-date, and so that we can implement effects for components that run even when the
- * component is not visible/rendered.
- */
-export function NodeGenerator({ children, externalItem }: PropsWithChildren<NodeGeneratorProps>) {
-  const intermediateItem = useIntermediateItem(externalItem) as CompIntermediateExact<CompTypes>;
-
-  // eslint-disable-next-line react-compiler/react-compiler
-  useGeneratorErrorBoundaryNodeRef().current = { type: 'node', id: intermediateItem.id };
-
-  const commonProps: CommonProps<CompTypes> = { externalItem };
-
-  return (
-    <GeneratorNodeProvider
-      parentBaseId={externalItem.id}
-      item={intermediateItem}
-    >
-      <NodePropertiesValidation
-        {...commonProps}
-        intermediateItem={intermediateItem}
-      />
-      {children}
-    </GeneratorNodeProvider>
-  );
-}
-
-interface CommonProps<T extends CompTypes> {
-  externalItem: CompExternalExact<T>;
-}
+import type { CompIntermediate, CompIntermediateExact, CompTypes, ITextResourceBindings } from 'src/layout/layout';
+import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 /**
  * Creates props for the expression resolver that can be used to evaluate expressions in a component configuration.
@@ -88,17 +42,13 @@ export function useExpressionResolverProps<T extends CompTypes>(
 
   const evalBool: SimpleEval<ExprVal.Boolean> = (expr, defaultValue, dataSources) =>
     evalProto(ExprVal.Boolean, expr, defaultValue, dataSources);
-
   const evalStr: SimpleEval<ExprVal.String> = (expr, defaultValue, dataSources) =>
     evalProto(ExprVal.String, expr, defaultValue, dataSources);
-
   const evalNum: SimpleEval<ExprVal.Number> = (expr, defaultValue, dataSources) =>
     evalProto(ExprVal.Number, expr, defaultValue, dataSources);
   const evalAny: SimpleEval<ExprVal.Any> = (expr, defaultValue, dataSources) =>
     evalProto(ExprVal.Any, expr, defaultValue, dataSources);
 
-  // This resolves common expressions that are used by multiple components
-  // and are not specific to a single component type.
   const evalBase = () => {
     const { hidden: _hidden, ...rest } = item;
     return {
@@ -137,7 +87,6 @@ export function useExpressionResolverProps<T extends CompTypes>(
     return out;
   };
 
-  // This resolves all text resource bindings in a component
   const evalTrb = () => {
     const trb: Record<string, string> = {};
     if (item.textResourceBindings) {
@@ -152,20 +101,6 @@ export function useExpressionResolverProps<T extends CompTypes>(
   };
 
   return { item, evalBool, evalNum, evalStr, evalAny, evalBase, evalFormProps, evalSummarizable, evalTrb };
-}
-
-function useIntermediateItem<T extends CompTypes = CompTypes>(item: CompExternal<T>): CompIntermediate<T> {
-  const recursiveMutators = GeneratorInternal.useRecursiveMutators();
-
-  return useMemo(() => {
-    const newItem = structuredClone(item) as CompIntermediate<T>;
-
-    for (const mutator of recursiveMutators) {
-      mutator(newItem);
-    }
-
-    return newItem;
-  }, [item, recursiveMutators]);
 }
 
 function isFormItem(item: CompIntermediate): item is CompIntermediate & FormComponentProps {
