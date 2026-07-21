@@ -207,15 +207,23 @@ internal sealed class ProcessNextRequestFactory
                 // MutateProcessState is inserted between the two groups to transition in-memory state.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
-                    taskEndSteps.AddRange(StampStepOptions(workflowCommands.Commands, eventTaskId, serviceTaskType));
+                    taskEndSteps.AddRange(
+                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                    );
                 }
                 else
                 {
-                    taskStartSteps.AddRange(StampStepOptions(workflowCommands.Commands, eventTaskId, serviceTaskType));
+                    taskStartSteps.AddRange(
+                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                    );
                 }
 
                 postCommitSteps.AddRange(
-                    StampStepOptions(workflowCommands.PostProcessNextCommittedCommands, eventTaskId, serviceTaskType)
+                    workflowCommands.PostProcessNextCommittedCommands.ApplyStepOptions(
+                        _stepOptionsResolver,
+                        eventTaskId,
+                        serviceTaskType
+                    )
                 );
             }
         }
@@ -346,7 +354,7 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = MutateProcessState.Key, Payload = serializedPayload }
             ),
         };
-        return StampStepOptions(step, taskId: null, serviceTaskType: null);
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
     private StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
@@ -361,37 +369,6 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
             ),
         };
-        return StampStepOptions(step, taskId: null, serviceTaskType: null);
-    }
-
-    private IEnumerable<StepRequest> StampStepOptions(
-        IEnumerable<StepRequest> steps,
-        string? taskId,
-        string? serviceTaskType
-    ) => steps.Select(step => StampStepOptions(step, taskId, serviceTaskType));
-
-    /// <summary>
-    /// Resolves the effective execution timeout and retry strategy for a step (via
-    /// <see cref="ProcessStepOptionsResolver"/>) and maps them onto the outgoing wire request. A resolved
-    /// value of null leaves the wire fields unset so the engine applies its own global defaults (tier 1).
-    /// </summary>
-    private StepRequest StampStepOptions(StepRequest step, string? taskId, string? serviceTaskType)
-    {
-        ProcessStepOptions? options = _stepOptionsResolver.Resolve(step.OperationId, taskId, serviceTaskType);
-        if (options is null)
-        {
-            return step;
-        }
-
-        return step with
-        {
-            Command = options.MaxExecutionTime is not null
-                ? step.Command with
-                {
-                    MaxExecutionTime = options.MaxExecutionTime,
-                }
-                : step.Command,
-            RetryStrategy = options.RetryStrategy?.ToRetryStrategy() ?? step.RetryStrategy,
-        };
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 }
