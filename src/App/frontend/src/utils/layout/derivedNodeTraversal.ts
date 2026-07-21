@@ -40,9 +40,11 @@ export function getDerivedNodeDescendantIds<T extends TraversableDerivedNode>(
   const descendants: string[] = [];
   function visit(parentId: string) {
     for (const child of childrenByParent.get(parentId) ?? emptyArray) {
-      if (restriction === undefined || child.rowContexts[rowContextIndex]?.rowIndex === restriction) {
-        descendants.push(child.id);
+      if (restriction !== undefined && child.rowContexts[rowContextIndex]?.rowIndex !== restriction) {
+        continue;
       }
+
+      descendants.push(child.id);
       visit(child.id);
     }
   }

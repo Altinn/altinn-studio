@@ -1,10 +1,11 @@
-import React, { useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import { SearchParams } from 'src/core/routing/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
-import { useLatestFocusComponentRequest } from 'src/layout/focusComponent';
 import {
   RepGroupContext,
   useRepeatingGroupComponentId,
@@ -109,10 +110,10 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
   const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(baseComponentId, 'RepeatingGroup');
   const rowsSelector = FormStore.data.useDebouncedRowsSelector();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const focusRequest = useLatestFocusComponentRequest();
+  const [searchParams] = useSearchParams();
 
-  useLayoutEffect(() => {
-    const targetIndexedId = focusRequest?.nodeId;
+  useEffect(() => {
+    const targetIndexedId = searchParams.get(SearchParams.FocusComponentId);
     if (!targetIndexedId) {
       return;
     }
@@ -179,7 +180,7 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     openForEditing,
     pagination,
     rowsSelector,
-    focusRequest,
+    searchParams,
     tableColumns,
   ]);
 }

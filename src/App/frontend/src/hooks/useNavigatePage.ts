@@ -5,6 +5,7 @@ import type { NavigateOptions } from 'react-router';
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
+import { useExpressionDataSourcesForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
@@ -16,12 +17,10 @@ import {
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-import { focusComponentIfMounted, setFocusComponentRequest } from 'src/layout/focusComponent';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { getVisiblePageOrder, useHiddenPages } from 'src/utils/layout/hidden';
-import { useExpressionDataSourcesForStoreSelector } from 'src/utils/layout/useExpressionDataSources';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {
@@ -475,7 +474,7 @@ export function useNavigateToComponent() {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const navigateToPage = useNavigateToPage();
   const currentPageId = useCurrentView();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   return async (
     indexedId: string,
@@ -483,25 +482,22 @@ export function useNavigateToComponent() {
     options: Omit<NavigateToComponentOptions, 'shouldFocus'> | undefined,
   ) => {
     const targetPage = layoutLookups.componentToPage[baseComponentId];
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set(SearchParams.FocusComponentId, indexedId);
     const errorBindingKey = options?.error?.['bindingKey'];
-    const focusRequest = { nodeId: indexedId, errorBinding: errorBindingKey ?? null };
+    if (errorBindingKey) {
+      newSearchParams.set(SearchParams.FocusErrorBinding, errorBindingKey);
+    }
 
     if (targetPage && targetPage !== currentPageId) {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete(SearchParams.FocusComponentId);
-      newSearchParams.delete(SearchParams.FocusErrorBinding);
-      setFocusComponentRequest(focusRequest);
       await navigateToPage(targetPage, {
         ...options?.pageNavOptions,
-        preventScrollReset: true,
-        searchParams: newSearchParams.size > 0 ? newSearchParams : undefined,
-        replace: !!newSearchParams.get(SearchParams.ExitSubform),
+        searchParams: newSearchParams,
+        replace:
+          !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      const focused = focusComponentIfMounted(focusRequest);
-      if (!focused) {
-        setFocusComponentRequest(focusRequest);
-      }
+      setSearchParams(newSearchParams, preventFocusAndScrollResetOptions);
     }
   };
 }

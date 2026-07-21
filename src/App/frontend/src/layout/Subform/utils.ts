@@ -3,13 +3,16 @@ import { useCallback, useEffect, useMemo } from 'react';
 import dot from 'dot-object';
 
 import { evalExpr } from 'src/features/expressions';
+import {
+  type ExpressionDataSources,
+  useExpressionDataSourcesBase,
+} from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import { type ExpressionDataSources, useExpressionDataSourcesBase } from 'src/utils/layout/useExpressionDataSources';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IDataModelReference } from 'src/layout/common.generated';

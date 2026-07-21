@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { useAttachmentsFor } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { validateFileUploaderDataBindings } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import { ImageUploadDef } from 'src/layout/ImageUpload/config.def.generated';
 import { validateRequiredImageUploadForNode } from 'src/layout/ImageUpload/hooks/useValidateRequiredImageUpload';
@@ -20,7 +20,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 export class ImageUpload extends ImageUploadDef {
   useDisplayData(baseComponentId: string): string {
-    const attachments = useAttachmentsFor(baseComponentId);
+    const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
     return attachments.map((a) => a.data.filename).join(', ');
   }
 

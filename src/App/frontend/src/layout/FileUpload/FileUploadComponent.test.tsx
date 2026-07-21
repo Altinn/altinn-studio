@@ -165,6 +165,13 @@ describe('File uploading components', () => {
           fetchLayoutSchema: async () => null,
           fetchFormBootstrapForInstance: async () =>
             getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema.properties = {
+                ...obj.dataModels[defaultDataTypeMock].schema.properties,
+                test: {
+                  type: 'array',
+                  items: { type: 'string' },
+                },
+              };
               obj.layouts = {
                 page1: {
                   data: {

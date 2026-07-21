@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
-import { parseInstanceId } from 'src/core/queries/instance/utils';
+import { parseInstanceId } from 'src/core/queries/instance';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
 import type { IInstance } from 'src/types/shared';
