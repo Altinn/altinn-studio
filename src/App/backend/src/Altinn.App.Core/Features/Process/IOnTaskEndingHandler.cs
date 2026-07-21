@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Process;
 /// <strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong>
 /// </remarks>
 [ImplementableByApps]
-public interface IOnTaskEndingHandler
+public interface IOnTaskEndingHandler : IProcessStepConfigurable
 {
     /// <summary>
     /// Determines whether the hook should run for the given task ID.

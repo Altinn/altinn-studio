@@ -20,10 +20,14 @@ internal static class ServiceCollectionExtensions
         // Process engine callback helpers
         services.AddTransient<ProcessTaskResolver>();
         services.AddTransient<ProcessNextRequestFactory>();
+        services.AddSingleton<ProcessStepOptionsResolver>();
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
-        services.AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>();
+
+        services
+            .AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>()
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(30));
 
         // Callback authentication (app signs at enqueue, app validates at callback)
         services.TryAddSingleton<IWorkflowCallbackSecretProvider, WorkflowCallbackSecretProvider>();
@@ -76,5 +80,8 @@ internal static class ServiceCollectionExtensions
 
         // Validate all commands are registered
         WorkflowEngineCommandValidator.Validate(services);
+
+        // Fail fast at startup if any app handler declares invalid step execution options.
+        services.AddHostedService<WorkflowStepOptionsValidator>();
     }
 }

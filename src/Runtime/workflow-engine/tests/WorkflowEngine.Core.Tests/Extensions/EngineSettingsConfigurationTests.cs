@@ -45,6 +45,7 @@ public class EngineSettingsConfigurationTests
 
         // Timeouts
         Assert.Equal(TimeSpan.FromSeconds(100), settings.DefaultStepCommandTimeout);
+        Assert.Equal(TimeSpan.FromHours(2), settings.MaxStepCommandTimeout);
         Assert.Equal(TimeSpan.FromSeconds(30), settings.DatabaseCommandTimeout);
 
         // Retry strategies
@@ -193,6 +194,28 @@ public class EngineSettingsConfigurationTests
         );
 
         Assert.Contains("DefaultStepCommandTimeout", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsMaxStepCommandTimeoutBelowDefault_WhenDefaultsBypassed()
+    {
+        var services = new ServiceCollection();
+        services
+            .AddOptions<EngineSettings>()
+            .Configure(opts =>
+            {
+                opts.DefaultStepCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.MaxStepCommandTimeout = TimeSpan.FromSeconds(5);
+                opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10);
+            })
+            .ValidateEngineSettings();
+
+        using var sp = services.BuildServiceProvider();
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            sp.GetRequiredService<IOptions<EngineSettings>>().Value
+        );
+
+        Assert.Contains("MaxStepCommandTimeout", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

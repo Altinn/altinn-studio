@@ -76,6 +76,7 @@ const renderItemCategory = (props: Partial<ItemCategoryProps> = {}) => {
     selectedItemType: ComponentType.Input,
     setAddedItem: jest.fn(),
     generateComponentId: jest.fn().mockReturnValue('generated-id'),
+    isFavorite: jest.fn(),
     ...props,
   };
   return renderWithProviders(<ItemCategory {...allProps} />, {});

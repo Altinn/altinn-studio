@@ -9,13 +9,11 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { getComponentDef, implementsIsChildHidden } from 'src/layout';
+import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { CompExternal } from 'src/layout/layout';
 import type { IHiddenLayoutsExternal } from 'src/types';
+import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export interface IsHiddenOptions<Reason extends boolean = false> {
@@ -49,8 +47,7 @@ export function useIsHidden<Reason extends boolean = false>(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
-  const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse();
+  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups).reverse();
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
@@ -88,13 +85,9 @@ export function useIsHiddenMulti(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
   const hiddenSources = useMemo(
-    () =>
-      baseComponentIds.map((baseComponentId) =>
-        findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse(),
-      ),
-    [baseComponentIds, hiddenPages, layoutLookups],
+    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups).reverse()),
+    [baseComponentIds, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
@@ -195,121 +188,34 @@ function isHidden({
   pageOrder,
   pageKey,
 }: IsHiddenProps): HiddenWithReason {
-  if (respectPageOrder && pageKey !== undefined && !pageOrder.includes(pageKey)) {
-    return { reason: 'pageOrder', hidden: true };
-  }
+  const result = evaluateHiddenSources({
+    hiddenSources,
+    pageOrder,
+    pageKey,
+    respectPageOrder,
+    evalHiddenExpression: (expr, source) => {
+      const options: EvalExprOptions = {
+        errorIntroText:
+          source.type === 'hiddenPage'
+            ? `Hidden expression for page ${source.id} failed`
+            : `Expression in property ${source.type} for component ${source.id} failed`,
+        defaultValue: false,
+        returnType: ExprVal.Boolean,
+      };
 
-  for (const source of hiddenSources) {
-    if (source.type === 'callback') {
-      const hidden = source.callback();
-      if (hidden) {
-        return { reason: source.type, hidden: true };
+      if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean)) {
+        return false;
       }
-      continue;
-    }
 
-    const { type, expr, id } = source;
-    const options: EvalExprOptions = {
-      errorIntroText:
-        type === 'hiddenPage'
-          ? `Hidden expression for page ${id} failed`
-          : `Expression in property ${type} for component ${id} failed`,
-      defaultValue: false,
-      returnType: ExprVal.Boolean,
-    };
+      return evalExpr(expr, dataSources, options);
+    },
+  });
 
-    if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean)) {
-      continue;
-    }
-
-    const hidden = evalExpr(expr, dataSources, options);
-    if (hidden) {
-      return { reason: type, hidden };
-    }
+  if (result.hidden) {
+    return { hidden: true, reason: result.reason! };
   }
 
-  return { reason: undefined, hidden: false };
-}
-
-interface Expr {
-  type: 'hidden' | 'hiddenRow' | 'hiddenPage';
-  expr: ExprValToActualOrExpr<ExprVal.Boolean>;
-  id: string;
-}
-
-interface Callback {
-  type: 'callback';
-  callback: () => boolean;
-  id: string;
-}
-
-type HiddenSource = Expr | Callback;
-
-function findHiddenSources(
-  baseComponentId: string | undefined,
-  layoutLookups: LayoutLookups,
-  hiddenPages: IHiddenLayoutsExternal,
-): HiddenSource[] {
-  const out: HiddenSource[] = [];
-  if (baseComponentId === undefined) {
-    return out;
-  }
-
-  const component = layoutLookups.allComponents[baseComponentId];
-  if (component?.hidden !== undefined) {
-    out.push({ type: 'hidden', expr: component.hidden, id: baseComponentId });
-  }
-
-  let childId = baseComponentId;
-  let parent = layoutLookups.componentToParent[childId];
-  while (parent?.type === 'node') {
-    const parentComponent = layoutLookups.getComponent(parent.id);
-    const parentDef = getComponentDef(parentComponent.type);
-    if (implementsIsChildHidden(parentDef)) {
-      const tmpParentId = parent.id;
-      const tmpChildId = childId;
-      const callback = () => parentDef.isChildHidden(tmpParentId, tmpChildId, layoutLookups);
-      out.push({ type: 'callback', callback, id: parent.id });
-    }
-    if (
-      parentComponent.type === 'RepeatingGroup' &&
-      parentComponent.hiddenRow !== undefined &&
-      isInRepGroupChildren(parentComponent, childId)
-    ) {
-      out.push({ type: 'hiddenRow', expr: parentComponent.hiddenRow, id: parent.id });
-    }
-    if (parentComponent.hidden !== undefined) {
-      out.push({ type: 'hidden', expr: parentComponent.hidden, id: parent.id });
-    }
-    childId = parent.id;
-    parent = layoutLookups.componentToParent[childId];
-  }
-
-  const page = layoutLookups.componentToPage[baseComponentId];
-  const hiddenExpr = page === undefined ? undefined : hiddenPages[page];
-  if (hiddenExpr !== undefined) {
-    out.push({ type: 'hiddenPage', expr: hiddenExpr, id: page! });
-  }
-
-  return out;
-}
-
-/**
- * Checks if a baseComponentId is in the repeating group children (returns false if the baseComponentId is included
- * via rowsBefore/rowsAfter).
- */
-function isInRepGroupChildren(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
-  const multiPage = parent.edit?.multiPage ?? false;
-  if (!multiPage) {
-    return parent.children.includes(baseComponentId);
-  }
-  for (const childId of parent.children) {
-    const [, id] = childId.split(':', 2);
-    if (id === baseComponentId) {
-      return true;
-    }
-  }
-  return false;
+  return { hidden: false, reason: undefined };
 }
 
 function useIsForcedVisibleByDevTools() {

@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { Elements } from './Elements';
 import { renderWithProviders } from '../../testing/mocks';
 import { StudioDragAndDropTree } from '@studio/components';
@@ -7,18 +7,26 @@ import type { AppContextProps } from '../../AppContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { UxEditorParams } from '../../hooks/useUxEditorParams';
 import type { PreviewContextProps } from 'app-development/contexts/PreviewContext';
-import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
+import { app as appId, layoutSet as layoutSetId, org as orgId } from '@studio/testing/testids';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 
-jest.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
-jest.mock('../../hooks/useGetLayoutSetByName', () => ({
-  useGetLayoutSetByName: () => ({
-    id: 'test',
-  }),
-}));
-const mockUseCustomReceiptLayoutSetName = jest.mocked(useCustomReceiptLayoutSetName);
+const dataTaskLayoutSet: UiFolderLayoutSetModel = {
+  id: layoutSetId,
+  dataType: '',
+  type: '',
+  taskType: 'data',
+};
+
+const seedLayoutSets = (layoutSets: UiFolderLayoutSetModel[]): QueryClient => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, orgId, appId], layoutSets);
+  return queryClient;
+};
 
 describe('Elements', () => {
   beforeEach(() => {
@@ -51,14 +59,13 @@ describe('Elements', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render conf page toolbar when selectedLayoutSet is CustomReceipt', async () => {
-    mockUseCustomReceiptLayoutSetName.mockReturnValue('CustomReceipt');
-    renderElements({}, {}, undefined, undefined, { layoutSet: 'CustomReceipt' });
-    const loadingElement = () =>
-      screen.queryByText(textMock('schema_editor.loading_available_components'));
-    if (loadingElement()) {
-      await waitForElementToBeRemoved(loadingElement);
-    }
+  it('should render conf page toolbar when selectedLayoutSet is CustomReceipt', () => {
+    const queryClient = seedLayoutSets([
+      { id: PROTECTED_TASK_NAME_CUSTOM_RECEIPT, dataType: '', type: '' },
+    ]);
+    renderElements({}, {}, queryClient, undefined, {
+      layoutSet: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
+    });
 
     expect(
       screen.queryByText(textMock('ux_editor.collapsable_standard_components')),
@@ -68,45 +75,14 @@ describe('Elements', () => {
     expect(headerComponent[0]).toBeInTheDocument();
   });
 
-  it('should render conf page toolbar when processTaskType is payment', async () => {
-    const getProcessTaskType = jest.fn(() => Promise.resolve('payment'));
-    const queryClient = createQueryClientMock();
-    renderElements({}, { getProcessTaskType }, queryClient);
-    const paymentComponent = await screen.findAllByText(
-      textMock('ux_editor.component_title.Payment'),
-    );
+  it('should render conf page toolbar when task type is payment', () => {
+    const queryClient = seedLayoutSets([
+      { id: layoutSetId, dataType: '', type: '', taskType: 'payment' },
+    ]);
+    renderElements({}, {}, queryClient);
+
+    const paymentComponent = screen.getAllByText(textMock('ux_editor.component_title.Payment'));
     expect(paymentComponent[0]).toBeInTheDocument();
-  });
-
-  it('should render loading spinner when fetching processTaskType', async () => {
-    renderElements(
-      {},
-      { getProcessTaskType: jest.fn(() => Promise.resolve('data')) },
-      createQueryClientMock(),
-    );
-
-    expect(
-      screen.getByText(textMock('schema_editor.loading_available_components')),
-    ).toBeInTheDocument();
-  });
-
-  it('should render error message when processTaskType fetch fails', async () => {
-    renderElements(
-      {},
-      { getProcessTaskType: jest.fn(() => Promise.reject(new Error())) },
-      createQueryClientMock(),
-    );
-
-    const loadingElement = () =>
-      screen.queryByText(textMock('schema_editor.loading_available_components'));
-    if (loadingElement()) {
-      await waitForElementToBeRemoved(loadingElement);
-    }
-    expect(
-      screen.getByText(
-        textMock('schema_editor.error_could_not_detect_taskType', { layout: 'test-layout-set' }),
-      ),
-    ).toBeInTheDocument();
   });
 
   it('should collapse element when collapse button is clicked', async () => {
@@ -132,7 +108,7 @@ const collapseToggle = jest.fn();
 const renderElements = (
   appContextProps?: Partial<AppContextProps>,
   queries?: Partial<ServicesContextProps>,
-  queryClient?: QueryClient,
+  queryClient: QueryClient = seedLayoutSets([dataTaskLayoutSet]),
   previewContextProps?: Partial<PreviewContextProps>,
   uxEditorParams?: UxEditorParams,
 ) => {

@@ -27,6 +27,7 @@ public class EngineEndpointTests
             MaxLabels = 10,
             MetricsCollectionInterval = TimeSpan.FromSeconds(10),
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            MaxStepCommandTimeout = TimeSpan.FromHours(2),
             DefaultStepRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(5) },
             DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
             DatabaseRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(1) },

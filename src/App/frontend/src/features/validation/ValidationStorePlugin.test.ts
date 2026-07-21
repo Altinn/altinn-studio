@@ -68,7 +68,7 @@ describe('ValidationStorePlugin', () => {
         ],
       };
 
-      const lookups = makeLayoutLookups(layouts);
+      const lookups = makeLayoutLookups(layouts, { FormLayout: { data: { layout: layouts.FormLayout! } } });
       const nodeData: FormStoreState['nodes']['nodeData'] = {};
       for (let i = 1; i <= 200; i++) {
         nodeData[`myGroup-${i}`] = createParentNode(`myGroup-${i}`, 'myGroup');
@@ -132,7 +132,7 @@ describe('ValidationStorePlugin', () => {
         ],
       };
 
-      const lookups = makeLayoutLookups(layouts);
+      const lookups = makeLayoutLookups(layouts, { FormLayout: { data: { layout: layouts.FormLayout! } } });
       const nodeData: FormStoreState['nodes']['nodeData'] = {};
       for (let parentRow = 1; parentRow <= 20; parentRow++) {
         nodeData[`mainGroup-${parentRow}`] = createParentNode(`mainGroup-${parentRow}`, 'mainGroup');

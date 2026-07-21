@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -30,6 +31,15 @@ internal interface IWorkflowEngineService
     );
 
     Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(Instance instance, CancellationToken ct = default);
+
+    /// <summary>
+    /// Resolves the live status of the current task's transition for read-path enrichment:
+    /// whether a workflow is idle, processing (executing / auto-retrying) or failed, together with
+    /// the task the transition targets and — for the failed case — the failure detail. Unlike
+    /// <see cref="GetCurrentTaskWorkflowState"/> (which the process engine uses for control flow),
+    /// this is a presentation projection and carries no engine ids.
+    /// </summary>
+    Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default);
 
     /// <summary>
     /// Writes off an unsuccessful terminal workflow (Failed -> Abandoned in the engine) so that a
@@ -63,6 +73,60 @@ internal sealed record ProcessNextWorkflowResult(
     WorkflowFailure? WorkflowFailure,
     bool ProcessStateChanged
 );
+
+/// <summary>
+/// Presentation projection of the current task's live workflow status, used to enrich the process
+/// state sent to the frontend. <see cref="Failure"/> is only set when <see cref="Status"/> is
+/// <see cref="WorkflowActivityStatus.Failed"/>. <see cref="Retrying"/> and <see cref="Progress"/>
+/// are only meaningful while <see cref="Status"/> is
+/// <see cref="WorkflowActivityStatus.Processing"/>: retrying means the engine has the transition
+/// parked between automatic retry attempts (a previous attempt failed), letting a waiting UI say
+/// "a step is being retried" instead of an unexplained long wait; progress is how far through the
+/// transition's engine steps execution has come. <see cref="StartedAt"/> (also processing-only) is
+/// when the transition was enqueued, on the engine's clock - it lets a client that reconnects
+/// mid-transition (page refresh, second session) anchor "how long has this been running" to server
+/// truth instead of its own page load.
+/// </summary>
+internal sealed record WorkflowTaskStatus(
+    WorkflowActivityStatus Status,
+    string? TargetTask,
+    WorkflowFailure? Failure,
+    bool Retrying = false,
+    WorkflowStepProgress? Progress = null,
+    DateTimeOffset? StartedAt = null
+)
+{
+    /// <summary>
+    /// Projects this status onto the client-facing wire shape. Only the coarse failure
+    /// classification and the safe structured support-reference facts are projected - never the
+    /// raw error detail (it can contain internal text).
+    /// </summary>
+    internal AppProcessWorkflowStatus ToAppProcessWorkflowStatus() =>
+        new()
+        {
+            Status = Status,
+            TargetTask = TargetTask,
+            Retrying = Retrying ? true : null,
+            Progress = Progress is { } progress
+                ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
+                : null,
+            StartedAt = StartedAt,
+            Failure = Failure is { } failure
+                ? new AppProcessWorkflowFailure
+                {
+                    Kind = failure.Kind,
+                    WorkflowId = failure.WorkflowId,
+                    OccurredAt = failure.LastError?.Timestamp,
+                }
+                : null,
+        };
+}
+
+/// <summary>
+/// Progress through a transition's engine steps: <see cref="Completed"/> of <see cref="Total"/>
+/// steps have finished. Presentation-only - the step identities stay internal.
+/// </summary>
+internal sealed record WorkflowStepProgress(int Completed, int Total);
 
 /// <summary>
 /// The workflow engine's view of the instance's current task, as a closed set of states.
@@ -293,6 +357,86 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
 
         return new CurrentTaskWorkflowState.Unblocked();
+    }
+
+    public async Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default)
+    {
+        var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
+
+        if (ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask) is null)
+        {
+            // Not started, or ended: there is no current task to annotate, so don't query the
+            // engine. Known gap: the final (task -> end) transition's post-commit steps still run
+            // AFTER `ended` is committed, and a terminal failure there parks the workflow as
+            // ResumeRequired - but with CurrentTask null this resolver reports Idle, so that
+            // failure never surfaces on a read. Detection is ops alerting on the engine's failed
+            // workflows (see the live workflow-status ADR).
+            return idle;
+        }
+
+        // The process-next collection key is deterministically the instance guid (see
+        // ProcessNextRequestFactory), so the read path goes straight to the collection heads rather
+        // than issuing label queries just to discover the key. If the key convention ever drifts,
+        // GetCollection returns null and we degrade safely to Idle.
+        string collectionKey = ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance));
+        WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
+            GetNamespace(),
+            collectionKey,
+            ct: ct
+        );
+        if (collection is null || collection.Heads.Count == 0)
+        {
+            return idle;
+        }
+
+        // A head that is active means a transition is in flight (processing); a head that failed
+        // terminally means it needs resuming (failed). Active wins if both are somehow present.
+        // Everything else (completed / abandoned heads) is settled.
+        CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
+
+        // A processing transition is fully described by the collection view: the head's labels carry
+        // the target task, so it resolves in the single GetCollection call above. A Requeued head is
+        // parked between automatic retry attempts (a previous attempt failed) - still Processing to
+        // consumers, but flagged so a waiting UI can explain the longer wait honestly. The flag
+        // flickers back off while a retry attempt is actively executing, which is fine: during a
+        // long retry storm the workflow spends nearly all its time parked in Requeued.
+        if (activeHead is not null)
+        {
+            return new WorkflowTaskStatus(
+                WorkflowActivityStatus.Processing,
+                ExtractTargetTask(activeHead.Labels),
+                Failure: null,
+                Retrying: activeHead.Status == PersistentItemStatus.Requeued,
+                Progress: activeHead is { StepsCompleted: int completed, StepsTotal: int total and > 0 }
+                    ? new WorkflowStepProgress(completed, total)
+                    : null,
+                StartedAt: activeHead.CreatedAt
+            );
+        }
+
+        CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
+            IsResumeRequiredCollectionHeadStatus
+        );
+        if (resumeRequiredHead is null)
+        {
+            return idle;
+        }
+
+        // A failed transition additionally needs its failure detail, which lives in the workflow's
+        // steps - list the collection's workflows once to build it. The list goes through
+        // ScopeToCurrentChain (no anchor) so failure classification here obeys the same visibility
+        // rules as the enqueue wait and the resume-target lookup: workflows that must never be
+        // classified as transition failures are stripped in that one place.
+        IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ScopeToCurrentChain(
+            await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+            sinceWorkflowId: null
+        );
+        return new WorkflowTaskStatus(
+            WorkflowActivityStatus.Failed,
+            ExtractTargetTask(resumeRequiredHead.Labels)
+                ?? ExtractTargetTask(collectionWorkflows, resumeRequiredHead.DatabaseId),
+            BuildWorkflowFailure(collectionWorkflows)
+        );
     }
 
     public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
@@ -571,7 +715,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         [
             ProcessNextRequestFactory.ProcessNextSourceIdLabel,
             ProcessNextRequestFactory.ProcessNextTargetIdLabel,
-            ProcessNextRequestFactory.ProcessNextIdLabel,
         ];
         var workflowsById = new Dictionary<Guid, WorkflowStatusResponse>();
 
@@ -613,6 +756,29 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             is PersistentItemStatus.Failed
                 or PersistentItemStatus.Canceled
                 or PersistentItemStatus.DependencyFailed;
+
+    /// <summary>
+    /// Reads the target task's element id from a set of process-next labels
+    /// (<c>processNextTargetTask</c>). Returns null when the label is absent.
+    /// </summary>
+    private static string? ExtractTargetTask(Dictionary<string, string>? labels) =>
+        labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextTargetTaskLabel) is { Length: > 0 } targetTask
+            ? targetTask
+            : null;
+
+    /// <summary>
+    /// Reads the target task from the process-next workflow behind a collection head (fallback used
+    /// when the head status did not carry labels). Prefers the workflow matching the head; falls back
+    /// to the newest.
+    /// </summary>
+    private static string? ExtractTargetTask(IReadOnlyList<WorkflowStatusResponse> workflows, Guid headDatabaseId)
+    {
+        WorkflowStatusResponse? workflow =
+            workflows.FirstOrDefault(candidate => candidate.DatabaseId == headDatabaseId)
+            ?? workflows.OrderByDescending(candidate => candidate.CreatedAt).FirstOrDefault();
+
+        return ExtractTargetTask(workflow?.Labels);
+    }
 
     private async Task<Guid?> GetResumeTargetWorkflowId(
         string collectionKey,
