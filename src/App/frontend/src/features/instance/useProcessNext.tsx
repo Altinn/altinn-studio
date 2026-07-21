@@ -20,8 +20,14 @@ import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext } from 'src/queries/queries';
 import { TaskKeys } from 'src/routesBuilder';
 import type { BackendValidationIssue } from 'src/features/validation';
-import type { IActionType, IInstance, IProcess, ProblemDetails } from 'src/types/shared';
+import type { IActionType, IInstance, IProcess, IProcessWorkflowFailure, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
+
+type ProcessNextProblemDetails = ProblemDetails & {
+  validationIssues?: BackendValidationIssue[] | null;
+  processNextState?: 'retrying' | 'resumeRequired';
+  workflowFailure?: IProcessWorkflowFailure;
+};
 
 interface ProcessNextProps {
   action?: IActionType;
@@ -67,17 +73,35 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
 
       return doProcessNext(instanceId, language, action)
         .then(({ data: instance }) => [instance, null] as const)
-        .catch((error) => {
-          if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
+        .catch(async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
+          const validationIssues = error.response?.data?.validationIssues;
+          if (error.response?.status === 409 && validationIssues?.length) {
             // If process next failed due to validation, return validationIssues instead of throwing
-            return [null, error.response.data['validationIssues'] as BackendValidationIssue[]] as const;
-          } else if (error.response?.status === 500 && error.response?.data?.['detail'] === 'Pdf generation failed') {
-            // If process next fails due to the PDF generator failing, don't show unknown error if the app unlocks data elements
-            toast(<Lang id='process_error.submit_error_please_retry' />, { type: 'error', autoClose: false });
-            return [null, null];
-          } else {
-            throw error;
+            return [null, validationIssues] as const;
           }
+
+          // The workflow engine can report a live status synchronously via the process/next error body.
+          // Map it onto the same state machine ProcessWrapper drives off the polled workflow.status, so a
+          // synchronous failure and a polled status render identically:
+          //  - a blocked call (409 with processNextState): 'retrying' means the transition is still in
+          //    flight (processing), 'resumeRequired' means it failed terminally (failed);
+          //  - the failing/timed-out call itself (500/504 with a workflowFailure extension): the refetched
+          //    status resolves to failed (terminal) or processing (timeout — the engine keeps retrying).
+          // In all cases we refetch the (live-enriched) instance and swallow the error rather than showing
+          // a hard toast — the refetched workflow.status takes over. The backend deliberately ships no raw
+          // failure detail on these responses (only the coarse classification), so there is nothing more
+          // meaningful to show than the state machine's localized screens.
+          const processNextState = error.response?.data?.processNextState;
+          const workflowFailure = error.response?.data?.workflowFailure;
+          if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
+            const refetchResult = await reFetchInstanceData();
+            if (refetchResult.isError) {
+              throw refetchResult.error;
+            }
+            return [null, null] as const;
+          }
+
+          throw error;
         });
     },
     onSuccess: async ([newInstance, validationIssues]) => {
@@ -108,7 +132,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
         await onValidationIssues(validationIssues);
       }
     },
-    onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
+    onError: async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
       window.logError('Process next failed:\n', error);
 
       const { data: newInstance } = await reFetchInstanceData();

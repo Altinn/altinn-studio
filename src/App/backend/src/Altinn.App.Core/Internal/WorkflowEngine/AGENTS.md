@@ -131,10 +131,12 @@ AbandonTask → OnTaskAbandonHook
 `WorkflowEngineService` does more than fire-and-forget. After enqueueing it polls the workflow **collection** (keyed by the instance guid — every transition of an instance shares one collection) until the active heads settle, then refetches the instance and builds a `ProcessNextWorkflowResult`:
 
 - `ScopeToCurrentChain` narrows the collection to the workflow just submitted and everything created after it, so lingering terminal heads from earlier transitions don't leak into the current wait.
-- `BuildWorkflowFailure` classifies the outcome into a `WorkflowFailure` (`StepFailed`, `DependencyFailed`, `EngineFault`, `Timeout`, or a superseding-abandon case). `ExtractCallbackErrorDetail` unwraps the ProblemDetails `detail` from an engine error message so the human-readable reason surfaces to the frontend.
+- `BuildWorkflowFailure` classifies the outcome into a `WorkflowFailure` (`StepFailed`, `DependencyFailed`, `EngineFault`, `Timeout`, or a superseding-abandon case). `ExtractCallbackErrorDetail` unwraps the ProblemDetails `detail` from an engine error message so the human-readable reason is available server-side (logged by the controller); the raw message is never serialized to clients — failed action responses ship a stable generic `detail` plus a `workflowFailure` stripped of its recorded error.
 - `HasCommittedProcessState` reports whether `SaveProcessStateToStorage` completed, so the caller knows if the transition was persisted even when a later step failed.
 
 `GetCurrentTaskWorkflowState` returns a closed set — `Unblocked`, `Retrying(workflowId, collectionKey)`, or `ResumeRequired(workflowId, collectionKey)` — used before enqueueing a new action so a still-running or terminally-failed transition blocks the next action.
+
+`ResolveWorkflowTaskStatus` is its read-path sibling: a presentation projection (idle / processing / failed + target task + failure kind, plus the failed workflow id/timestamp as a support reference) used by `ProcessStateEnricher` to annotate every process/instance read. The frontend renders a terminal failure as an error page carrying that support reference — deliberately **no user Retry** (the engine already exhausted its retry budget) and no polling (the failed page is static — a terminal failure needs manual intervention either way); recovery is ops calling `POST process/resume` followed by the user refreshing the page. **Known gap:** for an ended process (`CurrentTask == null`) it reports idle without consulting the engine, so a terminal failure in the final transition's post-commit steps (which run after `ended` commits) never surfaces on a read — detection is ops alerting on the engine's failed workflows.
 
 Reject/resume/abandon:
 

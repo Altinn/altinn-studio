@@ -1,9 +1,16 @@
 import type { ConfPageType } from './types/ConfigPageType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { FormItemConfigs } from '../../data/formItemConfig';
+import {
+  confOnScreenComponents,
+  paymentLayoutComponents,
+  subformLayoutComponents,
+} from '../../data/formItemConfig';
 
 type GetConfigurationModeArgs = {
   selectedLayoutIsCustomReceipt: boolean;
-  processTaskType: string;
-  selectedLayoutSetType: string;
+  processTaskType?: string;
+  selectedLayoutSetType?: string;
 };
 
 export class ElementsUtils {
@@ -25,5 +32,27 @@ export class ElementsUtils {
     }
 
     return undefined;
+  }
+
+  public static getAvailableComponentList(
+    confPageType: ConfPageType,
+  ): FormItemConfigs[ComponentType][] {
+    switch (confPageType) {
+      case 'receipt':
+        return confOnScreenComponents;
+      case 'payment':
+        return paymentLayoutComponents;
+      case 'subform':
+        return subformLayoutComponents;
+      default:
+        return [];
+    }
+  }
+
+  public static getAllowedComponentTypes(
+    confPageType: ConfPageType | undefined,
+  ): Array<ComponentType | CustomComponentType> | undefined {
+    if (!confPageType) return undefined;
+    return ElementsUtils.getAvailableComponentList(confPageType).map((component) => component.name);
   }
 }

@@ -133,6 +133,8 @@ public class WorkflowEngineClientTests
                                     {
                                         DatabaseId = Guid.NewGuid(),
                                         Status = PersistentItemStatus.Completed,
+                                        StepsCompleted = 1,
+                                        StepsTotal = 1,
                                     },
                                 ],
                                 CreatedAt = DateTimeOffset.UtcNow,

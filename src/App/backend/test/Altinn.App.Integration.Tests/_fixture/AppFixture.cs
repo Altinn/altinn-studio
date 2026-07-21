@@ -358,6 +358,13 @@ public sealed partial class AppFixture : IAsyncDisposable
 
         static void AddLines(IReadOnlyList<string> source, List<string> target, string prefix)
         {
+            // Error logs (fail:/crit:) reach stdout through M.E.L's queued console writer, while
+            // snapshot messages are written to stdout directly - so an error logged just before a
+            // snapshot line can land on either side of it depending on when the queue drains. To
+            // keep snapshots deterministic, error blocks are emitted at the END of the request
+            // window they were captured in (just before the next "### Request" line) instead of at
+            // their raced capture position.
+            var pendingErrors = new List<string>();
             for (int i = 0; i < source.Count; i++)
             {
                 var line = source[i];
@@ -368,6 +375,12 @@ public sealed partial class AppFixture : IAsyncDisposable
 
                 if (isSnapshotMessage)
                 {
+                    if (pendingErrors.Count > 0 && start.Contains("### Request:", StringComparison.Ordinal))
+                    {
+                        target.AddRange(pendingErrors);
+                        pendingErrors.Clear();
+                    }
+
                     // Remove the fixture index as tests run with parallelism - use efficient slicing
                     target.Add($"[{start[4..]}");
                 }
@@ -386,10 +399,11 @@ public sealed partial class AppFixture : IAsyncDisposable
                         fullMessage.Append('\n');
                         fullMessage.Append(start);
                     }
-                    target.Add(fullMessage.ToString());
+                    pendingErrors.Add(fullMessage.ToString());
                     i = j - 1; // skip lines we just consumed
                 }
             }
+            target.AddRange(pendingErrors);
         }
         AddLines(allLines, data, expectedPrefix);
 
