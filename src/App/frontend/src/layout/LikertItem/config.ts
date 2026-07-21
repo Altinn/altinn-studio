@@ -1,22 +1,25 @@
 import { CG } from 'src/codegen/CG';
-import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
+import { asOptionsComponent } from 'src/features/options/config';
 import { CompCategory } from 'src/layout/common';
 
-export const Config = new CG.component({
-  category: CompCategory.Form,
-  capabilities: {
-    renderInTable: false,
-    renderInButtonGroup: false,
-    renderInAccordion: false,
-    renderInAccordionGroup: false,
-    renderInCards: false,
-    renderInCardsMedia: false,
-    renderInTabs: false,
-  },
-  functionality: {
-    customExpressions: false,
-  },
-})
+export const Config = asOptionsComponent(
+  new CG.component({
+    category: CompCategory.Form,
+    capabilities: {
+      renderInTable: false,
+      renderInButtonGroup: false,
+      renderInAccordion: false,
+      renderInAccordionGroup: false,
+      renderInCards: false,
+      renderInCardsMedia: false,
+      renderInTabs: false,
+    },
+    functionality: {
+      customExpressions: false,
+    },
+  }),
+  { supportsPreselection: true },
+)
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addTextResource(
     new CG.trb({
@@ -49,5 +52,4 @@ export const Config = new CG.component({
     ),
   )
   .extends(CG.common('ILikertColumnProperties'))
-  .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'single' }))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()));

@@ -15,7 +15,7 @@ import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
-import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
+import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/runtimeHiddenUtils';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type {
   AnyExprArg,
@@ -894,7 +894,7 @@ function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams, componentId:
   if (!layoutLookups) {
     throw new ExprRuntimeError(ctx.expr, ctx.path, 'Layouts not available in this context, cannot look up component');
   }
-  const hiddenSources = collectHiddenSources(componentId, layoutLookups).reverse();
+  const hiddenSources = collectHiddenSources(componentId, layoutLookups);
   const pageKey = layoutLookups.componentToPage[componentId];
   return evaluateHiddenSources({
     hiddenSources,

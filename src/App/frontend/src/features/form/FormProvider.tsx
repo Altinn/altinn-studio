@@ -10,6 +10,8 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
+import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
+import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
 import { UpdateDataElementIdsForCypress } from 'src/features/form/DataElementIdsForCypress';
 import {
   createFormBootstrapSlice,
@@ -21,6 +23,7 @@ import {
   getRootFormStore,
   processBootstrap,
 } from 'src/features/form/FormContext';
+import { FormRuntimeEffects } from 'src/features/form/FormRuntimeEffects';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
@@ -42,7 +45,8 @@ import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { createValidationSlice, ValidationEffects } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { isAxiosError } from 'src/utils/isAxiosError';
-import { createNodesSlice, NodesProvider } from 'src/utils/layout/NodesContext';
+import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
+import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { FormBootstrapBase } from 'src/features/formBootstrap/types';
 import type { FormDataSliceProps } from 'src/features/formData/FormDataWrite';
@@ -114,16 +118,41 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     <FormStoreProvider value={storeRef.current!}>
       {window.Cypress && <UpdateDataElementIdsForCypress />}
       <FormDataWriteEffects />
+      <AttachmentEffects />
       <ValidationEffects />
-      <NodesProvider>
-        <PaymentInformationProvider>
-          <OrderDetailsProvider>
-            <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
-          </OrderDetailsProvider>
-        </PaymentInformationProvider>
-      </NodesProvider>
+      <LayoutRevisionBoundary>
+        <LayoutPropertiesValidation>
+          <FormRuntimeEffects>
+            <PaymentInformationProvider>
+              <OrderDetailsProvider>
+                <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
+              </OrderDetailsProvider>
+            </PaymentInformationProvider>
+          </FormRuntimeEffects>
+        </LayoutPropertiesValidation>
+      </LayoutRevisionBoundary>
     </FormStoreProvider>
   );
+}
+
+function LayoutRevisionBoundary({ children }: PropsWithChildren) {
+  const layoutRevision = useLayoutRevisionKey();
+  return <React.Fragment key={layoutRevision}>{children}</React.Fragment>;
+}
+
+const layoutRevisionKeys = new WeakMap<object, number>();
+let nextLayoutRevisionKey = 0;
+
+function useLayoutRevisionKey() {
+  const layouts = FormStore.bootstrap.useLayouts();
+  return useMemo(() => {
+    let key = layoutRevisionKeys.get(layouts);
+    if (key === undefined) {
+      key = nextLayoutRevisionKey++;
+      layoutRevisionKeys.set(layouts, key);
+    }
+    return key;
+  }, [layouts]);
 }
 
 function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasProcess: boolean }>) {
@@ -203,8 +232,9 @@ function createFormStore({
       parent,
       readOnly,
       data: createFormDataWriteSlice(data, set),
+      attachments: createAttachmentsSlice(set),
       validation: createValidationSlice(processBootstrap(bootstrap), set),
-      nodes: createNodesSlice(set),
+      layoutDiagnostics: createLayoutDiagnosticsSlice(set),
       pageNavigation: createPageNavigationSlice(set),
       bootstrap: createFormBootstrapSlice(bootstrap, set),
     })),

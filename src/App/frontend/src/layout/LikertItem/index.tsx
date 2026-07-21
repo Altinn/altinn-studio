@@ -2,18 +2,21 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
-import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+} from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
@@ -28,6 +31,10 @@ export class LikertItem extends LikertItemDef {
       );
     },
   );
+
+  getOptionsEffectValueType() {
+    return 'single' as const;
+  }
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'LikertItem');
@@ -46,13 +53,15 @@ export class LikertItem extends LikertItemDef {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
-    return useEmptyFieldValidationOnlyOneBinding(baseComponentId, 'simpleBinding');
+  validateEmptyField(ctx: ComponentValidationContext<'LikertItem'>): ComponentValidation[] {
+    return validateEmptyFieldOnlyOneBinding(ctx, 'simpleBinding');
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'LikertItem'>): string[] {
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'LikertItem'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const [answerErr] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,
