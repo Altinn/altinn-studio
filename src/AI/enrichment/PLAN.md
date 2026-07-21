@@ -109,6 +109,15 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
   FlatData som rotproperty; service tasken unwrapper (preview.2).
 - **Fase 4 — herding + dokumentasjon**: timeout-/retry-budsjett, telemetri (app-libs
   OpenTelemetry), README med `App/agents`-kontrakten og Dockerfile-oppskrift.
+  - **Steg-budsjett på workflow-engine (venter på app-lib-slipp)**: PR #19571 (main,
+    2026-07-21) gir service tasks per-steg `MaxExecutionTime`/retry via
+    `IProcessStepConfigurable.StepOptions`, med **10 min default** for
+    `ExecuteServiceTask` — for knapt for lange agent-kjøringer (observert ~13 min
+    ved concurrency 4). Når API-et er ute i en app-lib-versjon (> 9.0.0-preview.2),
+    implementer `StepOptions` på `AiServiceTask` med konfigurerbar
+    `MaxExecutionTime` (f.eks. 1 t default). Rammer bare apper på workflow-engine;
+    klassisk synkron `process/next` er uendret. KI-gatewayens eget tak: 30 min per
+    non-streaming-request (streaming: ubegrenset) — hold `TimeoutSeconds` under dette.
 - **Fase 5 — senere/valgfritt**: Designer-støtte i process-editor; upstreaming til
   app-lib-dotnet / publisering som NuGet-pakke.
 

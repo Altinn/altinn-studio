@@ -45,12 +45,18 @@ public sealed class AgentOptions
     public double Temperature { get; set; }
 
     /// <summary>
-    /// Request server-sent-event streaming. Keeps the connection alive while
-    /// the model is processing, which bypasses gateway pre-first-token
-    /// timeouts (often ~30s) for long prompts. Recommended on.
+    /// Request server-sent-event streaming. Keeps tokens flowing for the whole
+    /// call, so the gateway's request timeout for non-streaming calls (30 min
+    /// on the KI gateway) and any pre-first-token timeouts do not apply.
+    /// Recommended on.
     /// </summary>
     public bool UseStreaming { get; set; } = true;
 
-    /// <summary>Maximum time in seconds to wait for a single chat call.</summary>
+    /// <summary>
+    /// Maximum time in seconds to wait for a single chat call. Budget expiry
+    /// surfaces as a per-item transport verdict, not a failed task. For
+    /// non-streaming calls, keep this below the gateway's own request timeout
+    /// so this budget fires first.
+    /// </summary>
     public int TimeoutSeconds { get; set; } = 300;
 }

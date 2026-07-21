@@ -135,6 +135,12 @@ vedleggsliste.
 - **API-nøkkel**: i miljø løses `ApiKeySecretName` via appens `ISecretsClient`
   (Key Vault). Lokalt vinner en direkte `ApiKey` — sett den som miljøvariabel
   (`AiEnrichment__Agent__ApiKey`), **aldri** i innsjekket config.
+- **Timeouts og streaming**: `TimeoutSeconds` (default 300) er bibliotekets
+  budsjett *per LLM-kall*; overskridelse gir en ren `ikke_vurdert`-verdict på
+  punktet i stedet for at hele steget feiler. KI-gatewayen kutter selv
+  non-streaming-requests etter **30 minutter** — hold `TimeoutSeconds` godt
+  under det, og la `UseStreaming` stå på (default): med streaming flyter det
+  tokens hele veien, så gateway-taket for non-streaming gjelder ikke.
 
 ## Steg 7 — Bygg agenten (`App/agents/<navn>/`)
 
