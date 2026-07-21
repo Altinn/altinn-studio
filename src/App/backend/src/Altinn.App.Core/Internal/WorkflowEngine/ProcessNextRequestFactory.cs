@@ -46,11 +46,6 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppSettings _appSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
-
-    /// <summary>
-    /// Resolves each step's effective execution options across the three-tier chain (per-implementation
-    /// override → per-command default → engine global default).
-    /// </summary>
     private readonly ProcessStepOptionsResolver _stepOptionsResolver;
 
     public ProcessNextRequestFactory(

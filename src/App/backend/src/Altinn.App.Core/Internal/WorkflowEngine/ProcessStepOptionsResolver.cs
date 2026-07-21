@@ -30,10 +30,10 @@ internal sealed class ProcessStepOptionsResolver
         AppImplementationFactory appImplementationFactory
     )
     {
+        _appImplementationFactory = appImplementationFactory;
         _commandDefaults = commands
             .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
-        _appImplementationFactory = appImplementationFactory;
     }
 
     /// <summary>
@@ -82,54 +82,43 @@ internal sealed class ProcessStepOptionsResolver
         string? serviceTaskType
     )
     {
-        if (operationId == ExecuteServiceTask.Key)
+        if (operationId == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
-            return serviceTaskType is null
-                ? null
-                : _appImplementationFactory
-                    .GetAll<IServiceTask>()
-                    .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase))
-                    ?.StepOptions;
+            return _appImplementationFactory
+                .GetAll<IServiceTask>()
+                .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase))
+                ?.StepOptions;
         }
 
-        if (operationId == OnTaskStartingHook.Key)
-            return ResolveHookStepOptions(
-                _appImplementationFactory.GetAll<IOnTaskStartingHandler>(),
-                taskId,
-                static (h, t) => h.ShouldRunForTask(t)
-            );
+        if (operationId == OnTaskStartingHook.Key && taskId is not null)
+        {
+            return _appImplementationFactory
+                .GetAll<IOnTaskStartingHandler>()
+                .FirstOrDefault(x => x.ShouldRunForTask(taskId))
+                ?.StepOptions;
+        }
 
-        if (operationId == OnTaskEndingHook.Key)
-            return ResolveHookStepOptions(
-                _appImplementationFactory.GetAll<IOnTaskEndingHandler>(),
-                taskId,
-                static (h, t) => h.ShouldRunForTask(t)
-            );
+        if (operationId == OnTaskEndingHook.Key && taskId is not null)
+        {
+            return _appImplementationFactory
+                .GetAll<IOnTaskEndingHandler>()
+                .FirstOrDefault(x => x.ShouldRunForTask(taskId))
+                ?.StepOptions;
+        }
 
-        if (operationId == OnTaskAbandonHook.Key)
-            return ResolveHookStepOptions(
-                _appImplementationFactory.GetAll<IOnTaskAbandonHandler>(),
-                taskId,
-                static (h, t) => h.ShouldRunForTask(t)
-            );
+        if (operationId == OnTaskAbandonHook.Key && taskId is not null)
+        {
+            return _appImplementationFactory
+                .GetAll<IOnTaskAbandonHandler>()
+                .FirstOrDefault(x => x.ShouldRunForTask(taskId))
+                ?.StepOptions;
+        }
 
         if (operationId == OnProcessEndingHook.Key)
+        {
             return _appImplementationFactory.GetAll<IOnProcessEndingHandler>().FirstOrDefault()?.StepOptions;
+        }
 
         return null;
     }
-
-    /// <summary>
-    /// Returns the step options of the first task hook whose <paramref name="shouldRunForTask"/> matches,
-    /// or null when no task is in scope or none matches — the same selection the hook command makes at
-    /// execute time. The task hooks share no base interface, so the predicate supplies their common
-    /// <c>ShouldRunForTask</c> member.
-    /// </summary>
-    private static ProcessStepOptions? ResolveHookStepOptions<THandler>(
-        IEnumerable<THandler> handlers,
-        string? taskId,
-        Func<THandler, string, bool> shouldRunForTask
-    )
-        where THandler : IProcessStepConfigurable =>
-        taskId is null ? null : handlers.FirstOrDefault(h => shouldRunForTask(h, taskId))?.StepOptions;
 }
