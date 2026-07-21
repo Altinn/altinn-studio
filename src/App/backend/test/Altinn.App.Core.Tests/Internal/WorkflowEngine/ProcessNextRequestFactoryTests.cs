@@ -61,7 +61,10 @@ public class ProcessNextRequestFactoryTests
 
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
-        var commandDefaultStepOptions = new CommandDefaultStepOptionsProvider([new ExecuteServiceTask(appImplFactory)]);
+        var stepOptionsResolver = new ProcessStepOptionsResolver(
+            [new ExecuteServiceTask(appImplFactory)],
+            appImplFactory
+        );
 
         var authContextMock = new Mock<IAuthenticationContext>();
         authContextMock.Setup(x => x.Current).Returns(authentication ?? TestAuthentication.GetUserAuthentication());
@@ -101,7 +104,7 @@ public class ProcessNextRequestFactoryTests
             appSettings,
             appMetadataMock.Object,
             callbackTokenGeneratorMock.Object,
-            commandDefaultStepOptions
+            stepOptionsResolver
         );
     }
 

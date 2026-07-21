@@ -7,10 +7,6 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
@@ -52,11 +48,10 @@ internal sealed class ProcessNextRequestFactory
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
 
     /// <summary>
-    /// Singleton lookup of per-command default step options (tier 2). Overridden per-step by a
-    /// per-implementation <see cref="IProcessStepConfigurable.StepOptions"/> (tier 3) and falling back
-    /// to the engine's global defaults (tier 1) when both are null.
+    /// Resolves each step's effective execution options across the three-tier chain (per-implementation
+    /// override → per-command default → engine global default).
     /// </summary>
-    private readonly CommandDefaultStepOptionsProvider _commandDefaultStepOptions;
+    private readonly ProcessStepOptionsResolver _stepOptionsResolver;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -65,7 +60,7 @@ internal sealed class ProcessNextRequestFactory
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
         IWorkflowCallbackTokenGenerator callbackTokenGenerator,
-        CommandDefaultStepOptionsProvider commandDefaultStepOptions
+        ProcessStepOptionsResolver stepOptionsResolver
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -74,7 +69,7 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
-        _commandDefaultStepOptions = commandDefaultStepOptions;
+        _stepOptionsResolver = stepOptionsResolver;
     }
 
     /// <summary>
@@ -381,107 +376,27 @@ internal sealed class ProcessNextRequestFactory
     ) => steps.Select(step => StampStepOptions(step, taskId, serviceTaskType));
 
     /// <summary>
-    /// Resolves the effective execution timeout and retry strategy for a step and stamps them onto the
-    /// outgoing request. Resolution is per-field: a per-implementation override (tier 3) wins over the
-    /// command's own default (tier 2); a null on both leaves the wire field unset so the engine applies
-    /// its global default (tier 1).
+    /// Resolves the effective execution timeout and retry strategy for a step (via
+    /// <see cref="ProcessStepOptionsResolver"/>) and maps them onto the outgoing wire request. A resolved
+    /// value of null leaves the wire fields unset so the engine applies its own global defaults (tier 1).
     /// </summary>
     private StepRequest StampStepOptions(StepRequest step, string? taskId, string? serviceTaskType)
     {
-        ProcessStepOptions? commandDefault = _commandDefaultStepOptions.GetDefaultStepOptions(step.OperationId);
-        ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
-            step.OperationId,
-            taskId,
-            serviceTaskType
-        );
-
-        TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
-        ProcessStepRetryStrategy? retryStrategy =
-            implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
-
-        if (maxExecutionTime is null && retryStrategy is null)
+        ProcessStepOptions? options = _stepOptionsResolver.Resolve(step.OperationId, taskId, serviceTaskType);
+        if (options is null)
         {
             return step;
         }
 
-        if (maxExecutionTime is { } timeout && timeout <= TimeSpan.Zero)
-        {
-            throw new InvalidOperationException(
-                $"Resolved {nameof(ProcessStepOptions)}.{nameof(ProcessStepOptions.MaxExecutionTime)} for step "
-                    + $"'{step.OperationId}' must be positive (was {timeout}). Check the handler's "
-                    + $"{nameof(IProcessStepConfigurable.StepOptions)} implementation."
-            );
-        }
-
         return step with
         {
-            Command = maxExecutionTime is not null
+            Command = options.MaxExecutionTime is not null
                 ? step.Command with
                 {
-                    MaxExecutionTime = maxExecutionTime,
+                    MaxExecutionTime = options.MaxExecutionTime,
                 }
                 : step.Command,
-            RetryStrategy = retryStrategy?.ToRetryStrategy() ?? step.RetryStrategy,
+            RetryStrategy = options.RetryStrategy?.ToRetryStrategy() ?? step.RetryStrategy,
         };
-    }
-
-    /// <summary>
-    /// Resolves the app-provided handler backing a command and returns its per-implementation step
-    /// options (tier 3), or null when the command has no app-facing handler or none matches. Mirrors the
-    /// handler selection each command performs at execute time so build-time and run-time agree.
-    /// </summary>
-    private ProcessStepOptions? ResolveImplementationStepOptions(
-        string operationId,
-        string? taskId,
-        string? serviceTaskType
-    )
-    {
-        if (operationId == ExecuteServiceTask.Key)
-        {
-            if (serviceTaskType is null)
-                return null;
-
-            return _appImplementationFactory
-                .GetAll<IServiceTask>()
-                .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase))
-                ?.StepOptions;
-        }
-
-        if (operationId == OnTaskStartingHook.Key)
-        {
-            return taskId is null
-                ? null
-                : _appImplementationFactory
-                    .GetAll<IOnTaskStartingHandler>()
-                    .FirstOrDefault(h => h.ShouldRunForTask(taskId))
-                    ?.StepOptions;
-        }
-
-        if (operationId == OnTaskEndingHook.Key)
-        {
-            return taskId is null
-                ? null
-                : _appImplementationFactory
-                    .GetAll<IOnTaskEndingHandler>()
-                    .FirstOrDefault(h => h.ShouldRunForTask(taskId))
-                    ?.StepOptions;
-        }
-
-        if (operationId == OnTaskAbandonHook.Key)
-        {
-            return taskId is null
-                ? null
-                : _appImplementationFactory
-                    .GetAll<IOnTaskAbandonHandler>()
-                    .FirstOrDefault(h => h.ShouldRunForTask(taskId))
-                    ?.StepOptions;
-        }
-
-        if (operationId == OnProcessEndingHook.Key)
-        {
-            return _appImplementationFactory.GetAll<IOnProcessEndingHandler>().FirstOrDefault()?.StepOptions;
-        }
-
-        return null;
     }
 }

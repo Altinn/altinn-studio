@@ -20,7 +20,7 @@ internal static class ServiceCollectionExtensions
         // Process engine callback helpers
         services.AddTransient<ProcessTaskResolver>();
         services.AddTransient<ProcessNextRequestFactory>();
-        services.AddSingleton<CommandDefaultStepOptionsProvider>();
+        services.AddSingleton<ProcessStepOptionsResolver>();
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
