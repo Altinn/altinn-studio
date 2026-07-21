@@ -20,7 +20,7 @@ import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/Summary
 import { RepeatingGroupSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary';
 import { validateRepGroupMinCountForNode } from 'src/layout/RepeatingGroup/useValidateRepGroupMinCount';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
-import { claimRepeatingChildren } from 'src/utils/layout/plugins/claimRepeatingChildren';
+import { claimRepeatingChildren, getRepeatingChildBaseIds } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout/rowContext';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
@@ -180,9 +180,7 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
   }
 
   getRuntimeChildren({ item, childBaseIds, rowContexts, getRows }: RuntimeChildrenProps<'RepeatingGroup'>) {
-    const configuredChildren = item.edit?.multiPage
-      ? item.children.map((childId) => childId.split(':', 2)[1])
-      : item.children;
+    const configuredChildren = getRepeatingChildBaseIds(item.children, item.edit?.multiPage === true);
     const repeatedChildren = new Set(configuredChildren);
     const staticChildren = childBaseIds
       .filter((baseId) => !repeatedChildren.has(baseId))

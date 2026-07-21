@@ -85,6 +85,40 @@ describe('indexDataModelReferenceForValidation', () => {
     expect(indexDataModelReferenceForValidation('animalNameBefore', reference, lookups)).toEqual(reference);
   });
 
+  it('indexes bindings for components inside a multi-page repeating group body', () => {
+    const lookups = makeLookups(
+      {
+        animalName: { id: 'animalName', type: 'Input' } as CompExternal,
+        animals: {
+          id: 'animals',
+          type: 'RepeatingGroup',
+          children: ['0:animalName'],
+          edit: { multiPage: true },
+          dataModelBindings: {
+            group: { dataType: 'ConflictingOptions', field: 'ConflictingOptions.Animals' },
+          },
+        } as CompExternal,
+      },
+      {
+        animalName: { type: 'node', id: 'animals' },
+        animals: { type: 'page', id: 'page' },
+      },
+      {
+        animals: ['animalName'],
+      },
+    );
+
+    const reference: IDataModelReference = {
+      dataType: 'ConflictingOptions',
+      field: 'ConflictingOptions.Animals.Name',
+    };
+
+    expect(indexDataModelReferenceForValidation('animalName', reference, lookups)).toEqual({
+      dataType: 'ConflictingOptions',
+      field: 'ConflictingOptions.Animals[0].Name',
+    });
+  });
+
   it('indexes nested repeating group bindings from inner to outer', () => {
     const lookups = makeLookups(
       {

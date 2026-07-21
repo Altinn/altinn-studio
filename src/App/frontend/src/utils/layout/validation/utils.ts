@@ -3,6 +3,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
 import { isDataModelBindingsRequired } from 'src/layout';
+import { isRepeatingChild } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -103,7 +104,7 @@ function getParentRepeatingGroupBindings(baseComponentId: string, layoutLookups:
     const parentComponent = layoutLookups.allComponents[parent.id];
     const isClaimedByRepeatedBody =
       parentComponent?.type === 'RepeatingGroup'
-        ? (parentComponent.children?.includes(childId) ?? false)
+        ? isRepeatingChild(parentComponent.children, parentComponent.edit?.multiPage === true, childId)
         : (layoutLookups.componentToChildren[parent.id]?.includes(childId) ?? false);
 
     if (isRepeatingComponent(parentComponent) && isClaimedByRepeatedBody) {
