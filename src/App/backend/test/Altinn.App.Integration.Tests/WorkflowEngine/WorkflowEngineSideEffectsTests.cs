@@ -12,10 +12,11 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
 /// <summary>
 /// Verifies the process-next side-effects split: non-critical post-commit commands (Altinn event
-/// registrations) run in a separate <c>IsHead=false</c> workflow that never gates the ProcessNext
-/// response or the next transition, while critical post-commit commands (ExecuteServiceTask) stay
-/// in the Main workflow and are waited on. The scenario's events client delays every registration
-/// by 10 seconds, so any response that arrives promptly demonstrably did not wait for the events.
+/// registrations) each run in their own separate <c>IsHead=false</c> single-step workflow that
+/// never gates the ProcessNext response or the next transition, while critical post-commit
+/// commands (ExecuteServiceTask) stay in the Main workflow and are waited on. The scenario's
+/// events client delays every registration by 10 seconds, so any response that arrives promptly
+/// demonstrably did not wait for the events.
 /// </summary>
 [Trait("Category", "Integration")]
 [Collection(WorkflowEngineTestCollection.Name)]
@@ -42,7 +43,7 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
 
         // Instantiation triggers the initial task-start transition. With events enabled, its
         // MovedTo/InstanceCreated registrations are 10s-delayed side effects - the response can
-        // only arrive promptly because they run in the non-gating side-effects workflow.
+        // only arrive promptly because they run in the non-gating side-effects workflows.
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
             new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
@@ -58,19 +59,21 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
 
         List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
         EngineWorkflow instantiationMain = Assert.Single(workflows, w => !IsSideEffectsWorkflow(w));
-        EngineWorkflow instantiationSideEffects = Assert.Single(workflows, IsSideEffectsWorkflow);
+        // One single-step sibling workflow per side effect: MovedTo + InstanceCreated.
+        List<EngineWorkflow> instantiationSideEffects = workflows.Where(IsSideEffectsWorkflow).ToList();
+        Assert.Equal(2, instantiationSideEffects.Count);
 
         // The transition itself settled, but its delayed side effects are still running. This is
-        // implicitly timing-based, with a wide margin: the side-effects workflow needs >= 2x10s of
-        // delayed event registrations, while the gap between the instantiation response and this
-        // query is a couple of HTTP round-trips.
+        // implicitly timing-based, with a wide margin: each sibling needs a 10s-delayed event
+        // registration, while the gap between the instantiation response and this query is a
+        // couple of HTTP round-trips.
         Assert.Equal("Completed", instantiationMain.OverallStatus);
-        Assert.NotEqual("Completed", instantiationSideEffects.OverallStatus);
+        Assert.All(instantiationSideEffects, w => Assert.NotEqual("Completed", w.OverallStatus));
 
-        // The side-effects workflow is invisible to the collection heads frontier.
+        // The side-effects workflows are invisible to the collection heads frontier.
         List<Guid> headIds = await GetCollectionHeadIds(engineClient, ns, collectionKey);
         Assert.Contains(instantiationMain.DatabaseId, headIds);
-        Assert.DoesNotContain(instantiationSideEffects.DatabaseId, headIds);
+        Assert.All(instantiationSideEffects, w => Assert.DoesNotContain(w.DatabaseId, headIds));
 
         // The next transition is not blocked by the still-running side effects.
         await PatchValidFormData(fixture, token, readInstantiation);
@@ -80,7 +83,7 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
         Assert.Equal("Task_Service", firstProcessState.Data.Model!.CurrentTask!.ElementId);
 
         // The critical ExecuteServiceTask ran (and was waited on) in the Main workflow; the
-        // MovedToAltinnEvent moved to the side-effects workflow.
+        // MovedToAltinnEvent moved to its own side-effects sibling workflow.
         workflows = await ListWorkflows(engineClient, ns, collectionKey);
         EngineWorkflow serviceTaskMain = Assert.Single(
             workflows,
@@ -96,9 +99,12 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
 
         EngineWorkflow serviceTaskSideEffects = Assert.Single(
             workflows,
-            w => IsSideEffectsWorkflow(w) && w.OperationId.EndsWith("-> Task_Service", StringComparison.Ordinal)
+            w => IsSideEffectsWorkflow(w) && w.OperationId.Contains("-> Task_Service", StringComparison.Ordinal)
         );
-        Assert.Contains(serviceTaskSideEffects.Steps, s => s.OperationId == "MovedToAltinnEvent");
+        EngineStep movedToStep = Assert.Single(serviceTaskSideEffects.Steps);
+        Assert.Equal("MovedToAltinnEvent", movedToStep.OperationId);
+        // The sibling's OperationId names its single effect, so listings stay legible.
+        Assert.EndsWith("· MovedToAltinnEvent", serviceTaskSideEffects.OperationId, StringComparison.Ordinal);
 
         // Drive the process to the end while earlier side effects may still be pending. This is
         // the core guarantee: the pipeline never waits on the side-effect chain.
@@ -110,13 +116,14 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
         Assert.Null(secondProcessState.Data.Model!.CurrentTask);
         Assert.Equal("EndEvent_1", secondProcessState.Data.Model.EndEvent);
 
-        // Fire-and-forget does not mean fire-and-lose: every side-effects workflow (instantiation,
-        // task transition, process end) still runs to completion.
+        // Fire-and-forget does not mean fire-and-lose: every side-effects workflow still runs to
+        // completion. One sibling per effect: MovedTo.Task_1 + InstanceCreated (instantiation),
+        // MovedTo.Task_Service (task transition), Completed (process end).
         List<EngineWorkflow> sideEffectWorkflows = await WaitForSideEffectsWorkflowsToComplete(
             engineClient,
             ns,
             collectionKey,
-            expectedCount: 3
+            expectedCount: 4
         );
         Assert.All(sideEffectWorkflows, w => Assert.Equal("Completed", w.OverallStatus));
 

@@ -319,12 +319,20 @@ public class ProcessNextRequestFactoryTests
             .EnqueueRequest;
     }
 
-    private static WorkflowRequest ExtractSideEffectsWorkflow(WorkflowEnqueueEnvelope bundle)
+    private static List<WorkflowRequest> ExtractSideEffectsWorkflows(WorkflowEnqueueEnvelope bundle)
     {
         WorkflowEnqueueRequest? request = TryExtractSideEffectsEnqueueRequest(bundle);
         Assert.NotNull(request);
-        return Assert.Single(request.Workflows);
+        Assert.NotEmpty(request.Workflows);
+        return [.. request.Workflows];
     }
+
+    /// <summary>
+    /// The side-effect command keys across all sibling workflows, in declaration order (one
+    /// single-step workflow per side effect).
+    /// </summary>
+    private static List<string> ExtractSideEffectsCommandKeys(WorkflowEnqueueEnvelope bundle) =>
+        ExtractSideEffectsWorkflows(bundle).SelectMany(ExtractCommandKeys).ToList();
 
     [Fact]
     public async Task Create_TaskToTaskTransition_ProducesCorrectCommandSequence()
@@ -362,7 +370,7 @@ public class ProcessNextRequestFactoryTests
 
         // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal([MovedToAltinnEvent.Key], ExtractCommandKeys(ExtractSideEffectsWorkflow(bundle)));
+        Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
     }
 
     [Fact]
@@ -401,7 +409,7 @@ public class ProcessNextRequestFactoryTests
 
         // The non-critical CompletedAltinnEvent runs in the separate side-effects workflow.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal([CompletedAltinnEvent.Key], ExtractCommandKeys(ExtractSideEffectsWorkflow(bundle)));
+        Assert.Equal([CompletedAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
     }
 
     [Fact]
@@ -443,10 +451,7 @@ public class ProcessNextRequestFactoryTests
 
         // Both events are non-critical and run in the side-effects workflow, in order.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal(
-            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key],
-            ExtractCommandKeys(ExtractSideEffectsWorkflow(bundle))
-        );
+        Assert.Equal([MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
     }
 
     [Fact]
@@ -499,7 +504,7 @@ public class ProcessNextRequestFactoryTests
 
         // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal([MovedToAltinnEvent.Key], ExtractCommandKeys(ExtractSideEffectsWorkflow(bundle)));
+        Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
     }
 
     [Fact]
@@ -527,7 +532,7 @@ public class ProcessNextRequestFactoryTests
         // MovedToAltinnEvent is non-critical and runs in the side-effects workflow instead.
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.Single(bundle.Request.Workflows);
-        Assert.Contains(MovedToAltinnEvent.Key, ExtractCommandKeys(ExtractSideEffectsWorkflow(bundle)));
+        Assert.Contains(MovedToAltinnEvent.Key, ExtractSideEffectsCommandKeys(bundle));
     }
 
     [Fact]
@@ -876,7 +881,10 @@ public class ProcessNextRequestFactoryTests
         Assert.NotNull(sideEffectsRequest.Context);
 
         var sideEffects = Assert.Single(sideEffectsRequest.Workflows);
-        Assert.Equal("Process next side-effects: Task_1 -> Task_2", sideEffects.OperationId);
+        Assert.Equal(
+            $"Process next side-effects: Task_1 -> Task_2 · {MovedToAltinnEvent.Key}",
+            sideEffects.OperationId
+        );
         // An independent root, invisible to the collection heads frontier: no dependencies, does
         // not pick up the current heads, and never becomes a head itself.
         Assert.False(sideEffects.IsHead);
@@ -909,7 +917,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_InstantiationWithNotification_SideEffectsWorkflowContainsAllSideEffectsInOrder()
+    public async Task Create_InstantiationWithNotification_EmitsOneSingleStepSiblingPerSideEffect()
     {
         // Arrange
         var factory = CreateFactory();
@@ -926,30 +934,54 @@ public class ProcessNextRequestFactoryTests
             notification: notification
         );
 
-        // Assert
+        // Assert - the effects are independent outcomes: each rides its own single-step sibling
+        // workflow so a dead-lettered event registration cannot starve the notification behind it.
         Assert.Single(bundle.Request.Workflows);
+        List<WorkflowRequest> siblings = ExtractSideEffectsWorkflows(bundle);
         Assert.Equal(
             [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
-            ExtractCommandKeys(ExtractSideEffectsWorkflow(bundle))
+            siblings.SelectMany(ExtractCommandKeys).ToList()
+        );
+        Assert.All(
+            siblings,
+            sibling =>
+            {
+                Assert.Single(sibling.Steps);
+                Assert.False(sibling.IsHead);
+                Assert.False(sibling.DependsOnHeads);
+                Assert.Null(sibling.DependsOn);
+            }
         );
     }
 
     [Fact]
-    public async Task Create_SideEffectsOperationId_MatchesTheMarkerPrefix()
+    public async Task Create_SideEffectsOperationIds_MatchTheMarkerPrefixAndNameTheEffect()
     {
         // The prefix is a human-readable naming convention for ops queries and logs only - not
         // load-bearing for identification (wait/settle scoping and failure classification key off
         // the engine-persisted IsHead == false directive). Guard the convention so ops queries
-        // against the OperationId keep working.
+        // against the OperationId keep working, and guard the per-effect suffix so siblings of the
+        // same transition stay distinguishable in listings.
         var factory = CreateFactory();
         var stateChange = CreateTaskToTaskTransition();
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        Assert.StartsWith(
-            ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
-            ExtractSideEffectsWorkflow(bundle).OperationId,
-            StringComparison.Ordinal
+        Assert.All(
+            ExtractSideEffectsWorkflows(bundle),
+            sibling =>
+            {
+                Assert.StartsWith(
+                    ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
+                    sibling.OperationId,
+                    StringComparison.Ordinal
+                );
+                Assert.EndsWith(
+                    $"· {Assert.Single(ExtractCommandKeys(sibling))}",
+                    sibling.OperationId,
+                    StringComparison.Ordinal
+                );
+            }
         );
     }
 

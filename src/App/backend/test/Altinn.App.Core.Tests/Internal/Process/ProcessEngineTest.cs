@@ -337,13 +337,13 @@ public sealed class ProcessEngineTest
                 "SaveProcessStateToStorage"
             );
 
-        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow,
-        // enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
+        // The non-critical MovedToAltinnEvent runs in its own invisible side-effects sibling
+        // workflow, enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
         commandKeys.Should().NotContain("MovedToAltinnEvent");
         commandKeys.Should().Contain("EnqueueSideEffectsWorkflow");
         capturedRequest.Workflows.Should().HaveCount(1);
         var sideEffectsWorkflow = ExtractSideEffectsWorkflow(capturedRequest.Workflows[0]);
-        sideEffectsWorkflow.OperationId.Should().Be("Process next side-effects: Task_1 -> Task_2");
+        sideEffectsWorkflow.OperationId.Should().Be("Process next side-effects: Task_1 -> Task_2 · MovedToAltinnEvent");
         sideEffectsWorkflow.IsHead.Should().BeFalse();
         sideEffectsWorkflow.DependsOnHeads.Should().BeFalse();
         ExtractCommandKeys(sideEffectsWorkflow).Should().Equal("MovedToAltinnEvent");

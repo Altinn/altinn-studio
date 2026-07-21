@@ -1,4 +1,4 @@
-# Run non-critical process-next side effects in a non-blocking side-effects workflow
+# Run non-critical process-next side effects in non-blocking side-effects workflows
 
 - Status: Proposed
 - Deciders: Daniel Skovli + App backend / Workflow Engine
@@ -18,16 +18,21 @@ not (`MovedToAltinnEvent`, `InstanceCreatedAltinnEvent`, `CompletedAltinnEvent`,
 
 ## Decision
 
-**Enqueue-at-commit.** A critical `EnqueueSideEffectsWorkflow` step runs immediately after
-`SaveProcessStateToStorage` and enqueues the side-effect commands as a separate workflow that is:
+**Enqueue-at-commit, one workflow per side effect.** A critical `EnqueueSideEffectsWorkflow` step
+runs immediately after `SaveProcessStateToStorage` and enqueues the side-effect commands as
+**separate single-step sibling workflows — one per side effect** — submitted as one atomic batch,
+where each sibling is:
 
 - an **independent root** (`dependsOn: null`, `dependsOnHeads: false`) — starts immediately;
 - **invisible** to the collection heads frontier (`isHead: false`) — never gates the ProcessNext
   wait or the next transition;
-- carrying its **own state**: the commit-time blob (the step's own `StateIn` — exactly what the
-  transition committed);
+- carrying its **own state**: the commit-time blob (the enqueue step's own `StateIn` — exactly what
+  the transition committed);
 - `links`-related to the Main workflow for ops traversal;
-- enqueued **idempotently** per Main workflow (key `{mainWorkflowId}:side-effects`).
+- named for its effect (OperationId suffix, e.g. `… · MovedToAltinnEvent`).
+
+The batch is enqueued **idempotently** per Main workflow (one key, `{mainWorkflowId}:side-effects`,
+covering the whole atomic batch).
 
 Why this shape:
 
@@ -35,20 +40,27 @@ Why this shape:
   settles: a pre-commit failure schedules nothing, step retries dedup, and a committed transition's
   events survive a later reject/abandon of Main. No cancel logic, no races — and a failed side-effects
   workflow is always redrivable (own state, committed transition).
+- **Independent outcomes fail independently.** The side effects are unrelated deliverables
+  (event registrations, an owner notification); steps in one workflow are sequential, so bundling
+  them would let a dead-lettered event registration silently starve the notification behind it —
+  recreating, one level down, exactly the false coupling this ADR removes. One effect per workflow
+  also gives per-effect retry pacing, a named per-effect alert row, and surgical redrive. Should
+  a side effect ever genuinely need ordering relative to another, `dependsOn` expresses it
+  explicitly rather than as an accident of step-list position.
 - **Prompt.** Events fire at the commit, not after the service task.
 - **No engine primitive.** The engine only persists/exposes `is_head` and tags the failure metric
   with it — generic observability, not app special-casing.
 
 ## Ordering
 
-Side-effects workflows are independent of each other, so event registration order across
-transitions is not guaranteed (per-transition order is). This breaks no compatibility: **Altinn
-Events is unordered by design** — every queue has competing consumers (20 parallel listeners,
-horizontal scale-out), there are no Service Bus sessions or partition keys, and per-event retry
-parking (10s → 12h) lets later events overtake a failing one even for the same subscriber. Delivery
-is at-least-once, unordered; subscribers must already tolerate reorder and duplicates. Serializing
-registrations on our side would buy nothing downstream while letting one poisoned registration
-block every later event for the instance.
+Side-effects workflows are independent of each other, so event registration order is not
+guaranteed — neither across transitions nor between effects of the same transition. This breaks no
+compatibility: **Altinn Events is unordered by design** — every queue has competing consumers (20
+parallel listeners, horizontal scale-out), there are no Service Bus sessions or partition keys, and
+per-event retry parking (10s → 12h) lets later events overtake a failing one even for the same
+subscriber. Delivery is at-least-once, unordered; subscribers must already tolerate reorder and
+duplicates. Serializing registrations on our side would buy nothing downstream while letting one
+poisoned registration block every later event for the instance.
 
 ## Consequences
 
@@ -61,7 +73,9 @@ block every later event for the instance.
 - Process-end events may register before the process-end cleanup (deletes) finishes.
 - Engine workflow state (incl. the commit-time blob) holds app data until the retention sweep
   (default 60 days; per-org database, not reachable outside the cluster). Explicit
-  data-minimization/erasure alignment is a follow-up.
+  data-minimization/erasure alignment is a follow-up. Each sibling carries its own copy of the
+  commit-time blob (2–3 per transition today); if blob volume ever matters, inject it only into
+  siblings whose commands read it.
 
 ## Superseded / rejected
 

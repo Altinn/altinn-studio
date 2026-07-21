@@ -719,10 +719,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     /// <summary>
-    /// Identifies the fire-and-forget side-effects workflow a process-next batch may include, by
-    /// the engine-persisted head-visibility directive: side-effects workflows are enqueued with
-    /// <c>IsHead = false</c> (invisible to the collection heads frontier), which the engine now
-    /// exposes on status responses. The
+    /// Identifies the fire-and-forget side-effects workflows a transition may schedule (one per
+    /// side effect), by the engine-persisted head-visibility directive: side-effects workflows are
+    /// enqueued with <c>IsHead = false</c> (invisible to the collection heads frontier), which the
+    /// engine now exposes on status responses. The
     /// <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/> OperationId marker
     /// remains purely a human-readable naming convention for ops queries and logs; it is no longer
     /// load-bearing for identification. Requires an engine that persists/exposes <c>isHead</c> -

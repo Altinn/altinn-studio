@@ -20,11 +20,19 @@ public class EnqueueSideEffectsWorkflowTests
         {
             Labels = new Dictionary<string, string>(StringComparer.Ordinal) { ["processNextTargetId"] = "Task_2:1" },
             Context = JsonSerializer.SerializeToElement(new { lockToken = "lock-token" }),
+            // One single-step sibling per side effect - the factory pre-assembles the whole batch.
             Workflows =
             [
                 new WorkflowRequest
                 {
-                    OperationId = "Process next side-effects: Task_1 -> Task_2",
+                    OperationId = "Process next side-effects: Task_1 -> Task_2 · MovedToAltinnEvent",
+                    Steps = [],
+                    IsHead = false,
+                    DependsOnHeads = false,
+                },
+                new WorkflowRequest
+                {
+                    OperationId = "Process next side-effects: Task_1 -> Task_2 · InstanceCreatedAltinnEvent",
                     Steps = [],
                     IsHead = false,
                     DependsOnHeads = false,
@@ -50,7 +58,7 @@ public class EnqueueSideEffectsWorkflowTests
         };
 
     [Fact]
-    public async Task Execute_EnqueuesEmbeddedWorkflowWithCommitTimeStateAndMainLink()
+    public async Task Execute_EnqueuesEverySiblingWithCommitTimeStateAndMainLink()
     {
         WorkflowEnqueueRequest? capturedRequest = null;
         string? capturedNs = null;
@@ -95,22 +103,29 @@ public class EnqueueSideEffectsWorkflowTests
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Equal("ttd/test-app", capturedNs);
-        // Deterministic per Main workflow: retries of the step dedup on the idempotency key.
+        // Deterministic per Main workflow, covering the whole sibling batch: retries of the step
+        // dedup on the idempotency key.
         Assert.Equal($"{_mainWorkflowId}:side-effects", capturedIdempotencyKey);
         Assert.Equal(_instanceId.InstanceGuid.ToString(), capturedCollectionKey);
 
         Assert.NotNull(capturedRequest);
-        WorkflowRequest enqueued = Assert.Single(capturedRequest.Workflows);
-        // The commit-time state blob this step executed with becomes the workflow's own state.
-        Assert.Equal(SignedTestState, enqueued.State);
-        // Linked (not dependency-bound) to the Main workflow for ops traversal.
-        WorkflowRef link = Assert.Single(enqueued.Links!);
-        Assert.True(link.IsId);
-        Assert.Equal(_mainWorkflowId, link.Id);
-        // The factory-assembled directives travel through unchanged.
-        Assert.False(enqueued.IsHead);
-        Assert.False(enqueued.DependsOnHeads);
-        Assert.Null(enqueued.DependsOn);
+        Assert.Equal(2, capturedRequest.Workflows.Count);
+        Assert.All(
+            capturedRequest.Workflows,
+            enqueued =>
+            {
+                // The commit-time state blob this step executed with becomes each sibling's own state.
+                Assert.Equal(SignedTestState, enqueued.State);
+                // Linked (not dependency-bound) to the Main workflow for ops traversal.
+                WorkflowRef link = Assert.Single(enqueued.Links!);
+                Assert.True(link.IsId);
+                Assert.Equal(_mainWorkflowId, link.Id);
+                // The factory-assembled directives travel through unchanged.
+                Assert.False(enqueued.IsHead);
+                Assert.False(enqueued.DependsOnHeads);
+                Assert.Null(enqueued.DependsOn);
+            }
+        );
     }
 
     [Fact]
@@ -138,7 +153,7 @@ public class EnqueueSideEffectsWorkflowTests
     }
 
     [Fact]
-    public async Task Execute_PayloadWithUnexpectedWorkflowCount_FailsPermanently()
+    public async Task Execute_PayloadWithNoWorkflows_FailsPermanently()
     {
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         var command = new EnqueueSideEffectsWorkflow(client.Object);
@@ -162,8 +177,9 @@ public class EnqueueSideEffectsWorkflowTests
             CommandPayloadSerializer.Deserialize<EnqueueSideEffectsWorkflowPayload>(serialized);
 
         Assert.NotNull(roundTripped);
-        WorkflowRequest workflow = Assert.Single(roundTripped.EnqueueRequest.Workflows);
-        Assert.Equal("Process next side-effects: Task_1 -> Task_2", workflow.OperationId);
+        Assert.Equal(2, roundTripped.EnqueueRequest.Workflows.Count);
+        WorkflowRequest workflow = roundTripped.EnqueueRequest.Workflows[0];
+        Assert.Equal("Process next side-effects: Task_1 -> Task_2 · MovedToAltinnEvent", workflow.OperationId);
         Assert.False(workflow.IsHead);
         Assert.False(workflow.DependsOnHeads);
         Assert.Equal("Task_2:1", roundTripped.EnqueueRequest.Labels?["processNextTargetId"]);

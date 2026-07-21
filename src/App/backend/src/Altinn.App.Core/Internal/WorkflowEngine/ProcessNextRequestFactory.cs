@@ -67,11 +67,13 @@ internal sealed class ProcessNextRequestFactory
     internal const string MainOperationIdPrefix = "Process next:";
 
     /// <summary>
-    /// OperationId prefix for the fire-and-forget side-effects workflow (enqueued at the commit
-    /// boundary by <see cref="EnqueueSideEffectsWorkflow"/>). A human-readable naming convention
-    /// for ops queries and logs only - identification (wait/settle scoping, failure
-    /// classification) is by the engine-persisted <c>IsHead == false</c> directive
-    /// (see <see cref="WorkflowEngineService.IsSideEffectsWorkflow"/>), not by this string.
+    /// OperationId prefix for the fire-and-forget side-effects workflows (one single-step workflow
+    /// per side effect, enqueued as an atomic batch at the commit boundary by
+    /// <see cref="EnqueueSideEffectsWorkflow"/>; each OperationId carries the command key as a
+    /// suffix). A human-readable naming convention for ops queries and logs only - identification
+    /// (wait/settle scoping, failure classification) is by the engine-persisted
+    /// <c>IsHead == false</c> directive (see <see cref="WorkflowEngineService.IsSideEffectsWorkflow"/>),
+    /// not by this string.
     /// </summary>
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 
@@ -171,21 +173,26 @@ internal sealed class ProcessNextRequestFactory
             {
                 Labels = labels,
                 Context = serializedContext,
-                Workflows =
-                [
-                    new WorkflowRequest
+                // One single-step workflow per side effect: the effects are independent
+                // outcomes, so each gets its own failure containment - a dead-lettered event
+                // registration must not starve the notification behind it - and its own retry
+                // pacing, alert row, and redrive. Should a side effect ever need ordering
+                // relative to another, express it explicitly via DependsOn rather than as an
+                // accident of step-list position.
+                Workflows = commands
+                    .SideEffects.Select(step => new WorkflowRequest
                     {
-                        OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                        Steps = commands.SideEffects,
+                        OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId} · {step.OperationId}",
+                        Steps = [step],
                         // The command injects State (this step's commit-time state blob) and
                         // Links (the Main workflow id) when it executes.
                         // Invisible to the collection heads frontier and started immediately:
-                        // an independent root that neither consumes nor becomes a head, so the
-                        // ProcessNext wait and the next transition never key off it.
+                        // independent roots that neither consume nor become heads, so the
+                        // ProcessNext wait and the next transition never key off them.
                         IsHead = false,
                         DependsOnHeads = false,
-                    },
-                ],
+                    })
+                    .ToList(),
             };
             mainSteps.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
         }
