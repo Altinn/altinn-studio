@@ -10,11 +10,11 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/runtimeHiddenUtils';
+import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { HiddenSource } from 'src/utils/layout/runtimeHiddenUtils';
+import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
 
 export interface IsHiddenOptions<Reason extends boolean = false> {
   /**
