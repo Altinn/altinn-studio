@@ -11,9 +11,16 @@ import { useTranslation } from 'react-i18next';
 export type AddItemModalProps = {
   onAddComponent?: (addedItem: AddedItem) => void;
   availableComponents: KeyValuePairs<IToolbarElement[]>;
+  isFavorite: (componentType: AddedItem['componentType']) => boolean;
+  toggleFavorite: (componentType: AddedItem['componentType']) => void;
 };
 
-export const AddItemModal = ({ onAddComponent, availableComponents }: AddItemModalProps) => {
+export const AddItemModal = ({
+  onAddComponent,
+  availableComponents,
+  isFavorite,
+  toggleFavorite,
+}: AddItemModalProps) => {
   const [selectedItem, setSelectedItem] = useState<AddedItem | null>(null);
   const handleCloseModal = () => {
     setSelectedItem(null);
@@ -51,6 +58,8 @@ export const AddItemModal = ({ onAddComponent, availableComponents }: AddItemMod
             onAddItem={handleAddComponent}
             onCancel={handleCloseModal}
             availableComponents={availableComponents}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
           />
         </StudioDialog.Block>
       </StudioDialog>

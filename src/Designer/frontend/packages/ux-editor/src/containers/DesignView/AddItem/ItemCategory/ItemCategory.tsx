@@ -13,6 +13,7 @@ export type ItemCategoryProps = {
   selectedItemType: ComponentType | CustomComponentType;
   setAddedItem(addedItem: AddedItem): void;
   generateComponentId: (type: string) => string;
+  isFavorite: (componentType: ComponentType | CustomComponentType) => boolean;
 };
 
 export const ItemCategory = ({
@@ -21,6 +22,7 @@ export const ItemCategory = ({
   selectedItemType,
   setAddedItem,
   generateComponentId,
+  isFavorite,
 }: ItemCategoryProps) => {
   const { t } = useTranslation();
 
@@ -36,6 +38,7 @@ export const ItemCategory = ({
             selected={selectedItemType === item.type}
             key={item.type}
             icon={item.icon}
+            isFavorite={isFavorite(item.type)}
             onClick={() => {
               setAddedItem({
                 componentType: item.type,
