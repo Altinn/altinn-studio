@@ -602,7 +602,7 @@ public partial class EngineTests
     [Fact]
     public async Task Response_Enqueue_MaxExecutionTimeExceedsCap_Returns400WithDetails()
     {
-        // Above the MaxStepCommandTimeout cap (24h by default)
+        // Above the MaxStepCommandTimeout cap (2h by default)
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
                 "wf",
@@ -643,7 +643,7 @@ public partial class EngineTests
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
                 "wf",
-                [_testHelpers.CreateWebhookStep("/ping", maxExecutionTime: TimeSpan.FromHours(24))]
+                [_testHelpers.CreateWebhookStep("/ping", maxExecutionTime: TimeSpan.FromHours(2))]
             )
         );
 

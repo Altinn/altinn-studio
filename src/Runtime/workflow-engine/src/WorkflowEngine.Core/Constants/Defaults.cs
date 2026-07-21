@@ -16,7 +16,7 @@ internal static class Defaults
         MaxLabels = 50,
         MetricsCollectionInterval = TimeSpan.FromSeconds(5),
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
-        MaxStepCommandTimeout = TimeSpan.FromHours(24),
+        MaxStepCommandTimeout = TimeSpan.FromHours(2),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
             maxDelay: TimeSpan.FromMinutes(5),

@@ -45,7 +45,7 @@ public class EngineSettingsConfigurationTests
 
         // Timeouts
         Assert.Equal(TimeSpan.FromSeconds(100), settings.DefaultStepCommandTimeout);
-        Assert.Equal(TimeSpan.FromHours(24), settings.MaxStepCommandTimeout);
+        Assert.Equal(TimeSpan.FromHours(2), settings.MaxStepCommandTimeout);
         Assert.Equal(TimeSpan.FromSeconds(30), settings.DatabaseCommandTimeout);
 
         // Retry strategies
