@@ -1,4 +1,5 @@
-import { attachmentSelector } from 'src/features/attachments/tools';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
@@ -33,7 +34,13 @@ export function validateMinNumberOfAttachmentsForNode<T extends 'FileUpload' | '
     returnType: ExprVal.Number,
     defaultValue: 0,
   }) as number;
-  const attachments = attachmentSelector(component.id)(ctx.formState);
+  const attachments = attachmentSelector(
+    makeAttachmentNode(ctx.baseComponentId, ctx.component),
+    ctx.formState,
+    ctx.instanceData,
+    getApplicationMetadata(),
+    ctx.taskId,
+  );
   return [validateMinNumberOfAttachments(minNumberOfAttachments, attachments.length)].filter(
     (validation): validation is ComponentValidation => !!validation,
   );

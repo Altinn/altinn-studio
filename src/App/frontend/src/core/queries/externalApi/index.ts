@@ -1,7 +1,5 @@
-import { useMemo } from 'react';
-
-import { skipToken, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { UseQueryOptions } from '@tanstack/react-query';
+import { skipToken, useQueries } from '@tanstack/react-query';
+import type { QueryState, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { fetchExternalApi } from 'src/queries/queries';
@@ -29,47 +27,45 @@ function getExternalApiQueryDef({
 export interface ExternalApiQueries {
   ensureLoaded: (instanceId: string | undefined, externalApiIds: string[]) => void;
   getCached: (instanceId: string | undefined, externalApiIds: string[]) => ExternalApisResult;
+  getState: (instanceId: string | undefined, externalApiId: string) => QueryState<unknown, Error> | undefined;
 }
 
-export function useExternalApiQueries(): ExternalApiQueries {
-  const queryClient = useQueryClient();
+export function createExternalApiQueries(queryClient: ReturnType<typeof useQueryClient>): ExternalApiQueries {
+  return {
+    ensureLoaded: (instanceId, externalApiIds) => {
+      if (!instanceId) {
+        return;
+      }
 
-  return useMemo(
-    () => ({
-      ensureLoaded: (instanceId, externalApiIds) => {
-        if (!instanceId) {
-          return;
+      for (const externalApiId of externalApiIds) {
+        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
+        if (queryClient.getQueryState(queryDef.queryKey)?.fetchStatus === 'fetching') {
+          continue;
         }
-
-        for (const externalApiId of externalApiIds) {
-          const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
-          if (queryClient.getQueryState(queryDef.queryKey)?.fetchStatus === 'fetching') {
-            continue;
-          }
-          if (queryClient.getQueryData(queryDef.queryKey) !== undefined) {
-            continue;
-          }
-          void queryClient.ensureQueryData(queryDef);
+        if (queryClient.getQueryData(queryDef.queryKey) !== undefined) {
+          continue;
         }
-      },
-      getCached: (instanceId, externalApiIds) => {
-        const data: Record<string, unknown> = {};
-        const errors: Record<string, Error> = {};
+        void queryClient.ensureQueryData(queryDef);
+      }
+    },
+    getCached: (instanceId, externalApiIds) => {
+      const data: Record<string, unknown> = {};
+      const errors: Record<string, Error> = {};
 
-        for (const externalApiId of externalApiIds) {
-          const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
-          const queryState = queryClient.getQueryState(queryDef.queryKey);
-          data[externalApiId] = queryClient.getQueryData(queryDef.queryKey);
-          if (queryState?.error instanceof Error) {
-            errors[externalApiId] = queryState.error;
-          }
+      for (const externalApiId of externalApiIds) {
+        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
+        const queryState = queryClient.getQueryState(queryDef.queryKey);
+        data[externalApiId] = queryClient.getQueryData(queryDef.queryKey);
+        if (queryState?.error instanceof Error) {
+          errors[externalApiId] = queryState.error;
         }
+      }
 
-        return { data, errors };
-      },
-    }),
-    [queryClient],
-  );
+      return { data, errors };
+    },
+    getState: (instanceId, externalApiId) =>
+      queryClient.getQueryState(getExternalApiQueryDef({ externalApiId, instanceId }).queryKey),
+  };
 }
 
 export function useExternalApis(ids: string[]): ExternalApisResult {
@@ -98,9 +94,4 @@ export function useExternalApis(ids: string[]): ExternalApisResult {
       return { data, errors };
     },
   });
-}
-
-export function useExternalApi(id: string): unknown {
-  const instanceId = useLaxInstanceId();
-  return useQuery(getExternalApiQueryDef({ externalApiId: id, instanceId }));
 }

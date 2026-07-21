@@ -9,7 +9,7 @@ import {
   ValidationMask,
   type ValidationSeverity,
 } from 'src/features/validation';
-import { deriveNodes, getCurrentDataModelPath, withCurrentDataModelPath } from 'src/features/validation/deriveNodes';
+import { deriveNodes, withCurrentDataModelPath } from 'src/features/validation/deriveNodes';
 import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
 import {
   type CompDef,
@@ -19,12 +19,14 @@ import {
   implementsValidateEmptyField,
   type ValidationFilter,
 } from 'src/layout';
+import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
+import { getCurrentDataModelPath, getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
-import type { DerivedValidationNode } from 'src/features/validation/deriveNodes';
+import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompIntermediate } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type BindingEntry = [bindingKey: string, reference: IDataModelReference];
 type BoundFieldValidation = FieldValidation & { bindingKey: string };
@@ -42,18 +44,15 @@ export type DerivedValidationState = {
   nodeById: Map<string, DerivedValidationNode>;
   nodeIdsByPage: Map<string, string[]>;
   nodeIdsByRowId: Map<string, string[]>;
-  childIdsByParent: Map<string, string[]>;
   rawValidationsByNode: Map<string, AnyValidation[]>;
   visibleBreakdownByNode: Map<string, ValidationVisibilityBreakdown>;
 };
 
-export type DerivedValidationStateInputs = {
-  pageOrder: string[];
-  pdfLayoutName: string | undefined;
-  hiddenDataSources: ExpressionDataSources;
+export interface DerivedValidationStateInputs extends DeriveNodesInputs {
   evalDataSources: ExpressionDataSources;
   instanceData: IData[];
-};
+  taskId: string | undefined;
+}
 
 const emptyArray: never[] = [];
 export const emptyBreakdown: ValidationVisibilityBreakdown = {
@@ -75,8 +74,8 @@ function isDataModelReference(reference: unknown): reference is IDataModelRefere
   );
 }
 
-function getBindings(node: DerivedValidationNode): BindingEntry[] {
-  const bindings = node.intermediateItem.dataModelBindings;
+function getBindings(item: CompIntermediate): BindingEntry[] {
+  const bindings = item.dataModelBindings;
   return bindings
     ? Object.entries(bindings).filter((entry): entry is BindingEntry => isDataModelReference(entry[1]))
     : [];
@@ -138,14 +137,18 @@ function getExpressionValidations(
 
 function makeComponentValidationContext(
   node: DerivedValidationNode,
+  item: CompIntermediate,
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
+  taskId: string | undefined,
 ): ComponentValidationContext {
   return {
-    component: node.intermediateItem,
+    baseComponentId: node.baseId,
+    component: item,
     formState: state,
     instanceData,
+    taskId,
     expressionDataSources: withCurrentDataModelPath(dataSources, getCurrentDataModelPath(node.rowContexts)),
   };
 }
@@ -183,23 +186,25 @@ function applyValidationFilters(
 
 function getRawValidationsForNode(
   node: DerivedValidationNode,
+  item: CompIntermediate,
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
+  taskId: string | undefined,
 ): AnyValidation[] {
-  if (!node.isValid || !shouldValidateNode(node.intermediateItem)) {
+  if (!node.isValid || !shouldValidateNode(item)) {
     return emptyArray;
   }
 
-  const bindings = getBindings(node);
-  const def = getComponentDef(node.intermediateItem.type);
+  const bindings = getBindings(item);
+  const def = getComponentDef(item.type);
   if (!def) {
     return emptyArray;
   }
 
   const validations = getComponentDefValidations(
     def,
-    makeComponentValidationContext(node, state, dataSources, instanceData),
+    makeComponentValidationContext(node, item, state, dataSources, instanceData, taskId),
   );
 
   for (const [bindingKey, reference] of bindings) {
@@ -226,8 +231,12 @@ function getRawValidationsForNode(
   return applyValidationFilters(validations, node, def, state);
 }
 
-function getVisibilityBreakdown(state: FormStoreState, node: DerivedValidationNode): ValidationVisibilityBreakdown {
-  const initial = getInitialMaskFromItem(node.intermediateItem);
+function getVisibilityBreakdown(
+  state: FormStoreState,
+  node: DerivedValidationNode,
+  item: CompIntermediate,
+): ValidationVisibilityBreakdown {
+  const initial = getInitialMaskFromItem(item);
   const form = state.validation.formMask ?? 0;
   const page = state.validation.pageMasks[node.pageKey] ?? 0;
   let row = 0;
@@ -266,25 +275,22 @@ export function buildDerivedValidationState(
   const nodeById = new Map<string, DerivedValidationNode>();
   const nodeIdsByPage = new Map<string, string[]>();
   const nodeIdsByRowId = new Map<string, string[]>();
-  const childIdsByParent = new Map<string, string[]>();
   const rawValidationsByNode = new Map<string, AnyValidation[]>();
   const visibleBreakdownByNode = new Map<string, ValidationVisibilityBreakdown>();
 
   for (const node of nodes) {
+    const item = getRuntimeIntermediateItem(state.bootstrap.layoutLookups.getComponent(node.baseId), node.rowContexts);
     nodeById.set(node.id, node);
     addToIndex(nodeIdsByPage, node.pageKey, node.id);
-    if (node.parentId) {
-      addToIndex(childIdsByParent, node.parentId, node.id);
-    }
     for (const rowId of node.rowIds) {
       addToIndex(nodeIdsByRowId, rowId, node.id);
     }
 
     rawValidationsByNode.set(
       node.id,
-      getRawValidationsForNode(node, state, inputs.evalDataSources, inputs.instanceData),
+      getRawValidationsForNode(node, item, state, inputs.evalDataSources, inputs.instanceData, inputs.taskId),
     );
-    visibleBreakdownByNode.set(node.id, getVisibilityBreakdown(state, node));
+    visibleBreakdownByNode.set(node.id, getVisibilityBreakdown(state, node, item));
   }
 
   return {
@@ -292,7 +298,6 @@ export function buildDerivedValidationState(
     nodeById,
     nodeIdsByPage,
     nodeIdsByRowId,
-    childIdsByParent,
     rawValidationsByNode,
     visibleBreakdownByNode,
   };
@@ -353,28 +358,10 @@ export function getNodeRefValidations(
  * Returns generated descendants in traversal order. The optional restriction
  * limits results to one row directly below the requested parent node.
  */
-export function getDescendantIds(derived: DerivedValidationState, nodeId: string, restriction?: number): string[] {
-  const parent = derived.nodeById.get(nodeId);
-  if (!parent) {
-    return emptyArray;
-  }
-
-  const parentRowContextCount = parent.rowContexts.length;
-  const descendants: string[] = [];
-  function visitDescendants(parentId: string) {
-    for (const childId of derived.childIdsByParent.get(parentId) ?? emptyArray) {
-      const child = derived.nodeById.get(childId);
-      if (!child) {
-        throw new Error(`Derived validation node '${childId}' is missing`);
-      }
-
-      if (restriction === undefined || child.rowContexts[parentRowContextCount]?.rowIndex === restriction) {
-        descendants.push(childId);
-      }
-      visitDescendants(childId);
-    }
-  }
-
-  visitDescendants(nodeId);
-  return descendants;
+export function getValidationDescendantIds(
+  derived: DerivedValidationState,
+  nodeId: string,
+  restriction?: number,
+): string[] {
+  return getDerivedNodeDescendantIds(derived.nodes, nodeId, restriction);
 }

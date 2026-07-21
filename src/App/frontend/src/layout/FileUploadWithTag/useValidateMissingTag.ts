@@ -1,5 +1,6 @@
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { attachmentSelector } from 'src/features/attachments/tools';
+import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
@@ -41,7 +42,13 @@ export function validateMissingTagsForNode(
   ctx: ComponentValidationContext<'FileUploadWithTag'>,
 ): ComponentValidation[] {
   return validateMissingTags(
-    attachmentSelector(ctx.component.id)(ctx.formState),
+    attachmentSelector(
+      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      ctx.formState,
+      ctx.instanceData,
+      getApplicationMetadata(),
+      ctx.taskId,
+    ),
     evalExpr(ctx.component.textResourceBindings?.tagTitle, ctx.expressionDataSources, {
       returnType: ExprVal.String,
       defaultValue: '',

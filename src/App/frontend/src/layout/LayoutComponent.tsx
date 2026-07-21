@@ -9,34 +9,37 @@ import { validateEmptyFieldAllBindings } from 'src/features/validation/nodeValid
 import { CompCategory } from 'src/layout/common';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
-import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
-import { NodeGenerator } from 'src/utils/layout/generator/NodeGenerator';
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ComponentValidation } from 'src/features/validation';
-import type { ComponentBase, FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
-import type { ComponentValidationContext, PropsFromGenericComponent, ValidateEmptyField } from 'src/layout/index';
+import type {
+  ComponentBase,
+  FormComponentProps,
+  IDataModelReference,
+  SummarizableComponentProps,
+} from 'src/layout/common.generated';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+  ValidateEmptyField,
+} from 'src/layout/index';
 import type {
   CompExternal,
   CompExternalExact,
   CompIntermediateExact,
+  ComponentLayoutValidationProps,
   CompTypes,
   IDataModelBindings,
   ITextResourceBindingsExternal,
-  NodeValidationProps,
 } from 'src/layout/layout';
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
-import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
-import type { StateFactoryProps } from 'src/utils/layout/types';
-
-export interface NodeGeneratorProps {
-  externalItem: CompExternalExact<CompTypes>;
-  childClaims: ChildClaims | undefined;
-}
+import type { RowContext } from 'src/utils/layout/rowContext';
+import type { BaseRow } from 'src/utils/layout/types';
 
 export interface ExprResolver<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
@@ -52,10 +55,20 @@ export interface ExprResolver<Type extends CompTypes> {
   };
 }
 
+export type RuntimeChild = {
+  baseId: string;
+  rowContexts: RowContext[];
+};
+
+export interface RuntimeChildrenProps<Type extends CompTypes> {
+  item: CompExternal<Type>;
+  childBaseIds: string[];
+  rowContexts: RowContext[];
+  getRows: (binding: IDataModelReference | undefined) => BaseRow[];
+}
+
 export abstract class AnyComponent<Type extends CompTypes> {
   protected readonly type: Type;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected plugins: { [key: string]: NodeDefPlugin<any> } = {};
 
   /**
    * Given properties from GenericComponent, render this layout component
@@ -67,35 +80,12 @@ export abstract class AnyComponent<Type extends CompTypes> {
   renderSummary2?(props: Summary2Props): JSX.Element | null;
 
   /**
-   * Render a node generator for this component. This can be overridden if you want to extend
-   * the default node generator with additional functionality.
-   */
-  renderNodeGenerator(props: NodeGeneratorProps): JSX.Element | null {
-    return <NodeGenerator {...props} />;
-  }
-
-  /**
    * Override this if you need to implement specific validators for the layout config, or if you need to
    * validate properties that are not covered by the schema validation.
    */
-  renderLayoutValidators(_props: NodeValidationProps<Type>): JSX.Element | null {
+  renderLayoutValidators(_props: ComponentLayoutValidationProps<Type>): JSX.Element | null {
     return null;
   }
-
-  /**
-   * Check if this component has a specific plugin
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public hasPlugin(constructor: new (...args: any[]) => NodeDefPlugin<any>): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return Object.values(this.plugins).some((plugin: NodeDefPlugin<any>) => plugin instanceof constructor);
-  }
-
-  /**
-   * Creates the zustand store default state for a node of this component type. Usually this is implemented
-   * automatically by code generation, but you can override it if you need to add additional properties to the state.
-   */
-  abstract stateFactory(props: StateFactoryProps): unknown;
 
   /**
    * The default expression evaluator, implemented by code generation. Do not try to override this yourself. If you
@@ -159,11 +149,16 @@ export abstract class AnyComponent<Type extends CompTypes> {
     return validate(schemaPointer, component);
   }
 
+  getOptionsEffectValueType(): OptionsValueType | undefined {
+    return undefined;
+  }
+
   /**
-   * Extra components to render out in the node generator children
+   * Expands statically claimed children into the nodes that exist for the current runtime data.
+   * Containers with generated or repeated children can override this while traversal stays component-agnostic.
    */
-  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
-    return null;
+  getRuntimeChildren({ childBaseIds, rowContexts }: RuntimeChildrenProps<Type>): RuntimeChild[] {
+    return childBaseIds.map((baseId) => ({ baseId, rowContexts }));
   }
 }
 
@@ -217,7 +212,11 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
   /**
    * Runs validation on data model bindings. Returns an array of error messages.
    */
-  public useDataModelBindingValidation(_baseComponentId: string, _bindings: IDataModelBindings<Type>): string[] {
+  public validateDataModelBindings(
+    _baseComponentId: string,
+    _bindings: IDataModelBindings<Type>,
+    _context: DataModelBindingValidationContext,
+  ): string[] {
     return [];
   }
 }
@@ -253,10 +252,6 @@ export abstract class ContainerComponent<Type extends CompTypes> extends _FormCo
 
   isDataModelBindingsRequired(_baseComponentId: string, _layoutLookups: LayoutLookups): boolean {
     return false;
-  }
-
-  extraNodeGeneratorChildren(props: NodeGeneratorProps): JSX.Element | null {
-    return <GenerateNodeChildren claims={props.childClaims} />;
   }
 
   abstract claimChildren(props: ChildClaimerProps<Type>): void;

@@ -46,7 +46,7 @@ function SubformSummaryRow({ dataElement, baseComponentId }: { dataElement: IDat
   const { tableColumns, summaryDelimiter = ' — ' } = useItemWhenType(baseComponentId, 'Subform');
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   const { langAsString } = useLanguage();
 

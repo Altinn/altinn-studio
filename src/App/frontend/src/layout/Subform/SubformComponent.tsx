@@ -203,13 +203,8 @@ function SubformTableRow({
   const component = useExternalItem(baseComponentId, 'Subform');
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
 
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
-
-  const editButtonDataSource = useExpressionDataSourcesForSubform(
-    dataElement.dataType,
-    subformData,
-    component?.textResourceBindings?.tableEditButton,
-  );
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
+  const editButtonDataSource = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   const { langAsString } = useLanguage();
   const enterSubform = useEnterSubform();

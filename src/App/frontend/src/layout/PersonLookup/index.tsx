@@ -1,15 +1,18 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { FormStore } from 'src/features/form/FormContext';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
 import { PersonLookupSummary } from 'src/layout/PersonLookup/PersonLookupSummary';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
-import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+} from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -71,9 +74,11 @@ export class PersonLookup extends PersonLookupDef {
     return validateEmptyFieldOnlyOneBinding(ctx, 'person_lookup_ssn');
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'PersonLookup'>): string[] {
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'PersonLookup'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     return (
       validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'person_lookup_ssn', [
         'string',
