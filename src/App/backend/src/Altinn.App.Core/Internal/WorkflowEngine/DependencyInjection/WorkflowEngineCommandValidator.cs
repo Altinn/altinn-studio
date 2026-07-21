@@ -100,8 +100,11 @@ internal static class WorkflowEngineCommandValidator
             keys
         );
 
-        // SaveProcessStateToStorage is automatically inserted
+        // MutateProcessState, SaveProcessStateToStorage, and EnqueueSideEffectsWorkflow are
+        // inserted by ProcessNextRequestFactory rather than declared in WorkflowCommandSet
+        keys.Add(MutateProcessState.Key);
         keys.Add(SaveProcessStateToStorage.Key);
+        keys.Add(EnqueueSideEffectsWorkflow.Key);
 
         return keys;
     }

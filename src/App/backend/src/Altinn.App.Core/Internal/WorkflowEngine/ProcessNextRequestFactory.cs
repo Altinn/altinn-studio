@@ -164,7 +164,7 @@ internal sealed class ProcessNextRequestFactory
         // step that schedules them, then the critical post-commit commands. Enqueueing at the
         // commit boundary makes the side effects exist if and only if the transition committed,
         // and lets them run promptly without waiting for e.g. a service task.
-        var mainSteps = new List<StepRequest>(commands.ThroughCommit);
+        List<StepRequest> mainSteps = commands.ThroughCommit;
         if (commands.SideEffects.Count > 0)
         {
             var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
