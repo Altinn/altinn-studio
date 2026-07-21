@@ -36,6 +36,7 @@ wwwroot/
       modal.js                       — step detail modal (SSE-driven refresh, retry/skip actions)
       settings.js                    — settings modal (timestamps, UTC toggle)
       state-modal.js                 — state evolution modal (SSE-driven refresh)
+      chain-modal.js                 — chain modal: dependency-ordered spine view of the connected graph
       theme.js                       — theme toggle (dark/altinn)
 ```
 
@@ -68,6 +69,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/step`         | GET    | Step detail modal                                    |
 | `/dashboard/state`        | GET    | State evolution modal                                |
 | `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
+| `/dashboard/graph`        | GET    | Connected dependency graph for the chain modal       |
 | `/dashboard/retry`        | POST   | Retry a failed workflow                              |
 | `/dashboard/skip-backoff` | POST   | Skip backoff wait on a requeued workflow             |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |

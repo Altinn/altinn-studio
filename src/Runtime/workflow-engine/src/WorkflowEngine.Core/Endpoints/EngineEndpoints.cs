@@ -484,7 +484,7 @@ internal static class EngineRequestHandlers
         return true;
     }
 
-    private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
+    internal static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
         IReadOnlyList<Workflow> workflows
     )
     {

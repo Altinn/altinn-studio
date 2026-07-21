@@ -216,6 +216,18 @@ No active workflows
   </div>
 </div>
 
+<div class="modal-overlay" id="chain-modal" onclick="if(event.target===this)closeChainModal()">
+  <div class="modal chain-modal">
+    <div class="modal-header">
+      <h2 id="chain-title">Workflow Chain</h2>
+      <button class="modal-close" onclick="closeChainModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="chain-body">
+      <div class="modal-loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="step-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-header">

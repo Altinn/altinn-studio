@@ -570,6 +570,40 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        // Connected dependency graph for the chain modal: every workflow reachable from the given
+        // one through dependency/link relations in either direction, as full card DTOs plus typed
+        // edges so the frontend can lay out the spine without re-deriving relations.
+        app.MapGet(
+                "/dashboard/graph",
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
+                {
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    IReadOnlyList<Workflow>? graph = await repo.GetWorkflowDependencyGraph(wf, ns, ct);
+
+                    if (graph is null)
+                        return Results.NotFound();
+
+                    return Results.Json(
+                        new
+                        {
+                            root = wf,
+                            workflows = graph.Select(DashboardMapper.MapWorkflow),
+                            edges = EngineRequestHandlers
+                                .BuildDependencyGraphEdges(graph)
+                                .Select(e => new
+                                {
+                                    from = e.From,
+                                    to = e.To,
+                                    kind = e.Kind == WorkflowDependencyGraphEdgeKind.Dependency ? "dependency" : "link",
+                                }),
+                        },
+                        _jsonCompact
+                    );
+                }
+            )
+            .ExcludeFromDescription();
+
         app.MapPost(
                 "/dashboard/retry",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>

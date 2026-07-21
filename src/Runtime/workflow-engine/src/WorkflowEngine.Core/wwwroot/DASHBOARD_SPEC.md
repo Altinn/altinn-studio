@@ -188,6 +188,29 @@ Response:
 }
 ```
 
+### `GET /dashboard/graph`
+
+Connected dependency graph for the chain modal: every workflow reachable from the given one through
+dependency/link relations in either direction (recursive CTE, namespace-scoped). Nodes are full card
+DTOs (same shape as the SSE workflow payload, relations included); edges are typed so the frontend
+can lay out the spine without re-deriving relations. 404 when the workflow does not exist in the
+namespace.
+
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| `wf`      | guid   | Root workflow database ID |
+| `ns`      | string | Workflow namespace        |
+
+Response:
+
+```json
+{
+    "root": "guid",
+    "workflows": ["Workflow, same shape as the SSE payload"],
+    "edges": [{ "from": "guid", "to": "guid", "kind": "dependency | link" }]
+}
+```
+
 ### `GET /dashboard/scheduled`
 
 All workflows with future `startAt`. Response: `Workflow[]`
@@ -227,7 +250,7 @@ Left to right:
 7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
 8. **Copy idempotency key button**
 9. **Relation chips** — One chip per non-empty relation group: `↑` dependsOn, `↓` dependents, chain icon for links. Each chip shows a status-colored dot per related workflow (capped at 5, then `+N`); the tooltip lists `operationId (status)` pairs. Click behavior: exactly one relation whose card is on screen → smooth-scroll to it and flash it (`rel-flash`); otherwise → toggle the collection filter (connected workflows share a collection). Relation arrays are tri-state: active/scheduled cards carry them inline from their source queries; recent/query cards don't — a ghost `rel?` chip (full cards only) or expanding a compact card fetches them via `/dashboard/relations` and re-renders. Relation dot colors on active cards refresh via the live fingerprint (which includes relation statuses).
-10. **Action buttons** — Collection filter funnel, open state modal, Grafana trace link.
+10. **Action buttons** — Collection filter funnel, chain modal (tree icon, all cards), open state modal, Grafana trace link.
 
 ### Pipeline
 
@@ -381,6 +404,38 @@ Title: "State Trail". Shows "Loading..." placeholder while fetching. Has the sam
 Each block shows syntax-highlighted JSON (pre-processed with `expandJsonStrings()`) with a copy button. If no initial state and no steps have stateOut, shows "No state data available".
 
 **Auto-refresh:** SSE-driven via `notifyWorkflowChanged()` with 1s debounce (longer than the step modal's 300ms to reduce noise). **Keyboard:** Escape closes the modal. The `copyPre()` handler (shared with the step modal) copies the pre block text and briefly shows a "copied" indicator (1.2s).
+
+---
+
+## Chain Modal
+
+Opened by clicking the tree button on a card. Fetches `/dashboard/graph?wf=<id>&ns=<namespace>` and
+renders the connected graph as a dependency-ordered vertical spine — the "story of the instance" —
+rather than a general graph layout (process-next graphs are a near-linear spine of heads with
+side-chain leaves).
+
+Title: "Chain — {collectionKey}" when the opening card has a collection key, else "Workflow Chain".
+Same stale-guard pattern as the other modals (checks `_openWfId` before/after fetch).
+
+**Layout algorithm** (`buildChainHTML`):
+
+1. **Spine** — heads (`isHead !== false`) topologically sorted over `dependency` edges (Kahn),
+   `createdAt` as tiebreak. A cycle guard appends anything the sort missed in creation order.
+2. **Side chains** — each `isHead === false` node attaches under the first head it shares any edge
+   with (either direction, any kind); unattached side nodes render at the bottom.
+
+**Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
+tooltip), side-chain badge where applicable, one status-colored dot per step (tooltips only, not
+clickable), duration, status pill. Side rows indent under their head with the violet side-chain
+card chrome and an elbow connector to the spine line. The root workflow (the card the modal was
+opened from) gets a cyan spine marker and a brightened name.
+
+**Row click:** closes the modal and jumps to that workflow's card via `revealCard()` (scroll +
+flash) when it is rendered on screen; otherwise the modal just closes.
+
+**Auto-refresh:** SSE-driven via `notifyChainChanged()` with 1s debounce, keyed on the set of
+databaseIds currently rendered in the modal (new workflows enqueued after opening do not trigger a
+refresh until a rendered one changes). **Keyboard:** Escape closes the modal.
 
 ---
 

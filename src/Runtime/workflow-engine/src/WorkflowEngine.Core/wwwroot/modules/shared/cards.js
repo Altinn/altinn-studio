@@ -40,6 +40,14 @@ export const traceIconHTML = (traceId) => traceLink(traceId, 'Engine trace in Gr
 export const stateIconHTML = (wf) =>
     `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="View state trail">&#123;&#125;</a>`;
 
+/** Tree icon for the chain modal (dependency-ordered view of the connected graph). */
+const CHAIN_ICON =
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3zM7 9H4V5h3zm10 6h3v4h-3zm0-10h3v4h-3z"/></svg>';
+
+/** @param {import('../core/state.js').Workflow} wf @returns {string} */
+export const chainIconHTML = (wf) =>
+    `<a class="open-btn chain-btn" onclick="openChainModal(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="View workflow chain">${CHAIN_ICON}</a>`;
+
 /** @param {Event} e @param {string} text */
 window.copyText = async (e, text) => {
     e.stopPropagation();
@@ -251,7 +259,7 @@ const sideChainBadgeHTML = (wf) =>
  * @param {string} wfId
  * @returns {boolean} true when a card was revealed
  */
-const revealCard = (wfId) => {
+export const revealCard = (wfId) => {
     for (const el of document.querySelectorAll(`[data-wfkey="${wfId}"]`)) {
         const card = /** @type {HTMLElement} */ (el);
         if (card.offsetParent === null) continue;
@@ -341,6 +349,7 @@ export const buildCardHTML = (wf, isStatic) => {
     html += primaryCopyHTML(wf);
     html += buildRelationsHTML(wf, true);
     html += collectionButtonHTML(wf, true);
+    html += chainIconHTML(wf);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
     html += `</div>`;
@@ -378,6 +387,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
     html += primaryCopyHTML(wf);
     html += buildRelationsHTML(wf, false);
     html += collectionButtonHTML(wf, true);
+    html += chainIconHTML(wf);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
     html += `</div>`;

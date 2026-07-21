@@ -2489,6 +2489,95 @@ pre.diff-remove {
     }
 }
 
+/* ── Chain modal ──────────────────────────────────────────── */
+.chain-btn svg {
+    width: 12px;
+    height: 12px;
+}
+.chain-modal {
+    max-width: 900px;
+}
+.chain-list {
+    position: relative;
+    padding: 4px 2px 4px 22px;
+}
+.chain-list::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 20px;
+    bottom: 20px;
+    width: 2px;
+    background: var(--border);
+}
+.chain-node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    cursor: pointer;
+}
+.chain-node:hover {
+    background: var(--bg3);
+}
+.chain-node::before {
+    content: '';
+    position: absolute;
+    left: -17px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transform: translateY(-50%);
+}
+.chain-node.chain-side {
+    margin-left: 34px;
+    border-style: dashed;
+    border-color: rgba(var(--violet-rgb), 0.4);
+    box-shadow: inset 3px 0 0 rgba(var(--violet-rgb), 0.45);
+}
+.chain-node.chain-side::before {
+    left: -48px;
+    width: 44px;
+    height: 2px;
+    border-radius: 1px;
+    background: rgba(var(--violet-rgb), 0.5);
+}
+.chain-node.chain-root::before {
+    background: var(--cyan);
+}
+.chain-node.chain-root .chain-name {
+    color: var(--text-bright);
+}
+.chain-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+}
+.chain-steps {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+.chain-time {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
 /* ── Load more button ─────────────────────────────────────── */
 .load-more {
     display: block;

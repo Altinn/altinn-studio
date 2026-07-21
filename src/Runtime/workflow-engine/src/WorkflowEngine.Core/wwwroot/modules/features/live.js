@@ -11,6 +11,7 @@ import {
 import { scrollPipelineToActive } from '../shared/pipeline.js';
 import { notifyStepChanged } from './modal.js';
 import { notifyWorkflowChanged } from './state-modal.js';
+import { notifyChainChanged } from './chain-modal.js';
 
 /** Late-bound references */
 /** @type {() => void} */
@@ -78,6 +79,7 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             delete _processingIdx[key];
             notifyStepChanged(key);
             notifyWorkflowChanged(key);
+            notifyChainChanged(key);
         }
     }
 
@@ -124,6 +126,7 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             state.workflowFingerprints[wf.databaseId] = fp;
             notifyStepChanged(wf.databaseId);
             notifyWorkflowChanged(wf.databaseId);
+            notifyChainChanged(wf.databaseId);
         }
 
         state.previousWorkflows[wf.databaseId] = wf;
