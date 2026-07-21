@@ -92,7 +92,7 @@ const consoleLoggers = ['error', 'warn', 'log'];
 describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
   beforeAll(() => {
-    window.forceNodePropertiesValidation = 'on';
+    window.forceLayoutPropertiesValidation = 'on';
     pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
       jest
@@ -115,7 +115,7 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterAll(() => {
-    window.forceNodePropertiesValidation = 'off';
+    window.forceLayoutPropertiesValidation = 'off';
     window.location.pathname = pathnameWas;
     jest.restoreAllMocks();
   });

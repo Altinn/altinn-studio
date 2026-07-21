@@ -1,5 +1,5 @@
 import { isDataModelBindingsRequired } from 'src/layout';
-import { validateDataModelBindingsList, validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
+import { validateDataModelBindingsList, validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 

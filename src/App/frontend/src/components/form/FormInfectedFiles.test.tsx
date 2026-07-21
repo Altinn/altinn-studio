@@ -12,13 +12,17 @@ const mockUseAllAttachments = jest.fn();
 const mockUseHasPendingAttachments = jest.fn(() => false);
 const mockUseAttachmentState = jest.fn(() => ({ hasPending: false, state: 'ready' }));
 
-jest.mock('src/features/attachments/hooks', () => ({
-  useAllAttachments: () => mockUseAllAttachments(),
-  useHasPendingAttachments: () => mockUseHasPendingAttachments(),
-  useAttachmentState: () => mockUseAttachmentState(),
-  useAttachmentsSelector: jest.fn(),
-  useFailedAttachmentsFor: jest.fn(() => []),
-  useWaitUntilUploaded: jest.fn(),
+jest.mock('src/features/attachments/hooks/attachmentReadModel', () => ({
+  ...jest.requireActual('src/features/attachments/hooks/attachmentReadModel'),
+  AttachmentReadModel: {
+    ...jest.requireActual('src/features/attachments/hooks/attachmentReadModel').AttachmentReadModel,
+    useAllAttachments: () => mockUseAllAttachments(),
+    useHasPendingAttachments: () => mockUseHasPendingAttachments(),
+    useAttachmentState: () => mockUseAttachmentState(),
+    useAttachmentsSelector: jest.fn(),
+    useFailedAttachmentsFor: jest.fn(() => []),
+    useWaitUntilUploaded: jest.fn(),
+  },
 }));
 
 describe('Form with Infected Files Integration', () => {

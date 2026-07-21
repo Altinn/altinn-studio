@@ -1,5 +1,5 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
+import { indexDataModelReferenceForValidation, validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -70,10 +70,16 @@ export function validateGeometriesBindings(
     // Validate field type
     const fieldWithIndex = `${geometries.field}[0].${fieldPath}`;
     const [schema, err] =
-      lookupBinding?.({
-        field: fieldWithIndex,
-        dataType: binding?.dataType ?? geometries.dataType,
-      }) ?? [];
+      lookupBinding?.(
+        indexDataModelReferenceForValidation(
+          baseComponentId,
+          {
+            field: fieldWithIndex,
+            dataType: binding?.dataType ?? geometries.dataType,
+          },
+          layoutLookups,
+        ),
+      ) ?? [];
 
     if (err) {
       errors.push(lookupErrorAsText(err));

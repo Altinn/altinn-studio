@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 
-export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' | 'Checkboxes' | 'MultipleSelect'>) {
-  const { intermediateItem, externalItem } = props;
+export function ObjectToGroupLayoutValidator(
+  props: ComponentLayoutValidationProps<'List' | 'Checkboxes' | 'MultipleSelect'>,
+) {
+  const { externalItem } = props;
   const { langAsString } = useLanguage();
   const group = externalItem.dataModelBindings?.group;
   const deletionStrategy = externalItem.deletionStrategy;
@@ -33,10 +35,10 @@ export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' |
     }
 
     if (error) {
-      addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      addError(error, externalItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${externalItem.id}': ${error}`);
     }
-  }, [addError, intermediateItem.id, deletionStrategy, checkedBinding, langAsString, group]);
+  }, [addError, externalItem.id, deletionStrategy, checkedBinding, langAsString, group]);
 
   return null;
 }

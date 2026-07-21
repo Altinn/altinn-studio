@@ -90,6 +90,8 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
   const hiddenState = useIsHidden(baseComponentId, { includeReason: true });
   const howToHide = useDevToolsStore((state) => (state.isOpen ? state.hiddenComponents : 'hide'));
+  const layoutComponent = getComponentDef(component.type);
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useHandleFocusComponent(nodeId, containerDivRef);
 
@@ -100,6 +102,14 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       containerDivRef.current.style.filter = '';
     }
   }, [hiddenState, howToHide]);
+
+  useEffect(() => {
+    if (!layoutComponent) {
+      const error = `No component definition found for type '${component.type}' (component '${baseComponentId}')`;
+      window.logError(error);
+      addError(error, nodeId, 'node');
+    }
+  }, [addError, baseComponentId, component.type, layoutComponent, nodeId]);
 
   const formComponentContext = useMemo<IFormComponentContext>(
     () => ({
@@ -115,7 +125,10 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     return null;
   }
 
-  const layoutComponent = getComponentDef(component.type);
+  if (!layoutComponent) {
+    return null;
+  }
+
   const RenderComponent = layoutComponent.render as AnyComponent<Type>['render'];
 
   const componentProps: PropsFromGenericComponent<Type> = {

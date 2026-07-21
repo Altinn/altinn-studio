@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from 'react';
+
 import dot from 'dot-object';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,6 +11,7 @@ import type { IDataModelBindingsForList } from 'src/layout/List/config.generated
 import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
 
 type Row = Record<string, unknown>;
+const emptyArray: string[] = [];
 
 interface Bindings {
   group?: IDataModelReference;
@@ -57,46 +60,49 @@ function useSaveToGroup(bindings: Bindings) {
   const removeFromList = FormStore.data.useRemoveFromListCallback();
   const checkedPath = toRelativePath(group, checked);
 
-  function toggle(row: Row): void {
-    if (!group) {
-      return;
-    }
-
-    const formData = formDataSelector(group) as Row[] | undefined;
-    const [index, formDataRow] = findRowInFormData(bindings, row, formData);
-    const isChecked = !!(checkedPath ? dot.pick(checkedPath, formDataRow) : index !== undefined && index !== -1);
-
-    if (isChecked) {
-      if (checked && checkedPath) {
-        const field = `${group.field}[${index}].${checkedPath}`;
-        setLeafValue({ reference: { ...checked, field }, newValue: false });
-      } else if (index !== undefined) {
-        removeFromList({
-          reference: group,
-          startAtIndex: index,
-          callback: (compare) => compare[ALTINN_ROW_ID] === formDataRow?.[ALTINN_ROW_ID],
-        });
+  const toggle = useCallback(
+    (row: Row): void => {
+      if (!group) {
+        return;
       }
-    } else {
-      if (checked && checkedPath && index !== undefined) {
-        const field = `${group.field}[${index}].${checkedPath}`;
-        setLeafValue({ reference: { ...checked, field }, newValue: true });
+
+      const formData = formDataSelector(group) as Row[] | undefined;
+      const [index, formDataRow] = findRowInFormData(bindings, row, formData);
+      const isChecked = !!(checkedPath ? dot.pick(checkedPath, formDataRow) : index !== undefined && index !== -1);
+
+      if (isChecked) {
+        if (checked && checkedPath) {
+          const field = `${group.field}[${index}].${checkedPath}`;
+          setLeafValue({ reference: { ...checked, field }, newValue: false });
+        } else if (index !== undefined) {
+          removeFromList({
+            reference: group,
+            startAtIndex: index,
+            callback: (compare) => compare[ALTINN_ROW_ID] === formDataRow?.[ALTINN_ROW_ID],
+          });
+        }
       } else {
-        const uuid = uuidv4();
-        const newRow: Row = { [ALTINN_ROW_ID]: uuid };
-        if (checkedPath) {
-          dot.str(checkedPath, true, newRow);
-        }
-        for (const key in values) {
-          const path = toRelativePath(group, values[key]);
-          if (path) {
-            dot.str(path, row[key], newRow);
+        if (checked && checkedPath && index !== undefined) {
+          const field = `${group.field}[${index}].${checkedPath}`;
+          setLeafValue({ reference: { ...checked, field }, newValue: true });
+        } else {
+          const uuid = uuidv4();
+          const newRow: Row = { [ALTINN_ROW_ID]: uuid };
+          if (checkedPath) {
+            dot.str(checkedPath, true, newRow);
           }
+          for (const key in values) {
+            const path = toRelativePath(group, values[key]);
+            if (path) {
+              dot.str(path, row[key], newRow);
+            }
+          }
+          appendToList({ reference: group, newValue: newRow });
         }
-        appendToList({ reference: group, newValue: newRow });
       }
-    }
-  }
+    },
+    [appendToList, bindings, checked, checkedPath, formDataSelector, group, removeFromList, setLeafValue, values],
+  );
 
   return { toggle, checkedPath, enabled: !!group };
 }
@@ -141,41 +147,57 @@ export function useSaveObjectToGroup(listBindings: IDataModelBindingsForList) {
 export function useSaveValueToGroup(
   bindings: IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect,
 ) {
-  const { enabled, toggle, checkedPath } = useSaveToGroup({
-    group: bindings.group,
-    checked: bindings.checked,
-    values: bindings.simpleBinding ? { value: bindings.simpleBinding } : {},
-  });
+  const saveToGroupBindings = useMemo<Bindings>(
+    () => ({
+      group: bindings.group,
+      checked: bindings.checked,
+      values: bindings.simpleBinding ? { value: bindings.simpleBinding } : ({} as Record<string, IDataModelReference>),
+    }),
+    [bindings.checked, bindings.group, bindings.simpleBinding],
+  );
+  const { enabled, toggle, checkedPath } = useSaveToGroup(saveToGroupBindings);
   const valuePath = toRelativePath(bindings.group, bindings.simpleBinding);
 
   const formData = FormStore.data.useFreshBindings(bindings.group ? { group: bindings.group } : {}, 'raw').group as
     | Row[]
     | undefined;
 
-  const selectedValues =
-    valuePath && enabled && formData
-      ? formData
-          .filter((row) => (checkedPath ? dot.pick(checkedPath, row) : true))
-          .map((row) => `${dot.pick(valuePath, row)}`)
-      : [];
+  const selectedValues = useMemo(
+    () =>
+      valuePath && enabled && formData
+        ? formData
+            .filter((row) => (checkedPath ? dot.pick(checkedPath, row) : true))
+            .map((row) => `${dot.pick(valuePath, row)}`)
+        : emptyArray,
+    [checkedPath, enabled, formData, valuePath],
+  );
 
-  function toggleValue(value: string) {
-    enabled && toggle({ value });
-  }
+  const toggleValue = useCallback(
+    (value: string) => {
+      enabled && toggle({ value });
+    },
+    [enabled, toggle],
+  );
 
-  function setCheckedValues(values: string[]) {
-    if (!enabled) {
-      return;
-    }
+  const setCheckedValues = useCallback(
+    (values: string[]) => {
+      if (!enabled) {
+        return;
+      }
 
-    const valuesToSet = values.filter((value) => !selectedValues.includes(value));
-    const valuesToRemove = selectedValues.filter((value) => !values.includes(value));
-    const valuesToToggle = [...valuesToSet, ...valuesToRemove];
+      const valuesToSet = values.filter((value) => !selectedValues.includes(value));
+      const valuesToRemove = selectedValues.filter((value) => !values.includes(value));
+      const valuesToToggle = [...valuesToSet, ...valuesToRemove];
 
-    for (const value of valuesToToggle) {
-      toggle({ value });
-    }
-  }
+      for (const value of valuesToToggle) {
+        toggle({ value });
+      }
+    },
+    [enabled, selectedValues, toggle],
+  );
 
-  return { selectedValues, toggleValue, setCheckedValues, enabled };
+  return useMemo(
+    () => ({ selectedValues, toggleValue, setCheckedValues, enabled }),
+    [enabled, selectedValues, setCheckedValues, toggleValue],
+  );
 }

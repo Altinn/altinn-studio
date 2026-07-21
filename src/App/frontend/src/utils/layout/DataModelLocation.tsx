@@ -4,14 +4,20 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
+import {
+  applyRowContextToComponentId,
+  getCurrentDataModelPath,
+  rowContextsToIdMutators,
+} from 'src/utils/layout/rowContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { RowContext } from 'src/utils/layout/deriveLayoutNodes';
+import type { RowContext } from 'src/utils/layout/rowContext';
 
 export type IdMutator = (id: string) => string;
 
 interface DMLocation {
   reference: IDataModelReference;
   idMutators: IdMutator[];
+  rowContexts: RowContext[];
 }
 
 const { Provider, useCtx } = createContext<DMLocation | undefined>({
@@ -20,7 +26,10 @@ const { Provider, useCtx } = createContext<DMLocation | undefined>({
   required: false,
 });
 
+const emptyRowContexts: RowContext[] = [];
+
 export const useCurrentDataModelLocation = () => useCtx()?.reference;
+export const useCurrentRowContexts = () => useCtx()?.rowContexts ?? emptyRowContexts;
 
 interface LocationProps {
   groupBinding: IDataModelReference;
@@ -29,15 +38,20 @@ interface LocationProps {
 
 export function DataModelLocationProvider({ groupBinding, rowIndex, children }: PropsWithChildren<LocationProps>) {
   const parentCtx = useCtx();
+  const rowContexts: RowContext[] = useMemo(
+    () => [...(parentCtx?.rowContexts ?? []), { groupBinding, rowIndex, rowId: '' }],
+    [groupBinding, parentCtx?.rowContexts, rowIndex],
+  );
   const value = useMemo(
     () => ({
-      reference: {
+      reference: getCurrentDataModelPath(rowContexts) ?? {
         dataType: groupBinding.dataType,
         field: `${groupBinding.field}[${rowIndex}]`,
       },
       idMutators: [...(parentCtx?.idMutators ?? []), (id: string) => `${id}-${rowIndex}`],
+      rowContexts,
     }),
-    [parentCtx?.idMutators, rowIndex, groupBinding.dataType, groupBinding.field],
+    [groupBinding.dataType, groupBinding.field, parentCtx?.idMutators, rowContexts, rowIndex],
   );
   return <Provider value={value}>{children}</Provider>;
 }
@@ -65,20 +79,17 @@ export function DataModelLocationProviderFromNode({ nodeId, children }: PropsWit
 }
 
 export function useComponentIdMutator(skipLastMutator = false): IdMutator {
-  const mutators = useCtx()?.idMutators;
+  const ctx = useCtx();
   return useCallback(
     (id) => {
-      let newId = id;
-      for (const [index, mutator] of mutators?.entries() ?? []) {
-        if (skipLastMutator && mutators && index === mutators.length - 1) {
-          continue;
-        }
-        newId = mutator(newId);
+      const rowContexts = ctx?.rowContexts ?? [];
+      if (!skipLastMutator) {
+        return applyRowContextToComponentId(id, rowContexts);
       }
 
-      return newId;
+      return applyRowContextToComponentId(id, rowContexts.slice(0, -1));
     },
-    [mutators, skipLastMutator],
+    [ctx?.rowContexts, skipLastMutator],
   );
 }
 
@@ -169,20 +180,24 @@ export function DataModelLocationProviderFromRowContexts({
   rowContexts,
   children,
 }: PropsWithChildren<{ rowContexts: RowContext[] }>) {
+  const parentCtx = useCtx();
+  const value = useMemo(() => {
+    const combinedRowContexts = [...(parentCtx?.rowContexts ?? []), ...rowContexts];
+    const reference = getCurrentDataModelPath(combinedRowContexts);
+    if (!reference) {
+      return undefined;
+    }
+
+    return {
+      reference,
+      idMutators: [...(parentCtx?.idMutators ?? []), ...rowContextsToIdMutators(rowContexts)],
+      rowContexts: combinedRowContexts,
+    };
+  }, [parentCtx?.idMutators, parentCtx?.rowContexts, rowContexts]);
+
   if (rowContexts.length === 0) {
     return children;
   }
 
-  return rowContexts.reduceRight(
-    (child, { groupBinding, rowIndex }) => (
-      <DataModelLocationProvider
-        key={`${groupBinding.dataType}-${groupBinding.field}-${rowIndex}`}
-        groupBinding={groupBinding}
-        rowIndex={rowIndex}
-      >
-        {child}
-      </DataModelLocationProvider>
-    ),
-    children as React.ReactElement,
-  );
+  return <Provider value={value}>{children}</Provider>;
 }

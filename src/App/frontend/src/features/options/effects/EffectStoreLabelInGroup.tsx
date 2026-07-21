@@ -11,13 +11,13 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
-import type { DerivedLayoutParent } from 'src/utils/layout/deriveLayoutNodes';
+import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 type Row = Record<string, unknown>;
 
 interface Props {
   item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
-  parent: DerivedLayoutParent;
+  parent: RuntimeNodeParent;
   options: IOptionInternal[];
 }
 

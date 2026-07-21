@@ -9,7 +9,8 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { getComponentBehaviors } from 'src/layout';
-import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
+import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
+import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -24,7 +25,7 @@ type BindingEntry = {
 type AttachmentEffectsSnapshot = {
   readOnly: boolean;
   bindings: BindingEntry[];
-  currentData: Record<string, unknown>;
+  currentValues: Record<string, unknown>;
 };
 
 const emptyArray = [];
@@ -56,7 +57,7 @@ export function AttachmentEffects() {
         continue;
       }
 
-      const currentValue = dot.pick(binding.reference.field, snapshot.currentData[binding.reference.dataType]);
+      const currentValue = snapshot.currentValues[key];
       const uploadedIds = selectCurrentCanonicalAttachmentIds(
         binding.node,
         currentValue,
@@ -90,26 +91,34 @@ export function AttachmentEffects() {
 }
 
 function makeAttachmentEffectsSnapshot(state: FormStoreState): AttachmentEffectsSnapshot {
+  const bindings = getUploaderBindings(state);
   return {
     readOnly: state.readOnly,
-    bindings: getUploaderBindings(state),
-    currentData: Object.fromEntries(
-      Object.entries(state.data.models).map(([dataType, model]) => [dataType, model.currentData]),
+    bindings,
+    currentValues: Object.fromEntries(
+      bindings.map((binding) => [
+        getBindingKey(binding.reference),
+        dot.pick(binding.reference.field, state.data.models[binding.reference.dataType]?.currentData),
+      ]),
     ),
   };
 }
 
 function getUploaderBindings(state: FormStoreState): BindingEntry[] {
   const bindings: BindingEntry[] = [];
-  for (const derived of deriveLayoutNodes(state)) {
-    if (!getComponentBehaviors(derived.intermediateItem.type)?.canHaveAttachments) {
+  for (const nodeRef of deriveRuntimeNodeRefs(state)) {
+    const component = state.bootstrap.layoutLookups.getComponent(nodeRef.baseId);
+    if (!getComponentBehaviors(component.type)?.canHaveAttachments) {
       continue;
     }
 
     const node: AttachmentNode = {
-      id: derived.id,
-      baseId: derived.baseId,
-      dataModelBindings: derived.intermediateItem.dataModelBindings as AttachmentNode['dataModelBindings'],
+      id: nodeRef.id,
+      baseId: nodeRef.baseId,
+      dataModelBindings: getIndexedDataModelBindings(
+        component.dataModelBindings,
+        nodeRef.rowContexts,
+      ) as AttachmentNode['dataModelBindings'],
     };
     const dataModelBindings = node.dataModelBindings;
     if (dataModelBindings && 'list' in dataModelBindings && dataModelBindings.list) {

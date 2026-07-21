@@ -21,7 +21,7 @@ import type {
   DataModelBindingValidationContext,
   PropsFromGenericComponent,
 } from 'src/layout';
-import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -84,7 +84,7 @@ export class MultipleSelect extends MultipleSelectDef {
     return validateGroupIsEmpty(ctx);
   }
 
-  renderLayoutValidators(props: NodeValidationProps<'MultipleSelect'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'MultipleSelect'>): JSX.Element | null {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 

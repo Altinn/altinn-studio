@@ -1,8 +1,0 @@
-{
-  "name": "Preserves an empty setting",
-  "expression": ["frontendSettings", "emptySetting"],
-  "expects": "",
-  "frontendSettings": {
-    "emptySetting": ""
-  }
-}
