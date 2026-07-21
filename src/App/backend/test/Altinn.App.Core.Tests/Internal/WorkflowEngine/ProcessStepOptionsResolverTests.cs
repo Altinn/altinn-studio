@@ -116,7 +116,32 @@ public class ProcessStepOptionsResolverTests
         var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "signing");
 
         Assert.NotNull(result);
-        Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime);
+        Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime); // tier 3
+        // The non-specified field falls through: ExecuteServiceTask has no tier-2 retry default, so null.
+        Assert.Null(result.RetryStrategy);
+    }
+
+    [Fact]
+    public void Resolve_ServiceTask_ImplementationBothFields_HonorsBothIndependently()
+    {
+        // An implementer may set BOTH fields; each resolves on its own (no all-or-nothing behaviour).
+        var serviceTask = ServiceTask(
+            "signing",
+            new ProcessStepOptions
+            {
+                MaxExecutionTime = TimeSpan.FromHours(2),
+                RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(5), maxRetries: 3),
+            }
+        );
+        var resolver = CreateResolver(serviceTask.Object);
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "signing");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime); // tier 3, overriding the 10 min tier-2 default
+        Assert.NotNull(result.RetryStrategy); // tier 3
+        Assert.Equal(TimeSpan.FromSeconds(5), result.RetryStrategy.BaseInterval);
+        Assert.Equal(3, result.RetryStrategy.MaxRetries);
     }
 
     [Fact]

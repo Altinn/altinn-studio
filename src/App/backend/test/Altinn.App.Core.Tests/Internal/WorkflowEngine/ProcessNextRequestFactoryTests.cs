@@ -827,6 +827,38 @@ public class ProcessNextRequestFactoryTests
         // Assert
         var step = GetStep(bundle, ExecuteServiceTask.Key);
         Assert.Equal(TimeSpan.FromHours(2), step.Command.MaxExecutionTime);
+        // The non-specified field falls through: no retry override and no tier-2 retry default → unset.
+        Assert.Null(step.RetryStrategy);
+    }
+
+    [Fact]
+    public async Task StepOptions_ServiceTask_ImplementationBothFields_HonorsBoth()
+    {
+        // Arrange - tier 3 sets BOTH timeout and retry; both must land on the wire, resolved per-field
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("signing");
+        serviceTaskMock
+            .Setup(x => x.StepOptions)
+            .Returns(
+                new ProcessStepOptions
+                {
+                    MaxExecutionTime = TimeSpan.FromHours(2),
+                    RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(5), maxRetries: 3),
+                }
+            );
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert - timeout overrides the 10 min tier-2 default AND retry is mapped to the wire model
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.Equal(TimeSpan.FromHours(2), step.Command.MaxExecutionTime);
+        Assert.NotNull(step.RetryStrategy);
+        Assert.Equal(BackoffType.Exponential, step.RetryStrategy.BackoffType);
+        Assert.Equal(TimeSpan.FromSeconds(5), step.RetryStrategy.BaseInterval);
+        Assert.Equal(3, step.RetryStrategy.MaxRetries);
     }
 
     [Fact]
