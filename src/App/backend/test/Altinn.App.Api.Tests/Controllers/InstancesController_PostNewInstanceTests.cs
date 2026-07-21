@@ -1009,7 +1009,13 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                     Namespace = ns,
                     Heads =
                     [
-                        new CollectionHeadStatus { DatabaseId = _workflowId, Status = PersistentItemStatus.Failed },
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = _workflowId,
+                            Status = PersistentItemStatus.Failed,
+                            StepsCompleted = 0,
+                            StepsTotal = 1,
+                        },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,

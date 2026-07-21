@@ -1,0 +1,137 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "Testapp for prosessovergang"
+    },
+    {
+      "id": "Task1.header.title",
+      "value": "Task 1: Oppsett"
+    },
+    {
+      "id": "Task1.description1",
+      "value": "Denne testappen styrer overgangen fra Task 1 til Task 2. Velg hvordan overgangen skal oppføre seg og trykk deretter **Gå til Task 2**."
+    },
+    {
+      "id": "Task1.description2",
+      "value": "Http-forespørselen knyttet til prosessovergangen blokkerer til fullføring. Men hvis man er koblet av denne forespørselen, for eksempel ved å laste inn siden på nytt, kan man observere ventesteget som vises mens en prosessovergang pågår."
+    },
+    {
+      "id": "Task2.header.title",
+      "value": "Task 2: Ferdig"
+    },
+    {
+      "id": "Task2.description",
+      "value": "Overgangen fra Task 1 er fullført. Trykk **Send inn** for å avslutte prosessen og gå til kvitteringen, eller gå tilbake til Task 1 for å prøve et nytt scenario."
+    },
+    {
+      "id": "path.title",
+      "value": "Feilscenario"
+    },
+    {
+      "id": "path.help",
+      "value": "Styrer hvor i overgangen Task 1 → Task 2 en eventuell feil skal inntreffe. En forsinkelse kan legges på uansett valg."
+    },
+    {
+      "id": "path.none",
+      "value": "Ingen feil – overgangen går rett gjennom"
+    },
+    {
+      "id": "path.preCommit",
+      "value": "Feil før commit (instansen står fremdeles i Task 1)"
+    },
+    {
+      "id": "path.postCommit",
+      "value": "Feil etter commit (instansen har gått videre til Task 2)"
+    },
+    {
+      "id": "delayMs.title",
+      "value": "Forsinkelse (per forsøk)"
+    },
+    {
+      "id": "delayMs.help",
+      "value": "Legges til på hvert forsøk, uavhengig av gjenprøvinger og sluttilstand. Med en forsinkelse rekker du å observere ventesteget mens overgangen pågår."
+    },
+    {
+      "id": "delayMs.none",
+      "value": "Ingen – overgangen fullføres umiddelbart"
+    },
+    {
+      "id": "delayMs.short",
+      "value": "Kort – ca. 3 sekunder"
+    },
+    {
+      "id": "delayMs.medium",
+      "value": "Middels – ca. 8 sekunder"
+    },
+    {
+      "id": "delayMs.long",
+      "value": "Lang – ca. 15 sekunder"
+    },
+    {
+      "id": "delayMs.veryLong",
+      "value": "Svært lang – ca. 30 sekunder"
+    },
+    {
+      "id": "attempts.title",
+      "value": "Antall forsøk"
+    },
+    {
+      "id": "attempts.help",
+      "value": "Hvor mange ganger motoren forsøker overgangen. Alle forsøk unntatt det siste feiler forbigående (motoren prøver automatisk på nytt); det siste forsøket lander på valgt sluttilstand. Forsinkelsen legges på hvert forsøk."
+    },
+    {
+      "id": "attempts.one",
+      "value": "1 forsøk (ingen gjenprøving)"
+    },
+    {
+      "id": "attempts.two",
+      "value": "2 forsøk"
+    },
+    {
+      "id": "attempts.three",
+      "value": "3 forsøk"
+    },
+    {
+      "id": "attempts.five",
+      "value": "5 forsøk"
+    },
+    {
+      "id": "endState.title",
+      "value": "Sluttilstand"
+    },
+    {
+      "id": "endState.help",
+      "value": "Hva som skjer på det siste forsøket."
+    },
+    {
+      "id": "endState.success",
+      "value": "Suksess – overgangen fullføres"
+    },
+    {
+      "id": "endState.failure",
+      "value": "Feil – behandlingen stopper og feilsiden vises"
+    },
+    {
+      "id": "Task1.hint.title",
+      "value": "Tips: prøv å laste siden på nytt underveis"
+    },
+    {
+      "id": "Task1.hint.body",
+      "value": "Mens overgangen pågår kan du laste siden på nytt for å koble deg av den blokkerende forespørselen. Ventesiden skal overleve en refresh og sende deg videre til Task 2 så snart overgangen er ferdig."
+    },
+    {
+      "id": "sendinnTask1.title",
+      "value": "Gå til Task 2"
+    },
+    {
+      "id": "sendinnTask2.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "back.title",
+      "value": "Tilbake til Task 1"
+    }
+  ]
+}

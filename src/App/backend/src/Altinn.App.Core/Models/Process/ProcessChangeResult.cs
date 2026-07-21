@@ -131,41 +131,52 @@ public sealed class WorkflowFailure
     /// <summary>
     /// The workflow ID that failed, if known.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? WorkflowId { get; init; }
 
     /// <summary>
     /// The workflow operation ID, if known.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? WorkflowOperationId { get; init; }
 
     /// <summary>
     /// The step operation ID that failed, if known.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StepOperationId { get; init; }
 
     /// <summary>
     /// The failing command type, if known.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? CommandType { get; init; }
 
     /// <summary>
     /// The retry count recorded on the failing step, if known.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? RetryCount { get; init; }
 
     /// <summary>
-    /// The latest error recorded for the failing step, if known.
+    /// The latest error recorded for the failing step, if known. Never serialized on the failed
+    /// process action responses (the controller strips it - the message originates from
+    /// exception/callback text); still populated on internal results and the instantiation /
+    /// process-start recovery contract.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public WorkflowFailureError? LastError { get; init; }
 
     /// <summary>
     /// Suggested retry action, if any.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? RetryAction { get; init; }
 
     /// <summary>
     /// The workflow ID to target for retry, if any.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? RetryTargetWorkflowId { get; init; }
 }
 

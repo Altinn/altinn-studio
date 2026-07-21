@@ -592,6 +592,7 @@ export const renderWithInstanceAndLayout = async ({
   taskId,
   alwaysRouteToChildren,
   initialPage = 'FormLayout',
+  query,
   ...renderOptions
 }: ExtendedRenderOptionsWithInstance) => {
   const initialRenderRef: InitialRenderRef = { current: true };
@@ -630,6 +631,7 @@ export const renderWithInstanceAndLayout = async ({
           taskId={taskId}
           initialPage={initialPage}
           alwaysRouteToChildren={alwaysRouteToChildren}
+          query={query}
         >
           {children}
         </InstanceRouter>

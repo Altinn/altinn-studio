@@ -91,4 +91,42 @@ public sealed record CollectionHeadStatus
     /// </summary>
     [JsonPropertyName("status")]
     public required PersistentItemStatus Status { get; init; }
+
+    /// <summary>
+    /// Gets the labels of the head workflow. Included so consumers can identify a head (e.g. by an
+    /// application-specific label) directly from the collection view, without a second lookup of the
+    /// individual workflow.
+    /// </summary>
+    [JsonPropertyName("labels")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Labels { get; init; }
+
+    /// <summary>
+    /// Gets the number of the head workflow's steps that have completed. Together with
+    /// <see cref="StepsTotal"/> this gives consumers a progress indication for an executing head
+    /// directly from the collection view, without a second lookup of the individual workflow.
+    /// Nullable so the wire contract stays additive: consumers must tolerate absence (an older
+    /// engine), and the engine always populates it.
+    /// </summary>
+    [JsonPropertyName("stepsCompleted")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? StepsCompleted { get; init; }
+
+    /// <summary>
+    /// Gets the total number of steps in the head workflow. Nullable for the same additive-contract
+    /// reason as <see cref="StepsCompleted"/>; always populated by the engine.
+    /// </summary>
+    [JsonPropertyName("stepsTotal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? StepsTotal { get; init; }
+
+    /// <summary>
+    /// Gets when the head workflow was created (enqueued). Lets a consumer anchor "how long has
+    /// this been running" to the engine's clock directly from the collection view, without a
+    /// per-workflow lookup. Nullable for the same additive-contract reason as
+    /// <see cref="StepsCompleted"/>; always populated by the engine.
+    /// </summary>
+    [JsonPropertyName("createdAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CreatedAt { get; init; }
 }

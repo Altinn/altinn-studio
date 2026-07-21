@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
@@ -436,17 +437,24 @@ public partial class EngineTests
         );
         await _client.Enqueue(request);
 
-        // Poll until the engine picks up the workflow and starts processing
+        // Poll until the engine picks up the workflow AND its step has started executing: the
+        // snapshot includes the step's status, which flips Enqueued -> Processing a beat after the
+        // workflow itself does, so gating on the workflow status alone lets the snapshot capture
+        // either step state depending on runner load.
+        static bool IsProcessingWithStartedStep(WorkflowStatusResponse workflow) =>
+            workflow.OverallStatus == PersistentItemStatus.Processing
+            && workflow.Steps.Any(step => step.Status == PersistentItemStatus.Processing);
+
         var deadline = DateTimeOffset.UtcNow.AddSeconds(5);
         List<WorkflowStatusResponse> active;
         do
         {
             active = await _client.ListActiveWorkflows();
-            if (active.Exists(w => w.OverallStatus == PersistentItemStatus.Processing))
+            if (active.Exists(IsProcessingWithStartedStep))
                 break;
             await Task.Delay(50, TestContext.Current.CancellationToken);
         } while (DateTimeOffset.UtcNow < deadline);
-        Assert.Contains(active, w => w.OverallStatus == PersistentItemStatus.Processing);
+        Assert.Contains(active, w => IsProcessingWithStartedStep(w));
 
         // Act
         using var client = fixture.CreateEngineClient();
@@ -588,6 +596,79 @@ public partial class EngineTests
         var stepLabels = Enumerable.Range(1, 51).ToDictionary(i => $"key-{i}", i => $"value-{i}");
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping", labels: stepLabels)])
+        );
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_MaxExecutionTimeExceedsCap_Returns400WithDetails()
+    {
+        // Just above the MaxStepCommandTimeout cap (2h by default)
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf",
+                [_testHelpers.CreateWebhookStep("/ping", maxExecutionTime: TimeSpan.FromHours(3))]
+            )
+        );
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_NonPositiveMaxExecutionTime_Returns400WithDetails()
+    {
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf",
+                [_testHelpers.CreateWebhookStep("/ping", maxExecutionTime: TimeSpan.FromMinutes(-10))]
+            )
+        );
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_MaxExecutionTimeAtCap_Succeeds()
+    {
+        // Exactly at the cap should be accepted
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf",
+                [_testHelpers.CreateWebhookStep("/ping", maxExecutionTime: TimeSpan.FromHours(2))]
+            )
+        );
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await WaitForAcceptedWorkflowsToComplete(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_ZeroIntervalRetryStrategy_Returns400WithDetails()
+    {
+        // A zero baseInterval with retries enabled would retry the step in a tight loop
+        var retryStrategy = new RetryStrategy { BackoffType = BackoffType.Constant, BaseInterval = TimeSpan.Zero };
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping", retryStrategy: retryStrategy)])
         );
 
         using var response = await _client.EnqueueRaw(request);

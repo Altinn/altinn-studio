@@ -35,6 +35,8 @@ const renderAddItemModal = (props: Partial<AddItemModalProps>) => {
   const defaultProps: AddItemModalProps = {
     onAddComponent: jest.fn(),
     availableComponents: {},
+    isFavorite: jest.fn(),
+    toggleFavorite: jest.fn(),
   };
   return renderWithProviders(<AddItemModal {...defaultProps} {...props} />);
 };

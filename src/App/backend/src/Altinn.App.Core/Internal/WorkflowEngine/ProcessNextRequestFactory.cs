@@ -35,9 +35,29 @@ internal sealed record WorkflowEnqueueEnvelope(
 /// </summary>
 internal sealed class ProcessNextRequestFactory
 {
-    internal const string ProcessNextIdLabel = "processNextId";
+    /// <summary>
+    /// Composite process-next id (<c>"{taskId}:{flow}"</c>, see <see cref="CreateProcessNextId(string, int)"/>)
+    /// of the task the transition left. Absent on initial task start.
+    /// </summary>
     internal const string ProcessNextSourceIdLabel = "processNextSourceId";
+
+    /// <summary>
+    /// Composite process-next id (<c>"{taskId}:{flow}"</c>) of the task the transition moves to.
+    /// Absent on process end. Together with the source id this lets current-task lookups match a
+    /// transition leaving or entering the task.
+    /// </summary>
     internal const string ProcessNextTargetIdLabel = "processNextTargetId";
+
+    /// <summary>
+    /// Bare element id of the task the transition moves to, so status reads never have to parse the
+    /// <c>":{flow}"</c> suffix back off <see cref="ProcessNextTargetIdLabel"/>. Absent on process end.
+    /// </summary>
+    internal const string ProcessNextTargetTaskLabel = "processNextTargetTask";
+
+    /// <summary>
+    /// The instance guid ("N" format), present on every process-next workflow. Groups all
+    /// transitions of an instance for label-based lookups (mirrors the collection key).
+    /// </summary>
     internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
     private readonly AppImplementationFactory _appImplementationFactory;
@@ -46,6 +66,7 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppSettings _appSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
+    private readonly ProcessStepOptionsResolver _stepOptionsResolver;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -53,7 +74,8 @@ internal sealed class ProcessNextRequestFactory
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IAppMetadata appMetadata,
-        IWorkflowCallbackTokenGenerator callbackTokenGenerator
+        IWorkflowCallbackTokenGenerator callbackTokenGenerator,
+        ProcessStepOptionsResolver stepOptionsResolver
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -62,6 +84,7 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
+        _stepOptionsResolver = stepOptionsResolver;
     }
 
     /// <summary>
@@ -114,7 +137,7 @@ internal sealed class ProcessNextRequestFactory
         };
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
-        string? collectionKey = $"{instanceId.InstanceGuid}";
+        string? collectionKey = CreateCollectionKey(instanceId);
         Dictionary<string, string> labels =
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
@@ -138,6 +161,16 @@ internal sealed class ProcessNextRequestFactory
         return new WorkflowEnqueueEnvelope(request, ns, effectiveIdempotencyKey, collectionKey);
     }
 
+    /// <summary>
+    /// The collection key that groups every process-next workflow for an instance. This is the
+    /// single source of truth for the key algorithm: any caller that needs to look up an instance's
+    /// workflows (e.g. read-path status enrichment in <c>ResolveWorkflowTaskStatus</c>) must derive
+    /// the key here, so a future change (e.g. adding a prefix) trickles down to enqueue and lookups
+    /// alike and they cannot drift apart.
+    /// </summary>
+    internal static string CreateCollectionKey(InstanceIdentifier instanceIdentifier) =>
+        $"{instanceIdentifier.InstanceGuid}";
+
     internal static string? CreateProcessNextId(ProcessElementInfo? currentTask) =>
         currentTask?.ElementId is { Length: > 0 } taskId ? CreateProcessNextId(taskId, currentTask.Flow ?? 0) : null;
 
@@ -152,12 +185,10 @@ internal sealed class ProcessNextRequestFactory
             labels[ProcessNextSourceIdLabel] = sourceId;
         }
 
-        if (CreateProcessNextId(processStateChange.NewProcessState?.CurrentTask) is { } targetId)
+        if (processStateChange.NewProcessState?.CurrentTask is { ElementId.Length: > 0 } targetTask)
         {
-            labels[ProcessNextTargetIdLabel] = targetId;
-
-            // Keep the original label for existing workflow lookups and dashboard filters.
-            labels[ProcessNextIdLabel] = targetId;
+            labels[ProcessNextTargetIdLabel] = CreateProcessNextId(targetTask.ElementId, targetTask.Flow ?? 0);
+            labels[ProcessNextTargetTaskLabel] = targetTask.ElementId;
         }
 
         return labels.Count > 0 ? labels : null;
@@ -193,19 +224,35 @@ internal sealed class ProcessNextRequestFactory
             );
             if (workflowCommands != null)
             {
+                // The task this event's commands run against (start hooks/service task read the entering
+                // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
+                // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
+                string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
+                string? serviceTaskType = GetServiceTaskType(altinnTaskType);
+
                 // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
                 // Task-start and process-end commands go in the second group (they need NEW CurrentTask).
                 // MutateProcessState is inserted between the two groups to transition in-memory state.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
-                    taskEndSteps.AddRange(workflowCommands.Commands);
+                    taskEndSteps.AddRange(
+                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                    );
                 }
                 else
                 {
-                    taskStartSteps.AddRange(workflowCommands.Commands);
+                    taskStartSteps.AddRange(
+                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                    );
                 }
 
-                postCommitSteps.AddRange(workflowCommands.PostProcessNextCommittedCommands);
+                postCommitSteps.AddRange(
+                    workflowCommands.PostProcessNextCommittedCommands.ApplyStepOptions(
+                        _stepOptionsResolver,
+                        eventTaskId,
+                        serviceTaskType
+                    )
+                );
             }
         }
 
@@ -323,11 +370,11 @@ internal sealed class ProcessNextRequestFactory
         };
     }
 
-    private static StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
+    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
     {
         var payload = new SaveProcessStateToStoragePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        var step = new StepRequest
         {
             OperationId = MutateProcessState.Key,
             Command = CommandDefinition.Create(
@@ -335,13 +382,14 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = MutateProcessState.Key, Payload = serializedPayload }
             ),
         };
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private static StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
+    private StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
     {
         var payload = new SaveProcessStateToStoragePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        var step = new StepRequest
         {
             OperationId = SaveProcessStateToStorage.Key,
             Command = CommandDefinition.Create(
@@ -349,5 +397,6 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
             ),
         };
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 }
