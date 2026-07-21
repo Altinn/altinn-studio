@@ -3,20 +3,21 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { FormStore } from 'src/features/form/FormContext';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
-import { LikertGeneratorChildren } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
-import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
+import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
+import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
 import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryComponent';
 import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout/rowContext';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
+import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type {
   ChildClaimerProps,
   ExprResolver,
-  NodeGeneratorProps,
+  RuntimeChildrenProps,
   SummaryRendererProps,
 } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -49,9 +50,11 @@ export class Likert extends LikertDef {
     return true;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Likert'>): string[] {
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'Likert'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const [questionsErr, questions] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,
@@ -83,11 +86,24 @@ export class Likert extends LikertDef {
     };
   }
 
-  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
-    return <LikertGeneratorChildren />;
+  getOptionsEffectValueType() {
+    return 'single' as const;
   }
 
   claimChildren(props: ChildClaimerProps<'Likert'>): void {
     props.claimChild(makeLikertChildId(props.item.id));
+  }
+
+  getRuntimeChildren({ item, childBaseIds, rowContexts, getRows }: RuntimeChildrenProps<'Likert'>) {
+    const questionsBinding = getIndexedDataModelReference(item.dataModelBindings.questions, rowContexts);
+    const rows = getRows(questionsBinding);
+    const { startIndex, stopIndex } = getLikertStartStopIndex(rows.length - 1, item.filter);
+
+    return rows.slice(startIndex, stopIndex + 1).flatMap((row) =>
+      childBaseIds.map((baseId) => ({
+        baseId,
+        rowContexts: appendRowContext(rowContexts, questionsBinding, row),
+      })),
+    );
   }
 }

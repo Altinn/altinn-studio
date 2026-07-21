@@ -47,7 +47,7 @@ function SubformTableRow({
   const { instanceOwnerPartyId, instanceGuid, taskId } = useAllNavigationParams();
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   const { langAsString } = useLanguage();
   const navigate = useNavigate();

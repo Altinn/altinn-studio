@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
-
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 
 import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
 import {
@@ -26,23 +25,19 @@ export interface TextResourcesQueries {
   getCached: (selectedLanguage: string) => TextResourceMap | undefined;
 }
 
-function useTextResourcesQueries(): TextResourcesQueries {
-  const queryClient = useQueryClient();
-  return useMemo(
-    () => ({
-      ensureLoaded: ({ selectedLanguage, textResourcesFromWindow, textResourcesApi }) => {
-        if (queryClient.getQueryData(textResourcesQueryKeys.textResources(selectedLanguage))) {
-          return;
-        }
-        void queryClient
-          .ensureQueryData(textResourcesQuery({ selectedLanguage, textResourcesFromWindow, textResourcesApi }))
-          .catch(() => undefined);
-      },
-      getCached: (selectedLanguage) =>
-        queryClient.getQueryData<TextResourceMap>(textResourcesQueryKeys.textResources(selectedLanguage)),
-    }),
-    [queryClient],
-  );
+export function createTextResourcesQueries(queryClient: QueryClient): TextResourcesQueries {
+  return {
+    ensureLoaded: ({ selectedLanguage, textResourcesFromWindow, textResourcesApi }) => {
+      if (queryClient.getQueryData(textResourcesQueryKeys.textResources(selectedLanguage))) {
+        return;
+      }
+      void queryClient.ensureQueryData(
+        textResourcesQuery({ selectedLanguage, textResourcesFromWindow, textResourcesApi }),
+      );
+    },
+    getCached: (selectedLanguage) =>
+      queryClient.getQueryData<TextResourceMap>(textResourcesQueryKeys.textResources(selectedLanguage)),
+  };
 }
 
-export { resourcesAsMap, textResourcesQuery, textResourcesQueryKeys, useTextResourcesQueries, useTextResourcesQuery };
+export { resourcesAsMap, textResourcesQuery, textResourcesQueryKeys, useTextResourcesQuery };

@@ -12,7 +12,7 @@ import { SubformSummaryComponent } from 'src/layout/Subform/Summary/SubformSumma
 import { SubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import { validateSubformForNode } from 'src/layout/Subform/useValidateSubform';
 import type { ComponentValidationContext, PropsFromGenericComponent, SubRouting, ValidateComponent } from 'src/layout';
-import type { NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 function SubformRouting({ baseComponentId }: { baseComponentId: string }) {
@@ -38,7 +38,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
     return <SubformRouting baseComponentId={baseComponentId} />;
   }
 
-  renderLayoutValidators(props: NodeValidationProps<'Subform'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'Subform'>): JSX.Element | null {
     return <SubformValidator {...props} />;
   }
 

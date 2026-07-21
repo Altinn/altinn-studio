@@ -15,7 +15,7 @@ import classes from 'src/features/navigation/AppNavigation.module.css';
 import { PageGroup } from 'src/features/navigation/components/PageGroup';
 import { TaskGroup } from 'src/features/navigation/components/TaskGroup';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 
 export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {

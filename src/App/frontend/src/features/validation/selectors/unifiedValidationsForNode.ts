@@ -15,7 +15,7 @@ const emptyArray = [];
 export function useUnifiedValidationsForNode(baseComponentId: string): NodeRefValidation[] {
   const nodeId = useIndexedId(baseComponentId);
   const showAll = FormStore.validation.useShowAllUnboundValidations();
-  const validations = useVisibleValidations(nodeId, showAll);
+  const validations = useVisibleValidations(baseComponentId, nodeId, showAll);
 
   return useMemo(() => {
     if (!nodeId) {

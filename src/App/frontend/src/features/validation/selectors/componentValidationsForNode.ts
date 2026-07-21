@@ -11,7 +11,7 @@ import type { ComponentValidation, NodeRefValidation } from 'src/features/valida
 export function useComponentValidationsFor(baseComponentId: string): NodeRefValidation<ComponentValidation>[] {
   const showAll = FormStore.validation.useShowAllUnboundValidations();
   const indexedId = useIndexedId(baseComponentId);
-  const component = useVisibleValidations(indexedId, showAll);
+  const component = useVisibleValidations(baseComponentId, indexedId, showAll);
 
   return useMemo(
     () =>
