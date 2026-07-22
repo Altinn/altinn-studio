@@ -191,9 +191,10 @@
     "version": 2,
     "discovery": {
       "allowed-hostnames": [
-        "local.altinn.cloud",
         "localhost",
+        "localhost:8080",
         "app-frontend.local.altinn.cloud",
+        "app-frontend.local.altinn.cloud:8000",
         "altinncdn.no"
       ],
       "launch-options": {
