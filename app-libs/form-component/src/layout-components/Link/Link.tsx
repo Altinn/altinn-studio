@@ -76,52 +76,57 @@ export function Link({
   innerGrid,
 }: LinkProps) {
   const { lang, langAsString } = useTranslation();
-
   const href = langAsString(target);
-  const downloadAttr =
-    download !== undefined ? (download === '' ? true : langAsString(download)) : undefined;
 
-  const content =
-    style === 'link' ? (
-      <div>
-        <a
-          id={`link-${componentId}`}
-          download={downloadAttr}
-          href={href}
-          target={openInNewTab ? '_blank' : undefined}
-          rel={openInNewTab ? 'noreferrer' : undefined}
-        >
-          {lang(title)}
-        </a>
-      </div>
-    ) : (
+  if (style === 'link') {
+    const downloadAttr =
+      download !== undefined ? (download === '' ? true : langAsString(download)) : undefined;
+
+    return (
+      <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
+        <div>
+          <a
+            id={`link-${componentId}`}
+            download={downloadAttr}
+            href={href}
+            target={openInNewTab ? '_blank' : undefined}
+            rel={openInNewTab ? 'noreferrer' : undefined}
+          >
+            {lang(title)}
+          </a>
+        </div>
+      </ComponentStructure>
+    );
+  }
+
+  // The button styles cannot render an `<a>` directly, so navigate/download by programmatically
+  // clicking a detached anchor. A blank `download` downloads with the default filename.
+  const handleButtonClick = () => {
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.target = openInNewTab ? '_blank' : '_self';
+    if (download !== undefined) {
+      anchor.download = download === '' ? '' : langAsString(download);
+    }
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  };
+
+  return (
+    <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
       <Button
         style={position ? alignStyle(position) : {}}
         textAlign={textAlign}
         id={`link-${componentId}`}
         color={buttonStyles[style].color}
         variant={buttonStyles[style].variant}
-        onClick={() => {
-          const anchor = document.createElement('a');
-          anchor.href = href;
-          anchor.target = openInNewTab ? '_blank' : '_self';
-          if (download !== undefined) {
-            anchor.download = download === '' ? '' : langAsString(download);
-          }
-          document.body.appendChild(anchor);
-          anchor.click();
-          document.body.removeChild(anchor);
-        }}
+        onClick={handleButtonClick}
         size={size}
         fullWidth={fullWidth}
       >
         {lang(title)}
       </Button>
-    );
-
-  return (
-    <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
-      {content}
     </ComponentStructure>
   );
 }
