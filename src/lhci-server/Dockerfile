@@ -1,4 +1,4 @@
-FROM node:24-bullseye-slim@sha256:6db635878579101aa23fc1d224816de4f5842e55f24f5098f1e5f03bf79b806c
+FROM node:24-bullseye-slim@sha256:aca89821b1f09df223227ff2abe075fc3161f05604d3b61309f46820a5938020
 
 RUN apt-get update --fix-missing && \
     apt-get install -y python3 build-essential && \
