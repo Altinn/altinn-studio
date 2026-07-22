@@ -191,16 +191,16 @@
     "version": 2,
     "discovery": {
       "allowed-hostnames": [
+        "local.altinn.cloud",
         "localhost",
-        "localhost:8080",
         "app-frontend.local.altinn.cloud",
-        "app-frontend.local.altinn.cloud:8000",
         "altinncdn.no"
       ],
-      "network-idle-timeout": 1000,
-      "disable-cache": true,
       "launch-options": {
         "executable": "/usr/bin/google-chrome",
+        "args": [
+          "--log-net-log=/tmp/percy-netlog.json"
+        ],
         "timeout": 30000
       }
     }
