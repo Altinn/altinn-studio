@@ -1,0 +1,38 @@
+.textComponent {
+  display: flex;
+  flex-grow: 0;
+  max-width: 100%;
+  flex-basis: 100%;
+  gap: var(--ds-size-2);
+}
+
+.label span {
+  font-size: var(--ds-body-md-font-size);
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.labelWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+}

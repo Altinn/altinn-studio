@@ -12,5 +12,6 @@ export * from './Image';
 export * from './Link';
 export * from './Paragraph';
 export * from './Tabs';
-export * from './TimePicker';
+export * from './Text';
 export * from './TextArea';
+export * from './TimePicker';

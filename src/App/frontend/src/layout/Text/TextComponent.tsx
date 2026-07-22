@@ -1,42 +1,29 @@
 import React from 'react';
 
-import { DisplayText, getLabelId } from '@app/form-component';
-import cn from 'classnames';
+import { Text } from '@app/form-component';
 
-import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/Text/Text.module.css';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const TextComponent = ({ baseComponentId }: PropsFromGenericComponent<'Text'>) => {
-  const { id, textResourceBindings, value, icon, direction: _direction } = useItemWhenType(baseComponentId, 'Text');
-  const direction = _direction ?? 'horizontal';
-  const { langAsString } = useLanguage();
+export const TextComponent = ({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Text'>) => {
+  const { textResourceBindings, value, icon, direction } = useItemWhenType(baseComponentId, 'Text');
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
-  if (!textResourceBindings?.title) {
-    return <DisplayText value={value} />;
-  }
+  const renderLabel = overrideDisplay?.renderLabel ?? true;
+  const inTable = overrideDisplay?.renderedInTable === true;
+  const showLabel = renderLabel && !inTable;
 
   return (
-    <ComponentStructureWrapper
-      baseComponentId={baseComponentId}
-      label={{
-        baseComponentId,
-        renderLabelAs: 'span',
-        className: cn(
-          classes.label,
-          classes.textComponent,
-          direction === 'vertical' ? classes.vertical : classes.horizontal,
-        ),
-      }}
-    >
-      <DisplayText
-        value={value}
-        iconUrl={icon}
-        iconAltText={langAsString(textResourceBindings.title)}
-        labelId={getLabelId(id)}
-      />
-    </ComponentStructureWrapper>
+    <Text
+      componentId={componentId}
+      value={value}
+      title={showLabel ? textResourceBindings?.title : undefined}
+      description={showLabel ? textResourceBindings?.description : undefined}
+      help={showLabel ? textResourceBindings?.help : undefined}
+      icon={icon}
+      direction={direction ?? 'horizontal'}
+      innerGrid={innerGrid}
+    />
   );
 };
