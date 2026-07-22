@@ -271,7 +271,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 3. **Register in DI**: add `services.AddTransient<IWorkflowEngineCommand, MyCommand>()` in `ServiceCollectionExtensions.cs`
 
-4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddCriticalPostCommitCommand` for post-commit work the transition must wait on, `AddSideEffectCommand` for fire-and-forget post-commit work that runs as its own non-gating single-step side-effects workflow). Side-effect commands see the commit-time state (the exact state `SaveProcessStateToStorage` persisted) — but remember they run after the response has been sent, possibly in parallel with Main's critical post-commit commands *and with each other*, and must stay idempotent and non-blocking.
+4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddCriticalPostCommitCommand` for post-commit work the transition must wait on, `AddSideEffectCommand` for fire-and-forget post-commit work that runs as its own non-gating single-step side-effects workflow). Side-effect commands see the commit-time state (the exact state `SaveProcessStateToStorage` persisted) — but remember the only timing guarantee is that they never gate the transition: they are independent roots the engine may start as soon as they are enqueued at commit, possibly before the process-next response is sent, in parallel with Main's critical post-commit commands *and with each other*, and they must stay idempotent and non-blocking.
 
 5. **Startup validation**: `WorkflowEngineCommandValidator.Validate` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
 
