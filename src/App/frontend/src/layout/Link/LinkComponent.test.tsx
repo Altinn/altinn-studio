@@ -6,11 +6,6 @@ import { LinkComponent } from 'src/layout/Link/LinkComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { LinkStyle } from 'src/layout/Link/config.generated';
 
-// These are integration tests for the wrapper: they verify that item data and text-resource
-// bindings resolved by the generic-component pipeline flow through to the @app/form-component
-// `Link` layout component. The presentational behaviour (link/button markup, target/rel/download
-// attributes) is unit-tested in app-libs/form-component/.../Link/Link.test.tsx.
-
 describe('LinkComponent', () => {
   it('renders an anchor with the resolved target when style is link', async () => {
     await render({ title: 'Some title', target: 'https://www.digdir.no', style: 'link' });
@@ -20,14 +15,8 @@ describe('LinkComponent', () => {
     expect(link).toHaveAttribute('href', 'https://www.digdir.no');
   });
 
-  it('renders a button when style is primary', async () => {
+  it('renders a button when style is a button variant', async () => {
     await render({ title: 'Some title', target: 'https://www.digdir.no', style: 'primary' });
-
-    expect(screen.getByRole('button', { name: 'Some title' })).toBeInTheDocument();
-  });
-
-  it('renders a button when style is secondary', async () => {
-    await render({ title: 'Some title', target: 'https://www.digdir.no', style: 'secondary' });
 
     expect(screen.getByRole('button', { name: 'Some title' })).toBeInTheDocument();
   });
