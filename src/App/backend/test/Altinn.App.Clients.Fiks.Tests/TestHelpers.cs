@@ -251,10 +251,10 @@ internal static class TestHelpers
     {
         public Task<IEnumerable<FiksIOMessagePayload>> GeneratePayload(
             string taskId,
-            Instance instance,
             FiksArkivRecipient recipient,
             string messageType,
-            IInstanceDataAccessor? dataAccessor = null,
+            DateTimeOffset executionReferenceTime,
+            IInstanceDataAccessor dataAccessor,
             CancellationToken cancellationToken = default
         ) => throw new NotImplementedException();
 

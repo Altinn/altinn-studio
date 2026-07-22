@@ -222,7 +222,6 @@ internal sealed record TestFixture(
 
         // Non-mockable services
         builder.Services.AddTransient<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
-        builder.Services.AddTransient<InstanceDataUnitOfWorkInitializer>();
         builder.Services.AddSingleton<ModelSerializationService>();
         builder.Services.AddAppImplementationFactory();
         builder.Services.AddRuntimeEnvironment();

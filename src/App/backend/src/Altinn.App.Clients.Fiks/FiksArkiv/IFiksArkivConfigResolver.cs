@@ -27,25 +27,12 @@ public interface IFiksArkivConfigResolver
     Task<string> GetApplicationTitle(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the archive document metadata (title, etc).
-    /// </summary>
-    Task<FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(
-        Instance instance,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
     /// Gets the archive document metadata (title, etc) using the active instance data accessor.
     /// </summary>
     Task<FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(
         IInstanceDataAccessor dataAccessor,
         CancellationToken cancellationToken = default
     );
-
-    /// <summary>
-    /// Gets the recipient information for the shipment.
-    /// </summary>
-    Task<FiksArkivRecipient> GetRecipient(Instance instance, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the recipient information for the shipment using the active instance data accessor.

@@ -26,11 +26,10 @@ public class FiksArkivServiceTaskTest
     {
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
-        var host = new Mock<IFiksArkivServiceTaskHost>(MockBehavior.Strict);
+        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
         host.Setup(x =>
                 x.GenerateAndSendMessage(
                     "Task_1",
-                    instance,
                     "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett",
                     _workflowStepId,
                     _executionReferenceTime,
@@ -62,12 +61,11 @@ public class FiksArkivServiceTaskTest
     {
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
-        var host = new Mock<IFiksArkivServiceTaskHost>(MockBehavior.Strict);
+        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
         var receivedReferences = new List<Guid>();
         host.Setup(x =>
                 x.GenerateAndSendMessage(
                     It.IsAny<string>(),
-                    instance,
                     It.IsAny<string>(),
                     It.IsAny<Guid>(),
                     It.IsAny<DateTimeOffset>(),
@@ -78,7 +76,6 @@ public class FiksArkivServiceTaskTest
             .Callback(
                 (
                     string _,
-                    Instance _,
                     string _,
                     Guid sendersReference,
                     DateTimeOffset _,
@@ -224,7 +221,7 @@ public class FiksArkivServiceTaskTest
     public async Task Execute_InvalidWorkflowIdentity_ReturnsPermanentFailureWithoutHostOrMutatorSideEffects()
     {
         var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
-        var host = new Mock<IFiksArkivServiceTaskHost>(MockBehavior.Strict);
+        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
         await using var fixture = TestFixture.Create(services =>
         {
             services.AddFiksArkiv();
@@ -326,13 +323,12 @@ public class FiksArkivServiceTaskTest
         return dataMutator;
     }
 
-    private static Mock<IFiksArkivServiceTaskHost> FailingHostMockFactory()
+    private static Mock<IFiksArkivHost> FailingHostMockFactory()
     {
-        var host = new Mock<IFiksArkivServiceTaskHost>(MockBehavior.Strict);
+        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
         host.Setup(x =>
                 x.GenerateAndSendMessage(
                     It.IsAny<string>(),
-                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<Guid>(),
                     It.IsAny<DateTimeOffset>(),

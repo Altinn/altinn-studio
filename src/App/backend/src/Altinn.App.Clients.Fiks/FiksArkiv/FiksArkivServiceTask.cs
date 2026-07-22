@@ -11,13 +11,13 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv;
 internal sealed class FiksArkivServiceTask : IServiceTask
 {
     private readonly ILogger<FiksArkivServiceTask> _logger;
-    private readonly IFiksArkivServiceTaskHost _fiksArkivHost;
+    private readonly IFiksArkivHost _fiksArkivHost;
     private readonly FiksArkivSettings _fiksArkivSettings;
 
     public string Type => AltinnTaskTypes.FiksArkiv;
 
     public FiksArkivServiceTask(
-        IFiksArkivServiceTaskHost fiksArkivHost,
+        IFiksArkivHost fiksArkivHost,
         IOptions<FiksArkivSettings> fiksArkivSettings,
         ILogger<FiksArkivServiceTask> logger
     )
@@ -30,10 +30,10 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     /// <inheritdoc />
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        if (!Guid.TryParse(context.IdempotencyKey, out Guid workflowStepId))
+        if (!Guid.TryParse(context.IdempotencyKey, out Guid sendersReference))
         {
             string errorMessage =
-                $"The workflow-engine idempotency key '{context.IdempotencyKey}' is not a valid GUID and cannot be used as the Fiks client message ID.";
+                $"The workflow engine idempotency key '{context.IdempotencyKey}' is not a valid GUID and cannot be used as the Fiks client message ID.";
             _logger.LogError("FiksArkivServiceTask cannot execute: {ErrorMessage}", errorMessage);
             return ServiceTaskResult.FailedPermanent(errorMessage);
         }
@@ -51,9 +51,8 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
             var response = await _fiksArkivHost.GenerateAndSendMessage(
                 taskId,
-                instance,
                 FiksArkivConstants.MessageTypes.CreateArchiveRecord,
-                workflowStepId,
+                sendersReference,
                 context.ExecutionReferenceTime,
                 context.InstanceDataMutator,
                 context.CancellationToken

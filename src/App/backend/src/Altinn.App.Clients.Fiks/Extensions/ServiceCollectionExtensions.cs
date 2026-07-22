@@ -53,7 +53,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IServiceTask, FiksArkivServiceTask>();
         services.AddSingleton<FiksArkivHost>();
         services.AddSingleton<IFiksArkivHost>(sp => sp.GetRequiredService<FiksArkivHost>());
-        services.AddSingleton<IFiksArkivServiceTaskHost>(sp => sp.GetRequiredService<FiksArkivHost>());
         services.AddSingleton<IFiksArkivPayloadGenerator, FiksArkivDefaultPayloadGenerator>();
         services.AddSingleton<IFiksArkivResponseHandler, FiksArkivDefaultResponseHandler>();
         services.AddSingleton<IFiksArkivInstanceClient, FiksArkivInstanceClient>();

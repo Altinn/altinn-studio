@@ -7,11 +7,9 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Registers;
-using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -26,7 +24,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     private readonly FiksArkivSettings _fiksArkivSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly ITranslationService _translationService;
-    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly ILayoutEvaluatorStateInitializer _layoutStateInitializer;
     private readonly ILogger<FiksArkivConfigResolver> _logger;
     private readonly GeneralSettings _generalSettings;
@@ -36,7 +33,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         IOptions<FiksArkivSettings> fiksArkivSettings,
         IAppMetadata appMetadata,
         ITranslationService translationService,
-        InstanceDataUnitOfWorkInitializer instanceDataUnitOfWorkInitializer,
         ILayoutEvaluatorStateInitializer layoutStateInitializer,
         IOptions<GeneralSettings> generalSettings,
         IAltinnPartyClient altinnPartyClient,
@@ -46,7 +42,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         _fiksArkivSettings = fiksArkivSettings.Value;
         _appMetadata = appMetadata;
         _translationService = translationService;
-        _instanceDataUnitOfWorkInitializer = instanceDataUnitOfWorkInitializer;
         _layoutStateInitializer = layoutStateInitializer;
         _generalSettings = generalSettings.Value;
         _altinnPartyClient = altinnPartyClient;
@@ -73,31 +68,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     }
 
     /// <inheritdoc />
-    public async Task<FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(
-        Instance instance,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (_fiksArkivSettings.Metadata is null)
-            return null;
-
-        try
-        {
-            var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-                instance,
-                StorageVersionMetadata.Empty,
-                null,
-                null
-            );
-            return await GetArchiveDocumentMetadata(unitOfWork, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Fiks Arkiv error: {Error}", e.Message);
-            throw;
-        }
-    }
-
     public async Task<FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(
         IInstanceDataAccessor dataAccessor,
         CancellationToken cancellationToken = default
@@ -153,28 +123,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     }
 
     /// <inheritdoc />
-    public async Task<FiksArkivRecipient> GetRecipient(Instance instance, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var recipientSettings =
-                _fiksArkivSettings.Recipient
-                ?? throw new FiksArkivConfigurationException("FiksArkivSettings.Recipient must be configured.");
-            var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-                instance,
-                StorageVersionMetadata.Empty,
-                null,
-                null
-            );
-            return await GetRecipient(unitOfWork, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Fiks Arkiv error: {Error}", e.Message);
-            throw;
-        }
-    }
-
     public async Task<FiksArkivRecipient> GetRecipient(
         IInstanceDataAccessor dataAccessor,
         CancellationToken cancellationToken = default

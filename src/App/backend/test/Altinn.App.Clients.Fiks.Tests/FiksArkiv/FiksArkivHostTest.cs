@@ -119,125 +119,6 @@ public class FiksArkivHostTest
     }
 
     [Fact]
-    public async Task GenerateAndSendMessage_PerformsRequiredActions()
-    {
-        // Arrange
-        var fiksIOClientMock = new Mock<IFiksIOClient>();
-        var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
-        var fiksArkivConfigResolverMock = new Mock<IFiksArkivConfigResolver>(MockBehavior.Strict);
-        var fiksArkivPayloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>(MockBehavior.Strict);
-        FiksIOMessageRequest? capturedRequest = null;
-        var customFiksArkivSettings = new FiksArkivSettings
-        {
-            Receipt = new FiksArkivReceiptSettings
-            {
-                ArchiveRecord = new FiksArkivDataTypeSettings { DataType = "archive-record-type" },
-                ConfirmationRecord = new FiksArkivDataTypeSettings { DataType = "confirmation-record-type" },
-            },
-        };
-        var instance = new Instance
-        {
-            Id = "12345/8a19d133-f897-4c41-aac1-ec3859b0d67c",
-            Data =
-            [
-                new DataElement
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    DataType = customFiksArkivSettings.Receipt.ArchiveRecord.DataType,
-                    Filename = customFiksArkivSettings.Receipt.ArchiveRecord.GetFilenameOrDefault(),
-                },
-            ],
-        };
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("FiksArkivCustomSettings");
-                services.AddSingleton(fiksIOClientMock.Object);
-                services.AddSingleton(fiksArkivInstanceClientMock.Object);
-                services.AddSingleton(fiksArkivConfigResolverMock.Object);
-                services.AddSingleton(fiksArkivPayloadGeneratorMock.Object);
-            },
-            [("FiksArkivCustomSettings", customFiksArkivSettings)],
-            useDefaultFiksArkivSettings: false
-        );
-
-        fiksArkivConfigResolverMock
-            .Setup(x => x.GetRecipient(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new FiksArkivRecipient(Guid.Parse("120ec76a-c73b-43f7-957b-1450422c32b3"), null!, null!, null!)
-            )
-            .Verifiable(Times.Once);
-        fiksArkivConfigResolverMock
-            .Setup(x => x.GetCorrelationId(It.IsAny<Instance>()))
-            .Returns("correlation-id")
-            .Verifiable(Times.Once);
-
-        fiksArkivPayloadGeneratorMock
-            .Setup(x =>
-                x.GeneratePayload(
-                    It.IsAny<string>(),
-                    It.IsAny<Instance>(),
-                    It.IsAny<FiksArkivRecipient>(),
-                    It.IsAny<string>(),
-                    It.IsAny<IInstanceDataAccessor?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([new FiksIOMessagePayload(FiksArkivConstants.Filenames.ArchiveRecord, "dummy"u8.ToArray())])
-            .Verifiable(Times.Once);
-
-        fiksIOClientMock
-            .Setup(x => x.SendMessage(It.IsAny<FiksIOMessageRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                (FiksIOMessageRequest request, CancellationToken _) =>
-                {
-                    capturedRequest = request;
-                    return new FiksIOMessageResponse(SendtMelding.FromSentMessageApiModel(new SendtMeldingApiModel()));
-                }
-            )
-            .Verifiable(Times.Once);
-
-        fiksArkivInstanceClientMock
-            .Setup(x =>
-                x.DeleteBinaryData(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())
-            )
-            .Returns(Task.CompletedTask)
-            .Verifiable(Times.Once);
-        fiksArkivInstanceClientMock
-            .Setup(x =>
-                x.InsertBinaryData(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new DataElement())
-            .Verifiable(Times.Once);
-
-        // Act
-        await fixture.FiksArkivHost.GenerateAndSendMessage("task", instance, "message-type");
-
-        // Assert
-        Assert.NotNull(capturedRequest);
-        Assert.Equal("message-type", capturedRequest.MessageType);
-        Assert.Equal("correlation-id", capturedRequest.CorrelationId);
-        Assert.Equal("120ec76a-c73b-43f7-957b-1450422c32b3", capturedRequest.Recipient.ToString());
-        Assert.Equal("8a19d133-f897-4c41-aac1-ec3859b0d67c", capturedRequest.SendersReference.ToString());
-        Assert.Equal(TimeSpan.FromDays(2), capturedRequest.MessageLifetime);
-        Assert.Equal(FiksArkivConstants.Filenames.ArchiveRecord, capturedRequest.Payload.Single().Filename);
-
-        fiksArkivInstanceClientMock.Verify();
-        fiksArkivConfigResolverMock.Verify();
-        fiksArkivPayloadGeneratorMock.Verify();
-        fiksIOClientMock.Verify();
-    }
-
-    [Fact]
     public async Task GenerateAndSendMessage_WithDataMutator_NormalizesNonSeekableArchiveForStageAndSend()
     {
         var fiksIOClientMock = new Mock<IFiksIOClient>();
@@ -323,10 +204,10 @@ public class FiksArkivHostTest
             .Setup(x =>
                 x.GeneratePayload(
                     "task",
-                    instance,
                     It.IsAny<FiksArkivRecipient>(),
                     "message-type",
-                    It.IsAny<IInstanceDataAccessor?>(),
+                    executionReferenceTime,
+                    dataMutatorMock.Object,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -339,7 +220,7 @@ public class FiksArkivHostTest
                 {
                     Assert.NotNull(stagedArchiveRecord);
                     sentRequest = request;
-                    List<FiksIOMessagePayload> sentPayloads = request.Payload.ToList();
+                    List<FiksIOMessagePayload> sentPayloads = [.. request.Payload];
                     Assert.Equal(
                         ["before.txt", FiksArkivConstants.Filenames.ArchiveRecord, "after.pdf"],
                         sentPayloads.Select(x => x.Filename)
@@ -357,7 +238,6 @@ public class FiksArkivHostTest
 
         await fixture.FiksArkivHost.GenerateAndSendMessage(
             "task",
-            instance,
             "message-type",
             workflowStepId,
             executionReferenceTime,
@@ -365,7 +245,11 @@ public class FiksArkivHostTest
         );
 
         Assert.NotNull(sentRequest);
+        Assert.Equal("message-type", sentRequest.MessageType);
+        Assert.Equal("correlation-id", sentRequest.CorrelationId);
+        Assert.Equal(Guid.Parse("120ec76a-c73b-43f7-957b-1450422c32b3"), sentRequest.Recipient);
         Assert.Equal(workflowStepId, sentRequest.SendersReference);
+        Assert.Equal(TimeSpan.FromDays(2), sentRequest.MessageLifetime);
         Assert.NotSame(generatedArchivePayload, sentRequest.Payload.ElementAt(1));
         Assert.Equal("dummy"u8.ToArray(), stagedArchiveRecord?.ToArray());
         Assert.Equal("dummy"u8.ToArray(), sentArchiveRecord);
@@ -454,10 +338,10 @@ public class FiksArkivHostTest
             .Setup(x =>
                 x.GeneratePayload(
                     "task",
-                    instance,
                     It.IsAny<FiksArkivRecipient>(),
                     "message-type",
-                    It.IsAny<IInstanceDataAccessor?>(),
+                    DateTimeOffset.Parse("2026-05-17T10:15:30+02:00"),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -538,7 +422,6 @@ public class FiksArkivHostTest
 
         await fixture.FiksArkivHost.GenerateAndSendMessage(
             "task",
-            instance,
             "message-type",
             Guid.Parse("d483baea-587c-47cf-beca-1d1a4e3849b1"),
             DateTimeOffset.Parse("2026-05-17T10:15:30+02:00"),
