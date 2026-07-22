@@ -241,15 +241,6 @@ jobs:
             npx cypress "${cypress_args[@]}"
           fi
 
-      - name: Upload Percy browser network log
-        if: always() && env.ENABLE_PERCY == 'true'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
-        with:
-          name: percy-netlog-${{ matrix.containers }}
-          path: /tmp/percy-netlog.json
-          if-no-files-found: error
-          retention-days: 1
-
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()
         with:

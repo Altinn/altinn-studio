@@ -199,7 +199,7 @@
       "launch-options": {
         "executable": "/usr/bin/google-chrome",
         "args": [
-          "--log-net-log=/tmp/percy-netlog.json"
+          "--disable-features=LocalNetworkAccessChecks"
         ],
         "timeout": 30000
       }
