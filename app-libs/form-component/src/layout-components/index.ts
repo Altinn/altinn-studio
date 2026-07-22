@@ -8,6 +8,7 @@ export * from './Divider';
 export * from './Header';
 export * from './ImageUpload';
 export * from './Image';
+export * from './Link';
 export * from './Paragraph';
 export * from './Tabs';
 export * from './TimePicker';
