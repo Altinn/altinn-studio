@@ -23,10 +23,16 @@
   flex-direction: column;
   gap: var(--ds-size-1);
   align-items: flex-start;
+  flex-shrink: 0;
 }
 
 .labelRow {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--ds-size-1);
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
 }

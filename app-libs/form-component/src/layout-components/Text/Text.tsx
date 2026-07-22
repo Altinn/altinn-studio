@@ -36,37 +36,39 @@ export function Text({
   const { lang, langAsString } = useTranslation();
 
   if (!title) {
-    return <DisplayText value={value} />;
+    return <DisplayText value={value} iconUrl={icon} iconAltText='' />;
   }
 
   const labelId = getLabelId(componentId);
 
   return (
-    <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
-      <span
-        id={labelId}
-        className={cn(
-          classes.label,
-          classes.textComponent,
-          direction === 'vertical' ? classes.vertical : classes.horizontal,
-        )}
-      >
-        <span className={classes.labelWrapper}>
-          <span className={classes.labelRow}>
-            <DsLabel asChild weight='medium' data-size='md'>
-              <span>{lang(title)}</span>
-            </DsLabel>
-            {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
-          </span>
-          {description && <Description componentId={componentId} description={lang(description)} />}
+    <span
+      id={labelId}
+      className={cn(
+        classes.label,
+        classes.textComponent,
+        direction === 'vertical' ? classes.vertical : classes.horizontal,
+      )}
+    >
+      <span className={classes.labelWrapper}>
+        <span className={classes.labelRow}>
+          <DsLabel asChild weight='medium' data-size='md'>
+            <span>{lang(title)}</span>
+          </DsLabel>
+          {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
         </span>
-        <DisplayText
-          value={value}
-          iconUrl={icon}
-          iconAltText={langAsString(title)}
-          labelId={labelId}
-        />
+        {description && <Description componentId={componentId} description={lang(description)} />}
       </span>
-    </ComponentStructure>
+      <span className={classes.value}>
+        <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
+          <DisplayText
+            value={value}
+            iconUrl={icon}
+            iconAltText={langAsString(title)}
+            labelId={labelId}
+          />
+        </ComponentStructure>
+      </span>
+    </span>
   );
 }
