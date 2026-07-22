@@ -25,6 +25,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         new EngineSettings
         {
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            MaxStepCommandTimeout = TimeSpan.FromHours(2),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
             DatabaseRetryStrategy = RetryStrategy.None(),

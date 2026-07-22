@@ -97,6 +97,10 @@ spec:
             - name: secrets
               mountPath: /app/secrets
               readOnly: true
+            # readOnlyRootFilesystem is true, so give the runtime a writable /tmp. Without it .NET
+            # cannot create its diagnostic IPC socket, which makes dotnet-counters/gcdump impossible.
+            - name: tmp
+              mountPath: /tmp
           livenessProbe:
             httpGet:
               path: /health/live
@@ -116,7 +120,9 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 64Mi
+              memory: 512Mi
+            limits:
+              memory: 3Gi
       volumes:
         - name: secrets
           projected:
@@ -126,3 +132,6 @@ spec:
                   items:
                     - key: secrets.json
                       path: secrets.json
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi

@@ -1,3 +1,5 @@
+using Altinn.App.Core.Features.Process;
+
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
@@ -11,6 +13,14 @@ internal interface IWorkflowEngineCommand
     string GetKey();
 
     Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context);
+
+    /// <summary>
+    /// The command's default per-step execution options (timeout / retry strategy). This is the middle
+    /// resolution tier: it overrides the engine's global defaults but is itself overridden by a
+    /// per-implementation <see cref="IProcessStepConfigurable.StepOptions"/>. Null (the default) means
+    /// the command has no opinion and the engine's global defaults apply.
+    /// </summary>
+    ProcessStepOptions? DefaultStepOptions => null;
 }
 
 /// <summary>
