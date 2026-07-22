@@ -20,7 +20,7 @@ describe('AddItem', () => {
     const user = userEvent.setup();
     renderAddItem();
     await user.click(getAddComponentButton());
-    expect(getSelectComponentHeader()).toBeInTheDocument();
+    expect(getComponentsHeader()).toBeInTheDocument();
   });
 
   it('limits the components to the allowed set for the configuration mode and hides the show all button when everything fits', async () => {
@@ -61,7 +61,7 @@ const seedLayoutSet = (overrides: { taskType?: string; type?: string }): QueryCl
 describe('InlineItemAdder', () => {
   it('should render InlineItemAdder', () => {
     renderInlineItemAdder();
-    expect(getSelectComponentHeader()).toBeInTheDocument();
+    expect(getComponentsHeader()).toBeInTheDocument();
   });
 });
 
@@ -109,9 +109,9 @@ function getAddComponentButton(): HTMLButtonElement {
   return screen.getByRole('button', { name: textMock('ux_editor.add_item.add_component') });
 }
 
-function getSelectComponentHeader(): HTMLHeadingElement {
+function getComponentsHeader(): HTMLHeadingElement {
   return screen.getByRole('heading', {
     level: 4,
-    name: textMock('ux_editor.add_item.select_component_header'),
+    name: textMock('ux_editor.add_item.components_header'),
   });
 }

@@ -20,6 +20,7 @@ using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -351,9 +352,9 @@ public sealed class ProcessEngineTest
             .Be("Task_2:3");
         capturedRequest
             .Labels.Should()
-            .ContainKey(ProcessNextRequestFactory.ProcessNextIdLabel)
+            .ContainKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel)
             .WhoseValue.Should()
-            .Be("Task_2:3");
+            .Be("Task_2");
         capturedCollectionKey.Should().Be(_collectionKey);
     }
 
@@ -2939,7 +2940,6 @@ public sealed class ProcessEngineTest
             && (
                 label.Key == ProcessNextRequestFactory.ProcessNextSourceIdLabel
                 || label.Key == ProcessNextRequestFactory.ProcessNextTargetIdLabel
-                || label.Key == ProcessNextRequestFactory.ProcessNextIdLabel
             )
         );
 
@@ -2965,7 +2965,13 @@ public sealed class ProcessEngineTest
         };
 
     private static CollectionHeadStatus CreateCollectionHeadStatus(Guid workflowId, PersistentItemStatus status) =>
-        new() { DatabaseId = workflowId, Status = status };
+        new()
+        {
+            DatabaseId = workflowId,
+            Status = status,
+            StepsCompleted = 0,
+            StepsTotal = 1,
+        };
 
     private static WorkflowStatusResponse CreateWorkflowStatusResponse(
         Guid workflowId,
@@ -3280,6 +3286,7 @@ public sealed class ProcessEngineTest
             services.TryAddSingleton<IWorkflowCallbackSecretProvider>(_ => secretProviderMock.Object);
 
             services.TryAddTransient<ProcessNextRequestFactory>();
+            services.TryAddSingleton<ProcessStepOptionsResolver>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
 

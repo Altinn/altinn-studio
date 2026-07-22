@@ -460,6 +460,26 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
+    'process_workflow.advancing_title': 'We’re working on your form',
+    'process_workflow.advancing_body':
+      'You don’t need to do anything. We’ll take you to the next step as soon as everything is ready.',
+    'process_workflow.failed_heading': 'Something went wrong',
+    'process_workflow.failed_description':
+      'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',
+    'process_workflow.failed_contact':
+      'Contact Altinn customer service by phone ({0}) or email ({1}), and provide the references shown under _“{2}”_.',
+    'process_workflow.failed_details_kind': 'Failure type',
+    'process_workflow.failed_details_time': 'Time',
+    'process_workflow.failed_details_instance': 'Form reference',
+    'process_workflow.failed_details_reference': 'Processing reference',
+    'process_workflow.failure_kind.stepFailed': 'A processing step failed',
+    'process_workflow.failure_kind.dependencyFailed': 'A processing step failed',
+    'process_workflow.failure_kind.engineFault': 'The system failed during processing',
+    'process_workflow.failure_kind.timeout': 'Processing took too long',
+    'process_workflow.failure_kind.unknown': 'Unknown cause',
+    'process_workflow.still_working':
+      'This is taking longer than usual. Your information is saved, and we’ll continue automatically — you can safely close this page and come back later.',
+    'process_workflow.connection_trouble': 'We’re having trouble reaching the service right now. Retrying…',
     'pdfPreview.error': 'Could not show PDF preview',
     'pdfPreview.defaultButtonText': 'Preview PDF',
     'taskTypes.data': 'Fill out',
