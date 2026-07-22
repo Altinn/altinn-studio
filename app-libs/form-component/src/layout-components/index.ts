@@ -12,3 +12,4 @@ export * from './Paragraph';
 export * from './Tabs';
 export * from './TimePicker';
 export * from './TextArea';
+export * from './Video';
