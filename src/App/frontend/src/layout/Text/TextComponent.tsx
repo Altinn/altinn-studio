@@ -22,7 +22,7 @@ export const TextComponent = ({ baseComponentId, overrideDisplay }: PropsFromGen
       description={showLabel ? textResourceBindings?.description : undefined}
       help={showLabel ? textResourceBindings?.help : undefined}
       icon={icon}
-      direction={direction}
+      direction={direction ?? 'horizontal'}
       innerGrid={innerGrid}
     />
   );
