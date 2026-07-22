@@ -197,6 +197,8 @@
         "app-frontend.local.altinn.cloud:8000",
         "altinncdn.no"
       ],
+      "network-idle-timeout": 1000,
+      "disable-cache": true,
       "launch-options": {
         "executable": "/usr/bin/google-chrome",
         "timeout": 30000

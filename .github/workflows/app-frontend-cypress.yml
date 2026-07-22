@@ -186,6 +186,19 @@ jobs:
           CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
         run: npx cypress install
 
+      - name: Verify Percy stylesheet access
+        if: env.ENABLE_PERCY == 'true'
+        shell: bash
+        run: |
+          curl \
+            --dump-header - \
+            --fail \
+            --location \
+            --max-time 30 \
+            --output /dev/null \
+            --show-error \
+            http://app-frontend.local.altinn.cloud:8000/altinn-app-frontend.css
+
       - name: Cypress run
         shell: bash
         env:
