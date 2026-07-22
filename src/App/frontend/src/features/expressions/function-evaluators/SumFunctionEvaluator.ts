@@ -5,7 +5,7 @@ import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type { ValidArray } from 'src/features/expressions/types';
 
 export class SumFunctionEvaluator extends FunctionEvaluator<[ValidArray | null], number> {
-  constructor(context: EvaluateExpressionParams, argumentList: [ValidArray | null]) {
+  constructor(context: EvaluateExpressionParams<never[]>, argumentList: [ValidArray | null]) {
     super(context, argumentList);
   }
 

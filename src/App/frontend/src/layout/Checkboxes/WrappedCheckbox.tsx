@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 
 import { ConditionalWrapper, HelpText } from '@app/form-component';
 import { Checkbox } from '@digdir/designsystemet-react';
@@ -17,31 +17,25 @@ type IWrappedCheckboxProps = {
   option: IOptionInternal;
   hideLabel?: boolean;
   alertOnChange?: boolean;
-  setChecked: (checked: boolean, option: IOptionInternal) => void;
+  setChecked: (checked: boolean) => void;
 } & Omit<CheckboxProps, 'label' | 'aria-label' | 'aria-labelledby'>;
 
 export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProps>(function WrappedCheckbox(
-  { id, option, hideLabel, alertOnChange, checked, setChecked, readOnly, onChange, ...rest }: IWrappedCheckboxProps,
+  { id, option, hideLabel, alertOnChange, checked, setChecked, readOnly, ...rest }: IWrappedCheckboxProps,
   ref,
 ) {
   const { langAsString, elementAsString } = useLanguage();
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange } = useAlertOnChange(
     Boolean(alertOnChange),
-    (isChecked: boolean) => setChecked(isChecked, option),
+    setChecked,
     // Only alert when unchecking
     (isChecked) => !isChecked,
   );
 
   // This forces a rerender when checked changes, which is blocked by designsystemet's popover.
   const [_, setRerenderState] = useState({});
-  const hasRendered = useRef(false);
   useEffect(() => {
-    if (!hasRendered.current) {
-      hasRendered.current = true;
-      return;
-    }
-
     setRerenderState({});
   }, [checked]);
 
@@ -83,10 +77,7 @@ export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProp
         {...rest}
         checked={checked}
         data-size='sm'
-        onChange={(e) => {
-          onChange?.(e);
-          handleChange(e.target.checked);
-        }}
+        onChange={(e) => handleChange(e.target.checked)}
         ref={ref}
       />
     </ConditionalWrapper>

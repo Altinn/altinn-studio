@@ -6,7 +6,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';

@@ -3,14 +3,14 @@ import React from 'react';
 import { Alert } from '@digdir/designsystemet-react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/Error/FailedAttachments.module.css';
 
 export function InfectedFileAlert({ baseComponentId }: { baseComponentId: string }) {
-  const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
+  const attachments = useAttachmentsFor(baseComponentId);
   const infectedAttachments = attachments.filter(
     (attachment) => isAttachmentUploaded(attachment) && attachment.data.fileScanResult === FileScanResults.Infected,
   );

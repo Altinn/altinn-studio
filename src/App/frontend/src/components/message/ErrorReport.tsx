@@ -5,7 +5,7 @@ import { Flex, FullWidthWrapper } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/message/ErrorReport.module.css';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import {
   InstantiationValidation,
@@ -85,13 +85,11 @@ interface ErrorReportListProps {
   taskErrors: BaseValidation<'error'>[];
 }
 
-type InfectedFileError = NodeRefValidation & { dataElementId: string };
-
 export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps) {
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
-  const allAttachments = AttachmentReadModel.useAllAttachments();
+  const allAttachments = useAllAttachments();
 
-  const infectedFileErrors: InfectedFileError[] = Object.entries(allAttachments || {}).flatMap(
+  const infectedFileErrors: NodeRefValidation[] = Object.entries(allAttachments || {}).flatMap(
     ([nodeId, attachments]) => {
       const { baseComponentId } = splitDashedKey(nodeId);
 
@@ -129,7 +127,7 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
       ))}
       {infectedFileErrors.map((error) => (
         <ErrorWithLink
-          key={`infected-${error.nodeId}-${error.dataElementId}`}
+          key={`infected-${error.nodeId}`}
           error={error}
         />
       ))}
@@ -200,7 +198,6 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         className={classes.buttonAsInvisibleLink}
         onClick={handleErrorClick}
         onKeyDown={handleErrorClick}
-        data-target-node={error.nodeId}
       >
         <DataModelLocationProviderFromNode nodeId={error.nodeId}>
           <Lang

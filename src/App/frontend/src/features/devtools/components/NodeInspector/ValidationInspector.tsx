@@ -3,17 +3,17 @@ import React from 'react';
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import classes from 'src/features/devtools/components/NodeInspector/ValidationInspector.module.css';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
 import { isValidationVisible } from 'src/features/validation/utils';
-import { useRawValidations, useValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { AttachmentValidation, NodeRefValidation, ValidationSeverity } from 'src/features/validation';
-import type { ValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
+import type { ValidationVisibilityBreakdown } from 'src/features/validation/ValidationStorePlugin';
 
 interface ValidationInspectorProps {
   baseComponentId: string;
@@ -30,12 +30,12 @@ const categories = [
 
 export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProps) => {
   const indexedId = useIndexedId(baseComponentId);
-  const validations = useRawValidations(baseComponentId, indexedId);
-  const rawVisibility = useValidationVisibilityBreakdown(baseComponentId, indexedId);
+  const validations = FormStore.nodes.useRawValidations(indexedId);
+  const rawVisibility = FormStore.nodes.useValidationVisibilityBreakdown(indexedId);
   const nodeVisibility = rawVisibility.effective;
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const type = useExternalItem(baseComponentId).type;
-  const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
+  const attachments = useAttachmentsFor(baseComponentId);
 
   const def = getComponentDef(type);
   if (!implementsAnyValidation(def)) {

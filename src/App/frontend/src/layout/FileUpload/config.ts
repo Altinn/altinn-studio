@@ -1,5 +1,5 @@
 import { CG } from 'src/codegen/CG';
-import { asAttachmentUploader } from 'src/features/attachments/config';
+import { AttachmentsPlugin } from 'src/features/attachments/AttachmentsPlugin';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
@@ -23,7 +23,8 @@ export const Config = asUploaderComponent(
 );
 
 export function asUploaderComponent(config: ComponentConfig) {
-  return asAttachmentUploader(config)
+  return config
+    .addPlugin(new AttachmentsPlugin())
     .addDataModelBinding(CG.common('IDataModelBindingsSimple').optional())
     .addDataModelBinding(CG.common('IDataModelBindingsList').optional())
     .addProperty(

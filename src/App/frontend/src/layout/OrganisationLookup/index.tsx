@@ -1,16 +1,16 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import type { ComponentValidationContext, PropsFromGenericComponent } from '..';
+import type { PropsFromGenericComponent } from '..';
 
-import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { FormStore } from 'src/features/form/FormContext';
+import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.generated';
 import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
 import { OrganisationLookupSummary } from 'src/layout/OrganisationLookup/OrganisationLookupSummary';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
-import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -35,15 +35,17 @@ export class OrganisationLookup extends OrganisationLookupDef {
     return null;
   }
 
-  validateEmptyField(ctx: ComponentValidationContext<'OrganisationLookup'>): ComponentValidation[] {
-    return validateEmptyFieldOnlyOneBinding(ctx, 'organisation_lookup_orgnr', 'organisation_lookup.error_required');
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useEmptyFieldValidationOnlyOneBinding(
+      baseComponentId,
+      'organisation_lookup_orgnr',
+      'organisation_lookup.error_required',
+    );
   }
 
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'OrganisationLookup'>,
-    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
-  ): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'OrganisationLookup'>): string[] {
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     return (
       validateDataModelBindingsAny(
         baseComponentId,

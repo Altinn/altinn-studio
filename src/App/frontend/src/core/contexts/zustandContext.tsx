@@ -150,18 +150,14 @@ export function createZustandHooks<Store extends StoreApi<Type>, Type = ExtractF
     return useStore(store, _useShallow(selector as any));
   };
 
-  const useLaxDS = <
-    Mode extends DSMode<Type>,
-    Strictness extends SelectorStrictness = SelectorStrictness.returnSymbolWhenNotProvided,
-  >(
+  const useLaxDS = <Mode extends DSMode<Type>>(
     mode: Mode,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     deps?: any[],
-    strictness?: Strictness,
-  ): DSReturn<DSConfig<Type, Mode, Strictness>> =>
+  ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> =>
     useDelayedSelector({
       store: useLaxStoreHook(),
-      strictness: (strictness ?? SelectorStrictness.returnSymbolWhenNotProvided) as Strictness,
+      strictness: SelectorStrictness.returnWhenNotProvided,
       mode,
       deps,
     });

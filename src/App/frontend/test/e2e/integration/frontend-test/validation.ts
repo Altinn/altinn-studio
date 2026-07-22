@@ -868,21 +868,13 @@ describe('Validation', () => {
 
     // Add one more row, this time navigating to the next page inside it to openByDefault a new row in the nested group
     cy.get(appFrontend.group.addNewItem).click();
-    // The failed page navigation above intentionally keeps the page validation mask active. Adding a row resolves
-    // minCount, but the same mask should keep revealing new required errors on the page. This is a change in v9,
-    // previously only older/existing errors would show up in the error report, new ones that appeared after the error
-    // report was triggered would not appear yet.
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
-    cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut 1. endre fra');
-    cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut 2. endre verdi til');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.group.currentValue).type('1234');
     cy.get(appFrontend.group.newValue).type('4321');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.comments).should('be.visible'); // Required field in the nested group
-    // The page validation mask also applies to the nested group row now that its required field is visible,
-    // and the main group row reports deep validations for its descendants.
-    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('contain.text', 'Rett feil her');
-    cy.get(appFrontend.group.row(1).tableRow).should('contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('not.contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).tableRow).should('not.contain.text', 'Rett feil her');
     cy.get(appFrontend.group.saveMainGroup).click({ force: true });
     cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('contain.text', 'Rett feil her');
     cy.get(appFrontend.group.row(1).tableRow).should('contain.text', 'Rett feil her');

@@ -2,7 +2,7 @@ import { ExprFunctionDefinitions } from 'src/features/expressions/expression-fun
 import { evalExpr } from 'src/features/expressions/index';
 import { ExprVal } from 'src/features/expressions/types';
 import type { AnyFuncDef } from 'src/features/expressions/expression-functions';
-import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
+import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 describe('Expressions', () => {
   it('should return default value if expression evaluates to null', () => {
@@ -10,44 +10,7 @@ describe('Expressions', () => {
       evalExpr(
         ['frontendSettings', 'whatever'],
         {
-          currentDataModelPath: undefined,
-          langToolsSelector: () => {
-            throw new Error('not used');
-          },
-          markExpressionEvaluated: () => {},
-          track: () => {},
-          getDependencies: () => [],
-          context: {
-            currentLanguage: () => 'nb',
-            currentPage: () => undefined,
-            currentDataModelPath: () => undefined,
-            assertDataSourceSupported: () => {},
-          },
-          application: {
-            getSettings: () => ({}),
-          },
-          formData: {
-            defaultDataType: () => undefined,
-            hasDataType: () => false,
-            read: () => undefined,
-          },
-          layout: {
-            getLookups: () => undefined,
-          },
-          options: {
-            getStaticOptions: () => undefined,
-          },
-          instance: {
-            countDataElements: () => 0,
-            getDataSources: () => null,
-            getProcess: () => undefined,
-          },
-          externalApi: {
-            getAll: () => ({ data: {}, errors: {} }),
-          },
-          displayValue: {
-            get: () => undefined,
-          },
+          applicationSettings: {},
         } as ExpressionDataSources,
         { returnType: ExprVal.String, defaultValue: 'hello world' },
       ),

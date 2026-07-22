@@ -1,41 +1,76 @@
 import React from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { RunOptionsEffectsForNode } from 'src/features/options/RunOptionsEffectsForNode';
-import { getComponentBehaviors, getComponentDef } from 'src/layout';
-import { DataModelLocationProviderFromRowContexts } from 'src/utils/layout/DataModelLocation';
-import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
+import { EffectPreselectedOptionIndex } from 'src/features/options/effects/EffectPreselectedOptionIndex';
+import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';
+import { EffectSetDownstreamParameters } from 'src/features/options/effects/EffectSetDownstreamParameters';
+import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel';
+import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
+import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
+import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
+import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
+import type { OptionsValueType } from 'src/features/options/useGetOptions';
+import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
+import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
+import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
+import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
 
-export function RunOptionsEffects() {
-  const nodes = FormStore.raw.useMemoSelector((state) =>
-    deriveRuntimeNodeRefs(state).flatMap((node) => {
-      const component = state.bootstrap.layoutLookups.getComponent(node.baseId);
-      if (!getComponentBehaviors(component.type)?.canHaveOptions) {
-        return [];
-      }
+interface RunOptionEffectsProps {
+  valueType: OptionsValueType;
+}
 
-      const valueType = getComponentDef(component.type).getOptionsEffectValueType();
-      if (!valueType) {
-        return [];
-      }
+export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
+  const isReadOnly = FormStore.useIsReadOnly();
+  const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  const parent = GeneratorInternal.useParent();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
+  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
+  const groupBindings = item.dataModelBindings as
+    | IDataModelBindingsForGroupCheckbox
+    | IDataModelBindingsForGroupMultiselect;
+  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ item });
+  const { options, preselectedOption } = useFilteredAndSortedOptions({ unsorted, valueType, item });
 
-      return [{ node, valueType }];
-    }),
-  );
+  if (isFetching || isReadOnly) {
+    // No need to run effects while fetching or if the data has not been set yet
+    return false;
+  }
+
+  // Quickfix to fix simpleBinding being cleared as stale in FileUploadWithTag,
+  // we don't store option values here so it makes no sense to do this,
+  // consider solving this more elegantly in the future.
+  // AFAIK, stale values are not removed from attachment tags, maybe they should?
+  const parentComponent = parent.type === 'node' ? lookups.getComponent(parent.baseId) : undefined;
+  const shouldRemoveStaleValues =
+    parentComponent?.type !== 'FileUploadWithTag' && !('renderAsSummary' in item && item.renderAsSummary);
 
   return (
-    <>
-      {nodes.map(({ node, valueType }) => (
-        <DataModelLocationProviderFromRowContexts
-          key={node.id}
-          rowContexts={node.rowContexts}
-        >
-          <RunOptionsEffectsForNode
-            node={node}
-            valueType={valueType}
-          />
-        </DataModelLocationProviderFromRowContexts>
-      ))}
-    </>
+    <WhenParentAdded>
+      {shouldRemoveStaleValues && (
+        <EffectRemoveStaleValues
+          valueType={valueType}
+          options={options}
+        />
+      )}
+      {preselectedOption !== undefined && (
+        <EffectPreselectedOptionIndex
+          preselectedOption={preselectedOption}
+          valueType={valueType}
+          options={options}
+        />
+      )}
+      {downstreamParameters && dataModelBindings && dataModelBindings.metadata ? (
+        <EffectSetDownstreamParameters downstreamParameters={downstreamParameters} />
+      ) : null}
+      {dataModelBindings && dataModelBindings.label && !!groupBindings.group ? (
+        <EffectStoreLabelInGroup options={options} />
+      ) : null}
+      {dataModelBindings && dataModelBindings.label && !groupBindings.group ? (
+        <EffectStoreLabel
+          valueType={valueType}
+          options={options}
+        />
+      ) : null}
+    </WhenParentAdded>
   );
 }

@@ -14,7 +14,7 @@ import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/App
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
 import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { useBrowserWidth, useIsMobile } from 'src/hooks/useDeviceWidths';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
   const hasGroupedNavigation = useHasGroupedNavigation();

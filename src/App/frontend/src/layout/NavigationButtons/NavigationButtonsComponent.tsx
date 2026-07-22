@@ -5,7 +5,7 @@ import { Button } from '@app/form-component';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -108,7 +108,7 @@ function NavigationButtonsComponentInner({
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
-  const attachmentsPending = AttachmentReadModel.useHasPendingAttachments();
+  const attachmentsPending = useHasPendingAttachments();
 
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,

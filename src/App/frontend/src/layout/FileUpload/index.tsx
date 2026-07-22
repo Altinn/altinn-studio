@@ -1,30 +1,23 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
-import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
+import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { validateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
-import { validateMinNumberOfAttachmentsForNode } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
-import { validateFileUploaderDataBindings } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
+import { useValidateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
+import { useValidateMinNumberOfAttachments } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
+import { useFileUploaderDataBindingsValidation } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { AnyValidation, ComponentValidation } from 'src/features/validation';
-import type {
-  ComponentValidationContext,
-  DataModelBindingValidationContext,
-  PropsFromGenericComponent,
-  ValidateComponent,
-} from 'src/layout';
-import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
+import type { ComponentValidation } from 'src/features/validation';
+import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
+import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class FileUpload extends FileUploadDef implements ValidateComponent<'FileUpload'> {
+export class FileUpload extends FileUploadDef implements ValidateComponent {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'FileUpload'>>(
     function LayoutComponentFileUploadRender(props, _): JSX.Element | null {
       return <FileUploadComponent {...props} />;
@@ -36,7 +29,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
   }
 
   useDisplayData(baseComponentId: string): string {
-    const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
+    const attachments = useAttachmentsFor(baseComponentId);
     return attachments.map((a) => a.data.filename).join(', ');
   }
 
@@ -61,26 +54,19 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return true;
   }
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'FileUpload'>): JSX.Element | null {
+  renderLayoutValidators(props: NodeValidationProps<'FileUpload'>): JSX.Element | null {
     return <FileUploadLayoutValidator {...props} />;
   }
 
-  // This component does not use required-field validation; min attachments is handled as component validation.
-  validateEmptyField(): ComponentValidation[] {
+  // This component does not have empty field validation, so has to override its inherited method
+  useEmptyFieldValidation(): ComponentValidation[] {
     return [];
   }
 
-  validateComponent(ctx: ComponentValidationContext<'FileUpload'>): AnyValidation[] {
-    const attachments = attachmentSelector(
-      makeAttachmentNode(ctx.baseComponentId, ctx.component),
-      ctx.formState,
-      ctx.instanceData,
-      getApplicationMetadata(),
-      ctx.taskId,
-    );
+  useComponentValidation(baseComponentId: string): ComponentValidation[] {
     return [
-      ...validateMinNumberOfAttachmentsForNode(ctx),
-      ...validateAttachmentDataElements(attachments, ctx.formState.validation.otherDataElementBackendValidations),
+      ...useValidateMinNumberOfAttachments(baseComponentId),
+      ...useValidateAttachmentDataElements(baseComponentId),
     ];
   }
 
@@ -91,11 +77,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return parentLayout?.type === 'RepeatingGroup';
   }
 
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'FileUpload'>,
-    context: DataModelBindingValidationContext,
-  ): string[] {
-    return validateFileUploaderDataBindings(baseComponentId, bindings, context);
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'FileUpload'>): string[] {
+    return useFileUploaderDataBindingsValidation(baseComponentId, bindings);
   }
 }

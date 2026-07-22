@@ -2,19 +2,18 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TimePickerDef } from 'src/layout/TimePicker/config.def.generated';
 import { TimePickerComponent } from 'src/layout/TimePicker/TimePickerComponent';
 import { TimePickerSummary } from 'src/layout/TimePicker/TimePickerSummary';
-import { validateTimePicker } from 'src/layout/TimePicker/useTimePickerValidation';
+import { useTimePickerValidation } from 'src/layout/TimePicker/useTimePickerValidation';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {
-  ComponentValidationContext,
-  DataModelBindingValidationContext,
   PropsFromGenericComponent,
   ValidateComponent,
   ValidationFilter,
@@ -24,7 +23,7 @@ import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class TimePicker extends TimePickerDef implements ValidateComponent<'TimePicker'>, ValidationFilter {
+export class TimePicker extends TimePickerDef implements ValidateComponent, ValidationFilter {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'TimePicker'>>(
     function LayoutComponentTimePickerRender(props, _): JSX.Element | null {
       return <TimePickerComponent {...props} />;
@@ -50,8 +49,8 @@ export class TimePicker extends TimePickerDef implements ValidateComponent<'Time
     return <TimePickerSummary {...props} />;
   }
 
-  validateComponent(ctx: ComponentValidationContext<'TimePicker'>): ComponentValidation[] {
-    return validateTimePicker(ctx);
+  useComponentValidation(baseComponentId: string): ComponentValidation[] {
+    return useTimePickerValidation(baseComponentId);
   }
 
   private static schemaFormatFilter(validation: BaseValidation): boolean {
@@ -64,11 +63,9 @@ export class TimePicker extends TimePickerDef implements ValidateComponent<'Time
     return [TimePicker.schemaFormatFilter];
   }
 
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'TimePicker'>,
-    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
-  ): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TimePicker'>): string[] {
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     const validation = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

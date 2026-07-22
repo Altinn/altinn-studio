@@ -1,12 +1,10 @@
 import { parseTimeString } from '@app/form-component';
 import type { TimeFormat, TimeValue } from '@app/form-component';
 
-import { evalExpr } from 'src/features/expressions';
-import { ExprVal } from 'src/features/expressions/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
-import type { ComponentValidationContext } from 'src/layout';
-import type { IDataModelBindings } from 'src/layout/layout';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 const isValidTimeString = (timeStr: string, format: TimeFormat): boolean => {
   if (!timeStr) {
@@ -56,21 +54,11 @@ const isValidTimeString = (timeStr: string, format: TimeFormat): boolean => {
 
 const timeToSeconds = (time: TimeValue): number => time.hours * 3600 + time.minutes * 60 + time.seconds;
 
-export function validateTimePicker(ctx: ComponentValidationContext<'TimePicker'>): ComponentValidation[] {
-  const bindings = ctx.component.dataModelBindings as IDataModelBindings<'TimePicker'> | undefined;
-  const data = readDataFromState(ctx.formState, bindings?.simpleBinding);
-  const minTime = evalExpr(ctx.component.minTime, ctx.expressionDataSources, {
-    returnType: ExprVal.String,
-    defaultValue: '',
-  });
-  const maxTime = evalExpr(ctx.component.maxTime, ctx.expressionDataSources, {
-    returnType: ExprVal.String,
-    defaultValue: '',
-  });
-  const format = evalExpr(ctx.component.format, ctx.expressionDataSources, {
-    returnType: ExprVal.String,
-    defaultValue: 'HH:mm',
-  }) as TimeFormat;
+export function useTimePickerValidation(baseComponentId: string): ComponentValidation[] {
+  const field = useDataModelBindingsFor(baseComponentId, 'TimePicker')?.simpleBinding;
+  const component = useItemWhenType(baseComponentId, 'TimePicker');
+  const data = FormStore.data.useDebouncedPick(field);
+  const { minTime, maxTime, format = 'HH:mm' } = component || {};
 
   const timeString = typeof data === 'string' || typeof data === 'number' ? String(data) : undefined;
   if (!timeString) {

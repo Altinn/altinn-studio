@@ -1,16 +1,13 @@
 import type { ReactNode, RefObject } from 'react';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
-import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
+import type { ContextNotProvided } from 'src/core/contexts/context';
 import type { DisplayData } from 'src/features/displayData';
-import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { AnyValidation, BaseValidation, ComponentValidation } from 'src/features/validation';
+import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
-import type { IData } from 'src/types/shared';
 import type { BaseRow } from 'src/utils/layout/types';
 
 type ComponentConfigs = ReturnType<typeof getComponentConfigs>;
@@ -55,45 +52,26 @@ export function getComponentCapabilities<T extends CompTypes>(type: T): Componen
   return undefined as any;
 }
 
-export function getComponentBehaviors<T extends CompTypes>(type: T): ComponentConfigs[T]['behaviors'] {
-  const configs = getComponentConfigs();
-  if (type && type in configs) {
-    return configs[type].behaviors;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return undefined as any;
-}
-
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
 ): def is Def & (ValidateEmptyField | ValidateComponent) {
-  return 'validateEmptyField' in def || 'validateComponent' in def;
+  return 'useEmptyFieldValidation' in def || 'useComponentValidation' in def;
 }
 
-export interface ValidateEmptyField<T extends CompTypes = CompTypes> {
-  validateEmptyField: (ctx: ComponentValidationContext<T>) => ComponentValidation[];
+export interface ValidateEmptyField {
+  useEmptyFieldValidation: (baseComponentId: string) => ComponentValidation[];
 }
 
 export function implementsValidateEmptyField<Def extends CompDef>(def: Def): def is Def & ValidateEmptyField {
-  return 'validateEmptyField' in def;
+  return 'useEmptyFieldValidation' in def;
 }
 
-export interface ValidateComponent<T extends CompTypes = CompTypes> {
-  validateComponent: (ctx: ComponentValidationContext<T>) => AnyValidation[];
+export interface ValidateComponent {
+  useComponentValidation: (baseComponentId: string) => ComponentValidation[];
 }
 
 export function implementsValidateComponent<Def extends CompDef>(def: Def): def is Def & ValidateComponent {
-  return 'validateComponent' in def;
-}
-
-export interface ComponentValidationContext<T extends CompTypes = CompTypes> {
-  baseComponentId: string;
-  component: CompIntermediate<T>;
-  formState: FormStoreState;
-  instanceData: IData[];
-  taskId: string | undefined;
-  expressionDataSources: ExpressionDataSources;
+  return 'useComponentValidation' in def;
 }
 
 export interface SubRouting {
@@ -110,14 +88,8 @@ export interface ValidationFilter {
   getValidationFilters: (baseComponentId: string, layoutLookups: LayoutLookups) => ValidationFilterFunction[];
 }
 
-export type DataModelBindingValidationContext = {
-  lookupBinding:
-    | ((reference: IDataModelReference) => ReturnType<DataModelSchemaResult['lookupTool']['getSchemaForPath']>)
-    | undefined;
-  layoutLookups: LayoutLookups;
-};
-
 export type FormDataSelector = (reference: IDataModelReference) => unknown;
+export type FormDataSelectorLax = ((reference: IDataModelReference) => unknown) | typeof ContextNotProvided;
 export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[];
 
 export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData {
@@ -128,13 +100,9 @@ export function implementsDataModelBindingValidation<T extends CompTypes>(
   def: CompDef<T>,
   _item?: CompIntermediate<T>,
 ): def is CompDef<T> & {
-  validateDataModelBindings: (
-    baseComponentId: string,
-    bindings: CompIntermediate['dataModelBindings'],
-    context: DataModelBindingValidationContext,
-  ) => string[];
+  useDataModelBindingValidation: (baseComponentId: string, bindings: CompIntermediate['dataModelBindings']) => string[];
 } {
-  return 'validateDataModelBindings' in def;
+  return 'useDataModelBindingValidation' in def;
 }
 
 export function implementsIsDataModelBindingsRequired<T extends CompTypes>(

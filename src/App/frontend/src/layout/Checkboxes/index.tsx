@@ -6,9 +6,9 @@ import dot from 'dot-object';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
-import { validateSimpleBindingWithOptionalGroup } from 'src/features/saveToGroup/layoutValidation';
+import { useValidateSimpleBindingWithOptionalGroup } from 'src/features/saveToGroup/layoutValidation';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
-import { validateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
+import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { CheckboxesSummary } from 'src/layout/Checkboxes/CheckboxesSummary';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
@@ -16,12 +16,8 @@ import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSumma
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
-import type {
-  ComponentValidationContext,
-  DataModelBindingValidationContext,
-  PropsFromGenericComponent,
-} from 'src/layout';
-import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
+import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -33,10 +29,6 @@ export class Checkboxes extends CheckboxesDef {
       return <CheckboxContainerComponent {...props} />;
     },
   );
-
-  getOptionsEffectValueType() {
-    return 'multi' as const;
-  }
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'Checkboxes');
@@ -81,19 +73,15 @@ export class Checkboxes extends CheckboxesDef {
     return <CheckboxesSummary {...props} />;
   }
 
-  validateEmptyField(ctx: ComponentValidationContext<'Checkboxes'>): ComponentValidation[] {
-    return validateGroupIsEmpty(ctx);
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useValidateGroupIsEmpty(baseComponentId, 'Checkboxes');
   }
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'Checkboxes'>): JSX.Element | null {
+  renderLayoutValidators(props: NodeValidationProps<'Checkboxes'>): JSX.Element | null {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'Checkboxes'>,
-    context: DataModelBindingValidationContext,
-  ): string[] {
-    return validateSimpleBindingWithOptionalGroup(baseComponentId, bindings, context);
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Checkboxes'>): string[] {
+    return useValidateSimpleBindingWithOptionalGroup(baseComponentId, bindings);
   }
 }

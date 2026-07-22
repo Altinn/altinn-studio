@@ -8,7 +8,6 @@ import cn from 'classnames';
 import { Caption } from 'src/components/form/caption/Caption';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { evalExpr } from 'src/features/expressions';
-import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
@@ -27,8 +26,9 @@ import {
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';

@@ -1,19 +1,32 @@
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
-import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
+import type { IExpandedWidthLayouts, IHiddenLayoutsExternal, IPreventNavigationLayouts } from 'src/types';
 
 export function processLayouts(layouts: ILayoutCollection, dataModelType: string) {
   const processedLayouts: ILayouts = {};
+  const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
+  const expandedWidthLayouts: IExpandedWidthLayouts = {};
+  const preventNavigationLayouts: IPreventNavigationLayouts = {};
 
   for (const key of Object.keys(layouts)) {
     const file = layouts[key];
     processedLayouts[key] = cleanLayout(file.data.layout, dataModelType);
+    hiddenLayoutsExpressions[key] = file.data.hidden;
+    expandedWidthLayouts[key] = file.data.expandedWidth;
+    preventNavigationLayouts[key] = !!file.data.validationOnNavigation;
   }
 
   removeDuplicateComponentIds(processedLayouts);
   addLikertItemToLayout(processedLayouts);
 
-  return processedLayouts;
+  return {
+    layouts,
+    processedLayouts,
+    hiddenLayoutsExpressions,
+    expandedWidthLayouts,
+    preventNavigationLayouts,
+  };
 }
 
 function removeDuplicateComponentIds(layouts: ILayouts) {

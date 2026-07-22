@@ -6,11 +6,10 @@ import { Heading } from '@digdir/designsystemet-react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
-import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { getLayoutDepth } from 'src/utils/layout/hierarchy';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
@@ -37,13 +36,13 @@ export function LargeLikertSummaryContainer({
 }: IDisplayLikertContainer) {
   const container = useItemWhenType(likertBaseId, 'Likert');
   const { title, summaryTitle } = container.textResourceBindings ?? {};
-  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const depth = getLayoutDepth(likertBaseId, layoutLookups);
+  const indexedId = useIndexedId(likertBaseId, true);
+  const depth = FormStore.raw.useSelector((state) => state.nodes.nodeData?.[indexedId]?.depth);
   const childId = makeLikertChildId(likertBaseId);
   const childIndexedId = useIndexedId(childId);
   const hidden = useIsHidden(childId);
 
-  if (hidden) {
+  if (typeof depth !== 'number' || hidden) {
     return null;
   }
 

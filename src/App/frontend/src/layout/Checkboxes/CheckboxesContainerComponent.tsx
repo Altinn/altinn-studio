@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { ConditionalWrapper } from '@app/form-component';
 import { Fieldset, useCheckboxGroup } from '@digdir/designsystemet-react';
@@ -56,19 +56,14 @@ export const CheckboxContainerComponent = ({
   const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !showLabelsInTable;
   const ariaLabel = overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined;
 
-  const setChecked = useCallback(
-    (isChecked: boolean, option: IOptionInternal) => {
-      if (groupBinding.enabled) {
-        groupBinding.toggleValue(option.value);
-      } else {
-        const newData = isChecked
-          ? [...selectedValues, option.value]
-          : selectedValues.filter((o) => o !== option.value);
-        setData(newData);
-      }
-    },
-    [groupBinding, selectedValues, setData],
-  );
+  const setChecked = (isChecked: boolean, option: IOptionInternal) => {
+    if (groupBinding.enabled) {
+      groupBinding.toggleValue(option.value);
+    } else {
+      const newData = isChecked ? [...selectedValues, option.value] : selectedValues.filter((o) => o !== option.value);
+      setData(newData);
+    }
+  };
 
   const { getCheckboxProps } = useCheckboxGroup({
     name: id,
@@ -128,7 +123,7 @@ export const CheckboxContainerComponent = ({
                   alertOnChange={alertOnChange}
                   {...getCheckboxProps(option.value)}
                   checked={selectedValues.includes(option.value)}
-                  setChecked={setChecked}
+                  setChecked={(isChecked) => setChecked(isChecked, option)}
                 />
               ))}
             </ConditionalWrapper>

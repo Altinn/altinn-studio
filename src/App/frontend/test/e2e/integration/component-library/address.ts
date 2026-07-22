@@ -8,10 +8,7 @@ describe('Address component', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.get('ul#navigation-menu > li').last().click();
     cy.contains('button', 'Send inn').click();
-    // There are multiple validation buttons with this text on the page, we need to filter by the one targeting AddressPage-Address
-    cy.get('button[data-target-node="AddressPage-Address"]:contains("Du må fylle ut postnr")')
-      .should('have.length', 1)
-      .click();
+    cy.contains('button', 'Du må fylle ut postnr').click();
     cy.url().should('include', '/Task_1/AddressPage');
     cy.get('input[data-bindingkey="zipCode"]').should('exist').and('have.focus');
   });

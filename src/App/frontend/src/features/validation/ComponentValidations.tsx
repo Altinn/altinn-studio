@@ -6,7 +6,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation } from 'src/features/validation';
 
@@ -15,37 +15,27 @@ interface Props {
   baseComponentId: string;
 }
 
-export function AllComponentValidations({ baseComponentId }: { baseComponentId?: string }) {
-  if (baseComponentId) {
-    return <AllComponentValidationsFor baseComponentId={baseComponentId} />;
-  }
-
-  return <AllComponentValidationsFromContext />;
-}
-
-function AllComponentValidationsFromContext() {
-  const baseComponentId = useCurrentComponentId();
-  if (!baseComponentId) {
+export function AllComponentValidations({ baseComponentId: _baseId }: { baseComponentId?: string }) {
+  const currentId = useCurrentComponentId();
+  const baseId = _baseId ?? currentId;
+  if (!baseId) {
     throw new Error('No component id provided to AllComponentValidations. Please report this bug.');
   }
-
-  return <AllComponentValidationsFor baseComponentId={baseComponentId} />;
-}
-
-function AllComponentValidationsFor({ baseComponentId }: { baseComponentId: string }) {
-  const validations = useUnifiedValidationsForNode(baseComponentId);
+  const validations = useUnifiedValidationsForNode(baseId);
   return (
     <ComponentValidations
       validations={validations}
-      baseComponentId={baseComponentId}
+      baseComponentId={baseId}
     />
   );
 }
 
 export function ComponentValidations({ validations, baseComponentId }: Props) {
-  const indexedId = useIndexedId(baseComponentId);
-  const config = useExternalItem(baseComponentId);
-  const inputMaxLength = config.type === 'Input' || config.type === 'TextArea' ? config.maxLength : undefined;
+  const currentId = useCurrentComponentId();
+  const baseId = baseComponentId ?? currentId;
+  const indexedId = useIndexedId(baseId);
+  const inputItem = useItemIfType<'Input' | 'TextArea'>(baseId, (type) => type === 'Input' || type === 'TextArea');
+  const inputMaxLength = inputItem?.maxLength;
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
 
   // If maxLength is set in both schema and component, don't display the schema error message here.
@@ -62,13 +52,13 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
       )
     : validations;
 
-  if (!filteredValidations?.length) {
+  if (!baseId || !filteredValidations?.length) {
     return null;
   }
 
   return (
     <ValidationMessages
-      id={`${baseComponentId}-validations`}
+      id={`${baseId}-validations`}
       dataValidation={indexedId}
       validations={filteredValidations.map((validation) => ({
         id: String(getUniqueKeyFromObject(validation)),

@@ -5,18 +5,6 @@ export interface ClaimRepeatingChildrenOptions {
   multiPage?: boolean;
 }
 
-export function getRepeatingChildBaseId(id: string, multiPage: boolean): string {
-  return multiPage ? id.split(':', 2)[1] : id;
-}
-
-export function getRepeatingChildBaseIds(children: string[], multiPage: boolean): string[] {
-  return children.map((id) => getRepeatingChildBaseId(id, multiPage));
-}
-
-export function isRepeatingChild(children: string[], multiPage: boolean, baseComponentId: string): boolean {
-  return children.some((id) => getRepeatingChildBaseId(id, multiPage) === baseComponentId);
-}
-
 export function claimRepeatingChildren<T extends CompTypes>(
   { claimChild }: ChildClaimerProps<T>,
   children: string[] | undefined,
@@ -30,7 +18,8 @@ export function claimRepeatingChildren<T extends CompTypes>(
         );
       }
 
-      claimChild(getRepeatingChildBaseId(id, true));
+      const [, childId] = id.split(':', 2);
+      claimChild(childId);
     } else {
       claimChild(id);
     }

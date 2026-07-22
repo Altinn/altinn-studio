@@ -61,7 +61,7 @@ Element.prototype.getClientRects = () => ({
 // Forcing a low timeout for useDelayedSaveState()
 global.delayedSaveState = 50;
 
-window.forceLayoutPropertiesValidation = 'off';
+window.forceNodePropertiesValidation = 'off';
 
 window.inUnitTest = true;
 

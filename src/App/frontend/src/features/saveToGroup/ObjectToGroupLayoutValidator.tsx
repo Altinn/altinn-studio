@@ -2,18 +2,16 @@ import { useEffect } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { NodeValidationProps } from 'src/layout/layout';
 
-export function ObjectToGroupLayoutValidator(
-  props: ComponentLayoutValidationProps<'List' | 'Checkboxes' | 'MultipleSelect'>,
-) {
-  const { externalItem } = props;
+export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' | 'Checkboxes' | 'MultipleSelect'>) {
+  const { intermediateItem, externalItem } = props;
   const { langAsString } = useLanguage();
   const group = externalItem.dataModelBindings?.group;
   const deletionStrategy = externalItem.deletionStrategy;
   const checkedBinding = externalItem.dataModelBindings?.checked;
 
-  const addError = FormStore.layoutDiagnostics.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     let error: string | null = null;
@@ -35,10 +33,10 @@ export function ObjectToGroupLayoutValidator(
     }
 
     if (error) {
-      addError(error, externalItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${externalItem.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [addError, externalItem.id, deletionStrategy, checkedBinding, langAsString, group]);
+  }, [addError, intermediateItem.id, deletionStrategy, checkedBinding, langAsString, group]);
 
   return null;
 }

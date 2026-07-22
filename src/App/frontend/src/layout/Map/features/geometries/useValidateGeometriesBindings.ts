@@ -1,16 +1,15 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { indexDataModelReferenceForValidation, validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
-import type { DataModelBindingValidationContext } from 'src/layout';
+import { FormStore } from 'src/features/form/FormContext';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-export function validateGeometriesBindings(
-  baseComponentId: string,
-  bindings: IDataModelBindings<'Map'>,
-  { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
-) {
+export function useValidateGeometriesBindings(baseComponentId: string, bindings: IDataModelBindings<'Map'>) {
   const { geometries, geometryLabel, geometryData, geometryIsEditable } = bindings ?? {};
-  const toolbar = layoutLookups.getComponent(baseComponentId, 'Map')?.toolbar;
+  const lookupBinding = FormStore.bootstrap.useLookupBinding();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const toolbar = useExternalItem(baseComponentId, 'Map')?.toolbar;
 
   const errors: string[] = [];
   if (!geometries) {
@@ -70,16 +69,10 @@ export function validateGeometriesBindings(
     // Validate field type
     const fieldWithIndex = `${geometries.field}[0].${fieldPath}`;
     const [schema, err] =
-      lookupBinding?.(
-        indexDataModelReferenceForValidation(
-          baseComponentId,
-          {
-            field: fieldWithIndex,
-            dataType: binding?.dataType ?? geometries.dataType,
-          },
-          layoutLookups,
-        ),
-      ) ?? [];
+      lookupBinding?.({
+        field: fieldWithIndex,
+        dataType: binding?.dataType ?? geometries.dataType,
+      }) ?? [];
 
     if (err) {
       errors.push(lookupErrorAsText(err));

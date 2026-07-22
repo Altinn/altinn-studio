@@ -2,13 +2,14 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { FormStore } from 'src/features/form/FormContext';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { TextAreaSummary } from 'src/layout/TextArea/TextAreaSummary';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
-import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
+import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -39,11 +40,9 @@ export class TextArea extends TextAreaDef {
     return <TextAreaSummary {...props} />;
   }
 
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'TextArea'>,
-    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
-  ): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TextArea'>): string[] {
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 }

@@ -6,7 +6,7 @@ import { pick } from 'dot-object';
 import type { FormDataObject } from '@app/form-component';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { useExternalApis } from 'src/core/queries/externalApi';
+import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';

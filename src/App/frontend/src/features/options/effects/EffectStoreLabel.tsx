@@ -5,16 +5,14 @@ import deepEqual from 'fast-deep-equal';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSetOptions } from 'src/features/options/useGetOptions';
+import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
-import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface Props {
-  item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
-  parent: RuntimeNodeParent;
   valueType: OptionsValueType;
   options: IOptionInternal[];
 }
@@ -22,7 +20,9 @@ interface Props {
 /**
  * This effect is responsible for setting the label/display value in the data model.
  */
-export function EffectStoreLabel({ item, parent, valueType, options }: Props) {
+export function EffectStoreLabel({ valueType, options }: Props) {
+  const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  const parent = GeneratorInternal.useParent();
   const isHidden = useIsHidden(parent.baseId);
   const { langAsString } = useLanguage();
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;

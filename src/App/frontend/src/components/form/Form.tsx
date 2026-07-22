@@ -12,7 +12,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
@@ -23,7 +23,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
-import { usePageHasVisibleRequiredValidations } from 'src/features/validation/validationHooks';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useCurrentView, useIsValidPageId, useNavigateToPage, useStartUrl } from 'src/hooks/useNavigatePage';
@@ -69,8 +68,8 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
-  const requiredFieldsMissing = usePageHasVisibleRequiredValidations(currentPageId);
-  const allAttachments = AttachmentReadModel.useAllAttachments();
+  const requiredFieldsMissing = FormStore.nodes.usePageHasVisibleRequiredValidations(currentPageId);
+  const allAttachments = useAllAttachments();
   const textResources = useTextResources();
 
   const hasInfectedFiles = Object.values(allAttachments || {}).some((attachments) =>
@@ -181,15 +180,19 @@ function useRedirectToStoredPage() {
  */
 function useSetExpandedWidth() {
   const currentPageId = useCurrentView();
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const expandedWidthFromLayout = currentPageId ? layoutCollection[currentPageId]?.data.expandedWidth : undefined;
+  const expandedPagesFromLayout = FormStore.bootstrap.useExpandedWidthLayouts();
   const expandedWidthFromSettings = usePageSettings().expandedWidth;
-  const expandedWidth = expandedWidthFromLayout ?? expandedWidthFromSettings ?? false;
   const { setExpandedWidth } = useUiConfigContext();
 
   useEffect(() => {
-    setExpandedWidth(expandedWidth);
-  }, [expandedWidth, setExpandedWidth]);
+    let defaultExpandedWidth = false;
+    if (currentPageId && expandedPagesFromLayout[currentPageId] !== undefined) {
+      defaultExpandedWidth = !!expandedPagesFromLayout[currentPageId];
+    } else if (expandedWidthFromSettings !== undefined) {
+      defaultExpandedWidth = expandedWidthFromSettings;
+    }
+    setExpandedWidth(defaultExpandedWidth);
+  }, [currentPageId, expandedPagesFromLayout, expandedWidthFromSettings, setExpandedWidth]);
 }
 
 const emptyArray = [];

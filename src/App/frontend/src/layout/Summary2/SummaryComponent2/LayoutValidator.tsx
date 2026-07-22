@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
-import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { NodeValidationProps } from 'src/layout/layout';
 
-export function Summary2LayoutValidator({ externalItem }: ComponentLayoutValidationProps<'Summary2'>) {
-  const addError = FormStore.layoutDiagnostics.useAddError();
+export function Summary2LayoutValidator({ intermediateItem, externalItem }: NodeValidationProps<'Summary2'>) {
+  const addError = FormStore.nodes.useAddError();
 
   const errors = useMemo(() => {
     const errors: string[] = [];
@@ -40,10 +40,10 @@ export function Summary2LayoutValidator({ externalItem }: ComponentLayoutValidat
   useEffect(() => {
     if (errors.length > 0) {
       const error = `Summary overrides contain errors: \n- ${errors.join('\n- ')}`;
-      addError(error, externalItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${externalItem.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [errors, externalItem.id, addError]);
+  }, [errors, intermediateItem.id, addError]);
 
   return null;
 }

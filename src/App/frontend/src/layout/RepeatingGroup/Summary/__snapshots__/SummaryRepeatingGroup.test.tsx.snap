@@ -2,6 +2,7 @@
 
 exports[`SummaryRepeatingGroup SummaryRepeatingGroup -- should match snapshot 1`] = `
 <DocumentFragment>
+   
   <div
     data-testid="summary-group-component"
     style="width: 100%;"

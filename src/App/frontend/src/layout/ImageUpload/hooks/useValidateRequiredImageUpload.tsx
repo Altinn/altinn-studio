@@ -1,12 +1,13 @@
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
-import { evalExpr } from 'src/features/expressions';
-import { ExprVal } from 'src/features/expressions/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import type { ComponentValidationContext } from 'src/layout';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
-export function validateRequiredImageUpload(required: boolean, attachmentsCount: number): ComponentValidation[] {
-  if (!required || attachmentsCount > 0) {
+export function useValidateRequiredImageUpload(baseComponentId: string): ComponentValidation[] {
+  const item = useItemWhenType(baseComponentId, 'ImageUpload');
+  const attachments = FormStore.nodes.useAttachments(useIndexedId(baseComponentId));
+
+  if (!item?.required || attachments.length > 0) {
     return [];
   }
 
@@ -20,22 +21,4 @@ export function validateRequiredImageUpload(required: boolean, attachmentsCount:
       category: ValidationMask.Required,
     },
   ];
-}
-
-export function validateRequiredImageUploadForNode(
-  ctx: ComponentValidationContext<'ImageUpload'>,
-): ComponentValidation[] {
-  return validateRequiredImageUpload(
-    evalExpr(ctx.component.required, ctx.expressionDataSources, {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-    }),
-    attachmentSelector(
-      makeAttachmentNode(ctx.baseComponentId, ctx.component),
-      ctx.formState,
-      ctx.instanceData,
-      getApplicationMetadata(),
-      ctx.taskId,
-    ).length,
-  );
 }

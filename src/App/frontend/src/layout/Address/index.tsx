@@ -2,25 +2,21 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { FormStore } from 'src/features/form/FormContext';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { AddressSummary } from 'src/layout/Address/AddressSummary/AddressSummary';
 import { AddressDef } from 'src/layout/Address/config.def.generated';
-import { validateAddress } from 'src/layout/Address/useAddressValidation';
+import { useAddressValidation } from 'src/layout/Address/useAddressValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
-import type {
-  ComponentValidationContext,
-  DataModelBindingValidationContext,
-  PropsFromGenericComponent,
-  ValidateComponent,
-} from 'src/layout';
+import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class Address extends AddressDef implements ValidateComponent<'Address'> {
+export class Address extends AddressDef implements ValidateComponent {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Address'>>(
     function LayoutComponentAddressRender(props, _): JSX.Element | null {
       return <AddressComponent {...props} />;
@@ -45,15 +41,13 @@ export class Address extends AddressDef implements ValidateComponent<'Address'> 
     return false;
   }
 
-  validateComponent(ctx: ComponentValidationContext<'Address'>): ComponentValidation[] {
-    return validateAddress(ctx);
+  useComponentValidation(baseComponentId: string): ComponentValidation[] {
+    return useAddressValidation(baseComponentId);
   }
 
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'Address'>,
-    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
-  ): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Address'>): string[] {
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     const component = layoutLookups.getComponent(baseComponentId, 'Address');
     const errors: string[] = [
       ...(validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'address', [

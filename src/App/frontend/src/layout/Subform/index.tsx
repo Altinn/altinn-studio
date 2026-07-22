@@ -10,9 +10,9 @@ import { SubformValidator } from 'src/layout/Subform/SubformValidator';
 import { RedirectBackToMainForm, SubformForm, SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { SubformSummaryComponent } from 'src/layout/Subform/Summary/SubformSummaryComponent';
 import { SubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
-import { validateSubformForNode } from 'src/layout/Subform/useValidateSubform';
-import type { ComponentValidationContext, PropsFromGenericComponent, SubRouting, ValidateComponent } from 'src/layout';
-import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import { useValidateSubform } from 'src/layout/Subform/useValidateSubform';
+import type { PropsFromGenericComponent, SubRouting, ValidateComponent } from 'src/layout';
+import type { NodeValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 function SubformRouting({ baseComponentId }: { baseComponentId: string }) {
@@ -27,7 +27,7 @@ function SubformRouting({ baseComponentId }: { baseComponentId: string }) {
   return <RedirectBackToMainForm />;
 }
 
-export class Subform extends SubformDef implements ValidateComponent<'Subform'>, SubRouting {
+export class Subform extends SubformDef implements ValidateComponent, SubRouting {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Subform'>>(
     function LayoutComponentSubformRender(props, _): JSX.Element | null {
       return <SubformComponent {...props} />;
@@ -38,7 +38,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
     return <SubformRouting baseComponentId={baseComponentId} />;
   }
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'Subform'>): JSX.Element | null {
+  renderLayoutValidators(props: NodeValidationProps<'Subform'>): JSX.Element | null {
     return <SubformValidator {...props} />;
   }
 
@@ -54,7 +54,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
     return <SubformSummaryComponent2 {...props} />;
   }
 
-  validateComponent(ctx: ComponentValidationContext<'Subform'>): ComponentValidation[] {
-    return validateSubformForNode(ctx);
+  useComponentValidation(baseComponentId: string): ComponentValidation[] {
+    return useValidateSubform(baseComponentId);
   }
 }

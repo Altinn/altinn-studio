@@ -6,8 +6,8 @@ import fs from 'node:fs';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
+import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource } from 'src/features/validation';
-import { useAllValidations } from 'src/features/validation/validationHooks';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IExpressionValidationConfig } from 'src/features/validation';
@@ -30,22 +30,30 @@ type ExpressionValidationTest = {
 };
 
 function ValidationSnapshot({ onSnapshot }: { onSnapshot: (validations: SimpleValidation[]) => void }) {
-  const validations = useAllValidations('showAll').flatMap((validation) => {
-    if (
-      validation.source !== FrontendValidationSource.Expression ||
-      !('field' in validation) ||
-      typeof validation.field !== 'string'
-    ) {
-      return [];
-    }
+  const validations = FormStore.raw.useMemoSelector((state) =>
+    Object.entries(state.nodes.nodeData).flatMap(([componentId, nodeData]) => {
+      if (!('validations' in nodeData)) {
+        return [];
+      }
 
-    return {
-      message: validation.message.key ?? '',
-      severity: validation.severity,
-      field: validation.field,
-      componentId: validation.nodeId,
-    } satisfies SimpleValidation;
-  });
+      return nodeData.validations.flatMap((validation) => {
+        if (
+          validation.source !== FrontendValidationSource.Expression ||
+          !('field' in validation) ||
+          typeof validation.field !== 'string'
+        ) {
+          return [];
+        }
+
+        return {
+          message: validation.message.key ?? '',
+          severity: validation.severity,
+          field: validation.field,
+          componentId,
+        } satisfies SimpleValidation;
+      });
+    }),
+  );
 
   useEffect(() => {
     onSnapshot(validations);

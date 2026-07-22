@@ -4,10 +4,7 @@ import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/ty
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompTypes, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
-
-type ChildClaimsMap = {
-  [parentId: string]: Set<string>;
-};
+import type { ChildClaimsMap } from 'src/utils/layout/generator/GeneratorContext';
 
 interface PlainLayoutLookups {
   // Map of all component ids (without row indexes) to component definitions

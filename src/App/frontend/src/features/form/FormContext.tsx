@@ -8,16 +8,14 @@ import { pageNavigationHooks } from 'src/features/form/layout/PageNavigationCont
 import { formBootstrapHooks } from 'src/features/formBootstrap/FormBootstrap';
 import { formDataHooks } from 'src/features/formData/FormDataWrite';
 import { validationHooks } from 'src/features/validation/validationContext';
-import { SelectorStrictness } from 'src/hooks/delayedSelectors';
-import { layoutDiagnosticsHooks } from 'src/utils/layout/LayoutDiagnostics';
-import type { AttachmentsSliceState } from 'src/features/attachments/AttachmentsStore';
+import { nodesHooks } from 'src/utils/layout/NodesContext';
 import type { PageNavigationSliceState } from 'src/features/form/layout/PageNavigationContext';
 import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import type { FormDataMethods, FormDataSliceState } from 'src/features/formData/FormDataWriteStateMachine';
 import type { ValidationSliceState } from 'src/features/validation';
 import type { ValidationInternals } from 'src/features/validation/validationContext';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { LayoutDiagnosticsSliceState } from 'src/utils/layout/LayoutDiagnostics';
+import type { NodesSliceState } from 'src/utils/layout/NodesContext';
 
 const { Provider, useLaxCtx, useCtx } = createContext<FormStoreApi>({
   name: 'Form',
@@ -26,19 +24,6 @@ const { Provider, useLaxCtx, useCtx } = createContext<FormStoreApi>({
 
 export const FormStoreProvider = Provider;
 
-const raw = createZustandHooks<FormStoreApi, FormStoreState>({
-  useStore: () => useCtx(),
-  useLaxStore: () => {
-    const ctx = useLaxCtx();
-    return ctx === ContextNotProvided ? ContextNotProvided : ctx;
-  },
-});
-
-type FormStoreRawDelayedSelector = <U>(
-  select: <S extends FormStoreState>(state: S) => U,
-  deps: unknown[],
-) => U | undefined;
-
 export const FormStore = {
   useIsInContext() {
     return useLaxCtx() !== ContextNotProvided;
@@ -46,21 +31,16 @@ export const FormStore = {
   useIsReadOnly() {
     return FormStore.raw.useSelector((state) => state.readOnly);
   },
-  raw: {
-    ...raw,
-    useRawDelayedSelector: (): FormStoreRawDelayedSelector =>
-      raw.useLaxDelayedSelector(
-        {
-          mode: 'innerSelector',
-          makeArgs: (state) => [state],
-        },
-        undefined,
-        SelectorStrictness.returnUndefinedWhenNotProvided,
-      ),
-  },
+  raw: createZustandHooks<FormStoreApi, FormStoreState>({
+    useStore: () => useCtx(),
+    useLaxStore: () => {
+      const ctx = useLaxCtx();
+      return ctx === ContextNotProvided ? ContextNotProvided : ctx;
+    },
+  }),
   data: formDataHooks,
   validation: validationHooks,
-  layoutDiagnostics: layoutDiagnosticsHooks,
+  nodes: nodesHooks,
   pageNavigation: pageNavigationHooks,
   bootstrap: formBootstrapHooks,
 };
@@ -76,9 +56,8 @@ export interface FormStoreState {
   readOnly: boolean;
 
   data: FormDataSliceState & FormDataMethods;
-  attachments: AttachmentsSliceState;
   validation: ValidationSliceState & ValidationInternals;
-  layoutDiagnostics: LayoutDiagnosticsSliceState;
+  nodes: NodesSliceState;
   pageNavigation: PageNavigationSliceState;
   bootstrap: FormBootstrapSliceState;
 }
@@ -109,11 +88,11 @@ interface FormBootstrapSliceState extends FormBootstrapContextValue {
 
 export function processBootstrap(bootstrap: FormBootstrapBase): FormBootstrapContextValue {
   const processedLayouts = processLayouts(bootstrap.layouts, bootstrap.defaultDataType);
-  const layoutLookups = makeLayoutLookups(processedLayouts, bootstrap.layouts);
+  const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts, bootstrap.layouts);
 
   return {
     ...bootstrap,
-    processedLayouts,
+    ...processedLayouts,
     layoutLookups,
   };
 }

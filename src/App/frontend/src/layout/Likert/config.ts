@@ -1,27 +1,24 @@
 import { CG } from 'src/codegen/CG';
-import { asOptionsComponent } from 'src/features/options/config';
+import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
 
-export const Config = asOptionsComponent(
-  new CG.component({
-    category: CompCategory.Container,
-    directRendering: true,
-    capabilities: {
-      renderInTable: false,
-      renderInButtonGroup: false,
-      renderInAccordion: true,
-      renderInAccordionGroup: false,
-      renderInCards: true,
-      renderInCardsMedia: false,
-      renderInTabs: true,
-    },
-    functionality: {
-      customExpressions: true,
-      displayData: false,
-    },
-  }),
-  { supportsPreselection: false },
-)
+export const Config = new CG.component({
+  category: CompCategory.Container,
+  directRendering: true,
+  capabilities: {
+    renderInTable: false,
+    renderInButtonGroup: false,
+    renderInAccordion: true,
+    renderInAccordionGroup: false,
+    renderInCards: true,
+    renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: true,
+    displayData: false,
+  },
+})
   // Auto-generated LikertItem inside here is a form component, so this is a little bit of both a
   // container and a form component
   .extends(CG.common('FormComponentProps'))
@@ -87,4 +84,5 @@ export const Config = asOptionsComponent(
     ),
   )
   .addSummaryOverrides()
-  .extends(CG.common('ILikertColumnProperties'));
+  .extends(CG.common('ILikertColumnProperties'))
+  .addPlugin(new OptionsPlugin({ supportsPreselection: false, type: 'single' }));

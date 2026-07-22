@@ -1,19 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
-import { hasPendingAttachments, waitForAttachments } from 'src/features/attachments/utils';
+import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
   type BackendValidationIssue,
   type BaseValidation,
   type FieldValidations,
   ValidationMask,
   type ValidationsProcessedLast,
+  type WaitForValidation,
 } from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
 import {
@@ -21,8 +21,9 @@ import {
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
+import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
-import { usePruneValidationMasks } from 'src/features/validation/validationHooks';
+import { pruneBoundaryMasks } from 'src/features/validation/ValidationStorePlugin';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
@@ -98,11 +99,13 @@ export function createValidationSlice(
         const dataModel = state.data.models[dataType];
         if (dataModel && validations) {
           dataModel.validations[key] = validations;
+          pruneBoundaryMasks(state);
         }
       }),
     updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
       set((state) => {
         updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
+        pruneBoundaryMasks(state);
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
@@ -116,6 +119,8 @@ export function createValidationSlice(
           } else {
             delete state.validation.otherDataElementBackendValidations[dataElementId];
           }
+
+          pruneBoundaryMasks(state);
         }
       }),
   };
@@ -171,75 +176,58 @@ export function ValidationEffects() {
   return (
     <>
       <BackendValidation />
-      <ValidationMaskPruner />
       <ManageShowAllErrors />
     </>
   );
 }
 
-export function useWaitForValidation() {
+export function useWaitForValidation(): WaitForValidation {
+  const waitForNodesReady = FormStore.nodes.useWaitUntilReady();
   const waitForSave = FormStore.data.useWaitForSave();
-  const store = FormStore.raw.useStore();
-  const waitForState = useWaitForState<undefined, FormStoreState>(store);
-  const queryClient = useQueryClient();
-  const selectFromInstance = useSelectFromInstanceData();
+  const waitForState = useWaitForState<undefined, FormStoreState>(FormStore.raw.useStore());
 
   const hasWritableDataTypes = !!FormStore.bootstrap.useWritableDataTypes()?.length;
   const getCachedInitialValidations = useGetCachedInitialValidations();
-  const getInstanceData = useCallback(
-    () => selectFromInstance((instance) => instance.data) ?? [],
-    [selectFromInstance],
-  );
-  const waitForActiveAttachments = useCallback(
-    () => waitForAttachments(store, queryClient, getInstanceData),
-    [getInstanceData, queryClient, store],
-  );
-  const initialBackendValidationsAreProcessed = useCallback(
-    () => (state: FormStoreState) => {
-      const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
-      return !isFetching && deepEqual(state.validation.processedLast.initial, cachedInitialValidations);
-    },
-    [getCachedInitialValidations],
-  );
+  const waitForNodesToValidate = useWaitForNodesToValidate();
 
   return useCallback(
     async (forceSave = true) => {
       if (!hasWritableDataTypes) {
-        // A read-only/non-data task can still receive backend validation query results, for example from process/next.
-        await waitForState(initialBackendValidationsAreProcessed());
-        await waitForActiveAttachments();
+        // Even when validation is not enabled, we may still have pending query data written by
+        // updateInitialValidations() (e.g. from process/next returning task validation issues).
+        // Wait for BackendValidation to process it into the zustand store before returning.
+        await waitForState((state) => {
+          const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
+          return (
+            !isFetching &&
+            deepEqual(state.validation.processedLast.initial, cachedInitialValidations) &&
+            !hasPendingAttachments(state)
+          );
+        });
         return;
       }
 
-      const waitForSaveAndBackendValidations = () => waitForSave(forceSave, initialBackendValidationsAreProcessed());
-      await waitForSaveAndBackendValidations();
+      // Wait until we've saved changed to backend, and we've processed the backend validations we got from that save
+      await waitForNodesReady();
+      await waitForSave(forceSave, (state) => {
+        const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
+        const initialMatch = deepEqual(state.validation.processedLast.initial, cachedInitialValidations);
+        const pendingAttachments = hasPendingAttachments(state);
 
-      do {
-        await waitForActiveAttachments();
-        await waitForSaveAndBackendValidations();
-      } while (hasPendingAttachments(store.getState(), queryClient, getInstanceData()));
+        return initialMatch && !isFetching && !pendingAttachments;
+      });
+      await waitForNodesToValidate();
+      await waitForNodesReady();
     },
     [
-      getInstanceData,
+      getCachedInitialValidations,
       hasWritableDataTypes,
-      initialBackendValidationsAreProcessed,
-      queryClient,
-      store,
-      waitForActiveAttachments,
+      waitForNodesReady,
+      waitForNodesToValidate,
       waitForSave,
       waitForState,
     ],
   );
-}
-
-function ValidationMaskPruner() {
-  const prune = usePruneValidationMasks();
-
-  useEffect(() => {
-    prune();
-  }, [prune]);
-
-  return null;
 }
 
 function ManageShowAllErrors() {
@@ -302,6 +290,21 @@ function UpdateShowAllErrors() {
 }
 
 export const validationHooks = {
+  useDataElementsWithErrors: (dataElementIds: string[]) =>
+    FormStore.raw.useShallowSelector((state) => {
+      const elementsWithErrors: string[] = [];
+      for (const dataElementId of Object.keys(state.validation.otherDataElementBackendValidations)) {
+        if (!dataElementIds.includes(dataElementId)) {
+          continue;
+        }
+        const validations = state.validation.otherDataElementBackendValidations[dataElementId];
+        if (Object.values(validations).some((v) => hasValidationErrors(v))) {
+          elementsWithErrors.push(dataElementId);
+        }
+      }
+      return elementsWithErrors;
+    }),
+
   useShowAllUnboundValidations: () => FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations),
   useSetShowAllUnboundValidations: () => {
     const validating = useWaitForValidation();

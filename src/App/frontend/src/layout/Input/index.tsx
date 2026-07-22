@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
@@ -10,9 +11,9 @@ import { InputComponent } from 'src/layout/Input/InputComponent';
 import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { formatNumericText } from 'src/utils/formattingUtils';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useItemWhenType, useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
-import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
+import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -51,11 +52,9 @@ export class Input extends InputDef {
     return <InputSummary {...props} />;
   }
 
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'Input'>,
-    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
-  ): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Input'>): string[] {
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 

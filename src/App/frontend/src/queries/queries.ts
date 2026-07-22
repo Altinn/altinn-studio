@@ -187,7 +187,7 @@ export const fetchPaymentInformationForTask = (
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));
 
-export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
+export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   // Hacky (and only) way to get the correct CDN url
   const schemaBaseUrl = document
     .querySelector('script[src$="altinn-app-frontend.js"]')
@@ -195,10 +195,10 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
     ?.replace('altinn-app-frontend.js', 'schemas/json/layout/');
 
   if (!schemaBaseUrl) {
-    return Promise.resolve(null);
+    return Promise.resolve(undefined);
   }
 
-  return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? null;
+  return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? undefined;
 };
 
 export function fetchExternalApi({

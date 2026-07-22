@@ -1,25 +1,24 @@
 import React, { forwardRef } from 'react';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { ApiTable } from 'src/layout/SimpleTable/ApiTable';
 import { ApiTableSummary } from 'src/layout/SimpleTable/ApiTableSummary';
 import { SimpleTableDef } from 'src/layout/SimpleTable/config.def.generated';
 import { SimpleTableComponent } from 'src/layout/SimpleTable/SimpleTableComponent';
 import { SimpleTableFeatureFlagLayoutValidator } from 'src/layout/SimpleTable/SimpleTableFeatureFlagLayoutValidator';
 import { SimpleTableSummary } from 'src/layout/SimpleTable/SimpleTableSummary';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
-import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
-import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
+import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class SimpleTable extends SimpleTableDef {
-  validateDataModelBindings(
-    baseComponentId: string,
-    bindings: IDataModelBindings<'SimpleTable'>,
-    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
-  ): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'SimpleTable'>): string[] {
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     const component = layoutLookups.getComponent(baseComponentId, 'SimpleTable');
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
     const [errors, result] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,
@@ -89,7 +88,7 @@ export class SimpleTable extends SimpleTableDef {
     },
   );
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'SimpleTable'>): React.JSX.Element | null {
+  renderLayoutValidators(props: NodeValidationProps<'SimpleTable'>): React.JSX.Element | null {
     return <SimpleTableFeatureFlagLayoutValidator {...props} />;
   }
 

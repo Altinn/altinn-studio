@@ -5,10 +5,8 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { type IFailedAttachment } from 'src/features/attachments';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
-import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
-import { isDataPostError } from 'src/features/attachments/isDataPostError';
+import { type IFailedAttachment, isDataPostError } from 'src/features/attachments';
+import { useDeleteFailedAttachment, useFailedAttachmentsFor } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getValidationIssueMessage } from 'src/features/validation/backendValidation/backendValidationUtils';
@@ -17,8 +15,8 @@ import { isRejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 
 export function FailedAttachments({ baseComponentId }: { baseComponentId: string }) {
-  const failedAttachments = AttachmentReadModel.useFailedAttachmentsFor(baseComponentId);
-  const deleteFailedAttachment = AttachmentUpload.useDeleteFailedAttachment();
+  const failedAttachments = useFailedAttachmentsFor(baseComponentId);
+  const deleteFailedAttachment = useDeleteFailedAttachment();
   const indexedId = useIndexedId(baseComponentId);
 
   return failedAttachments.length > 0 ? (

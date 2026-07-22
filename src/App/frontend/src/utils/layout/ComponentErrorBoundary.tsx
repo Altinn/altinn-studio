@@ -37,7 +37,7 @@ export class ComponentErrorBoundary extends Component<Props, IErrorBoundary> {
 }
 
 function StoreErrorAndBail({ error, nodeId }: { error: Error; nodeId: string }) {
-  const addError = FormStore.layoutDiagnostics.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     window.logError(`Exception thrown when rendering node "${nodeId}":\n`, error);

@@ -6,7 +6,7 @@ import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { ValidateSigningTaskType } from 'src/layout/SigningActions/ValidateSigningTaskType';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { NodeValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class SigneeList extends SigneeListDef {
@@ -16,7 +16,7 @@ export class SigneeList extends SigneeListDef {
     },
   );
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'SigneeList'>): JSX.Element | null {
+  renderLayoutValidators(props: NodeValidationProps<'SigneeList'>): JSX.Element | null {
     return <ValidateSigningTaskType {...props} />;
   }
 

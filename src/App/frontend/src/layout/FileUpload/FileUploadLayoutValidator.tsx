@@ -5,15 +5,16 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompExternal, ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { CompExternal, NodeValidationProps } from 'src/layout/layout';
 
-export function FileUploadLayoutValidator({
-  externalItem,
-}: ComponentLayoutValidationProps<'FileUpload' | 'FileUploadWithTag'>): JSX.Element | null {
+export function FileUploadLayoutValidator(
+  props: NodeValidationProps<'FileUpload' | 'FileUploadWithTag'>,
+): JSX.Element | null {
+  const { intermediateItem, externalItem } = props;
   const allPages = FormStore.bootstrap.useLayouts();
   const binding = extractBinding(externalItem);
   const { langAsString } = useLanguage();
-  const addError = FormStore.layoutDiagnostics.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   const othersWithSameBinding: string[] = [];
   if (binding) {
@@ -43,10 +44,10 @@ export function FileUploadLayoutValidator({
     }
 
     if (error) {
-      addError(error, externalItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${externalItem.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [addError, langAsString, externalItem.id, othersWithSameBindingMemo]);
+  }, [addError, langAsString, intermediateItem.id, othersWithSameBindingMemo]);
 
   return null;
 }

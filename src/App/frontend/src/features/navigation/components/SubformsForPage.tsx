@@ -19,8 +19,8 @@ import {
   useExpressionDataSourcesForSubform,
   useSubformFormData,
 } from 'src/layout/Subform/utils';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
@@ -126,7 +126,7 @@ function SubformLink({
   const disabled = useIsAnyProcessing();
   const enterSubform = useEnterSubform();
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
 
   const subformEntryName =
     !isSubformDataFetching && !subformDataError

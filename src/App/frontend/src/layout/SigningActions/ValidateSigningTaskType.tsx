@@ -6,23 +6,23 @@ import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/u
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { ProcessTaskType } from 'src/types';
-import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { NodeValidationProps } from 'src/layout/layout';
 
-type Props = ComponentLayoutValidationProps<'SigningActions' | 'SigningDocumentList' | 'SigneeList'>;
+type Props = NodeValidationProps<'SigningActions' | 'SigningDocumentList' | 'SigneeList'>;
 
 export function ValidateSigningTaskType(props: Props) {
   const currentTaskType = useTaskTypeFromBackend();
   const isInCurrentTask = useIsInCurrentTask();
-  const addError = FormStore.layoutDiagnostics.useAddError();
+  const addError = FormStore.nodes.useAddError();
   const { langAsString } = useLanguage();
-  const error = langAsString('signing.wrong_task_error', [props.externalItem.type]);
+  const error = langAsString('signing.wrong_task_error', [props.intermediateItem.type]);
 
   useEffect(() => {
     if (currentTaskType !== ProcessTaskType.Signing && isInCurrentTask) {
-      addError(error, props.externalItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${props.externalItem.id}': ${error}`);
+      addError(error, props.intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${props.intermediateItem.id}': ${error}`);
     }
-  }, [addError, error, isInCurrentTask, props.externalItem.id, props.externalItem.type, currentTaskType]);
+  }, [addError, error, isInCurrentTask, props.intermediateItem.id, props.intermediateItem.type, currentTaskType]);
 
   return null;
 }

@@ -5,7 +5,6 @@ import type { NavigateOptions } from 'react-router';
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { useExpressionDataSourcesForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
@@ -20,12 +19,11 @@ import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
-import { getVisiblePageOrder, useHiddenPages } from 'src/utils/layout/hidden';
+import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {
   replace?: boolean;
-  preventScrollReset?: boolean;
   skipAutoSave?: boolean;
   resetReturnToView?: boolean;
   searchParams?: URLSearchParams;
@@ -180,7 +178,8 @@ export function useIsValidTaskId() {
 export function useIsValidPageId() {
   const navParams = useAllNavigationParamsAsRef();
   const getTaskType = useGetTaskTypeById();
-  const getVisibleOrder = useVisiblePageOrderSnapshot();
+  const order = usePageOrder();
+  const orderRef = useAsRef(order);
 
   return useCallback(
     (_pageId: string) => {
@@ -189,28 +188,9 @@ export function useIsValidPageId() {
       if (getTaskType(navParams.current.taskId) !== ProcessTaskType.Data) {
         return false;
       }
-      const order = getVisibleOrder();
-      return order.includes(pageId);
+      return orderRef.current.includes(pageId) ?? false;
     },
-    [getTaskType, getVisibleOrder, navParams],
-  );
-}
-
-function useVisiblePageOrderSnapshot() {
-  const rawOrder = useRawPageOrder();
-  const rawOrderRef = useAsRef(rawOrder);
-  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
-  const layoutCollectionRef = useAsRef(layoutCollection);
-  const dataSources = useExpressionDataSourcesForStoreSelector(layoutCollection);
-
-  return useCallback(
-    () =>
-      getVisiblePageOrder({
-        dataSources,
-        layoutCollection: layoutCollectionRef.current,
-        pageOrder: rawOrderRef.current,
-      }),
-    [dataSources, layoutCollectionRef, rawOrderRef],
+    [getTaskType, navParams, orderRef],
   );
 }
 
@@ -227,16 +207,13 @@ export function useNavigateToPage() {
   const isStateless = useIsStateless();
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
-  const getVisibleOrder = useVisiblePageOrderSnapshot();
+  const orderRef = useAsRef(usePageOrder());
   const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
-  const debounceImmediately = FormStore.data.useDebounceImmediately();
   const [_, setVisitedPages] = useVisitedPages();
 
   return useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
-      debounceImmediately('forced');
-      const preventScrollReset =
-        options?.preventScrollReset || options?.searchParams?.has(SearchParams.FocusComponentId);
+      const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
       const navOptions: NavigateOptions = {
         replace: options?.replace ?? false,
         ...(preventScrollReset ? preventFocusAndScrollResetOptions : undefined),
@@ -245,8 +222,7 @@ export function useNavigateToPage() {
         window.logWarn('navigateToPage called without page');
         return;
       }
-      const order = getVisibleOrder();
-      if (!order.includes(page)) {
+      if (!orderRef.current.includes(page)) {
         window.logWarn('navigateToPage called with invalid page:', `"${page}"`);
         return;
       }
@@ -280,7 +256,7 @@ export function useNavigateToPage() {
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, navOptions);
     },
-    [getVisibleOrder, isStateless, navParams, navigate, maybeSaveOnPageChange, debounceImmediately, setVisitedPages],
+    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, setVisitedPages],
   );
 }
 

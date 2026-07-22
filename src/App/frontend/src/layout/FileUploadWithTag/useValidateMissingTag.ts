@@ -1,14 +1,14 @@
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
-import { evalExpr } from 'src/features/expressions';
-import { ExprVal } from 'src/features/expressions/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import type { IAttachment } from 'src/features/attachments';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { AttachmentValidation, ComponentValidation } from 'src/features/validation';
-import type { ComponentValidationContext } from 'src/layout';
 
-export function validateMissingTags(attachments: IAttachment[], tagKey: string | undefined): ComponentValidation[] {
+export function useValidateMissingTag(baseComponentId: string): ComponentValidation[] {
+  const item = useItemWhenType(baseComponentId, 'FileUploadWithTag');
+  const tagKey = item?.textResourceBindings?.tagTitle;
+  const attachments = FormStore.nodes.useAttachments(useIndexedId(baseComponentId));
   const validations: ComponentValidation[] = [];
 
   for (const attachment of attachments) {
@@ -36,22 +36,4 @@ export function validateMissingTags(attachments: IAttachment[], tagKey: string |
   }
 
   return validations;
-}
-
-export function validateMissingTagsForNode(
-  ctx: ComponentValidationContext<'FileUploadWithTag'>,
-): ComponentValidation[] {
-  return validateMissingTags(
-    attachmentSelector(
-      makeAttachmentNode(ctx.baseComponentId, ctx.component),
-      ctx.formState,
-      ctx.instanceData,
-      getApplicationMetadata(),
-      ctx.taskId,
-    ),
-    evalExpr(ctx.component.textResourceBindings?.tagTitle, ctx.expressionDataSources, {
-      returnType: ExprVal.String,
-      defaultValue: '',
-    }),
-  );
 }

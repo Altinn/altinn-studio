@@ -1,12 +1,9 @@
-import { useCallback } from 'react';
-
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
-import { parseInstanceId } from 'src/core/queries/instance';
+import { parseInstanceId } from 'src/core/queries/instance/utils';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
-import type { IInstance } from 'src/types/shared';
 
 type InstantiationArgs = number | Instantiation;
 
@@ -49,17 +46,6 @@ export function activeInstancesQuery({ partyId, instanceApi }: ActiveInstancesQu
     queryKey: instanceQueryKeys.active(partyId),
     queryFn: () => instanceApi.getActiveInstances({ partyId }),
   });
-}
-
-export function useGetCachedInstanceData() {
-  const queryClient = useQueryClient();
-  return useCallback(
-    (instanceOwnerPartyId: string | undefined, instanceGuid: string | undefined): IInstance | undefined =>
-      instanceOwnerPartyId && instanceGuid
-        ? queryClient.getQueryData<IInstance>(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }))
-        : undefined,
-    [queryClient],
-  );
 }
 
 export function useCreateInstance(language: string) {

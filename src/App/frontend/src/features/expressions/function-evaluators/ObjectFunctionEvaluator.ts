@@ -4,7 +4,7 @@ import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type { ValidObject, ValidValue } from 'src/features/expressions/types';
 
 export class ObjectFunctionEvaluator extends FunctionEvaluator<ValidValue[], ValidObject> {
-  constructor(context: EvaluateExpressionParams, argumentList: ValidValue[]) {
+  constructor(context: EvaluateExpressionParams<never[]>, argumentList: ValidValue[]) {
     super(context, argumentList);
   }
 
