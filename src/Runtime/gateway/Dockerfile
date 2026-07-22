@@ -23,7 +23,7 @@ COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/ Runtime/gateway/src/Al
 WORKDIR /build/Runtime/gateway/src/Altinn.Studio.Gateway.Api/
 RUN dotnet publish -c Release -o /app/publish /p:CSharpier_Bypass=true
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:01bd3f3d617a16705f896962ce26f5c1e1588ea57c71c98908cadb7bdcd0cd4d
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:bc6ba0158e93277ca1a5bc0881d13b08e6ca7f6d98db623592095eaf7fd7a816
 WORKDIR /app
 COPY --from=build /app/publish .
 
