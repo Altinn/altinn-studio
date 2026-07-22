@@ -1,54 +1,22 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Panel } from '@app/form-component';
+import { IFrame as IFrameLayout } from '@app/form-component';
 
-import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { getSandboxProperties } from 'src/layout/IFrame/utils';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const IFrameComponent = ({ baseComponentId }: PropsFromGenericComponent<'IFrame'>): JSX.Element => {
-  const { langAsNonProcessedString } = useLanguage();
   const { textResourceBindings, sandbox } = useItemWhenType(baseComponentId, 'IFrame');
-
-  const sandboxProperties = getSandboxProperties(sandbox);
-  const iFrameTitle = textResourceBindings?.title;
-  const HTMLString = langAsNonProcessedString(iFrameTitle);
-
-  const isSrcDocUnsupported = !('srcdoc' in document.createElement('iframe'));
-  if (isSrcDocUnsupported) {
-    return (
-      <Panel
-        variant='error'
-        showIcon={true}
-        title={<Lang id='iframe_component.unsupported_browser_title' />}
-      >
-        <p>
-          <Lang id='iframe_component.unsupported_browser' />
-        </p>
-      </Panel>
-    );
-  }
-
-  // Resize the iframe to fit the content thats loaded inside it
-  const adjustIFrameSize = (iframe: React.BaseSyntheticEvent): void => {
-    iframe.target.style.height = `${iframe.target.contentWindow.document.documentElement.scrollHeight}px`;
-  };
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <iframe
-        scrolling='no'
-        frameBorder={0}
-        width='100%'
-        srcDoc={HTMLString}
-        title={iFrameTitle}
-        onLoad={adjustIFrameSize}
-        sandbox={sandboxProperties}
-      />
-    </ComponentStructureWrapper>
+    <IFrameLayout
+      componentId={componentId}
+      title={textResourceBindings?.title}
+      sandbox={sandbox}
+      innerGrid={innerGrid}
+    />
   );
 };
