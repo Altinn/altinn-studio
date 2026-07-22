@@ -2,26 +2,18 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Loader } from 'src/core/loading/Loader';
-import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
 
-export function FormRuntimeEffects({ children }: PropsWithChildren) {
+export function TaskTransitionBoundary({ children }: PropsWithChildren) {
   const isInTaskTransition = useIsInTaskTransition();
 
   if (isInTaskTransition) {
-    return <Loader reason='form-effects' />;
+    return <Loader reason='task-transition' />;
   }
 
-  return (
-    <>
-      <RunOptionsEffects />
-      {window.Cypress && <UpdateAttachmentsForCypress />}
-      {children}
-    </>
-  );
+  return children;
 }
 
 /**

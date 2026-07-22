@@ -12,6 +12,7 @@ import { useGetCachedInitialValidations } from 'src/core/queries/backendValidati
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
+import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { UpdateDataElementIdsForCypress } from 'src/features/form/DataElementIdsForCypress';
 import {
   createFormBootstrapSlice,
@@ -23,11 +24,11 @@ import {
   getRootFormStore,
   processBootstrap,
 } from 'src/features/form/FormContext';
-import { FormRuntimeEffects } from 'src/features/form/FormRuntimeEffects';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { TaskTransitionBoundary } from 'src/features/form/TaskTransitionBoundary';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
@@ -39,6 +40,7 @@ import {
   useSelectFromInstanceData,
 } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
+import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
@@ -118,17 +120,19 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     <FormStoreProvider value={storeRef.current!}>
       {window.Cypress && <UpdateDataElementIdsForCypress />}
       <FormDataWriteEffects />
-      <AttachmentEffects />
-      <ValidationEffects />
       <LayoutRevisionBoundary>
         <LayoutPropertiesValidation>
-          <FormRuntimeEffects>
+          <TaskTransitionBoundary>
+            <RunOptionsEffects />
+            {window.Cypress && <UpdateAttachmentsForCypress />}
+            <AttachmentEffects />
+            <ValidationEffects />
             <PaymentInformationProvider>
               <OrderDetailsProvider>
                 <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
               </OrderDetailsProvider>
             </PaymentInformationProvider>
-          </FormRuntimeEffects>
+          </TaskTransitionBoundary>
         </LayoutPropertiesValidation>
       </LayoutRevisionBoundary>
     </FormStoreProvider>
