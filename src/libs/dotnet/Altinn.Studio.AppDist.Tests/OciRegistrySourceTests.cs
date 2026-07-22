@@ -27,6 +27,7 @@ public sealed class OciRegistrySourceTests
 
         var files = await Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None);
 
+        Assert.NotNull(files);
         var layout = Assert.Single(files);
         Assert.Equal("schemas/json/layout/layout.schema.v1.json", layout.Path);
         Assert.Equal("""{"type":"object"}""", Encoding.UTF8.GetString(layout.Content));
@@ -40,7 +41,7 @@ public sealed class OciRegistrySourceTests
         var content = FakeRegistry.TarGz(("index.html", "<html/>"));
         handler.SetManifest("4", (ContentMediaType, handler.AddBlob(content), content.Length));
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains(SchemasMediaType, ex.Message);
@@ -55,7 +56,7 @@ public sealed class OciRegistrySourceTests
         handler.AddBlobAs(lyingDigest, blob);
         handler.SetManifest("4", (SchemasMediaType, lyingDigest, blob.Length));
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains("digest mismatch", ex.Message);
@@ -68,7 +69,7 @@ public sealed class OciRegistrySourceTests
         var blob = FakeRegistry.TarGz(("../escape.json", "{}"));
         handler.SetManifest("4", (SchemasMediaType, handler.AddBlob(blob), blob.Length));
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains("unsafe path", ex.Message);
@@ -90,6 +91,85 @@ public sealed class OciRegistrySourceTests
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
             Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
         );
+    }
+
+    [Fact]
+    public async Task FetchLayer_MissingVersionReturnsNullAndIsNotCached()
+    {
+        var handler = new FakeRegistry();
+        var source = Source(handler);
+
+        Assert.Null(await source.FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None));
+        Assert.Null(await source.FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None));
+
+        Assert.Equal(2, handler.ManifestRequests);
+    }
+
+    [Fact]
+    public async Task FetchLayer_ForbiddenRegistryThrowsAccessDenied()
+    {
+        var handler = new FakeRegistry { ManifestErrorStatus = System.Net.HttpStatusCode.Forbidden };
+
+        var ex = await Assert.ThrowsAsync<AppDistSourceAccessDeniedException>(() =>
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+        );
+
+        Assert.Equal(System.Net.HttpStatusCode.Forbidden, ex.StatusCode);
+    }
+
+    [Fact]
+    public async Task FetchLayer_ServerFailureThrowsUnavailable()
+    {
+        var handler = new FakeRegistry { ManifestErrorStatus = System.Net.HttpStatusCode.ServiceUnavailable };
+
+        var ex = await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+        );
+
+        Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable, ex.StatusCode);
+    }
+
+    [Fact]
+    public async Task FetchLayer_MissingRepositoryThrowsSourceError()
+    {
+        var handler = new FakeRegistry
+        {
+            ManifestErrorStatus = System.Net.HttpStatusCode.NotFound,
+            ManifestErrorCode = "NAME_UNKNOWN",
+        };
+
+        var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+        );
+
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, ex.StatusCode);
+    }
+
+    [Fact]
+    public async Task FetchLayer_MissingReferencedBlobThrowsArtifactError()
+    {
+        var handler = new FakeRegistry();
+        var missingDigest = "sha256:" + new string('0', 64);
+        handler.SetManifest("4", (SchemasMediaType, missingDigest, 10));
+
+        var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+        );
+
+        Assert.Contains("missing blob", ex.Message);
+    }
+
+    [Fact]
+    public async Task FetchLayer_InvalidManifestJsonThrowsArtifactError()
+    {
+        var handler = new FakeRegistry();
+        handler.SetRawManifest("4", "not-json");
+
+        var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
+            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+        );
+
+        Assert.Contains("manifest", ex.Message);
     }
 
     [Fact]
@@ -123,6 +203,18 @@ public sealed class OciRegistrySourceTests
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
             Source(handler).ListVersionsAsync(CancellationToken.None)
         );
+    }
+
+    [Fact]
+    public async Task ListVersions_MissingRepositoryThrowsSourceError()
+    {
+        var handler = new FakeRegistry { TagListErrorStatus = System.Net.HttpStatusCode.NotFound };
+
+        var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
+            Source(handler).ListVersionsAsync(CancellationToken.None)
+        );
+
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, ex.StatusCode);
     }
 
     [Fact]

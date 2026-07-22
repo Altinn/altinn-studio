@@ -56,12 +56,14 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
-    public async Task GetLayer_OfflineWithoutStoredCopyReturnsNull()
+    public async Task GetLayer_OfflineWithoutStoredCopyThrowsUnavailable()
     {
         var (provider, source, _) = Setup();
         source.Offline = true;
 
-        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            provider.GetLayerAsync("4", AppDistLayer.Schemas)
+        );
     }
 
     [Fact]
@@ -82,12 +84,20 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
-    public async Task GetVersion_NullWhenContentLayerUnavailable()
+    public async Task GetVersion_NullWhenVersionDoesNotExist()
+    {
+        var (provider, _, _) = Setup();
+
+        Assert.Null(await provider.GetVersionAsync("4"));
+    }
+
+    [Fact]
+    public async Task GetVersion_KnownVersionMissingContentThrowsArtifactError()
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
 
-        Assert.Null(await provider.GetVersionAsync("4"));
+        await Assert.ThrowsAsync<AppDistArtifactException>(() => provider.GetVersionAsync("4"));
     }
 
     [Fact]
@@ -211,17 +221,33 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
-    public async Task UnavailableResultIsNotCached()
+    public async Task UnavailableFailureIsNotCached()
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
         source.Offline = true;
 
-        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            provider.GetLayerAsync("4", AppDistLayer.Schemas)
+        );
 
         source.Offline = false;
         Assert.NotNull(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
         Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task MissingVersionIsNotCached()
+    {
+        var (provider, source, _) = Setup();
+
+        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+
+        Assert.Equal(2, source.FetchRequests);
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        Assert.NotNull(await provider.GetLayerAsync("4", AppDistLayer.Schemas));
+        Assert.Equal(3, source.FetchRequests);
     }
 
     [Fact]
@@ -241,6 +267,18 @@ public sealed class AppDistTests : IDisposable
         source.BlockFetch.SetResult();
         Assert.NotNull(await first);
         Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task CallerCancellationIsNotTranslatedToSourceFailure()
+    {
+        var (provider, _, _) = Setup();
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            provider.GetLayerAsync("4", AppDistLayer.Schemas, cts.Token)
+        );
     }
 
     [Fact]
@@ -294,7 +332,7 @@ public sealed class AppDistTests : IDisposable
         var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas);
         Assert.NotNull(schemas);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             schemas.CopyToDirectoryAsync(Path.Combine(_tempDir, "www"))
         );
         Assert.Contains("escape", ex.Message);
@@ -311,12 +349,12 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
-    public async Task ListVersions_OfflineReturnsNull()
+    public async Task ListVersions_OfflineThrowsUnavailable()
     {
         var (provider, source, _) = Setup();
         source.Offline = true;
 
-        Assert.Null(await provider.ListVersionsAsync());
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() => provider.ListVersionsAsync());
     }
 
     [Fact]

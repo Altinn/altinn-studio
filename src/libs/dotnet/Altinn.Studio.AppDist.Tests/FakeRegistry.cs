@@ -21,6 +21,10 @@ internal sealed class FakeRegistry : HttpMessageHandler
     public int TagListRequests { get; private set; }
     public int TagPageSize { get; set; }
     public bool Offline { get; set; }
+    public HttpStatusCode? ManifestErrorStatus { get; set; }
+    public string? ManifestErrorCode { get; set; }
+    public HttpStatusCode? BlobErrorStatus { get; set; }
+    public HttpStatusCode? TagListErrorStatus { get; set; }
 
     public void AddTags(params string[] tags) => _tags.AddRange(tags);
 
@@ -42,6 +46,8 @@ internal sealed class FakeRegistry : HttpMessageHandler
         _manifestsByTag[tag] =
             $$"""{"schemaVersion":2,"mediaType":"application/vnd.oci.image.manifest.v1+json","layers":[{{layerJson}}]}""";
     }
+
+    public void SetRawManifest(string tag, string manifest) => _manifestsByTag[tag] = manifest;
 
     public static byte[] TarGz(params (string Path, string Content)[] files)
     {
@@ -90,6 +96,8 @@ internal sealed class FakeRegistry : HttpMessageHandler
         if (url.StartsWith(tagsPrefix, StringComparison.Ordinal))
         {
             TagListRequests++;
+            if (TagListErrorStatus is { } errorStatus)
+                return Task.FromResult(new HttpResponseMessage(errorStatus));
             return Task.FromResult(TagsPage(url));
         }
 
@@ -97,11 +105,17 @@ internal sealed class FakeRegistry : HttpMessageHandler
         if (url.StartsWith(manifestPrefix, StringComparison.Ordinal))
         {
             ManifestRequests++;
+            if (ManifestErrorStatus is { } errorStatus)
+                return Task.FromResult(
+                    ManifestErrorCode is { } errorCode
+                        ? OciError(errorStatus, errorCode)
+                        : new HttpResponseMessage(errorStatus)
+                );
             var tag = url[manifestPrefix.Length..];
             return Task.FromResult(
                 _manifestsByTag.TryGetValue(tag, out var manifest)
                     ? Json(manifest)
-                    : new HttpResponseMessage(HttpStatusCode.NotFound)
+                    : OciError(HttpStatusCode.NotFound, "MANIFEST_UNKNOWN")
             );
         }
 
@@ -109,6 +123,8 @@ internal sealed class FakeRegistry : HttpMessageHandler
         if (url.StartsWith(blobPrefix, StringComparison.Ordinal))
         {
             BlobRequests++;
+            if (BlobErrorStatus is { } errorStatus)
+                return Task.FromResult(new HttpResponseMessage(errorStatus));
             var digest = url[blobPrefix.Length..];
             return Task.FromResult(
                 _blobsByDigest.TryGetValue(digest, out var bytes)
@@ -149,4 +165,14 @@ internal sealed class FakeRegistry : HttpMessageHandler
 
     private static HttpResponseMessage Json(string body) =>
         new(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+
+    private static HttpResponseMessage OciError(HttpStatusCode statusCode, string code) =>
+        new(statusCode)
+        {
+            Content = new StringContent(
+                $$"""{"errors":[{"code":"{{code}}","message":"registry error"}]}""",
+                Encoding.UTF8,
+                "application/json"
+            ),
+        };
 }

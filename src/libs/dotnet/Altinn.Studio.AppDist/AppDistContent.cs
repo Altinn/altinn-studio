@@ -2,21 +2,34 @@ using System.Text;
 
 namespace Altinn.Studio.AppDist;
 
+/// <summary>
+/// Provides read access to one cached app distribution layer.
+/// </summary>
 public interface IAppDistContent
 {
+    /// <summary>Gets the app distribution version.</summary>
     string Version { get; }
 
+    /// <summary>Opens a file for reading.</summary>
+    /// <exception cref="FileNotFoundException">The layer has no file at <paramref name="path"/>.</exception>
     Task<Stream> OpenFileAsync(string path, CancellationToken cancellationToken = default);
 
+    /// <summary>Reads a UTF-8 text file.</summary>
+    /// <exception cref="FileNotFoundException">The layer has no file at <paramref name="path"/>.</exception>
     Task<string> GetFileTextAsync(string path, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Reads all UTF-8 text files below <paramref name="pathPrefix"/> and returns paths relative to that prefix.
+    /// </summary>
     Task<IReadOnlyDictionary<string, string>> GetFilesAsync(
         string pathPrefix = "",
         CancellationToken cancellationToken = default
     );
 
+    /// <summary>Lists every file path relative to the layer root.</summary>
     Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Copies every file to <paramref name="targetDirectory"/>, overwriting matching files.</summary>
     Task CopyToDirectoryAsync(string targetDirectory, CancellationToken cancellationToken = default);
 }
 
@@ -67,7 +80,7 @@ internal abstract class AppDistContent(IAppDistStore store, string version) : IA
         {
             var target = Path.GetFullPath(Path.Combine(root, path));
             if (!target.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-                throw new InvalidOperationException($"file escapes the target directory: \"{path}\"");
+                throw new AppDistArtifactException($"file escapes the target directory: \"{path}\"");
             if (Path.GetDirectoryName(target) is { } parent)
                 Directory.CreateDirectory(parent);
             await using var source = await OpenFileAsync(path, cancellationToken);

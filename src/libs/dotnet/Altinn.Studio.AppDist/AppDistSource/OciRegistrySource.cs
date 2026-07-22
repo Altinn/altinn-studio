@@ -4,11 +4,15 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.AppDist;
 
+/// <summary>
+/// Retrieves app distribution layers from an OCI distribution registry.
+/// </summary>
 public sealed partial class OciRegistrySource : IAppDistSource
 {
     public const string DefaultRepository = "ghcr.io/altinn/altinn-studio/app-dist";
@@ -23,7 +27,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
     public OciRegistrySource(HttpClient httpClient, string repository = DefaultRepository)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
-        ArgumentNullException.ThrowIfNull(repository);
+        ArgumentException.ThrowIfNullOrEmpty(repository);
         var slash = repository.IndexOf('/');
         if (slash <= 0 || slash == repository.Length - 1)
             throw new ArgumentException(
@@ -35,7 +39,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
         _repository = repository[(slash + 1)..];
     }
 
-    public async Task<IReadOnlyList<AppDistFileEntry>> FetchLayerAsync(
+    public async Task<IReadOnlyList<AppDistFileEntry>?> FetchLayerAsync(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -44,13 +48,27 @@ public sealed partial class OciRegistrySource : IAppDistSource
         if (!TagPattern().IsMatch(version))
             throw new ArgumentException($"not a valid OCI tag: \"{version}\"");
 
+        var layers = await GetLayersAsync(version, LayerMediaType(layer), cancellationToken);
+        if (layers is null)
+            return null;
+
         var files = new List<AppDistFileEntry>();
-        foreach (var ociLayer in await GetLayersAsync(version, LayerMediaType(layer), cancellationToken))
+        foreach (var ociLayer in layers)
         {
             using var blob = await DownloadBlobAsync(ociLayer.Digest, cancellationToken);
             VerifyDigest(blob, ociLayer.Digest);
             blob.Position = 0;
-            files.AddRange(ExtractTarGz(blob));
+            try
+            {
+                files.AddRange(ExtractTarGz(blob));
+            }
+            catch (Exception ex) when (ex is InvalidDataException or IOException)
+            {
+                throw new AppDistArtifactException(
+                    $"{_repository}:{version}: layer {ociLayer.Digest} is not a valid tar+gzip archive",
+                    ex
+                );
+            }
         }
         return files;
     }
@@ -68,8 +86,19 @@ public sealed partial class OciRegistrySource : IAppDistSource
                     () => new HttpRequestMessage(HttpMethod.Get, pageUrl),
                     cancellationToken
                 );
-                response.EnsureSuccessStatusCode();
-                var page = await response.Content.ReadFromJsonAsync<TagsResponse>(cancellationToken);
+                EnsureSuccess(response, "list tags");
+                TagsResponse? page;
+                try
+                {
+                    page = await response.Content.ReadFromJsonAsync<TagsResponse>(cancellationToken);
+                }
+                catch (Exception ex) when (ex is JsonException or NotSupportedException)
+                {
+                    throw new AppDistSourceException(
+                        $"{_host}/{_repository}: registry returned an invalid tag list",
+                        ex
+                    );
+                }
                 if (page?.Tags is not null)
                     tags.AddRange(page.Tags);
                 url = NextPageUrl(response);
@@ -107,7 +136,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
         return null;
     }
 
-    private async Task<List<OciLayer>> GetLayersAsync(string version, string mediaType, CancellationToken ct)
+    private async Task<List<OciLayer>?> GetLayersAsync(string version, string mediaType, CancellationToken ct)
     {
         OciManifest? manifest;
         try
@@ -124,8 +153,17 @@ public sealed partial class OciRegistrySource : IAppDistSource
                 },
                 ct
             );
-            response.EnsureSuccessStatusCode();
-            manifest = await response.Content.ReadFromJsonAsync<OciManifest>(ct);
+            if (response.StatusCode == HttpStatusCode.NotFound && await IsManifestUnknownAsync(response, ct))
+                return null;
+            EnsureSuccess(response, $"fetch manifest {_repository}:{version}");
+            try
+            {
+                manifest = await response.Content.ReadFromJsonAsync<OciManifest>(ct);
+            }
+            catch (Exception ex) when (ex is JsonException or NotSupportedException)
+            {
+                throw new AppDistArtifactException($"{_repository}:{version}: manifest is not valid OCI JSON", ex);
+            }
         }
         catch (Exception ex) when (IsTransportFailure(ex, ct))
         {
@@ -133,15 +171,15 @@ public sealed partial class OciRegistrySource : IAppDistSource
         }
 
         if (manifest?.Layers is null)
-            throw new InvalidOperationException($"{_repository}:{version}: manifest has no layers");
+            throw new AppDistArtifactException($"{_repository}:{version}: manifest has no layers");
 
         var layers = manifest
             .Layers.Where(l => string.Equals(l.MediaType, mediaType, StringComparison.Ordinal))
             .ToList();
         if (layers.Count == 0)
-            throw new InvalidOperationException($"{_repository}:{version}: manifest has no {mediaType} layer");
+            throw new AppDistArtifactException($"{_repository}:{version}: manifest has no {mediaType} layer");
         if (layers.Find(l => !DigestPattern().IsMatch(l.Digest)) is { } invalid)
-            throw new InvalidOperationException(
+            throw new AppDistArtifactException(
                 $"{_repository}:{version}: unsupported digest \"{invalid.Digest}\" for {invalid.MediaType}"
             );
         return layers;
@@ -156,7 +194,9 @@ public sealed partial class OciRegistrySource : IAppDistSource
                 () => new HttpRequestMessage(HttpMethod.Get, $"https://{_host}/v2/{_repository}/blobs/{digest}"),
                 ct
             );
-            response.EnsureSuccessStatusCode();
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                throw new AppDistArtifactException($"{_repository}: manifest references missing blob {digest}");
+            EnsureSuccess(response, $"download blob {digest}");
             await response.Content.CopyToAsync(blob, ct);
             return blob;
         }
@@ -165,6 +205,11 @@ public sealed partial class OciRegistrySource : IAppDistSource
             await blob.DisposeAsync();
             throw Unavailable(ex);
         }
+        catch
+        {
+            await blob.DisposeAsync();
+            throw;
+        }
     }
 
     private void VerifyDigest(MemoryStream blob, string digest)
@@ -172,7 +217,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
         var actual = Convert.ToHexString(SHA256.HashData(blob.GetBuffer().AsSpan(0, (int)blob.Length)));
         var expected = digest["sha256:".Length..];
         if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException(
+            throw new AppDistArtifactException(
                 $"{_repository}: blob {digest} digest mismatch (got sha256:{actual.ToLowerInvariant()})"
             );
     }
@@ -206,7 +251,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
             path = path[2..];
         var segments = path.Split('/');
         if (path.Length == 0 || path[0] == '/' || segments.Any(s => s is "" or "." or ".."))
-            throw new InvalidOperationException($"archive entry has an unsafe path: \"{name}\"");
+            throw new AppDistArtifactException($"archive entry has an unsafe path: \"{name}\"");
         return path;
     }
 
@@ -221,7 +266,10 @@ public sealed partial class OciRegistrySource : IAppDistSource
         );
         response.Dispose();
         if (challenge?.Parameter is null)
-            throw new HttpRequestException($"{_host}: unauthorized without a bearer challenge");
+            throw new AppDistSourceAccessDeniedException(
+                $"{_host}: registry rejected the request without a bearer challenge",
+                HttpStatusCode.Unauthorized
+            );
         _token = await FetchTokenAsync(challenge.Parameter, ct);
         return await SendWithTokenAsync(request(), ct);
     }
@@ -237,20 +285,30 @@ public sealed partial class OciRegistrySource : IAppDistSource
     {
         var parameters = ParseChallenge(challengeParameter);
         if (!parameters.TryGetValue("realm", out var realm))
-            throw new HttpRequestException($"{_host}: bearer challenge has no realm");
+            throw new AppDistSourceException($"{_host}: bearer challenge has no realm");
         var query = new List<string>();
         if (parameters.TryGetValue("service", out var service))
             query.Add($"service={Uri.EscapeDataString(service)}");
         if (parameters.TryGetValue("scope", out var scope))
             query.Add($"scope={Uri.EscapeDataString(scope)}");
         var url = query.Count > 0 ? $"{realm}?{string.Join('&', query)}" : realm;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var tokenUrl))
+            throw new AppDistSourceException($"{_host}: bearer challenge has an invalid realm");
 
-        using var response = await _http.GetAsync(new Uri(url), ct);
-        response.EnsureSuccessStatusCode();
-        var token = await response.Content.ReadFromJsonAsync<TokenResponse>(ct);
+        using var response = await _http.GetAsync(tokenUrl, ct);
+        EnsureSuccess(response, "request bearer token");
+        TokenResponse? token;
+        try
+        {
+            token = await response.Content.ReadFromJsonAsync<TokenResponse>(ct);
+        }
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
+        {
+            throw new AppDistSourceException($"{_host}: token endpoint returned invalid JSON", ex);
+        }
         return token?.Token
             ?? token?.AccessToken
-            ?? throw new HttpRequestException($"{_host}: token endpoint returned no token");
+            ?? throw new AppDistSourceException($"{_host}: token endpoint returned no token");
     }
 
     private static Dictionary<string, string> ParseChallenge(string parameter)
@@ -268,13 +326,44 @@ public sealed partial class OciRegistrySource : IAppDistSource
         return result;
     }
 
+    private void EnsureSuccess(HttpResponseMessage response, string operation)
+    {
+        if (response.IsSuccessStatusCode)
+            return;
+
+        var status = response.StatusCode;
+        var message =
+            $"{_host}/{_repository}: {operation} returned HTTP {(int)status} ({response.ReasonPhrase ?? status.ToString()})";
+        if (status is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            throw new AppDistSourceAccessDeniedException(message, status);
+        if (status is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests || (int)status >= 500)
+            throw new AppDistSourceUnavailableException(message, status);
+        throw new AppDistSourceException(message, status);
+    }
+
+    private static async Task<bool> IsManifestUnknownAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        try
+        {
+            var error = await response.Content.ReadFromJsonAsync<OciErrorResponse>(ct);
+            return error?.Errors?.Any(item =>
+                string.Equals(item.Code, "MANIFEST_UNKNOWN", StringComparison.OrdinalIgnoreCase)
+            )
+                is true;
+        }
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
     private AppDistSourceUnavailableException Unavailable(Exception ex) =>
-        new($"{_host}/{_repository} is unreachable: {ex.Message}", ex);
+        new($"{_host}/{_repository} is unavailable: {ex.Message}", ex);
 
     private static bool IsTransportFailure(Exception ex, CancellationToken ct) =>
         ex switch
         {
-            HttpRequestException => true,
+            HttpRequestException { StatusCode: null } => true,
             IOException => true,
             TaskCanceledException => !ct.IsCancellationRequested,
             _ => false,
@@ -296,4 +385,8 @@ public sealed partial class OciRegistrySource : IAppDistSource
     internal sealed record OciManifest(string? MediaType, string? ArtifactType, IReadOnlyList<OciLayer>? Layers);
 
     internal sealed record OciLayer(string MediaType, string Digest, long Size);
+
+    internal sealed record OciErrorResponse(IReadOnlyList<OciError>? Errors);
+
+    internal sealed record OciError(string? Code, string? Message);
 }

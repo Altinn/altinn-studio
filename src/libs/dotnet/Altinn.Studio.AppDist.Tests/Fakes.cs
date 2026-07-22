@@ -20,7 +20,7 @@ internal sealed class FakeAppDistSource : IAppDistSource
         entries.AddRange(files.Select(f => new AppDistFileEntry(f.Path, Encoding.UTF8.GetBytes(f.Content))));
     }
 
-    public async Task<IReadOnlyList<AppDistFileEntry>> FetchLayerAsync(
+    public async Task<IReadOnlyList<AppDistFileEntry>?> FetchLayerAsync(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -32,9 +32,11 @@ internal sealed class FakeAppDistSource : IAppDistSource
         FetchStarted.TrySetResult();
         if (BlockFetch is not null)
             await BlockFetch.Task.WaitAsync(cancellationToken);
-        if (!_layers.TryGetValue((version, layer), out var files))
-            throw new AppDistSourceUnavailableException($"no such layer: {version}/{layer}");
-        return files;
+        if (_layers.TryGetValue((version, layer), out var files))
+            return files;
+        if (_layers.Keys.Any(key => key.Version == version))
+            throw new AppDistArtifactException($"version {version} has no {layer} layer");
+        return null;
     }
 
     public Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken)

@@ -3,9 +3,18 @@ using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.AppDist;
 
-public sealed partial class FileSystemAppDistStore(string rootDirectory) : IAppDistStore
+/// <summary>
+/// Stores app distribution layers below a local file-system directory.
+/// </summary>
+public sealed partial class FileSystemAppDistStore : IAppDistStore
 {
-    private readonly string _root = Path.GetFullPath(rootDirectory);
+    private readonly string _root;
+
+    public FileSystemAppDistStore(string rootDirectory)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(rootDirectory);
+        _root = Path.GetFullPath(rootDirectory);
+    }
 
     public Task<bool> ContainsAsync(string version, AppDistLayer layer, CancellationToken cancellationToken)
     {
