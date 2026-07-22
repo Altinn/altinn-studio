@@ -5,21 +5,24 @@ import dot from 'dot-object';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormStore } from 'src/features/form/FormContext';
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
-import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
+import { validateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
 import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { indexDataModelReferenceForValidation, validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+} from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -86,20 +89,22 @@ export class List extends ListDef {
     return <ListSummary {...props} />;
   }
 
-  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
-    return useValidateGroupIsEmpty(baseComponentId, 'List');
+  validateEmptyField(ctx: ComponentValidationContext<'List'>): ComponentValidation[] {
+    return validateGroupIsEmpty(ctx);
   }
 
-  renderLayoutValidators(props: NodeValidationProps<'List'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'List'>): JSX.Element | null {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'List'>): string[] {
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'List'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const errors: string[] = [];
     const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
     const groupBinding = bindings?.group;
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
     if (groupBinding) {
       const [groupErrors] = validateDataModelBindingsAny(
@@ -130,7 +135,14 @@ export class List extends ListDef {
         }
         const fieldWithoutGroup = binding.field.replace(`${groupBinding.field}.`, '');
         const fieldWithIndex = `${groupBinding.field}[0].${fieldWithoutGroup}`;
-        const [schema, err] = lookupBinding?.({ field: fieldWithIndex, dataType: binding.dataType }) ?? [];
+        const [schema, err] =
+          lookupBinding?.(
+            indexDataModelReferenceForValidation(
+              baseComponentId,
+              { field: fieldWithIndex, dataType: binding.dataType },
+              layoutLookups,
+            ),
+          ) ?? [];
         if (err) {
           errors.push(lookupErrorAsText(err));
         } else if (typeof schema?.type !== 'string' || !allowedLeafTypes.includes(schema.type)) {

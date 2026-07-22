@@ -1,38 +1,47 @@
-import { FormStore } from 'src/features/form/FormContext';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
+import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
+import type { ComponentValidationContext } from 'src/layout';
 
-export function useValidateMinNumberOfAttachments(baseComponentId: string): ComponentValidation[] {
-  const validations: ComponentValidation[] = [];
-  const component = useExternalItem(baseComponentId);
-  const attachments = FormStore.nodes.useAttachments(useIndexedId(baseComponentId));
-  const minNumberOfAttachments = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-    baseComponentId,
-    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-  ).minNumberOfAttachments;
-  if (!component || (component.type !== 'FileUpload' && component.type !== 'FileUploadWithTag')) {
-    return validations;
+export function validateMinNumberOfAttachments(
+  minNumberOfAttachments: number,
+  attachmentsCount = 0,
+): ComponentValidation | undefined {
+  if (minNumberOfAttachments <= 0 || attachmentsCount >= minNumberOfAttachments) {
+    return undefined;
   }
 
-  if (
-    minNumberOfAttachments !== undefined &&
-    minNumberOfAttachments > 0 &&
-    attachments.length < minNumberOfAttachments
-  ) {
-    validations.push({
-      message: {
-        key: 'form_filler.file_uploader_validation_error_file_number',
-        params: [minNumberOfAttachments],
-      },
-      severity: 'error',
-      source: FrontendValidationSource.Component,
-      // Treat visibility of minNumberOfAttachments the same as required to prevent showing an error immediately
-      category: ValidationMask.Required,
-    });
-  }
+  return {
+    message: {
+      key: 'form_filler.file_uploader_validation_error_file_number',
+      params: [minNumberOfAttachments],
+    },
+    severity: 'error',
+    source: FrontendValidationSource.Component,
+    // Treat visibility of minNumberOfAttachments the same as required to prevent showing an error immediately
+    category: ValidationMask.Required,
+  };
+}
 
-  return validations;
+export function validateMinNumberOfAttachmentsForNode<T extends 'FileUpload' | 'FileUploadWithTag'>(
+  ctx: ComponentValidationContext<T>,
+): ComponentValidation[] {
+  const component = ctx.component as { id: string; minNumberOfAttachments?: unknown };
+  const minNumberOfAttachments = evalExpr(component.minNumberOfAttachments as never, ctx.expressionDataSources, {
+    returnType: ExprVal.Number,
+    defaultValue: 0,
+  }) as number;
+  const attachments = attachmentSelector(
+    makeAttachmentNode(ctx.baseComponentId, ctx.component),
+    ctx.formState,
+    ctx.instanceData,
+    getApplicationMetadata(),
+    ctx.taskId,
+  );
+  return [validateMinNumberOfAttachments(minNumberOfAttachments, attachments.length)].filter(
+    (validation): validation is ComponentValidation => !!validation,
+  );
 }

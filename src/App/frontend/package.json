@@ -199,6 +199,9 @@
       ],
       "launch-options": {
         "executable": "/usr/bin/google-chrome",
+        "args": [
+          "--disable-features=LocalNetworkAccessChecks"
+        ],
         "timeout": 30000
       }
     }

@@ -10,6 +10,7 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { FormStore } from 'src/features/form/FormContext';
+import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
@@ -41,7 +42,7 @@ const ignoreLogAndErrors = [
 ];
 
 function TestApp() {
-  const errors = FormStore.nodes.useFullErrorList();
+  const errors = FormStore.layoutDiagnostics.useFullErrorList();
   const filteredErrors: Record<string, string[]> = {};
 
   for (const key in errors) {
@@ -59,9 +60,11 @@ function TestApp() {
 
 function RenderAllComponents() {
   const state = FormStore.raw.useStore().getState();
-  const all = Object.values(state.nodes.nodeData)
-    .filter((nodeData) => nodeData.isValid && nodeData.parentId === undefined)
-    .map((nodeData) => nodeData.id);
+  const pageOrder = useRawPageOrder();
+  const pdfLayoutName = usePdfLayoutName();
+  const all = Object.entries(state.bootstrap.layoutLookups.topLevelComponents)
+    .filter(([pageKey]) => pageOrder.includes(pageKey) || pageKey === pdfLayoutName)
+    .flatMap(([, componentIds]) => componentIds ?? []);
 
   return (
     <>
@@ -89,7 +92,7 @@ const consoleLoggers = ['error', 'warn', 'log'];
 describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
   beforeAll(() => {
-    window.forceNodePropertiesValidation = 'on';
+    window.forceLayoutPropertiesValidation = 'on';
     pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
       jest
@@ -112,7 +115,7 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterAll(() => {
-    window.forceNodePropertiesValidation = 'off';
+    window.forceLayoutPropertiesValidation = 'off';
     window.location.pathname = pathnameWas;
     jest.restoreAllMocks();
   });
