@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useEffect, useRef, useState, useTransition } from 'react';
 
 import { useIsFetching } from '@tanstack/react-query';
 
@@ -78,10 +78,15 @@ async function waitForImages() {
 
 export function useHasElementsByAttribute(attribute: string) {
   const [hasElements, setHasElements] = useState(() => document.querySelector(`[${attribute}]`) != null);
+  const hasElementsRef = useRef(hasElements);
 
   useEffect(() => {
     const updateCount = () => {
-      setHasElements(document.querySelector(`[${attribute}]`) != null);
+      const nextHasElements = document.querySelector(`[${attribute}]`) != null;
+      if (hasElementsRef.current !== nextHasElements) {
+        hasElementsRef.current = nextHasElements;
+        setHasElements(nextHasElements);
+      }
     };
 
     const observer = new MutationObserver(updateCount);

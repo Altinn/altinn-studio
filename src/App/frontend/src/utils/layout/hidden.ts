@@ -4,17 +4,17 @@ import deepEqual from 'fast-deep-equal';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type { IHiddenLayoutsExternal } from 'src/types';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export interface IsHiddenOptions<Reason extends boolean = false> {
   /**
@@ -47,7 +47,7 @@ export function useIsHidden<Reason extends boolean = false>(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups).reverse();
+  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups);
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
@@ -61,9 +61,9 @@ export function useIsHidden<Reason extends boolean = false>(
   });
 
   if (reason.hidden && forcedVisible && options.respectDevTools !== false) {
-    return (
-      options.includeReason === true ? { reason: 'forcedByDeVTools', hidden: false } : false
-    ) as Reason extends true ? HiddenWithReason : boolean;
+    return (options.includeReason === true ? forcedVisibleReason : false) as Reason extends true
+      ? HiddenWithReason
+      : boolean;
   }
 
   return (options.includeReason === true ? reason : reason.hidden) as Reason extends true ? HiddenWithReason : boolean;
@@ -86,7 +86,7 @@ export function useIsHiddenMulti(
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const hiddenSources = useMemo(
-    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups).reverse()),
+    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups)),
     [baseComponentIds, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
@@ -130,12 +130,12 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
     throw new Error("useIsHiddenPage doesn't support changing the pageKey, that would break the rule of hooks");
   }
 
-  const hiddenExpressions = FormStore.bootstrap.useHiddenLayoutsExpressions();
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
   const forcedVisible = useIsForcedVisibleByDevTools();
 
-  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
+  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, layoutCollection, ...options });
 
   if (hidden && forcedVisible && options.respectDevTools !== false) {
     return false;
@@ -148,14 +148,59 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
-  const pages = Object.keys(FormStore.bootstrap.useLaxLayouts() || {});
-  const hiddenExpressions = FormStore.bootstrap.useLaxHiddenLayoutsExpressions() || {};
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const stableOptions = useShallowMemo(options);
+  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
 
+  return useMemo(
+    () =>
+      getHiddenPages({
+        dataSources,
+        layoutCollection,
+        pageOrder,
+        options: stableOptions,
+      }),
+    [dataSources, layoutCollection, stableOptions, pageOrder],
+  );
+}
+
+export function getVisiblePageOrder({
+  dataSources,
+  layoutCollection,
+  pageOrder,
+  options = {},
+}: {
+  dataSources: ExpressionDataSources;
+  layoutCollection: ILayoutCollection | undefined;
+  pageOrder: string[];
+  options?: Omit<IsHiddenOptions, 'includeReason'>;
+}) {
+  const hiddenPages = getHiddenPages({ dataSources, layoutCollection, pageOrder, options });
+  return pageOrder.filter((page) => !hiddenPages.has(page));
+}
+
+function getHiddenPages({
+  dataSources,
+  layoutCollection,
+  pageOrder,
+  options = {},
+}: {
+  dataSources: ExpressionDataSources;
+  layoutCollection: ILayoutCollection | undefined;
+  pageOrder: string[];
+  options?: Omit<IsHiddenOptions, 'includeReason'>;
+}): Set<string> {
+  const pages = Object.keys(layoutCollection || {});
   const out = new Set<string>();
   for (const pageKey of pages) {
-    const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
+    const hidden = isHiddenPage({
+      pageKey,
+      dataSources,
+      pageOrder,
+      layoutCollection: layoutCollection!,
+      ...options,
+    });
     if (hidden) {
       out.add(pageKey);
     }
@@ -180,6 +225,9 @@ export type HiddenWithReason =
       hidden: true;
       reason: HiddenSource['type'] | 'pageOrder';
     };
+
+const visibleReason: HiddenWithReason = { hidden: false, reason: undefined };
+const forcedVisibleReason: HiddenWithReason = { hidden: false, reason: 'forcedByDeVTools' };
 
 function isHidden({
   hiddenSources,
@@ -215,7 +263,7 @@ function isHidden({
     return { hidden: true, reason: result.reason! };
   }
 
-  return { hidden: false, reason: undefined };
+  return visibleReason;
 }
 
 function useIsForcedVisibleByDevTools() {
@@ -224,7 +272,7 @@ function useIsForcedVisibleByDevTools() {
 
 interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
   pageKey: string | undefined;
-  hiddenExpressions: IHiddenLayoutsExternal;
+  layoutCollection: ILayoutCollection;
   dataSources: ExpressionDataSources;
   pageOrder: string[];
 }
@@ -232,7 +280,7 @@ interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageO
 function isHiddenPage({
   pageOrder,
   pageKey,
-  hiddenExpressions,
+  layoutCollection,
   dataSources,
   respectPageOrder = false,
 }: IsHiddenPageProps) {
@@ -242,7 +290,7 @@ function isHiddenPage({
   if (respectPageOrder && !pageOrder.includes(pageKey)) {
     return true;
   }
-  const hiddenExpr = hiddenExpressions[pageKey];
+  const hiddenExpr = layoutCollection[pageKey]?.data.hidden;
   if (hiddenExpr === undefined) {
     return false;
   }

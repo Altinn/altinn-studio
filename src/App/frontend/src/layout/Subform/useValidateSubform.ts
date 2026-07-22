@@ -1,33 +1,24 @@
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { FormStore } from 'src/features/form/FormContext';
 import { getUiFolderSettings } from 'src/features/form/ui';
-import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ComponentValidation, SubformValidation } from 'src/features/validation';
+import type { ComponentValidationContext } from 'src/layout';
+import type { IData } from 'src/types/shared';
 
-export function useValidateSubform(baseComponentId: string): ComponentValidation[] {
-  const applicationMetadata = getApplicationMetadata();
-  const component = useExternalItem(baseComponentId, 'Subform');
-  const layoutSetName = component?.layoutSet;
-  if (!layoutSetName) {
-    throw new Error(`Layoutset not found for node with id ${baseComponentId}.`);
-  }
-
-  const targetType = getUiFolderSettings(layoutSetName)?.defaultDataType;
-  if (!targetType) {
-    throw new Error(`Default data type not found for ui folder with name ${layoutSetName}`);
-  }
-  const elements = useInstanceDataElements(targetType);
-  const subformIdsWithError = FormStore.validation.useDataElementsWithErrors(elements.map((element) => element.id));
-  const dataTypeDefinition = applicationMetadata.dataTypes.find((x) => x.id === targetType);
-  if (dataTypeDefinition === undefined) {
+export function validateSubform(input: {
+  targetType: string | undefined;
+  elements: IData[];
+  subformIdsWithError: string[];
+  minCount: number | undefined;
+  maxCount: number | undefined;
+}): ComponentValidation[] {
+  const { targetType, elements, subformIdsWithError } = input;
+  if (!targetType || input.minCount === undefined || input.maxCount === undefined) {
     return [];
   }
-
   const validations: ComponentValidation[] = [];
 
-  const { minCount, maxCount } = dataTypeDefinition;
+  const { minCount, maxCount } = input;
 
   if (minCount > 0 && elements.length < minCount) {
     validations.push({
@@ -61,4 +52,29 @@ export function useValidateSubform(baseComponentId: string): ComponentValidation
   }
 
   return validations;
+}
+
+export function validateSubformForNode(ctx: ComponentValidationContext<'Subform'>): ComponentValidation[] {
+  const targetType = getUiFolderSettings(ctx.component.layoutSet)?.defaultDataType;
+  const dataTypeDefinition = targetType
+    ? getApplicationMetadata().dataTypes.find((x) => x.id === targetType)
+    : undefined;
+  const elements = targetType ? ctx.instanceData.filter((dataElement) => dataElement.dataType === targetType) : [];
+  const subformIdsWithError = elements
+    .map((element) => element.id)
+    .filter((dataElementId) => {
+      const validations = ctx.formState.validation.otherDataElementBackendValidations[dataElementId];
+      return (
+        validations &&
+        Object.values(validations).some((validationList) => validationList.some((v) => v.severity === 'error'))
+      );
+    });
+
+  return validateSubform({
+    targetType,
+    elements,
+    subformIdsWithError,
+    minCount: dataTypeDefinition?.minCount,
+    maxCount: dataTypeDefinition?.maxCount,
+  });
 }

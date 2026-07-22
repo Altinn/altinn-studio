@@ -36,8 +36,13 @@ function paramFrom(matches: Matches, key: keyof PathParams): string | undefined 
 }
 
 function matchParams(path: string): PathParams {
+  if (path === cachedParamsPath) {
+    return cachedParams;
+  }
+
   const matches = matchers.map((matcher) => matchPath(matcher, path));
-  return {
+  cachedParamsPath = path;
+  cachedParams = {
     instanceOwnerPartyId: paramFrom(matches, 'instanceOwnerPartyId'),
     instanceGuid: paramFrom(matches, 'instanceGuid'),
     taskId: paramFrom(matches, 'taskId'),
@@ -46,7 +51,11 @@ function matchParams(path: string): PathParams {
     dataElementId: paramFrom(matches, 'dataElementId'),
     mainPageKey: paramFrom(matches, 'mainPageKey'),
   };
+  return cachedParams;
 }
+
+let cachedParamsPath: string | undefined;
+let cachedParams: PathParams = {};
 
 export const useNavigationParam = <T extends keyof PathParams>(key: T) => {
   const location = useLocation();

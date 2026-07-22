@@ -5,8 +5,8 @@ import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
-import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useVisibleValidationsDeep } from 'src/features/validation/validationHooks';
 import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
 import {
@@ -188,14 +188,8 @@ function PaginationComponent({
  */
 function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: string): number[] {
   const rows = RepGroupHooks.useAllRowsWithHidden(baseComponentId);
-  const deepValidations = FormStore.nodes.useVisibleValidationsDeep(
-    baseComponentId,
-    'visible',
-    false,
-    undefined,
-    'error',
-  );
   const indexedId = useIndexedId(baseComponentId);
+  const deepValidations = useVisibleValidationsDeep(baseComponentId, indexedId, 'visible', false, undefined, 'error');
 
   return useMemo(() => {
     if (typeof rowsPerPage !== 'number') {
