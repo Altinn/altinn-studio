@@ -16,10 +16,15 @@ void RegisterCustomAppServices(
     IWebHostEnvironment env
 )
 {
-    // Pre-commit lever: fails/delays the Task_1 -> Task_2 transition while committed=Task_1.
+    // Pre-commit lever: fails/delays the forward Task_1 transition while committed=Task_1.
     services.AddTransient<IOnTaskEndingHandler, TaskEndingHandler>();
 
-    // NB: the post-commit lever (EventsClient) is registered AFTER AddAltinnAppServices in
+    // Post-commit lever: the "scenario" service task (Task_Service) the Gateway_PostCommit gateway
+    // routes through when path == "postCommit". ExecuteServiceTask runs it as a critical
+    // post-commit step, so its delays/failures are frontend-observable (committed = Task_Service).
+    services.AddTransient<IServiceTask, ScenarioServiceTask>();
+
+    // NB: the no-op IEventsClient stub is registered AFTER AddAltinnAppServices in
     // ConfigureServices below, because AddAltinnAppServices registers the default IEventsClient and
     // the last registration wins.
 }
@@ -55,8 +60,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
 
-    // Post-commit lever: override the default IEventsClient so MovedToAltinnEvent (which runs
-    // post-commit, when committed=Task_2) can delay/fail the transition in a frontend-observable way.
+    // No-op Events stub: event registrations succeed instantly without calling the real Events
+    // API (they run in non-gating side-effects workflows and are irrelevant to the scenarios).
     // Must come AFTER AddAltinnAppServices, which registers the default EventsClient (last wins).
     services.AddTransient<IEventsClient, EventsClient>();
 
