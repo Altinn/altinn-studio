@@ -6,6 +6,7 @@ import { ComponentStructure } from '@app/form-component/layout-components/common
 import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
 import { getSandboxProperties, type SandboxProperties } from './getSandboxProperties';
+import classes from './IFrame.module.css';
 
 export interface IFrameProps {
   /** The indexed component ID; drives the form-content wrapper. */
@@ -47,9 +48,7 @@ export function IFrame({ componentId, title, sandbox, innerGrid }: IFrameProps) 
   return (
     <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
       <iframe
-        scrolling='no'
-        frameBorder={0}
-        width='100%'
+        className={classes.iFrame}
         srcDoc={htmlString}
         // Preserves existing behaviour: the accessible title is the configured text-resource key.
         title={title}
