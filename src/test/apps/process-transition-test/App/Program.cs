@@ -1,7 +1,6 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Logic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -24,9 +23,6 @@ void RegisterCustomAppServices(
     // post-commit step, so its delays/failures are frontend-observable (committed = Task_Service).
     services.AddTransient<IServiceTask, ScenarioServiceTask>();
 
-    // NB: the no-op IEventsClient stub is registered AFTER AddAltinnAppServices in
-    // ConfigureServices below, because AddAltinnAppServices registers the default IEventsClient and
-    // the last registration wins.
 }
 
 // ###########################################################################
@@ -59,11 +55,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
-
-    // No-op Events stub: event registrations succeed instantly without calling the real Events
-    // API (they run in non-gating side-effects workflows and are irrelevant to the scenarios).
-    // Must come AFTER AddAltinnAppServices, which registers the default EventsClient (last wins).
-    services.AddTransient<IEventsClient, EventsClient>();
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>
