@@ -182,6 +182,9 @@ export function testCustomReceiptPage() {
   cy.findByText('Dette er neste side').should('exist');
   cy.findByRole('button', { name: /Forrige/ }).click();
 
+  // Wait until the first receipt page is showing again before snapshotting, otherwise the visual
+  // test can race the back-navigation and capture the second page ('Dette er neste side').
+  cy.findByText('Custom kvittering').should('be.visible');
   cy.visualTesting('custom-receipt');
 }
 
