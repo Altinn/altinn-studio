@@ -194,6 +194,7 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+          PERCY_LOGLEVEL: debug
           PERCY_PARALLEL_TOTAL: 6
           PERCY_PARALLEL_NONCE: ${{ github.run_id }}-${{ github.run_attempt }}
           PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
