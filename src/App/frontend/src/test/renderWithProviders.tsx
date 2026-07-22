@@ -7,7 +7,6 @@ import { QueryClient } from '@tanstack/react-query';
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
 import dotenv from 'dotenv';
 import type { RenderOptions, waitForOptions } from '@testing-library/react';
-import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
@@ -35,11 +34,11 @@ import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
 import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
+import type { OptionsApi } from 'src/core/api-client/options.api';
 import type { PartyApi } from 'src/core/api-client/party.api';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
@@ -47,6 +46,7 @@ type ApiOverrides = Partial<{
   backendValidationApi: Partial<BackendValidationApi>;
   partyApi: Partial<PartyApi>;
   instanceApi: Partial<InstanceApi>;
+  optionsApi: Partial<OptionsApi>;
 }>;
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
@@ -137,8 +137,6 @@ const defaultQueryMocks: AppQueries = {
   fetchFormData: async () => {
     throw new Error('Not implemented/overridden in test');
   },
-  fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
-  fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
   fetchPaymentInformationForTask: async () => paymentResponsePayload,
@@ -161,6 +159,10 @@ const defaultApiMocks: Omit<ApiClients, 'textResourcesApi'> = {
     getActiveInstances: async () => [],
     create: async () => getInstanceWithProcessMock(),
     createWithPrefill: async () => getInstanceWithProcessMock(),
+  },
+  optionsApi: {
+    getOptions: async () => ({ data: [], headers: {} }),
+    getDataList: async () => getDataListMock(),
   },
 };
 
@@ -418,6 +420,10 @@ export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {
     instanceApi: {
       ...defaultApiMocks.instanceApi,
       ...apis?.instanceApi,
+    },
+    optionsApi: {
+      ...defaultApiMocks.optionsApi,
+      ...apis?.optionsApi,
     },
   };
 

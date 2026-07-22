@@ -1,13 +1,13 @@
 import axios from 'axios';
 import type { QueryClient } from '@tanstack/react-query';
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { GlobalData } from 'src/GlobalData';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
-import { httpDelete, httpGetRaw, httpPatch, httpPost } from 'src/utils/network/networking';
+import { httpDelete, httpPatch, httpPost } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   appPath,
@@ -28,13 +28,11 @@ import {
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { DataPostResponse } from 'src/features/attachments';
-import type { IDataList } from 'src/features/dataLists';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { IActionType, IData, PostalCodesRegistry } from 'src/types/shared';
 
@@ -165,10 +163,6 @@ export const doPostStatelessFormData = async (
 
 export const fetchLogo = async (): Promise<string> =>
   (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
-
-export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
-
-export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
