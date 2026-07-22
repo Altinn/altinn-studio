@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties } from 'react';
 
 import { Button } from '@app/form-component/app-components/Button';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
@@ -60,10 +60,6 @@ export interface LinkProps {
   position?: LinkPosition;
   /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
-  /** Grid sizing for the validation messages. */
-  validationGrid?: IGridStyling;
-  /** Rendered validation messages. */
-  validationMessages?: ReactNode;
 }
 
 export function Link({
@@ -78,8 +74,6 @@ export function Link({
   textAlign,
   position,
   innerGrid,
-  validationGrid,
-  validationMessages,
 }: LinkProps) {
   const { lang, langAsString } = useTranslation();
 
@@ -126,12 +120,7 @@ export function Link({
     );
 
   return (
-    <ComponentStructure
-      componentId={componentId}
-      innerGrid={innerGrid}
-      validationGrid={validationGrid}
-      validationMessages={validationMessages}
-    >
+    <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
       {content}
     </ComponentStructure>
   );

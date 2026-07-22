@@ -90,17 +90,4 @@ describe('Link', () => {
     );
     expect(document.getElementById('form-content-link-1')).toBeInTheDocument();
   });
-
-  it('renders validation messages when provided', () => {
-    renderWithTranslations(
-      <Link
-        componentId='l1'
-        style='link'
-        title='Gå til Altinn'
-        target='https://www.altinn.no'
-        validationMessages={<span>Feilmelding</span>}
-      />,
-    );
-    expect(screen.getByText('Feilmelding')).toBeInTheDocument();
-  });
 });

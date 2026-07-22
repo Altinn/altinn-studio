@@ -19,8 +19,6 @@ export const LINK_PROP_CATEGORIES = {
   position: 'content',
   // Runtime — injected by wrapper
   innerGrid: 'runtime',
-  validationGrid: 'runtime',
-  validationMessages: 'runtime',
 } satisfies PropCategories<LinkProps>;
 
 const meta = {

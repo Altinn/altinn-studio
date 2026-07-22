@@ -4,7 +4,6 @@ import { Link as LinkLayout } from '@app/form-component';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
@@ -13,7 +12,7 @@ export function LinkComponent({ baseComponentId }: PropsFromGenericComponent<'Li
     baseComponentId,
     'Link',
   );
-  const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   return (
     <LinkLayout
@@ -28,10 +27,6 @@ export function LinkComponent({ baseComponentId }: PropsFromGenericComponent<'Li
       textAlign={textAlign}
       position={position}
       innerGrid={innerGrid}
-      validationGrid={validationGrid}
-      validationMessages={
-        showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
-      }
     />
   );
 }
