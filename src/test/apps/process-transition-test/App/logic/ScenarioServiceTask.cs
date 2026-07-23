@@ -23,9 +23,12 @@ namespace Altinn.App.Logic;
 ///
 /// Scenario shape: run <c>attempts</c> times with <c>delayMs</c> injected on each; every attempt
 /// but the last fails retryably (the engine auto-retries), and the last settles on
-/// <c>endState</c> — either <c>success</c> (auto-advance to Task_2) or <c>failure</c> (permanent
-/// failure → error page). Unlike the retired IEventsClient hack, a permanent service-task failure
-/// is a REAL terminal failure — no workflow-cancellation cheat needed.
+/// <c>endState</c> — <c>success</c> (auto-advance to Task_2), <c>failure</c> (permanent
+/// failure → error page, and every replay fails the same way), or <c>failureThenSuccess</c>
+/// (permanent failure once, then success when the failed step is re-run — the lever that makes
+/// the failed task view's "Prøv igjen" → process/resume recovery demonstrable). Unlike the
+/// retired IEventsClient hack, a permanent service-task failure is a REAL terminal failure — no
+/// workflow-cancellation cheat needed.
 /// </summary>
 public sealed class ScenarioServiceTask : IServiceTask
 {
@@ -52,7 +55,6 @@ public sealed class ScenarioServiceTask : IServiceTask
 
         int delayMs = levers.delayMs ?? 0;
         int attempts = levers.attempts ?? 1;
-        bool endInFailure = levers.endState == "failure";
 
         if (delayMs > 0)
         {
@@ -69,10 +71,21 @@ public sealed class ScenarioServiceTask : IServiceTask
             );
         }
 
-        // Last attempt: settle on the configured end state. Reset first so replaying the scenario
-        // (e.g. after navigating back from Task_2) starts again from attempt 1.
+        // First settling attempt with "failureThenSuccess": fail permanently but KEEP the attempt
+        // counter, so the resume-driven replay (the failed task view's "Prøv igjen" →
+        // process/resume re-running this step) arrives here as attempt attempts+1 and falls
+        // through to the success below.
+        if (levers.endState == "failureThenSuccess" && attempt == attempts)
+        {
+            return ServiceTaskResult.FailedPermanent(
+                $"TransitionControl forced a terminal postCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")} (recoverable: the next replay succeeds)."
+            );
+        }
+
+        // Settled: reset so replaying the scenario (e.g. after navigating back from Task_2) starts
+        // again from attempt 1. "failure" resets too — every replay fails the same way.
         AttemptTracker.Reset(instanceGuid, "postCommit");
-        return endInFailure
+        return levers.endState == "failure"
             ? ServiceTaskResult.FailedPermanent(
                 $"TransitionControl forced a terminal postCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")}."
             )
