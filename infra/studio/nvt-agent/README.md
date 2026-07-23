@@ -21,6 +21,9 @@ concurrent mediated AgentRuns.
 Each Kata AgentRun requests and is limited to 2 CPU and 8 GiB memory. Git
 commit attribution is explicitly pinned to the corresponding fork/upstream
 GitHub App bot until mediated provider identity resolution is available.
+The shared non-secret bootstrap preseed suppresses Claude first-run prompts and
+trusts only the configured `/workspace/altinn-studio` checkout. Codex ignores
+these Claude configuration files.
 
 ## Prerequisites
 
