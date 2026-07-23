@@ -32,7 +32,7 @@ spec:
           app.kubernetes.io/name: nvt-agent-gateway
           app.kubernetes.io/component: gateway
     ports:
-    - port: 80
+    - port: 8080
       protocol: TCP
   - to:
     - namespaceSelector:
