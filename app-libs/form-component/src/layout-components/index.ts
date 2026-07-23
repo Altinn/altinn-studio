@@ -9,6 +9,7 @@ export * from './Header';
 export * from './IFrame';
 export * from './ImageUpload';
 export * from './Image';
+export * from './InstanceInformation';
 export * from './Link';
 export * from './Paragraph';
 export * from './Tabs';
