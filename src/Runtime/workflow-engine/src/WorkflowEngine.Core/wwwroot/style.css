@@ -1192,7 +1192,12 @@ body {
     align-items: center;
     gap: 3px;
     margin-top: 5px;
+    /* Reserve room for the retry/backoff/timing rows that appear mid-processing,
+       so live cards don't jump. Static cards render final content — no reservation. */
     min-height: 72px;
+}
+.pipeline-static .step-meta {
+    min-height: 0;
 }
 .step-timing {
     font-size: 12px;

@@ -280,6 +280,12 @@ Horizontal row of step circles connected by SVG lines.
 - Animated: processing in progress
 - Gray/empty: not yet reached
 
+**Vertical density:** Live pipelines reserve meta-row height (`.step-meta` min-height) so cards
+don't jump as retry/backoff/timing rows appear mid-processing; static pipelines
+(`.pipeline-static` — recent/query/scheduled and expanded chain rows) render final content and
+drop the reservation. The phase-bracket headroom (`.pipeline-grouped`) applies only when at least
+one step maps to a phase.
+
 **Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing or Requeued step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found.
 
 **BPMN grouping:** Steps are grouped by task phase using `stepPhase()` which maps command detail names to `start`/`end`/`process-end` phases. Groups show bracket lines and task labels from `parseTransition()`. The transition is parsed from `operationId` (format: `"Process next: TaskA → TaskB"`).

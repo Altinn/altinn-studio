@@ -30,14 +30,21 @@ export const fmtNamespace = (ns) => {
 };
 
 /**
- * Abbreviate any 32-char hex GUID ("N" format) runs to their first 8 chars for
- * compact display. Works on bare GUIDs and on strings that embed them (e.g. a
- * collection key like `process-next:<guid>:Form:2`). Keep the full value for
+ * Abbreviate GUID runs ("N" format 32-char hex, or dashed "D" format) to their first
+ * 8 chars for compact display. Works on bare GUIDs and on strings that embed them
+ * (e.g. a collection key like `process-next:<guid>:Form:2`). Keep the full value for
  * filtering, data attributes, and titles.
  * @param {string|null|undefined} s
  */
 export const abbrevGuids = (s) =>
-    s == null ? s : String(s).replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
+    s == null
+        ? s
+        : String(s)
+              .replace(
+                  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+                  (m) => `${m.slice(0, 8)}…`,
+              )
+              .replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
 
 /** @param {number} seconds */
 export const formatElapsed = (seconds) => {

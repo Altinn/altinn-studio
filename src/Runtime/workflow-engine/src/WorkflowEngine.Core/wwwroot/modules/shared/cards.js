@@ -158,7 +158,8 @@ export const buildLabelsHTML = (wf, interactive) => {
     let html = seg('namespace', wf.namespace, fmtNamespace(wf.namespace), 'seg key');
     const instance = wf.labels?.processNextInstanceGuid;
     if (instance) {
-        html += sep + seg('processNextInstanceGuid', instance, instance, 'seg instance');
+        // Abbreviated for display so headers don't wrap; tooltip, filter, and copy keep the full id.
+        html += sep + seg('processNextInstanceGuid', instance, abbrevGuids(instance) ?? instance, 'seg instance');
         html += copyIconHTML(instance, 'Copy instance id');
     }
     if (wf.labels) {
