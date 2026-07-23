@@ -50,6 +50,11 @@ internal sealed class UsingNamespaceMigration
         foreach (var csharpFile in Directory.EnumerateFiles(projectDirectory, "*.cs", SearchOption.AllDirectories))
         {
             var relativePath = Path.GetRelativePath(projectDirectory, csharpFile);
+            if (BuildOutputPaths.IsBuildOutput(relativePath))
+            {
+                continue;
+            }
+
             if (pathMatcher.IsMatch(relativePath))
             {
                 yield return csharpFile;

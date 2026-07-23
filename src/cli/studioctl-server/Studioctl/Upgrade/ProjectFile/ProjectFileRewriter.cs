@@ -71,6 +71,35 @@ internal sealed class ProjectFileRewriter
     }
 
     /// <summary>
+    /// Sets the <c>Version</c> attribute of existing <c>PackageReference</c> elements. Used to raise
+    /// explicit package versions to the floors a newer Altinn.App version requires (NU1605 downgrades).
+    /// Only packages already referenced explicitly are updated; the returned set is those that were
+    /// found and changed, so the caller can report packages that need a manual reference added.
+    /// </summary>
+    /// <param name="versionsByPackage">Package id → required version.</param>
+    /// <returns>The package ids that had an explicit reference and were updated.</returns>
+    public async Task<IReadOnlyCollection<string>> SetPackageReferenceVersions(
+        IReadOnlyDictionary<string, string> versionsByPackage
+    )
+    {
+        var updated = new List<string>();
+        foreach (var (packageName, version) in versionsByPackage)
+        {
+            var packageElements = GetPackageReferenceElement(packageName);
+            if (packageElements is null || packageElements.Count == 0)
+            {
+                continue;
+            }
+
+            packageElements.ForEach(e => e.SetAttributeValue("Version", version));
+            updated.Add(packageName);
+        }
+
+        await Save();
+        return updated;
+    }
+
+    /// <summary>
     /// Converts package references to project references for local development and updates target framework
     /// </summary>
     public async Task ConvertToProjectReferences(string repoRoot)
