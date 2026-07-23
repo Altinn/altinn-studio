@@ -9,6 +9,7 @@ spec:
     name: nvt-chart
     namespace: nvt
   install:
+    crds: CreateReplace
     remediation:
       retries: 3
   interval: 5m
@@ -81,6 +82,7 @@ spec:
   targetNamespace: nvt
   timeout: 10m
   upgrade:
+    crds: CreateReplace
     remediation:
       remediateLastFailure: true
       retries: 3
@@ -89,7 +91,7 @@ spec:
       allowedProducers:
         - system:serviceaccount:nvt:nvt-github-comments-producer
       enabled: true
-      maxParallelism: 1
+      maxParallelism: 2
       name: default
       profileSelection:
         onNoMatch: deny
@@ -256,6 +258,11 @@ spec:
           failOn:
             - plugin.agent.signal.failed
         runtimeClassName: kata-vm-isolation
+        tolerations:
+          - effect: NoSchedule
+            key: purpose
+            operator: Equal
+            value: nvt-agent
         ttl:
           activeDeadlineSeconds: 14400
           completedTTLSeconds: 300

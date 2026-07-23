@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.3
-chart_digest=sha256:a7d12d3a26b3b356c2d11d1bf0dbc13ca601c9e454addd67b2a5e0e842e79014
+chart_version=0.8.4
+chart_digest=sha256:407194e4ec03ebbabcae325dc342d8c7250c0f552c730aed9d44eb26b18957be
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -38,9 +38,17 @@ yq '.spec.values |
     --values - > "$temp_dir/nvt-active.yaml"
 
 yq -e '
+  .spec.install.crds == "CreateReplace" and
+  .spec.upgrade.crds == "CreateReplace" and
   .spec.values.producer.enabled == true and
   .spec.values.agentSchedule.suspend == false and
+  .spec.values.agentSchedule.maxParallelism == 2 and
   .spec.values.agentSchedule.template.runtimeClassName == "kata-vm-isolation" and
+  (.spec.values.agentSchedule.template.tolerations | length) == 1 and
+  .spec.values.agentSchedule.template.tolerations[0].effect == "NoSchedule" and
+  .spec.values.agentSchedule.template.tolerations[0].key == "purpose" and
+  .spec.values.agentSchedule.template.tolerations[0].operator == "Equal" and
+  .spec.values.agentSchedule.template.tolerations[0].value == "nvt-agent" and
   .spec.values.agentSchedule.profileSelection.onNoMatch == "deny" and
   (.spec.values.agentSchedule.profiles | length) == 2 and
   .spec.values.agentSchedule.profiles[0].egress == "mediated" and
