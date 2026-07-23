@@ -17,9 +17,8 @@ using Xunit;
 namespace Designer.Tests.Controllers.PreviewController;
 
 /// <summary>
-/// Tests for the v9 preview flow: Designer generates the index HTML and injects the global bootstrap
-/// state (window.altinnAppGlobalData), serves it for app-frontend's client-side routes, and enriches
-/// the instance with process tasks.
+/// Tests for the v9 preview flow: Designer generates the index HTML with the injected bootstrap state,
+/// serves it for app-frontend's client-side routes, and enriches the instance with process tasks.
 /// </summary>
 public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClassFixture<WebApplicationFactory<Program>>
 {

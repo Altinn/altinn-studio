@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,19 +32,15 @@ public class PreviewBootstrapService(
     ISchemaModelService schemaModelService
 ) : IPreviewBootstrapService
 {
-    // This value acts as the mocked party id for the preview user/party.
     private const int PartyId = 51001;
 
-    // Standard platform brand/static-asset URLs (same defaults every app uses, see PlatformFrontendSettings
-    // in the app backend). These are CDN-hosted brand assets, distinct from the app-frontend bundle Designer
-    // self-hosts. app-frontend fetches the logo SVG from altinnLogoUrl on load, so it must be a real URL.
+    // Platform brand assets fetched by app-frontend on load; altinnLogoUrl must be a reachable URL.
     private const string AltinnLogoUrl = "https://altinncdn.no/img/Altinn-logo-blue.svg";
     private const string HelpCircleIllustrationUrl = "https://altinncdn.no/img/illustration-help-circle.svg";
     private const string PostalCodesUrl = "https://altinncdn.no/postcodes/registry.json";
 
-    // Matches how the app backend (IndexPageGenerator) serializes the global bootstrap state: camelCase
-    // property names and null values omitted. The default (HTML-safe) encoder is kept so the JSON can be
-    // embedded directly inside a <script> tag.
+    // camelCase + null values omitted, matching how the app backend serializes the bootstrap state. The
+    // HTML-safe encoder is kept so the JSON can be embedded directly inside a <script> tag.
     private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -61,7 +58,7 @@ public class PreviewBootstrapService(
             cancellationToken
         );
         string appNugetVersionString = appVersionService.GetAppLibVersion(editingContext).ToString();
-        // This property is populated at runtime by the apps, so we need to mock it here.
+        // Populated at runtime by the apps, so mock it here.
         applicationMetadata.AltinnNugetVersion = NugetVersionHelper.GetMockedAltinnNugetBuildFromVersion(
             appNugetVersionString
         );
@@ -78,8 +75,8 @@ public class PreviewBootstrapService(
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
 
         ApplicationMetadata applicationMetadata = await GetMockedApplicationMetadata(editingContext, cancellationToken);
-        // The app backend defaults OnEntry when it is missing (see AppMetadata.cs). Mirror that here so
-        // app-frontend's useIsStateless (which reads onEntry.show) does not crash for apps without one.
+        // Default OnEntry when missing (as the app backend does) so app-frontend's useIsStateless,
+        // which reads onEntry.show, does not crash for apps without one.
         applicationMetadata.OnEntry ??= new Altinn.App.Core.Models.OnEntry { Show = "new-instance" };
 
         Altinn.Studio.Designer.Models.TextResource? textResources = await TryGetTextResources(
@@ -87,8 +84,8 @@ public class PreviewBootstrapService(
             cancellationToken
         );
         List<ApplicationLanguage> availableLanguages = GetAvailableLanguages(editingContext);
-        // Serve the raw footer JSON so app-frontend gets the authored icon casing (e.g. "information");
-        // the typed FooterFile mangles enum values under System.Text.Json.
+        // Raw footer JSON so app-frontend keeps the authored icon casing; the typed FooterFile mangles
+        // enum values under System.Text.Json.
         JsonNode footer = await altinnAppGitRepository.GetFooterAsJsonNode(cancellationToken);
         JsonObject ui = await BuildUiConfigurationNode(altinnAppGitRepository, cancellationToken);
 
@@ -99,8 +96,7 @@ public class PreviewBootstrapService(
             availableLanguages,
             ui,
             footer,
-            // Provided as defaults for now - app-frontend needs these present to bootstrap, but the
-            // preview has no source for them yet (see BootstrapGlobalService for the runtime values).
+            // Defaults for now: app-frontend needs these present, but the preview has no source yet.
             frontendSettings = new Dictionary<string, string>(),
             platformFrontendSettings = new
             {
@@ -144,16 +140,26 @@ public class PreviewBootstrapService(
                 continue;
             }
 
-            string schemaJson = await schemaModelService.GetSchema(
-                editingContext,
-                $"/App/models/{dataElement.DataType}.schema.json",
-                cancellationToken
-            );
+            string schemaJson;
+            try
+            {
+                schemaJson = await schemaModelService.GetSchema(
+                    editingContext,
+                    $"/App/models/{dataElement.DataType}.schema.json",
+                    cancellationToken
+                );
+            }
+            catch (Exception)
+            {
+                // Schema may not be generated yet for a model just added while editing; skip it rather
+                // than failing the whole form bootstrap.
+                continue;
+            }
 
             dataModels[dataElement.DataType] = new JsonObject
             {
                 ["schema"] = JsonNode.Parse(schemaJson),
-                // Empty initial data for now - app-frontend fills the form via patches during editing.
+                // Empty for now - app-frontend fills the form via patches during editing.
                 ["initialData"] = new JsonObject(),
                 ["dataElementId"] = dataElement.Id,
             };
@@ -180,10 +186,9 @@ public class PreviewBootstrapService(
             return instanceNode;
         }
 
-        // app-frontend derives the task type and validates the task id from process.processTasks, and in
-        // v9 the process comes from the enriched instance. The mock only sets a "data" currentTask, so
-        // rebuild processTasks from the app's BPMN process definition - this makes each task render with
-        // its real type (data/confirmation/feedback/signing/payment) and marks the task ids valid.
+        // app-frontend derives the task type and validates the task id from process.processTasks. The mock
+        // only sets a "data" currentTask, so rebuild processTasks from the app's BPMN process definition
+        // to give each task its real type (data/confirmation/feedback/signing/payment).
         List<ProcessTask> processTasks = TryGetProcessTasks(editingContext);
         if (processTasks.Count > 0)
         {
@@ -231,8 +236,10 @@ public class PreviewBootstrapService(
         {
             return GetRepository(editingContext).GetProcessDefinitions()?.Process?.Tasks ?? [];
         }
-        catch (FileNotFoundException)
+        catch (Exception)
         {
+            // The process is editable in Studio, so a missing or malformed process.bpmn can throw.
+            // Degrade to no process tasks so the preview still loads.
             return [];
         }
     }
@@ -275,9 +282,8 @@ public class PreviewBootstrapService(
     }
 
     /// <summary>
-    /// Builds the UI configuration (window.altinnAppGlobalData.ui) by mirroring the app backend's
-    /// AppResourcesSI.GetUiConfiguration: the Settings.json for every layout set folder, keyed by folder
-    /// name, plus the global settings from App/ui/Settings.json.
+    /// Builds window.altinnAppGlobalData.ui: the Settings.json for every layout set folder (keyed by
+    /// folder name) plus the global App/ui/Settings.json.
     /// </summary>
     private async Task<JsonObject> BuildUiConfigurationNode(
         AltinnAppGitRepository altinnAppGitRepository,
@@ -344,8 +350,7 @@ public class PreviewBootstrapService(
     }
 
     /// <summary>
-    /// Overrides the partyTypesAllowed in app metadata to bypass the check in app-frontend for a valid
-    /// party during instantiation.
+    /// Sets all partyTypesAllowed to false to bypass app-frontend's valid-party check during instantiation.
     /// </summary>
     private static void SetMockedPartyTypesAllowedAsAllFalse(ApplicationMetadata applicationMetadata)
     {

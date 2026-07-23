@@ -668,9 +668,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Gets the raw footer layout as a JsonNode, preserving the authored JSON exactly, or null if there
-    /// is no footer. Use this when the footer must be forwarded to app-frontend as-is (e.g. the preview
-    /// bootstrap), since the typed FooterFile does not round-trip enum values (icon) with System.Text.Json.
+    /// Gets the raw footer layout as a JsonNode (or null if there is no footer), preserving the authored
+    /// JSON exactly. The typed FooterFile does not round-trip enum values (icon) under System.Text.Json.
     /// </summary>
     public async Task<JsonNode> GetFooterAsJsonNode(CancellationToken cancellationToken = default)
     {

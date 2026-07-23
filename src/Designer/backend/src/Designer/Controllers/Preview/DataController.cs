@@ -42,7 +42,7 @@ public class DataController(
             app,
             developer
         );
-        // v9 apps can lack layout-sets.json; they must never be routed to the v3 (Old*) controllers.
+        // v9 apps never have layout-sets.json; they must never be routed to the v3 (Old*) controllers.
         bool isV9App = appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org!, app!, developer));
         if (!isV9App && !altinnAppGitRepository.AppUsesLayoutSets())
         {

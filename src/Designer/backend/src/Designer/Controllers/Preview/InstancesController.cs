@@ -50,8 +50,8 @@ public class InstancesController(
             app,
             developer
         );
-        // v9 apps do not always have a layout-sets.json, so AppUsesLayoutSets() can be false for them.
-        // They must never be routed to the v3 (Old*) controllers, so gate the redirect on IsV9App too.
+        // v9 apps never have a layout-sets.json, so AppUsesLayoutSets() is false for them; gate the
+        // redirect on IsV9App too so they are never routed to the v3 (Old*) controllers.
         bool isV9App = appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org!, app!, developer));
         if (!isV9App && !altinnAppGitRepository.AppUsesLayoutSets())
         {
@@ -86,8 +86,8 @@ public class InstancesController(
     }
 
     /// <summary>
-    /// Get the enriched instance (the instance with its process state embedded).
-    /// New in v9 app-frontend: replaces the separate instance + process GETs.
+    /// The enriched instance (instance with process state embedded). New in v9: replaces the separate
+    /// instance + process GETs.
     /// </summary>
     [HttpGet("{partyId}/{instanceGuid}/enriched")]
     public IActionResult GetEnrichedInstance(
@@ -109,9 +109,8 @@ public class InstancesController(
     }
 
     /// <summary>
-    /// Consolidated form bootstrap for a stateful instance (new in v9). Mirrors the app backend's
-    /// FormBootstrapService: returns the layouts for the folder plus, for each data model, its JSON
-    /// schema and initial data. Static options and validation issues are returned empty for now.
+    /// Consolidated form bootstrap for a stateful instance (new in v9): the folder's layouts plus each
+    /// data model's schema and initial data.
     /// </summary>
     [HttpGet("{partyId}/{instanceGuid}/bootstrap-form/{uiFolder}")]
     public async Task<IActionResult> BootstrapFormForInstance(
@@ -136,35 +135,20 @@ public class InstancesController(
     }
 
     /// <summary>
-    /// Mocked payment information for a payment task so the payment task's layout (and the components the
-    /// app developer has added) renders in preview. The status is "Created" - this shows the pre-payment
-    /// step (order summary + pay/back buttons). It must not be "Uninitialized", which would make
-    /// app-frontend initiate a real payment and redirect to an external payment provider.
+    /// Mocked payment information so the payment task's layout renders in preview. Status "Created" shows
+    /// the pre-payment step; it must not be "Uninitialized", which would trigger a real payment redirect.
     /// </summary>
     [HttpGet("{partyId}/{instanceGuid}/payment")]
     [UseSystemTextJson]
     public ActionResult GetPaymentInformation([FromQuery] string? taskId)
     {
+        // paymentDetails is omitted: app-frontend only reads it on the paid/receipt path.
         return Ok(
             new
             {
                 taskId = taskId ?? string.Empty,
                 status = "Created",
                 orderDetails = BuildMockOrderDetails(),
-                paymentDetails = new
-                {
-                    paymentId = "preview-payment",
-                    redirectUrl = string.Empty,
-                    payer = new
-                    {
-                        privatePerson = new
-                        {
-                            firstName = "Test",
-                            lastName = "Testesen",
-                            email = "test@test.com",
-                        },
-                    },
-                },
             }
         );
     }
@@ -179,8 +163,8 @@ public class InstancesController(
         return Ok(BuildMockOrderDetails());
     }
 
-    // Real order details are produced by the app's own payment logic at runtime, which the preview
-    // cannot know - so we return a valid but empty order instead of fabricating amounts.
+    // The app's own payment logic produces the real order at runtime; return a valid but empty order
+    // rather than fabricating amounts.
     private static object BuildMockOrderDetails() =>
         new
         {
@@ -193,8 +177,8 @@ public class InstancesController(
         };
 
     /// <summary>
-    /// Mocked signee list for a signing task so the signing task's layout (and the components the app
-    /// developer has added) renders in preview. Empty until real preview signees are available.
+    /// Mocked signee list so the signing task's layout renders in preview. Empty until real preview
+    /// signees are available.
     /// </summary>
     [HttpGet("{partyId}/{instanceGuid}/signing")]
     [UseSystemTextJson]

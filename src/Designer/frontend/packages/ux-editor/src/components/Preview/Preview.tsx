@@ -64,10 +64,9 @@ const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { previewIframeRef, selectedFormLayoutName } = useAppContext();
   const { layoutSet } = useUxEditorParams();
-  const { data: appVersion } = useAppVersionQuery(org, app);
-  // In v9 the layout set / UI-folder name is the process task id; there is no separate task id and no
-  // layout-sets.json, so the legacy lookup falls back to the stateless task ('Task_1'). Use the layout
-  // set name directly for v9.
+  const { data: appVersion, isPending: isAppVersionPending } = useAppVersionQuery(org, app);
+  // In v9 the layout set name is the process task id (no separate task id), so the legacy lookup falls
+  // back to the stateless task ('Task_1'). Use the layout set name directly for v9.
   const isV9App = !isBelowSupportedVersion(appVersion?.backendVersion ?? '', 9);
   const derivedTaskId = useSelectedTaskId(layoutSet);
   const taskId = isV9App ? layoutSet : derivedTaskId;
@@ -87,8 +86,11 @@ const PreviewFrame = () => {
   const isSubform = currentLayoutSet?.type === 'subform';
 
   useEffect(() => {
-    if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
-  }, [createInstance, user, taskId]);
+    // Wait until the app version has resolved before creating the instance; otherwise taskId is derived
+    // from a stale (v4) assumption on the first render and would create the instance with the wrong task.
+    if (user && taskId && !isAppVersionPending)
+      createInstance({ partyId: user?.id, taskId: taskId });
+  }, [createInstance, user, taskId, isAppVersionPending]);
 
   useEffect(() => {
     return () => {

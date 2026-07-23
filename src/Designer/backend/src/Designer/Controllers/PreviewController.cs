@@ -68,8 +68,7 @@ public partial class PreviewController(
     // This value will be overridden to act as the task number for apps that use layout sets
     private const int PartyId = 51001;
 
-    // Base URL where Designer serves the app-frontend bundle for v9 previews (see Designer Dockerfile:
-    // the bundle is copied into wwwroot/altinn-app-frontend/). Mirrors the app backend's asset base URL.
+    // Base URL where Designer serves the app-frontend bundle for v9 previews (wwwroot/altinn-app-frontend/).
     private const string V9PreviewAssetBaseUrl = "/altinn-app-frontend";
 
     /// <summary>
@@ -101,10 +100,8 @@ public partial class PreviewController(
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
 
-        // v9 apps are no longer served via a static index.cshtml. The app backend's HomeController now
-        // generates the HTML itself and injects the global bootstrap state (window.altinnAppGlobalData)
-        // that app-frontend reads on load. We mirror that here for the preview, serving the app-frontend
-        // bundle that Designer hosts at /altinn-app-frontend/ (see IndexPageGenerator in the app backend).
+        // v9 apps are no longer served via a static index.cshtml; the app backend generates the HTML and
+        // injects the bootstrap state (window.altinnAppGlobalData). Mirror that for the preview.
         if (appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)))
         {
             string html = await GenerateV9PreviewIndexHtml(org, app, developer, cancellationToken);
@@ -123,11 +120,9 @@ public partial class PreviewController(
     }
 
     /// <summary>
-    /// Serves the generated v9 preview index HTML for app-frontend's client-side (history) routes.
-    /// v9 app-frontend uses browser routing with basename /{org}/{app}, so after the initial hash-route
-    /// redirect the browser requests real paths like /{org}/{app}/instance/{partyId}/{instanceGuid}/...
-    /// These must return the same index HTML (mirroring the app backend's HomeController) rather than
-    /// being treated as image requests by the catch-all route below.
+    /// Serves the v9 preview index HTML for app-frontend's client-side (history) routes. v9 app-frontend
+    /// uses browser routing, so these real paths must return the index HTML rather than being treated as
+    /// image requests by the catch-all route below.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -982,7 +977,7 @@ public partial class PreviewController(
             cancellationToken
         );
 
-        // Feature toggles are not configurable from the preview yet; app-frontend treats {} as "all defaults".
+        // Not configurable from the preview yet; app-frontend treats {} as "all defaults".
         const string FeatureTogglesJson = "{}";
 
         return $$"""
