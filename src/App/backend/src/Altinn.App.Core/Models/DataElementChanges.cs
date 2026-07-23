@@ -73,6 +73,13 @@ public abstract class DataElementChange
     /// The contentType of an element in storage
     /// </summary>
     public string ContentType { get; }
+
+    /// <summary>
+    /// Optional idempotency key for a <see cref="ChangeType.Created"/> change. When set, it is sent to Storage on
+    /// insert so a replayed create (e.g. a retried workflow-engine callback) collapses onto the first persisted
+    /// element instead of inserting a duplicate. Null for normal app data writes.
+    /// </summary>
+    internal string? IdempotencyKey { get; set; }
 }
 
 /// <summary>

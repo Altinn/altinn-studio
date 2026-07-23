@@ -562,13 +562,37 @@ public sealed class DataClient : IDataClient
     }
 
     /// <inheritdoc />
-    public async Task<DataElement> InsertBinaryData(
+    public Task<DataElement> InsertBinaryData(
         string instanceId,
         string dataType,
         string contentType,
         string? filename,
         Stream stream,
         string? generatedFromTask = null,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        InsertBinaryData(
+            instanceId,
+            dataType,
+            contentType,
+            filename,
+            stream,
+            generatedFromTask,
+            idempotencyKey: null,
+            authenticationMethod,
+            cancellationToken
+        );
+
+    /// <inheritdoc />
+    public async Task<DataElement> InsertBinaryData(
+        string instanceId,
+        string dataType,
+        string contentType,
+        string? filename,
+        Stream stream,
+        string? generatedFromTask,
+        string? idempotencyKey,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
@@ -579,6 +603,10 @@ public sealed class DataClient : IDataClient
         if (!string.IsNullOrEmpty(generatedFromTask))
         {
             apiUrl += $"&generatedFromTask={generatedFromTask}";
+        }
+        if (!string.IsNullOrEmpty(idempotencyKey))
+        {
+            apiUrl += $"&idempotencyKey={Uri.EscapeDataString(idempotencyKey)}";
         }
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(

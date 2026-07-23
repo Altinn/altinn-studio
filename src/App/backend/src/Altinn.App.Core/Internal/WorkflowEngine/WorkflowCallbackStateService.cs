@@ -64,10 +64,16 @@ internal sealed class WorkflowCallbackStateService
     /// </param>
     /// <param name="state">The opaque state blob captured at enqueue time.</param>
     /// <param name="language">The actor language to initialize the unit of work with.</param>
+    /// <param name="idempotencyKey">
+    /// Optional retry-stable key for the current callback (the engine's step idempotency key). When provided, data
+    /// elements created during the callback are tagged so Storage dedupes inserts, making the at-least-once callback
+    /// safe to replay. Null disables idempotent creates (behaves as a normal data write).
+    /// </param>
     public async Task<InstanceDataUnitOfWork> RestoreState(
         InstanceIdentifier expectedInstance,
         string state,
-        string? language
+        string? language,
+        string? idempotencyKey = null
     )
     {
         // Verify the detached HMAC signature and unwrap the inner payload before trusting any of it. A leaked
@@ -99,6 +105,13 @@ internal sealed class WorkflowCallbackStateService
             language,
             StorageAuthenticationMethod.ServiceOwner()
         );
+
+        // Enable idempotent data element creation so a replayed callback (the engine delivers at-least-once) cannot
+        // create duplicate form data. The key is stable across retries of the same step.
+        if (!string.IsNullOrEmpty(idempotencyKey))
+        {
+            unitOfWork.UseIdempotentCreates(idempotencyKey);
+        }
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
