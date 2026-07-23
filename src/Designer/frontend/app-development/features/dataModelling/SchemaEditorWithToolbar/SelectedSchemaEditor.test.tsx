@@ -72,7 +72,9 @@ describe('SelectedSchemaEditor', () => {
       "The 'xsd:schema' start tag on line 2 position 2 does not match the end tag of 'xs:schema'. Line 86, position 3";
     const getDataModel = jest
       .fn()
-      .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'DM_05', [customMessage])));
+      .mockImplementation(() =>
+        Promise.reject(createApiErrorMock(400, 'DM_05', undefined, [customMessage])),
+      );
     render({ getDataModel });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('schema_editor.loading_page')),

@@ -1,4 +1,5 @@
 export enum ApiErrorCodes {
   DuplicateTokenName = 'DuplicateTokenName',
-  SessionExpired = 'SessionExpired',
+  SessionExpired = 'GT_SessionExpired',
+  BranchNotFound = 'GT_BranchNotFound',
 }

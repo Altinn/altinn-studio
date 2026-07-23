@@ -1,5 +1,7 @@
-﻿#nullable disable
+#nullable disable
+using System.Collections.Generic;
 using System.Net;
+using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
@@ -64,6 +66,20 @@ public class GitExceptionFilterAttribute : ExceptionFilterAttribute
             )
             {
                 StatusCode = (int)HttpStatusCode.Unauthorized,
+            };
+        }
+
+        if (context.Exception is BranchNotFoundException branchNotFoundException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    GitErrorCodes.BranchNotFound,
+                    HttpStatusCode.NotFound,
+                    values: new Dictionary<string, object> { { "branchName", branchNotFoundException.BranchName } }
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.NotFound,
             };
         }
 
