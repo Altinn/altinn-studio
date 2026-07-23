@@ -9,7 +9,7 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
+import { instanceQueries, useInstanceDataQueryArgs, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
@@ -117,6 +117,7 @@ const { Provider: RealSelectedPartyProvider, useCtx: useSelectedPartyCtx } = cre
  */
 const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   const validParties = useValidParties();
+  const instanceId = useLaxInstanceId();
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
   const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetSelectedPartyMutation();
   const { data: partyFromQuery, isLoading, error: errorFromQuery } = useSelectedPartyQuery(true);
@@ -131,7 +132,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
     return <DisplayError error={error} />;
   }
 
-  if (!validParties?.length) {
+  if (!instanceId && !validParties?.length) {
     return <NoValidPartiesError />;
   }
 
