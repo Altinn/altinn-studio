@@ -52,7 +52,7 @@ export function Text({
     >
       <span className={classes.labelWrapper}>
         <span className={classes.labelRow}>
-          <DsLabel asChild data-size='md'>
+          <DsLabel asChild>
             <span>{lang(title)}</span>
           </DsLabel>
           {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
