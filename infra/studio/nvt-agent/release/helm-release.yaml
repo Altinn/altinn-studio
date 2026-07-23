@@ -220,7 +220,7 @@ spec:
                     hasCompletedOnboarding: true
                     bypassPermissionsModeAccepted: true
                     projects:
-                      /workspace/altinn-studio:
+                      /workspace:
                         hasTrustDialogAccepted: true
             plugins:
               - config:

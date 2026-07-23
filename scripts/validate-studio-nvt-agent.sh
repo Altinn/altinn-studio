@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.6
-chart_digest=sha256:1078bfa8b553cb4c92d738f2cfed104771542b591633cf4f908c1b533ce2e394
+chart_version=0.8.7
+chart_digest=sha256:f1669ee34029a0d989278cd8290a103e4bbaa234c3f826210935009eac81a5df
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -56,7 +56,7 @@ yq -e '
   .spec.values.agentSchedule.template.agent.config.preseed.files[1].overwrite == false and
   .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.hasCompletedOnboarding == true and
   .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.bypassPermissionsModeAccepted == true and
-  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.projects."/workspace/altinn-studio".hasTrustDialogAccepted == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.projects."/workspace".hasTrustDialogAccepted == true and
   (.spec.values.agentSchedule.template.tolerations | length) == 1 and
   .spec.values.agentSchedule.template.tolerations[0].effect == "NoSchedule" and
   .spec.values.agentSchedule.template.tolerations[0].key == "purpose" and
