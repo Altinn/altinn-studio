@@ -196,6 +196,13 @@ spec:
             user: non-root
       suspend: false
       template:
+        resources:
+          requests:
+            cpu: "2"
+            memory: 8Gi
+          limits:
+            cpu: "2"
+            memory: 8Gi
         agent:
           config:
             plugins:
@@ -217,12 +224,16 @@ spec:
               - config:
                   credentials:
                     - identity:
-                        mode: provider
+                        mode: explicit
+                        name: "nvt-agent[bot]"
+                        email: "289161147+nvt-agent[bot]@users.noreply.github.com"
                       match: https://github.com/mirkoSekulic/altinn-studio
                       provider: github-fork
                       username: x-access-token
                     - identity:
-                        mode: provider
+                        mode: explicit
+                        name: "nvt-agent-altinn[bot]"
+                        email: "289165276+nvt-agent-altinn[bot]@users.noreply.github.com"
                       match: https://github.com/Altinn/altinn-studio
                       provider: github-altinn
                       username: x-access-token

@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.5
-chart_digest=sha256:05f05db43d2176e8ffbe51564563866bc3ec24dab436f9f8e225abc577c178e7
+chart_version=0.8.6
+chart_digest=sha256:1078bfa8b553cb4c92d738f2cfed104771542b591633cf4f908c1b533ce2e394
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -44,6 +44,10 @@ yq -e '
   .spec.values.agentSchedule.suspend == false and
   .spec.values.agentSchedule.maxParallelism == 2 and
   .spec.values.agentSchedule.template.runtimeClassName == "kata-vm-isolation" and
+  .spec.values.agentSchedule.template.resources.requests.cpu == "2" and
+  .spec.values.agentSchedule.template.resources.requests.memory == "8Gi" and
+  .spec.values.agentSchedule.template.resources.limits.cpu == "2" and
+  .spec.values.agentSchedule.template.resources.limits.memory == "8Gi" and
   (.spec.values.agentSchedule.template.tolerations | length) == 1 and
   .spec.values.agentSchedule.template.tolerations[0].effect == "NoSchedule" and
   .spec.values.agentSchedule.template.tolerations[0].key == "purpose" and
@@ -57,6 +61,13 @@ yq -e '
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].name == "git-credentials" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "explicit" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.name == "nvt-agent[bot]" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.email == "289161147+nvt-agent[bot]@users.noreply.github.com" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.mode == "explicit" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.name == "nvt-agent-altinn[bot]" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.email == "289165276+nvt-agent-altinn[bot]@users.noreply.github.com" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
   .spec.values.broker.persistence.seedSecretName == "nvt-broker-seed" and
   .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and
