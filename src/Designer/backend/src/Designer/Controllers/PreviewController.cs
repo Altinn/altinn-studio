@@ -4,12 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -23,6 +21,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Altinn.Studio.Designer.Services.Models;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
@@ -45,6 +44,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// <param name="textsService">Texts Service</param>
 /// <param name="sharedContentClient">Shared Content Client</param>
 /// <param name="appVersionService">App Version Service</param>
+/// <param name="previewBootstrapService">Preview Bootstrap Service</param>
 /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
 [ApiController]
 [Authorize]
@@ -61,7 +61,8 @@ public partial class PreviewController(
     IPreviewService previewService,
     ITextsService textsService,
     ISharedContentClient sharedContentClient,
-    IAppVersionService appVersionService
+    IAppVersionService appVersionService,
+    IPreviewBootstrapService previewBootstrapService
 ) : Controller
 {
     // This value will be overridden to act as the task number for apps that use layout sets
@@ -70,15 +71,6 @@ public partial class PreviewController(
     // Base URL where Designer serves the app-frontend bundle for v9 previews (see Designer Dockerfile:
     // the bundle is copied into wwwroot/altinn-app-frontend/). Mirrors the app backend's asset base URL.
     private const string V9PreviewAssetBaseUrl = "/altinn-app-frontend";
-
-    // Matches how the app backend (IndexPageGenerator) serializes the global bootstrap state:
-    // camelCase property names and null values omitted. The default (HTML-safe) encoder is kept so the
-    // JSON can be embedded directly inside a <script> tag.
-    private static readonly JsonSerializerOptions s_appGlobalDataJsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     /// <summary>
     /// Default action for the preview.
@@ -212,22 +204,10 @@ public partial class PreviewController(
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            org,
-            app,
-            developer
-        );
-        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
+        ApplicationMetadata applicationMetadata = await previewBootstrapService.GetMockedApplicationMetadata(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
             cancellationToken
         );
-        string appNugetVersionString = appVersionService
-            .GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer))
-            .ToString();
-        // This property is populated at runtime by the apps, so we need to mock it here
-        applicationMetadata.AltinnNugetVersion = NugetVersionHelper.GetMockedAltinnNugetBuildFromVersion(
-            appNugetVersionString
-        );
-        applicationMetadata = SetMockedPartyTypesAllowedAsAllFalse(applicationMetadata);
         return Ok(applicationMetadata);
     }
 
@@ -316,7 +296,7 @@ public partial class PreviewController(
                 null,
                 cancellationToken
             );
-            AddPdfLayoutNameToPageOrder(layoutSettings);
+            PreviewLayoutSettingsHelper.AddPdfLayoutNameToPageOrder(layoutSettings);
             byte[] layoutSettingsContent = JsonSerializer.SerializeToUtf8Bytes(layoutSettings);
             return new FileContentResult(layoutSettingsContent, MimeTypeMap.GetMimeType(".json"));
         }
@@ -355,7 +335,7 @@ public partial class PreviewController(
                 layoutSetName,
                 cancellationToken
             );
-            AddPdfLayoutNameToPageOrder(layoutSettings);
+            PreviewLayoutSettingsHelper.AddPdfLayoutNameToPageOrder(layoutSettings);
             byte[] layoutSettingsContent = JsonSerializer.SerializeToUtf8Bytes(layoutSettings);
             return new FileContentResult(layoutSettingsContent, MimeTypeMap.GetMimeType(".json"));
         }
@@ -402,7 +382,7 @@ public partial class PreviewController(
     [Route("api/v1/profile/user")]
     public IActionResult CurrentUser(string org, string app)
     {
-        return Ok(BuildMockPreviewUserProfile());
+        return Ok(previewBootstrapService.GetMockUserProfile());
     }
 
     /// <summary>
@@ -415,7 +395,7 @@ public partial class PreviewController(
     [Route("api/authorization/parties/current")]
     public IActionResult CurrentParty(string org, string app)
     {
-        return Ok(BuildMockPreviewParty());
+        return Ok(previewBootstrapService.GetMockParty());
     }
 
     /// <summary>
@@ -978,45 +958,6 @@ public partial class PreviewController(
         return languageCollection.OrderBy(x => x.Key).First().Value;
     }
 
-    /// <summary>
-    /// Adds the pdfLayoutName to pages.order in the layout settings for preview purposes.
-    /// The actual Settings.json file is not modified.
-    /// </summary>
-    /// <param name="layoutSettings">The layout settings JsonNode to modify in-place.</param>
-    private static void AddPdfLayoutNameToPageOrder(JsonNode layoutSettings)
-    {
-        JsonObject? pagesObject = layoutSettings?["pages"] as JsonObject;
-        string? pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
-        if (string.IsNullOrEmpty(pdfLayoutName))
-        {
-            return;
-        }
-
-        if (pagesObject?["groups"] is JsonArray groups)
-        {
-            JsonObject? lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
-
-            if (lastGroupWithOrder?["order"] is JsonArray groupOrder)
-            {
-                bool alreadyInOrder = groupOrder.Any(item => item?.GetValue<string>() == pdfLayoutName);
-                if (!alreadyInOrder)
-                {
-                    groupOrder.Add(JsonValue.Create(pdfLayoutName));
-                }
-                return;
-            }
-        }
-
-        if (pagesObject?["order"] is JsonArray order)
-        {
-            bool alreadyInOrder = order.Any(item => item?.GetValue<string>() == pdfLayoutName);
-            if (!alreadyInOrder)
-            {
-                order.Add(JsonValue.Create(pdfLayoutName));
-            }
-        }
-    }
-
     private static string? GetSelectedLayoutSetInEditorFromRefererHeader(string? refererHeader)
     {
         Uri refererUri = new(refererHeader!);
@@ -1036,7 +977,10 @@ public partial class PreviewController(
         CancellationToken cancellationToken
     )
     {
-        string globalDataJson = await BuildAppGlobalDataJson(org, app, developer, cancellationToken);
+        string globalDataJson = await previewBootstrapService.GetAppGlobalDataJson(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+            cancellationToken
+        );
 
         // Feature toggles are not configurable from the preview yet; app-frontend treats {} as "all defaults".
         const string FeatureTogglesJson = "{}";
@@ -1066,179 +1010,6 @@ public partial class PreviewController(
             """;
     }
 
-    /// <summary>
-    /// Builds the global bootstrap state (window.altinnAppGlobalData) for a v9 preview, mirroring the
-    /// app backend's BootstrapGlobalService. Reuses the same mocked data the preview endpoints already
-    /// expose; fields without a preview source yet are provided as safe defaults.
-    /// </summary>
-    private async Task<string> BuildAppGlobalDataJson(
-        string org,
-        string app,
-        string developer,
-        CancellationToken cancellationToken
-    )
-    {
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            org,
-            app,
-            developer
-        );
-
-        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
-            cancellationToken
-        );
-        string appNugetVersionString = appVersionService
-            .GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer))
-            .ToString();
-        applicationMetadata.AltinnNugetVersion = NugetVersionHelper.GetMockedAltinnNugetBuildFromVersion(
-            appNugetVersionString
-        );
-        applicationMetadata = SetMockedPartyTypesAllowedAsAllFalse(applicationMetadata);
-        // The app backend defaults OnEntry when it is missing (see AppMetadata.cs). Mirror that here so
-        // app-frontend's useIsStateless (which reads onEntry.show) does not crash for apps without one.
-        applicationMetadata.OnEntry ??= new Altinn.App.Core.Models.OnEntry { Show = "new-instance" };
-
-        Models.TextResource? textResources = await TryGetTextResources(altinnAppGitRepository, cancellationToken);
-        List<ApplicationLanguage> availableLanguages = GetAvailableLanguages(org, app, developer);
-        // Serve the raw footer JSON so app-frontend gets the authored icon casing (e.g. "information");
-        // the typed FooterFile mangles enum values under System.Text.Json.
-        JsonNode footer = await altinnAppGitRepository.GetFooterAsJsonNode(cancellationToken);
-        JsonObject ui = await BuildUiConfigurationNode(altinnAppGitRepository, cancellationToken);
-
-        var appGlobalData = new
-        {
-            applicationMetadata,
-            textResources,
-            availableLanguages,
-            ui,
-            footer,
-            // Provided as defaults for now - app-frontend needs these present to bootstrap, but the
-            // preview has no source for them yet (see BootstrapGlobalService for the runtime values).
-            frontendSettings = new Dictionary<string, string>(),
-            // Standard platform brand/static-asset URLs (same defaults every app uses, see
-            // PlatformFrontendSettings in the app backend). These are CDN-hosted brand assets, distinct
-            // from the app-frontend bundle Designer self-hosts. app-frontend fetches the logo SVG from
-            // altinnLogoUrl on load, so it must be a real URL.
-            platformFrontendSettings = new
-            {
-                altinnLogoUrl = "https://altinncdn.no/img/Altinn-logo-blue.svg",
-                helpCircleIllustrationUrl = "https://altinncdn.no/img/illustration-help-circle.svg",
-                postalCodesUrl = "https://altinncdn.no/postcodes/registry.json",
-            },
-            returnUrl = (string?)null,
-            userProfile = BuildMockPreviewUserProfile(),
-            selectedParty = BuildMockPreviewParty(),
-            orgName = (object?)null,
-            orgLogoUrl = (string?)null,
-        };
-
-        return JsonSerializer.Serialize(appGlobalData, s_appGlobalDataJsonOptions);
-    }
-
-    /// <summary>
-    /// Builds the UI configuration (window.altinnAppGlobalData.ui) by mirroring the app backend's
-    /// AppResourcesSI.GetUiConfiguration: the Settings.json for every layout set folder, keyed by folder
-    /// name, plus the global settings from App/ui/Settings.json.
-    /// </summary>
-    private async Task<JsonObject> BuildUiConfigurationNode(
-        AltinnAppGitRepository altinnAppGitRepository,
-        CancellationToken cancellationToken
-    )
-    {
-        JsonObject folders = new();
-        IEnumerable<string> uiFolders;
-        try
-        {
-            uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
-        }
-        catch (NotFoundException)
-        {
-            uiFolders = [];
-        }
-
-        foreach (string folder in uiFolders)
-        {
-            JsonNode layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(
-                folder,
-                cancellationToken
-            );
-            AddPdfLayoutNameToPageOrder(layoutSettings);
-            folders[folder] = layoutSettings;
-        }
-
-        UiSettings globalSettings = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
-        JsonNode? settingsNode = globalSettings is null
-            ? null
-            : JsonSerializer.SerializeToNode(globalSettings, s_appGlobalDataJsonOptions);
-
-        return new JsonObject { ["folders"] = folders, ["settings"] = settingsNode };
-    }
-
-    private static async Task<Models.TextResource?> TryGetTextResources(
-        AltinnAppGitRepository altinnAppGitRepository,
-        CancellationToken cancellationToken
-    )
-    {
-        try
-        {
-            return await altinnAppGitRepository.GetText("nb", cancellationToken);
-        }
-        catch (FileNotFoundException)
-        {
-            return null;
-        }
-    }
-
-    private List<ApplicationLanguage> GetAvailableLanguages(string org, string app, string developer)
-    {
-        try
-        {
-            return textsService
-                .GetLanguages(org, app, developer)
-                .Select(language => new ApplicationLanguage { Language = language })
-                .ToList();
-        }
-        catch (NotFoundException)
-        {
-            return [];
-        }
-    }
-
-    private static UserProfile BuildMockPreviewUserProfile()
-    {
-        // TODO: return actual current testuser when tenor testusers are available
-        return new UserProfile
-        {
-            UserId = 1024,
-            UserName = "previewUser",
-            PhoneNumber = "12345678",
-            Email = "test@test.com",
-            PartyId = PartyId,
-            Party = new(),
-            UserType = 0,
-            ProfileSettingPreference = new() { Language = "nb" },
-        };
-    }
-
-    private static Party BuildMockPreviewParty()
-    {
-        // TODO: return actual current party when tenor testusers are available
-        return new Party
-        {
-            PartyId = PartyId,
-            PartyTypeName = PartyType.Person,
-            OrgNumber = "1",
-            SSN = null,
-            UnitType = "AS",
-            Name = "Test Testesen",
-            IsDeleted = false,
-            OnlyHierarchyElementWithNoAccess = false,
-            Person = new Person(),
-            Organization = null,
-            ChildParties = null,
-        };
-    }
-
     private static string ReplaceIndexToFetchCorrectOrgAppInCshtml(string originalContent)
     {
         // Replace the array indexes in the script in the cshtml that retrieves the org and app name since
@@ -1247,20 +1018,6 @@ public partial class PreviewController(
         modifiedContent = modifiedContent.Replace("window.app = appId[2];", "window.app = appId[3];");
 
         return modifiedContent;
-    }
-
-    /// <summary>
-    /// Method to override the partyTypesAllowed in app metadata to bypass the check in app-frontend for a valid party during instantiation.
-    /// </summary>
-    /// <returns>The altered app metadata with all partyTypes set to false</returns>
-    private static ApplicationMetadata SetMockedPartyTypesAllowedAsAllFalse(ApplicationMetadata applicationMetadata)
-    {
-        applicationMetadata.PartyTypesAllowed.Person = false;
-        applicationMetadata.PartyTypesAllowed.Organisation = false;
-        applicationMetadata.PartyTypesAllowed.SubUnit = false;
-        applicationMetadata.PartyTypesAllowed.BankruptcyEstate = false;
-
-        return applicationMetadata;
     }
 
     [GeneratedRegex(@"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$")]

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -35,8 +34,8 @@ public class InstancesController(
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
     IInstanceService instanceService,
     IApplicationMetadataService applicationMetadataService,
-    ISchemaModelService schemaModelService,
-    IAppVersionService appVersionService
+    IAppVersionService appVersionService,
+    IPreviewBootstrapService previewBootstrapService
 ) : Controller
 {
     private static readonly JsonSerializerOptions s_camelCaseJsonOptions = new()
@@ -145,53 +144,15 @@ public class InstancesController(
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            org,
-            app,
-            developer
-        );
-
-        Dictionary<string, JsonNode> layouts = await altinnAppGitRepository.GetFormLayouts(uiFolder, cancellationToken);
-        ApplicationMetadata applicationMetadata = await applicationMetadataService.GetApplicationMetadataFromRepository(
-            org,
-            app
-        );
         Instance instance = instanceService.GetInstance(instanceGuid);
+        JsonObject formBootstrap = await previewBootstrapService.GetInstanceFormBootstrap(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+            uiFolder,
+            instance,
+            cancellationToken
+        );
 
-        JsonObject dataModels = new();
-        foreach (DataElement dataElement in instance.Data ?? [])
-        {
-            DataType? dataType = applicationMetadata.DataTypes.Find(dt =>
-                dt.Id == dataElement.DataType && dt.AppLogic?.ClassRef is not null
-            );
-            if (dataType is null)
-            {
-                continue;
-            }
-
-            string schemaJson = await schemaModelService.GetSchema(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
-                $"/App/models/{dataElement.DataType}.schema.json",
-                cancellationToken
-            );
-
-            dataModels[dataElement.DataType] = new JsonObject
-            {
-                ["schema"] = JsonNode.Parse(schemaJson),
-                // Empty initial data for now - app-frontend fills the form via patches during editing.
-                ["initialData"] = new JsonObject(),
-                ["dataElementId"] = dataElement.Id,
-            };
-        }
-
-        JsonObject response = new()
-        {
-            ["layouts"] = JsonSerializer.SerializeToNode(layouts, s_camelCaseJsonOptions),
-            ["dataModels"] = dataModels,
-            ["staticOptions"] = new JsonObject(),
-        };
-
-        return Content(response.ToJsonString(), "application/json");
+        return Content(formBootstrap.ToJsonString(), "application/json");
     }
 
     /// <summary>
