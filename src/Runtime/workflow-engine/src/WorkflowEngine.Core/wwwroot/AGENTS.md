@@ -23,6 +23,7 @@ wwwroot/
     shared/                          — reusable UI building blocks (imports from core/ only)
       cards.js                       — all card renderers (full, compact, scheduled), filter data, label segments
       chain.js                       — chain rows: spine layout (edge-based + creation-order), inline row expansion
+      chain-groups.js                — collection group chrome + history cache, shared by recent & query chains modes
       pipeline.js                    — buildPipelineHTML(), step nodes, connectors, phase grouping, retry/skip buttons
       section.js                     — collapse/expand, compact/full toggle, card expand
       timers.js                      — requestAnimationFrame timer loop for elapsed counters + backoff countdowns
@@ -33,7 +34,7 @@ wwwroot/
       recent.js                      — recent workflows section (SSE-driven, 100-item window; chains/compact/full view modes, collection groups)
       filters.js                     — label filters, status chips, text filter, tabs
       url.js                         — syncUrl(), restoreUrl(), time range state
-      query.js                       — query tab with pagination, time range, auto-refresh
+      query.js                       — query tab with pagination, time range, auto-refresh; chains/compact/full view modes
       modal.js                       — step detail modal (SSE-driven refresh, retry/skip actions)
       settings.js                    — settings modal (timestamps, UTC toggle)
       state-modal.js                 — state evolution modal (SSE-driven refresh)

@@ -172,12 +172,21 @@ export const state = {
             return localStorage.getItem('compact:recent') === '1' ? 'compact' : 'chains';
         })()
     ),
+    /** @type {'chains' | 'compact' | 'full'} Query tab view mode (compact default: results are often unrelated single rows) */
+    queryView: /** @type {'chains' | 'compact' | 'full'} */ (
+        (() => {
+            const v = localStorage.getItem('queryView');
+            if (v === 'chains' || v === 'compact' || v === 'full') return v;
+            return localStorage.getItem('compact:query') !== '0' ? 'compact' : 'full';
+        })()
+    ),
     /** @type {Workflow[]} */ recentWorkflows: [],
     /** @type {Set<string>} */ pendingExpand: new Set(),
 };
 
-// The flat-mode card builders and URL sync still key off the boolean; keep it derived.
+// The flat-mode card builders and URL sync still key off the booleans; keep them derived.
 state.compactSections.recent = state.recentView === 'compact';
+state.compactSections.query = state.queryView === 'compact';
 
 /** @type {Record<string, Workflow>} */
 export const workflowData = {};

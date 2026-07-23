@@ -6,7 +6,7 @@
 import { connectSSE, watchForChanges } from './modules/core/sse.js';
 import { syncUrl, restoreUrl, bindUrlCallbacks } from './modules/features/url.js';
 import { updateTimers } from './modules/shared/timers.js';
-import { bindSectionCallbacks } from './modules/shared/section.js';
+import { bindSectionCallbacks, applyViewToggleUi } from './modules/shared/section.js';
 import { updateStatusBadges, updateCapacity } from './modules/features/header.js';
 import {
     updateScheduledBadge,
@@ -14,7 +14,11 @@ import {
     bindScheduledCallbacks,
 } from './modules/features/scheduled.js';
 import { updateLiveWorkflows, bindLiveCallbacks } from './modules/features/live.js';
-import { updateRecentWorkflows, bindRecentCallbacks } from './modules/features/recent.js';
+import {
+    updateRecentWorkflows,
+    bindRecentCallbacks,
+    applyRecentViewUi,
+} from './modules/features/recent.js';
 import {
     applyFilter,
     mergeDiscoveredLabels,
@@ -22,7 +26,7 @@ import {
     fetchLabelValues,
     bindFilterCallbacks,
 } from './modules/features/filters.js';
-import { loadQuery } from './modules/features/query.js';
+import { loadQuery, applyQueryViewUi } from './modules/features/query.js';
 import { bindThemeCallbacks } from './modules/features/theme.js';
 
 // Side-effect imports: these modules register window.* handlers and DOM listeners on load
@@ -32,7 +36,16 @@ import './modules/features/state-modal.js';
 
 /* ── Wire up late-bound callbacks to break circular dependencies ── */
 
-bindUrlCallbacks({ switchTab, loadQuery, applyFilter });
+bindUrlCallbacks({
+    switchTab,
+    loadQuery,
+    applyFilter,
+    applyViewUis: () => {
+        applyRecentViewUi();
+        applyQueryViewUi();
+        applyViewToggleUi();
+    },
+});
 bindSectionCallbacks({ loadScheduled, loadQuery, syncUrl });
 bindScheduledCallbacks({ applyFilter });
 bindLiveCallbacks({ mergeDiscoveredLabels, applyFilter });

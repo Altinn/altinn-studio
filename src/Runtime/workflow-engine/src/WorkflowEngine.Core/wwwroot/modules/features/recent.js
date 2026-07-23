@@ -3,22 +3,13 @@
  * Chains mode groups the recent window by collectionKey and renders each group as a
  * dependency-ordered spine (shared chain renderer): the story of the collection, oldest
  * transition first, side chains indented under the head that produced them. In-flight
- * workflows of a rendered collection are merged in so the story includes "now". A
- * per-group history control fetches /dashboard/graph for the exact edge-based spine
- * beyond the recent SSE window. */
+ * workflows of a rendered collection are merged in so the story includes "now". The
+ * group chrome and per-group history control live in shared/chain-groups.js. */
 
 import { dom, state, workflowData } from '../core/state.js';
-import { cssId, esc, formatElapsed } from '../core/helpers.js';
-import {
-    buildCardHTML,
-    buildCompactCardHTML,
-    buildFilterText,
-    buildLabelsHTML,
-    buildStatusTags,
-    collectionButtonHTML,
-    setCardFilterData,
-} from '../shared/cards.js';
-import { buildSpineByCreation, buildSpineFromEdges, renderChainList } from '../shared/chain.js';
+import { cssId } from '../core/helpers.js';
+import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
+import { buildGroupEl, onChainGroupsChanged } from '../shared/chain-groups.js';
 
 /** @typedef {import('../core/state.js').Workflow} Workflow */
 
@@ -39,129 +30,8 @@ export const bindRecentCallbacks = (fns) => {
 
 /* ── Chains view ─────────────────────────────────────────── */
 
-/**
- * Full-graph cache per collectionKey, populated by the per-group history control.
- * @type {Map<string, { nodes: Workflow[], edges: { from: string, to: string, kind: string }[] }>}
- */
-const historyCache = new Map();
-
-/** collectionKeys with a history refetch in flight (avoids refetch storms) */
-const historyRefreshing = new Set();
-
 /** Debounce timer for live-driven group re-renders */
 let _liveNotifyTimer = 0;
-
-const TERMINAL_STATUSES = new Set([
-    'Completed',
-    'Failed',
-    'Canceled',
-    'Abandoned',
-    'DependencyFailed',
-]);
-
-/**
- * Aggregate status for a group header: an in-flight member wins (the story is still
- * running), then the worst terminal outcome, then Completed.
- * @param {Workflow[]} members @returns {string}
- */
-const aggregateStatus = (members) => {
-    const statuses = new Set(members.map((m) => m.status));
-    for (const s of ['Processing', 'Requeued', 'Enqueued']) if (statuses.has(s)) return s;
-    for (const s of ['Failed', 'DependencyFailed', 'Canceled', 'Abandoned'])
-        if (statuses.has(s)) return s;
-    return 'Completed';
-};
-
-/** Wall-clock span of the group: first enqueue → last write. @param {Workflow[]} members */
-const spanHTML = (members) => {
-    const starts = members.map((m) => new Date(m.createdAt).getTime());
-    const ends = members.map((m) =>
-        new Date(
-            m.removedAt || m.steps.at(-1)?.updatedAt || m.updatedAt || m.createdAt,
-        ).getTime(),
-    );
-    const span = (Math.max(...ends) - Math.min(...starts)) / 1000;
-    if (!Number.isFinite(span) || span < 0) return '';
-    const label = span < 1 ? `${(span * 1000).toFixed(0)}ms` : formatElapsed(span);
-    return `<span class="chain-time" title="First enqueue → last update">${esc(label)}</span>`;
-};
-
-/**
- * @param {string} key - collectionKey
- * @param {Workflow[]} members - createdAt-ordered group members
- * @param {boolean} hasHistory - full graph already loaded
- * @returns {string}
- */
-const groupHeaderHTML = (key, members, hasHistory) => {
-    const head = members.find((m) => m.isHead !== false) ?? members[0];
-    let html = '<div class="chain-group-header">';
-    html += buildLabelsHTML(head, true);
-    html += '<span class="header-spacer"></span>';
-    html += `<span class="chain-count">${members.length} workflow${members.length === 1 ? '' : 's'}</span>`;
-    html += spanHTML(members);
-    const agg = aggregateStatus(members);
-    html += `<span class="status-pill ${esc(agg)}" style="animation:none">${esc(agg)}</span>`;
-    html += collectionButtonHTML(head, true);
-    html += hasHistory
-        ? `<span class="chain-history-loaded" title="Showing the full workflow graph for this collection">full history</span>`
-        : `<a class="open-btn chain-history-btn" onclick="loadChainHistory(event,'${esc(key)}','${esc(head.databaseId)}','${esc(head.namespace)}')" title="Load the full workflow graph for this collection (beyond the recent window)">&#10227; history</a>`;
-    html += '</div>';
-    return html;
-};
-
-/**
- * Build one collection group: header + spine. Uses the cached full graph when loaded
- * (auto-refreshing it when new members have appeared since the fetch), otherwise the
- * creation-order heuristic over the members in the recent window.
- * @param {string} key @param {Workflow[]} members
- * @returns {HTMLElement}
- */
-const buildGroupEl = (key, members) => {
-    members.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
-
-    const hist = historyCache.get(key);
-    let items;
-    if (hist) {
-        const merged = new Map(hist.nodes.map((n) => [n.databaseId, n]));
-        let missing = false;
-        for (const m of members) {
-            if (!merged.has(m.databaseId)) {
-                missing = true;
-                merged.set(m.databaseId, m);
-            }
-        }
-        items = buildSpineFromEdges([...merged.values()], hist.edges);
-        // New members mean new edges the cache doesn't know about — refetch in the background.
-        if (missing && !historyRefreshing.has(key)) {
-            historyRefreshing.add(key);
-            const head = members.at(-1);
-            window
-                .loadChainHistory(null, key, head.databaseId, head.namespace)
-                .finally(() => historyRefreshing.delete(key));
-        }
-    } else {
-        items = buildSpineByCreation(members);
-    }
-
-    const el = document.createElement('div');
-    el.className = 'chain-group';
-    el.dataset.collectionkey = key.toLowerCase();
-    el.dataset.namespace = members[0].namespace.toLowerCase();
-    el.dataset.filter = members.map(buildFilterText).join(' ');
-    el.dataset.status = [...new Set(members.flatMap((m) => buildStatusTags(m).split(' ')))].join(
-        ' ',
-    );
-    const labels = new Set();
-    for (const m of members) {
-        for (const [k, v] of Object.entries(m.labels ?? {})) labels.add(`${k}:${v}`.toLowerCase());
-    }
-    if (labels.size) el.dataset.labels = [...labels].join(',');
-    el.innerHTML = groupHeaderHTML(key, members, !!hist) + renderChainList(items);
-    for (const m of members) {
-        if (!state.previousWorkflows[m.databaseId]) workflowData[m.databaseId] = m;
-    }
-    return el;
-};
 
 /** Rebuild the whole chains view from the recent window + in-flight collection members. */
 const renderChains = () => {
@@ -205,24 +75,9 @@ const renderChains = () => {
     _applyFilter();
 };
 
-/**
- * Fetch the full connected graph for a collection and re-render its group from it.
- * @param {Event | null} e @param {string} key @param {string} wfId @param {string} ns
- */
-window.loadChainHistory = async (e, key, wfId, ns) => {
-    e?.stopPropagation();
-    try {
-        const res = await fetch(
-            `/dashboard/graph?wf=${encodeURIComponent(wfId)}&ns=${encodeURIComponent(ns)}`,
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        historyCache.set(key, { nodes: data.workflows ?? [], edges: data.edges ?? [] });
-    } catch {
-        return;
-    }
+onChainGroupsChanged(() => {
     if (state.recentView === 'chains') renderChains();
-};
+});
 
 /**
  * Called by live.js when an active workflow appears, changes, or leaves. Re-renders the
@@ -234,7 +89,11 @@ export const notifyRecentChainsChanged = (wfId) => {
     if (state.recentView !== 'chains') return;
     const key = (workflowData[wfId] ?? state.previousWorkflows[wfId])?.collectionKey;
     if (!key) return;
-    if (!document.querySelector(`.chain-group[data-collectionkey="${CSS.escape(key.toLowerCase())}"]`))
+    if (
+        !dom.recentContainer.querySelector(
+            `.chain-group[data-collectionkey="${CSS.escape(key.toLowerCase())}"]`,
+        )
+    )
         return;
     clearTimeout(_liveNotifyTimer);
     _liveNotifyTimer = window.setTimeout(renderChains, 300);

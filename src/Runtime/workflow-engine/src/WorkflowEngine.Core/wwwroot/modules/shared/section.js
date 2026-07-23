@@ -57,6 +57,15 @@ for (const id of ['scheduled-section', 'live-section', 'recent-section']) {
 
 /* ── Compact view toggle ─────────────────────────────────── */
 
+/** Reflect the compact/full state on the two-way segmented controls (scheduled, active). */
+export const applyViewToggleUi = () => {
+    for (const section of ['scheduled', 'inbox']) {
+        const compact = state.compactSections[section];
+        document.getElementById(`view-${section}-compact`)?.classList.toggle('active', compact);
+        document.getElementById(`view-${section}-full`)?.classList.toggle('active', !compact);
+    }
+};
+
 /** @param {string} section */
 window.collapseAll = (section) => {
     state.compactSections[section] = true;
@@ -65,6 +74,7 @@ window.collapseAll = (section) => {
     } catch {
         /* ignore */
     }
+    applyViewToggleUi();
     rebuildSectionCards(section);
     _syncUrl();
 };
@@ -77,9 +87,12 @@ window.fullAll = (section) => {
     } catch {
         /* ignore */
     }
+    applyViewToggleUi();
     rebuildSectionCards(section);
     _syncUrl();
 };
+
+applyViewToggleUi();
 
 /** @param {string} section */
 const rebuildSectionCards = (section) => {

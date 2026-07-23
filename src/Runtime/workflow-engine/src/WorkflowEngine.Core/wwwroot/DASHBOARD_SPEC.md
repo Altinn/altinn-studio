@@ -20,7 +20,7 @@ Three collapsible sections, top to bottom:
 
 ### Query Tab
 
-On-demand paginated search against the database. Not SSE-driven — user clicks "Load" or sets an auto-refresh interval.
+On-demand paginated search against the database. Not SSE-driven — user clicks "Load" or sets an auto-refresh interval. Same three view modes as Recent (**Chains | Compact | Full**, default Compact; localStorage `queryView`, URL `qv`) — see [Chains View](#chains-view) for the query-mode differences.
 
 **Controls:**
 
@@ -458,10 +458,11 @@ land. **Keyboard:** Escape closes the modal.
 
 ## Chains View
 
-The Recent section's default mode: the recent window grouped by `collectionKey`, each collection
-rendered as a bordered group — newest collection first (by the window's own ordering), story inside
-oldest-first. Workflows without a collection render as plain compact cards in their recency
-position.
+Available in the Recent section (default mode) and the Query tab: the current window/page grouped
+by `collectionKey`, each collection rendered as a bordered group — newest collection first (by the
+source's own ordering), story inside oldest-first. Workflows without a collection render as plain
+compact cards in their original position. Group chrome and the history control live in
+`shared/chain-groups.js`; the history cache is shared across surfaces.
 
 **Group anatomy:** a header row (label segments from the newest head member, workflow count,
 wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
@@ -484,6 +485,13 @@ finishes.
 over the members, so a group matches when any member matches (status chips count groups, not
 workflows). The expanded cards inside a group are not matched individually (`:scope >` selectors
 in `applyFilter`).
+
+**Query-mode differences:** query results are a filtered subset of each collection
+(status/time/search + page boundaries), so group counts read "N matching" instead of
+"N workflows" — with "N matching of M" once the history graph is loaded — and there is no live
+member merge (the tab is not SSE-driven). The killer flow: click a collection funnel → the query
+tab filtered to that collection in chains mode is the complete instance timeline over the
+database, unlimited by the recent window.
 
 ---
 

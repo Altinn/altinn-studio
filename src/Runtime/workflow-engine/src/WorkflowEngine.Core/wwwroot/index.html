@@ -78,7 +78,7 @@
         <button class="chip" data-status="5m">5m</button>
         <button class="chip" data-status="later">Later</button>
       </span>
-      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('scheduled')">Compact</button><button onclick="fullAll('scheduled')">Full</button></span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button id="view-scheduled-compact" onclick="collapseAll('scheduled')">Compact</button><button id="view-scheduled-full" onclick="fullAll('scheduled')">Full</button></span>
     </div>
     <div class="section-body" id="scheduled-workflows"></div>
   </div>
@@ -90,7 +90,7 @@
         <button class="chip" data-status="processing">Processing</button>
         <button class="chip" data-status="retrying">Retrying</button>
       </span>
-      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('inbox')">Compact</button><button onclick="fullAll('inbox')">Full</button></span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button id="view-inbox-compact" onclick="collapseAll('inbox')">Compact</button><button id="view-inbox-full" onclick="fullAll('inbox')">Full</button></span>
     </div>
     <div class="section-body">
       <div id="live-workflows"></div>
@@ -176,7 +176,7 @@ No active workflows
         <span class="pager-info" id="pager-info"></span>
         <button class="pager-btn" id="pager-next" onclick="queryNext()" title="Next page"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
-      <span class="view-toggle"><button onclick="collapseAll('query')">Compact</button><button onclick="fullAll('query')">Full</button></span>
+      <span class="view-toggle"><button id="query-view-chains" onclick="setQueryView('chains')">Chains</button><button id="query-view-compact" onclick="setQueryView('compact')">Compact</button><button id="query-view-full" onclick="setQueryView('full')">Full</button></span>
     </div>
     <div id="query-workflows"></div>
     <div class="empty-state" id="query-empty">Click Load to query</div>
