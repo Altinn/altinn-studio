@@ -31,8 +31,3 @@
   align-items: center;
   gap: var(--ds-size-1);
 }
-
-.value {
-  flex: 1;
-  min-width: 0;
-}
