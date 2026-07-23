@@ -205,6 +205,23 @@ spec:
             memory: 8Gi
         agent:
           config:
+            preseed:
+              files:
+                - path: "$HOME/.claude/settings.json"
+                  mode: "0600"
+                  overwrite: false
+                  json:
+                    theme: dark-daltonized
+                    skipDangerousModePermissionPrompt: true
+                - path: "$HOME/.claude.json"
+                  mode: "0600"
+                  overwrite: false
+                  json:
+                    hasCompletedOnboarding: true
+                    bypassPermissionsModeAccepted: true
+                    projects:
+                      /workspace/altinn-studio:
+                        hasTrustDialogAccepted: true
             plugins:
               - config:
                   default-provider: github-fork
