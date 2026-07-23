@@ -107,7 +107,7 @@ public class PreviewBootstrapService(
             returnUrl = null,
             userProfile = GetMockUserProfile(),
             selectedParty = GetMockParty(),
-            orgName = (object?)null,
+            orgName = null,
             orgLogoUrl = (string?)null,
         };
 
