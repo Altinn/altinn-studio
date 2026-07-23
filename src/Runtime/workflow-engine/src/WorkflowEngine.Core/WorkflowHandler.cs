@@ -32,7 +32,8 @@ internal sealed class WorkflowHandler(
 
     /// <summary>
     /// Processes a workflow through all its steps. On return, the workflow's <c>Status</c>
-    /// reflects the final outcome (Completed, Failed, Canceled, or Requeued for retry).
+    /// reflects the final outcome (Completed, Failed, Canceled, Requeued for retry, or
+    /// Waiting for a deferred step).
     /// </summary>
     public async Task Handle(Workflow workflow, CancellationToken ct)
     {
@@ -182,7 +183,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             workflow.EngineActivity?.Errored();
-            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"));
+            Metrics.WorkflowsFailed.Add(1, ("reason", workflow.FailureReason ?? "execution"));
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
         {
@@ -190,6 +191,13 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             Metrics.WorkflowsRequeued.Add(1, ("reason", "step_retry"));
+        }
+        else if (workflow.Status == PersistentItemStatus.Waiting)
+        {
+            RecordWorkflowServiceTime(workflow);
+            RecordWorkflowTotalTime(workflow);
+
+            Metrics.WorkflowsDeferred.Add(1);
         }
 
         await statusWriteBuffer.Submit(workflow, ct);
@@ -273,6 +281,11 @@ internal sealed class WorkflowHandler(
                 break;
             }
 
+            if (step.Status == PersistentItemStatus.Waiting)
+            {
+                break;
+            }
+
             if (step.Status == PersistentItemStatus.Failed)
             {
                 step.EngineActivity?.Errored(errorMessage: result.Message);
@@ -303,6 +316,12 @@ internal sealed class WorkflowHandler(
             return;
         }
 
+        if (result.IsDeferred())
+        {
+            ApplyDeferDecision(workflow, currentStep, result);
+            return;
+        }
+
         if (result.IsCriticalError())
         {
             currentStep.Status = PersistentItemStatus.Failed;
@@ -324,7 +343,14 @@ internal sealed class WorkflowHandler(
 
         logger.StepFailed(currentStep);
         var retryStrategy = GetRetryStrategy(currentStep);
-        var initialStartTime = previousStep?.UpdatedAt ?? currentStep.CreatedAt;
+
+        // After a deferral the retry deadline anchors on the last defer write-back (UpdatedAt)
+        // instead of the step's original activation — otherwise a long wait would silently
+        // consume the entire retry MaxDuration before the first genuine error even occurs.
+        var initialStartTime =
+            currentStep.DeferCount > 0
+                ? currentStep.UpdatedAt ?? currentStep.CreatedAt
+                : previousStep?.UpdatedAt ?? currentStep.CreatedAt;
 
         if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, initialStartTime, timeProvider))
         {
@@ -360,6 +386,71 @@ internal sealed class WorkflowHandler(
 
         Metrics.StepsFailed.Add(1);
         logger.FailingStepRetries(currentStep, currentStep.RequeueCount);
+    }
+
+    /// <summary>
+    /// Parks a deferred step in <see cref="PersistentItemStatus.Waiting"/> and schedules its next
+    /// execution via the workflow's <c>BackoffUntil</c>, or fails the step when the requested delay
+    /// would overrun its wait budget. A deferral is a successful execution: it records no error
+    /// history and resets the retry counter, so <see cref="RetryStrategy"/> bounds consecutive
+    /// failures between deferrals rather than failures across the step's lifetime.
+    /// </summary>
+    private void ApplyDeferDecision(Workflow workflow, Step currentStep, ExecutionResult result)
+    {
+        var now = timeProvider.GetUtcNow();
+        var delay = result.DeferDelay ?? TimeSpan.Zero;
+
+        if (delay <= TimeSpan.Zero)
+        {
+            currentStep.Status = PersistentItemStatus.Failed;
+            currentStep.ErrorHistory.Add(
+                new ErrorEntry(
+                    now,
+                    $"Command deferred with a non-positive delay ({delay}); deferrals must specify a positive wait.",
+                    result.HttpStatusCode,
+                    WasRetryable: false
+                )
+            );
+            workflow.BackoffUntil = null;
+
+            Metrics.StepsFailed.Add(1);
+            logger.FailingStepInvalidDefer(currentStep, delay);
+
+            return;
+        }
+
+        var waitBudget = currentStep.Command.MaxWaitDuration ?? _settings.DefaultStepWaitDuration;
+        var waitDeadline = (currentStep.WaitingSince ?? now).Add(waitBudget);
+
+        if (now.Add(delay) >= waitDeadline)
+        {
+            currentStep.Status = PersistentItemStatus.Failed;
+            currentStep.ErrorHistory.Add(
+                new ErrorEntry(
+                    now,
+                    $"Wait budget of {waitBudget} exhausted after {currentStep.DeferCount} deferral(s): "
+                        + (result.Message ?? "the awaited outcome never became available"),
+                    result.HttpStatusCode,
+                    WasRetryable: false
+                )
+            );
+            workflow.BackoffUntil = null;
+            workflow.FailureReason = "wait_expired";
+
+            Metrics.StepsFailed.Add(1, ("reason", "wait_expired"));
+            logger.FailingStepWaitExpired(currentStep, currentStep.DeferCount, waitBudget);
+
+            return;
+        }
+
+        currentStep.DeferCount++;
+        currentStep.WaitingSince ??= now;
+        currentStep.RequeueCount = 0;
+        currentStep.Status = PersistentItemStatus.Waiting;
+        workflow.BackoffUntil = now.Add(delay);
+
+        Metrics.StepsDeferred.Add(1);
+        logger.DeferringStep(currentStep, currentStep.DeferCount, delay);
     }
 
     private RetryStrategy GetRetryStrategy(Step step) => step.RetryStrategy ?? _settings.DefaultStepRetryStrategy;
@@ -487,6 +578,35 @@ internal static partial class WorkflowHandlerLogs
         "Failing step {Step} after {Retries} attempts. The operation produced a critical error which cannot be retried"
     )]
     internal static partial void FailingStepCritical(this ILogger<WorkflowHandler> logger, Step step, int retries);
+
+    [LoggerMessage(LogLevel.Information, "Deferring step {Step} (deferral #{Deferrals}); re-executing in {Delay}")]
+    internal static partial void DeferringStep(
+        this ILogger<WorkflowHandler> logger,
+        Step step,
+        int deferrals,
+        TimeSpan delay
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failing step {Step}. Wait budget of {WaitBudget} exhausted after {Deferrals} deferral(s) — the awaited outcome never became available"
+    )]
+    internal static partial void FailingStepWaitExpired(
+        this ILogger<WorkflowHandler> logger,
+        Step step,
+        int deferrals,
+        TimeSpan waitBudget
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failing step {Step}. The command deferred with a non-positive delay ({Delay}), which is not allowed"
+    )]
+    internal static partial void FailingStepInvalidDefer(
+        this ILogger<WorkflowHandler> logger,
+        Step step,
+        TimeSpan delay
+    );
 
     [LoggerMessage(
         LogLevel.Warning,

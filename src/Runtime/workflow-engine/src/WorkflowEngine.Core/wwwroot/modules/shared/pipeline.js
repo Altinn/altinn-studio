@@ -17,6 +17,8 @@ const stepIcon = (status) => {
             return '&#10007;';
         case 'Requeued':
             return '&#8635;';
+        case 'Waiting':
+            return '&#8987;';
         case 'Canceled':
             return '&#8212;';
         default:
@@ -90,10 +92,13 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     if (step.retryCount > 0) {
         html += `<div class="step-retry">&#8635;${step.retryCount}</div>`;
     }
-    const backoff = step.backoffUntil || (step.status === 'Requeued' ? wf.backoffUntil : null);
-    if (step.status === 'Requeued' && backoff) {
+    const isBackedOff = step.status === 'Requeued' || step.status === 'Waiting';
+    const backoff = step.backoffUntil || (isBackedOff ? wf.backoffUntil : null);
+    if (isBackedOff && backoff) {
+        const action = step.status === 'Waiting' ? 'check now (skip wait timer)' : 'Retry now (skip backoff timer)';
+        const label = step.status === 'Waiting' ? 'check now' : 'retry now';
         html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
-        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry now (skip backoff timer)">retry now</button>`;
+        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="${action}">${label}</button>`;
     }
     if (step.status === 'Failed') {
         html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
@@ -112,7 +117,8 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
  */
 const buildConnectorHTML = (prev, cur, isStatic) => {
     const prevDone = prev.status === 'Completed';
-    const curActive = cur.status === 'Processing' || cur.status === 'Requeued';
+    const curActive =
+        cur.status === 'Processing' || cur.status === 'Requeued' || cur.status === 'Waiting';
     const isLeadingEdge = prevDone && curActive;
 
     const lineClass = isStatic
@@ -213,7 +219,9 @@ export const scrollPipelineToActive = (card) => {
     const p = card.querySelector('.pipeline');
     if (!p) return;
     const active =
-        p.querySelector('.step-circle.Processing') || p.querySelector('.step-circle.Requeued');
+        p.querySelector('.step-circle.Processing') ||
+        p.querySelector('.step-circle.Requeued') ||
+        p.querySelector('.step-circle.Waiting');
     if (active) {
         const node = /** @type {HTMLElement | null} */ (active.closest('.step-node'));
         if (node) {

@@ -112,6 +112,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             if (result.IsSuccess())
                 _logger.SuccessfulExecution(step, Stopwatch.GetElapsedTime(startTimestamp));
+            else if (result.IsDeferred())
+                _logger.DeferredExecution(
+                    step,
+                    Stopwatch.GetElapsedTime(startTimestamp),
+                    result.Message ?? "outcome not available yet"
+                );
             else
                 _logger.FailedExecution(
                     step,
@@ -188,6 +194,14 @@ internal static partial class WorkflowExecutorLogs
         this ILogger<WorkflowExecutor> logger,
         Step step,
         TimeSpan elapsed
+    );
+
+    [LoggerMessage(LogLevel.Information, "Step {Step} deferred after {Elapsed}: {Message}")]
+    internal static partial void DeferredExecution(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        TimeSpan elapsed,
+        string message
     );
 
     [LoggerMessage(LogLevel.Error, "Step {Step} executed with error in {Elapsed}: {Message}")]

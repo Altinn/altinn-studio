@@ -51,7 +51,7 @@
                   Plan Rows: {Scrubbed},
                   Plan Width: {Scrubbed},
                   Disabled: false,
-                  Filter: ((status = ANY ('{0,1,2}'::integer[])) AND ((start_at > now()) OR (ANY (id = (hashed SubPlan 2).col1)))),
+                  Filter: ((status = ANY ('{0,1,2,8}'::integer[])) AND ((start_at > now()) OR (ANY (id = (hashed SubPlan 2).col1)))),
                   Plans: [
                     {
                       Node Type: Hash Join,
@@ -118,7 +118,7 @@
                               Plan Rows: {Scrubbed},
                               Plan Width: {Scrubbed},
                               Disabled: false,
-                              Recheck Cond: (status = ANY ('{0,1,2}'::integer[])),
+                              Recheck Cond: (status = ANY ('{0,1,2,8}'::integer[])),
                               Plans: [
                                 {
                                   Node Type: Bitmap Index Scan,
@@ -131,7 +131,7 @@
                                   Plan Rows: {Scrubbed},
                                   Plan Width: {Scrubbed},
                                   Disabled: false,
-                                  Index Cond: (status = ANY ('{0,1,2}'::integer[]))
+                                  Index Cond: (status = ANY ('{0,1,2,8}'::integer[]))
                                 }
                               ]
                             }

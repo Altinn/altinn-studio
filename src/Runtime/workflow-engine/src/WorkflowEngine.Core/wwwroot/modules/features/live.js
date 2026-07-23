@@ -107,7 +107,10 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             // Only scroll the pipeline when the active step actually changes
             if (!isCompact) {
                 const curIdx = wf.steps.findIndex(
-                    (s) => s.status === 'Processing' || s.status === 'Requeued',
+                    (s) =>
+                        s.status === 'Processing' ||
+                        s.status === 'Requeued' ||
+                        s.status === 'Waiting',
                 );
                 if (curIdx !== _processingIdx[wf.databaseId]) {
                     _processingIdx[wf.databaseId] = curIdx;
