@@ -15,7 +15,8 @@ import {
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { useUserQuery } from 'app-shared/hooks/queries';
+import { useUserQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
+import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { PreviewActions } from './PreviewActions/PreviewActions';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
@@ -63,7 +64,13 @@ const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { previewIframeRef, selectedFormLayoutName } = useAppContext();
   const { layoutSet } = useUxEditorParams();
-  const taskId = useSelectedTaskId(layoutSet);
+  const { data: appVersion } = useAppVersionQuery(org, app);
+  // In v9 the layout set / UI-folder name is the process task id; there is no separate task id and no
+  // layout-sets.json, so the legacy lookup falls back to the stateless task ('Task_1'). Use the layout
+  // set name directly for v9.
+  const isV9App = !isBelowSupportedVersion(appVersion?.backendVersion ?? '', 9);
+  const derivedTaskId = useSelectedTaskId(layoutSet);
+  const taskId = isV9App ? layoutSet : derivedTaskId;
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
 

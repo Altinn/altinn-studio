@@ -668,6 +668,22 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
+    /// Gets the raw footer layout as a JsonNode, preserving the authored JSON exactly, or null if there
+    /// is no footer. Use this when the footer must be forwarded to app-frontend as-is (e.g. the preview
+    /// bootstrap), since the typed FooterFile does not round-trip enum values (icon) with System.Text.Json.
+    /// </summary>
+    public async Task<JsonNode> GetFooterAsJsonNode(CancellationToken cancellationToken = default)
+    {
+        string footerFilePath = GetPathToFooterFile();
+        if (!FileExistsByRelativePath(footerFilePath))
+        {
+            return null;
+        }
+        string fileContent = await ReadTextByRelativePathAsync(footerFilePath, cancellationToken);
+        return JsonNode.Parse(fileContent);
+    }
+
+    /// <summary>
     /// Saves the RuleHandler.js for a specific layout set
     /// </summary>
     /// <param name="layoutSetName">The name of the layout set where the layout belong</param>

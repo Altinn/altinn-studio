@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -7,6 +10,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
@@ -30,9 +34,16 @@ public class InstancesController(
     IPreviewService previewService,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
     IInstanceService instanceService,
-    IApplicationMetadataService applicationMetadataService
+    IApplicationMetadataService applicationMetadataService,
+    ISchemaModelService schemaModelService,
+    IAppVersionService appVersionService
 ) : Controller
 {
+    private static readonly JsonSerializerOptions s_camelCaseJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     // <summary>
     // Redirect requests from older versions of Studio to old controller
     // </summary>
@@ -46,7 +57,10 @@ public class InstancesController(
             app,
             developer
         );
-        if (!altinnAppGitRepository.AppUsesLayoutSets())
+        // v9 apps do not always have a layout-sets.json, so AppUsesLayoutSets() can be false for them.
+        // They must never be routed to the v3 (Old*) controllers, so gate the redirect on IsV9App too.
+        bool isV9App = appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org!, app!, developer));
+        if (!isV9App && !altinnAppGitRepository.AppUsesLayoutSets())
         {
             RouteValueDictionary routeData = context.RouteData.Values;
             foreach (var queryParam in context.HttpContext.Request.Query)
@@ -76,6 +90,108 @@ public class InstancesController(
     {
         Instance instanceData = instanceService.GetInstance(instanceGuid);
         return Ok(instanceData);
+    }
+
+    /// <summary>
+    /// Get the enriched instance (the instance with its process state embedded).
+    /// New in v9 app-frontend: replaces the separate instance + process GETs.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/enriched")]
+    public IActionResult GetEnrichedInstance(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
+    {
+        Instance instanceData = instanceService.GetInstance(instanceGuid);
+        JsonObject instanceNode = (JsonObject)JsonSerializer.SerializeToNode(instanceData, s_camelCaseJsonOptions)!;
+
+        // app-frontend's useIsValidTaskId checks process.processTasks, and in v9 the process comes from the
+        // enriched instance. The mock only sets currentTask, so add a processTasks entry for it - otherwise
+        // the current task id is treated as invalid ("Denne delen av skjemaet finnes ikke").
+        if (
+            instanceNode["process"] is JsonObject processNode
+            && processNode["currentTask"] is JsonObject currentTaskNode
+        )
+        {
+            processNode["processTasks"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["elementId"] = currentTaskNode["elementId"]?.GetValue<string>(),
+                    ["altinnTaskType"] = currentTaskNode["altinnTaskType"]?.GetValue<string>() ?? "data",
+                },
+            };
+        }
+
+        return Content(instanceNode.ToJsonString(), "application/json");
+    }
+
+    /// <summary>
+    /// Consolidated form bootstrap for a stateful instance (new in v9). Mirrors the app backend's
+    /// FormBootstrapService: returns the layouts for the folder plus, for each data model, its JSON
+    /// schema and initial data. Static options and validation issues are returned empty for now.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/bootstrap-form/{uiFolder}")]
+    public async Task<IActionResult> BootstrapFormForInstance(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        [FromRoute] string uiFolder,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            app,
+            developer
+        );
+
+        Dictionary<string, JsonNode> layouts = await altinnAppGitRepository.GetFormLayouts(uiFolder, cancellationToken);
+        ApplicationMetadata applicationMetadata = await applicationMetadataService.GetApplicationMetadataFromRepository(
+            org,
+            app
+        );
+        Instance instance = instanceService.GetInstance(instanceGuid);
+
+        JsonObject dataModels = new();
+        foreach (DataElement dataElement in instance.Data ?? [])
+        {
+            DataType? dataType = applicationMetadata.DataTypes.Find(dt =>
+                dt.Id == dataElement.DataType && dt.AppLogic?.ClassRef is not null
+            );
+            if (dataType is null)
+            {
+                continue;
+            }
+
+            string schemaJson = await schemaModelService.GetSchema(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+                $"/App/models/{dataElement.DataType}.schema.json",
+                cancellationToken
+            );
+
+            dataModels[dataElement.DataType] = new JsonObject
+            {
+                ["schema"] = JsonNode.Parse(schemaJson),
+                // Empty initial data for now - app-frontend fills the form via patches during editing.
+                ["initialData"] = new JsonObject(),
+                ["dataElementId"] = dataElement.Id,
+            };
+        }
+
+        JsonObject response = new()
+        {
+            ["layouts"] = JsonSerializer.SerializeToNode(layouts, s_camelCaseJsonOptions),
+            ["dataModels"] = dataModels,
+            ["staticOptions"] = new JsonObject(),
+        };
+
+        return Content(response.ToJsonString(), "application/json");
     }
 
     /// <summary>
