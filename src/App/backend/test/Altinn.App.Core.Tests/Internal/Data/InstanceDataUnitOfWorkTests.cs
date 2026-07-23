@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using NewtonsoftJson = Newtonsoft.Json.JsonConvert;
+using RequestResponse = Altinn.App.Tests.Common.Mocks.StorageClientInterceptor.RequestResponse;
 
 namespace Altinn.App.Core.Tests.Internal.Data;
 
@@ -420,6 +421,234 @@ public sealed class InstanceDataUnitOfWorkTests
         (_, var storedData) = setup.Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(storedData[setup.DataElements[0].Id].AsSpan().SequenceEqual(firstUpdatedBytes));
         Assert.True(storedData[setup.DataElements[1].Id].AsSpan().SequenceEqual(secondUpdatedBytes));
+    }
+
+    [Fact]
+    public async Task SaveChanges_WhenUntouchedCachedFormChangesConcurrently_EvictsBothCachesAndDoesNotReportPhantomChange()
+    {
+        byte[] initialBinaryBytes = """{"status":"created"}"""u8.ToArray();
+        byte[] updatedBinaryBytes = """{"status":"paid"}"""u8.ToArray();
+        var initialForm = new PaymentForm { Status = "created", CustomerName = "Original" };
+        var concurrentForm = new PaymentForm { Status = "external", CustomerName = "Concurrent" };
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBinaryBytes, contentETag: DataETag(1));
+        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, contentETag: DataETag(1));
+        var cachedForm = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
+        byte[] concurrentBytes = SerializePaymentForm(setup, formDataElement, concurrentForm);
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            updatedBinaryBytes
+        );
+        DataElementChanges savedChanges = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        DataElementChange savedChange = Assert.Single(savedChanges.AllChanges);
+        Assert.Equal(setup.DataElement.Id, savedChange.DataElementIdentifier.Id);
+        setup.Services.Storage.AddDataRaw(Guid.Parse(formDataElement.Id), concurrentBytes, DataETag(2));
+
+        await setup.DataMutator.SaveChanges(savedChanges);
+
+        DataElementChanges changesAfterSave = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        DataElementChange ownChange = Assert.Single(changesAfterSave.AllChanges);
+        Assert.Equal(setup.DataElement.Id, ownChange.DataElementIdentifier.Id);
+
+        ReadOnlyMemory<byte> refreshedBytes = await setup.DataMutator.GetBinaryData(formDataElement);
+        var refreshedForm = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
+
+        Assert.True(refreshedBytes.Span.SequenceEqual(concurrentBytes));
+        Assert.NotSame(cachedForm, refreshedForm);
+        Assert.Equal(concurrentForm.Status, refreshedForm.Status);
+        Assert.Equal(concurrentForm.CustomerName, refreshedForm.CustomerName);
+        RequestResponse[] formDataRequests = GetDataRequests(setup, formDataElement);
+        Assert.Equal(2, formDataRequests.Length);
+        Assert.Contains(
+            formDataRequests,
+            request => Assert.Single(request.RequestHeaders.IfMatch).ToString() == DataETag(2)
+        );
+    }
+
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_WhenCachedFormIsAbsentFromResponse_DoesNotRestoreDerivedFieldOnLaterSave()
+    {
+        const string derivedFieldId = "paymentStatus";
+        const string cachedStatus = "cached";
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            """{"status":"existing"}"""u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            contentETag: DataETag(1)
+        );
+        DataElement formDataElement = AddPersistedPaymentForm(
+            setup,
+            new PaymentForm { Status = cachedStatus },
+            contentETag: DataETag(1)
+        );
+        setup.Services.AppMetadata.DataFields =
+        [
+            new DataField
+            {
+                Id = derivedFieldId,
+                DataTypeId = formDataElement.DataType,
+                Path = nameof(PaymentForm.Status),
+            },
+        ];
+        setup.DataMutator.Instance.DataValues = new Dictionary<string, string?> { [derivedFieldId] = cachedStatus };
+        setup.Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid).instance.DataValues =
+        [];
+        _ = await setup.DataMutator.GetFormData(formDataElement);
+        setup.DataMutator.RemoveDataElement(formDataElement);
+
+        WorkflowAggregateSaveOutcome firstOutcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "delete-cached-form",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, firstOutcome);
+        Assert.DoesNotContain(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == formDataElement.Id);
+        Assert.DoesNotContain(derivedFieldId, setup.DataMutator.Instance.DataValues.Keys);
+        RequestResponse mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+            mutationRequest.RequestBody!
+        )!;
+        Assert.Empty(mutation.DataValues);
+        Assert.Equal(Guid.Parse(formDataElement.Id), Assert.Single(mutation.DeleteDataElements).DataElementId);
+
+        WorkflowAggregateSaveOutcome secondOutcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            new DataElementChanges([]),
+            "after-cached-form-deletion",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
+        Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Fact]
+    public async Task SaveChanges_WhenUntouchedCachedFormETagIsUnchanged_RetainsBothCachesWithoutRefetch()
+    {
+        byte[] initialBinaryBytes = """{"status":"created"}"""u8.ToArray();
+        byte[] updatedBinaryBytes = """{"status":"paid"}"""u8.ToArray();
+        var initialForm = new PaymentForm { Status = "created", CustomerName = "Original" };
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBinaryBytes, contentETag: DataETag(1));
+        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, contentETag: DataETag(1));
+        var cachedForm = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
+        byte[] serializedInitialForm = SerializePaymentForm(setup, formDataElement, initialForm);
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            updatedBinaryBytes
+        );
+        DataElementChanges savedChanges = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        DataElementChange savedChange = Assert.Single(savedChanges.AllChanges);
+        Assert.Equal(setup.DataElement.Id, savedChange.DataElementIdentifier.Id);
+
+        await setup.DataMutator.SaveChanges(savedChanges);
+
+        ReadOnlyMemory<byte> cachedBytes = await setup.DataMutator.GetBinaryData(formDataElement);
+        var formAfterSave = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
+
+        Assert.True(cachedBytes.Span.SequenceEqual(serializedInitialForm));
+        Assert.Same(cachedForm, formAfterSave);
+        Assert.Single(GetDataRequests(setup, formDataElement));
+    }
+
+    [Fact]
+    public async Task SaveChanges_WhenOwnFormIsUpdated_RetainsPreviousBinaryAndCurrentModel()
+    {
+        byte[] initialBinaryBytes = """{"status":"created"}"""u8.ToArray();
+        var initialForm = new PaymentForm { Status = "created", CustomerName = "Original" };
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBinaryBytes, contentETag: DataETag(1));
+        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, contentETag: DataETag(1));
+        var form = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
+        byte[] previousBinary = SerializePaymentForm(setup, formDataElement, initialForm);
+        form.Status = "paid";
+
+        DataElementChanges savedChanges = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await setup.DataMutator.SaveChanges(savedChanges);
+
+        setup.DataMutator.VerifyDataElementsUnchangedSincePreviousChanges(savedChanges);
+        ReadOnlyMemory<byte> binaryAfterSave = await setup.DataMutator.GetBinaryData(formDataElement);
+        var formAfterSave = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
+        FormDataChange changeAfterSave = Assert.Single(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false).FormDataChanges
+        );
+
+        Assert.True(binaryAfterSave.Span.SequenceEqual(previousBinary));
+        Assert.Same(form, formAfterSave);
+        Assert.Same(form, changeAfterSave.CurrentFormData);
+        Assert.Equal("paid", formAfterSave.Status);
+        Assert.Single(GetDataRequests(setup, formDataElement));
+    }
+
+    [Fact]
+    public async Task SaveChanges_WhenLockOnlyElementChangesConcurrently_EvictsCachedBinary()
+    {
+        byte[] initialBytes = """{"status":"created"}"""u8.ToArray();
+        byte[] concurrentBytes = """{"status":"external"}"""u8.ToArray();
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes, contentETag: DataETag(1));
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
+        setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), concurrentBytes, DataETag(2));
+        setup.DataMutator.LockDataElementsForDataType(setup.DataElement.DataType);
+
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+        ReadOnlyMemory<byte> refreshedBytes = await setup.DataMutator.GetBinaryData(setup.DataElement);
+
+        Assert.True(refreshedBytes.Span.SequenceEqual(concurrentBytes));
+        var mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationUpdateDataElement lockUpdate = Assert.Single(
+            NewtonsoftJson
+                .DeserializeObject<StorageInstanceMutationRequest>(mutationRequest.RequestBody!)!
+                .UpdateDataElements
+        );
+        Assert.Null(lockUpdate.ContentPartName);
+        RequestResponse[] dataRequests = GetDataRequests(setup, setup.DataElement);
+        Assert.Equal(2, dataRequests.Length);
+        Assert.Contains(
+            dataRequests,
+            request => Assert.Single(request.RequestHeaders.IfMatch).ToString() == DataETag(2)
+        );
+    }
+
+    [Fact]
+    public async Task SaveChanges_WhenFormIsCreated_RetainsCommittedCachesWithoutFetch()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            """{"status":"existing"}"""u8.ToArray(),
+            contentETag: DataETag(1)
+        );
+        setup.Services.AddDataType<PaymentForm>("created-payment-form", ["application/json"], taskId: "Task_1");
+        var createdForm = new PaymentForm { Status = "created", CustomerName = "New" };
+        FormDataChange createdChange = setup.DataMutator.AddFormDataElement("created-payment-form", createdForm);
+
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        DataElement createdDataElement = Assert.IsType<DataElement>(createdChange.DataElement);
+        ReadOnlyMemory<byte> cachedBytes = await setup.DataMutator.GetBinaryData(createdDataElement);
+        var cachedForm = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(createdDataElement));
+
+        Assert.True(cachedBytes.Span.SequenceEqual(createdChange.CurrentBinaryData!.Value.Span));
+        Assert.Same(createdForm, cachedForm);
+        Assert.Empty(GetDataRequests(setup, createdDataElement));
     }
 
     [Fact]
@@ -2601,6 +2830,73 @@ public sealed class InstanceDataUnitOfWorkTests
 
     private static PlatformHttpException CreatePlatformException(HttpStatusCode statusCode) =>
         new(new HttpResponseMessage(statusCode), $"Storage returned {(int)statusCode}");
+
+    private static DataElement AddPersistedPaymentForm(
+        BinaryDataUnitOfWorkSetup setup,
+        PaymentForm form,
+        string contentETag
+    )
+    {
+        const string dataTypeId = "payment-form";
+        const string contentType = "application/json";
+        DataType dataType = setup.Services.AddDataType<PaymentForm>(dataTypeId, [contentType], taskId: "Task_1");
+
+        Guid dataElementId = Guid.NewGuid();
+        var unitOfWorkDataElement = new DataElement
+        {
+            Id = dataElementId.ToString(),
+            InstanceGuid = setup.InstanceGuid.ToString(),
+            DataType = dataTypeId,
+            ContentType = contentType,
+            Filename = "payment-form.json",
+            ContentEtag = contentETag,
+        };
+        var storageDataElement = JsonSerializer.Deserialize<DataElement>(
+            JsonSerializer.SerializeToUtf8Bytes(unitOfWorkDataElement)
+        )!;
+        setup.DataMutator.Instance.Data.Add(unitOfWorkDataElement);
+        setup
+            .Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid)
+            .instance.Data.Add(storageDataElement);
+        setup.Services.Storage.AddDataRaw(
+            dataElementId,
+            setup
+                .ServiceProvider.GetRequiredService<ModelSerializationService>()
+                .SerializeToStorage(form, dataType, unitOfWorkDataElement)
+                .data.ToArray(),
+            contentETag
+        );
+        return unitOfWorkDataElement;
+    }
+
+    private static byte[] SerializePaymentForm(
+        BinaryDataUnitOfWorkSetup setup,
+        DataElement dataElement,
+        PaymentForm form
+    )
+    {
+        DataType dataType = setup.Services.AppMetadata.DataTypes.Single(dataType =>
+            dataType.Id == dataElement.DataType
+        );
+        return setup
+            .ServiceProvider.GetRequiredService<ModelSerializationService>()
+            .SerializeToStorage(form, dataType, dataElement)
+            .data.ToArray();
+    }
+
+    private static RequestResponse[] GetDataRequests(
+        BinaryDataUnitOfWorkSetup setup,
+        DataElementIdentifier dataElementIdentifier
+    ) =>
+        setup
+            .Services.Storage.RequestsResponses.Where(request =>
+                request.RequestMethod == HttpMethod.Get
+                && request.RequestUrl?.AbsolutePath.EndsWith(
+                    $"/data/{dataElementIdentifier.Id}",
+                    StringComparison.Ordinal
+                ) == true
+            )
+            .ToArray();
 
     private static string DataETag(int contentVersion) => StorageClientInterceptor.CreateDataETag(contentVersion);
 

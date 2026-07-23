@@ -1234,6 +1234,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         InstanceMutationWithStorageMetadata result
     )
     {
+        var previousContentETags = Instance.Data.ToDictionary(
+            dataElement => Guid.Parse(dataElement.Id),
+            dataElement => dataElement.ContentEtag
+        );
+        var contentWrittenDataElementIds = result.CreatedDataElementIds.ToHashSet();
+        foreach (
+            StorageInstanceMutationUpdateDataElement update in mutationPlan.Request.UpdateDataElements.Where(update =>
+                update.ContentPartName is not null
+            )
+        )
+        {
+            contentWrittenDataElementIds.Add(update.DataElementId);
+        }
+
         ApplyInstanceSnapshot(result.Instance);
 
         if (result.CreatedDataElementIds.Count != mutationPlan.CreatedChanges.Count)
@@ -1271,6 +1285,27 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     $"Storage mutation response did not contain updated data element {change.DataElementIdentifier.Id}"
                 );
             change.DataElement = dataElement;
+        }
+
+        foreach (DataElement dataElement in Instance.Data)
+        {
+            DataElementIdentifier dataElementIdentifier = dataElement;
+            if (
+                previousContentETags.Remove(dataElementIdentifier.Guid, out string? previousContentETag)
+                && !contentWrittenDataElementIds.Contains(dataElementIdentifier.Guid)
+                && !StringComparer.Ordinal.Equals(previousContentETag, dataElement.ContentEtag)
+            )
+            {
+                _formDataCache.Remove(dataElementIdentifier);
+                _binaryCache.Remove(dataElementIdentifier);
+            }
+        }
+
+        foreach (Guid dataElementId in previousContentETags.Keys)
+        {
+            var dataElementIdentifier = new DataElementIdentifier(dataElementId);
+            _formDataCache.Remove(dataElementIdentifier);
+            _binaryCache.Remove(dataElementIdentifier);
         }
 
         foreach (DataElementIdentifier dataElementIdentifier in mutationPlan.LockStatusDataElementIdentifiers)

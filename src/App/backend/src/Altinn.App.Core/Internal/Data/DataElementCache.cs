@@ -38,6 +38,15 @@ internal sealed class DataElementCache<T>
         }
     }
 
+    public void Remove(DataElementIdentifier key)
+    {
+        lock (_cache)
+        {
+            _cache.Remove(key.Guid);
+            _keys.Remove(key);
+        }
+    }
+
     public bool TryGetCachedValue(DataElementIdentifier identifier, [NotNullWhen(true)] out T? value)
     {
         lock (_cache)
