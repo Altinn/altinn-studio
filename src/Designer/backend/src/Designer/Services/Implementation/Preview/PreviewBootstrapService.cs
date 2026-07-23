@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
@@ -164,6 +165,76 @@ public class PreviewBootstrapService(
             ["dataModels"] = dataModels,
             ["staticOptions"] = new JsonObject(),
         };
+    }
+
+    /// <inheritdoc />
+    public JsonObject GetEnrichedInstance(AltinnRepoEditingContext editingContext, Instance instance)
+    {
+        JsonObject instanceNode = (JsonObject)JsonSerializer.SerializeToNode(instance, s_jsonSerializerOptions)!;
+
+        if (
+            instanceNode["process"] is not JsonObject processNode
+            || processNode["currentTask"] is not JsonObject currentTaskNode
+        )
+        {
+            return instanceNode;
+        }
+
+        // app-frontend derives the task type and validates the task id from process.processTasks, and in
+        // v9 the process comes from the enriched instance. The mock only sets a "data" currentTask, so
+        // rebuild processTasks from the app's BPMN process definition - this makes each task render with
+        // its real type (data/confirmation/feedback/signing/payment) and marks the task ids valid.
+        List<ProcessTask> processTasks = TryGetProcessTasks(editingContext);
+        if (processTasks.Count > 0)
+        {
+            JsonArray processTasksNode = [];
+            foreach (ProcessTask task in processTasks)
+            {
+                processTasksNode.Add(
+                    new JsonObject
+                    {
+                        ["elementId"] = task.Id,
+                        ["altinnTaskType"] = task.ExtensionElements?.TaskExtension?.TaskType,
+                    }
+                );
+            }
+            processNode["processTasks"] = processTasksNode;
+
+            string? currentTaskId = currentTaskNode["elementId"]?.GetValue<string>();
+            string? currentTaskType = processTasks
+                .Find(task => task.Id == currentTaskId)
+                ?.ExtensionElements?.TaskExtension?.TaskType;
+            if (!string.IsNullOrEmpty(currentTaskType))
+            {
+                currentTaskNode["altinnTaskType"] = currentTaskType;
+            }
+        }
+        else
+        {
+            // No process definition available - fall back to marking just the current task valid.
+            processNode["processTasks"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["elementId"] = currentTaskNode["elementId"]?.GetValue<string>(),
+                    ["altinnTaskType"] = currentTaskNode["altinnTaskType"]?.GetValue<string>() ?? "data",
+                },
+            };
+        }
+
+        return instanceNode;
+    }
+
+    private List<ProcessTask> TryGetProcessTasks(AltinnRepoEditingContext editingContext)
+    {
+        try
+        {
+            return GetRepository(editingContext).GetProcessDefinitions()?.Process?.Tasks ?? [];
+        }
+        catch (FileNotFoundException)
+        {
+            return [];
+        }
     }
 
     /// <inheritdoc />

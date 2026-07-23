@@ -47,6 +47,13 @@ public interface IPreviewBootstrapService
     );
 
     /// <summary>
+    /// Builds the enriched instance (instance with process embedded) as a JSON object, populating
+    /// process.processTasks from the app's BPMN process definition so app-frontend sees each task's real
+    /// type (data/confirmation/feedback/signing/payment) and treats the task ids as valid.
+    /// </summary>
+    JsonObject GetEnrichedInstance(AltinnRepoEditingContext editingContext, Instance instance);
+
+    /// <summary>
     /// A mocked user profile for the preview.
     /// </summary>
     UserProfile GetMockUserProfile();
