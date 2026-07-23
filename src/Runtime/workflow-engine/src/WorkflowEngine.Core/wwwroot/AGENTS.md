@@ -73,7 +73,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
 | `/dashboard/graph`        | GET    | Connected graph: chain modal + chains-view history    |
 | `/dashboard/retry`        | POST   | Retry a failed workflow                              |
-| `/dashboard/skip-backoff` | POST   | Skip backoff wait on a requeued workflow             |
+| `/dashboard/skip-backoff` | POST   | Skip backoff wait on a requeued or waiting workflow  |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
 
 ## Patterns

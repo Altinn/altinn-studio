@@ -82,6 +82,22 @@ public sealed record EngineSettings
     public required TimeSpan MaxStepCommandTimeout { get; set; }
 
     /// <summary>
+    /// The default wait budget for steps that defer (<see cref="ExecutionStatus.Deferred"/>):
+    /// the maximum total wall-clock time a step may spend in <see cref="PersistentItemStatus.Waiting"/>
+    /// when its command does not specify <see cref="CommandDefinition.MaxWaitDuration"/>.
+    /// </summary>
+    [JsonPropertyName("defaultStepWaitDuration")]
+    public TimeSpan DefaultStepWaitDuration { get; set; } = TimeSpan.FromDays(1);
+
+    /// <summary>
+    /// The maximum per-step wait budget a client may request via a step's
+    /// <c>command.maxWaitDuration</c>. Enqueue requests exceeding this cap are rejected,
+    /// bounding how long a waiting step can keep its workflow (and any dependents) pending.
+    /// </summary>
+    [JsonPropertyName("maxStepWaitDuration")]
+    public TimeSpan MaxStepWaitDuration { get; set; } = TimeSpan.FromDays(30);
+
+    /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
     [JsonPropertyName("defaultStepRetryStrategy")]

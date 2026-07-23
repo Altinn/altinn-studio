@@ -21,6 +21,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
+            "maxWaitDuration": null,
             "data": {
               "uri": "http://localhost:{PORT}/step-1",
               "payload": "step-1-data",
@@ -35,6 +36,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
+            "maxWaitDuration": null,
             "data": {
               "uri": "http://localhost:{PORT}/step-2",
               "payload": null,
@@ -134,7 +136,8 @@ Content-Type: application/json; charset=utf-8
         "type": "webhook"
       },
       "status": "Completed",
-      "retryCount": 0
+      "retryCount": 0,
+      "deferCount": 0
     },
     {
       "databaseId": "Guid_4",
@@ -145,7 +148,8 @@ Content-Type: application/json; charset=utf-8
         "type": "webhook"
       },
       "status": "Completed",
-      "retryCount": 0
+      "retryCount": 0,
+      "deferCount": 0
     }
   ]
 }

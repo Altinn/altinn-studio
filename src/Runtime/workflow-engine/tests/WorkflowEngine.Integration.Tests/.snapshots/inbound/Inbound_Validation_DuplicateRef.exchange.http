@@ -18,6 +18,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
+            "maxWaitDuration": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-1",
               "payload": null,
@@ -44,6 +45,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
+            "maxWaitDuration": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-2",
               "payload": null,

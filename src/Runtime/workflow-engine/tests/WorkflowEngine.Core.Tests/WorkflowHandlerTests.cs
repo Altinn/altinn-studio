@@ -590,4 +590,160 @@ public class WorkflowHandlerTests
             Assert.True(entries[i].Timestamp > DateTimeOffset.MinValue);
         }
     }
+
+    [Fact]
+    public async Task Handle_StepDefers_WorkflowWaiting_NoErrorHistory()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(5), "not delivered yet"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        var before = DateTimeOffset.UtcNow;
+        await handler.Handle(workflow, CancellationToken.None);
+        var after = DateTimeOffset.UtcNow;
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[0].Status);
+        Assert.Equal(1, workflow.Steps[0].DeferCount);
+        Assert.NotNull(workflow.Steps[0].WaitingSince);
+        Assert.Empty(workflow.Steps[0].ErrorHistory);
+        Assert.Equal(0, workflow.Steps[0].RequeueCount);
+        Assert.NotNull(workflow.BackoffUntil);
+        Assert.True(workflow.BackoffUntil.Value >= before.AddMinutes(4));
+        Assert.True(workflow.BackoffUntil.Value <= after.AddMinutes(6));
+    }
+
+    [Fact]
+    public async Task Handle_StepDefers_ResetsRequeueCount()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
+        var handler = CreateHandler(executor.Object);
+        var step = CreateStep();
+        step.RequeueCount = 3; // Transient errors before this successful "not yet" check
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, step.Status);
+        Assert.Equal(0, step.RequeueCount);
+    }
+
+    [Fact]
+    public async Task Handle_StepDefers_PreservesWaitingSinceAcrossCycles()
+    {
+        var executor = MockExecutor(
+            ExecutionResult.Defer(TimeSpan.FromMinutes(1)),
+            ExecutionResult.Defer(TimeSpan.FromMinutes(1))
+        );
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+        var firstWaitingSince = workflow.Steps[0].WaitingSince;
+
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(firstWaitingSince, workflow.Steps[0].WaitingSince);
+        Assert.Equal(2, workflow.Steps[0].DeferCount);
+    }
+
+    [Fact]
+    public async Task Handle_DeferThenSuccess_WorkflowCompleted()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)), ExecutionResult.Success());
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+
+        // Simulate re-fetch after backoff elapses
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Empty(workflow.Steps[0].ErrorHistory);
+    }
+
+    [Fact]
+    public async Task Handle_DeferWaitBudgetExhausted_WorkflowFailed_WaitExpired()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(5), "still nothing"));
+        var handler = CreateHandler(executor.Object);
+        var step = new Step
+        {
+            OperationId = "step",
+            ProcessingOrder = 0,
+            Command = CommandDefinition.Create("webhook", maxWaitDuration: TimeSpan.FromMinutes(1)),
+        };
+        step.DeferCount = 12;
+        step.WaitingSince = DateTimeOffset.UtcNow.AddMinutes(-2); // Budget of 1 min already blown
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.Null(workflow.BackoffUntil);
+        var entry = Assert.Single(step.ErrorHistory);
+        Assert.Contains("Wait budget", entry.Message);
+        Assert.Contains("still nothing", entry.Message);
+        Assert.False(entry.WasRetryable);
+    }
+
+    [Fact]
+    public async Task Handle_DeferBeyondRemainingBudget_FailsInsteadOfWaiting()
+    {
+        // Budget not yet exhausted, but the requested delay would overshoot the deadline.
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(10)));
+        var handler = CreateHandler(executor.Object);
+        var step = new Step
+        {
+            OperationId = "step",
+            ProcessingOrder = 0,
+            Command = CommandDefinition.Create("webhook", maxWaitDuration: TimeSpan.FromMinutes(5)),
+        };
+        step.WaitingSince = DateTimeOffset.UtcNow.AddMinutes(-1);
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+    }
+
+    [Fact]
+    public async Task Handle_DeferNonPositiveDelay_WorkflowFailed()
+    {
+        var executor = MockExecutor(new ExecutionResult(ExecutionStatus.Deferred, DeferDelay: TimeSpan.Zero));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        var entry = Assert.Single(workflow.Steps[0].ErrorHistory);
+        Assert.Contains("non-positive delay", entry.Message);
+    }
+
+    [Fact]
+    public async Task Handle_MultiStep_SecondDefers_FirstStaysCompleted_ThirdStaysEnqueued()
+    {
+        var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1),
+            CreateStep("step-2", processingOrder: 2)
+        );
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[1].Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, workflow.Steps[2].Status);
+    }
 }

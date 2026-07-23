@@ -19,6 +19,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
+            "maxWaitDuration": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-shadow",
               "payload": null,

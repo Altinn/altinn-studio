@@ -60,6 +60,20 @@ public sealed record StepStatusResponse
     public required int RetryCount { get; init; }
 
     /// <summary>
+    /// The number of times this step has deferred (parked in Waiting because the awaited outcome
+    /// was not available yet).
+    /// </summary>
+    [JsonPropertyName("deferCount")]
+    public int DeferCount { get; init; }
+
+    /// <summary>
+    /// When this step first deferred. Omitted when the step has never deferred.
+    /// </summary>
+    [JsonPropertyName("waitingSince")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? WaitingSince { get; init; }
+
+    /// <summary>
     /// The output state produced by this step, passed as input to the next step.
     /// </summary>
     [JsonPropertyName("stateOut")]
@@ -91,6 +105,8 @@ public sealed record StepStatusResponse
             UpdatedAt = step.UpdatedAt,
             Labels = step.Labels,
             RetryCount = step.RequeueCount,
+            DeferCount = step.DeferCount,
+            WaitingSince = step.WaitingSince,
             StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
             ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,

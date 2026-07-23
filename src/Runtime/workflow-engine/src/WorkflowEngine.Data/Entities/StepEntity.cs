@@ -30,6 +30,10 @@ internal sealed class StepEntity
 
     public int RequeueCount { get; set; }
 
+    public int DeferCount { get; set; }
+
+    public DateTimeOffset? WaitingSince { get; set; }
+
     [Column(TypeName = "jsonb")]
     public string CommandJson { get; set; } = "{}";
 
@@ -61,6 +65,8 @@ internal sealed class StepEntity
             UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
             RequeueCount = step.RequeueCount,
+            DeferCount = step.DeferCount,
+            WaitingSince = step.WaitingSince,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
@@ -90,6 +96,8 @@ internal sealed class StepEntity
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
             RequeueCount = RequeueCount,
+            DeferCount = DeferCount,
+            WaitingSince = WaitingSince,
             Command = command,
             RetryStrategy = retryStrategy,
             Labels = Labels,

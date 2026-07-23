@@ -532,6 +532,19 @@ internal sealed class Engine(
                         );
                 }
 
+                if (step.Command.MaxWaitDuration is { } maxWaitDuration)
+                {
+                    if (maxWaitDuration <= TimeSpan.Zero)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has a non-positive maxWaitDuration ({maxWaitDuration})."
+                        );
+
+                    if (maxWaitDuration > _settings.MaxStepWaitDuration)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has maxWaitDuration {maxWaitDuration}, maximum is {_settings.MaxStepWaitDuration}."
+                        );
+                }
+
                 if (step.RetryStrategy is { } retryStrategy && ValidateStepRetryStrategy(retryStrategy) is { } error)
                     return new RequestConstraintValidationResult.Invalid(
                         $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' {error}"

@@ -172,6 +172,12 @@ public static class OptionsBuilderExtensions
                 if (config.MaxStepCommandTimeout <= TimeSpan.Zero)
                     config.MaxStepCommandTimeout = Defaults.EngineSettings.MaxStepCommandTimeout;
 
+                if (config.DefaultStepWaitDuration <= TimeSpan.Zero)
+                    config.DefaultStepWaitDuration = Defaults.EngineSettings.DefaultStepWaitDuration;
+
+                if (config.MaxStepWaitDuration <= TimeSpan.Zero)
+                    config.MaxStepWaitDuration = Defaults.EngineSettings.MaxStepWaitDuration;
+
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
@@ -257,6 +263,16 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.MaxStepCommandTimeout >= config.DefaultStepCommandTimeout,
                 $"{ns}.{nameof(EngineSettings.MaxStepCommandTimeout)} must be greater than or equal to {ns}.{nameof(EngineSettings.DefaultStepCommandTimeout)}."
+            );
+
+            builder.Validate(
+                config => config.DefaultStepWaitDuration > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.DefaultStepWaitDuration)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxStepWaitDuration >= config.DefaultStepWaitDuration,
+                $"{ns}.{nameof(EngineSettings.MaxStepWaitDuration)} must be greater than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitDuration)}."
             );
 
             builder.Validate(

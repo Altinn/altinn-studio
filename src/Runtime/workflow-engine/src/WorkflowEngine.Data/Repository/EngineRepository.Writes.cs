@@ -953,7 +953,7 @@ internal sealed partial class EngineRepository
                 WITH ready AS (
                     SELECT w.id
                     FROM engine.workflows w
-                    WHERE w.status IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
+                    WHERE w.status IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued}, {PersistentItemStatus.Waiting})
                       AND (w.backoff_until IS NULL OR w.backoff_until <= {now})
                       AND NOT EXISTS (
                           SELECT 1 FROM engine.workflow_dependency wd
@@ -1247,6 +1247,8 @@ internal sealed partial class EngineRepository
                         var stepIds = new Guid[allSteps.Count];
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
+                        var stepDeferCounts = new int[allSteps.Count];
+                        var stepWaitingSince = new object[allSteps.Count];
                         var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
@@ -1257,6 +1259,8 @@ internal sealed partial class EngineRepository
                             stepIds[i] = s.DatabaseId;
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
+                            stepDeferCounts[i] = s.DeferCount;
+                            stepWaitingSince[i] = s.WaitingSince.HasValue ? s.WaitingSince.Value : DBNull.Value;
                             stepErrorHistories[i] =
                                 s.ErrorHistory.Count > 0
                                     ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
@@ -1269,14 +1273,16 @@ internal sealed partial class EngineRepository
                         UPDATE engine.steps AS s
                         SET status               = v.status,
                             requeue_count        = v.requeue_count,
+                            defer_count          = v.defer_count,
+                            waiting_since        = v.waiting_since,
                             error_history        = v.error_history,
                             state_out            = v.state_out,
                             engine_trace_context = v.engine_trace_context,
                             updated_at           = @now
                         FROM (
                             SELECT *
-                            FROM unnest(@ids, @statuses, @requeue_counts, @error_histories, @engine_trace_contexts, @state_outs)
-                                AS t(id, status, requeue_count, error_history, engine_trace_context, state_out)
+                            FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @waiting_since, @error_histories, @engine_trace_contexts, @state_outs)
+                                AS t(id, status, requeue_count, defer_count, waiting_since, error_history, engine_trace_context, state_out)
                             ORDER BY t.id
                         ) AS v
                         WHERE s.id = v.id
@@ -1286,6 +1292,13 @@ internal sealed partial class EngineRepository
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
+                        cmd.Parameters.Add(new NpgsqlParameter<int[]>("defer_counts", stepDeferCounts));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("waiting_since", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = stepWaitingSince,
+                            }
+                        );
                         cmd.Parameters.Add(
                             new NpgsqlParameter("error_histories", NpgsqlDbType.Array | NpgsqlDbType.Jsonb)
                             {
@@ -1383,7 +1396,7 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // Reset from terminal + Requeued (Requeued skips the backoff wait). Clearing
+                    // Reset from terminal + Requeued/Waiting (both skip the backoff wait). Clearing
                     // LeaseToken preserves the "NOT NULL iff Processing" invariant.
                     const string resetPrimarySql = """
                     UPDATE engine.workflows
@@ -1396,7 +1409,7 @@ internal sealed partial class EngineRepository
                         updated_at = @now
                     WHERE id = @id
                       AND namespace = @ns
-                      AND status IN (@failed, @canceled, @depFailed, @requeued, @abandoned)
+                      AND status IN (@failed, @canceled, @depFailed, @requeued, @abandoned, @waiting)
                     RETURNING id
                     """;
                     await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
@@ -1411,6 +1424,7 @@ internal sealed partial class EngineRepository
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("abandoned", (int)PersistentItemStatus.Abandoned));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("waiting", (int)PersistentItemStatus.Waiting));
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", resumedAt));
 
                         await using var reader = await cmd.ExecuteReaderAsync(ct);
@@ -1469,7 +1483,7 @@ internal sealed partial class EngineRepository
                     // Reset non-completed steps for all resumed workflows
                     const string resetStepsSql = """
                     UPDATE engine.steps
-                    SET status = @enqueued, requeue_count = 0, updated_at = @now
+                    SET status = @enqueued, requeue_count = 0, defer_count = 0, waiting_since = NULL, updated_at = @now
                     WHERE job_id = ANY(@ids)
                       AND status != @completed
                     """;
@@ -1521,12 +1535,13 @@ internal sealed partial class EngineRepository
                     const string sql = """
                     UPDATE engine.workflows
                     SET backoff_until = NULL, updated_at = @now
-                    WHERE id = @id AND namespace = @ns AND status = @requeued AND backoff_until IS NOT NULL
+                    WHERE id = @id AND namespace = @ns AND status IN (@requeued, @waiting) AND backoff_until IS NOT NULL
                     """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
                     cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("waiting", (int)PersistentItemStatus.Waiting));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
                     rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
 

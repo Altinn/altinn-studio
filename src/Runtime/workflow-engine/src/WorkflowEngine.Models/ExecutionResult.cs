@@ -8,11 +8,13 @@ namespace WorkflowEngine.Models;
 /// <param name="Message">Optional message describing the outcome (used for logs and step error history).</param>
 /// <param name="Exception">Optional exception associated with a failed outcome.</param>
 /// <param name="HttpStatusCode">Optional HTTP status code captured from the underlying transport.</param>
+/// <param name="DeferDelay">For <see cref="ExecutionStatus.Deferred"/> outcomes: how long to wait before re-executing the step.</param>
 public record struct ExecutionResult(
     ExecutionStatus Status,
     string? Message = null,
     Exception? Exception = null,
-    int? HttpStatusCode = null
+    int? HttpStatusCode = null,
+    TimeSpan? DeferDelay = null
 )
 {
     /// <summary>
@@ -54,4 +56,15 @@ public record struct ExecutionResult(
     /// </summary>
     public static ExecutionResult CriticalError(Exception exception) =>
         new(ExecutionStatus.CriticalError, exception.Message, exception);
+
+    /// <summary>
+    /// Creates a deferred execution result: the command ran without error, but the outcome it is
+    /// waiting for is not available yet. The engine parks the step in
+    /// <see cref="PersistentItemStatus.Waiting"/> and re-executes it after <paramref name="delay"/>,
+    /// releasing the worker slot in the meantime. Deferrals are not failures — they record no error
+    /// history and reset the step's retry counter — but their total wall-clock time is bounded by the
+    /// step's wait budget (<see cref="CommandDefinition.MaxWaitDuration"/> or the engine default).
+    /// </summary>
+    public static ExecutionResult Defer(TimeSpan delay, string? message = null) =>
+        new(ExecutionStatus.Deferred, message, DeferDelay: delay);
 };

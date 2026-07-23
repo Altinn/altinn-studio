@@ -109,14 +109,24 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of workflows parked in <c>Waiting</c> because a step deferred (not a failure signal).
+    /// </summary>
+    public static readonly Counter<long> WorkflowsDeferred = Meter.CreateCounter<long>(
+        "engine.workflows.execution.deferred",
+        description: "Number of workflow attempts that ended in Waiting because a step deferred"
+    );
+
+    /// <summary>
     /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
-    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c>) and <c>is_head</c>
-    /// (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in (<c>execution</c>,
-    /// <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a routing/severity
-    /// dimension, not the filter - <c>"false"</c> marks deliberately invisible workflows
-    /// (non-blocking side chains) whose terminal failures surface nowhere else. Exclude
+    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c>) and
+    /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
+    /// (<c>execution</c>, <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a
+    /// routing/severity dimension, not the filter - <c>"false"</c> marks deliberately invisible
+    /// workflows (non-blocking side chains) whose terminal failures surface nowhere else. Exclude
     /// <c>dependency_failed</c>: such an increment just mirrors a dependency's failure, which
-    /// fires the alert in its own right, and is expected noise.
+    /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
+    /// the default alert: a step's wait budget running out means the awaited external outcome
+    /// never arrived, not that the engine or command failed — route it to the owning team instead.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
@@ -220,6 +230,12 @@ public static class Metrics
     /// Counter of steps requeued after a retryable failure.
     /// </summary>
     public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
+
+    /// <summary>
+    /// Counter of step deferrals (successful executions whose awaited outcome was not available yet).
+    /// Deliberately separate from <see cref="StepsRequeued"/>/<see cref="StepsFailed"/>: a deferral is not a failure.
+    /// </summary>
+    public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>("engine.steps.execution.deferred");
 
     /// <summary>
     /// Counter of steps that terminated in failure.
@@ -336,6 +352,16 @@ public static class Metrics
     public static readonly ObservableGauge<long> ScheduledWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.scheduled",
         static () => _scheduledWorkflowsCount
+    );
+
+    private static long _waitingWorkflowsCount;
+
+    /// <summary>
+    /// Gauge of workflows currently parked in <c>Waiting</c> (deferred steps awaiting an external outcome).
+    /// </summary>
+    public static readonly ObservableGauge<long> WaitingWorkflows = Meter.CreateObservableGauge(
+        "engine.workflows.waiting",
+        static () => _waitingWorkflowsCount
     );
 
     private static long _failedWorkflowsCount;
@@ -467,6 +493,11 @@ public static class Metrics
     /// Sets the value reported by <see cref="ScheduledWorkflows"/>.
     /// </summary>
     public static void SetScheduledWorkflowsCount(long count) => _scheduledWorkflowsCount = count;
+
+    /// <summary>
+    /// Sets the value reported by <see cref="WaitingWorkflows"/>.
+    /// </summary>
+    public static void SetWaitingWorkflowsCount(long count) => _waitingWorkflowsCount = count;
 
     /// <summary>
     /// Sets the value reported by <see cref="FailedWorkflows"/>.
