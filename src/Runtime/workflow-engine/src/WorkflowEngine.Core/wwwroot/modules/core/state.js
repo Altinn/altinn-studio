@@ -163,9 +163,21 @@ export const state = {
         recent: localStorage.getItem('compact:recent') === '1',
         query: localStorage.getItem('compact:query') !== '0',
     },
+    /** @type {'chains' | 'compact' | 'full'} Recent section view mode */
+    recentView: /** @type {'chains' | 'compact' | 'full'} */ (
+        (() => {
+            const v = localStorage.getItem('recentView');
+            if (v === 'chains' || v === 'compact' || v === 'full') return v;
+            // Migrate the legacy two-way toggle; new default is the grouped chains view.
+            return localStorage.getItem('compact:recent') === '1' ? 'compact' : 'chains';
+        })()
+    ),
     /** @type {Workflow[]} */ recentWorkflows: [],
     /** @type {Set<string>} */ pendingExpand: new Set(),
 };
+
+// The flat-mode card builders and URL sync still key off the boolean; keep it derived.
+state.compactSections.recent = state.recentView === 'compact';
 
 /** @type {Record<string, Workflow>} */
 export const workflowData = {};

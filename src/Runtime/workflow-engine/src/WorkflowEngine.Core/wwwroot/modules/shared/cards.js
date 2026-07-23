@@ -145,7 +145,7 @@ const COLLECTION_ICON =
  * @param {boolean} interactive - true adds onclick filter handlers
  * @returns {string}
  */
-const buildLabelsHTML = (wf, interactive) => {
+export const buildLabelsHTML = (wf, interactive) => {
     /**
      * @param {string} key @param {string} value @param {string} display @param {string} cls
      */
@@ -191,7 +191,7 @@ const primaryCopyHTML = (wf) =>
  * @param {boolean} interactive - true adds the onclick filter handler
  * @returns {string}
  */
-const collectionButtonHTML = (wf, interactive) => {
+export const collectionButtonHTML = (wf, interactive) => {
     if (!wf.collectionKey) return '';
     if (!interactive) {
         return `<span class="seg collection" title="${esc(wf.collectionKey)}">collection</span>`;
@@ -461,7 +461,7 @@ export const createWorkflowCard = (wf, elId) => {
 /* ── Card filter data ───────────────────────────────────── */
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
-const buildFilterText = (wf) => {
+export const buildFilterText = (wf) => {
     const parts = [wf.namespace, wf.operationId, wf.idempotencyKey];
     if (wf.labels) {
         for (const [k, v] of Object.entries(wf.labels)) parts.push(k, v);
@@ -475,7 +475,7 @@ const buildFilterText = (wf) => {
 };
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
-const buildStatusTags = (wf) => {
+export const buildStatusTags = (wf) => {
     const tags = new Set();
     tags.add(wf.status.toLowerCase());
     for (const s of wf.steps) {

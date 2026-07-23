@@ -2,6 +2,7 @@
 
 import { dom, state } from '../core/state.js';
 import { getTheme, setTheme, updateThemeToggle } from './theme.js';
+import { applyRecentViewUi } from './recent.js';
 
 /** Late-bound references set from app.js to break circular dependency */
 /** @type {() => void} */
@@ -111,6 +112,7 @@ export const syncUrl = () => {
         .filter(([, v]) => v)
         .map(([k]) => k);
     if (cpt.length) p.set('cpt', cpt.join(','));
+    if (state.recentView !== 'chains') p.set('rv', state.recentView);
     const expKeys = /** @type {string[]} */ ([]);
     for (const [section, container] of [
         ['inbox', dom.liveContainer],
@@ -143,6 +145,7 @@ export const restoreUrl = () => {
         document.getElementById('recent-section')?.classList.remove('collapsed');
         for (const s of Object.keys(state.compactSections))
             state.compactSections[s] = s === 'query';
+        state.recentView = 'chains';
         state.sectionStatus = { live: '', recent: '', query: 'failed' };
         queryTimeRange = 0;
         customTimeRange = null;
@@ -263,6 +266,13 @@ export const restoreUrl = () => {
     for (const s of (p.get('cpt') || '').split(',').filter(Boolean)) {
         if (s in state.compactSections) state.compactSections[s] = true;
     }
+    if (state.compactSections.recent) state.recentView = 'compact';
+    const rv = p.get('rv');
+    if (rv === 'chains' || rv === 'compact' || rv === 'full') {
+        state.recentView = rv;
+        state.compactSections.recent = rv === 'compact';
+    }
+    applyRecentViewUi();
     const expParam = p.get('exp');
     if (expParam) {
         try {

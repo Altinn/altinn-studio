@@ -36,7 +36,7 @@ bindUrlCallbacks({ switchTab, loadQuery, applyFilter });
 bindSectionCallbacks({ loadScheduled, loadQuery, syncUrl });
 bindScheduledCallbacks({ applyFilter });
 bindLiveCallbacks({ mergeDiscoveredLabels, applyFilter });
-bindRecentCallbacks({ mergeDiscoveredLabels, applyFilter });
+bindRecentCallbacks({ mergeDiscoveredLabels, applyFilter, syncUrl });
 bindFilterCallbacks({ syncUrl, loadQuery });
 bindThemeCallbacks({ syncUrl });
 
@@ -62,8 +62,10 @@ const init = () => {
             /** @type {{ active?: import('./modules/core/state.js').Workflow[], recent?: import('./modules/core/state.js').Workflow[] }} */ (
                 data
             );
-        // Recent keys needed so active exit animation is skipped for workflows moving to recent
-        const recentKeys = d.recent ? new Set(d.recent.map((w) => w.idempotencyKey)) : null;
+        // Recent keys needed so active exit animation is skipped for workflows moving to recent.
+        // Keyed by databaseId: idempotency keys are batch-level, so a sibling workflow from the
+        // same batch landing in recent must not suppress a still-active one.
+        const recentKeys = d.recent ? new Set(d.recent.map((w) => w.databaseId)) : null;
         if (d.active !== undefined) updateLiveWorkflows(d.active, recentKeys);
         if (d.recent !== undefined) updateRecentWorkflows(d.recent);
     });

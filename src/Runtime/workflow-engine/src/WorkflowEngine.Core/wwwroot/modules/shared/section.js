@@ -130,6 +130,8 @@ const setupCardExpand = (container, section, isStatic, isScheduled) => {
 
         const card = /** @type {HTMLElement | null} */ (target.closest('.workflow-card'));
         if (!card) return;
+        // Cards inside a chains-view group are toggled by chainRowToggle instead.
+        if (card.closest('.chain-group')) return;
 
         const wf = workflowData[card.dataset.wfkey || ''];
         if (!wf) return;

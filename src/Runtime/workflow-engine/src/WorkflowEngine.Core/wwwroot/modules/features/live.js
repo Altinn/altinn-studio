@@ -12,6 +12,7 @@ import { scrollPipelineToActive } from '../shared/pipeline.js';
 import { notifyStepChanged } from './modal.js';
 import { notifyWorkflowChanged } from './state-modal.js';
 import { notifyChainChanged } from './chain-modal.js';
+import { notifyRecentChainsChanged } from './recent.js';
 
 /** Late-bound references */
 /** @type {() => void} */
@@ -40,7 +41,7 @@ const _processingIdx = /** @type {Record<string, number>} */ ({});
 
 /**
  * @param {import('../core/state.js').Workflow[]} workflows
- * @param {Set<string>|null} [recentKeys] - idempotency keys of workflows now in recent; skip exit animation for these
+ * @param {Set<string>|null} [recentKeys] - databaseIds of workflows now in recent; skip exit animation for these
  */
 export const updateLiveWorkflows = (workflows, recentKeys) => {
     const currentKeys = new Set(workflows.map((w) => w.databaseId));
@@ -49,8 +50,7 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
     for (const key of Object.keys(state.previousWorkflows)) {
         if (!currentKeys.has(key)) {
             const card = document.getElementById(`wf-${cssId(key)}`);
-            const idemKey = state.previousWorkflows[key]?.idempotencyKey;
-            const movedToRecent = idemKey && recentKeys?.has(idemKey);
+            const movedToRecent = recentKeys?.has(key);
             if (card && !card.dataset.exiting) {
                 const visible = card.offsetParent !== null;
                 if (visible && !movedToRecent) {
@@ -80,6 +80,7 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             notifyStepChanged(key);
             notifyWorkflowChanged(key);
             notifyChainChanged(key);
+            notifyRecentChainsChanged(key);
         }
     }
 
@@ -89,7 +90,7 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
         let card = document.getElementById(elId);
 
         // Skip if workflow already moved to recent (SSE race condition)
-        if (!card && recentKeys?.has(wf.idempotencyKey)) continue;
+        if (!card && recentKeys?.has(wf.databaseId)) continue;
 
         const fp = fingerprint(wf);
         if (!card) {
@@ -99,6 +100,10 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
                 startedAt: wf.executionStartedAt || wf.createdAt,
             };
             state.workflowFingerprints[wf.databaseId] = fp;
+            // New workflows can extend an open chain view (a fresh transition's Main +
+            // side chains are new ids — nothing already rendered changes when they land).
+            notifyChainChanged(wf.databaseId);
+            notifyRecentChainsChanged(wf.databaseId);
         } else if (state.workflowFingerprints[wf.databaseId] !== fp) {
             const isCompact = card.classList.contains('compact');
             card.innerHTML = isCompact ? buildCompactCardHTML(wf) : buildCardHTML(wf);
@@ -127,6 +132,7 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             notifyStepChanged(wf.databaseId);
             notifyWorkflowChanged(wf.databaseId);
             notifyChainChanged(wf.databaseId);
+            notifyRecentChainsChanged(wf.databaseId);
         }
 
         state.previousWorkflows[wf.databaseId] = wf;

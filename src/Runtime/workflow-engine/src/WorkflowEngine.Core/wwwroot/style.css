@@ -2577,6 +2577,73 @@ pre.diff-remove {
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
 }
+.chain-node .compact-dot {
+    cursor: pointer;
+}
+.chain-node.chain-expanded {
+    display: block;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    cursor: default;
+    box-shadow: none;
+}
+.chain-node.chain-expanded:hover {
+    background: transparent;
+}
+.chain-node.chain-expanded > .workflow-card {
+    margin: 0;
+}
+
+/* ── Chains view (grouped Recent) ─────────────────────────── */
+.chain-group {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg2);
+    padding: 10px 14px 4px;
+    margin-bottom: 10px;
+}
+.chain-group-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 2px;
+    margin-bottom: 2px;
+    min-height: 24px;
+}
+.chain-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.chain-history-btn {
+    width: auto;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.chain-history-loaded {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--text-dim);
+    opacity: 0.6;
+    white-space: nowrap;
+}
+.chain-group .chain-list {
+    padding-bottom: 0;
+}
+.view-toggle button.active {
+    opacity: 1;
+    color: var(--cyan);
+    border-color: rgba(var(--cyan-rgb), 0.4);
+    background: rgba(var(--cyan-rgb), 0.08);
+    z-index: 1;
+    position: relative;
+}
 
 /* ── Load more button ─────────────────────────────────────── */
 .load-more {

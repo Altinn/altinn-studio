@@ -22,6 +22,7 @@ wwwroot/
       sse.js                         — connectSSE(), hot-reload watcher
     shared/                          — reusable UI building blocks (imports from core/ only)
       cards.js                       — all card renderers (full, compact, scheduled), filter data, label segments
+      chain.js                       — chain rows: spine layout (edge-based + creation-order), inline row expansion
       pipeline.js                    — buildPipelineHTML(), step nodes, connectors, phase grouping, retry/skip buttons
       section.js                     — collapse/expand, compact/full toggle, card expand
       timers.js                      — requestAnimationFrame timer loop for elapsed counters + backoff countdowns
@@ -29,14 +30,14 @@ wwwroot/
       header.js                      — engine status badges + capacity meters (workers, DB, HTTP)
       scheduled.js                   — scheduled workflows fetch + badge
       live.js                        — active workflows section (SSE-driven, animations, pulse sync)
-      recent.js                      — recent workflows section (SSE-driven, 100-item window)
+      recent.js                      — recent workflows section (SSE-driven, 100-item window; chains/compact/full view modes, collection groups)
       filters.js                     — label filters, status chips, text filter, tabs
       url.js                         — syncUrl(), restoreUrl(), time range state
       query.js                       — query tab with pagination, time range, auto-refresh
       modal.js                       — step detail modal (SSE-driven refresh, retry/skip actions)
       settings.js                    — settings modal (timestamps, UTC toggle)
       state-modal.js                 — state evolution modal (SSE-driven refresh)
-      chain-modal.js                 — chain modal: dependency-ordered spine view of the connected graph
+      chain-modal.js                 — chain modal: fetches /dashboard/graph, renders via shared/chain.js
       theme.js                       — theme toggle (dark/altinn)
 ```
 
@@ -69,7 +70,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/step`         | GET    | Step detail modal                                    |
 | `/dashboard/state`        | GET    | State evolution modal                                |
 | `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
-| `/dashboard/graph`        | GET    | Connected dependency graph for the chain modal       |
+| `/dashboard/graph`        | GET    | Connected graph: chain modal + chains-view history    |
 | `/dashboard/retry`        | POST   | Retry a failed workflow                              |
 | `/dashboard/skip-backoff` | POST   | Skip backoff wait on a requeued workflow             |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |

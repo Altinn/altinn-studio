@@ -16,7 +16,7 @@ Three collapsible sections, top to bottom:
 
 2. **Inbox** — Active workflows currently processing. Driven by SSE (`/dashboard/stream/live`). Cards appear with enter animation, update in-place when fingerprint changes, and exit with animation when completed/failed (unless moving to Recent, which skips animation). Elapsed timers tick via `requestAnimationFrame`.
 
-3. **Recent** — Last 100 finished workflows. Also driven by SSE. New arrivals glow briefly. Cards are static (no timers). Backend controls ordering and the 100-item window.
+3. **Recent** — Last 100 finished workflows. Also driven by SSE. Backend controls ordering and the 100-item window. Three view modes (segmented control in the section header, persisted in localStorage as `recentView`, synced to the URL as `rv`): **Chains** (default) groups the window by `collectionKey` and renders each collection as a dependency-ordered spine (see [Chains View](#chains-view)); **Compact** and **Full** are the flat reverse-chronological card modes (new arrivals glow briefly; cards are static, no timers).
 
 ### Query Tab
 
@@ -407,35 +407,77 @@ Each block shows syntax-highlighted JSON (pre-processed with `expandJsonStrings(
 
 ---
 
+## Chain Rows (shared renderer)
+
+`modules/shared/chain.js` renders a set of workflows as a dependency-ordered vertical spine — the
+"story of the collection" — rather than a general graph layout (process-next graphs are a
+near-linear spine of heads with side-chain leaves). It is shared by the chain modal and the Recent
+section's Chains view.
+
+**Spine layout — two builders:**
+
+1. `buildSpineFromEdges(nodes, edges)` — heads (`isHead !== false`) topologically sorted over
+   `dependency` edges (Kahn), `createdAt` as tiebreak; a cycle guard appends anything the sort
+   missed in creation order. Each `isHead === false` node attaches under the head it shares an
+   edge with, **preferring `link` edges** (side-effects workflows carry a link to their producer
+   Main) and falling back to any edge; unattached side nodes render at the bottom.
+2. `buildSpineByCreation(nodes)` — no edges needed: plain `createdAt` order with `isHead === false`
+   nodes marked as side rows. Correct for process-next collections because side chains are always
+   enqueued while their producer Main executes — after the Main's `createdAt` and before the next
+   head can exist (heads gate the following transition).
+
+**Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
+tooltip), side-chain badge where applicable, one status-colored dot per step (clickable — opens the
+step modal), duration, status pill. Terminal rows show their real duration; active rows tick via
+the shared `[data-timer]` loop when the live section registered a timer. Side rows indent under
+their head with the violet side-chain card chrome and an elbow connector to the spine line. The
+root workflow (where a root id is given) gets a cyan spine marker and a brightened name.
+
+**Row expansion:** clicking a row (outside interactive elements) swaps it in place for the full
+pipeline card (`chainRowToggle`), fetching relations on first expand like compact-card expansion
+does; clicking the expanded card collapses it back. The expanded set survives re-renders.
+
 ## Chain Modal
 
 Opened by clicking the tree button on a card. Fetches `/dashboard/graph?wf=<id>&ns=<namespace>` and
-renders the connected graph as a dependency-ordered vertical spine — the "story of the instance" —
-rather than a general graph layout (process-next graphs are a near-linear spine of heads with
-side-chain leaves).
+renders it with the shared chain renderer (`buildSpineFromEdges`).
 
 Title: "Chain — {collectionKey}" when the opening card has a collection key, else "Workflow Chain".
 Same stale-guard pattern as the other modals (checks `_openWfId` before/after fetch).
 
-**Layout algorithm** (`buildChainHTML`):
+**Auto-refresh:** SSE-driven via `notifyChainChanged()` with 1s debounce. Triggers when a rendered
+workflow's fingerprint changes **or when a new live workflow joins the open root's collection** — a
+fresh transition's Main + side chains are new ids, so nothing already rendered changes when they
+land. **Keyboard:** Escape closes the modal.
 
-1. **Spine** — heads (`isHead !== false`) topologically sorted over `dependency` edges (Kahn),
-   `createdAt` as tiebreak. A cycle guard appends anything the sort missed in creation order.
-2. **Side chains** — each `isHead === false` node attaches under the first head it shares any edge
-   with (either direction, any kind); unattached side nodes render at the bottom.
+## Chains View
 
-**Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
-tooltip), side-chain badge where applicable, one status-colored dot per step (tooltips only, not
-clickable), duration, status pill. Side rows indent under their head with the violet side-chain
-card chrome and an elbow connector to the spine line. The root workflow (the card the modal was
-opened from) gets a cyan spine marker and a brightened name.
+The Recent section's default mode: the recent window grouped by `collectionKey`, each collection
+rendered as a bordered group — newest collection first (by the window's own ordering), story inside
+oldest-first. Workflows without a collection render as plain compact cards in their recency
+position.
 
-**Row click:** closes the modal and jumps to that workflow's card via `revealCard()` (scroll +
-flash) when it is rendered on screen; otherwise the modal just closes.
+**Group anatomy:** a header row (label segments from the newest head member, workflow count,
+wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
+history control) above the shared chain rows. Aggregate status: an in-flight member wins
+(Processing/Requeued/Enqueued), then the worst terminal outcome, then Completed.
 
-**Auto-refresh:** SSE-driven via `notifyChainChanged()` with 1s debounce, keyed on the set of
-databaseIds currently rendered in the modal (new workflows enqueued after opening do not trigger a
-refresh until a rendered one changes). **Keyboard:** Escape closes the modal.
+**Spine source:** groups use `buildSpineByCreation` over the members in the recent window — no
+fetches needed (`isHead` is already on the card DTOs). The **history** control fetches
+`/dashboard/graph` for the collection's full connected graph (beyond the 100-item window) and
+re-renders the group with the exact edge-based spine; the graph is cached per collection, and when
+new members appear that the cache doesn't know, it refetches in the background.
+
+**Live members:** in-flight workflows (from the active section's SSE state) that belong to a
+rendered collection are merged into their group, so the story includes the running transition —
+its row ticks via the shared timer loop. `notifyRecentChainsChanged()` re-renders the view
+(300 ms debounce) when a live workflow that belongs to a rendered group appears, changes, or
+finishes.
+
+**Filtering:** groups filter as one unit — `data-filter`/`data-status`/`data-labels` are unions
+over the members, so a group matches when any member matches (status chips count groups, not
+workflows). The expanded cards inside a group are not matched individually (`:scope >` selectors
+in `applyFilter`).
 
 ---
 

@@ -108,7 +108,7 @@ No active workflows
         <button class="chip" data-status="failed">Failed</button>
         <button class="chip" data-status="abandoned">Abandoned</button>
       </span>
-      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('recent')">Compact</button><button onclick="fullAll('recent')">Full</button></span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button id="recent-view-chains" onclick="setRecentView('chains')">Chains</button><button id="recent-view-compact" onclick="setRecentView('compact')">Compact</button><button id="recent-view-full" onclick="setRecentView('full')">Full</button></span>
     </div>
     <div class="section-body">
       <div id="recent-workflows"></div>
