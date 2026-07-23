@@ -10,7 +10,7 @@
   ],
   "dependencies": {
     "dompurify": "^3.2.6",
-    "html-react-parser": "^5.2.5",
+    "html-react-parser": "^6.0.0",
     "markdown-to-jsx": "7.7.17",
     "react": "19.2.7",
     "react-dom": "19.2.7"
