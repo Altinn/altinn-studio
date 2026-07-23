@@ -18,6 +18,7 @@
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
     "setup": "lefthook install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
+    "build-app-frontend-bundle": "yarn workspace app-frontend-react build && node src/Designer/development/copy-app-frontend-bundle.mjs",
     "start-app-development": "yarn workspace app-development start",
     "prepare": "lefthook install"
   },
