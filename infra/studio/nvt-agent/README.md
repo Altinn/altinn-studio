@@ -9,14 +9,15 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.3` (verified OCI digest
-`sha256:a7d12d3a26b3b356c2d11d1bf0dbc13ca601c9e454addd67b2a5e0e842e79014`),
+The public chart is pinned to `0.8.4` (verified OCI digest
+`sha256:407194e4ec03ebbabcae325dc342d8c7250c0f552c730aed9d44eb26b18957be`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.3-e7763d5` production images without
+tag. It resolves the coordinated `0.8.4-f5f0d67` production images without
 component overrides. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
-RuntimeClass, so matching producer comments can create real mediated
-AgentRuns.
+RuntimeClass. Its shared AgentRun template carries the matching
+`purpose=nvt-agent:NoSchedule` toleration, and the schedule admits at most two
+concurrent mediated AgentRuns.
 
 ## Prerequisites
 
@@ -65,10 +66,11 @@ Profile selection uses the verified immutable GitHub subjects `23359247`
 `jondyr`; only the producer allowlist uses GitHub's canonical, case-sensitive
 login spelling.
 
-The deployment uses the exact `kata-vm-isolation` RuntimeClass. Its scheduling
-rules must continue to target/tolerate the NVT pool, and admission policy must
-accept the operator's one-shot `NET_ADMIN` routing init container and capture
-sidecar contract.
+The deployment uses the exact `kata-vm-isolation` RuntimeClass. RuntimeClass
+scheduling selects the AKS Kata pool, while the AgentRun toleration permits the
+agent Pod onto its dedicated `purpose=nvt-agent:NoSchedule` taint. Admission
+policy must accept the operator's one-shot `NET_ADMIN` routing init container
+and capture sidecar contract.
 
 ## Activated staging rollout
 
