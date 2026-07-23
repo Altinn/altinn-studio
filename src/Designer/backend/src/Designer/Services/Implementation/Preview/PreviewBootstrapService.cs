@@ -104,7 +104,7 @@ public class PreviewBootstrapService(
                 helpCircleIllustrationUrl = HelpCircleIllustrationUrl,
                 postalCodesUrl = PostalCodesUrl,
             },
-            returnUrl = (string?)null,
+            returnUrl = null,
             userProfile = GetMockUserProfile(),
             selectedParty = GetMockParty(),
             orgName = (object?)null,
