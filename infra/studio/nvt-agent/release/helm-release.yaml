@@ -222,6 +222,14 @@ spec:
                     projects:
                       /workspace:
                         hasTrustDialogAccepted: true
+                - path: "$HOME/.codex/config.toml"
+                  mode: "0600"
+                  overwrite: false
+                  content: |
+                    check_for_update_on_startup = false
+
+                    [projects."/workspace"]
+                    trust_level = "trusted"
             plugins:
               - config:
                   default-provider: github-fork

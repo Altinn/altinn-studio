@@ -57,6 +57,11 @@ yq -e '
   .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.hasCompletedOnboarding == true and
   .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.bypassPermissionsModeAccepted == true and
   .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.projects."/workspace".hasTrustDialogAccepted == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[2].path == "$HOME/.codex/config.toml" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[2].overwrite == false and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("check_for_update_on_startup = false")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("[projects.\"/workspace\"]")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("trust_level = \"trusted\"")) and
   (.spec.values.agentSchedule.template.tolerations | length) == 1 and
   .spec.values.agentSchedule.template.tolerations[0].effect == "NoSchedule" and
   .spec.values.agentSchedule.template.tolerations[0].key == "purpose" and
