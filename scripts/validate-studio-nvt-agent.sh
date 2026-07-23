@@ -48,6 +48,15 @@ yq -e '
   .spec.values.agentSchedule.template.resources.requests.memory == "8Gi" and
   .spec.values.agentSchedule.template.resources.limits.cpu == "2" and
   .spec.values.agentSchedule.template.resources.limits.memory == "8Gi" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].path == "$HOME/.claude/settings.json" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].overwrite == false and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].json.theme == "dark-daltonized" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].json.skipDangerousModePermissionPrompt == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].path == "$HOME/.claude.json" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].overwrite == false and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.hasCompletedOnboarding == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.bypassPermissionsModeAccepted == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.projects."/workspace/altinn-studio".hasTrustDialogAccepted == true and
   (.spec.values.agentSchedule.template.tolerations | length) == 1 and
   .spec.values.agentSchedule.template.tolerations[0].effect == "NoSchedule" and
   .spec.values.agentSchedule.template.tolerations[0].key == "purpose" and
