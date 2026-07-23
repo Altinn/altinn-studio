@@ -23,6 +23,18 @@
  */
 
 /**
+ * A related workflow (dependency, dependent, or link) as carried on a card.
+ * @typedef {{
+ *   databaseId:  string,
+ *   operationId: string,
+ *   status:      string,
+ * }} WorkflowRelation
+ */
+
+/**
+ * Relation arrays are tri-state: `undefined` = not loaded by the source query (fetch on demand
+ * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks workflows
+ * deliberately invisible to collection head tracking (side chains).
  * @typedef {{
  *   databaseId:     string,
  *   idempotencyKey: string,
@@ -39,6 +51,10 @@
  *   removedAt:      string | null,
  *   startAt:        string | null,
  *   hasState:       boolean,
+ *   isHead:         boolean | undefined,
+ *   dependsOn:      WorkflowRelation[] | undefined,
+ *   dependents:     WorkflowRelation[] | undefined,
+ *   links:          WorkflowRelation[] | undefined,
  *   steps:          Step[],
  * }} Workflow
  */

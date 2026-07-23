@@ -25,8 +25,14 @@ export const bindLiveCallbacks = (fns) => {
 };
 
 /** @param {import('../core/state.js').Workflow} wf */
-const fingerprint = (wf) =>
-    `${wf.status}|${wf.steps.map((s) => `${s.status}:${s.retryCount}:${s.backoffUntil || ''}`).join(',')}`;
+const fingerprint = (wf) => {
+    const rel = (/** @type {import('../core/state.js').WorkflowRelation[] | undefined} */ rels) =>
+        rels?.map((r) => r.status).join('.') ?? '';
+    return (
+        `${wf.status}|${wf.steps.map((s) => `${s.status}:${s.retryCount}:${s.backoffUntil || ''}`).join(',')}` +
+        `|${rel(wf.dependsOn)}|${rel(wf.dependents)}|${rel(wf.links)}`
+    );
+};
 
 /** Index of the currently-processing step (for scroll-on-change). */
 const _processingIdx = /** @type {Record<string, number>} */ ({});

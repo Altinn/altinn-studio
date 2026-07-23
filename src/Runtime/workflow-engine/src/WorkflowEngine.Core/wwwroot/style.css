@@ -20,12 +20,14 @@
     --orange: #ff6600;
     --red: #ff3366;
     --gray: #666;
+    --violet: #a78bfa;
     --cyan-rgb: 0, 212, 255;
     --amber-rgb: 255, 170, 0;
     --green-rgb: 0, 255, 136;
     --orange-rgb: 255, 102, 0;
     --red-rgb: 255, 51, 102;
     --gray-rgb: 102, 102, 102;
+    --violet-rgb: 167, 139, 250;
     --font: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
     --font-ui: var(--font);
     --header-bg: var(--bg2);
@@ -2432,6 +2434,61 @@ pre.diff-remove {
     animation: none;
 }
 
+/* ── Relation chips + side-chain badge ────────────────────── */
+.rel-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.rel-chip svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+.rel-dot {
+    width: 7px;
+    height: 7px;
+    border-width: 1px;
+    cursor: inherit;
+}
+.rel-dot:hover {
+    transform: none;
+}
+.rel-more {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+.rel-unknown {
+    opacity: 0.55;
+    font-style: italic;
+}
+.side-chain-badge {
+    font-size: 0.68rem;
+    padding: 1px 6px;
+    border-radius: 8px;
+    border: 1px dashed rgba(var(--violet-rgb), 0.6);
+    color: var(--violet);
+    background: rgba(var(--violet-rgb), 0.08);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.workflow-card.side-chain {
+    border-style: dashed;
+    border-color: rgba(var(--violet-rgb), 0.4);
+    box-shadow: inset 3px 0 0 rgba(var(--violet-rgb), 0.45);
+}
+.rel-flash {
+    animation: rel-flash 1.5s ease;
+}
+@keyframes rel-flash {
+    0% {
+        box-shadow: 0 0 0 3px var(--cyan);
+    }
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
 /* ── Load more button ─────────────────────────────────────── */
 .load-more {
     display: block;
@@ -2509,6 +2566,8 @@ pre.diff-remove {
     --red-rgb: 192, 27, 27;
     --gray: #8b8fa3;
     --gray-rgb: 139, 143, 163;
+    --violet: #6d28d9;
+    --violet-rgb: 109, 40, 217;
     --font-ui: 'Inter', 'Segoe UI', system-ui, sans-serif;
     --header-bg: #1e2b3c;
     --seg-bg: rgba(0, 0, 0, 0.03);
@@ -2550,6 +2609,10 @@ pre.diff-remove {
 [data-theme='altinn'] .workflow-card {
     box-shadow: var(--shadow-card);
     border-color: var(--border);
+}
+[data-theme='altinn'] .workflow-card.side-chain {
+    border-color: rgba(var(--violet-rgb), 0.4);
+    box-shadow: var(--shadow-card), inset 3px 0 0 rgba(var(--violet-rgb), 0.45);
 }
 [data-theme='altinn'] .workflow-card:not(.compact) .card-header:hover {
     background: var(--bg3);

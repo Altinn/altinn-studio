@@ -140,6 +140,9 @@ const setupCardExpand = (container, section, isStatic, isScheduled) => {
             card.style.animation = 'none';
             card.innerHTML = isScheduled ? buildScheduledCardHTML(wf) : buildCardHTML(wf, isStatic);
             if (!isStatic) scrollPipelineToActive(card);
+            // Recent/query cards don't carry relations inline - fetch on first expand
+            // (re-renders the card when the response lands).
+            if (!isScheduled && wf.dependsOn === undefined) window.loadRelations(null, wf.databaseId);
         } else {
             card.className = 'workflow-card compact';
             card.style.animation = 'none';

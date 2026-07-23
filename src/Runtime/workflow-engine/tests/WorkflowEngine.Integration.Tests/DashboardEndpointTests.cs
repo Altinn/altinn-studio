@@ -291,4 +291,78 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    // ── /dashboard/relations ───────────────────────────────────────────
+
+    [Fact]
+    public async Task Relations_ReturnsDependenciesDependentsLinksAndIsHead()
+    {
+        // Arrange - main <- side (side depends on and links to main, and is an invisible side chain)
+        var mainWorkflow = _testHelpers.CreateWorkflow("wf-main", [_testHelpers.CreateWebhookStep("/hook")]);
+        var sideWorkflow = _testHelpers.CreateWorkflow(
+            "wf-side",
+            [_testHelpers.CreateWebhookStep("/hook-side")],
+            dependsOn: [(WorkflowRef)"wf-main"]
+        ) with
+        {
+            Links = [(WorkflowRef)"wf-main"],
+            IsHead = false,
+        };
+        var request = _testHelpers.CreateEnqueueRequest([mainWorkflow, sideWorkflow], includeContext: false);
+        var enqueueResponse = await _client.Enqueue(request);
+        var mainId = enqueueResponse.Workflows[0].DatabaseId;
+        var sideId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus(
+            enqueueResponse.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var sideResponse = await client.GetAsync(
+            $"/dashboard/relations?wf={sideId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            TestContext.Current.CancellationToken
+        );
+        using var mainResponse = await client.GetAsync(
+            $"/dashboard/relations?wf={mainId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert - the side workflow reports its dependency, its link, and the head directive
+        Assert.Equal(HttpStatusCode.OK, sideResponse.StatusCode);
+        var sideJson = await sideResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var sideDoc = JsonDocument.Parse(sideJson);
+        Assert.False(sideDoc.RootElement.GetProperty("isHead").GetBoolean());
+        var dependsOn = Assert.Single(sideDoc.RootElement.GetProperty("dependsOn").EnumerateArray());
+        Assert.Equal(mainId, dependsOn.GetProperty("databaseId").GetGuid());
+        Assert.Equal("Completed", dependsOn.GetProperty("status").GetString());
+        var link = Assert.Single(sideDoc.RootElement.GetProperty("links").EnumerateArray());
+        Assert.Equal(mainId, link.GetProperty("databaseId").GetGuid());
+        Assert.Equal(0, sideDoc.RootElement.GetProperty("dependents").GetArrayLength());
+
+        // The main workflow reports the inverse edge
+        Assert.Equal(HttpStatusCode.OK, mainResponse.StatusCode);
+        var mainJson = await mainResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var mainDoc = JsonDocument.Parse(mainJson);
+        var dependent = Assert.Single(mainDoc.RootElement.GetProperty("dependents").EnumerateArray());
+        Assert.Equal(sideId, dependent.GetProperty("databaseId").GetGuid());
+        Assert.Equal(0, mainDoc.RootElement.GetProperty("dependsOn").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Relations_NotFound_Returns404()
+    {
+        // Arrange
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/relations?wf={Guid.Empty}&ns=nonexistent-ns",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

@@ -167,6 +167,27 @@ Response:
 }
 ```
 
+### `GET /dashboard/relations`
+
+On-demand relations for cards whose source query does not eager-load them (the recent section and
+the query tab; active/scheduled cards get relations inline).
+
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `wf`      | guid   | Workflow database ID |
+| `ns`      | string | Workflow namespace   |
+
+Response:
+
+```json
+{
+    "isHead": false,
+    "dependsOn": [{ "databaseId": "guid", "operationId": "string", "status": "Completed" }],
+    "dependents": [],
+    "links": []
+}
+```
+
 ### `GET /dashboard/scheduled`
 
 All workflows with future `startAt`. Response: `Workflow[]`
@@ -198,12 +219,15 @@ Each workflow renders as a card with a header row and a pipeline of step nodes.
 Left to right:
 
 1. **Label segments** — Clickable spans for namespace, collectionKey, and labels. Clicking toggles a label filter. CSS class `seg key` for namespace/collectionKey (bold cyan), `seg` for label values.
-2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`.
+2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`. Note this parsing collapses distinct operationId prefixes into the same transition text (a head and its side-effects sibling display the same name) — the side-chain badge and card chrome carry the distinction; the full operationId is in the name's tooltip.
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
-5. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts.
-6. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
-7. **Action buttons** — Copy idempotency key, open state modal, Grafana trace link.
+5. **Side-chain badge** — Shown when the workflow was enqueued with `IsHead = false` (deliberately invisible to collection head tracking, e.g. the process-next side-effects workflows). Dashed violet "side chain" pill. The card itself also carries the side-chain identity: dashed violet border plus a violet inset left edge (`.workflow-card.side-chain`, toggled in `setCardFilterData` — and inline for scheduled cards — so it survives re-renders in every section).
+6. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts.
+7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
+8. **Copy idempotency key button**
+9. **Relation chips** — One chip per non-empty relation group: `↑` dependsOn, `↓` dependents, chain icon for links. Each chip shows a status-colored dot per related workflow (capped at 5, then `+N`); the tooltip lists `operationId (status)` pairs. Click behavior: exactly one relation whose card is on screen → smooth-scroll to it and flash it (`rel-flash`); otherwise → toggle the collection filter (connected workflows share a collection). Relation arrays are tri-state: active/scheduled cards carry them inline from their source queries; recent/query cards don't — a ghost `rel?` chip (full cards only) or expanding a compact card fetches them via `/dashboard/relations` and re-renders. Relation dot colors on active cards refresh via the live fingerprint (which includes relation statuses).
+10. **Action buttons** — Collection filter funnel, open state modal, Grafana trace link.
 
 ### Pipeline
 
@@ -256,7 +280,7 @@ Cards carry `data-*` attributes for client-side filtering without re-parsing:
 
 ```
 data-wfkey="{databaseId}"
-data-filter="{searchable text: namespace, operationId, idempotencyKey, labels, step commands}"
+data-filter="{searchable text: namespace, operationId, idempotencyKey, labels, step commands, related workflow ids/names}"
 data-status="{space-separated status tags}"
 data-namespace="{namespace lowercase}"
 data-collectionKey="{collectionKey lowercase}"
@@ -452,6 +476,12 @@ interface Step {
     stateChanged: boolean;
 }
 
+interface WorkflowRelation {
+    databaseId: string;
+    operationId: string;
+    status: string;
+}
+
 interface Workflow {
     databaseId: string;
     idempotencyKey: string;
@@ -468,6 +498,13 @@ interface Workflow {
     removedAt: string | null;
     startAt: string | null;
     hasState: boolean;
+    // isHead === false marks workflows deliberately invisible to collection head tracking.
+    isHead: boolean | undefined;
+    // Tri-state: undefined = not loaded by the source query (fetch via /dashboard/relations),
+    // [] = loaded and none exist.
+    dependsOn: WorkflowRelation[] | undefined;
+    dependents: WorkflowRelation[] | undefined;
+    links: WorkflowRelation[] | undefined;
     steps: Step[];
 }
 ```
@@ -480,8 +517,10 @@ interface Workflow {
 
 Workflows are fingerprinted to avoid unnecessary DOM updates. Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
 
-Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...`
-Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z"`
+Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
+Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z|Completed||"`
+The trailing relation-status segments keep relation chip dot colors fresh when only a related
+workflow's status changed.
 
 ### Animations
 

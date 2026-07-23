@@ -6,11 +6,14 @@ const appFrontend = new AppFrontend();
  * E2E for the live workflow-status state machine (ADR 2026-07-08), driving the REAL workflow engine
  * via the ttd/process-transition-test app instead of intercept stubbing.
  *
- * The app is Task_1 (data) -> Task_2 (data) -> gateway -> EndEvent, where Task_2's reject action
- * routes the gateway back to Task_1 (backwards navigation). Task_1 has a form of "levers" that two
- * app hooks read to control the Task_1 -> Task_2 transition. The levers describe a scenario:
+ * The app is Task_1 (data) -> gateway -> [Task_Service (service task) ->] Task_2 (data) -> gateway
+ * -> EndEvent, where Task_2's reject action routes back to Task_1 (backwards navigation). The
+ * gateway after Task_1 routes through Task_Service ONLY when the postCommit path is chosen; every
+ * other path goes straight to Task_2. Task_1 has a form of "levers" that two app hooks read to
+ * control the forward transition. The levers describe a scenario:
  *   - path       WHERE the transition misbehaves: "none" (clean), "preCommit" (fail before the
- *                Storage commit, committed=Task_1) or "postCommit" (fail after it, committed=Task_2).
+ *                Storage commit, committed=Task_1) or "postCommit" (fail after it,
+ *                committed=Task_Service).
  *   - delayMs    a delay injected on every attempt, regardless of attempts/end state.
  *   - attempts   how many times the engine tries the transition; every attempt but the last fails
  *                transiently (auto-retried), and the last settles on endState. attempts=1 => no retry.
@@ -20,10 +23,13 @@ const appFrontend = new AppFrontend();
  * The two hooks:
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
  *     engine surfaces `processing` (delay / transient retries) or `failed` (endState failure) on Task_1.
- *   - postCommit: a custom IEventsClient runs it POST-commit inside MovedToAltinnEvent
- *     (committed=Task_2 already), so `processing` is observable on the committed Task_2. Throws there
- *     are wrapped as retryable, so an endState "failure" is realised by cancelling the in-flight
- *     workflow first (the cancellation wins over the retry -> terminal Canceled -> frontend `failed`).
+ *   - postCommit: an IServiceTask ("scenario") runs it POST-commit inside ExecuteServiceTask — a
+ *     critical post-commit step of the committed Task_1 -> Task_Service transition — so
+ *     `processing` is observable on the committed Task_Service and an endState "failure" is a real
+ *     permanent failure (terminal Failed -> frontend `failed`). On success the service task
+ *     auto-advances to Task_2. Non-gating side effects (the Altinn event registrations) are
+ *     deliberately NOT lever-controlled: they run in fire-and-forget side-effects workflows that
+ *     are invisible to the frontend by design (see the noncritical-side-effects ADR).
  *
  * UI strings (app-libs nb.ts, keys process_workflow.*):
  *   processing  = spinner + "Vi jobber med skjemaet ditt" (deliberately never names the target
@@ -32,6 +38,9 @@ const appFrontend = new AppFrontend();
  *   failed      = heading "Noe gikk galt" + contact-support blurb + safe details expander
  *                 ("Vis detaljer om feilen"); deliberately NO Retry affordance and NO polling — the
  *                 engine already exhausted its retry budget, so the page is static until a refresh.
+ *                 EXCEPTION: a failure owned by the current service task renders the service task's
+ *                 own view instead (same heading, but WITH "Prøv igjen"/"Gå tilbake" recovery
+ *                 buttons) — see the failed (post-commit) test.
  */
 
 type Levers = {
@@ -54,7 +63,7 @@ const leverLabels = {
   path: {
     none: 'Ingen feil – overgangen går rett gjennom',
     preCommit: 'Feil før commit (instansen står fremdeles i Task 1)',
-    postCommit: 'Feil etter commit (instansen har gått videre til Task 2)',
+    postCommit: 'Feil etter commit (i behandlingssteget etter Task 1)',
   },
   delayMs: {
     0: 'Ingen – overgangen fullføres umiddelbart',
@@ -206,25 +215,31 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('be.visible');
   });
 
-  it('failed (post-commit): the terminal state wins over the stale-task guard (ProcessWrapper regression)', () => {
+  it('failed (post-commit): a service-task-owned failure renders the recoverable task view, and stale urls converge onto it', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     captureInstanceRoot().as('instanceRoot');
     // Post-commit terminal failure: the pre-commit hook is a no-op, so the transition COMMITS to
-    // Task_2 first; then MovedToAltinnEvent cancels the in-flight workflow and fails it terminally.
+    // Task_Service first; then the scenario service task (a critical post-commit step) fails
+    // permanently - a real terminal failure, no cancellation tricks.
     fillLevers({ path: 'postCommit', attempts: 1, endState: 'failure' });
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    // The blocking submit returns after the terminal failure, so the failed page shows.
+    // A failure OWNED by the current service task (workflow.targetTask === committed service task)
+    // does not use the terminal error page: it renders the service task's own view, which keeps the
+    // recovery affordances. Same heading text, but WITH a retry button - the generic failed page
+    // deliberately has none (cf. the pre-commit failed test above).
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+    cy.contains('En feil oppstod under automatisk behandling av skjemaet.').should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
 
-    // Regression guard for the ProcessWrapper fix. Force the exact stale-url condition by loading the
-    // OLD Task_1 url while Storage has already committed currentTask forward to Task_2. Before the fix
-    // the wrong-task guard pre-empted the workflow branches and rendered the dead-end "part of form
-    // completed" page - and because the failed state is terminal (never settles), the auto-navigate
-    // never fired to correct the url, so the user got stuck there. The terminal failed state must win.
+    // Stale-url guard (ProcessWrapper regression): load the OLD Task_1 url while Storage has already
+    // committed currentTask forward to Task_Service. The wrong-task guard must not bury the failure
+    // behind the dead-end "part of form completed" page - for a service-task-owned failure the url
+    // converges onto the committed task unconditionally and re-renders its recoverable view.
     cy.get<string>('@instanceRoot').then((root) => cy.visit(`${root}/Task_1`));
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
   });
@@ -249,30 +264,32 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
   });
 
-  it('processing (post-commit): observable on the committed Task_2, then settles to a normal Task_2', () => {
+  it('processing (post-commit): observable on the committed Task_Service, then settles to a normal Task_2', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     captureInstanceRoot().as('instanceRoot');
     fillLevers({ path: 'postCommit', delayMs: 15000 });
 
-    // The pre-commit hook is a no-op here, so the transition commits to Task_2 quickly; the post-commit
-    // MovedToAltinnEvent then delays ~15s in the engine.
+    // The pre-commit hook is a no-op here, so the transition commits to Task_Service quickly; the
+    // scenario service task (a critical post-commit step) then delays ~15s in the engine.
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
     // Open the committed task in a fresh load (concurrent-session style) once /process confirms
-    // that Task_2 is committed while the post-commit step is still running.
-    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_2' }).then((root) =>
-      cy.visit(`${root}/Task_2`),
+    // that Task_Service is committed while the post-commit step is still running.
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' }).then((root) =>
+      cy.visit(`${root}/Task_Service`),
     );
 
-    // Committed currentTask is already Task_2 (not idle/receipt), yet the post-commit step is still in
-    // flight -> the advancing UI shows on the committed Task_2 and its Send inn is suppressed. This is
-    // exactly what a legacy IProcessEnd (which runs on the process-END transition) could NOT surface.
+    // Committed currentTask is already Task_Service (not idle/receipt), yet the post-commit step is
+    // still in flight -> the advancing UI shows on the committed service task and no form UI leaks
+    // through. This is exactly what a legacy IProcessEnd (which runs on the process-END transition)
+    // could NOT surface.
     cy.contains('Vi jobber med skjemaet ditt', { timeout: 20000 }).should('be.visible');
     cy.findByRole('button', { name: task2SubmitButton }).should('not.exist');
 
-    // Once the post-commit step completes the status settles and Task_2 renders normally. The url
-    // already matches the committed task, so the polling page converges on its own.
-    cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
+    // Once the service task completes it auto-advances to Task_2 and the status settles. The page is
+    // parked on the now-old Task_Service url, but the poll observes the settled workflow and
+    // navigates onto the committed Task_2 on its own - no reload, no manual navigation.
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
