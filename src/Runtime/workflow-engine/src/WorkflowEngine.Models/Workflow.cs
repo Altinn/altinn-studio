@@ -107,6 +107,13 @@ public sealed record Workflow : PersistentItem
 
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
+    /// <summary>
+    /// Failure classification for the current in-memory attempt, used to tag the
+    /// workflow-failure metric (e.g. <c>wait_expired</c> vs the default <c>execution</c>).
+    /// Not persisted.
+    /// </summary>
+    internal string? FailureReason { get; set; }
+
     /// <inheritdoc/>
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";
 

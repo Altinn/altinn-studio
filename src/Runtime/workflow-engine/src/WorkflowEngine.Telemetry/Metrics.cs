@@ -109,6 +109,14 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of workflows parked in <c>Waiting</c> because a step deferred (not a failure signal).
+    /// </summary>
+    public static readonly Counter<long> WorkflowsDeferred = Meter.CreateCounter<long>(
+        "engine.workflows.execution.deferred",
+        description: "Number of workflow attempts that ended in Waiting because a step deferred"
+    );
+
+    /// <summary>
     /// Counter of workflows that terminated in a <c>Failed</c> state.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
@@ -213,6 +221,12 @@ public static class Metrics
     /// Counter of steps requeued after a retryable failure.
     /// </summary>
     public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
+
+    /// <summary>
+    /// Counter of step deferrals (successful executions whose awaited outcome was not available yet).
+    /// Deliberately separate from <see cref="StepsRequeued"/>/<see cref="StepsFailed"/>: a deferral is not a failure.
+    /// </summary>
+    public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>("engine.steps.execution.deferred");
 
     /// <summary>
     /// Counter of steps that terminated in failure.
@@ -329,6 +343,16 @@ public static class Metrics
     public static readonly ObservableGauge<long> ScheduledWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.scheduled",
         static () => _scheduledWorkflowsCount
+    );
+
+    private static long _waitingWorkflowsCount;
+
+    /// <summary>
+    /// Gauge of workflows currently parked in <c>Waiting</c> (deferred steps awaiting an external outcome).
+    /// </summary>
+    public static readonly ObservableGauge<long> WaitingWorkflows = Meter.CreateObservableGauge(
+        "engine.workflows.waiting",
+        static () => _waitingWorkflowsCount
     );
 
     private static long _failedWorkflowsCount;
@@ -460,6 +484,11 @@ public static class Metrics
     /// Sets the value reported by <see cref="ScheduledWorkflows"/>.
     /// </summary>
     public static void SetScheduledWorkflowsCount(long count) => _scheduledWorkflowsCount = count;
+
+    /// <summary>
+    /// Sets the value reported by <see cref="WaitingWorkflows"/>.
+    /// </summary>
+    public static void SetWaitingWorkflowsCount(long count) => _waitingWorkflowsCount = count;
 
     /// <summary>
     /// Sets the value reported by <see cref="FailedWorkflows"/>.

@@ -17,6 +17,8 @@ internal static class Defaults
         MetricsCollectionInterval = TimeSpan.FromSeconds(5),
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
         MaxStepCommandTimeout = TimeSpan.FromHours(2),
+        DefaultStepWaitDuration = TimeSpan.FromDays(1),
+        MaxStepWaitDuration = TimeSpan.FromDays(30),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
             maxDelay: TimeSpan.FromMinutes(5),

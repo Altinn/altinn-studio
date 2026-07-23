@@ -68,7 +68,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/step`         | GET    | Step detail modal                                    |
 | `/dashboard/state`        | GET    | State evolution modal                                |
 | `/dashboard/retry`        | POST   | Retry a failed workflow                              |
-| `/dashboard/skip-backoff` | POST   | Skip backoff wait on a requeued workflow             |
+| `/dashboard/skip-backoff` | POST   | Skip backoff wait on a requeued or waiting workflow  |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
 
 ## Patterns

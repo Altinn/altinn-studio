@@ -31,6 +31,15 @@ public sealed record CommandDefinition
     public TimeSpan? MaxExecutionTime { get; init; }
 
     /// <summary>
+    /// The maximum total wall-clock time the step may spend in <see cref="PersistentItemStatus.Waiting"/>
+    /// across deferrals (<see cref="ExecutionResult.Defer"/>) before the engine fails it.
+    /// Measured from when the step first became runnable. When <c>null</c>,
+    /// <see cref="EngineSettings.DefaultStepWaitDuration"/> applies.
+    /// </summary>
+    [JsonPropertyName("maxWaitDuration")]
+    public TimeSpan? MaxWaitDuration { get; init; }
+
+    /// <summary>
     /// Command configuration. The engine deserializes this into the type
     /// declared by the matching <see cref="ICommand.CommandDataType"/>.
     /// </summary>
@@ -40,20 +49,35 @@ public sealed record CommandDefinition
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> with typed data, serialized via <see cref="SerializerOptions"/>.
     /// </summary>
-    public static CommandDefinition Create<TData>(string type, TData data, TimeSpan? maxExecutionTime = null)
+    public static CommandDefinition Create<TData>(
+        string type,
+        TData data,
+        TimeSpan? maxExecutionTime = null,
+        TimeSpan? maxWaitDuration = null
+    )
         where TData : class =>
         new()
         {
             Type = type,
             MaxExecutionTime = maxExecutionTime,
+            MaxWaitDuration = maxWaitDuration,
             Data = JsonSerializer.SerializeToElement(data, SerializerOptions),
         };
 
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> without data.
     /// </summary>
-    public static CommandDefinition Create(string type, TimeSpan? maxExecutionTime = null) =>
-        new() { Type = type, MaxExecutionTime = maxExecutionTime };
+    public static CommandDefinition Create(
+        string type,
+        TimeSpan? maxExecutionTime = null,
+        TimeSpan? maxWaitDuration = null
+    ) =>
+        new()
+        {
+            Type = type,
+            MaxExecutionTime = maxExecutionTime,
+            MaxWaitDuration = maxWaitDuration,
+        };
 
     /// <inheritdoc/>
     public override string ToString() => Type;

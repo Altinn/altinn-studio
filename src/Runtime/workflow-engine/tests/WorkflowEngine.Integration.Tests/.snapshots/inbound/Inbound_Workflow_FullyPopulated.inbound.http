@@ -23,6 +23,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
+            "maxWaitDuration": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-full",
               "payload": "{\u0022hello\u0022:\u0022world\u0022}",

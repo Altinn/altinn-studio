@@ -5,7 +5,12 @@ namespace WorkflowEngine.Data.Constants;
 internal static class PersistentItemStatusMap
 {
     public static IReadOnlyCollection<PersistentItemStatus> Incomplete =>
-        [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
+        [
+            PersistentItemStatus.Enqueued,
+            PersistentItemStatus.Processing,
+            PersistentItemStatus.Requeued,
+            PersistentItemStatus.Waiting,
+        ];
 
     public static IReadOnlyCollection<PersistentItemStatus> Successful => [PersistentItemStatus.Completed];
 
@@ -32,7 +37,7 @@ internal static class PersistentItemStatusMap
     /// <see cref="Incomplete"/> as a comma-separated list of integer literals.
     /// Same constancy contract as <see cref="FinishedSqlList"/>.
     /// </summary>
-    public const string IncompleteSqlList = "0, 1, 2";
+    public const string IncompleteSqlList = "0, 1, 2, 8";
 
     /// <summary>
     /// Renders a status set as a comma-separated list of integer literals, in ascending order

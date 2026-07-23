@@ -26,5 +26,10 @@ public static class ExecutionStatusExtensions
         /// Determines if the execution result indicates a critical error.
         /// </summary>
         public bool IsCriticalError() => result.Status == ExecutionStatus.CriticalError;
+
+        /// <summary>
+        /// Determines if the execution result indicates a deferred execution (wait, then re-execute).
+        /// </summary>
+        public bool IsDeferred() => result.Status == ExecutionStatus.Deferred;
     }
 }

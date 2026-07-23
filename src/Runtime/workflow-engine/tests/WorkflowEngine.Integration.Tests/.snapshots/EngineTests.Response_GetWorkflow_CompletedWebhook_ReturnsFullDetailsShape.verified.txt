@@ -20,7 +20,8 @@
         type: webhook
       },
       status: Completed,
-      retryCount: 0
+      retryCount: 0,
+      deferCount: 0
     }
   ]
 }

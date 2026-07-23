@@ -179,7 +179,7 @@ const buildDetailsContent = (data) => {
 
     // Rich status row: pill + retry badge + action buttons (all inline)
     let statusParts = `<span class="status-pill ${status}">${esc(status)}</span>`;
-    if (data.backoffUntil && status === 'Requeued') {
+    if (data.backoffUntil && (status === 'Requeued' || status === 'Waiting')) {
         statusParts += ` <span class="step-backoff" data-backoff="${esc(/** @type {string} */ (data.backoffUntil))}"></span>`;
     } else if (status === 'Processing' && data.executionStartedAt) {
         statusParts += ` <span data-step-started="${esc(/** @type {string} */ (data.executionStartedAt))}"></span>`;
@@ -189,12 +189,13 @@ const buildDetailsContent = (data) => {
     }
     const showSkipBackoff =
         data.backoffUntil &&
-        status === 'Requeued' &&
+        (status === 'Requeued' || status === 'Waiting') &&
         new Date(/** @type {string} */ (data.backoffUntil)) - Date.now() > 5000;
     if (status === 'Failed') {
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">&#8635; Retry</a>`;
     } else if (showSkipBackoff) {
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">&#9654; Retry now</a>`;
+        const skipLabel = status === 'Waiting' ? '&#9654; Check now' : '&#9654; Retry now';
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">${skipLabel}</a>`;
     }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);

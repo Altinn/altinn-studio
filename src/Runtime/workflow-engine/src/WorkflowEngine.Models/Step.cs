@@ -28,8 +28,23 @@ public sealed record Step : PersistentItem
 
     /// <summary>
     /// Number of times this step has been requeued after a retryable failure.
+    /// Reset when the step defers: a deferral is a successful execution, so retry counting
+    /// bounds consecutive failures between deferrals rather than failures across the step's lifetime.
     /// </summary>
     public int RequeueCount { get; set; }
+
+    /// <summary>
+    /// Number of times this step has deferred (<see cref="ExecutionStatus.Deferred"/>).
+    /// Available to commands via <see cref="CommandExecutionContext.Step"/> for adaptive poll cadence.
+    /// </summary>
+    public int DeferCount { get; set; }
+
+    /// <summary>
+    /// When this step first deferred. Anchors the wait budget
+    /// (<see cref="CommandDefinition.MaxWaitDuration"/>): once <c>WaitingSince + budget</c> passes,
+    /// the next deferral fails the step. Kept after completion as a historical record; cleared on resume.
+    /// </summary>
+    public DateTimeOffset? WaitingSince { get; set; }
 
 #pragma warning disable CA1002, CA2227 // Mutable domain entity — List<T> with setter is intentional
     /// <summary>
