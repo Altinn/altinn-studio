@@ -84,7 +84,9 @@ poisoned registration block every later event for the instance.
   the whole Main instead of the commit; the reject path had to cancel the sibling (racy,
   best-effort); and a committed transition's events were discarded when Main failed post-commit.
   It also required a new engine primitive (`InheritStateFrom`) to hand the final state across.
-  Removed.
+  Removed. Note: `links` (this design) expresses parentage/provenance; `dependsOn` expresses
+  scheduling. Reviewers instinctively reach for `dependsOn` here — it was the first implementation
+  and is rejected for the concrete reasons above, not by oversight.
 - **Three-workflow diamond** (commit as its own workflow): enqueue-at-commit gets the same
   promptness without breaking the per-step state chain.
 - **Step-level non-critical flag**: not expressible — the workflow, not the step, is the unit of
