@@ -9,10 +9,10 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.6` (verified OCI digest
-`sha256:1078bfa8b553cb4c92d738f2cfed104771542b591633cf4f908c1b533ce2e394`),
+The public chart is pinned to `0.8.7` (verified OCI digest
+`sha256:f1669ee34029a0d989278cd8290a103e4bbaa234c3f826210935009eac81a5df`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.6-5a1878b` production images without
+tag. It resolves the coordinated `0.8.7-4a43aca` production images without
 component overrides. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
 RuntimeClass. Its shared AgentRun template carries the matching
@@ -22,8 +22,8 @@ Each Kata AgentRun requests and is limited to 2 CPU and 8 GiB memory. Git
 commit attribution is explicitly pinned to the corresponding fork/upstream
 GitHub App bot until mediated provider identity resolution is available.
 The shared non-secret bootstrap preseed suppresses Claude first-run prompts and
-trusts only the configured `/workspace/altinn-studio` checkout. Codex ignores
-these Claude configuration files.
+trusts the agent's `/workspace` startup directory. Codex ignores these Claude
+configuration files.
 
 ## Prerequisites
 
