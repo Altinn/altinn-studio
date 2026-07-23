@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.2
-chart_digest=sha256:0d76d3332097d7c5e32aa9ff0af4b57ea7bf159f54fadd32866d1e0e15c6bfc7
+chart_version=0.8.3
+chart_digest=sha256:a7d12d3a26b3b356c2d11d1bf0dbc13ca601c9e454addd67b2a5e0e842e79014
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -29,22 +29,35 @@ if [[ "$rendered_digest" != "$chart_digest" || -n "$rendered_tag" ]]; then
   exit 1
 fi
 
-yq '.spec.values' "$helm_release" |
-  helm template nvt "$chart" \
-    --version "$chart_version" \
-    --namespace nvt \
-    --values - > "$temp_dir/nvt-suspended.yaml"
-
 yq '.spec.values |
-  .producer.enabled = true |
   .producer.githubApp.appID = 12345 |
-  .producer.githubApp.installationID = 67890 |
-  .agentSchedule.template.runtimeClassName = "kata-vm-isolation" |
-  .agentSchedule.suspend = false' "$helm_release" |
+  .producer.githubApp.installationID = 67890' "$helm_release" |
   helm template nvt "$chart" \
     --version "$chart_version" \
     --namespace nvt \
-    --values - > "$temp_dir/nvt-activation.yaml"
+    --values - > "$temp_dir/nvt-active.yaml"
+
+yq -e '
+  .spec.values.producer.enabled == true and
+  .spec.values.agentSchedule.suspend == false and
+  .spec.values.agentSchedule.template.runtimeClassName == "kata-vm-isolation" and
+  .spec.values.agentSchedule.profileSelection.onNoMatch == "deny" and
+  (.spec.values.agentSchedule.profiles | length) == 2 and
+  .spec.values.agentSchedule.profiles[0].egress == "mediated" and
+  .spec.values.agentSchedule.profiles[0].egressEnforcement == true and
+  .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[1].egress == "mediated" and
+  .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
+  .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
+  .spec.values.broker.envSecretName == "nvt-broker-env" and
+  .spec.values.broker.persistence.seedSecretName == "nvt-broker-seed" and
+  .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and
+  .spec.values.gateway.auth.oauth2.credentials.existingSecret == "nvt-gateway-github" and
+  .spec.values.gateway.auth.session.existingSecret == "nvt-gateway-session" and
+  .spec.values.egress.defaultMode == "mediated" and
+  .spec.values.egress.allowInsecureUpstreams == false and
+  .spec.values.egress.networkPolicyCapable == true
+' "$helm_release" >/dev/null
 
 helm template altinn-loadbalancer charts/altinn-loadbalancer \
   --set environment=staging > "$temp_dir/load-balancer.yaml"
