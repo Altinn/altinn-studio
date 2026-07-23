@@ -125,6 +125,8 @@ spec:
                 permissions:
                   contents: write
                   workflows: write
+                preparations:
+                  - operation: identity
                 provider: github-fork
                 repositories:
                   - mirkoSekulic/altinn-studio
@@ -138,6 +140,8 @@ spec:
                   contents: read
                   issues: read
                   pull_requests: write
+                preparations:
+                  - operation: identity
                 provider: github-altinn
                 repositories:
                   - Altinn/altinn-studio
@@ -170,6 +174,8 @@ spec:
                 permissions:
                   contents: write
                   workflows: write
+                preparations:
+                  - operation: identity
                 provider: github-fork
                 repositories:
                   - mirkoSekulic/altinn-studio
@@ -183,6 +189,8 @@ spec:
                   contents: read
                   issues: read
                   pull_requests: write
+                preparations:
+                  - operation: identity
                 provider: github-altinn
                 repositories:
                   - Altinn/altinn-studio
@@ -251,16 +259,12 @@ spec:
               - config:
                   credentials:
                     - identity:
-                        mode: explicit
-                        name: "nvt-agent[bot]"
-                        email: "289161147+nvt-agent[bot]@users.noreply.github.com"
+                        mode: provider
                       match: https://github.com/mirkoSekulic/altinn-studio
                       provider: github-fork
                       username: x-access-token
                     - identity:
-                        mode: explicit
-                        name: "nvt-agent-altinn[bot]"
-                        email: "289165276+nvt-agent-altinn[bot]@users.noreply.github.com"
+                        mode: provider
                       match: https://github.com/Altinn/altinn-studio
                       provider: github-altinn
                       username: x-access-token
