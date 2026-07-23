@@ -192,7 +192,7 @@ spec:
             autonomy: trusted-local
             type: claude
             user: non-root
-      suspend: true
+      suspend: false
       template:
         agent:
           config:
@@ -255,6 +255,7 @@ spec:
             - plugin.agent.signal.done
           failOn:
             - plugin.agent.signal.failed
+        runtimeClassName: kata-vm-isolation
         ttl:
           activeDeadlineSeconds: 14400
           completedTTLSeconds: 300
@@ -423,7 +424,7 @@ spec:
       allowedAuthors:
         - mirkoSekulic
         - Jondyr
-      enabled: false
+      enabled: true
       githubApp:
         appID: ${NVT_ALTINN_GITHUB_APP_ID}
         existingSecret: nvt-github-app

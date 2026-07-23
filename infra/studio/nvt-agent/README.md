@@ -13,10 +13,10 @@ The public chart is pinned to `0.8.3` (verified OCI digest
 `sha256:a7d12d3a26b3b356c2d11d1bf0dbc13ca601c9e454addd67b2a5e0e842e79014`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
 tag. It resolves the coordinated `0.8.3-e7763d5` production images without
-component overrides. The initial release keeps
-`agentSchedule.suspend: true` and `producer.enabled: false`; broker, operator,
-gateway, CRDs, TLS, PVCs, and network policy configuration can therefore be
-checked without admitting AgentRuns.
+component overrides. The staging release has `producer.enabled: true`,
+`agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
+RuntimeClass, so matching producer comments can create real mediated
+AgentRuns.
 
 ## Prerequisites
 
@@ -30,8 +30,8 @@ repository:
 - `nvt-agent-gateway-oauth-client-secret`
 - `nvt-gateway-session-secret`
 
-Keep the unresolved App, installation, and OAuth client IDs explicit in
-`bootstrap/deployment-metadata.yaml` until the applications exist:
+The verified App, installation, and OAuth client IDs are explicit non-secret
+values in `bootstrap/deployment-metadata.yaml`:
 
 - `nvt-agent` is installed only on `mirkoSekulic/altinn-studio`. Its broker
   provider handles fork clone/fetch, branch pushes, and workflow-file writes.
@@ -45,11 +45,10 @@ Keep the unresolved App, installation, and OAuth client IDs explicit in
   installed in the Altinn organization. Register
   `https://staging.altinn.studio/agents/oauth2/callback`.
 
-The five non-secret application and installation identifiers are resolved in
-the deployment metadata. The remaining rollout gates are external: populate
-the documented Key Vault secrets, verify the AKS RuntimeClass and NET_ADMIN
-admission policy, and complete the staged health and OAuth checks before
-activation.
+The remaining runtime prerequisites are external: the documented Key Vault
+secrets must exist, the AKS RuntimeClass and NET_ADMIN admission policy must be
+valid, and the staged health and OAuth checks must pass before exercising the
+active producer.
 
 The working checkout is `mirkoSekulic/altinn-studio`, with
 `Altinn/altinn-studio` configured as the `upstream` remote. Both broker
@@ -66,21 +65,18 @@ Profile selection uses the verified immutable GitHub subjects `23359247`
 `jondyr`; only the producer allowlist uses GitHub's canonical, case-sensitive
 login spelling.
 
-Before activation, verify that AKS exposes the exact `kata-vm-isolation`
-RuntimeClass and that its scheduling rules target/tolerate the NVT pool. Chart
-`0.8.3` does not expose raw AgentRun node selectors or tolerations, so this is
-an activation gate rather than a guessed value in the initial release. Also
-verify that admission policy accepts the operator's one-shot `NET_ADMIN`
-routing init container and capture sidecar contract.
+The deployment uses the exact `kata-vm-isolation` RuntimeClass. Its scheduling
+rules must continue to target/tolerate the NVT pool, and admission policy must
+accept the operator's one-shot `NET_ADMIN` routing init container and capture
+sidecar contract.
 
-## Activation
+## Activated staging rollout
 
-After ExternalSecrets, broker, operator, and gateway are Ready, verify GitHub
-login and subject-based gateway admission while the schedule remains suspended.
-Then make a small reviewed values change that sets `producer.enabled: true`,
-sets the verified `agentSchedule.template.runtimeClassName`, and finally sets
-`agentSchedule.suspend: false`. Test with one disposable
-`/nvtagent pr create` comment in `Altinn/altinn-studio`.
+Before reconciliation, confirm ExternalSecrets, broker, operator, gateway,
+GitHub login, subject-based gateway admission, RuntimeClass scheduling, and
+the network boundary are Ready. After reconciliation, test with one disposable
+`/nvtagent pr create` comment in `Altinn/altinn-studio` and monitor the first
+mediated AgentRun through cleanup.
 
 ## Storage lifecycle
 
