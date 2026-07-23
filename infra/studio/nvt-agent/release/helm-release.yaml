@@ -227,11 +227,13 @@ spec:
                   default-provider: github-fork
                   providers:
                     - broker-provider: github-fork
+                      credential-kind: mediated
                       match:
                         - github.com/mirkoSekulic/altinn-studio
                       name: github-fork
                       type: broker
                     - broker-provider: github-altinn
+                      credential-kind: mediated
                       match:
                         - github.com/Altinn/altinn-studio
                       name: github-altinn
