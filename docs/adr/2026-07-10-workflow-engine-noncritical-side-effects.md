@@ -1,6 +1,6 @@
 # Run non-critical process-next side effects in non-blocking side-effects workflows
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Daniel Skovli + App backend / Workflow Engine
 - Date: 10.07.2026
 
