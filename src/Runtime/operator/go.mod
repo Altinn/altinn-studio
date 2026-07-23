@@ -9,9 +9,9 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/fluxcd/helm-controller/api v1.5.5
 	github.com/fluxcd/source-controller/api v1.8.5
-	github.com/gkampitakis/go-snaps v0.5.22
+	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-jose/go-jose/v4 v4.1.4
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/uuid v1.6.0
