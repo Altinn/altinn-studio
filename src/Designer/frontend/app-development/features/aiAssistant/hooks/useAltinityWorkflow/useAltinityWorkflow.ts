@@ -20,6 +20,7 @@ import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThrea
 import {
   decorateMessagesWithTraceIds,
   formatRejectionMessage,
+  formatWorkflowRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
   shouldSkipBranchOps,
@@ -159,9 +160,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       } else if (event.type === 'error') {
         setWorkflowStatus(threadId, { isActive: false });
         if (event.data?.status === 'cancelled') return;
+        const isRejection = event.data?.status === 'rejected';
+        const content =
+          isRejection && event.data?.message
+            ? formatWorkflowRejectionMessage(event.data.message, event.data.suggestions)
+            : WORKFLOW_ERROR_MESSAGE;
         createMessage(threadId, {
           role: MessageAuthor.Assistant,
-          content: WORKFLOW_ERROR_MESSAGE,
+          content,
           createdAt: new Date().toISOString(),
           filesChanged: [],
         });

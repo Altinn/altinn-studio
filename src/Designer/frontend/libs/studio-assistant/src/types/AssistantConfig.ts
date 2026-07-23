@@ -48,7 +48,7 @@ export interface DoneEvent extends WorkflowEventBase {
 
 export interface ErrorEvent extends WorkflowEventBase {
   type: 'error';
-  data: { done?: boolean; success?: boolean; status?: string; message?: string };
+  data: { done?: boolean; success?: boolean; status?: string; message?: string; suggestions?: string[] };
 }
 
 export type WorkflowEvent = AssistantMessageEvent | WorkflowStatusEvent | DoneEvent | ErrorEvent;

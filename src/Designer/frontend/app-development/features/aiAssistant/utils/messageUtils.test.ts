@@ -4,6 +4,7 @@ import {
   decorateMessagesWithTraceIds,
   formatErrorMessage,
   formatRejectionMessage,
+  formatWorkflowRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
   parseBackendErrorContent,
@@ -29,6 +30,20 @@ describe('messageUtils', () => {
     it('formats rejection message with suggestions', () => {
       expect(formatRejectionMessage(rejectionResult)).toBe(
         `${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\nSuggestions:\nTry A\nTry B`,
+      );
+    });
+  });
+
+  describe('formatWorkflowRejectionMessage', () => {
+    it('formats rejection message with suggestions', () => {
+      expect(formatWorkflowRejectionMessage('Nope', ['Try A', 'Try B'])).toBe(
+        `${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\nSuggestions:\nTry A\nTry B`,
+      );
+    });
+
+    it('formats rejection message without suggestions', () => {
+      expect(formatWorkflowRejectionMessage('Nope')).toBe(
+        `${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\n`,
       );
     });
   });

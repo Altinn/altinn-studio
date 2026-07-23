@@ -20,6 +20,12 @@ export function formatRejectionMessage(result: AgentResponse): string {
   return `${ErrorMessages.REQUEST_REJECTED}\n\n${result.message}\n\n${suggestions}`;
 }
 
+export function formatWorkflowRejectionMessage(message: string, suggestions?: string[]): string {
+  const suggestionsText = suggestions?.length ? 'Suggestions:\n' + suggestions.join('\n') : '';
+
+  return `${ErrorMessages.REQUEST_REJECTED}\n\n${message}\n\n${suggestionsText}`;
+}
+
 export function formatErrorMessage(error: unknown): string {
   const errorMessage = error instanceof Error ? error.message : ErrorMessages.UNKNOWN_ERROR;
   return `${ErrorMessages.REQUEST_FAILED}\n\n${errorMessage}`;
