@@ -9,10 +9,10 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.2` (verified OCI digest
-`sha256:0d76d3332097d7c5e32aa9ff0af4b57ea7bf159f54fadd32866d1e0e15c6bfc7`),
+The public chart is pinned to `0.8.3` (verified OCI digest
+`sha256:a7d12d3a26b3b356c2d11d1bf0dbc13ca601c9e454addd67b2a5e0e842e79014`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.2-3d2aacf` production images without
+tag. It resolves the coordinated `0.8.3-e7763d5` production images without
 component overrides. The initial release keeps
 `agentSchedule.suspend: true` and `producer.enabled: false`; broker, operator,
 gateway, CRDs, TLS, PVCs, and network policy configuration can therefore be
@@ -68,7 +68,7 @@ login spelling.
 
 Before activation, verify that AKS exposes the exact `kata-vm-isolation`
 RuntimeClass and that its scheduling rules target/tolerate the NVT pool. Chart
-`0.8.2` does not expose raw AgentRun node selectors or tolerations, so this is
+`0.8.3` does not expose raw AgentRun node selectors or tolerations, so this is
 an activation gate rather than a guessed value in the initial release. Also
 verify that admission policy accepts the operator's one-shot `NET_ADMIN`
 routing init container and capture sidecar contract.
