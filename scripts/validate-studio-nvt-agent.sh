@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.4
-chart_digest=sha256:407194e4ec03ebbabcae325dc342d8c7250c0f552c730aed9d44eb26b18957be
+chart_version=0.8.9
+chart_digest=sha256:1616d482ecc049c93b05341fbb658f168f1f50cf285a5ddc34f08d59579b7223
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -44,6 +44,24 @@ yq -e '
   .spec.values.agentSchedule.suspend == false and
   .spec.values.agentSchedule.maxParallelism == 2 and
   .spec.values.agentSchedule.template.runtimeClassName == "kata-vm-isolation" and
+  .spec.values.agentSchedule.template.resources.requests.cpu == "2" and
+  .spec.values.agentSchedule.template.resources.requests.memory == "8Gi" and
+  .spec.values.agentSchedule.template.resources.limits.cpu == "2" and
+  .spec.values.agentSchedule.template.resources.limits.memory == "8Gi" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].path == "$HOME/.claude/settings.json" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].overwrite == false and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].json.theme == "dark-daltonized" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[0].json.skipDangerousModePermissionPrompt == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].path == "$HOME/.claude.json" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].overwrite == false and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.hasCompletedOnboarding == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.bypassPermissionsModeAccepted == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[1].json.projects."/workspace".hasTrustDialogAccepted == true and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[2].path == "$HOME/.codex/config.toml" and
+  .spec.values.agentSchedule.template.agent.config.preseed.files[2].overwrite == false and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("check_for_update_on_startup = false")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("[projects.\"/workspace\"]")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("trust_level = \"trusted\"")) and
   (.spec.values.agentSchedule.template.tolerations | length) == 1 and
   .spec.values.agentSchedule.template.tolerations[0].effect == "NoSchedule" and
   .spec.values.agentSchedule.template.tolerations[0].key == "purpose" and
@@ -54,9 +72,28 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].egress == "mediated" and
   .spec.values.agentSchedule.profiles[0].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.issues == "read" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.pull_requests == "write" and
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.issues == "read" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.template.agent.config.plugins[0].name == "git-host-credentials" and
+  .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].credential-kind == "mediated" and
+  .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[1].credential-kind == "mediated" and
+  .spec.values.broker.config.providers[3].allow.permissions.checks == "read" and
+  .spec.values.broker.config.providers[3].allow.permissions.issues == "read" and
+  .spec.values.broker.config.providers[3].allow.permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].name == "git-credentials" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "explicit" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.name == "nvt-agent[bot]" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.email == "289161147+nvt-agent[bot]@users.noreply.github.com" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.mode == "explicit" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.name == "nvt-agent-altinn[bot]" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.email == "289165276+nvt-agent-altinn[bot]@users.noreply.github.com" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
   .spec.values.broker.persistence.seedSecretName == "nvt-broker-seed" and
   .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and

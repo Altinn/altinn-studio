@@ -134,9 +134,9 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  checks: write
+                  checks: read
                   contents: read
-                  issues: write
+                  issues: read
                   pull_requests: write
                 provider: github-altinn
                 repositories:
@@ -179,9 +179,9 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  checks: write
+                  checks: read
                   contents: read
-                  issues: write
+                  issues: read
                   pull_requests: write
                 provider: github-altinn
                 repositories:
@@ -196,18 +196,52 @@ spec:
             user: non-root
       suspend: false
       template:
+        resources:
+          requests:
+            cpu: "2"
+            memory: 8Gi
+          limits:
+            cpu: "2"
+            memory: 8Gi
         agent:
           config:
+            preseed:
+              files:
+                - path: "$HOME/.claude/settings.json"
+                  mode: "0600"
+                  overwrite: false
+                  json:
+                    theme: dark-daltonized
+                    skipDangerousModePermissionPrompt: true
+                - path: "$HOME/.claude.json"
+                  mode: "0600"
+                  overwrite: false
+                  json:
+                    hasCompletedOnboarding: true
+                    bypassPermissionsModeAccepted: true
+                    projects:
+                      /workspace:
+                        hasTrustDialogAccepted: true
+                - path: "$HOME/.codex/config.toml"
+                  mode: "0600"
+                  overwrite: false
+                  content: |
+                    check_for_update_on_startup = false
+
+                    [projects."/workspace"]
+                    trust_level = "trusted"
             plugins:
               - config:
                   default-provider: github-fork
                   providers:
                     - broker-provider: github-fork
+                      credential-kind: mediated
                       match:
                         - github.com/mirkoSekulic/altinn-studio
                       name: github-fork
                       type: broker
                     - broker-provider: github-altinn
+                      credential-kind: mediated
                       match:
                         - github.com/Altinn/altinn-studio
                       name: github-altinn
@@ -217,12 +251,16 @@ spec:
               - config:
                   credentials:
                     - identity:
-                        mode: provider
+                        mode: explicit
+                        name: "nvt-agent[bot]"
+                        email: "289161147+nvt-agent[bot]@users.noreply.github.com"
                       match: https://github.com/mirkoSekulic/altinn-studio
                       provider: github-fork
                       username: x-access-token
                     - identity:
-                        mode: provider
+                        mode: explicit
+                        name: "nvt-agent-altinn[bot]"
+                        email: "289165276+nvt-agent-altinn[bot]@users.noreply.github.com"
                       match: https://github.com/Altinn/altinn-studio
                       provider: github-altinn
                       username: x-access-token
@@ -341,9 +379,9 @@ spec:
                 - PATCH
                 - PUT
               permissions:
-                checks: write
+                checks: read
                 contents: read
-                issues: write
+                issues: read
                 pull_requests: write
               repositories:
                 - Altinn/altinn-studio
