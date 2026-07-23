@@ -1,7 +1,7 @@
 /* Card rendering — shared by live, recent, and query views */
 
 import { stepSubLabel, state, workflowData, parseTransition } from '../core/state.js';
-import { esc, formatElapsed, fmtTime, fmtNamespace, abbrevGuids } from '../core/helpers.js';
+import { esc, escJsArg, formatElapsed, fmtTime, fmtNamespace, abbrevGuids } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
 /** @param {string} text @param {string} [title] */
@@ -46,7 +46,7 @@ const CHAIN_ICON =
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
 export const chainIconHTML = (wf) =>
-    `<a class="open-btn chain-btn" onclick="openChainModal(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="View workflow chain">${CHAIN_ICON}</a>`;
+    `<a class="open-btn chain-btn" onclick="openChainModal(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="View workflow chain">${CHAIN_ICON}</a>`;
 
 /** @param {Event} e @param {string} text */
 window.copyText = async (e, text) => {

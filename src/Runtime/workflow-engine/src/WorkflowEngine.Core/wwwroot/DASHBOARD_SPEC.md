@@ -16,7 +16,7 @@ Three collapsible sections, top to bottom:
 
 2. **Inbox** — Active workflows currently processing. Driven by SSE (`/dashboard/stream/live`). Cards appear with enter animation, update in-place when fingerprint changes, and exit with animation when completed/failed (unless moving to Recent, which skips animation). Elapsed timers tick via `requestAnimationFrame`.
 
-3. **Recent** — Last 100 finished workflows. Also driven by SSE. Backend controls ordering and the 100-item window. Three view modes (segmented control in the section header, persisted in localStorage as `recentView`, synced to the URL as `rv`): **Chains** (default) groups the window by `collectionKey` and renders each collection as a dependency-ordered spine (see [Chains View](#chains-view)); **Compact** and **Full** are the flat reverse-chronological card modes (new arrivals glow briefly; cards are static, no timers).
+3. **Recent** — Based on the last 100 finished workflows (backend controls ordering and the window). Also driven by SSE. Three view modes (segmented control in the section header, persisted in localStorage as `recentView`, synced to the URL as `rv`): **Chains** (default) groups the window by `collectionKey` and renders each collection as a dependency-ordered spine, additionally merging in-flight members of rendered collections from the active section's SSE state (see [Chains View](#chains-view)); **Compact** and **Full** are the flat reverse-chronological card modes over the finished window only (new arrivals glow briefly; cards are static, no timers).
 
 ### Query Tab
 

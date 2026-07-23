@@ -4,7 +4,7 @@
  * place to the full pipeline card. */
 
 import { state, workflowData, parseTransition } from '../core/state.js';
-import { esc, formatElapsed } from '../core/helpers.js';
+import { esc, escJsArg, formatElapsed } from '../core/helpers.js';
 import { buildCardHTML, setCardFilterData } from './cards.js';
 
 /** @typedef {import('../core/state.js').Workflow} Workflow */
@@ -57,7 +57,7 @@ const rowInnerHTML = (wf) => {
         .map(
             (s) =>
                 `<span class="compact-dot rel-dot ${esc(s.status)}"` +
-                ` onclick="event.stopPropagation();openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(s.idempotencyKey)}','${esc(s.commandDetail)}')"` +
+                ` onclick="event.stopPropagation();openStepModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}','${escJsArg(s.idempotencyKey)}','${escJsArg(s.commandDetail)}')"` +
                 ` title="${esc(s.commandDetail)} (${esc(s.status)})"></span>`,
         )
         .join('');
@@ -94,7 +94,7 @@ const nodeHTML = (wf, isSide, isRoot) => {
     const hint = expanded ? 'click to collapse' : 'click to expand';
     return (
         `<div class="${cls}" data-chainwf="${esc(wf.databaseId)}"` +
-        ` onclick="chainRowToggle(event,'${esc(wf.databaseId)}')" title="${esc(wf.operationId)} — ${hint}">` +
+        ` onclick="chainRowToggle(event,'${escJsArg(wf.databaseId)}')" title="${esc(wf.operationId)} — ${hint}">` +
         (expanded ? expandedInnerHTML(wf) : rowInnerHTML(wf)) +
         `</div>`
     );
@@ -126,8 +126,10 @@ export const renderChainList = (items, rootId = '', opts) => {
     }
     let prevHeadEnd = NaN;
     for (const item of items) {
+        // Registering the freshest copy (live SSE object when present) can never go stale,
+        // and guarantees row interactions resolve regardless of which surface rendered first.
         const wf = freshest(item.wf);
-        if (!state.previousWorkflows[wf.databaseId]) workflowData[wf.databaseId] = wf;
+        workflowData[wf.databaseId] = wf;
         if (!item.isSide) {
             const gap = new Date(wf.createdAt).getTime() - prevHeadEnd;
             if (gap > GAP_THRESHOLD_MS) {

@@ -62,6 +62,9 @@ window.openChainModal = async (e, wfId, wfNamespace) => {
 };
 
 window.closeChainModal = () => {
+    // Cancel any queued refresh — it would otherwise fire with cleared (empty) parameters.
+    clearTimeout(_refreshTimer);
+    _refreshTimer = 0;
     dom.chainModal.classList.remove('open');
     _openWfId = '';
     _openWfNamespace = '';

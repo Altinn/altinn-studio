@@ -15,6 +15,17 @@ export const esc = (s) => {
 export const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
+ * Escape a value for use as a single-quoted string argument inside an inline `onclick`
+ * attribute. `esc()` alone HTML-escapes but leaves quotes intact, so an apostrophe in a
+ * caller-controlled value (namespace, collection key, step names) would terminate the JS
+ * string literal, and a double quote would end the attribute itself. Backslash-escapes
+ * quotes/backslashes for the JS layer, then HTML-escapes for the attribute layer.
+ * @param {string} s
+ */
+export const escJsArg = (s) =>
+    esc(String(s ?? '').replace(/[\\']/g, (c) => `\\${c}`)).replace(/"/g, '&quot;');
+
+/**
  * Decode a namespace for display. Namespaces are URL-encoded for use as routing
  * path segments (e.g. `ttd%2fworkflow-engine-test`), so decode for human display.
  * Keep the raw value for filtering, data attributes, and API calls.

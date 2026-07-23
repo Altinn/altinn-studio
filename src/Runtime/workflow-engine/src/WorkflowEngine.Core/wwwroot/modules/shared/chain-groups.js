@@ -3,7 +3,7 @@
  * full-graph history cache and the history control. */
 
 import { state, workflowData } from '../core/state.js';
-import { esc, formatElapsed } from '../core/helpers.js';
+import { esc, escJsArg, formatElapsed } from '../core/helpers.js';
 import {
     buildFilterText,
     buildLabelsHTML,
@@ -96,7 +96,7 @@ const groupHeaderHTML = (key, members, opts) => {
     html += collectionButtonHTML(head, true);
     html += opts.hasHistory
         ? `<span class="chain-history-loaded" title="Showing the full workflow graph for this collection">full history</span>`
-        : `<a class="open-btn chain-history-btn" onclick="loadChainHistory(event,'${esc(key)}','${esc(head.databaseId)}','${esc(head.namespace)}')" title="Load the full workflow graph for this collection (beyond the current window)">&#10227; history</a>`;
+        : `<a class="open-btn chain-history-btn" onclick="loadChainHistory(event,'${escJsArg(key)}','${escJsArg(head.databaseId)}','${escJsArg(head.namespace)}')" title="Load the full workflow graph for this collection (beyond the current window)">&#10227; history</a>`;
     html += '</div>';
     return html;
 };
@@ -158,7 +158,7 @@ export const buildGroupEl = (key, members, opts) => {
         groupHeaderHTML(key, members, { total, hasHistory: !!hist, countNoun }) +
         renderChainList(items, '', { truncated: hist?.truncated });
     for (const m of members) {
-        if (!state.previousWorkflows[m.databaseId]) workflowData[m.databaseId] = m;
+        workflowData[m.databaseId] = state.previousWorkflows[m.databaseId] ?? m;
     }
     return el;
 };
