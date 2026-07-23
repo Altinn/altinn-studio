@@ -60,6 +60,8 @@ yq -e '
   .spec.values.agentSchedule.template.agent.config.preseed.files[2].path == "$HOME/.codex/config.toml" and
   .spec.values.agentSchedule.template.agent.config.preseed.files[2].overwrite == false and
   (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("check_for_update_on_startup = false")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("[notice]")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("hide_rate_limit_model_nudge = true")) and
   (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("[projects.\"/workspace\"]")) and
   (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("trust_level = \"trusted\"")) and
   (.spec.values.agentSchedule.template.tolerations | length) == 1 and

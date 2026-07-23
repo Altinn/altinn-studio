@@ -228,6 +228,9 @@ spec:
                   content: |
                     check_for_update_on_startup = false
 
+                    [notice]
+                    hide_rate_limit_model_nudge = true
+
                     [projects."/workspace"]
                     trust_level = "trusted"
             plugins:
