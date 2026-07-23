@@ -1,7 +1,7 @@
 /* Card rendering — shared by live, recent, and query views */
 
 import { stepSubLabel, state, workflowData, parseTransition } from '../core/state.js';
-import { esc, formatElapsed, fmtTime, fmtNamespace, abbrevGuids } from '../core/helpers.js';
+import { esc, escJsArg, formatElapsed, fmtTime, fmtNamespace, abbrevGuids } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
 /** @param {string} text @param {string} [title] */
@@ -39,6 +39,14 @@ export const traceIconHTML = (traceId) => traceLink(traceId, 'Engine trace in Gr
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
 export const stateIconHTML = (wf) =>
     `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="View state trail">&#123;&#125;</a>`;
+
+/** Tree icon for the chain modal (dependency-ordered view of the connected graph). */
+const CHAIN_ICON =
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3zM7 9H4V5h3zm10 6h3v4h-3zm0-10h3v4h-3z"/></svg>';
+
+/** @param {import('../core/state.js').Workflow} wf @returns {string} */
+export const chainIconHTML = (wf) =>
+    `<a class="open-btn chain-btn" onclick="openChainModal(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="View workflow chain">${CHAIN_ICON}</a>`;
 
 /** @param {Event} e @param {string} text */
 window.copyText = async (e, text) => {
@@ -137,7 +145,7 @@ const COLLECTION_ICON =
  * @param {boolean} interactive - true adds onclick filter handlers
  * @returns {string}
  */
-const buildLabelsHTML = (wf, interactive) => {
+export const buildLabelsHTML = (wf, interactive) => {
     /**
      * @param {string} key @param {string} value @param {string} display @param {string} cls
      */
@@ -150,7 +158,8 @@ const buildLabelsHTML = (wf, interactive) => {
     let html = seg('namespace', wf.namespace, fmtNamespace(wf.namespace), 'seg key');
     const instance = wf.labels?.processNextInstanceGuid;
     if (instance) {
-        html += sep + seg('processNextInstanceGuid', instance, instance, 'seg instance');
+        // Abbreviated for display so headers don't wrap; tooltip, filter, and copy keep the full id.
+        html += sep + seg('processNextInstanceGuid', instance, abbrevGuids(instance) ?? instance, 'seg instance');
         html += copyIconHTML(instance, 'Copy instance id');
     }
     if (wf.labels) {
@@ -183,7 +192,7 @@ const primaryCopyHTML = (wf) =>
  * @param {boolean} interactive - true adds the onclick filter handler
  * @returns {string}
  */
-const collectionButtonHTML = (wf, interactive) => {
+export const collectionButtonHTML = (wf, interactive) => {
     if (!wf.collectionKey) return '';
     if (!interactive) {
         return `<span class="seg collection" title="${esc(wf.collectionKey)}">collection</span>`;
@@ -251,7 +260,7 @@ const sideChainBadgeHTML = (wf) =>
  * @param {string} wfId
  * @returns {boolean} true when a card was revealed
  */
-const revealCard = (wfId) => {
+export const revealCard = (wfId) => {
     for (const el of document.querySelectorAll(`[data-wfkey="${wfId}"]`)) {
         const card = /** @type {HTMLElement} */ (el);
         if (card.offsetParent === null) continue;
@@ -341,6 +350,7 @@ export const buildCardHTML = (wf, isStatic) => {
     html += primaryCopyHTML(wf);
     html += buildRelationsHTML(wf, true);
     html += collectionButtonHTML(wf, true);
+    html += chainIconHTML(wf);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
     html += `</div>`;
@@ -378,6 +388,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
     html += primaryCopyHTML(wf);
     html += buildRelationsHTML(wf, false);
     html += collectionButtonHTML(wf, true);
+    html += chainIconHTML(wf);
     if (wf.hasState) html += stateIconHTML(wf);
     if (wf.traceId) html += traceIconHTML(wf.traceId);
     html += `</div>`;
@@ -451,7 +462,7 @@ export const createWorkflowCard = (wf, elId) => {
 /* ── Card filter data ───────────────────────────────────── */
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
-const buildFilterText = (wf) => {
+export const buildFilterText = (wf) => {
     const parts = [wf.namespace, wf.operationId, wf.idempotencyKey];
     if (wf.labels) {
         for (const [k, v] of Object.entries(wf.labels)) parts.push(k, v);
@@ -465,7 +476,7 @@ const buildFilterText = (wf) => {
 };
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
-const buildStatusTags = (wf) => {
+export const buildStatusTags = (wf) => {
     const tags = new Set();
     tags.add(wf.status.toLowerCase());
     for (const s of wf.steps) {

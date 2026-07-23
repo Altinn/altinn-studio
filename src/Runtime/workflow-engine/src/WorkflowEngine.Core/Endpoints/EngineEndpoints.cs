@@ -284,7 +284,11 @@ internal static class EngineRequestHandlers
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "dependency-graph"));
 
         var ns = NormalizeNamespace(@namespace);
-        var dependencyGraph = await repository.GetWorkflowDependencyGraph(workflowId, ns, cancellationToken);
+        var dependencyGraph = await repository.GetWorkflowDependencyGraph(
+            workflowId,
+            ns,
+            cancellationToken: cancellationToken
+        );
 
         if (dependencyGraph is null)
             return TypedResults.NotFound();
@@ -484,7 +488,7 @@ internal static class EngineRequestHandlers
         return true;
     }
 
-    private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
+    internal static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
         IReadOnlyList<Workflow> workflows
     )
     {

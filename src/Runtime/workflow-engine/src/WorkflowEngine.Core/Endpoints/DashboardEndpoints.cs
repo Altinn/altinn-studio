@@ -570,6 +570,54 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        // Connected dependency graph for the chain views: every workflow reachable from the given
+        // one through dependency/link relations in either direction, as full card DTOs plus typed
+        // edges so the frontend can lay out the spine without re-deriving relations. Capped at the
+        // most recently created nodes so a pathologically long-lived collection can't produce an
+        // unbounded payload; `truncated` tells the frontend the story has an older, unshown tail.
+        const int graphNodeCap = 200;
+        app.MapGet(
+                "/dashboard/graph",
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
+                {
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    IReadOnlyList<Workflow>? graph = await repo.GetWorkflowDependencyGraph(
+                        wf,
+                        ns,
+                        limit: graphNodeCap + 1,
+                        ct
+                    );
+
+                    if (graph is null)
+                        return Results.NotFound();
+
+                    // The list is CreatedAt-ascending; the +1 sentinel (when present) is the oldest.
+                    bool truncated = graph.Count > graphNodeCap;
+                    if (truncated)
+                        graph = [.. graph.Skip(graph.Count - graphNodeCap)];
+
+                    return Results.Json(
+                        new
+                        {
+                            root = wf,
+                            truncated,
+                            workflows = graph.Select(DashboardMapper.MapWorkflow),
+                            edges = EngineRequestHandlers
+                                .BuildDependencyGraphEdges(graph)
+                                .Select(e => new
+                                {
+                                    from = e.From,
+                                    to = e.To,
+                                    kind = e.Kind == WorkflowDependencyGraphEdgeKind.Dependency ? "dependency" : "link",
+                                }),
+                        },
+                        _jsonCompact
+                    );
+                }
+            )
+            .ExcludeFromDescription();
+
         app.MapPost(
                 "/dashboard/retry",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>

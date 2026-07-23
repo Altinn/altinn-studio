@@ -1192,7 +1192,12 @@ body {
     align-items: center;
     gap: 3px;
     margin-top: 5px;
+    /* Reserve room for the retry/backoff/timing rows that appear mid-processing,
+       so live cards don't jump. Static cards render final content — no reservation. */
     min-height: 72px;
+}
+.pipeline-static .step-meta {
+    min-height: 0;
 }
 .step-timing {
     font-size: 12px;
@@ -2487,6 +2492,175 @@ pre.diff-remove {
     100% {
         box-shadow: 0 0 0 0 transparent;
     }
+}
+
+/* ── Chain modal ──────────────────────────────────────────── */
+.chain-btn svg {
+    width: 12px;
+    height: 12px;
+}
+.chain-modal {
+    max-width: 900px;
+}
+.chain-list {
+    position: relative;
+    padding: 4px 2px 4px 22px;
+}
+.chain-list::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 20px;
+    bottom: 20px;
+    width: 2px;
+    background: var(--border);
+}
+.chain-node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    cursor: pointer;
+}
+.chain-node:hover {
+    background: var(--bg3);
+}
+.chain-node::before {
+    content: '';
+    position: absolute;
+    left: -17px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transform: translateY(-50%);
+}
+.chain-node.chain-side {
+    margin-left: 34px;
+    border-style: dashed;
+    border-color: rgba(var(--violet-rgb), 0.4);
+    box-shadow: inset 3px 0 0 rgba(var(--violet-rgb), 0.45);
+}
+.chain-node.chain-side::before {
+    left: -48px;
+    width: 44px;
+    height: 2px;
+    border-radius: 1px;
+    background: rgba(var(--violet-rgb), 0.5);
+}
+.chain-node.chain-root::before {
+    background: var(--cyan);
+}
+.chain-node.chain-root .chain-name {
+    color: var(--text-bright);
+}
+.chain-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+}
+.chain-steps {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+.chain-time {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+.chain-node .compact-dot {
+    cursor: pointer;
+}
+.chain-gap {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+    opacity: 0.65;
+    margin: -3px 0 5px 2px;
+}
+.chain-truncated {
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.65;
+    margin: 0 0 8px 2px;
+}
+.chain-node.chain-expanded {
+    display: block;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    cursor: default;
+    box-shadow: none;
+}
+.chain-node.chain-expanded:hover {
+    background: transparent;
+}
+.chain-node.chain-expanded > .workflow-card {
+    margin: 0;
+}
+
+/* ── Chains view (grouped Recent) ─────────────────────────── */
+.chain-group {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg2);
+    padding: 10px 14px 4px;
+    margin-bottom: 10px;
+}
+.chain-group-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 2px;
+    margin-bottom: 2px;
+    min-height: 24px;
+}
+.chain-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.chain-history-btn {
+    width: auto;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.chain-history-loaded {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--text-dim);
+    opacity: 0.6;
+    white-space: nowrap;
+}
+.chain-group .chain-list {
+    padding-bottom: 0;
+}
+.view-toggle button.active {
+    opacity: 1;
+    color: var(--cyan);
+    border-color: rgba(var(--cyan-rgb), 0.4);
+    background: rgba(var(--cyan-rgb), 0.08);
+    z-index: 1;
+    position: relative;
 }
 
 /* ── Load more button ─────────────────────────────────────── */

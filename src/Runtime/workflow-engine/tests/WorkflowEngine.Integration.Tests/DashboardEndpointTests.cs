@@ -365,4 +365,75 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    // ── /dashboard/graph ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task Graph_ReturnsConnectedNodesAndTypedEdges()
+    {
+        // Arrange - main <- side (side depends on and links to main, and is an invisible side chain)
+        var mainWorkflow = _testHelpers.CreateWorkflow("wf-main", [_testHelpers.CreateWebhookStep("/hook")]);
+        var sideWorkflow = _testHelpers.CreateWorkflow(
+            "wf-side",
+            [_testHelpers.CreateWebhookStep("/hook-side")],
+            dependsOn: [(WorkflowRef)"wf-main"]
+        ) with
+        {
+            Links = [(WorkflowRef)"wf-main"],
+            IsHead = false,
+        };
+        var request = _testHelpers.CreateEnqueueRequest([mainWorkflow, sideWorkflow], includeContext: false);
+        var enqueueResponse = await _client.Enqueue(request);
+        var mainId = enqueueResponse.Workflows[0].DatabaseId;
+        var sideId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus(
+            enqueueResponse.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act - querying from the main workflow must also reach the side chain (inverse edges)
+        using var response = await client.GetAsync(
+            $"/dashboard/graph?wf={mainId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal(mainId, doc.RootElement.GetProperty("root").GetGuid());
+
+        var nodes = doc.RootElement.GetProperty("workflows").EnumerateArray().ToList();
+        Assert.Equal(2, nodes.Count);
+        var sideNode = Assert.Single(nodes, n => n.GetProperty("databaseId").GetGuid() == sideId);
+        Assert.False(sideNode.GetProperty("isHead").GetBoolean());
+        Assert.True(sideNode.GetProperty("steps").GetArrayLength() >= 1);
+        Assert.Single(nodes, n => n.GetProperty("databaseId").GetGuid() == mainId);
+
+        var edges = doc.RootElement.GetProperty("edges").EnumerateArray().ToList();
+        var dependencyEdge = Assert.Single(edges, e => e.GetProperty("kind").GetString() == "dependency");
+        Assert.Equal(mainId, dependencyEdge.GetProperty("from").GetGuid());
+        Assert.Equal(sideId, dependencyEdge.GetProperty("to").GetGuid());
+        var linkEdge = Assert.Single(edges, e => e.GetProperty("kind").GetString() == "link");
+        Assert.Equal(sideId, linkEdge.GetProperty("from").GetGuid());
+        Assert.Equal(mainId, linkEdge.GetProperty("to").GetGuid());
+    }
+
+    [Fact]
+    public async Task Graph_NotFound_Returns404()
+    {
+        // Arrange
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/graph?wf={Guid.Empty}&ns=nonexistent-ns",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
