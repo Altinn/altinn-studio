@@ -134,7 +134,7 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  checks: write
+                  checks: read
                   contents: read
                   issues: write
                   pull_requests: write
@@ -179,7 +179,7 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  checks: write
+                  checks: read
                   contents: read
                   issues: write
                   pull_requests: write
@@ -379,7 +379,7 @@ spec:
                 - PATCH
                 - PUT
               permissions:
-                checks: write
+                checks: read
                 contents: read
                 issues: write
                 pull_requests: write
