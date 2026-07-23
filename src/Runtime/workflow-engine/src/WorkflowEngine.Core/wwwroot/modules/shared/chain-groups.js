@@ -17,7 +17,7 @@ import { buildSpineByCreation, buildSpineFromEdges, renderChainList } from './ch
 /**
  * Full-graph cache per collectionKey, populated by the per-group history control.
  * Shared across surfaces: history loaded from Recent is instantly available in Query.
- * @type {Map<string, { nodes: Workflow[], edges: { from: string, to: string, kind: string }[] }>}
+ * @type {Map<string, { nodes: Workflow[], edges: { from: string, to: string, kind: string }[], truncated: boolean }>}
  */
 const historyCache = new Map();
 
@@ -156,7 +156,7 @@ export const buildGroupEl = (key, members, opts) => {
     if (labels.size) el.dataset.labels = [...labels].join(',');
     el.innerHTML =
         groupHeaderHTML(key, members, { total, hasHistory: !!hist, countNoun }) +
-        renderChainList(items);
+        renderChainList(items, '', { truncated: hist?.truncated });
     for (const m of members) {
         if (!state.previousWorkflows[m.databaseId]) workflowData[m.databaseId] = m;
     }
@@ -175,7 +175,11 @@ window.loadChainHistory = async (e, key, wfId, ns) => {
         );
         if (!res.ok) return;
         const data = await res.json();
-        historyCache.set(key, { nodes: data.workflows ?? [], edges: data.edges ?? [] });
+        historyCache.set(key, {
+            nodes: data.workflows ?? [],
+            edges: data.edges ?? [],
+            truncated: !!data.truncated,
+        });
     } catch {
         return;
     }

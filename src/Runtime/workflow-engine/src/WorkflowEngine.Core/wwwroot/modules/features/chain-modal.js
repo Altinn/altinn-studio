@@ -39,7 +39,7 @@ const fetchAndRender = async (wfId, wfNamespace) => {
         _graphIds = new Set(nodes.map((n) => n.databaseId));
         const items = buildSpineFromEdges(nodes, data.edges ?? []);
         dom.chainBody.innerHTML = items.length
-            ? renderChainList(items, data.root)
+            ? renderChainList(items, data.root, { truncated: data.truncated })
             : '<div class="modal-loading">No workflows in graph</div>';
     } catch (err) {
         if (_openWfId !== wfId) return;

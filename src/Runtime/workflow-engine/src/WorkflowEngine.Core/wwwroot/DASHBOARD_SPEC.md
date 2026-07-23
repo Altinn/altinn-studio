@@ -190,11 +190,13 @@ Response:
 
 ### `GET /dashboard/graph`
 
-Connected dependency graph for the chain modal: every workflow reachable from the given one through
+Connected dependency graph for the chain views: every workflow reachable from the given one through
 dependency/link relations in either direction (recursive CTE, namespace-scoped). Nodes are full card
 DTOs (same shape as the SSE workflow payload, relations included); edges are typed so the frontend
 can lay out the spine without re-deriving relations. 404 when the workflow does not exist in the
-namespace.
+namespace. Capped at the 200 most recently created nodes (the cap is applied before hydration);
+`truncated: true` signals an older, unshown tail, rendered as an "earlier workflows not shown"
+divider at the top of the spine.
 
 | Parameter | Type   | Description               |
 | --------- | ------ | ------------------------- |
@@ -206,6 +208,7 @@ Response:
 ```json
 {
     "root": "guid",
+    "truncated": false,
     "workflows": ["Workflow, same shape as the SSE payload"],
     "edges": [{ "from": "guid", "to": "guid", "kind": "dependency | link" }]
 }
@@ -442,6 +445,10 @@ root workflow (where a root id is given) gets a cyan spine marker and a brighten
 **Row expansion:** clicking a row (outside interactive elements) swaps it in place for the full
 pipeline card (`chainRowToggle`), fetching relations on first expand like compact-card expansion
 does; clicking the expanded card collapses it back. The expanded set survives re-renders.
+
+**Gap dividers:** wall-clock gaps > 1s between consecutive heads render as a dim `+ 4.2s` divider
+before the later head — that is where the time went between the engine's transitions (e.g. the
+user working in the task). Suppressed while the preceding head is still running.
 
 ## Chain Modal
 

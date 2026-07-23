@@ -100,17 +100,41 @@ const nodeHTML = (wf, isSide, isRoot) => {
     );
 };
 
+/** Gaps between transitions shorter than this are noise, not story. */
+const GAP_THRESHOLD_MS = 1000;
+
+/** Wall-clock end of a terminal workflow, NaN while it is still running. @param {Workflow} wf */
+const wallClockEnd = (wf) =>
+    TERMINAL_STATUSES.has(wf.status)
+        ? new Date(wf.removedAt || wf.steps.at(-1)?.updatedAt || wf.updatedAt || wf.createdAt).getTime()
+        : NaN;
+
 /**
  * Render an ordered chain as HTML, registering each workflow in the shared store so
- * row interactions (expand, step modal) can resolve it later.
- * @param {ChainItem[]} items @param {string} [rootId] - workflow to mark with the cyan spine dot
+ * row interactions (expand, step modal) can resolve it later. Wall-clock gaps between
+ * consecutive heads render as dividers — that is where the time went between the
+ * engine's transitions (e.g. the user working in the task).
+ * @param {ChainItem[]} items
+ * @param {string} [rootId] - workflow to mark with the cyan spine dot
+ * @param {{ truncated?: boolean }} [opts] - truncated: the graph has an older, unshown tail
  * @returns {string}
  */
-export const renderChainList = (items, rootId = '') => {
+export const renderChainList = (items, rootId = '', opts) => {
     let html = '<div class="chain-list">';
+    if (opts?.truncated) {
+        html += `<div class="chain-truncated" title="The connected graph exceeds the node cap; only the most recent workflows are shown">&#8943; earlier workflows not shown</div>`;
+    }
+    let prevHeadEnd = NaN;
     for (const item of items) {
         const wf = freshest(item.wf);
         if (!state.previousWorkflows[wf.databaseId]) workflowData[wf.databaseId] = wf;
+        if (!item.isSide) {
+            const gap = new Date(wf.createdAt).getTime() - prevHeadEnd;
+            if (gap > GAP_THRESHOLD_MS) {
+                html += `<div class="chain-gap" title="Wall-clock gap before this transition was enqueued">+&thinsp;${esc(formatElapsed(gap / 1000))}</div>`;
+            }
+            prevHeadEnd = wallClockEnd(wf);
+        }
         html += nodeHTML(wf, item.isSide, wf.databaseId === rootId);
     }
     html += '</div>';

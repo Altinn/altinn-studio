@@ -2585,6 +2585,19 @@ pre.diff-remove {
 .chain-node .compact-dot {
     cursor: pointer;
 }
+.chain-gap {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+    opacity: 0.65;
+    margin: -3px 0 5px 2px;
+}
+.chain-truncated {
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.65;
+    margin: 0 0 8px 2px;
+}
 .chain-node.chain-expanded {
     display: block;
     padding: 0;
