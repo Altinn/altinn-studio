@@ -136,7 +136,7 @@ spec:
                 permissions:
                   checks: read
                   contents: read
-                  issues: write
+                  issues: read
                   pull_requests: write
                 provider: github-altinn
                 repositories:
@@ -181,7 +181,7 @@ spec:
                 permissions:
                   checks: read
                   contents: read
-                  issues: write
+                  issues: read
                   pull_requests: write
                 provider: github-altinn
                 repositories:
@@ -381,7 +381,7 @@ spec:
               permissions:
                 checks: read
                 contents: read
-                issues: write
+                issues: read
                 pull_requests: write
               repositories:
                 - Altinn/altinn-studio

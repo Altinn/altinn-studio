@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.8
-chart_digest=sha256:3f917bd1006d43d6e0eb2399483c327f15255384bab795ba1da6cad8ead89172
+chart_version=0.8.9
+chart_digest=sha256:1616d482ecc049c93b05341fbb658f168f1f50cf285a5ddc34f08d59579b7223
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -72,12 +72,21 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].egress == "mediated" and
   .spec.values.agentSchedule.profiles[0].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.issues == "read" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.pull_requests == "write" and
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.issues == "read" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.pull_requests == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].name == "git-host-credentials" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].credential-kind == "mediated" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[1].credential-kind == "mediated" and
+  .spec.values.broker.config.providers[3].allow.permissions.checks == "read" and
+  .spec.values.broker.config.providers[3].allow.permissions.issues == "read" and
+  .spec.values.broker.config.providers[3].allow.permissions.pull_requests == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].name == "git-credentials" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "explicit" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.name == "nvt-agent[bot]" and
