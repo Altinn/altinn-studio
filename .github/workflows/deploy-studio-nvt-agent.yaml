@@ -13,7 +13,9 @@ on:
       - 'src/load-balancer/tests/nvt-*'
       - '.github/workflows/deploy-studio-nvt-agent.yaml'
   push:
-    branches: [main]
+    branches:
+      - main
+      - feat/nvt-agent-gitops
     paths:
       - 'infra/studio/nvt-agent/**'
       - 'scripts/validate-studio-nvt-agent.sh'
@@ -51,7 +53,10 @@ jobs:
           fi
 
   construct-environments-array:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/feat/nvt-agent-gitops')
     needs: [validate, deployment-metadata-merge-gate]
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
@@ -60,7 +65,10 @@ jobs:
 
   push-artifact:
     name: Push Studio nvt-agent configuration as OCI artifact
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/feat/nvt-agent-gitops')
     needs: [validate, deployment-metadata-merge-gate, construct-environments-array]
     runs-on: ubuntu-latest
     environment: dev
@@ -105,7 +113,10 @@ jobs:
   tag:
     name: Tag artifact
     needs: [push-artifact, construct-environments-array]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/feat/nvt-agent-gitops')
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     permissions:
