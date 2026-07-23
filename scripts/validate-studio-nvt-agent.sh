@@ -66,7 +66,7 @@ yq -o=json '.' "$temp_dir/load-balancer.yaml" | jq -s -e '
   $nvtRules[0].to[0].namespaceSelector.matchLabels["kubernetes.io/metadata.name"] == "nvt" and
   $nvtRules[0].to[0].podSelector.matchLabels["app.kubernetes.io/name"] == "nvt-agent-gateway" and
   $nvtRules[0].to[0].podSelector.matchLabels["app.kubernetes.io/component"] == "gateway" and
-  $nvtRules[0].ports == [{"port": 80, "protocol": "TCP"}]
+  $nvtRules[0].ports == [{"port": 8080, "protocol": "TCP"}]
 ' >/dev/null
 
 echo "NVT Kustomize/Helm renders, digest pin, and gateway-only egress policy validated."
