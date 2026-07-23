@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 from agents.graph.state import AgentState
 from agents.services.mcp import get_mcp_client
 from agents.services.repo import discover_repository_context
-from agents.services.llm import LLMClient
+from agents.services.llm import LLMClient, check_scope_async
 from agents.services.events import AgentEvent, sink
 from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
@@ -60,6 +60,49 @@ async def handle(state: AgentState) -> AgentState:
             def _check_cancelled():
                 if _sink.is_cancelled(state.session_id):
                     raise InterruptedError(f"Session {state.session_id} was cancelled")
+
+            # Step 0: Scope check — decide before any tool retrieval whether this
+            # question is about Altinn Studio/apps. Runs first so out-of-scope
+            # questions never reach doc-injected generation, where keyword overlap
+            # with retrieved documentation previously caused the model to answer
+            # questions it should have declined.
+            log.info("🔎 Checking question scope...")
+            _check_cancelled()
+            scope_result = await check_scope_async(state.user_goal)
+            if not scope_result.in_scope:
+                log.info(f"🚫 Question out of scope ({scope_result.reason}) — declining without tool retrieval")
+                decline_text = scope_result.decline_message or "I can only help with Altinn app development."
+
+                state.assistant_response = {
+                    "response": decline_text,
+                    "repository_summary": {},
+                    "tools_used": [],
+                    "sources": [],
+                    "mode": "chat",
+                    "traceId": main_span.trace_id,
+                }
+
+                from agents.graph.state import ConversationMessage
+                state.conversation_history.append(
+                    ConversationMessage(role="user", content=state.user_goal)
+                )
+                state.conversation_history.append(
+                    ConversationMessage(role="assistant", content=decline_text, sources=[])
+                )
+
+                main_span.update(output={
+                    "response": decline_text,
+                    "out_of_scope": True,
+                    "reason": scope_result.reason,
+                })
+
+                sink.send(AgentEvent(
+                    type="assistant_message",
+                    session_id=state.session_id,
+                    data=state.assistant_response
+                ))
+
+                return state
 
             # Step 1: Scan repository for context
             log.info("📂 Scanning repository for context...")
@@ -438,13 +481,20 @@ def _extract_cited_sources_from_response(response: str, all_sources: List[Dict[s
     """
     # Look for SOURCES: line
     sources_match = re.search(r'\n+SOURCES:\s*(.+?)(?:\n|$)', response, re.IGNORECASE)
-    
+
     if not sources_match:
         # No sources line found, return all sources
         return response, all_sources
-    
+
     # Extract cited titles
-    sources_line = sources_match.group(1)
+    sources_line = sources_match.group(1).strip()
+
+    # Explicit "no sources" marker (e.g. the assistant declined an out-of-scope question) —
+    # do not fall back to attaching all sources in this case.
+    if not sources_line or sources_line.lower() in {"none", "n/a"}:
+        clean_response = response[:sources_match.start()].rstrip()
+        return clean_response, []
+
     cited_titles = [title.strip() for title in sources_line.split(',')]
     
     # Match to actual sources with better fuzzy matching
