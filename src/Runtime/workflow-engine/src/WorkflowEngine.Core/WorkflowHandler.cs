@@ -101,7 +101,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
-            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"), ("is_head", IsHeadTagValue(workflow)));
+            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"), ("is_head", workflow.IsHeadTagValue()));
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -182,7 +182,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             workflow.EngineActivity?.Errored();
-            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"), ("is_head", IsHeadTagValue(workflow)));
+            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"), ("is_head", workflow.IsHeadTagValue()));
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
         {
@@ -406,19 +406,6 @@ internal sealed class WorkflowHandler(
         item.EngineActivity.Dispose();
         item.EngineActivity = null;
     }
-
-    /// <summary>
-    /// Low-cardinality metric tag value for the workflow's head-visibility directive. "false"
-    /// identifies deliberately invisible workflows (e.g. non-blocking side chains) whose terminal
-    /// failures surface nowhere else - alert on <c>is_head="false"</c> to catch them.
-    /// </summary>
-    private static string IsHeadTagValue(Workflow workflow) =>
-        workflow.IsHead switch
-        {
-            true => "true",
-            false => "false",
-            null => "unset",
-        };
 
     private void RecordWorkflowQueueTime(Workflow workflow)
     {
