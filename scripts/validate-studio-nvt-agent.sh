@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.10
-chart_digest=sha256:8edd09e746e9f0cfe5be6b8c9b2f87e2fb108d5af675a4a8a361289a7060f4e6
+chart_version=0.8.11
+chart_digest=sha256:adbe10641755761859ea5559cadf0c80b763fe128bd86ecaaacb7c1c1544de64
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -75,12 +75,20 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.pull_requests == "write" and
+  (.spec.values.agentSchedule.profiles[0].broker.grants[1].preparations | length) == 1 and
+  .spec.values.agentSchedule.profiles[0].broker.grants[1].preparations[0].operation == "identity" and
+  (.spec.values.agentSchedule.profiles[0].broker.grants[2].preparations | length) == 1 and
+  .spec.values.agentSchedule.profiles[0].broker.grants[2].preparations[0].operation == "identity" and
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.pull_requests == "write" and
+  (.spec.values.agentSchedule.profiles[1].broker.grants[1].preparations | length) == 1 and
+  .spec.values.agentSchedule.profiles[1].broker.grants[1].preparations[0].operation == "identity" and
+  (.spec.values.agentSchedule.profiles[1].broker.grants[2].preparations | length) == 1 and
+  .spec.values.agentSchedule.profiles[1].broker.grants[2].preparations[0].operation == "identity" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].name == "git-host-credentials" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].credential-kind == "mediated" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[1].credential-kind == "mediated" and
@@ -88,12 +96,10 @@ yq -e '
   .spec.values.broker.config.providers[3].allow.permissions.issues == "read" and
   .spec.values.broker.config.providers[3].allow.permissions.pull_requests == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].name == "git-credentials" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "explicit" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.name == "nvt-agent[bot]" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.email == "289161147+nvt-agent[bot]@users.noreply.github.com" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.mode == "explicit" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.name == "nvt-agent-altinn[bot]" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.email == "289165276+nvt-agent-altinn[bot]@users.noreply.github.com" and
+  (.spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity | length) == 1 and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "provider" and
+  (.spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity | length) == 1 and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.mode == "provider" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
   .spec.values.broker.persistence.seedSecretName == "nvt-broker-seed" and
   .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and

@@ -9,18 +9,18 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.10` (verified OCI digest
-`sha256:8edd09e746e9f0cfe5be6b8c9b2f87e2fb108d5af675a4a8a361289a7060f4e6`),
+The public chart is pinned to `0.8.11` (verified OCI digest
+`sha256:adbe10641755761859ea5559cadf0c80b763fe128bd86ecaaacb7c1c1544de64`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.10-f1b5195` production images without
+tag. It resolves the coordinated `0.8.11-d36ff8e` production images without
 component overrides. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
 RuntimeClass. Its shared AgentRun template carries the matching
 `purpose=nvt-agent:NoSchedule` toleration, and the schedule admits at most two
 concurrent mediated AgentRuns.
 Each Kata AgentRun requests and is limited to 2 CPU and 8 GiB memory. Git
-commit attribution is explicitly pinned to the corresponding fork/upstream
-GitHub App bot until mediated provider identity resolution is available.
+commit attribution is prepared from each exact GitHub App broker grant and
+consumed through the generic provider-identity contract.
 The shared non-secret bootstrap preseed suppresses Claude first-run prompts and
 trusts the agent's `/workspace` startup directory. Codex ignores these Claude
 configuration files.
