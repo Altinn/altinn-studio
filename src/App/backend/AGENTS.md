@@ -91,7 +91,7 @@ constraints (idempotency, state passthrough, callback auth):
 
 ### ADR
 
-We have Architecture Decision Records in the `/doc/adr/` folder.
+Architecture Decision Records live in the monorepo root `docs/adr/` folder.
 
 ## Development Guidelines
 
