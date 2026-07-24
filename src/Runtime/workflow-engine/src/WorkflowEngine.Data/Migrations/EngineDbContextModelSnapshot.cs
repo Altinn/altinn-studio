@@ -216,6 +216,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("initial_state");
 
+                    b.Property<bool?>("IsHead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_head");
+
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb")
                         .HasColumnName("labels");

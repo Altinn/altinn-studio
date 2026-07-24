@@ -12,7 +12,7 @@ images:
       tag: "694406e93c"
     workflow-engine:
       image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
-      tag: "5b68c250a0"
+      tag: "693d3e6cd3"
     workflow-engine-db:
       image: postgres
       tag: "18.3"

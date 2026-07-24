@@ -190,8 +190,10 @@ export const applyFilter = () => {
      * @param {boolean} [isLiveTab]
      */
     const filterContainer = (container, countEl, sectionStatus, isLiveTab) => {
+        // Direct children only: chains-view groups filter as one unit, so the cards
+        // expanded inside them must not be matched (or counted) individually.
         const cards = /** @type {HTMLElement[]} */ ([
-            ...container.querySelectorAll('.workflow-card'),
+            ...container.querySelectorAll(':scope > .workflow-card, :scope > .chain-group'),
         ]);
         let matched = 0;
         /** @type {Record<string, number>} */
