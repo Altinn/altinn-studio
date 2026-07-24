@@ -109,6 +109,8 @@ internal static class CSharpSyntaxQueries
             var invokedName = invocation.Expression switch
             {
                 MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.Text,
+                // Null-conditional calls (`x?.Method(...)`) bind the name via a member binding.
+                MemberBindingExpressionSyntax memberBinding => memberBinding.Name.Identifier.Text,
                 SimpleNameSyntax simple => simple.Identifier.Text,
                 _ => null,
             };
@@ -166,6 +168,8 @@ internal static class CSharpSyntaxQueries
             var invokedName = invocation.Expression switch
             {
                 MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.Text,
+                // Null-conditional calls (`x?.Method(...)`) bind the name via a member binding.
+                MemberBindingExpressionSyntax memberBinding => memberBinding.Name.Identifier.Text,
                 SimpleNameSyntax simple => simple.Identifier.Text,
                 _ => null,
             };

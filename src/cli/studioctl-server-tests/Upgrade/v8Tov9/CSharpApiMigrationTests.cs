@@ -203,6 +203,27 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
     }
 
+    [Fact]
+    public void EFormidlingCodeDetector_FlagsLegacyNullConditionalInvocation()
+    {
+        _app.Write(
+            "logic/Caller.cs",
+            """
+            public class Caller
+            {
+                private readonly IEFormidlingService? _service;
+
+                public Task? Send(Instance instance) => _service?.SendEFormidlingShipment(instance);
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
+    }
+
     // --- RemovedInternalProcessTypeDetector ------------------------------------------------------
 
     [Fact]
