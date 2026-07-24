@@ -50,6 +50,67 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
   });
 
+  it('idle-parked service task without a layout renders the waiting view, not the failure screen', async () => {
+    // The process is parked on a service task pending an outcome (e.g. an external callback), and
+    // nothing has failed. Before #18935 this rendered the failure-styled retry/back screen; now it
+    // is an implicit waiting step: spinner + reassurance, no recovery buttons, polling underneath.
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask = {
+      ...instance.process.currentTask!,
+      elementId: 'Task_Service',
+      elementType: 'ServiceTask',
+      altinnTaskType: 'scenario',
+    };
+    instance.process.processTasks = [{ elementId: 'Task_Service', altinnTaskType: 'scenario' }];
+    instance.process.workflow = { status: 'idle' };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      taskId: 'Task_Service',
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
+    expect(screen.getByText(/du trenger ikke å gjøre noe/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /gå tilbake/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/noe gikk galt/i)).not.toBeInTheDocument();
+  });
+
+  it('idle-parked service task WITH a layout renders the layout - a custom layout opts out of the default waiting view', async () => {
+    // The harness registers a layout for the mock task, so classifying it as Data and rendering
+    // its children is the layout-wins path. Failure still takes precedence (tested below); the
+    // parked-follow polling applies to both variants and is covered by the e2e suite.
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.workflow = { status: 'idle' };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    expect(await screen.findByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+  });
+
   it('processing shows the spinner state and suppresses the task', async () => {
     // waitUntilLoaded is disabled because the blocking state intentionally renders a spinner.
     // targetTask is set but deliberately NOT rendered in the message (task ids aren't user-facing).
@@ -259,17 +320,17 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/process_workflow\.failure_kind/)).not.toBeInTheDocument();
   });
 
-  it('failed on the current service task falls through to the task view, not the error page', async () => {
+  it('failed on the current service task renders the recoverable failure view, even over a custom layout', async () => {
     // A failed workflow that targeted the CURRENT task, when that task is a service task, is owned
-    // by the service task's own view (the app's custom layout, or the default ServiceTask screen
-    // with retry + go-back): the backend explicitly permits the bpmn-allowed reject from that
-    // screen (it abandons the failed workflow), so replacing it with the terminal error page would
-    // strand the user. The terminal page is only for failures no task UI can recover from (e.g.
-    // the pre-commit failure above, which targets ANOTHER task). The harness registers a layout
-    // for the task, so this exercises the custom-layout variant (the task's children render); the
-    // default-screen variant is covered by the service-task e2e suite.
+    // by that task and renders ServiceTaskFailed (retry via process/resume + the bpmn-allowed
+    // reject) instead of the terminal error page - the terminal page is only for failures no task
+    // UI can recover from (e.g. the pre-commit failure above, which targets ANOTHER task).
+    // The harness registers a layout for the task, so this also pins failure-over-layout
+    // precedence: a custom layout would classify the task as Data and silently render its form
+    // with no trace of the failure, so the failure view must win (#18935).
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.currentTask!.userActions = [{ id: 'write', authorized: true, type: 'ProcessAction' }];
     instance.process.workflow = { status: 'failed', targetTask: 'Task_1', failure: { kind: 'stepFailed' } };
 
     await renderWithInstanceAndLayout({
@@ -285,7 +346,8 @@ describe('ProcessWrapper workflow state machine', () => {
       },
     });
 
-    expect(await screen.findByTestId('task-content')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /prøv igjen/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Vis detaljer om feilen' })).not.toBeInTheDocument();
   });
