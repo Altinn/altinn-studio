@@ -1,0 +1,517 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: nvt
+  namespace: nvt
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: nvt-chart
+    namespace: nvt
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  interval: 5m
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              kind: Deployment
+              name: nvt-(broker|operator|agent-gateway|github-comments-producer)
+              version: v1
+            patch: |-
+              - op: add
+                path: /spec/template/spec/nodeSelector
+                value:
+                  purpose: nvt-agent
+              - op: add
+                path: /spec/template/spec/tolerations
+                value:
+                  - effect: NoSchedule
+                    key: purpose
+                    operator: Equal
+                    value: nvt-agent
+          - target:
+              group: apps
+              kind: Deployment
+              name: nvt-broker
+              version: v1
+            patch: |-
+              - op: add
+                path: /spec/template/spec/containers/0/resources
+                value:
+                  limits:
+                    cpu: "1"
+                    memory: 2Gi
+                  requests:
+                    cpu: 250m
+                    memory: 512Mi
+          - target:
+              group: apps
+              kind: Deployment
+              name: nvt-operator
+              version: v1
+            patch: |-
+              - op: add
+                path: /spec/template/spec/containers/0/resources
+                value:
+                  limits:
+                    cpu: "1"
+                    memory: 1Gi
+                  requests:
+                    cpu: 250m
+                    memory: 512Mi
+          - target:
+              group: apps
+              kind: Deployment
+              name: nvt-agent-gateway
+              version: v1
+            patch: |-
+              - op: add
+                path: /spec/template/spec/containers/0/resources
+                value:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 100m
+                    memory: 256Mi
+  releaseName: nvt
+  targetNamespace: nvt
+  timeout: 10m
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      remediateLastFailure: true
+      retries: 3
+  values:
+    agentSchedule:
+      enabled: true
+      maxParallelism: 2
+      name: default
+      producerPolicies:
+        - defaultWorkflow: implement-pr
+          identity: system:serviceaccount:nvt:nvt-github-comments-producer
+          workflows:
+            - implement-pr
+      profileSelection:
+        onNoMatch: deny
+        rules:
+          - issuer: https://github.com
+            profile: mirkoSekulic
+            subject: "23359247"
+          - issuer: https://github.com
+            profile: jondyr
+            subject: "1525466"
+      profiles:
+        - agentRuntimeConfig:
+            command: codex
+            proxy:
+              provider: codex-mirkoSekulic
+          broker:
+            grants:
+              - egressHosts:
+                  - chatgpt.com:443
+                  - api.openai.com:443
+                  - auth.openai.com:443
+                materialization: placeholder-file
+                provider: codex-mirkoSekulic
+                repositories:
+                  - Altinn/altinn-studio
+              - egressHosts:
+                  - github.com:443
+                  - api.github.com:443
+                git: true
+                materialization: header-inject
+                permissions:
+                  contents: write
+                  workflows: write
+                provider: github-fork
+                repositories:
+                  - mirkoSekulic/altinn-studio
+              - egressHosts:
+                  - github.com:443
+                  - api.github.com:443
+                git: true
+                materialization: header-inject
+                permissions:
+                  checks: read
+                  contents: read
+                  issues: read
+                  pull_requests: write
+                provider: github-altinn
+                repositories:
+                  - Altinn/altinn-studio
+          egress: mediated
+          egressEnforcement: true
+          egressTransport: transparent
+          name: mirkoSekulic
+          runtime:
+            autonomy: trusted-local
+            type: codex
+            user: root
+        - agentRuntimeConfig:
+            command: claude
+            proxy:
+              provider: claude-jondyr
+          broker:
+            grants:
+              - egressHosts:
+                  - api.anthropic.com:443
+                  - mcp-proxy.anthropic.com:443
+                materialization: placeholder-file
+                provider: claude-jondyr
+                repositories:
+                  - Altinn/altinn-studio
+              - egressHosts:
+                  - github.com:443
+                  - api.github.com:443
+                git: true
+                materialization: header-inject
+                permissions:
+                  contents: write
+                  workflows: write
+                provider: github-fork
+                repositories:
+                  - mirkoSekulic/altinn-studio
+              - egressHosts:
+                  - github.com:443
+                  - api.github.com:443
+                git: true
+                materialization: header-inject
+                permissions:
+                  checks: read
+                  contents: read
+                  issues: read
+                  pull_requests: write
+                provider: github-altinn
+                repositories:
+                  - Altinn/altinn-studio
+          egress: mediated
+          egressEnforcement: true
+          egressTransport: transparent
+          name: jondyr
+          runtime:
+            autonomy: trusted-local
+            type: claude
+            user: non-root
+      workflowProfiles:
+        - name: implement-pr
+          workspaceInstructions: |
+            - Install any tool needed for the task. For system packages, use `nvt-as-root <command>`; it runs directly as root or through passwordless sudo for non-root agents.
+            - Push branches only to the fork `mirkoSekulic/altinn-studio`; never push directly to upstream.
+            - Create and update PRs in `Altinn/altinn-studio` with `gh-auth --provider github-altinn --repo Altinn/altinn-studio`.
+            - Use a Conventional Commits prefix in PR titles, such as `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, or `chore:`.
+      suspend: false
+      template:
+        resources:
+          requests:
+            cpu: "2"
+            memory: 8Gi
+          limits:
+            cpu: "2"
+            memory: 8Gi
+        agent:
+          config:
+            preseed:
+              files:
+                - path: "$HOME/.claude/settings.json"
+                  mode: "0600"
+                  overwrite: false
+                  json:
+                    theme: dark-daltonized
+                    skipDangerousModePermissionPrompt: true
+                - path: "$HOME/.claude.json"
+                  mode: "0600"
+                  overwrite: false
+                  json:
+                    hasCompletedOnboarding: true
+                    bypassPermissionsModeAccepted: true
+                    projects:
+                      /workspace:
+                        hasTrustDialogAccepted: true
+                - path: "$HOME/.codex/config.toml"
+                  mode: "0600"
+                  overwrite: false
+                  content: |
+                    check_for_update_on_startup = false
+
+                    [notice]
+                    hide_rate_limit_model_nudge = true
+
+                    [projects."/workspace"]
+                    trust_level = "trusted"
+            plugins:
+              - config:
+                  default-provider: github-fork
+                  providers:
+                    - broker-provider: github-fork
+                      credential-kind: mediated
+                      match:
+                        - github.com/mirkoSekulic/altinn-studio
+                      name: github-fork
+                      type: broker
+                    - broker-provider: github-altinn
+                      credential-kind: mediated
+                      match:
+                        - github.com/Altinn/altinn-studio
+                      name: github-altinn
+                      type: broker
+                name: git-host-credentials
+                source: builtin
+              - config:
+                  credentials:
+                    - identity:
+                        mode: explicit
+                        name: "nvt-agent[bot]"
+                        email: "289161147+nvt-agent[bot]@users.noreply.github.com"
+                      match: https://github.com/mirkoSekulic/altinn-studio
+                      provider: github-fork
+                      username: x-access-token
+                    - identity:
+                        mode: explicit
+                        name: "nvt-agent-altinn[bot]"
+                        email: "289165276+nvt-agent-altinn[bot]@users.noreply.github.com"
+                      match: https://github.com/Altinn/altinn-studio
+                      provider: github-altinn
+                      username: x-access-token
+                name: git-credentials
+                source: builtin
+                when: before-agent
+              - config:
+                  repos:
+                    - path: altinn-studio
+                      upstream: https://github.com/Altinn/altinn-studio.git
+                      url: https://github.com/mirkoSekulic/altinn-studio.git
+                name: checkout-repos
+                restart: never
+                source: builtin
+                when: before-agent
+              - config:
+                  poll-seconds: 60
+                egress:
+                  provider: github-altinn
+                name: github-watcher
+                restart: always
+                source: builtin
+                when: after-agent
+            tools:
+              packages:
+                - git
+                - jq
+        lifecycle:
+          completeOn:
+            - plugin.github.pr.merged
+            - plugin.github.pr.closed
+            - plugin.agent.signal.done
+          failOn:
+            - plugin.agent.signal.failed
+        runtimeClassName: kata-vm-isolation
+        tolerations:
+          - effect: NoSchedule
+            key: purpose
+            operator: Equal
+            value: nvt-agent
+        ttl:
+          activeDeadlineSeconds: 14400
+          completedTTLSeconds: 300
+          failedTTLSeconds: 3600
+          runRetentionSeconds: 2592000
+        workspace:
+          mode: Persistent
+          size: 30Gi
+          storageClassName: nvt-managed-csi
+    broker:
+      config:
+        providers:
+          - config:
+              auth-file: /state/auth/codex-mirkosekulic.json
+              injection-claim-headers:
+                - claim-path:
+                    - https://api.openai.com/auth
+                    - chatgpt_account_id
+                  header: chatgpt-account-id
+              injection-hosts:
+                - chatgpt.com
+                - api.openai.com
+                - auth.openai.com
+              placeholder-file:
+                hosts:
+                  - chatgpt.com
+                  - api.openai.com
+                  - auth.openai.com
+                id-token-claims:
+                  - claim: chatgpt_account_id
+                    claim-path:
+                      - https://api.openai.com/auth
+                      - chatgpt_account_id
+                path: .codex/auth.json
+            name: codex-mirkoSekulic
+            plugin: codex-oauth
+          - config:
+              credentials-file: /state/auth/claude-jondyr.json
+              injection-extra-headers:
+                anthropic-beta: oauth-2025-04-20
+              injection-hosts:
+                - api.anthropic.com
+                - mcp-proxy.anthropic.com
+              placeholder-file:
+                hosts:
+                  - api.anthropic.com
+                  - mcp-proxy.anthropic.com
+                path: .claude/.credentials.json
+            name: claude-jondyr
+            plugin: claude-oauth
+          - allow:
+              methods:
+                - GET
+                - POST
+                - PATCH
+                - PUT
+              permissions:
+                contents: write
+                workflows: write
+              repositories:
+                - mirkoSekulic/altinn-studio
+            config:
+              api-url: https://api.github.com
+              app-id-env: NVT_FORK_GITHUB_APP_ID
+              injection-hosts:
+                - github.com
+                - api.github.com
+              installation-id-env: NVT_FORK_GITHUB_APP_INSTALLATION_ID
+              private-key-base64-env: NVT_FORK_GITHUB_APP_PRIVATE_KEY_BASE64
+            name: github-fork
+            plugin: github-app
+          - allow:
+              methods:
+                - GET
+                - POST
+                - PATCH
+                - PUT
+              permissions:
+                checks: read
+                contents: read
+                issues: read
+                pull_requests: write
+              repositories:
+                - Altinn/altinn-studio
+            config:
+              api-url: https://api.github.com
+              app-id-env: NVT_ALTINN_GITHUB_APP_ID
+              injection-hosts:
+                - github.com
+                - api.github.com
+              installation-id-env: NVT_ALTINN_GITHUB_APP_INSTALLATION_ID
+              private-key-base64-env: NVT_ALTINN_GITHUB_APP_PRIVATE_KEY_BASE64
+            name: github-altinn
+            plugin: github-app
+      envSecretName: nvt-broker-env
+      persistence:
+        enabled: true
+        seedSecretName: nvt-broker-seed
+        seedTargetDir: auth
+        size: 10Gi
+        storageClassName: nvt-managed-csi
+      tls:
+        enabled: true
+    egress:
+      allowInsecureUpstreams: false
+      defaultMode: mediated
+      denyCIDRs:
+        - 10.48.0.0/16
+        - 10.250.0.0/24
+      networkPolicyCapable: true
+    gateway:
+      auth:
+        admission:
+          default: deny
+          rules:
+            - claimPath: oauth2_subject
+              effect: allow
+              id: mirkoSekulic
+              values:
+                - "23359247"
+            - claimPath: oauth2_subject
+              effect: allow
+              id: jondyr
+              values:
+                - "1525466"
+        authorization:
+          default: deny
+          rules:
+            - effect: allow
+              id: agent-owner
+              owner: true
+        claimEnrichment:
+          allowedHosts: []
+          sources: []
+        mode: oauth2
+        oauth2:
+          authorizationURL: https://github.com/login/oauth/authorize
+          callbackPath: /oauth2/callback
+          clientAuthMethod: client_secret_post
+          credentials:
+            existingSecret: nvt-gateway-github
+          identity:
+            allowedHosts:
+              - api.github.com
+            displayNamePath: login
+            endpoint: https://api.github.com/user
+            subjectPath: id
+          issuer: https://github.com
+          scopes: []
+          tokenURL: https://github.com/login/oauth/access_token
+        session:
+          cookieDomain: ""
+          existingSecret: nvt-gateway-session
+          maxAgeSeconds: 3600
+          secure: true
+      baseDomain: ""
+      enabled: true
+      publicURL: https://staging.altinn.studio/agents
+      replicas: 1
+      routing:
+        mode: path
+    namespace:
+      create: false
+      name: nvt
+    producer:
+      allowedAuthors:
+        - mirkoSekulic
+        - Jondyr
+      enabled: true
+      githubApp:
+        appID: ${NVT_ALTINN_GITHUB_APP_ID}
+        existingSecret: nvt-github-app
+        installationID: ${NVT_ALTINN_GITHUB_APP_INSTALLATION_ID}
+        privateKeyKey: private-key.pem
+      idempotency:
+        scope: comment
+      nodeSelector:
+        purpose: nvt-agent
+      persistence:
+        enabled: true
+        size: 2Gi
+        storageClass: nvt-managed-csi
+      repositories:
+        - name: altinn-studio
+          owner: Altinn
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      submission:
+        admissionMode: profiled
+        mode: scheduleAdmission
+        scheduleName: default
+        scheduleNamespace: nvt
+        tokenExpirationSeconds: 3600
+        workflow: implement-pr
+      tolerations:
+        - effect: NoSchedule
+          key: purpose
+          operator: Equal
+          value: nvt-agent
