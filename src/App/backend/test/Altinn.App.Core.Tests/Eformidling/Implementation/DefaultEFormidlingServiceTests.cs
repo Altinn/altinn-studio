@@ -396,7 +396,15 @@ public class DefaultEFormidlingServiceTests
         eFormidlingClient
             .Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
-                new Statuses { Content = statuses.Select(status => new Content { Status = status }).ToList() }
+                // A status entry without a status value (the frozen client model is pre-NRT, so a
+                // missing field deserialises to null) must not break the recovery path.
+                new Statuses
+                {
+                    Content = statuses
+                        .Select(status => new Content { Status = status })
+                        .Prepend(new Content())
+                        .ToList(),
+                }
             );
     }
 

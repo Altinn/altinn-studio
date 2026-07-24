@@ -284,18 +284,18 @@ public class DefaultEFormidlingService : IEFormidlingService
     /// </summary>
     private static bool HasMessageLeftOutbox(Statuses statuses) =>
         statuses.Content?.Exists(s =>
-            s.Status.Equals("sendt", StringComparison.OrdinalIgnoreCase)
-            || s.Status.Equals("mottatt", StringComparison.OrdinalIgnoreCase)
-            || s.Status.Equals("levert", StringComparison.OrdinalIgnoreCase)
-            || s.Status.Equals("lest", StringComparison.OrdinalIgnoreCase)
+            string.Equals(s.Status, "sendt", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "mottatt", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "levert", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "lest", StringComparison.OrdinalIgnoreCase)
         )
             is true;
 
     private static void ThrowIfMessageFailed(Statuses statuses, string messageId)
     {
         var failedStatus = statuses.Content?.Find(s =>
-            s.Status.Equals("feil", StringComparison.OrdinalIgnoreCase)
-            || s.Status.Equals("levetid_utlopt", StringComparison.OrdinalIgnoreCase)
+            string.Equals(s.Status, "feil", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "levetid_utlopt", StringComparison.OrdinalIgnoreCase)
         );
         if (failedStatus is not null)
         {
