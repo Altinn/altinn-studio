@@ -569,6 +569,9 @@ export function en() {
       'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
     'service_task.retry_button': 'Try again',
     'service_task.back_button': 'Go back',
+    'service_task.waiting_title': 'We are processing your request',
+    'service_task.waiting_body':
+      'This may take a little while. You do not need to do anything, we will continue automatically once everything is ready.',
     'service_task_custom_pdf_default.title': 'Something went wrong',
     'service_task_custom_pdf_default.body':
       'An error occurred during automatic processing of the form.',

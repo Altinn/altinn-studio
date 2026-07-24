@@ -11,7 +11,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { usePayment } from 'src/features/payment/PaymentProvider';
 import { PaymentStatus } from 'src/features/payment/types';
-import { useBackoff } from 'src/features/process/feedback/Feedback';
+import { useBackoff } from 'src/features/process/useFollowProcess';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';

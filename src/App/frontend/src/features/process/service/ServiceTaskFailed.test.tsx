@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { ServiceTask } from 'src/features/process/service/ServiceTask';
+import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
 import { doProcessNext, doProcessResume } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
@@ -32,7 +32,7 @@ function getServiceTaskInstance(workflow?: IProcessWorkflow): IInstanceWithProce
 async function renderServiceTask(workflow?: IProcessWorkflow, after?: IInstanceWithProcess) {
   let mutated = false;
   await renderWithInstanceAndLayout({
-    renderer: () => <ServiceTask />,
+    renderer: () => <ServiceTaskFailed />,
     taskId: 'Task_Service',
     apis: {
       instanceApi: {
@@ -47,7 +47,7 @@ async function renderServiceTask(workflow?: IProcessWorkflow, after?: IInstanceW
   };
 }
 
-describe('ServiceTask retry button', () => {
+describe('ServiceTaskFailed retry button', () => {
   beforeEach(() => {
     jest.mocked(doProcessNext).mockReset();
     jest.mocked(doProcessResume).mockReset();
@@ -81,21 +81,26 @@ describe('ServiceTask retry button', () => {
     expect(doProcessNext).not.toHaveBeenCalled();
   });
 
-  it('advances a parked (non-failed) service task via process/next', async () => {
-    // Without a terminal failure the task is merely parked; process/next is still the correct way
-    // to (re)trigger the advance, exactly like before the resume endpoint existed.
+  it('never issues process/next - retry is always a resume of the failed workflow', async () => {
+    // This view only renders for a failure owned by the current service task, where process/next
+    // is 409-blocked (resumeRequired). A parked-but-healthy service task renders the waiting view
+    // instead, with no retry affordance at all.
     const user = userEvent.setup();
-    const instance = getServiceTaskInstance();
+    const instance = getServiceTaskInstance({
+      status: 'failed',
+      targetTask: 'Task_Service',
+      failure: { kind: 'stepFailed' },
+    });
     jest
-      .mocked(doProcessNext)
-      .mockImplementation(async () => ({ data: instance }) as Awaited<ReturnType<typeof doProcessNext>>);
+      .mocked(doProcessResume)
+      .mockImplementation(async () => ({ data: instance.process }) as Awaited<ReturnType<typeof doProcessResume>>);
 
-    await renderServiceTask(undefined);
+    await renderServiceTask({ status: 'failed', targetTask: 'Task_Service', failure: { kind: 'stepFailed' } });
 
     await user.click(screen.getByRole('button', { name: 'Prøv igjen' }));
 
-    expect(doProcessNext).toHaveBeenCalledTimes(1);
-    expect(doProcessResume).not.toHaveBeenCalled();
+    expect(doProcessResume).toHaveBeenCalledTimes(1);
+    expect(doProcessNext).not.toHaveBeenCalled();
   });
 
   it('a resume that fails again converges on the refetched workflow state instead of toasting', async () => {
