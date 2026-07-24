@@ -306,6 +306,17 @@ public class DefaultEFormidlingService : IEFormidlingService
         }
     }
 
+    /// <param name="instance">The instance whose data elements are shipped.</param>
+    /// <param name="requestHeaders">Headers for the eFormidling client calls.</param>
+    /// <param name="eformidlingMetadataFilename">Filename already claimed by the metadata document.</param>
+    /// <param name="config">The validated eFormidling configuration for the task.</param>
+    /// <param name="tolerateUploadFailures">
+    /// Set when resuming a message created by an earlier attempt, where re-uploading an attachment
+    /// that already exists may be rejected. Known blind spot: a <see cref="WebException"/> here
+    /// cannot be told apart from a transient failure, so a resume could in principle proceed to
+    /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behaviour is
+    /// unverified. Hence the loud warning per skipped attachment rather than silence.
+    /// </param>
     private async Task SendInstanceData(
         Instance instance,
         Dictionary<string, string> requestHeaders,

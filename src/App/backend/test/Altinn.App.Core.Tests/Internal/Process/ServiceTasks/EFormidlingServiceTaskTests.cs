@@ -38,24 +38,12 @@ public class EFormidlingServiceTaskTests
         );
     }
 
-    private void SetupFreshInstance(Instance instance, string? shipmentOwnerWorkflowId = null)
+    private static void SetShipmentOwner(Instance instance, string shipmentOwnerWorkflowId)
     {
-        var freshInstance = new Instance
+        instance.DataValues = new Dictionary<string, string>
         {
-            Id = instance.Id,
-            Process = instance.Process,
-            DataValues = shipmentOwnerWorkflowId is null
-                ? null
-                : new Dictionary<string, string>
-                {
-                    [EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey] = shipmentOwnerWorkflowId,
-                },
+            [EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey] = shipmentOwnerWorkflowId,
         };
-        _instanceClientMock
-            .Setup(x =>
-                x.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(freshInstance);
     }
 
     [Fact]
@@ -136,7 +124,6 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance);
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
@@ -189,7 +176,6 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance);
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
@@ -259,7 +245,6 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance);
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
@@ -301,7 +286,7 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance, shipmentOwnerWorkflowId: Guid.NewGuid().ToString());
+        SetShipmentOwner(instance, Guid.NewGuid().ToString());
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
@@ -331,7 +316,7 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance, shipmentOwnerWorkflowId: _workflowId.ToString());
+        SetShipmentOwner(instance, _workflowId.ToString());
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
@@ -357,7 +342,6 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance);
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
@@ -390,7 +374,6 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance);
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
@@ -428,7 +411,6 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetupFreshInstance(instance);
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
