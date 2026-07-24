@@ -10,12 +10,15 @@ let _switchTab = () => {};
 let _loadQuery = async () => {};
 /** @type {() => void} */
 let _applyFilter = () => {};
+/** @type {() => void} */
+let _applyViewUis = () => {};
 
-/** @param {{ switchTab: (tab: string) => void, loadQuery: () => Promise<void>, applyFilter: () => void }} fns */
+/** @param {{ switchTab: (tab: string) => void, loadQuery: () => Promise<void>, applyFilter: () => void, applyViewUis: () => void }} fns */
 export const bindUrlCallbacks = (fns) => {
     _switchTab = fns.switchTab;
     _loadQuery = fns.loadQuery;
     _applyFilter = fns.applyFilter;
+    _applyViewUis = fns.applyViewUis;
 };
 
 /** @type {{ from: string, to: string } | null} */
@@ -111,6 +114,8 @@ export const syncUrl = () => {
         .filter(([, v]) => v)
         .map(([k]) => k);
     if (cpt.length) p.set('cpt', cpt.join(','));
+    if (state.recentView !== 'chains') p.set('rv', state.recentView);
+    if (state.queryView !== 'compact') p.set('qv', state.queryView);
     const expKeys = /** @type {string[]} */ ([]);
     for (const [section, container] of [
         ['inbox', dom.liveContainer],
@@ -143,6 +148,8 @@ export const restoreUrl = () => {
         document.getElementById('recent-section')?.classList.remove('collapsed');
         for (const s of Object.keys(state.compactSections))
             state.compactSections[s] = s === 'query';
+        state.recentView = 'chains';
+        state.queryView = 'compact';
         state.sectionStatus = { live: '', recent: '', query: 'failed' };
         queryTimeRange = 0;
         customTimeRange = null;
@@ -263,6 +270,18 @@ export const restoreUrl = () => {
     for (const s of (p.get('cpt') || '').split(',').filter(Boolean)) {
         if (s in state.compactSections) state.compactSections[s] = true;
     }
+    if (state.compactSections.recent) state.recentView = 'compact';
+    const rv = p.get('rv');
+    if (rv === 'chains' || rv === 'compact' || rv === 'full') {
+        state.recentView = rv;
+        state.compactSections.recent = rv === 'compact';
+    }
+    const qv = p.get('qv');
+    if (qv === 'chains' || qv === 'compact' || qv === 'full') {
+        state.queryView = qv;
+        state.compactSections.query = qv === 'compact';
+    }
+    _applyViewUis();
     const expParam = p.get('exp');
     if (expParam) {
         try {

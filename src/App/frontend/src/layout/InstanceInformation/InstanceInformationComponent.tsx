@@ -1,20 +1,18 @@
 import React from 'react';
 
-import { Fieldset, PrettyDateAndTime } from '@app/form-component';
+import { InstanceInformation as InstanceInformationLayout, PrettyDateAndTime } from '@app/form-component';
 import { formatDate, formatISO } from 'date-fns';
+import type { InstanceSummaryDataObject } from '@app/form-component';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useLabel } from 'src/utils/layout/useLabel';
-import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompInternal } from 'src/layout/layout';
 
@@ -25,7 +23,7 @@ export const returnInstanceMetaDataObject = (
   instanceReceiver?: string | boolean | null | undefined,
   instanceReferenceNumber?: string | boolean | null | undefined,
 ) => {
-  const obj: SummaryDataObject = {};
+  const obj: InstanceSummaryDataObject = {};
   const { langAsString } = langTools;
 
   if (instanceDateSent) {
@@ -59,15 +57,12 @@ export const returnInstanceMetaDataObject = (
 
 export const getInstanceReferenceNumber = (instanceId: string): string => instanceId.split('/')[1].split('-')[4];
 
-export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInformation'>, 'elements'>) {
+function useInstanceSummaryData(elements: CompInternal<'InstanceInformation'>['elements']): InstanceSummaryDataObject {
   const { dateSent, sender, receiver, referenceNumber } = elements || {};
-
   const langTools = useLanguage();
-
   const lastChanged = useInstanceDataQuery({ select: (data) => data.lastChanged }).data;
   const instanceId = useLaxInstanceId();
   const appReceiver = useAppReceiver();
-
   const instanceOwnerParty = useInstanceOwnerParty();
 
   const instanceDateSent =
@@ -83,41 +78,50 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
 
   const instanceReferenceNumber = referenceNumber !== false && instanceId && getInstanceReferenceNumber(instanceId);
 
-  const instanceMetaDataObject = returnInstanceMetaDataObject(
+  return returnInstanceMetaDataObject(
     langTools,
     instanceDateSent,
     instanceSender,
     instanceReceiver,
     instanceReferenceNumber,
   );
+}
 
-  if (!instanceMetaDataObject) {
+export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInformation'>, 'elements'>) {
+  const summaryDataObject = useInstanceSummaryData(elements);
+
+  if (!summaryDataObject) {
     return null;
   }
 
-  return <AltinnSummaryTable summaryDataObject={instanceMetaDataObject} />;
+  return <InstanceInformationLayout summaryDataObject={summaryDataObject} />;
 }
 
 export function InstanceInformationComponent({
   baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'InstanceInformation'>) {
-  const { grid, elements } = useExternalItem(baseComponentId, 'InstanceInformation');
-  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
-    baseComponentId,
-    overrideDisplay,
-  });
+  const { grid, elements, textResourceBindings } = useItemWhenType(baseComponentId, 'InstanceInformation');
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
+  const summaryDataObject = useInstanceSummaryData(elements);
+
+  const renderLabel = overrideDisplay?.renderLabel ?? true;
+  const inTable = overrideDisplay?.renderedInTable === true;
+  const showLabel = renderLabel && !inTable;
+
+  if (!summaryDataObject) {
+    return null;
+  }
 
   return (
-    <Fieldset
-      grid={grid?.labelGrid}
-      legend={labelText}
-      description={getDescriptionComponent()}
-      help={getHelpTextComponent()}
-    >
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
-        <InstanceInformation elements={elements} />
-      </ComponentStructureWrapper>
-    </Fieldset>
+    <InstanceInformationLayout
+      componentId={componentId}
+      summaryDataObject={summaryDataObject}
+      title={showLabel ? textResourceBindings?.title : undefined}
+      description={showLabel ? textResourceBindings?.description : undefined}
+      help={showLabel ? textResourceBindings?.help : undefined}
+      labelGrid={grid?.labelGrid}
+      innerGrid={innerGrid}
+    />
   );
 }

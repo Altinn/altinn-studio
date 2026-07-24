@@ -2,6 +2,7 @@
 
 import { dom, state } from '../core/state.js';
 import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
+import { buildGroupEl, onChainGroupsChanged } from '../shared/chain-groups.js';
 import {
     syncUrl,
     customTimeRange,
@@ -14,6 +15,101 @@ import {
 import { applyFilter } from './filters.js';
 
 const QUERY_PAGE = 100;
+
+/** The current page's results, kept so view-mode switches re-render without a refetch. */
+/** @type {import('../core/state.js').Workflow[]} */
+let lastQueryWorkflows = [];
+
+/**
+ * Render the current page in the active view mode. Chains mode groups by collectionKey —
+ * results are a filtered subset of each collection (status/time/search), hence the
+ * "matching" count; the per-group history control pulls the complete story.
+ * @param {import('../core/state.js').Workflow[]} workflows
+ */
+const renderQueryResults = (workflows) => {
+    lastQueryWorkflows = workflows;
+
+    if (state.queryView === 'chains') {
+        /** @type {Map<string, import('../core/state.js').Workflow[]>} */
+        const groups = new Map();
+        /** @type {string[]} */
+        const order = [];
+        for (const wf of workflows) {
+            const key = wf.collectionKey || `solo:${wf.databaseId}`;
+            let arr = groups.get(key);
+            if (!arr) {
+                arr = [];
+                groups.set(key, arr);
+                order.push(key);
+            }
+            arr.push(wf);
+        }
+        const frag = document.createDocumentFragment();
+        for (const key of order) {
+            const members = /** @type {import('../core/state.js').Workflow[]} */ (groups.get(key));
+            if (key.startsWith('solo:')) {
+                const wf = members[0];
+                const card = document.createElement('div');
+                card.className = 'workflow-card compact';
+                card.style.animation = 'none';
+                card.innerHTML = buildCompactCardHTML(wf, true);
+                setCardFilterData(card, wf);
+                frag.appendChild(card);
+            } else {
+                frag.appendChild(buildGroupEl(key, members, { countNoun: 'matching' }));
+            }
+        }
+        dom.queryContainer.replaceChildren(frag);
+        return;
+    }
+
+    dom.queryContainer.replaceChildren();
+    for (const wf of workflows) {
+        const card = document.createElement('div');
+        const forceExpand = state.pendingExpand.delete(wf.databaseId);
+        const compact = state.compactSections.query && !forceExpand;
+        card.className = `workflow-card${compact ? ' compact' : ''}`;
+        card.style.animation = 'none';
+        card.innerHTML = compact ? buildCompactCardHTML(wf, true) : buildCardHTML(wf, true);
+        setCardFilterData(card, wf);
+        dom.queryContainer.appendChild(card);
+    }
+};
+
+// A history graph landing re-renders the current page (group counts + spine change).
+onChainGroupsChanged(() => {
+    if (state.queryLoaded && state.queryView === 'chains') renderQueryResults(lastQueryWorkflows);
+});
+
+/** Reflect the current query view mode on the tab's segmented control. */
+export const applyQueryViewUi = () => {
+    for (const mode of ['chains', 'compact', 'full']) {
+        document
+            .getElementById(`query-view-${mode}`)
+            ?.classList.toggle('active', state.queryView === mode);
+    }
+};
+
+/** @param {'chains' | 'compact' | 'full'} mode */
+window.setQueryView = (mode) => {
+    if (!['chains', 'compact', 'full'].includes(mode) || state.queryView === mode) return;
+    state.queryView = mode;
+    state.compactSections.query = mode === 'compact';
+    try {
+        localStorage.setItem('queryView', mode);
+        localStorage.setItem('compact:query', mode === 'compact' ? '1' : '0');
+    } catch {
+        /* ignore */
+    }
+    applyQueryViewUi();
+    if (state.queryLoaded) {
+        renderQueryResults(lastQueryWorkflows);
+        applyFilter();
+    }
+    syncUrl();
+};
+
+applyQueryViewUi();
 
 // Pagination state
 let queryPage = 0;
@@ -130,21 +226,13 @@ const fetchQuery = async (opts) => {
         queryPage = page;
 
         if (workflows.length === 0) {
+            lastQueryWorkflows = [];
             dom.queryEmpty.textContent = 'No workflows found';
             dom.queryEmpty.style.display = 'block';
             updatePager(0, 0);
         } else {
             dom.queryEmpty.style.display = 'none';
-            for (const wf of workflows) {
-                const card = document.createElement('div');
-                const forceExpand = state.pendingExpand.delete(wf.databaseId);
-                const compact = state.compactSections.query && !forceExpand;
-                card.className = `workflow-card${compact ? ' compact' : ''}`;
-                card.style.animation = 'none';
-                card.innerHTML = compact ? buildCompactCardHTML(wf, true) : buildCardHTML(wf, true);
-                setCardFilterData(card, wf);
-                dom.queryContainer.appendChild(card);
-            }
+            renderQueryResults(workflows);
             if (body.nextCursor) {
                 queryPageCursors[page + 1] = body.nextCursor;
             }

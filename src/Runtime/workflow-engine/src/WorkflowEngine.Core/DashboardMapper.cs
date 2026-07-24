@@ -17,6 +17,11 @@ internal sealed record DashboardStepDto(
     bool StateChanged
 );
 
+/// <summary>
+/// A related workflow (dependency, dependent, or link) as shown on a dashboard card.
+/// </summary>
+internal sealed record DashboardRelationDto(Guid DatabaseId, string OperationId, string Status);
+
 internal sealed record DashboardWorkflowDto(
     Guid DatabaseId,
     string IdempotencyKey,
@@ -32,6 +37,12 @@ internal sealed record DashboardWorkflowDto(
     DateTimeOffset? StartAt,
     DateTimeOffset? BackoffUntil,
     bool HasState,
+    bool? IsHead,
+    // Relation arrays are tri-state on the wire: omitted (null) = not loaded by the source query
+    // (the frontend fetches on demand via /dashboard/relations), [] = loaded and none exist.
+    IReadOnlyList<DashboardRelationDto>? DependsOn,
+    IReadOnlyList<DashboardRelationDto>? Dependents,
+    IReadOnlyList<DashboardRelationDto>? Links,
     IReadOnlyList<DashboardStepDto> Steps
 );
 
@@ -82,7 +93,14 @@ internal static class DashboardMapper
             workflow.StartAt,
             workflow.BackoffUntil,
             workflow.InitialState is not null || ordered.Any(s => s.StateOut is not null),
+            workflow.IsHead,
+            MapRelations(workflow.Dependencies),
+            MapRelations(workflow.Dependents),
+            MapRelations(workflow.Links),
             mapped
         );
     }
+
+    internal static IReadOnlyList<DashboardRelationDto>? MapRelations(IEnumerable<Workflow>? related) =>
+        related?.Select(r => new DashboardRelationDto(r.DatabaseId, r.OperationId, r.Status.ToString())).ToList();
 }

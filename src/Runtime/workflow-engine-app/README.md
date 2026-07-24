@@ -34,13 +34,13 @@ The database is migrated automatically on startup.
 
 ### Ports & URLs
 
-| Service    | URL                               | Notes                       |
-| ---------- | --------------------------------- | --------------------------- |
-| Engine API | http://localhost:9090             | Swagger UI at `/swagger`    |
-| Dashboard  | http://localhost:9090             | Real-time monitoring at `/` |
-| Localtest  | http://local.altinn.cloud:8000    | Platform and app callbacks  |
-| PostgreSQL | localhost:9543                    | Localtest workflow database |
-| Public API | http://workflow-engine.local.altinn.cloud:8000 | Proxied through localtest |
+| Service    | URL                                            | Notes                       |
+| ---------- | ---------------------------------------------- | --------------------------- |
+| Engine API | http://localhost:9090                          | Swagger UI at `/swagger`    |
+| Dashboard  | http://localhost:9090                          | Real-time monitoring at `/` |
+| Localtest  | http://local.altinn.cloud:8000                 | Platform and app callbacks  |
+| PostgreSQL | localhost:9543                                 | Localtest workflow database |
+| Public API | http://workflow-engine.local.altinn.cloud:8000 | Proxied through localtest   |
 
 ### Running tests
 
@@ -56,7 +56,7 @@ No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and W
 
 ```yaml
 image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
-tag: "5b68c250a0"
+tag: '693d3e6cd3'
 ```
 
 > Passing `--dev-workflow-engine` instead **disables** that container and routes the engine binding to a local host process (so you can run it yourself with `dotnet run`). In that mode the pinned tag is not used — only the default `studioctl env up` consumes it.

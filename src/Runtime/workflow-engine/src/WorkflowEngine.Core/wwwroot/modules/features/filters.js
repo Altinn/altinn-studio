@@ -190,8 +190,10 @@ export const applyFilter = () => {
      * @param {boolean} [isLiveTab]
      */
     const filterContainer = (container, countEl, sectionStatus, isLiveTab) => {
+        // Direct children only: chains-view groups filter as one unit, so the cards
+        // expanded inside them must not be matched (or counted) individually.
         const cards = /** @type {HTMLElement[]} */ ([
-            ...container.querySelectorAll('.workflow-card'),
+            ...container.querySelectorAll(':scope > .workflow-card, :scope > .chain-group'),
         ]);
         let matched = 0;
         /** @type {Record<string, number>} */
@@ -224,9 +226,7 @@ export const applyFilter = () => {
                         // cardLabels is lowercased, so lowercase the key to match
                         // mixed-case keys (e.g. partyId, processNextInstanceGuid).
                         const k = key.toLowerCase();
-                        const hasMatch = [...values].some((v) =>
-                            cardLabels.includes(`${k}:${v}`),
-                        );
+                        const hasMatch = [...values].some((v) => cardLabels.includes(`${k}:${v}`));
                         if (!hasMatch) {
                             labelHidden = true;
                             break;

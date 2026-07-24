@@ -63,6 +63,8 @@ public class WorkflowEngineCommandValidatorTests
         services.AddTransient<IWorkflowEngineCommand, DeleteDataElementsIfConfigured>();
         services.AddTransient<IWorkflowEngineCommand, DeleteInstanceIfConfigured>();
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
+        services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, SaveProcessStateToStorage>();
+        services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
     }
 }

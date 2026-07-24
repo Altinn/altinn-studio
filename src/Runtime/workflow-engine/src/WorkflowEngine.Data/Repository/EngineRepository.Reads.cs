@@ -745,6 +745,7 @@ internal sealed partial class EngineRepository
     public async Task<IReadOnlyList<Workflow>?> GetWorkflowDependencyGraph(
         Guid workflowId,
         string ns,
+        int? limit = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -760,7 +761,7 @@ internal sealed partial class EngineRepository
                 async ct =>
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    graphWorkflowIds = await GetWorkflowDependencyGraphIds(conn, workflowId, ns, ct);
+                    graphWorkflowIds = await GetWorkflowDependencyGraphIds(conn, workflowId, ns, limit, ct);
                 },
                 cancellationToken
             );
@@ -798,11 +799,14 @@ internal sealed partial class EngineRepository
     /// <summary>
     /// Returns workflow IDs in the connected component reachable from the root workflow
     /// through dependency and link relations in either direction, scoped to the namespace.
+    /// When <paramref name="limit"/> is set, keeps only the most recently created workflows,
+    /// bounding the hydration cost for pathologically large components.
     /// </summary>
     private static async Task<List<Guid>> GetWorkflowDependencyGraphIds(
         NpgsqlConnection conn,
         Guid workflowId,
         string ns,
+        int? limit,
         CancellationToken cancellationToken
     )
     {
@@ -833,14 +837,18 @@ internal sealed partial class EngineRepository
                 JOIN graph g ON n.from_id = g.id
                 WHERE w.namespace = @ns
             )
-            SELECT id
-            FROM graph
+            SELECT g.id
+            FROM graph g
+            JOIN engine.workflows w ON w.id = g.id
+            ORDER BY w.created_at DESC, w.id DESC
+            LIMIT @limit
             """;
 
         var workflowIds = new List<Guid>();
         await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
         cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
+        cmd.Parameters.Add(new NpgsqlParameter<int?>("limit", limit) { NpgsqlDbType = NpgsqlDbType.Integer });
 
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
