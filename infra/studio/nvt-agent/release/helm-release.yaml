@@ -88,11 +88,14 @@ spec:
       retries: 3
   values:
     agentSchedule:
-      allowedProducers:
-        - system:serviceaccount:nvt:nvt-github-comments-producer
       enabled: true
       maxParallelism: 2
       name: default
+      producerPolicies:
+        - defaultWorkflow: implement-pr
+          identity: system:serviceaccount:nvt:nvt-github-comments-producer
+          workflows:
+            - implement-pr
       profileSelection:
         onNoMatch: deny
         rules:
@@ -125,8 +128,6 @@ spec:
                 permissions:
                   contents: write
                   workflows: write
-                preparations:
-                  - operation: identity
                 provider: github-fork
                 repositories:
                   - mirkoSekulic/altinn-studio
@@ -140,8 +141,6 @@ spec:
                   contents: read
                   issues: read
                   pull_requests: write
-                preparations:
-                  - operation: identity
                 provider: github-altinn
                 repositories:
                   - Altinn/altinn-studio
@@ -174,8 +173,6 @@ spec:
                 permissions:
                   contents: write
                   workflows: write
-                preparations:
-                  - operation: identity
                 provider: github-fork
                 repositories:
                   - mirkoSekulic/altinn-studio
@@ -189,8 +186,6 @@ spec:
                   contents: read
                   issues: read
                   pull_requests: write
-                preparations:
-                  - operation: identity
                 provider: github-altinn
                 repositories:
                   - Altinn/altinn-studio
@@ -202,6 +197,13 @@ spec:
             autonomy: trusted-local
             type: claude
             user: non-root
+      workflowProfiles:
+        - name: implement-pr
+          workspaceInstructions: |
+            - Install any tool needed for the task. For system packages, use `nvt-as-root <command>`; it runs directly as root or through passwordless sudo for non-root agents.
+            - Push branches only to the fork `mirkoSekulic/altinn-studio`; never push directly to upstream.
+            - Create and update PRs in `Altinn/altinn-studio` with `gh-auth --provider github-altinn --repo Altinn/altinn-studio`.
+            - Use a Conventional Commits prefix in PR titles, such as `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, or `chore:`.
       suspend: false
       template:
         resources:
@@ -236,6 +238,9 @@ spec:
                   content: |
                     check_for_update_on_startup = false
 
+                    [notice]
+                    hide_rate_limit_model_nudge = true
+
                     [projects."/workspace"]
                     trust_level = "trusted"
             plugins:
@@ -259,12 +264,16 @@ spec:
               - config:
                   credentials:
                     - identity:
-                        mode: provider
+                        mode: explicit
+                        name: "nvt-agent[bot]"
+                        email: "289161147+nvt-agent[bot]@users.noreply.github.com"
                       match: https://github.com/mirkoSekulic/altinn-studio
                       provider: github-fork
                       username: x-access-token
                     - identity:
-                        mode: provider
+                        mode: explicit
+                        name: "nvt-agent-altinn[bot]"
+                        email: "289165276+nvt-agent-altinn[bot]@users.noreply.github.com"
                       match: https://github.com/Altinn/altinn-studio
                       provider: github-altinn
                       username: x-access-token
@@ -500,6 +509,7 @@ spec:
         scheduleName: default
         scheduleNamespace: nvt
         tokenExpirationSeconds: 3600
+        workflow: implement-pr
       tolerations:
         - effect: NoSchedule
           key: purpose
