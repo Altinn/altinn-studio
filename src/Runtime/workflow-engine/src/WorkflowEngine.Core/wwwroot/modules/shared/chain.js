@@ -106,9 +106,7 @@ const GAP_THRESHOLD_MS = 1000;
 /** Wall-clock end of a terminal workflow, NaN while it is still running. @param {Workflow} wf */
 const wallClockEnd = (wf) =>
     TERMINAL_STATUSES.has(wf.status)
-        ? new Date(
-              wf.removedAt || wf.steps.at(-1)?.updatedAt || wf.updatedAt || wf.createdAt,
-          ).getTime()
+        ? new Date(wf.removedAt || wf.steps.at(-1)?.updatedAt || wf.updatedAt || wf.createdAt).getTime()
         : NaN;
 
 /**

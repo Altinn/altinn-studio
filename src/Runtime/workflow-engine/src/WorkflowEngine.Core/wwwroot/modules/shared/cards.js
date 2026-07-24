@@ -1,14 +1,7 @@
 /* Card rendering — shared by live, recent, and query views */
 
 import { stepSubLabel, state, workflowData, parseTransition } from '../core/state.js';
-import {
-    esc,
-    escJsArg,
-    formatElapsed,
-    fmtTime,
-    fmtNamespace,
-    abbrevGuids,
-} from '../core/helpers.js';
+import { esc, escJsArg, formatElapsed, fmtTime, fmtNamespace, abbrevGuids } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
 /** @param {string} text @param {string} [title] */
@@ -166,14 +159,7 @@ export const buildLabelsHTML = (wf, interactive) => {
     const instance = wf.labels?.processNextInstanceGuid;
     if (instance) {
         // Abbreviated for display so headers don't wrap; tooltip, filter, and copy keep the full id.
-        html +=
-            sep +
-            seg(
-                'processNextInstanceGuid',
-                instance,
-                abbrevGuids(instance) ?? instance,
-                'seg instance',
-            );
+        html += sep + seg('processNextInstanceGuid', instance, abbrevGuids(instance) ?? instance, 'seg instance');
         html += copyIconHTML(instance, 'Copy instance id');
     }
     if (wf.labels) {

@@ -103,7 +103,7 @@ of whatever happens to Main afterwards (post-commit failure, reject/abandon). Th
 and the next transition key off Main only: a slow or failing event registration can never gate the
 API response or wedge the instance's process pipeline, and the side effects start at the commit
 rather than after e.g. a service task. One workflow per effect means the effects also fail
-independently of _each other_: a dead-lettered event registration cannot starve the notification
+independently of *each other*: a dead-lettered event registration cannot starve the notification
 behind it, each effect gets its own retry pacing and redrive, and a failed workflow is named for
 the one effect it carries. When there are no side-effect commands, a single workflow without the
 enqueue step is emitted — identical to the pre-split behaviour.
@@ -255,7 +255,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 **Capture point**: `ProcessEngine` captures state BEFORE the in-memory process state is mutated to the next task. The blob carries the OLD process state (CurrentTask = the task being left). `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
 
-**Side-effects workflow state**: the side-effects workflow carries the **commit-time state blob** as its own `State`. `EnqueueSideEffectsWorkflow` runs immediately after `SaveProcessStateToStorage`, so its `StateIn` — the blob it forwards — is exactly the state the transition committed: the (NEW) process state plus every data change made up to the commit. Side-effect commands therefore always act on committed data, even when the transition ended the process and the instance was auto-deleted from Storage. (They do not see changes made by _later_ critical post-commit commands such as `ExecuteServiceTask` — the events describe the commit, not what happened after it.)
+**Side-effects workflow state**: the side-effects workflow carries the **commit-time state blob** as its own `State`. `EnqueueSideEffectsWorkflow` runs immediately after `SaveProcessStateToStorage`, so its `StateIn` — the blob it forwards — is exactly the state the transition committed: the (NEW) process state plus every data change made up to the commit. Side-effect commands therefore always act on committed data, even when the transition ended the process and the instance was auto-deleted from Storage. (They do not see changes made by *later* critical post-commit commands such as `ExecuteServiceTask` — the events describe the commit, not what happened after it.)
 
 **Why commands read from `instance.Process.CurrentTask`**: In the old ProcessEngine, task-end/start handlers received `taskId` as an explicit parameter. The new commands read directly from `instance.Process.CurrentTask` — single source of truth. `MutateProcessState` ensures each command group sees the correct CurrentTask.
 
@@ -271,7 +271,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 
 3. **Register in DI**: add `services.AddTransient<IWorkflowEngineCommand, MyCommand>()` in `ServiceCollectionExtensions.cs`
 
-4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddCriticalPostCommitCommand` for post-commit work the transition must wait on, `AddSideEffectCommand` for fire-and-forget post-commit work that runs as its own non-gating single-step side-effects workflow). Side-effect commands see the commit-time state (the exact state `SaveProcessStateToStorage` persisted) — but remember the only timing guarantee is that they never gate the transition: they are independent roots the engine may start as soon as they are enqueued at commit, possibly before the process-next response is sent, in parallel with Main's critical post-commit commands _and with each other_, and they must stay idempotent and non-blocking.
+4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddCriticalPostCommitCommand` for post-commit work the transition must wait on, `AddSideEffectCommand` for fire-and-forget post-commit work that runs as its own non-gating single-step side-effects workflow). Side-effect commands see the commit-time state (the exact state `SaveProcessStateToStorage` persisted) — but remember the only timing guarantee is that they never gate the transition: they are independent roots the engine may start as soon as they are enqueued at commit, possibly before the process-next response is sent, in parallel with Main's critical post-commit commands *and with each other*, and they must stay idempotent and non-blocking.
 
 5. **Startup validation**: `WorkflowEngineCommandValidator.Validate` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
 

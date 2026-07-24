@@ -57,7 +57,9 @@ const aggregateStatus = (members) => {
 const spanHTML = (members) => {
     const starts = members.map((m) => new Date(m.createdAt).getTime());
     const ends = members.map((m) =>
-        new Date(m.removedAt || m.steps.at(-1)?.updatedAt || m.updatedAt || m.createdAt).getTime(),
+        new Date(
+            m.removedAt || m.steps.at(-1)?.updatedAt || m.updatedAt || m.createdAt,
+        ).getTime(),
     );
     const span = (Math.max(...ends) - Math.min(...starts)) / 1000;
     if (!Number.isFinite(span) || span < 0) return '';

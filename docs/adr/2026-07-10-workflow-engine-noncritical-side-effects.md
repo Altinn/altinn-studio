@@ -7,7 +7,7 @@
 ## Problem
 
 A process-next transition ran as **one** workflow, so the ProcessNext response and the next
-transition on the instance waited for _everything_ — including pure outbound notifications. A slow
+transition on the instance waited for *everything* — including pure outbound notifications. A slow
 or failing Altinn Events registration could gate the API response or wedge the instance's process
 pipeline even though the transition had already committed.
 
@@ -92,7 +92,7 @@ poisoned registration block every later event for the instance.
 - **Step-level non-critical flag**: not expressible — the workflow, not the step, is the unit of
   dependency and heads tracking.
 - **Controller-enqueued after settle**: a crash between settle and enqueue loses the side effects
-  permanently; moving the enqueue _inside_ the workflow (this decision) is the fix.
+  permanently; moving the enqueue *inside* the workflow (this decision) is the fix.
 
 ## Related
 

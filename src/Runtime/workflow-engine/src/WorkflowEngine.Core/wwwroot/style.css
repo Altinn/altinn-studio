@@ -2786,9 +2786,7 @@ pre.diff-remove {
 }
 [data-theme='altinn'] .workflow-card.side-chain {
     border-color: rgba(var(--violet-rgb), 0.4);
-    box-shadow:
-        var(--shadow-card),
-        inset 3px 0 0 rgba(var(--violet-rgb), 0.45);
+    box-shadow: var(--shadow-card), inset 3px 0 0 rgba(var(--violet-rgb), 0.45);
 }
 [data-theme='altinn'] .workflow-card:not(.compact) .card-header:hover {
     background: var(--bg3);

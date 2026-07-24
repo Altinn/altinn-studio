@@ -46,7 +46,9 @@ const renderQueryResults = (workflows) => {
         }
         const frag = document.createDocumentFragment();
         for (const key of order) {
-            const members = /** @type {import('../core/state.js').Workflow[]} */ (groups.get(key));
+            const members = /** @type {import('../core/state.js').Workflow[]} */ (
+                groups.get(key)
+            );
             if (key.startsWith('solo:')) {
                 const wf = members[0];
                 const card = document.createElement('div');
