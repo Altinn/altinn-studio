@@ -34,21 +34,51 @@ internal sealed class EFormidlingReceiversSignatureMigration
     /// <summary>
     /// Whether the project enables nullable reference type <em>annotations</em> (<c>enable</c> or
     /// <c>annotations</c>; <c>warnings</c> enables only the warning context, where <c>string?</c>
-    /// would still raise CS8632).
+    /// would still raise CS8632). Reads the project file first (its properties evaluate after the
+    /// auto-imported props and win), then falls back to the nearest <c>Directory.Build.props</c> up
+    /// the directory tree - the two places an app realistically sets <c>&lt;Nullable&gt;</c>. This is
+    /// not full MSBuild evaluation (conditional property groups and explicit imports are not
+    /// followed); per-file <c>#nullable</c> directives override the project default either way.
     /// </summary>
     public static bool ProjectEnablesNullableAnnotations(string projectFile)
     {
+        if (ReadNullableProperty(projectFile) is { } fromProject)
+        {
+            return IsAnnotationsEnabled(fromProject);
+        }
+
+        for (
+            var directory = Path.GetDirectoryName(Path.GetFullPath(projectFile));
+            directory is not null;
+            directory = Path.GetDirectoryName(directory)
+        )
+        {
+            var propsFile = Path.Combine(directory, "Directory.Build.props");
+            if (File.Exists(propsFile))
+            {
+                // MSBuild auto-imports only the nearest Directory.Build.props; stop at the first hit.
+                return ReadNullableProperty(propsFile) is { } fromProps && IsAnnotationsEnabled(fromProps);
+            }
+        }
+
+        return false;
+    }
+
+    private static string? ReadNullableProperty(string msbuildFile)
+    {
         try
         {
-            var value = XDocument.Load(projectFile).Descendants("Nullable").LastOrDefault()?.Value.Trim();
-            return string.Equals(value, "enable", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "annotations", StringComparison.OrdinalIgnoreCase);
+            return XDocument.Load(msbuildFile).Descendants("Nullable").LastOrDefault()?.Value.Trim();
         }
         catch (Exception ex) when (ex is System.Xml.XmlException or IOException or UnauthorizedAccessException)
         {
-            return false;
+            return null;
         }
     }
+
+    private static bool IsAnnotationsEnabled(string nullableValue) =>
+        string.Equals(nullableValue, "enable", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(nullableValue, "annotations", StringComparison.OrdinalIgnoreCase);
 
     public MigrationResult Migrate()
     {

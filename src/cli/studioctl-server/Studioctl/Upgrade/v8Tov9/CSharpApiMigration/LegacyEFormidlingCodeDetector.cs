@@ -11,11 +11,16 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </summary>
 internal sealed class LegacyEFormidlingCodeDetector
 {
+    // IEFormidlingService itself still exists in v9 - only the single-argument
+    // SendEFormidlingShipment(Instance) overload was removed, so type references to the service
+    // are fine and only the legacy call/implementation shape is detected (see Detect()).
     private static readonly IReadOnlySet<string> _removedTypes = new HashSet<string>(StringComparer.Ordinal)
     {
-        "IEFormidlingService",
         "IEFormidlingLegacyConfigurationProvider",
     };
+
+    private const string LegacyShipmentMethod = "SendEFormidlingShipment";
+    private const int LegacyShipmentArity = 1;
 
     private static readonly IReadOnlySet<string> _removedMembers = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -45,6 +50,8 @@ internal sealed class LegacyEFormidlingCodeDetector
             CSharpSyntaxQueries
                 .TypesImplementing(file, _removedTypes)
                 .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedTypes))
+                .Concat(CSharpSyntaxQueries.InvokedMethodsWithArity(file, LegacyShipmentMethod, LegacyShipmentArity))
+                .Concat(CSharpSyntaxQueries.MethodDeclarations(file, LegacyShipmentMethod, LegacyShipmentArity))
         );
 
         var settingMatches = _scanner.Files.SelectMany(file =>

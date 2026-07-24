@@ -41,6 +41,24 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void TaskEventDetector_FlagsBaseListGenericTypeArgument()
+    {
+        _app.Write(
+            "logic/Wrapper.cs",
+            """
+            public class Wrapper : List<IProcessTaskEnd>
+            {
+            }
+            """
+        );
+
+        var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Wrapper.cs") && w.Contains("IProcessTaskEnd"));
+    }
+
+    [Fact]
     public void TaskEventDetector_CleanApp_ReportsNothing()
     {
         _app.Write(
@@ -85,6 +103,31 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains(result.Warnings, w => w.Contains("FailedContinueProcessNext"));
     }
 
+    [Fact]
+    public void ServiceTaskResultDetector_FlagsQualifiedFailedFactory_NotUnrelatedFailed()
+    {
+        _app.Write(
+            "logic/MyServiceTask.cs",
+            """
+            public class MyServiceTask
+            {
+                public ServiceTaskResult Run() => ServiceTaskResult.Failed(_handling);
+
+                public void Unrelated() => _telemetry.Failed("other");
+            }
+            """
+        );
+
+        var result = new ServiceTaskResultApiDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyServiceTask.cs:3") && w.Contains("ServiceTaskResult.Failed")
+        );
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("MyServiceTask.cs:5"));
+    }
+
     // --- LegacyEFormidlingCodeDetector -----------------------------------------------------------
 
     [Fact]
@@ -105,6 +148,59 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.True(result.ManualActionRequired);
         Assert.Contains(result.Warnings, w => w.Contains("LegacyProvider : IEFormidlingLegacyConfigurationProvider"));
         Assert.Contains(result.Warnings, w => w.Contains("EnableEFormidling"));
+    }
+
+    [Fact]
+    public void EFormidlingCodeDetector_FlagsLegacySingleArgShipment_NotMigratedUsage()
+    {
+        _app.Write(
+            "logic/LegacySender.cs",
+            """
+            public class LegacySender : IEFormidlingService
+            {
+                public Task SendEFormidlingShipment(Instance instance) => Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "logic/MigratedSender.cs",
+            """
+            public class MigratedSender
+            {
+                private readonly IEFormidlingService _service;
+
+                public Task Send(Instance instance, ValidAltinnEFormidlingConfiguration config) =>
+                    _service.SendEFormidlingShipment(instance, config);
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("LegacySender.cs") && w.Contains("SendEFormidlingShipment"));
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("MigratedSender.cs"));
+    }
+
+    [Fact]
+    public void EFormidlingCodeDetector_FlagsLegacySingleArgInvocation()
+    {
+        _app.Write(
+            "logic/Caller.cs",
+            """
+            public class Caller
+            {
+                private readonly IEFormidlingService _service;
+
+                public Task Send(Instance instance) => _service.SendEFormidlingShipment(instance);
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
     }
 
     // --- RemovedInternalProcessTypeDetector ------------------------------------------------------
@@ -275,6 +371,60 @@ public sealed class CSharpApiMigrationTests : IDisposable
         );
 
         Assert.Equal(expected, EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
+    }
+
+    [Fact]
+    public void ProjectEnablesNullableAnnotations_FallsBackToNearestDirectoryBuildProps()
+    {
+        var projectFile = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <PropertyGroup>
+                <TargetFramework>net8.0</TargetFramework>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+        _app.Write(
+            "Directory.Build.props",
+            """
+            <Project>
+              <PropertyGroup>
+                <Nullable>enable</Nullable>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+
+        Assert.True(EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
+    }
+
+    [Fact]
+    public void ProjectEnablesNullableAnnotations_ProjectFileWinsOverDirectoryBuildProps()
+    {
+        var projectFile = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <PropertyGroup>
+                <Nullable>disable</Nullable>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+        _app.Write(
+            "Directory.Build.props",
+            """
+            <Project>
+              <PropertyGroup>
+                <Nullable>enable</Nullable>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+
+        Assert.False(EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
     }
 
     // --- Scanner ---------------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -118,7 +119,28 @@ internal sealed class NuGetDowngradeResolver
             Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start dotnet restore.");
         var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
+        try
+        {
+            await process.WaitForExitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // WaitForExitAsync only stops waiting on cancellation; the restore (and its child
+            // processes) keeps running unless killed explicitly.
+            try
+            {
+                if (!process.HasExited)
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or Win32Exception or NotSupportedException)
+            {
+                // Best-effort: the process may have exited between the check and the kill.
+            }
+
+            throw;
+        }
 
         // NU1605 makes restore exit non-zero; we don't treat that as fatal - the downgrade text is what
         // we're after, and it appears on stdout/stderr regardless of exit code.

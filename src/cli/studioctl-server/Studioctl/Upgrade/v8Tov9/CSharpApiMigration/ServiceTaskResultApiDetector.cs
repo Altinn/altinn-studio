@@ -24,9 +24,20 @@ internal sealed class ServiceTaskResultApiDetector
         "FailedContinueProcessNext",
     };
 
+    // `Failed` is too generic a name to match bare calls (unlike the distinctive factories above),
+    // so the removed Failed(ServiceTaskErrorHandling) factory is only matched receiver-qualified.
+    private static readonly IReadOnlySet<string> _removedQualifiedFactories = new HashSet<string>(
+        StringComparer.Ordinal
+    )
+    {
+        "Failed",
+    };
+
+    private const string ResultTypeName = "ServiceTaskResult";
+
     private const string Summary =
         "The ServiceTaskResult API changed in v9. The ServiceTaskErrorHandling record and "
-        + "ServiceTaskErrorStrategy enum are removed, along with the FailedAbortProcessNext()/"
+        + "ServiceTaskErrorStrategy enum are removed, along with the Failed(...)/FailedAbortProcessNext()/"
         + "FailedContinueProcessNext(...) factories. Rebuild the result using "
         + "ServiceTaskResult.FailedRetryable(message) (transient failure the engine should retry), "
         + "FailedPermanent(message) (give up), Success(action) or SuccessWithoutAutoAdvance() (succeed but "
@@ -45,6 +56,7 @@ internal sealed class ServiceTaskResultApiDetector
             CSharpSyntaxQueries
                 .TypeReferences(file, _removedTypes)
                 .Concat(CSharpSyntaxQueries.InvokedMethods(file, _removedFactories))
+                .Concat(CSharpSyntaxQueries.InvokedMethodsOn(file, ResultTypeName, _removedQualifiedFactories))
         );
 
         return WarnOnlyDetector.Report(Summary, matches);

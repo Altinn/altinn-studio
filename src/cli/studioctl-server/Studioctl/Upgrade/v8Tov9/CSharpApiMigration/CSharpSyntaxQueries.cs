@@ -82,8 +82,10 @@ internal static class CSharpSyntaxQueries
                 continue;
             }
 
-            // Skip base-list entries - TypesImplementing owns those.
-            if (name.FirstAncestorOrSelf<BaseListSyntax>() is not null && IsInBaseType(name))
+            // Skip the base type's own name - TypesImplementing owns that. A removed type used as a
+            // generic type ARGUMENT in a base list (e.g. `: SomeBase<IProcessTaskEnd>`) is not
+            // resolved by TypesImplementing (which only sees the outer name) and must be reported here.
+            if (IsBaseTypeOwnName(name))
             {
                 continue;
             }
@@ -119,6 +121,91 @@ internal static class CSharpSyntaxQueries
     }
 
     /// <summary>
+    /// Invocations <c>Receiver.Method(...)</c> where the receiver's trailing simple name is
+    /// <paramref name="receiverSimpleName"/> and the method name is in
+    /// <paramref name="methodNames"/>. Use for method names too generic to match bare (e.g. the
+    /// removed <c>ServiceTaskResult.Failed(...)</c> factory, where matching any <c>Failed(...)</c>
+    /// call would over-report unrelated code).
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> InvokedMethodsOn(
+        ScannedCSharpFile file,
+        string receiverSimpleName,
+        IReadOnlySet<string> methodNames
+    )
+    {
+        foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (
+                invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                && methodNames.Contains(memberAccess.Name.Identifier.Text)
+                && TrailingName(memberAccess.Expression) == receiverSimpleName
+            )
+            {
+                yield return new CSharpApiMatch(
+                    file.RelativePath,
+                    file.GetLine(invocation),
+                    $"{receiverSimpleName}.{memberAccess.Name.Identifier.Text}"
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Invocations of <paramref name="methodName"/> (member-access or bare) carrying exactly
+    /// <paramref name="argumentCount"/> arguments. Use when only one arity of a still-existing
+    /// method was removed (e.g. the single-argument <c>SendEFormidlingShipment(Instance)</c>).
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> InvokedMethodsWithArity(
+        ScannedCSharpFile file,
+        string methodName,
+        int argumentCount
+    )
+    {
+        foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            var invokedName = invocation.Expression switch
+            {
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.Text,
+                SimpleNameSyntax simple => simple.Identifier.Text,
+                _ => null,
+            };
+
+            if (invokedName == methodName && invocation.ArgumentList.Arguments.Count == argumentCount)
+            {
+                yield return new CSharpApiMatch(
+                    file.RelativePath,
+                    file.GetLine(invocation),
+                    $"{methodName}({argumentCount} arg)"
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Declarations of a method named <paramref name="methodName"/> with exactly
+    /// <paramref name="parameterCount"/> parameters - an app still implementing a removed overload
+    /// shape.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> MethodDeclarations(
+        ScannedCSharpFile file,
+        string methodName,
+        int parameterCount
+    )
+    {
+        foreach (var method in file.Root.DescendantNodes().OfType<MethodDeclarationSyntax>())
+        {
+            if (method.Identifier.Text == methodName && method.ParameterList.Parameters.Count == parameterCount)
+            {
+                yield return new CSharpApiMatch(
+                    file.RelativePath,
+                    file.GetLine(method),
+                    $"{methodName}({parameterCount} param)"
+                );
+            }
+        }
+    }
+
+    /// <summary>
     /// Member accesses <c>X.member</c> where <c>member</c> is in <paramref name="memberNames"/>,
     /// regardless of what <c>X</c> is. Used for distinctive members like
     /// <c>AppSettings.EnableEFormidling</c> that cannot be resolved without a semantic model; the
@@ -135,23 +222,38 @@ internal static class CSharpSyntaxQueries
         }
     }
 
-    private static bool IsInBaseType(SyntaxNode node)
+    /// <summary>
+    /// Whether <paramref name="name"/> is the name that identifies a base-list entry itself - the
+    /// name <see cref="TypesImplementing"/> resolves and reports - as opposed to a name nested
+    /// inside it (a generic type argument).
+    /// </summary>
+    private static bool IsBaseTypeOwnName(SimpleNameSyntax name)
     {
-        for (var current = node; current is not null; current = current.Parent)
+        var baseType = name.FirstAncestorOrSelf<BaseTypeSyntax>();
+        if (baseType is null)
         {
-            if (current is BaseTypeSyntax)
-            {
-                return true;
-            }
-
-            if (current is BaseListSyntax)
-            {
-                return false;
-            }
+            return false;
         }
 
-        return false;
+        SyntaxNode definingName = baseType.Type switch
+        {
+            QualifiedNameSyntax qualified => qualified.Right,
+            AliasQualifiedNameSyntax alias => alias.Name,
+            var type => type,
+        };
+
+        return name == definingName;
     }
+
+    /// <summary>The trailing (unqualified) identifier of an expression, or <c>null</c>.</summary>
+    private static string? TrailingName(ExpressionSyntax expression) =>
+        expression switch
+        {
+            SimpleNameSyntax simple => simple.Identifier.Text,
+            MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.Text,
+            AliasQualifiedNameSyntax alias => alias.Name.Identifier.Text,
+            _ => null,
+        };
 
     /// <summary>The trailing (unqualified) identifier of a type reference, or <c>null</c>.</summary>
     private static string? SimpleName(TypeSyntax? type) =>
