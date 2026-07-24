@@ -1,5 +1,6 @@
 export * from './AccordionItem';
 export * from './ConditionalWrapper';
+export * from './ConfirmPopover';
 export * from './Button';
 export * from './Card';
 export * from './Datepicker';
@@ -14,6 +15,7 @@ export * from './Panel';
 export * from './hooks';
 export * from './Pagination';
 export * from './Label';
+export * from './LiveValidationMessage';
 export * from './DisplayDate';
 export * from './DisplayText';
 export * from './DisplayNumber';

@@ -4,7 +4,7 @@ import type { IParty } from 'src/types/shared';
 export const getPartyMock = (overrides?: Partial<IParty>): IParty => ({
   partyId: 12345,
   name: 'Ola Privatperson',
-  ssn: '01017512345',
+  ssn: '010175*****',
   partyTypeName: PartyType.Person,
   orgNumber: null,
   unitType: undefined,

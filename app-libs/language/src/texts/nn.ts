@@ -84,6 +84,8 @@ export function nn() {
     'form_filler.file_uploader_list_header_name': 'Namn',
     'form_filler.file_uploader_list_header_status': 'Status',
     'form_filler.file_uploader_list_status_done': 'Ferdig lasta',
+    'form_filler.file_uploader_attachment_uploaded_sr':
+      'Vedlegget {0} er lasta opp. Du kan no leggje til ei skildring av vedlegget.',
     'form_filler.file_uploader_status_scanning': 'Skannar...',
     'form_filler.file_uploader_status_infected': 'Infisert',
     'form_filler.file_uploader_infected_file_alert':
@@ -219,6 +221,7 @@ export function nn() {
       'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',
     'group.row_popover_delete_message': 'Er du sikker på at du vil sletta denne rada?',
     'group.row_popover_delete_button_confirm': 'Ja, slett rada',
+    'group.row_deleted_sr': 'Rad sletta, {0} står att',
     'iframe_component.unsupported_browser_title': 'Nettlesaren din støttas ikkje',
     'iframe_component.unsupported_browser':
       'Nettlesaren di støttar ikkje iframes som brukar srcdoc. Dette kan føre til at du ikkje ser all innhaldet som er meint å visast her. Vi anbefalar deg å prøve ein annan nettlesar.',
@@ -418,6 +421,9 @@ export function nn() {
     'validation_errors.formatMaximum': 'Største gyldige verdi er {0}',
     'map_component.selectedLocation': 'Valt lokasjon: {0}° nord, {1}° øst',
     'map_component.noSelectedLocation': 'Ingen lokasjon valt',
+    'map_component.ariaLabel': 'Interaktivt kart. Bruk piltastane for å panorere, pluss og minus for å zoome.',
+    'map_component.zoomIn': 'Zoom inn',
+    'map_component.zoomOut': 'Zoom ut',
     'multiple_select_component.no_options': 'Ingen valg tilgjengelig',
     'multiple_select_component.placeholder': 'Velg...',
     'list_component.rowsPerPage': 'Rader per side',
@@ -513,10 +519,11 @@ export function nn() {
     'signing.no_action_required_panel_description_not_signed':
       'Du har ikkje tilgang til å signere dette skjemaet.',
     'signing.no_action_required_button': 'Gå til innboksen',
-    'signing.reject_modal_title': 'Avbryt signeringsprosessen',
+    'signing.reject_modal_title': 'Avbryt signering',
     'signing.reject_modal_description':
-      'Ved å avbryte signeringsprosessen blir alle signaturar sletta, og alle delegert tilgang trekt tilbake.',
-    'signing.reject_modal_button': 'Avbryt signeringsprosessen',
+      'Alle signaturar blir sletta. Alle personar du har delegert til mistar tilgang. Du kan ikkje angre dette.',
+    'signing.reject_modal_button': 'Avbryt signering',
+    'signing.reject_modal_close_button': 'Hald fram med signering',
     'signing.reject_modal_trigger_button': 'Avbryt signering',
     'signing.api_error_panel_title': 'Klarte ikkje hente signeringsstatus',
     'signing.api_error_panel_description':

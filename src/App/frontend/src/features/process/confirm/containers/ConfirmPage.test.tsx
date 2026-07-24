@@ -11,6 +11,7 @@ import { ConfirmPage, type IConfirmPageProps } from 'src/features/process/confir
 import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import { maskSsn } from 'src/utils/maskSsn';
 
 jest.mock('src/features/instance/useProcessQuery', () => ({
   ...jest.requireActual<typeof import('src/features/instance/useProcessQuery')>(
@@ -43,7 +44,7 @@ describe('ConfirmPage', () => {
       renderer: () => <ConfirmPage {...props} />,
     });
 
-    const ssn = screen.getByText(personParty.ssn ?? '', { exact: false });
+    const ssn = screen.getByText(maskSsn(personParty.ssn), { exact: false });
     expect(ssn).toBeInTheDocument();
     const name = screen.getByText(personParty.name, { exact: false });
     expect(name).toBeInTheDocument();
