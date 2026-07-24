@@ -132,7 +132,7 @@ public class ExpressionConverter : JsonConverter<Expression>
         if (value.IsLiteralValue)
         {
             // Just serialize the literal value
-            JsonSerializer.Serialize(writer, value.ValueUnion.ToObject(), options);
+            JsonSerializer.Serialize(writer, value.ValueUnion, options);
         }
         else
         {

@@ -18,10 +18,8 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     private CorrespondenceNotificationChannel? _notificationChannel;
     private CorrespondenceNotificationChannel? _reminderNotificationChannel;
     private string? _sendersReference;
-    private CorrespondenceNotificationRecipient? _recipientOverride;
-
-    [Obsolete]
-    private List<CorrespondenceNotificationRecipientWrapper>? _recipientToOverrideWrapper;
+    private IReadOnlyList<CorrespondenceNotificationRecipient>? _customRecipients;
+    private bool _overrideRegisteredContactInformation;
 
     private CorrespondenceNotificationBuilder() { }
 
@@ -123,43 +121,42 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     }
 
     /// <inheritdoc/>
+    [Obsolete("Use WithCustomRecipients instead.")]
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
-    )
-    {
-        return WithRecipientOverride(recipientOverrideBuilder.Build());
-    }
+    ) => WithCustomRecipients([recipientOverrideBuilder.Build()]);
 
     /// <inheritdoc/>
+    [Obsolete("Use WithCustomRecipients instead.")]
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         CorrespondenceNotificationRecipient recipientOverride
-    )
-    {
-        _recipientOverride = recipientOverride;
-        return this;
-    }
+    ) => WithCustomRecipients([recipientOverride]);
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Same as <see cref="WithRecipientOverride(CorrespondenceNotificationRecipient)"/>, but only applied if
+    /// <paramref name="recipientOverride"/> is not <c>null</c>.
+    /// </summary>
+    /// <param name="recipientOverride">The recipient override</param>
+    [Obsolete("Use WithCustomRecipients instead.")]
     public ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(
         CorrespondenceNotificationRecipient? recipientOverride
+    ) => recipientOverride is not null ? WithCustomRecipients([recipientOverride]) : this;
+
+    /// <inheritdoc/>
+    public ICorrespondenceNotificationBuilder WithCustomRecipients(
+        IReadOnlyList<CorrespondenceNotificationRecipient> customRecipients
     )
     {
-        if (recipientOverride is not null)
-        {
-            return WithRecipientOverride(recipientOverride);
-        }
-
+        _customRecipients = customRecipients;
         return this;
     }
 
     /// <inheritdoc/>
-    [Obsolete("Use WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride) instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverride(
-        CorrespondenceNotificationRecipientWrapper recipientToOverrideWrapper
+    public ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(
+        bool overrideRegisteredContactInformation
     )
     {
-        _recipientToOverrideWrapper ??= [];
-        _recipientToOverrideWrapper.Add(recipientToOverrideWrapper);
+        _overrideRegisteredContactInformation = overrideRegisteredContactInformation;
         return this;
     }
 
@@ -181,7 +178,8 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
             NotificationChannel = _notificationChannel,
             ReminderNotificationChannel = _reminderNotificationChannel,
             SendersReference = _sendersReference,
-            CustomRecipient = _recipientOverride,
+            CustomRecipients = _customRecipients,
+            OverrideRegisteredContactInformation = _overrideRegisteredContactInformation,
         };
     }
 }

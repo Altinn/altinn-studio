@@ -1,4 +1,3 @@
-#nullable disable
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Implementation;
@@ -30,7 +29,7 @@ public class AppResourcesSITests
         AppResourcesSI appResources = new(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -81,7 +80,7 @@ public class AppResourcesSITests
         AppResourcesSI appResources = new(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -136,7 +135,7 @@ public class AppResourcesSITests
         AppResourcesSI appResources = new(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -191,7 +190,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -207,7 +206,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -223,7 +222,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -241,7 +240,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -258,7 +257,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -276,7 +275,7 @@ public class AppResourcesSITests
         IAppResources appResources = new AppResourcesSI(
             settings,
             appMetadata,
-            null,
+            null!,
             new NullLogger<AppResourcesSI>(),
             _telemetry.Object
         );
@@ -414,7 +413,7 @@ public class AppResourcesSITests
 
     private static IAppMetadata SetupAppMetadata(
         IOptions<AppSettings> appsettings,
-        IFrontendFeatures frontendFeatures = null
+        IFrontendFeatures? frontendFeatures = null
     )
     {
         var featureManagerMock = new Mock<IFeatureManager>();

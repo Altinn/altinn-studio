@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Auth;
@@ -58,7 +59,7 @@ public class AuthorizationController : Controller
                 {
                     if (returnPartyObject)
                     {
-                        return Ok(details.SelectedParty);
+                        return Ok(PartySsnMasking.MaskParty(details.SelectedParty));
                     }
 
                     return Ok(details.SelectedParty.PartyId);
@@ -79,7 +80,7 @@ public class AuthorizationController : Controller
 
                 if (returnPartyObject)
                 {
-                    return Ok(reportee);
+                    return Ok(PartySsnMasking.MaskParty(reportee));
                 }
                 return Ok(reportee.PartyId);
             }
@@ -88,7 +89,7 @@ public class AuthorizationController : Controller
                 var details = await org.LoadDetails();
                 if (returnPartyObject)
                 {
-                    return Ok(details.Party);
+                    return Ok(PartySsnMasking.MaskParty(details.Party));
                 }
 
                 return Ok(details.Party.PartyId);
@@ -98,7 +99,7 @@ public class AuthorizationController : Controller
                 var details = await so.LoadDetails();
                 if (returnPartyObject)
                 {
-                    return Ok(details.Party);
+                    return Ok(PartySsnMasking.MaskParty(details.Party));
                 }
 
                 return Ok(details.Party.PartyId);
@@ -108,7 +109,7 @@ public class AuthorizationController : Controller
                 var details = await su.LoadDetails();
                 if (returnPartyObject)
                 {
-                    return Ok(details.Party);
+                    return Ok(PartySsnMasking.MaskParty(details.Party));
                 }
 
                 return Ok(details.Party.PartyId);

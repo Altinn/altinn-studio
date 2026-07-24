@@ -87,14 +87,33 @@ public sealed record CorrespondenceNotification
     public DateTimeOffset? RequestedSendTime { get; init; }
 
     /// <summary>
-    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
+    /// <p>A list of custom recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence.</p>
+    /// <p>Each recipient must have exactly one identifier populated (one of <see cref="CorrespondenceNotificationRecipient.EmailAddress"/>,
+    /// <see cref="CorrespondenceNotificationRecipient.MobileNumber"/>, <see cref="CorrespondenceNotificationRecipient.OrganizationNumber"/>
+    /// or <see cref="CorrespondenceNotificationRecipient.NationalIdentityNumber"/>). To notify a recipient on multiple channels, add one
+    /// entry per channel.</p>
     /// </summary>
+    /// <remarks>See <see cref="OverrideRegisteredContactInformation"/> for how these recipients interact with the registered contact information in KRR.</remarks>
+    public IReadOnlyList<CorrespondenceNotificationRecipient>? CustomRecipients { get; init; }
+
+    /// <summary>
+    /// <p>Controls how <see cref="CustomRecipients"/> interact with the contact information registered in Kontakt- og reservasjonsregisteret (KRR).</p>
+    /// <p><c>false</c> (default): notifications are sent to both the registered contact information and the <see cref="CustomRecipients"/>.</p>
+    /// <p><c>true</c>: notifications are sent only to the <see cref="CustomRecipients"/>, overriding the registered contact information.</p>
+    /// </summary>
+    /// <remarks>Can only be set to <c>true</c> when <see cref="CustomRecipients"/> is provided.</remarks>
+    public bool OverrideRegisteredContactInformation { get; init; }
+
+    /// <summary>
+    /// A single custom recipient for the notification. If not set, the notification will be sent to the recipient of the Correspondence
+    /// </summary>
+    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipients instead.")]
     public CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
 
     /// <summary>
     /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
     /// </summary>
     /// <remarks> Only the first recipient in the list will be used for sending the notification. </remarks>
-    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipient instead.")]
+    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipients instead.")]
     public IReadOnlyList<CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
 }

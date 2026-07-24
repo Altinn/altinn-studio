@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder;
 /// <summary>
 /// Builder factory for creating <see cref="CorrespondenceNotificationRecipient"/> objects.
 /// </summary>
+[Obsolete("This builder is deprecated and will be removed in a future version.")]
 public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotificationOverrideBuilder
 {
     private string? _emailAddress;
@@ -19,10 +20,12 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     /// <summary>
     /// Creates a new <see cref="CorrespondenceNotificationOverrideBuilder"/> instance.
     /// </summary>
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public static ICorrespondenceNotificationOverrideBuilder Create() =>
         new CorrespondenceNotificationOverrideBuilder();
 
     /// <inheritdoc/>
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithEmailAddress(string? emailAddress)
     {
         _emailAddress = emailAddress;
@@ -30,6 +33,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber)
     {
         _mobileNumber = mobileNumber;
@@ -37,6 +41,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithNationalIdentityNumber(
         NationalIdentityNumber? nationalIdentityNumber
     )
@@ -46,6 +51,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganisationNumber? organizationNumber)
     {
         _organizationNumber = organizationNumber;
@@ -53,6 +59,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(
         OrganisationOrPersonIdentifier? organisationOrPersonIdentifier
     )
@@ -69,9 +76,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(string identifierAsString)
     {
         OrganisationOrPersonIdentifier identifier;
@@ -104,27 +109,21 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(OrganisationNumber organizationNumber)
     {
         return WithOrganizationNumber(organizationNumber);
     }
 
     /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(NationalIdentityNumber nin)
     {
         return WithNationalIdentityNumber(nin);
     }
 
     /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(OrganisationOrPersonIdentifier identifier)
     {
         return identifier switch
@@ -138,9 +137,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithCorrespondenceNotificationRecipients(
         List<CorrespondenceNotificationRecipient> correspondenceNotificationRecipients
     )
@@ -157,6 +154,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
+    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public CorrespondenceNotificationRecipient Build()
     {
         if (_emailAddress is not null || _mobileNumber is not null)

@@ -1,0 +1,70 @@
+{
+  "name": "Count tests",
+  "testCases": [
+    {
+      "name": "Should count the elements in a list of numbers",
+      "expression": ["count", ["list", 1, 2, 3]],
+      "expects": 3
+    },
+    {
+      "name": "Should return 1 for a single element list",
+      "expression": ["count", ["list", 42]],
+      "expects": 1
+    },
+    {
+      "name": "Should return 0 for an empty list",
+      "expression": ["count", ["list"]],
+      "expects": 0
+    },
+    {
+      "name": "Should count null elements (nulls are not skipped)",
+      "expression": ["count", ["list", null, null, null]],
+      "expects": 3
+    },
+    {
+      "name": "Should count elements of mixed types without validating their contents",
+      "expression": ["count", ["list", "text", 1, true, null]],
+      "expects": 4
+    },
+    {
+      "name": "Should count string elements",
+      "expression": ["count", ["list", "a", "b"]],
+      "expects": 2
+    },
+    {
+      "name": "Should count boolean elements",
+      "expression": ["count", ["list", true, false]],
+      "expects": 2
+    },
+    {
+      "name": "Should count nested lists as single elements (no flattening)",
+      "expression": ["count", ["list", ["list", 1, 2], ["list", 3, 4, 5]]],
+      "expects": 2
+    },
+    {
+      "name": "Should fail when no arguments are provided",
+      "expression": ["count"],
+      "expectsFailure": "Expected 1 argument(s), got 0"
+    },
+    {
+      "name": "Should fail when more than one argument is provided",
+      "expression": ["count", ["list", 1], ["list", 2]],
+      "expectsFailure": "Expected 1 argument(s), got 2"
+    },
+    {
+      "name": "Should fail when the argument is a number",
+      "expression": ["count", 10],
+      "expectsFailure": "Expected argument to be list, got number"
+    },
+    {
+      "name": "Should fail when the argument is a string",
+      "expression": ["count", "hello"],
+      "expectsFailure": "Expected argument to be list, got string"
+    },
+    {
+      "name": "Should fail when the argument is null",
+      "expression": ["count", null],
+      "expectsFailure": "Expected argument to be list, got null"
+    }
+  ]
+}

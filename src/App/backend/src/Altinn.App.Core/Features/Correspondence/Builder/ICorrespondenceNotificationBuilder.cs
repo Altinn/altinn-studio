@@ -101,6 +101,7 @@ public interface ICorrespondenceNotificationBuilder : ICorrespondenceNotificatio
     /// Sets the recipient override for the correspondence notification.
     /// </summary>
     /// <param name="recipientOverride">The recipient override</param>
+    [Obsolete("Use WithCustomRecipients instead.")]
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         CorrespondenceNotificationRecipient recipientOverride
     );
@@ -109,18 +110,30 @@ public interface ICorrespondenceNotificationBuilder : ICorrespondenceNotificatio
     /// Sets the recipient override for the correspondence notification.
     /// </summary>
     /// <param name="recipientOverrideBuilder">The recipient override builder.</param>
+    [Obsolete("Use WithCustomRecipients instead.")]
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
     );
 
     /// <summary>
-    /// Sets the recipient override for the correspondence notification.
+    /// <p>Adds custom recipients to the correspondence notification. Exactly how this interacts with the default recipient information
+    /// registered in KRR depends on the value of <see cref="WithOverrideRegisteredContactInformation"/> and <see cref="WithNotificationChannel"/>.</p>
+    /// <p>Each recipient must have exactly <b>one</b> identifier populated; to notify on multiple channels, supply one entry per channel.</p>
     /// </summary>
-    /// <param name="recipientToOverrideWrapper">Recipients to override.</param>
-    /// <returns></returns>
-    [Obsolete("Use WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride) instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverride(
-        CorrespondenceNotificationRecipientWrapper recipientToOverrideWrapper
+    /// <param name="customRecipients">The custom recipients</param>
+    public ICorrespondenceNotificationBuilder WithCustomRecipients(
+        IReadOnlyList<CorrespondenceNotificationRecipient> customRecipients
+    );
+
+    /// <summary>
+    /// <p>Sets whether to override the registered contact information for the correspondence notification.
+    /// If <c>true</c>, only the custom recipients specified in the notification will be notified.
+    /// If <c>false</c> (default), both the registered contact information and any custom recipients will be notified.</p>
+    /// <p>See <see cref="WithCustomRecipients"/> and <see cref="WithNotificationChannel"/>.</p>
+    /// </summary>
+    /// <param name="overrideRegisteredContactInformation">Whether to override the registered contact information or not</param>
+    ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(
+        bool overrideRegisteredContactInformation
     );
 
     /// <summary>

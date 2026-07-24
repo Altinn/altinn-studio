@@ -55,6 +55,7 @@ public sealed class WebHostBuilderExtensionsTests
             new[] { "10-settings.json", "30-config.json", "20-OVERRIDE.json", "40-settings.override.json" },
             jsonSourcePaths
         );
+        Assert.All(configBuilder.Sources.OfType<JsonConfigurationSource>(), AssertUsesPollingFileProvider);
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public sealed class WebHostBuilderExtensionsTests
         File.WriteAllText(Path.Join(tempDirectory.Path, "appsettings.override.json"), "{}");
 
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
-        var fileProvider = new PhysicalFileProvider(tempDirectory.Path);
+        using var fileProvider = new PhysicalFileProvider(tempDirectory.Path);
         configBuilder.AddJsonFile(
             provider: fileProvider,
             path: "maskinporten-settings.json",
@@ -95,6 +96,40 @@ public sealed class WebHostBuilderExtensionsTests
             Array.IndexOf(jsonSourcePaths, "appsettings.override.json")
                 > Array.IndexOf(jsonSourcePaths, "appsettings.json")
         );
+    }
+
+    [LinuxOnlyFact]
+    public async Task AddRuntimeConfigFiles_Production_ReloadsWhenKubernetesDataSymlinkChanges()
+    {
+        using var tempDirectory = new TempDirectory(_outputHelper);
+        const string fileName = "runtime-settings.json";
+        var projectedVolume = new KubernetesProjectedVolume(tempDirectory.Path);
+        projectedVolume.WriteVersion(
+            KubernetesProjectedVolume.InitialVersionDirectoryName,
+            fileName,
+            CreateRuntimeSettingsJson("before")
+        );
+        projectedVolume.CreateSymlinks(KubernetesProjectedVolume.InitialVersionDirectoryName, fileName);
+
+        IConfigurationBuilder configBuilder = new ConfigurationBuilder();
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(
+            configBuilder,
+            new TestHostEnvironment(Environments.Production),
+            tempDirectory.Path
+        );
+
+        var configuration = configBuilder.Build();
+        using var configurationDisposable = configuration as IDisposable;
+        Assert.Equal("before", configuration["RuntimeSettings:Value"]);
+
+        projectedVolume.WriteVersion(
+            KubernetesProjectedVolume.UpdatedVersionDirectoryName,
+            fileName,
+            CreateRuntimeSettingsJson("after")
+        );
+        projectedVolume.SwapDataSymlink(KubernetesProjectedVolume.UpdatedVersionDirectoryName);
+
+        await Wait.Until(() => configuration["RuntimeSettings:Value"] == "after", TimeSpan.FromSeconds(15));
     }
 
     [Fact]
@@ -195,6 +230,24 @@ public sealed class WebHostBuilderExtensionsTests
 
         public IFileProvider ContentRootFileProvider { get; set; } = new PhysicalFileProvider(AppContext.BaseDirectory);
     }
+
+    private static void AssertUsesPollingFileProvider(JsonConfigurationSource source)
+    {
+        var fileProvider = Assert.IsType<PhysicalFileProvider>(source.FileProvider);
+        Assert.True(source.Optional);
+        Assert.True(source.ReloadOnChange);
+        Assert.True(fileProvider.UsePollingFileWatcher);
+        Assert.True(fileProvider.UseActivePolling);
+    }
+
+    private static string CreateRuntimeSettingsJson(string value) =>
+        $$"""
+            {
+              "RuntimeSettings": {
+                "Value": "{{value}}"
+              }
+            }
+            """;
 
     private readonly struct TempDirectory : IDisposable
     {

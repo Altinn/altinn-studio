@@ -281,8 +281,22 @@ internal sealed record CorrespondenceNotificationRequest
     public string? SendersReference { get; init; }
 
     /// <summary>
+    /// Custom recipients for the notification. Each entry must have exactly one identifier populated.
+    /// </summary>
+    [JsonPropertyName("customRecipients")]
+    public IReadOnlyList<CorrespondenceNotificationRecipientRequest>? CustomRecipients { get; init; }
+
+    /// <summary>
+    /// When <c>true</c>, only <see cref="CustomRecipients"/> are notified, overriding the contact information registered in KRR.
+    /// When <c>false</c>, both the registered contact information and <see cref="CustomRecipients"/> are notified.
+    /// </summary>
+    [JsonPropertyName("overrideRegisteredContactInformation")]
+    public bool OverrideRegisteredContactInformation { get; init; }
+
+    /// <summary>
     /// A custom recipient for the notification. When set, overrides the default correspondence recipient.
     /// </summary>
+    [Obsolete("This property is deprecated. Use CustomRecipients instead.")]
     [JsonPropertyName("customRecipient")]
     public CorrespondenceNotificationRecipientRequest? CustomRecipient { get; init; }
 
@@ -290,7 +304,7 @@ internal sealed record CorrespondenceNotificationRequest
     /// Per-recipient notification overrides.
     /// </summary>
     /// <remarks>Only the first entry is used by the API.</remarks>
-    [Obsolete("This property is deprecated. Use CustomRecipient instead.")]
+    [Obsolete("This property is deprecated. Use CustomRecipients instead.")]
     [JsonPropertyName("customNotificationRecipients")]
     public IReadOnlyList<CorrespondenceCustomNotificationRecipientRequest>? CustomNotificationRecipients { get; init; }
 }
