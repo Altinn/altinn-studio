@@ -59,13 +59,11 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
 
         string body = await response.Content.ReadAsStringAsync();
         Assert.Contains("<div id=\"root\"></div>", body);
-        Assert.Contains($"window.org = '{Org}';", body);
-        Assert.Contains($"window.app = '{AppV9}';", body);
+        Assert.Contains($"window.org = \"{Org}\";", body);
+        Assert.Contains($"window.app = \"{AppV9}\";", body);
         Assert.Contains("window.altinnAppGlobalData = ", body);
-        // Designer self-hosts the bundle (no CDN).
         Assert.Contains("/altinn-app-frontend/altinn-app-frontend.js", body);
         Assert.Contains("/altinn-app-frontend/altinn-app-frontend.css", body);
-        // The v9 test app has no onEntry, so it must be defaulted to keep app-frontend from crashing.
         Assert.Contains("\"onEntry\":{\"show\":\"new-instance\"}", body);
     }
 
