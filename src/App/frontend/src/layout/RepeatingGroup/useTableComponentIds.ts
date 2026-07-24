@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
+import { getRepeatingChildBaseId } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import type { CompTypes } from 'src/layout/layout';
 
 const emptyArray: never[] = [];
@@ -14,14 +15,7 @@ export function useTableComponentIds(baseComponentId: string) {
   const multiPage = component.edit?.multiPage ?? false;
   const children = useMemo(
     () =>
-      component.children.map((id) => {
-        if (multiPage) {
-          const [, childId] = id.split(':', 2);
-          return layoutLookups.getComponent(childId);
-        }
-
-        return layoutLookups.getComponent(id);
-      }) ?? emptyArray,
+      component.children.map((id) => layoutLookups.getComponent(getRepeatingChildBaseId(id, multiPage))) ?? emptyArray,
     [component.children, layoutLookups, multiPage],
   );
 

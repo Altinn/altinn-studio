@@ -1,0 +1,140 @@
+using System.Xml.Linq;
+
+namespace Altinn.Studio.Cli.Upgrade.v8Tov9.ProcessAdvisories;
+
+/// <summary>
+/// Read-only advisory: flags <c>feedback</c> tasks that sit directly behind a service task in
+/// process.bpmn (possibly through gateways). In v9 the process parks on a service task while its
+/// work is pending and the frontend shows a waiting step automatically, so a trailing feedback
+/// task is usually a leftover v8 waiting pattern that now adds a second gate only an authorized
+/// out-of-band process/next can clear.
+///
+/// Deliberately warn-only: removing a BPMN task is not mechanical (flows, policy rules, ui
+/// folders and app code may reference it, and live instances may be parked on it), and the
+/// pattern can be legitimate when the feedback task models a separate decision gate (e.g. a
+/// service-owner review) rather than the service task's own outcome. Only the app team can tell
+/// those apart. Runs after the PDF/eFormidling migrations so service tasks they insert are seen.
+/// </summary>
+internal sealed class FeedbackAfterServiceTaskAdvisor
+{
+    private readonly string _projectFolder;
+    private static readonly XNamespace _altinnNs = "http://altinn.no/process";
+
+    public FeedbackAfterServiceTaskAdvisor(string projectFolder)
+    {
+        _projectFolder = projectFolder;
+    }
+
+    /// <summary>
+    /// Scans process.bpmn and returns one warning per feedback task that follows a service task.
+    /// Never modifies anything; <see cref="MigrationResult.ManualActionRequired"/> is set when
+    /// there is something for the developer to review.
+    /// </summary>
+    public MigrationResult Analyze()
+    {
+        var warnings = new List<string>();
+
+        var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
+        if (processFile is null)
+            return new MigrationResult(ManualActionRequired: false, warnings);
+
+        // Strict decode, same as the process rewriters: refuse non-UTF-8 rather than misread it,
+        // and strip the BOM XDocument.Parse rejects.
+        var (text, _) = Utf8TextFile.Decode(File.ReadAllBytes(processFile));
+        var doc = XDocument.Parse(text);
+
+        foreach (var process in doc.Root?.Elements().Where(e => e.Name.LocalName == "process") ?? [])
+        {
+            AnalyzeProcess(process, warnings);
+        }
+
+        return new MigrationResult(ManualActionRequired: warnings.Count > 0, warnings);
+    }
+
+    private static void AnalyzeProcess(XElement process, List<string> warnings)
+    {
+        var elementsById = new Dictionary<string, XElement>(StringComparer.Ordinal);
+        foreach (var element in process.Elements())
+        {
+            if (element.Attribute("id")?.Value is { } id)
+                elementsById[id] = element;
+        }
+
+        var flows = new List<(string Source, string Target)>();
+        foreach (var flow in process.Elements().Where(e => e.Name.LocalName == "sequenceFlow"))
+        {
+            if (flow.Attribute("sourceRef")?.Value is { } source && flow.Attribute("targetRef")?.Value is { } target)
+            {
+                flows.Add((source, target));
+            }
+        }
+
+        var feedbackTasks = process
+            .Elements()
+            .Where(e =>
+                e.Name.LocalName == "task"
+                && string.Equals(GetAltinnTaskType(e), "feedback", StringComparison.OrdinalIgnoreCase)
+            )
+            .Select(e => e.Attribute("id")?.Value)
+            .OfType<string>();
+
+        foreach (var feedbackTaskId in feedbackTasks)
+        {
+            foreach (var serviceTaskId in FindUpstreamServiceTasks(feedbackTaskId, elementsById, flows))
+            {
+                warnings.Add(
+                    $"The feedback task '{feedbackTaskId}' follows the service task '{serviceTaskId}'. In v9 "
+                        + "the process parks on a service task while its work is pending and the frontend shows "
+                        + "a waiting step automatically, so the feedback task may be a redundant v8 waiting "
+                        + "pattern that now needs a separate out-of-band process/next to clear. Review it: "
+                        + "remove the feedback task if the wait belongs to the service task's own outcome, or "
+                        + "keep it if it models a separate decision gate (e.g. a service-owner review)."
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Walks incoming sequence flows from the given node, looking through gateways, and returns the
+    /// ids of any service tasks found as the effective predecessor. Other element kinds (tasks,
+    /// events) end their path: a feedback task behind a data task is the normal v8/v9 pattern.
+    /// </summary>
+    private static IEnumerable<string> FindUpstreamServiceTasks(
+        string startId,
+        IReadOnlyDictionary<string, XElement> elementsById,
+        IReadOnlyList<(string Source, string Target)> flows
+    )
+    {
+        var hits = new List<string>();
+        var visited = new HashSet<string>(StringComparer.Ordinal) { startId };
+        var queue = new Queue<string>();
+        queue.Enqueue(startId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            foreach (var (source, _) in flows.Where(f => f.Target == current))
+            {
+                if (!visited.Add(source) || !elementsById.TryGetValue(source, out var sourceElement))
+                    continue;
+
+                if (sourceElement.Name.LocalName == "serviceTask")
+                {
+                    hits.Add(source);
+                }
+                else if (sourceElement.Name.LocalName.EndsWith("Gateway", StringComparison.OrdinalIgnoreCase))
+                {
+                    queue.Enqueue(source);
+                }
+            }
+        }
+
+        return hits;
+    }
+
+    private static string? GetAltinnTaskType(XElement task) =>
+        task.Element(XName.Get("extensionElements", task.Name.NamespaceName))
+            ?.Element(_altinnNs + "taskExtension")
+            ?.Element(_altinnNs + "taskType")
+            ?.Value.Trim();
+}

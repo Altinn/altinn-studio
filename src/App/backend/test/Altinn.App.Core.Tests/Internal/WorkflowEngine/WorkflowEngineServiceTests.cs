@@ -179,10 +179,103 @@ public class WorkflowEngineServiceTests
     [Fact]
     public void ScopeToCurrentChain_FallsBackToFullListWhenAnchorIsUnknownOrMissing()
     {
-        var workflows = new[] { CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow) };
+        var workflow = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var workflows = new[] { workflow };
 
-        Assert.Same(workflows, WorkflowEngineService.ScopeToCurrentChain(workflows, sinceWorkflowId: null));
-        Assert.Same(workflows, WorkflowEngineService.ScopeToCurrentChain(workflows, Guid.NewGuid()));
+        Assert.Equal(
+            [workflow.DatabaseId],
+            WorkflowEngineService.ScopeToCurrentChain(workflows, sinceWorkflowId: null).Select(w => w.DatabaseId)
+        );
+        Assert.Equal(
+            [workflow.DatabaseId],
+            WorkflowEngineService.ScopeToCurrentChain(workflows, Guid.NewGuid()).Select(w => w.DatabaseId)
+        );
+    }
+
+    [Fact]
+    public void ScopeToCurrentChain_ExcludesSideEffectsWorkflowsFromTheChain()
+    {
+        // The fire-and-forget side-effects workflows must never extend the wait or influence
+        // failure classification. The same-batch one shares the anchor's timestamp, but a
+        // dependent (auto-advance) batch's side-effects workflow is strictly newer than the
+        // anchor - only the IsHead=false directive excludes it.
+        var anchorCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-2);
+        var anchor = CreateWorkflowStatus(createdAt: anchorCreatedAt);
+        var sameBatchSideEffects = CreateWorkflowStatus(
+            createdAt: anchorCreatedAt,
+            operationId: "Process next side-effects: Task_1 -> Task_2",
+            status: PersistentItemStatus.Enqueued,
+            isHead: false
+        );
+        var dependent = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var dependentBatchSideEffects = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow,
+            operationId: "Process next side-effects: Task_2 -> Task_3",
+            status: PersistentItemStatus.Enqueued,
+            isHead: false
+        );
+        var workflows = new[] { anchor, sameBatchSideEffects, dependent, dependentBatchSideEffects };
+
+        IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
+            workflows,
+            anchor.DatabaseId
+        );
+
+        Assert.Equal([anchor.DatabaseId, dependent.DatabaseId], scoped.Select(w => w.DatabaseId));
+    }
+
+    [Fact]
+    public void ScopeToCurrentChain_ExcludesSideEffectsWorkflowsFromTheUnscopedFallback()
+    {
+        var mainWorkflow = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var failedSideEffects = CreateWorkflowStatus(
+            createdAt: DateTimeOffset.UtcNow,
+            operationId: "Process next side-effects: Task_1 -> Task_2",
+            status: PersistentItemStatus.Failed,
+            isHead: false
+        );
+
+        IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
+            [mainWorkflow, failedSideEffects],
+            sinceWorkflowId: null
+        );
+
+        Assert.Equal([mainWorkflow.DatabaseId], scoped.Select(w => w.DatabaseId));
+    }
+
+    [Fact]
+    public void IsSideEffectsWorkflow_MatchesOnlyTheIsHeadFalseDirective()
+    {
+        // Identification is by the engine-persisted head-visibility directive, not the
+        // OperationId naming convention: a side-effects OperationId without IsHead=false is not
+        // matched, and IsHead=false is matched regardless of naming.
+        Assert.True(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(
+                    createdAt: DateTimeOffset.UtcNow,
+                    operationId: "Process next side-effects: Task_1 -> Task_2",
+                    isHead: false
+                )
+            )
+        );
+        Assert.True(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: false)
+            )
+        );
+        Assert.False(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(
+                    createdAt: DateTimeOffset.UtcNow,
+                    operationId: "Process next side-effects: Task_1 -> Task_2"
+                )
+            )
+        );
+        Assert.False(
+            WorkflowEngineService.IsSideEffectsWorkflow(
+                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: true)
+            )
+        );
     }
 
     [Fact]
@@ -494,6 +587,8 @@ public class WorkflowEngineServiceTests
     private static WorkflowStatusResponse CreateWorkflowStatus(
         DateTimeOffset createdAt,
         PersistentItemStatus status = PersistentItemStatus.Completed,
+        string operationId = "op",
+        bool? isHead = null,
         Guid? databaseId = null,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
@@ -502,12 +597,13 @@ public class WorkflowEngineServiceTests
         new()
         {
             DatabaseId = databaseId ?? Guid.NewGuid(),
-            OperationId = "op",
+            OperationId = operationId,
             IdempotencyKey = Guid.NewGuid().ToString(),
             Namespace = Namespace,
             CollectionKey = collectionKey,
             CreatedAt = createdAt,
             OverallStatus = status,
+            IsHead = isHead,
             Labels = labels,
             Steps = steps ?? [],
         };

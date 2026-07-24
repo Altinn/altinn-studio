@@ -8,7 +8,7 @@ import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
+import { AttachmentUpdate } from 'src/features/attachments/hooks/attachmentUpdate';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
@@ -45,7 +45,7 @@ export function EditWindowComponent({
   const [showMissingTagError, setShowMissingTagError] = useResettingErrorState(chosenTags);
   const chosenTagsLabels = chosenTags.map((tag) => langAsString(options?.find((o) => o.value === tag)?.label ?? ''));
   const nodeId = useIndexedId(baseComponentId);
-  const updateAttachment = useAttachmentsUpdater();
+  const updateAttachment = AttachmentUpdate.useAttachmentsUpdater();
 
   const formatSelectedValue = (tags: string[]): string | SuggestionItem | undefined => {
     const tag = tags[0];

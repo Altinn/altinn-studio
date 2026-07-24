@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Features.Process;
 /// <strong>IMPORTANT: Implementations MUST be idempotent - service tasks may be retried on failure.</strong>
 /// </remarks>
 [ImplementableByApps]
-public interface IServiceTask : IProcessTask
+public interface IServiceTask : IProcessTask, IProcessStepConfigurable
 {
     /// <summary>
     /// Executes the service task.

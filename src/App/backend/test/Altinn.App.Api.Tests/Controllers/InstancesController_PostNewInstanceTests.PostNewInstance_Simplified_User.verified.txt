@@ -387,11 +387,6 @@
       HasParent: true
     },
     {
-      Name: ProcessClient.GetProcessDefinition,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ProcessNavigator.GetNextTask,
       IdFormat: W3C,
       Tags: [

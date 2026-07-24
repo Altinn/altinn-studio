@@ -2052,26 +2052,30 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.FailedHookResult FailedRetryable(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.SuccessfulHookResult Success() { }
     }
-    public interface IOnProcessEndingHandler
+    public interface IOnProcessEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndingContext context);
     }
-    public interface IOnTaskAbandonHandler
+    public interface IOnTaskAbandonHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskAbandonContext context);
         bool ShouldRunForTask(string taskId);
     }
-    public interface IOnTaskEndingHandler
+    public interface IOnTaskEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskEndingContext context);
         bool ShouldRunForTask(string taskId);
     }
-    public interface IOnTaskStartingHandler
+    public interface IOnTaskStartingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
         bool ShouldRunForTask(string taskId);
     }
-    public interface IServiceTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    public interface IProcessStepConfigurable
+    {
+        Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
+    }
+    public interface IServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
@@ -2101,6 +2105,31 @@ namespace Altinn.App.Core.Features.Process
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
+    }
+    public enum ProcessStepBackoffType
+    {
+        Constant = 0,
+        Linear = 1,
+        Exponential = 2,
+    }
+    public sealed class ProcessStepOptions : System.IEquatable<Altinn.App.Core.Features.Process.ProcessStepOptions>
+    {
+        public ProcessStepOptions() { }
+        public System.TimeSpan? MaxExecutionTime { get; init; }
+        public Altinn.App.Core.Features.Process.ProcessStepRetryStrategy? RetryStrategy { get; init; }
+    }
+    public sealed class ProcessStepRetryStrategy : System.IEquatable<Altinn.App.Core.Features.Process.ProcessStepRetryStrategy>
+    {
+        public ProcessStepRetryStrategy() { }
+        public Altinn.App.Core.Features.Process.ProcessStepBackoffType BackoffType { get; init; }
+        public System.TimeSpan BaseInterval { get; init; }
+        public System.TimeSpan? MaxDelay { get; init; }
+        public System.TimeSpan? MaxDuration { get; init; }
+        public int? MaxRetries { get; init; }
+        public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Constant(System.TimeSpan interval, int? maxRetries = default, System.TimeSpan? maxDuration = default) { }
+        public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Exponential(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
+        public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
+        public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
     public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {

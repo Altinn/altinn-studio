@@ -538,6 +538,37 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task Enqueue_IsHeadDirective_PersistsVerbatimAndProjectsToStatusResponse()
+    {
+        // The head-visibility directive is persisted verbatim so status consumers (and telemetry)
+        // can identify deliberately invisible workflows without inspecting operation ids.
+        var repo = fixture.CreateRepository();
+        var main = CreateWorkflowRequest("main");
+        var side = CreateWorkflowRequest("side", dependsOn: [WorkflowRef.FromRefString("main")], isHead: false);
+        var forced = CreateWorkflowRequest("forced", dependsOn: [WorkflowRef.FromRefString("main")], isHead: true);
+
+        var results = await EnqueueWithCollection(repo, "is-head-persistence", [main, side, forced]);
+        var mainId = results[0].WorkflowIds![0];
+        var sideId = results[0].WorkflowIds![1];
+        var forcedId = results[0].WorkflowIds![2];
+
+        var mainWorkflow = await repo.GetWorkflow(mainId, "test-ns", TestContext.Current.CancellationToken);
+        var sideWorkflow = await repo.GetWorkflow(sideId, "test-ns", TestContext.Current.CancellationToken);
+        var forcedWorkflow = await repo.GetWorkflow(forcedId, "test-ns", TestContext.Current.CancellationToken);
+
+        Assert.NotNull(mainWorkflow);
+        Assert.NotNull(sideWorkflow);
+        Assert.NotNull(forcedWorkflow);
+        Assert.Null(mainWorkflow.IsHead);
+        Assert.False(sideWorkflow.IsHead);
+        Assert.True(forcedWorkflow.IsHead);
+
+        // The public status projection carries the directive through to consumers.
+        Assert.False(WorkflowStatusResponse.FromWorkflow(sideWorkflow).IsHead);
+        Assert.Null(WorkflowStatusResponse.FromWorkflow(mainWorkflow).IsHead);
+    }
+
+    [Fact]
     public async Task Enqueue_InvisibleSideChainByRef_DoesNotPreventVisibleParentFromBecomingHead()
     {
         // Arrange

@@ -17,7 +17,18 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
 {
     public static string Key => "ExecuteServiceTask";
 
+    /// <summary>
+    /// The default execution timeout for service tasks. Service tasks routinely call slow external
+    /// systems (eFormidling, payment providers, other government APIs), so they get a far more generous
+    /// budget than the engine's global default. An individual <see cref="IServiceTask"/> that needs even
+    /// longer can override this via <see cref="IProcessStepConfigurable.StepOptions"/>.
+    /// </summary>
+    internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
+
     public override string GetKey() => Key;
+
+    public override ProcessStepOptions? DefaultStepOptions { get; } =
+        new() { MaxExecutionTime = DefaultServiceTaskTimeout };
 
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,

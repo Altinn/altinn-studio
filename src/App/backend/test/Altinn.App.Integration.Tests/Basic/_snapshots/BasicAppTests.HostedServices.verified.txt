@@ -39,6 +39,13 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.WorkflowEngine.WorkflowStepOptionsValidator
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Microsoft.AspNetCore.Hosting.GenericWebHostService
   }
 ]

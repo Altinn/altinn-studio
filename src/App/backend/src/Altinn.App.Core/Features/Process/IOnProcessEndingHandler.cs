@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Features.Process;
 /// </para>
 /// </remarks>
 [ImplementableByApps]
-public interface IOnProcessEndingHandler
+public interface IOnProcessEndingHandler : IProcessStepConfigurable
 {
     /// <summary>
     /// Executes the end process hook logic.

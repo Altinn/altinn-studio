@@ -105,6 +105,15 @@ public sealed record Workflow : PersistentItem
     /// </summary>
     public string? InitialState { get; init; }
 
+    /// <summary>
+    /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>),
+    /// persisted verbatim. <c>false</c> identifies workflows deliberately invisible to collection
+    /// head tracking (e.g. non-blocking side chains), so status consumers and telemetry can tell
+    /// them apart from head workflows without inspecting operation ids; <c>null</c> means natural
+    /// leaf detection applied at enqueue.
+    /// </summary>
+    public bool? IsHead { get; init; }
+
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
     /// <inheritdoc/>

@@ -1,24 +1,26 @@
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
-import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
+import { asOptionsComponent } from 'src/features/options/config';
 import { CompCategory } from 'src/layout/common';
 
-export const Config = new CG.component({
-  category: CompCategory.Form,
-  capabilities: {
-    renderInTable: true,
-    renderInButtonGroup: false,
-    renderInAccordion: true,
-    renderInAccordionGroup: false,
-    renderInCards: true,
-    renderInCardsMedia: false,
-    renderInTabs: true,
-  },
-  functionality: {
-    customExpressions: true,
-  },
-})
-  .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'multi' }))
+export const Config = asOptionsComponent(
+  new CG.component({
+    category: CompCategory.Form,
+    capabilities: {
+      renderInTable: true,
+      renderInButtonGroup: false,
+      renderInAccordion: true,
+      renderInAccordionGroup: false,
+      renderInCards: true,
+      renderInCardsMedia: false,
+      renderInTabs: true,
+    },
+    functionality: {
+      customExpressions: true,
+    },
+  }),
+  { supportsPreselection: true },
+)
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(

@@ -7,6 +7,7 @@ using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -517,9 +518,55 @@ internal sealed class Engine(
                     return new RequestConstraintValidationResult.Invalid(
                         $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' contains {step.Labels.Count} labels, maximum is {_settings.MaxLabels}."
                     );
+
+                if (step.Command.MaxExecutionTime is { } maxExecutionTime)
+                {
+                    if (maxExecutionTime <= TimeSpan.Zero)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has a non-positive maxExecutionTime ({maxExecutionTime})."
+                        );
+
+                    if (maxExecutionTime > _settings.MaxStepCommandTimeout)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has maxExecutionTime {maxExecutionTime}, maximum is {_settings.MaxStepCommandTimeout}."
+                        );
+                }
+
+                if (step.RetryStrategy is { } retryStrategy && ValidateStepRetryStrategy(retryStrategy) is { } error)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' {error}"
+                    );
             }
         }
 
         return new RequestConstraintValidationResult.Valid();
+    }
+
+    /// <summary>
+    /// Validates a client-supplied step retry strategy, returning an error fragment or null when valid.
+    /// A client strategy replaces the engine default wholesale, so degenerate values (negative fields,
+    /// zero-delay retries) must be rejected here — nothing downstream bounds them.
+    /// </summary>
+    private static string? ValidateStepRetryStrategy(RetryStrategy retryStrategy)
+    {
+        if (!Enum.IsDefined(retryStrategy.BackoffType))
+            return $"has an unknown retryStrategy.backoffType ({retryStrategy.BackoffType}).";
+
+        if (retryStrategy.BaseInterval < TimeSpan.Zero)
+            return $"has a negative retryStrategy.baseInterval ({retryStrategy.BaseInterval}).";
+
+        if (retryStrategy.MaxRetries is < 0)
+            return $"has a negative retryStrategy.maxRetries ({retryStrategy.MaxRetries}).";
+
+        if (retryStrategy.BaseInterval == TimeSpan.Zero && retryStrategy.MaxRetries != 0)
+            return "has a retryStrategy with a zero baseInterval while retries are enabled, which would retry in a tight loop.";
+
+        if (retryStrategy.MaxDelay is { } maxDelay && maxDelay < TimeSpan.Zero)
+            return $"has a negative retryStrategy.maxDelay ({maxDelay}).";
+
+        if (retryStrategy.MaxDuration is { } maxDuration && maxDuration <= TimeSpan.Zero)
+            return $"has a non-positive retryStrategy.maxDuration ({maxDuration}).";
+
+        return null;
     }
 }

@@ -39,6 +39,49 @@ public class WorkflowExecutorTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => executor.Execute(workflow, step, cts.Token));
     }
 
+    [Fact]
+    public async Task Execute_NegativeMaxExecutionTime_ReturnsCriticalError()
+    {
+        // Arrange - CancelAfter would throw ArgumentOutOfRangeException; the executor must classify
+        // the bad value as a critical step error instead of faulting the worker
+        using var fixture = WorkflowEngineTestFixture.Create();
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+        var command = CreateWebhookCommand("https://example.com/hook") with
+        {
+            MaxExecutionTime = TimeSpan.FromMinutes(-10),
+        };
+        var step = WorkflowEngineTestFixture.CreateStep(command);
+        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
+
+        // Act
+        var result = await executor.Execute(workflow, step, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Contains("invalid execution timeout", result.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Execute_MaxExecutionTimeBeyondCancelAfterRange_ReturnsCriticalError()
+    {
+        // Arrange - CancelAfter accepts at most ~49.7 days
+        using var fixture = WorkflowEngineTestFixture.Create();
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+        var command = CreateWebhookCommand("https://example.com/hook") with
+        {
+            MaxExecutionTime = TimeSpan.FromDays(60),
+        };
+        var step = WorkflowEngineTestFixture.CreateStep(command);
+        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
+
+        // Act
+        var result = await executor.Execute(workflow, step, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Contains("invalid execution timeout", result.Message, StringComparison.Ordinal);
+    }
+
     // === Webhook Tests ===
 
     [Fact]

@@ -27,6 +27,7 @@ public class EngineEndpointTests
             MaxLabels = 10,
             MetricsCollectionInterval = TimeSpan.FromSeconds(10),
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            MaxStepCommandTimeout = TimeSpan.FromHours(2),
             DefaultStepRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(5) },
             DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
             DatabaseRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(1) },
@@ -713,7 +714,14 @@ public class EngineEndpointTests
         var workflowGuid = Guid.NewGuid();
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetWorkflowDependencyGraph(workflowGuid, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.GetWorkflowDependencyGraph(
+                    workflowGuid,
+                    It.IsAny<string>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync([dependency, workflow, linked]);
 
         var result = await EngineRequestHandlers.GetWorkflowDependencyGraph(
@@ -749,7 +757,12 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetWorkflowDependencyGraph(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+                r.GetWorkflowDependencyGraph(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync((IReadOnlyList<Workflow>?)null);
 

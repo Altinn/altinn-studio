@@ -1,7 +1,7 @@
 import { FormStore } from 'src/features/form/FormContext';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
-import { getRecursiveValidations, makeComponentIdIndex } from 'src/features/validation/ValidationStorePlugin';
+import { useVisibleValidationsDeepSelector } from 'src/features/validation/validationHooks';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import type { NodeRefValidation } from 'src/features/validation';
@@ -15,29 +15,20 @@ import type { BaseRow } from 'src/utils/layout/types';
 export function useOnGroupCloseValidation() {
   const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
   const validating = useWaitForValidation();
-  const formStore = FormStore.raw.useStore();
-  const lookups = FormStore.bootstrap.useLayoutLookups();
   const idMutator = useComponentIdMutator(true);
+  const getDeepValidations = useVisibleValidationsDeepSelector();
 
   /* Ensures the callback will have the latest state */
   const callback = useOurEffectEvent(
     (baseComponentId: string, row: BaseRow, masks: AllowedValidationMasks): boolean => {
       const mask = getVisibilityMask(masks);
-      const state = formStore.getState();
-      const errors: NodeRefValidation[] = [];
-      getRecursiveValidations({
-        id: idMutator(baseComponentId),
-        baseId: baseComponentId,
-        includeHidden: false,
-        includeSelf: false,
-        severity: 'error',
-        restriction: row.index,
+      const errors: NodeRefValidation[] = getDeepValidations(
+        idMutator(baseComponentId),
         mask,
-        state,
-        lookups,
-        baseToIndexedMap: makeComponentIdIndex(state),
-        output: errors,
-      });
+        false,
+        row.index,
+        'error',
+      );
 
       const hasErrors = errors.length > 0;
       setRowValidationMask(row.uuid, hasErrors ? mask : undefined);

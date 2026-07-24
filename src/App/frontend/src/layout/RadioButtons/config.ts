@@ -1,26 +1,28 @@
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
-import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
+import { asOptionsComponent } from 'src/features/options/config';
 import { CompCategory } from 'src/layout/common';
 
-export const Config = new CG.component({
-  category: CompCategory.Form,
-  capabilities: {
-    renderInTable: true,
-    renderInButtonGroup: false,
-    renderInAccordion: true,
-    renderInAccordionGroup: false,
-    renderInTabs: true,
-    renderInCards: true,
-    renderInCardsMedia: false,
-  },
-  functionality: {
-    customExpressions: true,
-  },
-})
+export const Config = asOptionsComponent(
+  new CG.component({
+    category: CompCategory.Form,
+    capabilities: {
+      renderInTable: true,
+      renderInButtonGroup: false,
+      renderInAccordion: true,
+      renderInAccordionGroup: false,
+      renderInTabs: true,
+      renderInCards: true,
+      renderInCardsMedia: false,
+    },
+    functionality: {
+      customExpressions: true,
+    },
+  }),
+  { supportsPreselection: true },
+)
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()))
-  .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'single' }))
   .addProperty(
     new CG.prop(
       'alertOnChange',

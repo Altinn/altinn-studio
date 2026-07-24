@@ -1,5 +1,4 @@
 import { isValid, parseISO } from 'date-fns';
-import dot from 'dot-object';
 
 import {
   ExprRuntimeError,
@@ -9,9 +8,9 @@ import {
   UnknownTargetType,
 } from 'src/features/expressions/errors';
 import { ExprFunctionDefinitions, ExprFunctionImplementations } from 'src/features/expressions/expression-functions';
+import { type ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { isValidArray, isValidObject } from 'src/features/expressions/validation';
-import { type ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type {
   ExprConfig,
   ExprDate,
@@ -41,12 +40,11 @@ export type SimpleEval<T extends ExprVal> = (
   dataSources?: Partial<ExpressionDataSources>,
 ) => ExprValToActual<T>;
 
-type Source = keyof ExpressionDataSources;
-export type EvaluateExpressionParams<DataSources extends readonly Source[] = Source[]> = {
+export type EvaluateExpressionParams = {
   expr: Expression;
   path: string[];
   callbacks: { onBeforeFunctionCall?: BeforeFuncCallback; onAfterFunctionCall?: AfterFuncCallback };
-  dataSources: Pick<ExpressionDataSources, DataSources[number]>;
+  dataSources: ExpressionDataSources;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
 };
@@ -61,7 +59,7 @@ function isExpression(input: unknown): input is Expression {
     Array.isArray(input) &&
     input.length >= 1 &&
     typeof input[0] === 'string' &&
-    Object.keys(ExprFunctionDefinitions).includes(input[0])
+    Object.prototype.hasOwnProperty.call(ExprFunctionDefinitions, input[0])
   );
 }
 
@@ -76,6 +74,8 @@ export function evalExpr<V extends ExprVal = ExprVal>(
   if (!isExpression(expr)) {
     return expr as ExprValToActual<V>;
   }
+
+  dataSources.markExpressionEvaluated();
 
   const callbacks = {
     onBeforeFunctionCall: options.onBeforeFunctionCall,
@@ -136,18 +136,16 @@ export function argTypeAt(func: ExprFunctionName, argIndex: number): ExprVal | u
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function innerEvalExpr(params: EvaluateExpressionParams): any {
-  const { expr, path } = params;
-  const stringPath = stringifyPath(path);
-
-  const [func, ...args] = stringPath ? dot.pick(stringPath, expr, false) : expr;
+function innerEvalExpr(params: EvaluateExpressionParams, currentExpr = params.expr): any {
+  const { path } = params;
+  const [func, ...args] = currentExpr;
   const returnType = ExprFunctionDefinitions[func].returns;
 
   const computedArgs = args.map((arg: unknown, idx: number) => {
     const realIdx = idx + 1;
 
     const paramsWithNewPath = { ...params, path: [...path, `[${realIdx}]`] };
-    const argValue = Array.isArray(arg) ? innerEvalExpr(paramsWithNewPath) : arg;
+    const argValue = Array.isArray(arg) ? innerEvalExpr(paramsWithNewPath, arg as Expression) : arg;
     const argType = argTypeAt(func, idx);
     return exprCastValue(argValue, argType, paramsWithNewPath);
   });
@@ -157,21 +155,11 @@ function innerEvalExpr(params: EvaluateExpressionParams): any {
   const actualFunc = ExprFunctionImplementations[func];
 
   onBeforeFunctionCall?.(path, func, computedArgs);
-  const returnValue = actualFunc.apply(params, computedArgs);
+  const returnValue = Reflect.apply(actualFunc, params, computedArgs);
   const returnValueCasted = exprCastValue(returnValue, returnType, params);
   onAfterFunctionCall?.(path, func, computedArgs, returnValueCasted);
 
   return returnValueCasted;
-}
-
-function stringifyPath(path: string[]): string | undefined {
-  if (path.length === 0) {
-    return undefined;
-  }
-
-  const [firstKey, ...restKeys] = path;
-  // For some reason dot.pick wants to use the format '0[1][2]' for arrays instead of '[0][1][2]', so we'll rewrite
-  return firstKey.replace('[', '').replace(']', '') + restKeys.join('');
 }
 
 function valueToExprValueType(value: unknown): ExprVal {
@@ -195,7 +183,7 @@ function valueToExprValueType(value: unknown): ExprVal {
 export function exprCastValue<T extends ExprVal>(
   value: unknown,
   toType: T | undefined,
-  context: EvaluateExpressionParams<[]>,
+  context: EvaluateExpressionParams,
 ): ExprValToActual<T> | null {
   if (!toType || !(toType in ExprTypes)) {
     throw new UnknownTargetType(context.expr, context.path, toType ? toType : typeof toType);

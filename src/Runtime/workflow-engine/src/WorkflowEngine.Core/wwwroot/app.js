@@ -6,7 +6,7 @@
 import { connectSSE, watchForChanges } from './modules/core/sse.js';
 import { syncUrl, restoreUrl, bindUrlCallbacks } from './modules/features/url.js';
 import { updateTimers } from './modules/shared/timers.js';
-import { bindSectionCallbacks } from './modules/shared/section.js';
+import { bindSectionCallbacks, applyViewToggleUi } from './modules/shared/section.js';
 import { updateStatusBadges, updateCapacity } from './modules/features/header.js';
 import {
     updateScheduledBadge,
@@ -14,7 +14,11 @@ import {
     bindScheduledCallbacks,
 } from './modules/features/scheduled.js';
 import { updateLiveWorkflows, bindLiveCallbacks } from './modules/features/live.js';
-import { updateRecentWorkflows, bindRecentCallbacks } from './modules/features/recent.js';
+import {
+    updateRecentWorkflows,
+    bindRecentCallbacks,
+    applyRecentViewUi,
+} from './modules/features/recent.js';
 import {
     applyFilter,
     mergeDiscoveredLabels,
@@ -22,7 +26,7 @@ import {
     fetchLabelValues,
     bindFilterCallbacks,
 } from './modules/features/filters.js';
-import { loadQuery } from './modules/features/query.js';
+import { loadQuery, applyQueryViewUi } from './modules/features/query.js';
 import { bindThemeCallbacks } from './modules/features/theme.js';
 
 // Side-effect imports: these modules register window.* handlers and DOM listeners on load
@@ -32,11 +36,20 @@ import './modules/features/state-modal.js';
 
 /* ── Wire up late-bound callbacks to break circular dependencies ── */
 
-bindUrlCallbacks({ switchTab, loadQuery, applyFilter });
+bindUrlCallbacks({
+    switchTab,
+    loadQuery,
+    applyFilter,
+    applyViewUis: () => {
+        applyRecentViewUi();
+        applyQueryViewUi();
+        applyViewToggleUi();
+    },
+});
 bindSectionCallbacks({ loadScheduled, loadQuery, syncUrl });
 bindScheduledCallbacks({ applyFilter });
 bindLiveCallbacks({ mergeDiscoveredLabels, applyFilter });
-bindRecentCallbacks({ mergeDiscoveredLabels, applyFilter });
+bindRecentCallbacks({ mergeDiscoveredLabels, applyFilter, syncUrl });
 bindFilterCallbacks({ syncUrl, loadQuery });
 bindThemeCallbacks({ syncUrl });
 
@@ -62,8 +75,10 @@ const init = () => {
             /** @type {{ active?: import('./modules/core/state.js').Workflow[], recent?: import('./modules/core/state.js').Workflow[] }} */ (
                 data
             );
-        // Recent keys needed so active exit animation is skipped for workflows moving to recent
-        const recentKeys = d.recent ? new Set(d.recent.map((w) => w.idempotencyKey)) : null;
+        // Recent keys needed so active exit animation is skipped for workflows moving to recent.
+        // Keyed by databaseId: idempotency keys are batch-level, so a sibling workflow from the
+        // same batch landing in recent must not suppress a still-active one.
+        const recentKeys = d.recent ? new Set(d.recent.map((w) => w.databaseId)) : null;
         if (d.active !== undefined) updateLiveWorkflows(d.active, recentKeys);
         if (d.recent !== undefined) updateRecentWorkflows(d.recent);
     });

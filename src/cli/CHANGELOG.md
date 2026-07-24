@@ -8,9 +8,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.17] - 2026-07-23
+
 ### Added
 
 - Notify when a newer `studioctl` release is available. The check runs at most once every few hours, caches its result under the studioctl home directory, and prints a hint to run `studioctl self update`. It is skipped in CI, for non-interactive output, and can be disabled with `STUDIOCTL_NO_UPDATE_CHECK=1`.
+
+### Changed
+
+- Update workflow-engine image.
 
 ## [0.1.0-preview.16] - 2026-07-02
 

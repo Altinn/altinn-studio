@@ -185,6 +185,15 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
 
+        // Disable the HttpClient's own request timeout so the per-step execution budget is the single
+        // authority over how long a callback may run. The executor wraps every command in a linked
+        // CancellationTokenSource that fires after Step.Command.MaxExecutionTime (or the engine's
+        // DefaultStepCommandTimeout when unset), and that token is passed to SendAsync below. Leaving
+        // HttpClient.Timeout at its 100s default would silently cap long-running service-task callbacks
+        // regardless of the step's MaxExecutionTime; deferring entirely to the token also yields clean
+        // cancellation with the correct retryable classification instead of an ambiguous timeout.
+        client.Timeout = Timeout.InfiniteTimeSpan;
+
         // Replay the app-minted token as a bearer token so the callback controller can authenticate the
         // engine. The app's selector auth scheme routes callback requests to the WorkflowEngineCallback
         // scheme, so this does not collide with the default platform (cookie/bearer) authentication.
