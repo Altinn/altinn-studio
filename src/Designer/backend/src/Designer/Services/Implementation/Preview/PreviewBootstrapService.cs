@@ -104,11 +104,8 @@ public class PreviewBootstrapService(
                 helpCircleIllustrationUrl = HelpCircleIllustrationUrl,
                 postalCodesUrl = PostalCodesUrl,
             },
-            returnUrl = (string?)null,
             userProfile = GetMockUserProfile(),
             selectedParty = GetMockParty(),
-            orgName = (object?)null,
-            orgLogoUrl = (string?)null,
         };
 
         return JsonSerializer.Serialize(appGlobalData, s_jsonSerializerOptions);
