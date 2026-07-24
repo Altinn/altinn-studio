@@ -27,23 +27,23 @@
     },
     {
       "id": "path.title",
-      "value": "Feilscenario"
+      "value": "Scenario"
     },
     {
       "id": "path.help",
-      "value": "Styrer hvor i overgangen Task 1 → Task 2 en eventuell feil skal inntreffe. En forsinkelse kan legges på uansett valg."
+      "value": "Styrer hvor i overgangen Task 1 → Task 2 scenarioet kjører – de andre valgene (forsinkelse, gjenprøvinger, sluttilstand, parkering) bestemmer hva som faktisk skjer der. «Etter commit» ruter overgangen via et behandlingssteg (service task)."
     },
     {
       "id": "path.none",
-      "value": "Ingen feil – overgangen går rett gjennom"
+      "value": "Ingen scenario – overgangen går rett til Task 2"
     },
     {
       "id": "path.preCommit",
-      "value": "Feil før commit (instansen står fremdeles i Task 1)"
+      "value": "Før commit – i task-ending-hooken (instansen står fremdeles i Task 1)"
     },
     {
       "id": "path.postCommit",
-      "value": "Feil etter commit (i behandlingssteget etter Task 1)"
+      "value": "Etter commit – i behandlingssteget (service task) etter Task 1"
     },
     {
       "id": "delayMs.title",
@@ -118,12 +118,60 @@
       "value": "Feil, så suksess – behandlingen stopper, men «Prøv igjen» lykkes"
     },
     {
+      "id": "advance.title",
+      "value": "Videreføring etter suksess"
+    },
+    {
+      "id": "advance.help",
+      "value": "«Parker» lar prosessen bli stående på behandlingssteget etter at det har lykkes – slik en oppgave som venter på et eksternt svar ville gjort. Ventesiden vises til noen driver prosessen videre med en process/next: enten manuelt (se README for en kommando du kan lime inn i nettleserkonsollen), eller automatisk etter ca. 5 sekunder med «Parker og slipp» – som et eksternt callback som kommer av seg selv."
+    },
+    {
+      "id": "advance.auto",
+      "value": "Automatisk – prosessen går selv videre til Task 2"
+    },
+    {
+      "id": "advance.park",
+      "value": "Parker – prosessen blir stående til noen driver den videre"
+    },
+    {
+      "id": "advance.parkThenRelease",
+      "value": "Parker og slipp – kjører videre av seg selv etter ca. 5 sekunder"
+    },
+    {
+      "id": "serviceView.title",
+      "value": "Visning under behandling"
+    },
+    {
+      "id": "serviceView.help",
+      "value": "Standard bruker frontendens innebygde venteside (spinner + tekst). «Egendefinert layout» ruter gjennom Task_ServiceLayout, som har sin egen layout-mappe – appens side vises i stedet, men brukeren dras fortsatt automatisk videre når prosessen flytter seg."
+    },
+    {
+      "id": "serviceView.default",
+      "value": "Standard venteside"
+    },
+    {
+      "id": "serviceView.layout",
+      "value": "Egendefinert layout"
+    },
+    {
       "id": "Task1.hint.title",
       "value": "Tips: prøv å laste siden på nytt underveis"
     },
     {
       "id": "Task1.hint.body",
       "value": "Mens overgangen pågår kan du laste siden på nytt for å koble deg av den blokkerende forespørselen. Ventesiden skal overleve en refresh og sende deg videre til Task 2 så snart overgangen er ferdig."
+    },
+    {
+      "id": "ServiceLayout.header.title",
+      "value": "Egendefinert venteside"
+    },
+    {
+      "id": "ServiceLayout.description1",
+      "value": "Dette er appens egen layout for behandlingssteget (Task_ServiceLayout) – den erstatter frontendens innebygde venteside. En app kan bruke en slik side til å forklare hva som skjer, hvor lang tid det pleier å ta, eller vise egne komponenter."
+    },
+    {
+      "id": "ServiceLayout.description2",
+      "value": "Selv med egendefinert layout følger frontenden med på prosessen og sender deg automatisk videre når behandlingen er ferdig."
     },
     {
       "id": "sendinnTask1.title",

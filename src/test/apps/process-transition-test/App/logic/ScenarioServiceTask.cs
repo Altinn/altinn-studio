@@ -29,9 +29,22 @@ namespace Altinn.App.Logic;
 /// the failed task view's "Prøv igjen" → process/resume recovery demonstrable). Unlike the
 /// retired IEventsClient hack, a permanent service-task failure is a REAL terminal failure — no
 /// workflow-cancellation cheat needed.
+///
+/// A successful settle additionally honours the <c>advance</c> lever: "park" succeeds WITHOUT
+/// auto-advancing, leaving the process on the service task (the frontend's implicit waiting
+/// step, #18935) until an out-of-band process/next releases it. Both service tasks
+/// (Task_Service and its layouted twin Task_ServiceLayout, chosen via <c>serviceView</c>) run
+/// this same scenario.
 /// </summary>
 public sealed class ScenarioServiceTask : IServiceTask
 {
+    private readonly ParkedTaskReleaser _parkedTaskReleaser;
+
+    public ScenarioServiceTask(ParkedTaskReleaser parkedTaskReleaser)
+    {
+        _parkedTaskReleaser = parkedTaskReleaser;
+    }
+
     public string Type => "scenario";
 
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
@@ -85,10 +98,27 @@ public sealed class ScenarioServiceTask : IServiceTask
         // Settled: reset so replaying the scenario (e.g. after navigating back from Task_2) starts
         // again from attempt 1. "failure" resets too — every replay fails the same way.
         AttemptTracker.Reset(instanceGuid, "postCommit");
-        return levers.endState == "failure"
-            ? ServiceTaskResult.FailedPermanent(
+        if (levers.endState == "failure")
+        {
+            return ServiceTaskResult.FailedPermanent(
                 $"TransitionControl forced a terminal postCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")}."
-            )
-            : ServiceTaskResult.Success();
+            );
+        }
+
+        // "park" / "parkThenRelease": succeed WITHOUT auto-advancing — the process stays parked
+        // on the service task (the frontend's implicit waiting step) until an out-of-band
+        // process/next releases it, simulating a task that waits for an external callback.
+        // "parkThenRelease" additionally schedules that release itself (~5s), imitating the
+        // external system's callback arriving on its own.
+        if (levers.advance is "park" or "parkThenRelease")
+        {
+            if (levers.advance == "parkThenRelease")
+            {
+                _parkedTaskReleaser.ScheduleRelease(instance.Org, instance.AppId, instance.Id);
+            }
+            return ServiceTaskResult.SuccessWithoutAutoAdvance();
+        }
+
+        return ServiceTaskResult.Success();
     }
 }
