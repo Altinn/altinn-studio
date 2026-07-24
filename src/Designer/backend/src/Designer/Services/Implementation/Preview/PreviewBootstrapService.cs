@@ -146,10 +146,8 @@ public class PreviewBootstrapService(
                     cancellationToken
                 );
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                // Schema may not be generated yet for a model just added while editing; skip it rather
-                // than failing the whole form bootstrap.
                 continue;
             }
 

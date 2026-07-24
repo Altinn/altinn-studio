@@ -980,6 +980,11 @@ public partial class PreviewController(
         // Not configurable from the preview yet; app-frontend treats {} as "all defaults".
         const string FeatureTogglesJson = "{}";
 
+        string orgScriptValue = JsonSerializer.Serialize(org);
+        string appScriptValue = JsonSerializer.Serialize(app);
+        string orgTitle = HttpUtility.HtmlEncode(org);
+        string appTitle = HttpUtility.HtmlEncode(app);
+
         return $$"""
             <!DOCTYPE html>
             <html lang="no">
@@ -987,15 +992,15 @@ public partial class PreviewController(
               <meta charset="utf-8">
               <meta http-equiv="X-UA-Compatible" content="IE=edge">
               <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-              <title>{{org}} - {{app}}</title>
+              <title>{{orgTitle}} - {{appTitle}}</title>
               <link rel="icon" href="/favicon.ico">
               <link rel="stylesheet" type="text/css" href="{{V9PreviewAssetBaseUrl}}/altinn-app-frontend.css">
             </head>
             <body>
               <div id="root"></div>
               <script>
-                window.org = '{{org}}';
-                window.app = '{{app}}';
+                window.org = {{orgScriptValue}};
+                window.app = {{appScriptValue}};
                 window.featureToggles = {{FeatureTogglesJson}};
                 window.altinnAppGlobalData = {{globalDataJson}};
               </script>
