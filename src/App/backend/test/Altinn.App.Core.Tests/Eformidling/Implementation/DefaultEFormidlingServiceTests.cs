@@ -1,3 +1,4 @@
+using System.Net;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;
@@ -13,6 +14,7 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
+using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -374,6 +376,118 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().VerifyNoOtherCalls();
 
         result.IsCompletedSuccessfully.Should().BeFalse();
+    }
+
+    private const string DuplicateMessageBody =
+        "The remote server returned an unexpcted error: {\n"
+        + "  \"timestamp\" : \"2026-05-28T14:52:16.925861287+02:00\",\n"
+        + "  \"exception\" : \"no.difi.meldingsutveksling.exceptions.MessageAlreadyExistsException\",\n"
+        + "  \"message\" : \"Message with messageId = e9f0f271-a01e-4457-8a24-3c2079824717 already exists\",\n"
+        + "  \"status\" : 400,\n"
+        + "  \"error\" : \"Bad Request\",\n"
+        + "  \"path\" : \"/api/messages/out\"\n"
+        + "}.";
+
+    private static void SetupDuplicateCreate(Mock<IEFormidlingClient> eFormidlingClient, params string[] statuses)
+    {
+        eFormidlingClient
+            .Setup(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), It.IsAny<Dictionary<string, string>>()))
+            .ThrowsAsync(new WebException(DuplicateMessageBody));
+        eFormidlingClient
+            .Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+            .ReturnsAsync(
+                new Statuses { Content = statuses.Select(status => new Content { Status = status }).ToList() }
+            );
+    }
+
+    [Fact]
+    public async Task SendEFormidlingShipment_resumes_unsent_message_on_duplicate_create()
+    {
+        // Arrange
+        await using var fixture = CreateFixture(
+            data: [],
+            setupEFormidlingClient: static c => SetupDuplicateCreate(c, "opprettet")
+        );
+        var (sp, instance, instanceGuid) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        // Act
+        await defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
+
+        // Assert - the existing unsent message is completed rather than left stuck
+        var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
+        eFormidlingClient.Verify(ec =>
+            ec.UploadAttachment(
+                Stream.Null,
+                instanceGuid.ToString(),
+                EFormidlingMetadataFilename,
+                It.IsAny<Dictionary<string, string>>()
+            )
+        );
+        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), It.IsAny<Dictionary<string, string>>()));
+    }
+
+    [Fact]
+    public async Task SendEFormidlingShipment_skips_when_duplicate_already_sent()
+    {
+        // Arrange
+        await using var fixture = CreateFixture(
+            data: [],
+            setupEFormidlingClient: static c => SetupDuplicateCreate(c, "opprettet", "sendt", "levert")
+        );
+        var (sp, instance, instanceGuid) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        // Act
+        await defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
+
+        // Assert - idempotent no-op: nothing is uploaded and nothing is re-sent
+        var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
+        eFormidlingClient.Verify(
+            ec =>
+                ec.UploadAttachment(
+                    It.IsAny<Stream>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Dictionary<string, string>>()
+                ),
+            Times.Never
+        );
+        eFormidlingClient.Verify(
+            ec => ec.SendMessage(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task SendEFormidlingShipment_throws_when_duplicate_message_has_failed()
+    {
+        // Arrange
+        await using var fixture = CreateFixture(
+            data: [],
+            setupEFormidlingClient: static c => SetupDuplicateCreate(c, "opprettet", "levetid_utlopt")
+        );
+        var (sp, instance, _) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<EformidlingDeliveryException>(() =>
+            defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration)
+        );
+        Assert.Contains("levetid_utlopt", exception.Message);
+    }
+
+    [Theory]
+    [InlineData(DuplicateMessageBody, true)]
+    [InlineData("The remote server returned an unexpcted error: not json MessageAlreadyExistsException.", true)]
+    [InlineData(
+        "The remote server returned an unexpcted error: { \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }.",
+        false
+    )]
+    [InlineData("Connection refused", false)]
+    public void IsMessageAlreadyExistsError_matches_only_duplicate_errors(string message, bool expected)
+    {
+        Assert.Equal(expected, DefaultEFormidlingService.IsMessageAlreadyExistsError(new WebException(message)));
     }
 
     [Theory]

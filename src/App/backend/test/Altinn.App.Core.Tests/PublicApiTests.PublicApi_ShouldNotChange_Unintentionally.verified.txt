@@ -119,6 +119,7 @@ namespace Altinn.App.Core.EFormidling
     public static class EformidlingConstants
     {
         public const string CheckInstanceStatusEventType = "app.eformidling.reminder.checkinstancestatus";
+        public const string ShipmentOwnerWorkflowIdDataValueKey = "eFormidlingShipmentWorkflowId";
     }
     public class EformidlingStartup : Microsoft.Extensions.Hosting.IHostedService
     {
@@ -2136,6 +2137,7 @@ namespace Altinn.App.Core.Features.Process
         public ServiceTaskContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public System.Guid? WorkflowId { get; init; }
     }
     public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
     {

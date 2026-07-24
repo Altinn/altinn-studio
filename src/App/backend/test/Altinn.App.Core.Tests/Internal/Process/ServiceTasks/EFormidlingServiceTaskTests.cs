@@ -1,7 +1,10 @@
+using Altinn.App.Core.EFormidling;
+using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
@@ -14,10 +17,13 @@ namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 
 public class EFormidlingServiceTaskTests
 {
+    private static readonly Guid _workflowId = Guid.Parse("00000000-0000-0000-0000-00000000abcd");
+
     private readonly Mock<ILogger<EFormidlingServiceTask>> _loggerMock = new();
     private readonly Mock<IEFormidlingService> _eFormidlingServiceMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new();
+    private readonly Mock<IInstanceClient> _instanceClientMock = new();
     private readonly EFormidlingServiceTask _serviceTask;
 
     public EFormidlingServiceTaskTests()
@@ -27,8 +33,29 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
+            _instanceClientMock.Object,
             _eFormidlingServiceMock.Object
         );
+    }
+
+    private void SetupFreshInstance(Instance instance, string? shipmentOwnerWorkflowId = null)
+    {
+        var freshInstance = new Instance
+        {
+            Id = instance.Id,
+            Process = instance.Process,
+            DataValues = shipmentOwnerWorkflowId is null
+                ? null
+                : new Dictionary<string, string>
+                {
+                    [EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey] = shipmentOwnerWorkflowId,
+                },
+        };
+        _instanceClientMock
+            .Setup(x =>
+                x.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(freshInstance);
     }
 
     [Fact]
@@ -55,6 +82,7 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
+            _instanceClientMock.Object,
             null
         );
 
@@ -80,6 +108,7 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
+            _instanceClientMock.Object,
             null
         );
 
@@ -107,7 +136,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+        SetupFreshInstance(instance);
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -155,7 +189,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+        SetupFreshInstance(instance);
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
 
         // Act
         await _serviceTask.Execute(parameters);
@@ -220,7 +259,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+        SetupFreshInstance(instance);
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
 
         // Act
         await _serviceTask.Execute(parameters);
@@ -232,10 +276,186 @@ public class EFormidlingServiceTaskTests
         );
     }
 
+    // ===== IDEMPOTENCY / SHIPMENT OWNERSHIP TESTS =====
+
+    [Fact]
+    public async Task Execute_Should_Throw_When_WorkflowIdMissing()
+    {
+        Instance instance = GetInstance();
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+
+        var exception = await Assert.ThrowsAsync<ProcessException>(() => _serviceTask.Execute(parameters));
+        Assert.Contains("workflow id", exception.Message);
+    }
+
+    [Fact]
+    public async Task Execute_Should_FailPermanently_When_ShipmentOwnedByAnotherWorkflow()
+    {
+        Instance instance = GetInstance();
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        SetupFreshInstance(instance, shipmentOwnerWorkflowId: Guid.NewGuid().ToString());
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        var result = await _serviceTask.Execute(parameters);
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("earlier pass", failed.ErrorMessage);
+        _eFormidlingServiceMock.Verify(
+            x => x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Execute_Should_Send_When_ShipmentOwnedBySameWorkflow()
+    {
+        // A retry of the transition that owns the shipment must go through to the send, which
+        // self-heals on the duplicate message id.
+        Instance instance = GetInstance();
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        SetupFreshInstance(instance, shipmentOwnerWorkflowId: _workflowId.ToString());
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        var result = await _serviceTask.Execute(parameters);
+
+        Assert.IsType<ServiceTaskSuccessResult>(result);
+        _eFormidlingServiceMock.Verify(
+            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_Should_RecordShipmentOwner_AfterSend()
+    {
+        Instance instance = GetInstance();
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        SetupFreshInstance(instance);
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        var result = await _serviceTask.Execute(parameters);
+
+        Assert.IsType<ServiceTaskSuccessResult>(result);
+        _instanceClientMock.Verify(
+            x =>
+                x.UpdateDataValue(
+                    instance,
+                    EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
+                    _workflowId.ToString(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_Should_NotRecordShipmentOwner_When_SendFails()
+    {
+        Instance instance = GetInstance();
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        SetupFreshInstance(instance);
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        _eFormidlingServiceMock
+            .Setup(x =>
+                x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>())
+            )
+            .ThrowsAsync(new Exception("send failed"));
+
+        await Assert.ThrowsAsync<Exception>(() => _serviceTask.Execute(parameters));
+
+        _instanceClientMock.Verify(
+            x =>
+                x.UpdateDataValue(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Execute_Should_FailPermanently_When_DeliveryExceptionThrown()
+    {
+        Instance instance = GetInstance();
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+
+        SetupFreshInstance(instance);
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+        };
+
+        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
+
+        _eFormidlingServiceMock
+            .Setup(x =>
+                x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>())
+            )
+            .ThrowsAsync(new EformidlingDeliveryException("message id cannot be reused"));
+
+        var result = await _serviceTask.Execute(parameters);
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+    }
+
     private static Instance GetInstance()
     {
         return new Instance
         {
+            Id = "1337/00000000-0000-0000-0000-000000000001",
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "taskId" } },
         };
     }

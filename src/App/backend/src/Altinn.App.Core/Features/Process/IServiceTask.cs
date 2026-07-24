@@ -32,6 +32,14 @@ public sealed record ServiceTaskContext
     /// Cancellation token for the operation.
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+
+    /// <summary>
+    /// The engine-assigned id of the workflow executing this service task. Stable across retries of
+    /// the same process transition; a new visit to the task runs under a new workflow id. Service
+    /// tasks with external side effects can use it to tell a retried attempt apart from a genuinely
+    /// new pass through the task.
+    /// </summary>
+    public Guid? WorkflowId { get; init; }
 }
 
 /// <summary>
