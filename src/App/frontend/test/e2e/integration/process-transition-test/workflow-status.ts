@@ -6,19 +6,23 @@ const appFrontend = new AppFrontend();
  * E2E for the live workflow-status state machine (ADR 2026-07-08), driving the REAL workflow engine
  * via the ttd/process-transition-test app instead of intercept stubbing.
  *
- * The app is Task_1 (data) -> gateway -> [Task_Service (service task) ->] Task_2 (data) -> gateway
- * -> EndEvent, where Task_2's reject action routes back to Task_1 (backwards navigation). The
- * gateway after Task_1 routes through Task_Service ONLY when the postCommit path is chosen; every
- * other path goes straight to Task_2. Task_1 has a form of "levers" that two app hooks read to
- * control the forward transition. The levers describe a scenario:
+ * The app is Task_1 (data) -> gateway -> [Task_Service (service task) -> gateway ->] Task_2 (data)
+ * -> gateway -> EndEvent, where Task_2's reject action routes back to Task_1 (backwards
+ * navigation) and Task_Service's reject action routes back to Task_1 as well (backing out of a
+ * failed service task from its failure view). The gateway after Task_1 routes through Task_Service
+ * ONLY when the postCommit path is chosen; every other path goes straight to Task_2. Task_1 has a
+ * form of "levers" that two app hooks read to control the forward transition. The levers describe
+ * a scenario:
  *   - path       WHERE the transition misbehaves: "none" (clean), "preCommit" (fail before the
  *                Storage commit, committed=Task_1) or "postCommit" (fail after it,
  *                committed=Task_Service).
  *   - delayMs    a delay injected on every attempt, regardless of attempts/end state.
  *   - attempts   how many times the engine tries the transition; every attempt but the last fails
  *                transiently (auto-retried), and the last settles on endState. attempts=1 => no retry.
- *   - endState   what happens on the last attempt: "success" (transition completes) or
- *                "failure" (terminal failure -> error page).
+ *   - endState   what happens on the last attempt: "success" (transition completes), "failure"
+ *                (terminal failure -> error page; every replay fails the same way) or
+ *                "failureThenSuccess" (terminal failure once, then success when the failed step
+ *                is re-run via process/resume - i.e. the failed task view's "Prøv igjen").
  *
  * The two hooks:
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
@@ -40,14 +44,17 @@ const appFrontend = new AppFrontend();
  *                 engine already exhausted its retry budget, so the page is static until a refresh.
  *                 EXCEPTION: a failure owned by the current service task renders the service task's
  *                 own view instead (same heading, but WITH "Prøv igjen"/"Gå tilbake" recovery
- *                 buttons) — see the failed (post-commit) test.
+ *                 buttons) — see the failed (post-commit) test. "Prøv igjen" resumes the failed
+ *                 workflow (POST process/resume — a plain process/next is 409-blocked while the
+ *                 workflow is failed) and "Gå tilbake" rejects back to Task_1 — see the two
+ *                 recovery tests.
  */
 
 type Levers = {
   path?: 'none' | 'preCommit' | 'postCommit';
   delayMs?: 0 | 3000 | 8000 | 15000 | 30000;
   attempts?: 1 | 2 | 3 | 5;
-  endState?: 'success' | 'failure';
+  endState?: 'success' | 'failure' | 'failureThenSuccess';
 };
 
 // Button labels from the app's resource.nb.json: Task_1 advances with "Gå til Task 2", Task_2
@@ -81,6 +88,7 @@ const leverLabels = {
   endState: {
     success: 'Suksess – overgangen fullføres',
     failure: 'Feil – behandlingen stopper og feilsiden vises',
+    failureThenSuccess: 'Feil, så suksess – behandlingen stopper, men «Prøv igjen» lykkes',
   },
 } as const;
 
@@ -227,11 +235,12 @@ describe('Live workflow status (real engine)', () => {
 
     // A failure OWNED by the current service task (workflow.targetTask === committed service task)
     // does not use the terminal error page: it renders the service task's own view, which keeps the
-    // recovery affordances. Same heading text, but WITH a retry button - the generic failed page
-    // deliberately has none (cf. the pre-commit failed test above).
+    // recovery affordances. Same heading text, but WITH retry/back buttons - the generic failed
+    // page deliberately has none (cf. the pre-commit failed test above).
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
     cy.contains('En feil oppstod under automatisk behandling av skjemaet.').should('be.visible');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
+    cy.findByRole('button', { name: 'Gå tilbake' }).should('be.visible');
 
     // Stale-url guard (ProcessWrapper regression): load the OLD Task_1 url while Storage has already
     // committed currentTask forward to Task_Service. The wrong-task guard must not bury the failure
@@ -242,6 +251,49 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
+  });
+
+  it('recovery (post-commit): "Prøv igjen" resumes the failed workflow and advances to Task_2', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // failureThenSuccess: the single attempt fails permanently, but the service task keeps its
+    // attempt counter, so the resume-driven replay of the failed step succeeds.
+    fillLevers({ path: 'postCommit', attempts: 1, endState: 'failureThenSuccess' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+
+    // "Prøv igjen" must NOT be a plain process/next (that is 409-blocked while the workflow is
+    // failed): it resumes the failed workflow (POST process/resume), the engine re-runs the failed
+    // step, the service task succeeds this time and auto-advances - and the page navigates onto the
+    // committed Task_2 without a reload.
+    cy.findByRole('button', { name: 'Prøv igjen' }).click();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('recovery (post-commit): "Gå tilbake" rejects the failed service task back to Task_1', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', attempts: 1, endState: 'failure' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+
+    // Backing out: the bpmn-allowed reject supersedes the terminally failed workflow (the engine
+    // writes it off) and Gateway_Service routes the reject back to Task_1, where the levers are
+    // editable again.
+    cy.findByRole('button', { name: 'Gå tilbake' }).click();
+    cy.findByRole('heading', { name: /Task 1/, timeout: 30000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+
+    // The failure lever is still selected (the data lives on Task_1); flip the scenario to a clean
+    // run and the resubmission goes through the service task to Task_2.
+    cy.get('#endState').should('have.value', leverLabels.endState.failure);
+    fillLevers({ endState: 'success' });
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
   });
 
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {
