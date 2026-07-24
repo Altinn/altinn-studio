@@ -56,6 +56,16 @@ shareWorkspace:
   path: "/root/.cache/act"
   sizeLimit: "10Gi"
 
+# Optional seed image for act_runner's action-source cache. When
+# enabled, an init container copies /prewarmed-act-cache from this image into
+# each pod's private act-cache emptyDir before the runner starts.
+actCacheSeed:
+  enabled: false
+  image:
+    repository: altinntjenestercontainerregistry.azurecr.io/altinn-gitea-runner-act-cache
+    tag: "latest"
+    pullPolicy: Always
+
 # Gitea connection details. Used both for the runner registration env vars
 # inside each Job pod, and for the KEDA scaler's queue-depth polling URL.
 gitea:
