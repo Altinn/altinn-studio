@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.11
-chart_digest=sha256:adbe10641755761859ea5559cadf0c80b763fe128bd86ecaaacb7c1c1544de64
+chart_version=0.8.13
+chart_digest=sha256:9d23ccc82f5062be44b3929cb03c056b76cb1abee46fd0410e9267e4b385dab2
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -43,6 +43,20 @@ yq -e '
   .spec.values.producer.enabled == true and
   .spec.values.agentSchedule.suspend == false and
   .spec.values.agentSchedule.maxParallelism == 2 and
+  ((.spec.values.agentSchedule.allowedProducers // []) | length) == 0 and
+  (.spec.values.agentSchedule.workflowProfiles | length) == 1 and
+  .spec.values.agentSchedule.workflowProfiles[0].name == "implement-pr" and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("nvt-as-root <command>")) and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("passwordless sudo")) and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("mirkoSekulic/altinn-studio")) and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("gh-auth --provider github-altinn --repo Altinn/altinn-studio")) and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("Conventional Commits")) and
+  (.spec.values.agentSchedule.producerPolicies | length) == 1 and
+  .spec.values.agentSchedule.producerPolicies[0].identity == "system:serviceaccount:nvt:nvt-github-comments-producer" and
+  (.spec.values.agentSchedule.producerPolicies[0].workflows | length) == 1 and
+  .spec.values.agentSchedule.producerPolicies[0].workflows[0] == "implement-pr" and
+  .spec.values.agentSchedule.producerPolicies[0].defaultWorkflow == "implement-pr" and
+  .spec.values.producer.submission.workflow == "implement-pr" and
   .spec.values.agentSchedule.template.runtimeClassName == "kata-vm-isolation" and
   .spec.values.agentSchedule.template.resources.requests.cpu == "2" and
   .spec.values.agentSchedule.template.resources.requests.memory == "8Gi" and
@@ -60,6 +74,8 @@ yq -e '
   .spec.values.agentSchedule.template.agent.config.preseed.files[2].path == "$HOME/.codex/config.toml" and
   .spec.values.agentSchedule.template.agent.config.preseed.files[2].overwrite == false and
   (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("check_for_update_on_startup = false")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("[notice]")) and
+  (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("hide_rate_limit_model_nudge = true")) and
   (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("[projects.\"/workspace\"]")) and
   (.spec.values.agentSchedule.template.agent.config.preseed.files[2].content | contains("trust_level = \"trusted\"")) and
   (.spec.values.agentSchedule.template.tolerations | length) == 1 and
@@ -75,20 +91,12 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.pull_requests == "write" and
-  (.spec.values.agentSchedule.profiles[0].broker.grants[1].preparations | length) == 1 and
-  .spec.values.agentSchedule.profiles[0].broker.grants[1].preparations[0].operation == "identity" and
-  (.spec.values.agentSchedule.profiles[0].broker.grants[2].preparations | length) == 1 and
-  .spec.values.agentSchedule.profiles[0].broker.grants[2].preparations[0].operation == "identity" and
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.pull_requests == "write" and
-  (.spec.values.agentSchedule.profiles[1].broker.grants[1].preparations | length) == 1 and
-  .spec.values.agentSchedule.profiles[1].broker.grants[1].preparations[0].operation == "identity" and
-  (.spec.values.agentSchedule.profiles[1].broker.grants[2].preparations | length) == 1 and
-  .spec.values.agentSchedule.profiles[1].broker.grants[2].preparations[0].operation == "identity" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].name == "git-host-credentials" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].credential-kind == "mediated" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[1].credential-kind == "mediated" and
@@ -96,10 +104,12 @@ yq -e '
   .spec.values.broker.config.providers[3].allow.permissions.issues == "read" and
   .spec.values.broker.config.providers[3].allow.permissions.pull_requests == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].name == "git-credentials" and
-  (.spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity | length) == 1 and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "provider" and
-  (.spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity | length) == 1 and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.mode == "provider" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "explicit" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.name == "nvt-agent[bot]" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.email == "289161147+nvt-agent[bot]@users.noreply.github.com" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.mode == "explicit" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.name == "nvt-agent-altinn[bot]" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.email == "289165276+nvt-agent-altinn[bot]@users.noreply.github.com" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
   .spec.values.broker.persistence.seedSecretName == "nvt-broker-seed" and
   .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and
