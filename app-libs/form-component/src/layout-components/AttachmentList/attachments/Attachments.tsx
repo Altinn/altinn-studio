@@ -1,50 +1,43 @@
-import React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactElement } from 'react';
 
+import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import classes from 'src/components/atoms/AltinnAttachment.module.css';
-import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
-import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
-import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
-import type { IDisplayAttachment } from 'src/types/shared';
+import classes from './Attachments.module.css';
+import { getFileEnding, removeFileEnding } from './fileEndings';
+import { FileExtensionIcon } from './FileExtensionIcon';
+import { makeUrlRelativeIfSameDomain } from './makeUrlRelativeIfSameDomain';
+import type { DisplayAttachment } from './types';
 
-interface IAltinnAttachmentsProps {
-  attachments?: IDisplayAttachment[];
+export type AttachmentsProps = {
+  attachments?: DisplayAttachment[];
   id?: string;
-  title?: React.ReactElement;
-  showLinks: boolean | undefined;
+  title?: ReactElement;
+  showLinks?: boolean;
   showDescription?: boolean;
-}
+};
 
-export function AltinnAttachments({
+export function Attachments({
   attachments,
   id,
   title,
   showLinks = true,
   showDescription = false,
-}: IAltinnAttachmentsProps) {
+}: AttachmentsProps) {
   const selectedLanguage = useCurrentLanguage();
   const filteredAndSortedAttachments = attachments
     ?.filter((attachment) => attachment.name)
-    .sort((a, b) => (a.name && b.name ? a.name.localeCompare(b.name, selectedLanguage, { numeric: true }) : 0));
+    .sort((a, b) =>
+      a.name && b.name ? a.name.localeCompare(b.name, selectedLanguage, { numeric: true }) : 0,
+    );
 
   return (
-    <div
-      id={id}
-      data-testid='attachment-list'
-    >
+    <div id={id} data-testid='attachment-list'>
       {title}
-      <List.Unordered
-        className={classes.attachmentList}
-        data-size='sm'
-      >
+      <List.Unordered className={classes.attachmentList} data-size='sm'>
         {filteredAndSortedAttachments?.map((attachment, index) => (
-          <Attachment
+          <AttachmentItem
             key={index}
             attachment={attachment}
             showLink={showLinks}
@@ -56,30 +49,31 @@ export function AltinnAttachments({
   );
 }
 
-interface IAltinnAttachmentProps {
-  attachment: IDisplayAttachment;
+function AttachmentItem({
+  attachment,
+  showLink,
+  showDescription,
+}: {
+  attachment: DisplayAttachment;
   showLink: boolean;
   showDescription: boolean;
-}
-
-function Attachment({ attachment, showLink, showDescription }: IAltinnAttachmentProps) {
+}) {
+  const { lang } = useTranslation();
   const currentLanguage = useCurrentLanguage();
+  const descriptionKey = attachment.description?.[currentLanguage];
 
   return (
     <List.Item>
-      <AttachmentFileName
-        attachment={attachment}
-        showLink={showLink}
-      >
+      <AttachmentFileName attachment={attachment} showLink={showLink}>
         <div className={classes.attachmentContent}>
           <FileExtensionIcon
             fileEnding={getFileEnding(attachment.name)}
             className={classes.attachmentIcon}
           />
           <div className={classes.attachmentText}>
-            {showDescription && attachment.description?.[currentLanguage] && (
+            {showDescription && descriptionKey && (
               <div className={classes.description}>
-                <Lang id={attachment.description[currentLanguage]} />
+                {lang(descriptionKey)}
                 <span>&nbsp;&ndash;&ndash;&nbsp;</span>
               </div>
             )}
@@ -98,8 +92,8 @@ function AttachmentFileName({
   attachment,
   showLink,
   children,
-}: PropsWithChildren<{ attachment: IDisplayAttachment; showLink: boolean }>) {
-  const { langAsString } = useLanguage();
+}: PropsWithChildren<{ attachment: DisplayAttachment; showLink: boolean }>) {
+  const { langAsString } = useTranslation();
   const currentLanguage = useCurrentLanguage();
 
   if (showLink) {

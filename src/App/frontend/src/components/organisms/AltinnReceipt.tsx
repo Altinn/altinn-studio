@@ -1,11 +1,10 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import { AttachmentGroupings, Attachments } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 
-import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import classes from 'src/components/organisms/AltinnReceipt.module.css';
-import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IDisplayAttachment } from 'src/types/shared';
@@ -78,7 +77,7 @@ export function ReceiptComponent({
               {titleSubmitted}
             </Heading>
           )}
-          <AltinnAttachments
+          <Attachments
             attachments={pdf}
             id='attachment-list-pdf'
             showLinks={true}

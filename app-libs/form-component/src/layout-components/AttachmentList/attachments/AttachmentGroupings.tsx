@@ -1,21 +1,20 @@
-import React from 'react';
-import type { JSX } from 'react';
+import type { JSX, ReactElement } from 'react';
 
+import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import cn from 'classnames';
 
-import { MainAttachmentHeader, SubAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
-import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
-import classes from 'src/components/organisms/AttachmentGroupings.module.css';
-import { useLanguage } from 'src/features/language/useLanguage';
-import type { IDisplayAttachment } from 'src/types/shared';
+import classes from './AttachmentGroupings.module.css';
+import { MainAttachmentHeader, SubAttachmentHeader } from './AttachmentHeader';
+import { CollapsibleAttachments } from './CollapsibleAttachments';
+import type { DisplayAttachment } from './types';
 
 const defaultGroupingKey = 'null';
 
-type AttachmentGroupingsProps = {
-  attachments: IDisplayAttachment[] | undefined;
-  title: JSX.Element | undefined;
+export type AttachmentGroupingsProps = {
+  attachments: DisplayAttachment[] | undefined;
+  title: ReactElement | undefined;
   hideCollapsibleCount?: boolean;
-  showLinks: boolean | undefined;
+  showLinks?: boolean;
   showDescription?: boolean;
 };
 
@@ -26,11 +25,11 @@ export function AttachmentGroupings({
   showLinks = true,
   showDescription = false,
 }: AttachmentGroupingsProps) {
-  const langTools = useLanguage();
+  const { langAsString } = useTranslation();
 
-  const groupings = attachments?.reduce<Record<string, IDisplayAttachment[]>>((acc, attachment) => {
+  const groupings = attachments?.reduce<Record<string, DisplayAttachment[]>>((acc, attachment) => {
     const grouping = attachment.grouping ?? defaultGroupingKey;
-    const translatedGrouping = langTools.langAsString(grouping);
+    const translatedGrouping = langAsString(grouping);
     if (!acc[translatedGrouping]) {
       acc[translatedGrouping] = [];
     }
@@ -66,7 +65,7 @@ export function AttachmentGroupings({
           .sort(sortDefaultGroupingFirst)
           .map((groupTitle) => (
             <li key={groupTitle}>
-              <AltinnCollapsibleAttachments
+              <CollapsibleAttachments
                 attachments={groupings[groupTitle]}
                 title={
                   <GroupingTitle
@@ -89,12 +88,19 @@ export function AttachmentGroupings({
 type GroupingTitleProps = {
   groupTitle: string;
   hideCollapsibleCount: boolean;
-  groupings: Record<string, IDisplayAttachment[]>;
+  groupings: Record<string, DisplayAttachment[]>;
   mainTitle: JSX.Element | undefined;
 };
 
-function GroupingTitle({ groupTitle, hideCollapsibleCount, groupings, mainTitle }: GroupingTitleProps) {
-  const numAttachmentsInGroup = hideCollapsibleCount ? '' : `(${groupings[groupTitle]?.length ?? 0})`;
+function GroupingTitle({
+  groupTitle,
+  hideCollapsibleCount,
+  groupings,
+  mainTitle,
+}: GroupingTitleProps) {
+  const numAttachmentsInGroup = hideCollapsibleCount
+    ? ''
+    : `(${groupings[groupTitle]?.length ?? 0})`;
   const attachmentsWithoutGrouping = groupings[defaultGroupingKey] ?? [];
   const hasAnyAttachmentsWithoutGrouping = attachmentsWithoutGrouping.length > 0;
 
