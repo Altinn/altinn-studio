@@ -14,9 +14,9 @@ describe('Service task', () => {
     // layout's own "Prøv igjen" was a plain process/next Button - a silent no-op on a terminally
     // failed v9 workflow - while the failure view's retry goes through process/resume and works.
     cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
-    cy.findByText(
-      'Uff da! Her tryna denne service-tasken, men det var jo du som valgte at det skulle skje.',
-    ).should('not.exist');
+    cy.findByText('Uff da! Her tryna denne service-tasken, men det var jo du som valgte at det skulle skje.').should(
+      'not.exist',
+    );
 
     // Deliberately no error toast: the v9 backend never ships the raw failure detail to the client
     // (a user-safe app-authored failure message is a known follow-up in the live workflow-status
