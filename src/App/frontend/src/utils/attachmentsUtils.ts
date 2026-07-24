@@ -1,8 +1,8 @@
 import type { DisplayAttachment } from '@app/form-component';
 
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
-import type { IData, IDataType, IDisplayAttachment } from 'src/types/shared';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
+import type { IData, IDataType, IDisplayAttachment } from 'src/types/shared';
 
 export enum DataTypeReference {
   IncludeAll = 'include-all',
