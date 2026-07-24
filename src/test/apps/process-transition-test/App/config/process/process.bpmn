@@ -12,6 +12,7 @@
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_Start_Task1</bpmn:incoming>
       <bpmn:incoming>Flow_Gateway_Task1</bpmn:incoming>
+      <bpmn:incoming>Flow_GatewayS_Task1</bpmn:incoming>
       <bpmn:outgoing>Flow_Task1_GatewayPC</bpmn:outgoing>
     </bpmn:task>
     <!-- Routes the forward transition through the scenario service task ONLY when the postCommit
@@ -29,15 +30,27 @@
       <bpmn:outgoing>Flow_GatewayPC_Service</bpmn:outgoing>
       <bpmn:outgoing>Flow_GatewayPC_Task2</bpmn:outgoing>
     </bpmn:exclusiveGateway>
+    <!-- 'reject' lets the user abandon the service task from its failure view ("Gå tilbake"):
+         the engine writes the failed workflow off and the reject transition routes back to
+         Task_1 via Gateway_Service. The forward path (success auto-advance, and the user's
+         resume-driven retry) exits the same gateway towards Task_2. -->
     <bpmn:serviceTask id="Task_Service" name="Behandling">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>scenario</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_GatewayPC_Service</bpmn:incoming>
-      <bpmn:outgoing>Flow_Service_Task2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Service_GatewayS</bpmn:outgoing>
     </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Service">
+      <bpmn:incoming>Flow_Service_GatewayS</bpmn:incoming>
+      <bpmn:outgoing>Flow_GatewayS_Task1</bpmn:outgoing>
+      <bpmn:outgoing>Flow_GatewayS_Task2</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
     <bpmn:task id="Task_2" name="Task 2">
       <bpmn:extensionElements>
         <altinn:taskExtension>
@@ -48,7 +61,7 @@
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_GatewayPC_Task2</bpmn:incoming>
-      <bpmn:incoming>Flow_Service_Task2</bpmn:incoming>
+      <bpmn:incoming>Flow_GatewayS_Task2</bpmn:incoming>
       <bpmn:outgoing>Flow_Task2_Gateway</bpmn:outgoing>
     </bpmn:task>
     <bpmn:exclusiveGateway id="Gateway_1">
@@ -67,7 +80,13 @@
     <bpmn:sequenceFlow id="Flow_GatewayPC_Task2" sourceRef="Gateway_PostCommit" targetRef="Task_2">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals", ["dataModel", "path"], "postCommit"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_Service_Task2" sourceRef="Task_Service" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_Service_GatewayS" sourceRef="Task_Service" targetRef="Gateway_Service" />
+    <bpmn:sequenceFlow id="Flow_GatewayS_Task1" sourceRef="Gateway_Service" targetRef="Task_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GatewayS_Task2" sourceRef="Gateway_Service" targetRef="Task_2">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_Task2_Gateway" sourceRef="Task_2" targetRef="Gateway_1" />
     <bpmn:sequenceFlow id="Flow_Gateway_Task1" sourceRef="Gateway_1" targetRef="Task_1">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
@@ -89,6 +108,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_Service_di" bpmnElement="Task_Service">
         <dc:Bounds x="395" y="-40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Service_di" bpmnElement="Gateway_Service">
+        <dc:Bounds x="525" y="-25" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_2_di" bpmnElement="Task_2">
         <dc:Bounds x="500" y="81" width="100" height="80" />
@@ -115,9 +137,18 @@
         <di:waypoint x="470" y="121" />
         <di:waypoint x="500" y="121" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_Service_Task2_di" bpmnElement="Flow_Service_Task2">
+      <bpmndi:BPMNEdge id="Flow_Service_GatewayS_di" bpmnElement="Flow_Service_GatewayS">
         <di:waypoint x="495" y="0" />
-        <di:waypoint x="550" y="0" />
+        <di:waypoint x="525" y="0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GatewayS_Task1_di" bpmnElement="Flow_GatewayS_Task1">
+        <di:waypoint x="550" y="-25" />
+        <di:waypoint x="550" y="-70" />
+        <di:waypoint x="330" y="-70" />
+        <di:waypoint x="330" y="81" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GatewayS_Task2_di" bpmnElement="Flow_GatewayS_Task2">
+        <di:waypoint x="550" y="25" />
         <di:waypoint x="550" y="81" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_Task2_Gateway_di" bpmnElement="Flow_Task2_Gateway">

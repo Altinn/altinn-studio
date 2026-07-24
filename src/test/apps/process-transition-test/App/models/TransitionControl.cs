@@ -30,8 +30,10 @@ namespace Altinn.App.Models.TransitionControl
         [JsonPropertyName("attempts")]
         public int? attempts { get; set; }
 
-        /// <summary>What happens on the last attempt: "success" (transition completes) or "failure"
-        /// (terminal failure, error page). Only meaningful on an error path.</summary>
+        /// <summary>What happens on the last attempt: "success" (transition completes), "failure"
+        /// (terminal failure, error page; every replay fails the same way) or "failureThenSuccess"
+        /// (terminal failure once, then success when the failed step is re-run via resume). Only
+        /// meaningful on an error path.</summary>
         [XmlElement("endState", Order = 4)]
         [JsonProperty("endState")]
         [JsonPropertyName("endState")]

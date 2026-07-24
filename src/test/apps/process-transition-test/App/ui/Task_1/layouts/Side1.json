@@ -157,6 +157,10 @@
           {
             "value": "failure",
             "label": "endState.failure"
+          },
+          {
+            "value": "failureThenSuccess",
+            "label": "endState.failureThenSuccess"
           }
         ],
         "textResourceBindings": {

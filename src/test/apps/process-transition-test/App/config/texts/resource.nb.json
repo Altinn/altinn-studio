@@ -114,6 +114,10 @@
       "value": "Feil – behandlingen stopper og feilsiden vises"
     },
     {
+      "id": "endState.failureThenSuccess",
+      "value": "Feil, så suksess – behandlingen stopper, men «Prøv igjen» lykkes"
+    },
+    {
       "id": "Task1.hint.title",
       "value": "Tips: prøv å laste siden på nytt underveis"
     },
