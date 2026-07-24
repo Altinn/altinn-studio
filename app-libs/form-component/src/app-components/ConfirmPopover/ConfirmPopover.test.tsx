@@ -17,8 +17,8 @@ function renderConfirmPopover(props: Partial<ConfirmPopoverProps> = {}) {
     message,
     confirmText,
     cancelText,
-    onConfirm: jest.fn(),
-    onCancel: jest.fn(),
+    onConfirm: vi.fn(),
+    onCancel: vi.fn(),
     children: <Button>Delete</Button>,
     ...props,
   };

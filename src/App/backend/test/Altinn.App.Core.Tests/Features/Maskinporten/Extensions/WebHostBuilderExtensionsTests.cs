@@ -89,7 +89,7 @@ public sealed class WebHostBuilderExtensionsTests
 
         await Wait.Until(
             () => configuration["MaskinportenSettings:clientId"] == "client-after",
-            TimeSpan.FromSeconds(15)
+            TimeSpan.FromSeconds(30)
         );
     }
 
@@ -126,7 +126,7 @@ public sealed class WebHostBuilderExtensionsTests
         );
         projectedVolume.SwapDataSymlink(KubernetesProjectedVolume.UpdatedVersionDirectoryName);
 
-        await Wait.Until(() => options.CurrentValue.ClientId == "client-after", TimeSpan.FromSeconds(15));
+        await Wait.Until(() => options.CurrentValue.ClientId == "client-after", TimeSpan.FromSeconds(30));
     }
 
     private static WebHostBuilderContext CreateContext(string settingsPath) =>

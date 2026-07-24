@@ -40,17 +40,17 @@ describe('Existing instance access', () => {
     cy.waitUntilSaved();
 
     cy.url().then((instanceUrl) => {
-      const instanceHash = new URL(instanceUrl).hash;
-      const instanceId = instanceHash.match(/\d+\/[\da-f-]{36}/i)?.[0];
+      const path = new URL(instanceUrl).pathname;
+      const instanceId = path.match(/\d+\/[\da-f-]{36}/i)?.[0];
       expect(instanceId, 'instance ID').to.exist;
 
-      cy.intercept('GET', `**/instances/${instanceId}`).as('existingInstance');
+      cy.intercept('GET', `**/instances/${instanceId}/enriched`).as('existingInstance');
       userIsReopeningInstance = true;
       cy.startAppInstance(appFrontend.apps.signeringBrukerstyrt, {
         cyUser: null,
         tenorUser: Tenor.users.humanAndrefiolin,
         authenticationLevel: '2',
-        urlSuffix: instanceHash,
+        urlSuffix: `/instance/${instanceId}/`,
       });
 
       // Access to an existing instance must depend on the instance request, not whether the user can instantiate

@@ -15,7 +15,6 @@ import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
-import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
@@ -510,6 +509,7 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
   const options = _options ?? { times: 1 };
   cy.intercept({ method: 'GET', url: `**/bootstrap-form/${taskName}*`, ...options }, (req) => {
     req.on('before:response', (res) => {
+      const responseType = typeof res;
       const response = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
       const set = response?.layouts as ILayoutCollection;
 
@@ -522,7 +522,8 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
         wholeLayoutMutator(set);
       }
 
-      res.body = JSON.stringify({ ...response, layouts: set });
+      res.body =
+        responseType === 'string' ? JSON.stringify({ ...response, layouts: set }) : { ...response, layouts: set };
     });
   }).as(`interceptLayout(${taskName})`);
 });
@@ -1038,10 +1039,4 @@ Cypress.Commands.add('expectPageBreaks', (expectedCount: number) => {
 
 Cypress.Commands.add('setFeatureToggle', (toggleName: IFeatureToggles, value: boolean) => {
   cy.setCookie(`FEATURE_${toggleName}`, value.toString());
-});
-
-Cypress.Commands.add('preventPartySelection', () => {
-  interceptAltinnAppGlobalData((globalData) => {
-    globalData.applicationMetadata.promptForParty = 'never';
-  });
 });

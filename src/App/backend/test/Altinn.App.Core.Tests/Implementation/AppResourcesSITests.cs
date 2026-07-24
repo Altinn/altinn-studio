@@ -321,12 +321,14 @@ public class AppResourcesSITests
             AppResourcesSI appResources = new(
                 Options.Create(appSettings),
                 appMetadata.Object,
-                null,
+                null!,
                 new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );
 
-            var ui = appResources.GetUiConfiguration();
+            UiConfiguration ui =
+                appResources.GetUiConfiguration()
+                ?? throw new InvalidOperationException("Expected UI configuration to be loaded");
 
             ui.Settings.Should().NotBeNull();
             ui.Settings!.ShowProgress.Should().BeTrue();
@@ -376,7 +378,7 @@ public class AppResourcesSITests
             AppResourcesSI appResources = new(
                 Options.Create(appSettings),
                 appMetadata.Object,
-                null,
+                null!,
                 new NullLogger<AppResourcesSI>(),
                 _telemetry.Object
             );

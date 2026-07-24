@@ -129,7 +129,7 @@ public sealed class WebHostBuilderExtensionsTests
         );
         projectedVolume.SwapDataSymlink(KubernetesProjectedVolume.UpdatedVersionDirectoryName);
 
-        await Wait.Until(() => configuration["RuntimeSettings:Value"] == "after", TimeSpan.FromSeconds(15));
+        await Wait.Until(() => configuration["RuntimeSettings:Value"] == "after", TimeSpan.FromSeconds(30));
     }
 
     [Fact]

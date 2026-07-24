@@ -6328,8 +6328,7 @@
               }
             }
           }
-        },
-        "deprecated": true
+        }
       }
     },
     "/{org}/{app}/api/layoutsettings/{id}": {
