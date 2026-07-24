@@ -1,0 +1,12 @@
+{
+  "name": "lookup",
+  "description": "Slå opp en verdi i en konfigurert oppslagstabell via nøkkel. Velg riktig tabell via 'registry'-parameteren. Støttede registries i denne konfigurasjonen: 'rom' (romkode → rom-data).",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "registry": { "type": "string", "description": "Navn på oppslagstabellen (f.eks. 'rom')." },
+      "key":      { "type": "string", "description": "Nøkkelen som skal slås opp." }
+    },
+    "required": ["registry", "key"]
+  }
+}

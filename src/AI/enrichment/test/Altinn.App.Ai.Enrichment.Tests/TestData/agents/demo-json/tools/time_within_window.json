@@ -1,0 +1,14 @@
+{
+  "name": "time_within_window",
+  "description": "Sjekk om et tidsrom (start–slutt) ligger helt innenfor et tillatt vindu. Håndterer tidsrom og vinduer som krysser midnatt.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "start_time":   { "type": "string", "description": "Start på tidsrommet (HH:MM)." },
+      "end_time":     { "type": "string", "description": "Slutt på tidsrommet (HH:MM)." },
+      "window_start": { "type": "string", "description": "Vinduets start (HH:MM)." },
+      "window_end":   { "type": "string", "description": "Vinduets slutt (HH:MM)." }
+    },
+    "required": ["start_time", "end_time", "window_start", "window_end"]
+  }
+}

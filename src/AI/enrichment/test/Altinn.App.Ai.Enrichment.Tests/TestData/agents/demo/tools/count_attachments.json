@@ -1,0 +1,11 @@
+{
+  "name": "count_attachments",
+  "description": "Tell vedlegg i søknaden, rekursivt over alle vedleggslister. Filtrer valgfritt på filnavn som inneholder en delstreng (case-insensitivt).",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "name_contains": { "type": "string", "description": "Valgfritt filter: bare tell filnavn som inneholder denne teksten." }
+    },
+    "required": []
+  }
+}
