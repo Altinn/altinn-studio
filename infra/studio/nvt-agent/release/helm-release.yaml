@@ -150,6 +150,10 @@ spec:
           name: mirkoSekulic
           runtime:
             autonomy: trusted-local
+            container:
+              capabilities:
+                add:
+                  - SYS_PTRACE
             type: codex
             user: root
         - agentRuntimeConfig:

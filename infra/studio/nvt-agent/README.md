@@ -9,15 +9,18 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.13` (verified OCI digest
-`sha256:9d23ccc82f5062be44b3929cb03c056b76cb1abee46fd0410e9267e4b385dab2`),
+The public chart is pinned to `0.8.14` (verified OCI digest
+`sha256:9369e10cbe352bd328cab7ac550dded38c3a7f1356f1cb46a5fa50bc2b9f6882`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.13-ee01677` production images without
+tag. It resolves the coordinated `0.8.14-6c00426` production images without
 component overrides. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
 RuntimeClass. Its shared AgentRun template carries the matching
 `purpose=nvt-agent:NoSchedule` toleration, and the schedule admits at most two
 concurrent mediated AgentRuns.
+The `mirkoSekulic` execution profile explicitly adds `SYS_PTRACE` to its agent
+container for approved debugging and profiling; no other profile or container
+inherits that capability.
 The producer requests the `implement-pr` workflow, which permits task-required
 tool installation, confines branch pushes to the fork, and directs upstream PR
 operations through the `github-altinn` broker provider.
