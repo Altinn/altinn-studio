@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.13
-chart_digest=sha256:9d23ccc82f5062be44b3929cb03c056b76cb1abee46fd0410e9267e4b385dab2
+chart_version=0.8.14
+chart_digest=sha256:9369e10cbe352bd328cab7ac550dded38c3a7f1356f1cb46a5fa50bc2b9f6882
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -88,6 +88,8 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].egress == "mediated" and
   .spec.values.agentSchedule.profiles[0].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
+  (.spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add | length) == 1 and
+  .spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add[0] == "SYS_PTRACE" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.pull_requests == "write" and
