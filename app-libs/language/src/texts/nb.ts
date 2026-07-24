@@ -571,7 +571,7 @@ export function nb() {
     'service_task.back_button': 'Gå tilbake',
     'service_task.waiting_title': 'Vi behandler forespørselen din',
     'service_task.waiting_body':
-      'Dette kan ta litt tid. Du trenger ikke å gjøre noe – vi går automatisk videre når alt er klart.',
+      'Dette kan ta litt tid. Du trenger ikke å gjøre noe, vi går automatisk videre når alt er klart.',
     'service_task_custom_pdf_default.title': 'Noe gikk galt',
     'service_task_custom_pdf_default.body':
       'En feil oppstod under automatisk behandling av skjemaet.',

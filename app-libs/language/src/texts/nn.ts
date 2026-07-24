@@ -569,7 +569,7 @@ export function nn() {
     'service_task.back_button': 'Gå tilbake',
     'service_task.waiting_title': 'Vi behandlar førespurnaden din',
     'service_task.waiting_body':
-      'Dette kan ta litt tid. Du treng ikkje å gjere noko – vi går automatisk vidare når alt er klart.',
+      'Dette kan ta litt tid. Du treng ikkje å gjere noko, vi går automatisk vidare når alt er klart.',
     'service_task_custom_pdf_default.title': 'Noko gjekk gale',
     'service_task_custom_pdf_default.body':
       'Ein feil oppstod under automatisk handsaming av skjemaet.',
