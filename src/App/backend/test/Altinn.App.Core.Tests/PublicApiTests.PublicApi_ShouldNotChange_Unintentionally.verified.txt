@@ -2924,7 +2924,8 @@ namespace Altinn.App.Core.Interface
         Microsoft.Azure.KeyVault.KeyVaultClient GetKeyVaultClient();
         System.Threading.Tasks.Task<string> GetSecretAsync(string secretName);
     }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Process.ITaskEvents instead", true)]
+    [System.Obsolete("Use the task lifecycle handlers in Altinn.App.Core.Features.Process instead: IOnT" +
+        "askStartingHandler, IOnTaskEndingHandler and IOnTaskAbandonHandler.", true)]
     public interface ITaskEvents
     {
         System.Threading.Tasks.Task OnAbandonProcessTask(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
