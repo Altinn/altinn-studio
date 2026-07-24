@@ -25,10 +25,11 @@ at-least-once), so this collision moved from an incident to an architectural pro
 
 ## Decision drivers
 
-- B1: Must not break external consumers. Consumers in the Altinn ecosystem are known to have rigged
-  their receiving/archive systems around the invariant *shipment id == instance id* to correlate an
-  eFormidling shipment with the Altinn instance it came from. There is no registry of who depends
-  on this, so the blast radius of changing the id cannot be assessed.
+- B1: Must not break external consumers. There is a non-zero chance that consumers in the Altinn
+  ecosystem have rigged their receiving/archive systems around the invariant *shipment id ==
+  instance id* to correlate an eFormidling shipment with the Altinn instance it came from. There is
+  no registry of who depends on this, so the risk cannot be assessed or ruled out - the invariant
+  has to be treated as load-bearing.
 - B2: Retries of the same send must never lock the instance permanently.
 - B3: A shipment that was already sent must never be silently re-sent or silently skipped when the
   process loops back to the task with (potentially) changed data.
@@ -61,8 +62,8 @@ at-least-once), so this collision moved from an incident to an architectural pro
 
 - Good, because it is the technically cleanest idempotency mechanism: retries dedupe (B2) and
   loop-backs re-send automatically (B4).
-- Bad, because it breaks B1 - silently, for an unknown number of consumers. This is the decisive
-  point.
+- Bad, because it risks breaking B1 - silently, for an unknown and unknowable set of consumers.
+  This is the decisive point.
 - Bad, because the status-check loop and any stored correlation would need a persisted message-id
   lookup (B5).
 
