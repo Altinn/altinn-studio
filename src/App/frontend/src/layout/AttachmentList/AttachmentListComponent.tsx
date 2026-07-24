@@ -11,6 +11,7 @@ import {
   getAttachmentsWithDataType,
   getRefAsPdfAttachments,
   toDisplayAttachments,
+  toRenderableAttachments,
 } from 'src/utils/attachmentsUtils';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -64,7 +65,7 @@ export function AttachmentListComponent({ baseComponentId }: PropsFromGenericCom
     allowedAttachmentTypes.has(DataTypeReference.IncludeAll);
   const pdfAttachments = includePdf ? getRefAsPdfAttachments(attachmentsWithDataType) : [];
 
-  const displayAttachments = toDisplayAttachments([...pdfAttachments, ...filteredAttachments]);
+  const displayAttachments = toRenderableAttachments(toDisplayAttachments([...pdfAttachments, ...filteredAttachments]));
 
   return (
     <AttachmentList

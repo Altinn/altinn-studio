@@ -7,6 +7,8 @@ import type { DisplayAttachment } from './AttachmentList';
 const attachments: DisplayAttachment[] = [
   {
     name: 'fil.pdf',
+    baseName: 'fil',
+    fileEnding: '.pdf',
     iconClass: 'reg reg-attachment',
     grouping: undefined,
     description: undefined,

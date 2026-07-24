@@ -5,9 +5,7 @@ import { Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from './Attachments.module.css';
-import { getFileEnding, removeFileEnding } from './fileEndings';
 import { FileExtensionIcon } from './FileExtensionIcon';
-import { makeUrlRelativeIfSameDomain } from './makeUrlRelativeIfSameDomain';
 import type { DisplayAttachment } from './types';
 
 export type AttachmentsProps = {
@@ -67,7 +65,7 @@ function AttachmentItem({
       <AttachmentFileName attachment={attachment} showLink={showLink}>
         <div className={classes.attachmentContent}>
           <FileExtensionIcon
-            fileEnding={getFileEnding(attachment.name)}
+            fileEnding={attachment.fileEnding}
             className={classes.attachmentIcon}
           />
           <div className={classes.attachmentText}>
@@ -78,8 +76,8 @@ function AttachmentItem({
               </div>
             )}
             <div className={classes.filename}>
-              <span className={classes.truncate}>{removeFileEnding(attachment.name)}</span>
-              <span className={classes.extension}>{getFileEnding(attachment.name)}</span>
+              <span className={classes.truncate}>{attachment.baseName}</span>
+              <span className={classes.extension}>{attachment.fileEnding}</span>
             </div>
           </div>
         </div>
@@ -99,7 +97,7 @@ function AttachmentFileName({
   if (showLink) {
     return (
       <Link
-        href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
+        href={attachment.url}
         className={cn(classes.attachment, classes.attachmentLink)}
         aria-label={langAsString('general.download', [`${attachment.name}`])}
         aria-description={langAsString(attachment.description?.[currentLanguage])}

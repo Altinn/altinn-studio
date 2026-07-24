@@ -6,6 +6,7 @@ import { Heading } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/organisms/AltinnReceipt.module.css';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
+import { toRenderableAttachments } from 'src/utils/attachmentsUtils';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IDisplayAttachment } from 'src/types/shared';
 
@@ -78,7 +79,7 @@ export function ReceiptComponent({
             </Heading>
           )}
           <Attachments
-            attachments={pdf}
+            attachments={toRenderableAttachments(pdf)}
             id='attachment-list-pdf'
             showLinks={true}
           />
@@ -86,7 +87,7 @@ export function ReceiptComponent({
       )}
       {attachments && (
         <AttachmentGroupings
-          attachments={attachments}
+          attachments={toRenderableAttachments(attachments)}
           title={collapsibleTitle}
           hideCollapsibleCount={hideCollapsibleCount}
           showLinks={true}

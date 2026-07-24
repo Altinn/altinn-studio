@@ -17,6 +17,8 @@ export const ATTACHMENT_LIST_PROP_CATEGORIES = {
 const exampleAttachments: DisplayAttachment[] = [
   {
     name: 'soknad.pdf',
+    baseName: 'soknad',
+    fileEnding: '.pdf',
     iconClass: 'reg reg-attachment',
     grouping: undefined,
     description: { nb: 'Søknadsskjema' },
@@ -25,6 +27,8 @@ const exampleAttachments: DisplayAttachment[] = [
   },
   {
     name: 'vedlegg-dokument.docx',
+    baseName: 'vedlegg-dokument',
+    fileEnding: '.docx',
     iconClass: 'reg reg-attachment',
     grouping: 'Dokumentasjon',
     description: { nb: 'Tilleggsdokumentasjon' },
@@ -61,6 +65,8 @@ export const Grouped: Story = {
       ...exampleAttachments,
       {
         name: 'annet.pdf',
+        baseName: 'annet',
+        fileEnding: '.pdf',
         iconClass: 'reg reg-attachment',
         grouping: 'Dokumentasjon',
         description: undefined,
