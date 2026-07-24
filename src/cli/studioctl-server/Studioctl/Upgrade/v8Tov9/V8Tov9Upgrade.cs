@@ -294,7 +294,10 @@ internal static class V8Tov9Upgrade
         try
         {
             var scanner = CSharpSourceScanner.ForProject(projectFile);
-            var migration = new EFormidlingReceiversSignatureMigration(scanner);
+            var migration = new EFormidlingReceiversSignatureMigration(
+                scanner,
+                EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
+            );
             var result = migration.Migrate();
 
             foreach (var warning in result.Warnings)
