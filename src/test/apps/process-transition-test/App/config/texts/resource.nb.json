@@ -43,7 +43,7 @@
     },
     {
       "id": "path.postCommit",
-      "value": "Feil etter commit (instansen har gått videre til Task 2)"
+      "value": "Feil etter commit (i behandlingssteget etter Task 1)"
     },
     {
       "id": "delayMs.title",

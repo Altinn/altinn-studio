@@ -57,6 +57,15 @@ for (const id of ['scheduled-section', 'live-section', 'recent-section']) {
 
 /* ── Compact view toggle ─────────────────────────────────── */
 
+/** Reflect the compact/full state on the two-way segmented controls (scheduled, active). */
+export const applyViewToggleUi = () => {
+    for (const section of ['scheduled', 'inbox']) {
+        const compact = state.compactSections[section];
+        document.getElementById(`view-${section}-compact`)?.classList.toggle('active', compact);
+        document.getElementById(`view-${section}-full`)?.classList.toggle('active', !compact);
+    }
+};
+
 /** @param {string} section */
 window.collapseAll = (section) => {
     state.compactSections[section] = true;
@@ -65,6 +74,7 @@ window.collapseAll = (section) => {
     } catch {
         /* ignore */
     }
+    applyViewToggleUi();
     rebuildSectionCards(section);
     _syncUrl();
 };
@@ -77,9 +87,12 @@ window.fullAll = (section) => {
     } catch {
         /* ignore */
     }
+    applyViewToggleUi();
     rebuildSectionCards(section);
     _syncUrl();
 };
+
+applyViewToggleUi();
 
 /** @param {string} section */
 const rebuildSectionCards = (section) => {
@@ -130,6 +143,8 @@ const setupCardExpand = (container, section, isStatic, isScheduled) => {
 
         const card = /** @type {HTMLElement | null} */ (target.closest('.workflow-card'));
         if (!card) return;
+        // Cards inside a chains-view group are toggled by chainRowToggle instead.
+        if (card.closest('.chain-group')) return;
 
         const wf = workflowData[card.dataset.wfkey || ''];
         if (!wf) return;
@@ -140,6 +155,10 @@ const setupCardExpand = (container, section, isStatic, isScheduled) => {
             card.style.animation = 'none';
             card.innerHTML = isScheduled ? buildScheduledCardHTML(wf) : buildCardHTML(wf, isStatic);
             if (!isStatic) scrollPipelineToActive(card);
+            // Recent/query cards don't carry relations inline - fetch on first expand
+            // (re-renders the card when the response lands).
+            if (!isScheduled && wf.dependsOn === undefined)
+                window.loadRelations(null, wf.databaseId);
         } else {
             card.className = 'workflow-card compact';
             card.style.animation = 'none';

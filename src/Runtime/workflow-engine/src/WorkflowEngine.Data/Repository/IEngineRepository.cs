@@ -126,11 +126,14 @@ internal interface IEngineRepository
     /// upstream or downstream — through dependency or link relations within <paramref name="ns"/>.
     /// Each returned <see cref="Workflow"/> has its steps, dependencies, dependents, and links
     /// eagerly loaded. Ordered by <c>CreatedAt</c>, then <c>Id</c>. Returns <c>null</c> if the
-    /// root workflow does not exist in the given namespace.
+    /// root workflow does not exist in the given namespace. When <paramref name="limit"/> is set
+    /// and the connected component is larger, only the most recently created workflows are
+    /// hydrated and returned (the cap is applied before eager loading).
     /// </summary>
     Task<IReadOnlyList<Workflow>?> GetWorkflowDependencyGraph(
         Guid workflowId,
         string ns,
+        int? limit = null,
         CancellationToken cancellationToken = default
     );
 

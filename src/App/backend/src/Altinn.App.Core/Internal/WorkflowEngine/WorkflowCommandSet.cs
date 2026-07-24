@@ -15,7 +15,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed class WorkflowCommandSet
 {
     private readonly List<StepRequest> _commands = [];
-    private readonly List<StepRequest> _postProcessNextCommittedCommands = [];
+    private readonly List<StepRequest> _criticalPostCommitCommands = [];
+    private readonly List<StepRequest> _sideEffectCommands = [];
 
     /// <summary>
     /// Gets the main commands for this event. SaveProcessStateToStorage will be added after these.
@@ -23,9 +24,16 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> Commands => _commands;
 
     /// <summary>
-    /// Gets the commands that execute after the ProcessNext has been committed to storage (e.g., MovedToAltinnEvent).
+    /// Gets the post-commit commands that must complete before the transition is considered done
+    /// (e.g., ExecuteServiceTask). These stay in the Main workflow and gate the next transition.
     /// </summary>
-    public IReadOnlyList<StepRequest> PostProcessNextCommittedCommands => _postProcessNextCommittedCommands;
+    public IReadOnlyList<StepRequest> CriticalPostCommitCommands => _criticalPostCommitCommands;
+
+    /// <summary>
+    /// Gets the non-critical, fire-and-forget post-commit commands (e.g., MovedToAltinnEvent).
+    /// These run in a separate side-effects workflow that never gates the next transition.
+    /// </summary>
+    public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
     /// Creates command group for task start events.
@@ -44,12 +52,12 @@ internal sealed class WorkflowCommandSet
 
         if (context.RegisterEvents)
         {
-            group.AddPostProcessNextCommittedCommand(MovedToAltinnEvent.Key);
+            group.AddSideEffectCommand(MovedToAltinnEvent.Key);
         }
 
         if (context.ServiceTaskType is not null)
         {
-            group.AddPostProcessNextCommittedCommand(
+            group.AddCriticalPostCommitCommand(
                 ExecuteServiceTask.Key,
                 new ExecuteServiceTaskPayload(context.ServiceTaskType)
             );
@@ -57,12 +65,12 @@ internal sealed class WorkflowCommandSet
 
         if (context.IsInstantiation && context.RegisterEvents)
         {
-            group.AddPostProcessNextCommittedCommand(InstanceCreatedAltinnEvent.Key);
+            group.AddSideEffectCommand(InstanceCreatedAltinnEvent.Key);
         }
 
         if (context.IsInstantiation && context.Notification is not null)
         {
-            group.AddPostProcessNextCommittedCommand(
+            group.AddSideEffectCommand(
                 NotifyInstanceOwnerOnInstantiation.Key,
                 new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
             );
@@ -101,21 +109,21 @@ internal sealed class WorkflowCommandSet
         // where RunAppDefinedProcessEndHandlers ran after HandleEventsAndUpdateStorage.
         var group = new WorkflowCommandSet()
             .AddCommand(OnProcessEndingHook.Key)
-            .AddPostProcessNextCommittedCommand(EndProcessLegacyHook.Key);
+            .AddCriticalPostCommitCommand(EndProcessLegacyHook.Key);
 
         if (context.HasAutoDeleteDataTypes)
         {
-            group.AddPostProcessNextCommittedCommand(DeleteDataElementsIfConfigured.Key);
+            group.AddCriticalPostCommitCommand(DeleteDataElementsIfConfigured.Key);
         }
 
         if (context.AutoDeleteInstanceOnProcessEnd)
         {
-            group.AddPostProcessNextCommittedCommand(DeleteInstanceIfConfigured.Key);
+            group.AddCriticalPostCommitCommand(DeleteInstanceIfConfigured.Key);
         }
 
         if (context.RegisterEvents)
         {
-            group.AddPostProcessNextCommittedCommand(CompletedAltinnEvent.Key);
+            group.AddSideEffectCommand(CompletedAltinnEvent.Key);
         }
 
         return group;
@@ -131,14 +139,21 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds a command that executes after the ProcessNext has been committed to storage via SaveProcessStateToStorage.
+    /// Adds a command that executes after the ProcessNext has been committed to storage via
+    /// SaveProcessStateToStorage, and that must complete before the transition settles.
     /// </summary>
-    private WorkflowCommandSet AddPostProcessNextCommittedCommand(
-        string commandKey,
-        CommandRequestPayload? payload = null
-    )
+    private WorkflowCommandSet AddCriticalPostCommitCommand(string commandKey, CommandRequestPayload? payload = null)
     {
-        _postProcessNextCommittedCommands.Add(CreateCommand(commandKey, payload));
+        _criticalPostCommitCommands.Add(CreateCommand(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a non-critical post-commit command that runs in the fire-and-forget side-effects workflow.
+    /// </summary>
+    private WorkflowCommandSet AddSideEffectCommand(string commandKey, CommandRequestPayload? payload = null)
+    {
+        _sideEffectCommands.Add(CreateCommand(commandKey, payload));
         return this;
     }
 

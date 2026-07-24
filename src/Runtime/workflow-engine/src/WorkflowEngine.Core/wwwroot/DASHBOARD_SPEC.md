@@ -16,11 +16,11 @@ Three collapsible sections, top to bottom:
 
 2. **Inbox** — Active workflows currently processing. Driven by SSE (`/dashboard/stream/live`). Cards appear with enter animation, update in-place when fingerprint changes, and exit with animation when completed/failed (unless moving to Recent, which skips animation). Elapsed timers tick via `requestAnimationFrame`.
 
-3. **Recent** — Last 100 finished workflows. Also driven by SSE. New arrivals glow briefly. Cards are static (no timers). Backend controls ordering and the 100-item window.
+3. **Recent** — Based on the last 100 finished workflows (backend controls ordering and the window). Also driven by SSE. Three view modes (segmented control in the section header, persisted in localStorage as `recentView`, synced to the URL as `rv`): **Chains** (default) groups the window by `collectionKey` and renders each collection as a dependency-ordered spine, additionally merging in-flight members of rendered collections from the active section's SSE state (see [Chains View](#chains-view)); **Compact** and **Full** are the flat reverse-chronological card modes over the finished window only (new arrivals glow briefly; cards are static, no timers).
 
 ### Query Tab
 
-On-demand paginated search against the database. Not SSE-driven — user clicks "Load" or sets an auto-refresh interval.
+On-demand paginated search against the database. Not SSE-driven — user clicks "Load" or sets an auto-refresh interval. Same three view modes as Recent (**Chains | Compact | Full**, default Compact; localStorage `queryView`, URL `qv`) — see [Chains View](#chains-view) for the query-mode differences.
 
 **Controls:**
 
@@ -167,6 +167,53 @@ Response:
 }
 ```
 
+### `GET /dashboard/relations`
+
+On-demand relations for cards whose source query does not eager-load them (the recent section and
+the query tab; active/scheduled cards get relations inline).
+
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `wf`      | guid   | Workflow database ID |
+| `ns`      | string | Workflow namespace   |
+
+Response:
+
+```json
+{
+    "isHead": false,
+    "dependsOn": [{ "databaseId": "guid", "operationId": "string", "status": "Completed" }],
+    "dependents": [],
+    "links": []
+}
+```
+
+### `GET /dashboard/graph`
+
+Connected dependency graph for the chain views: every workflow reachable from the given one through
+dependency/link relations in either direction (recursive CTE, namespace-scoped). Nodes are full card
+DTOs (same shape as the SSE workflow payload, relations included); edges are typed so the frontend
+can lay out the spine without re-deriving relations. 404 when the workflow does not exist in the
+namespace. Capped at the 200 most recently created nodes (the cap is applied before hydration);
+`truncated: true` signals an older, unshown tail, rendered as an "earlier workflows not shown"
+divider at the top of the spine.
+
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| `wf`      | guid   | Root workflow database ID |
+| `ns`      | string | Workflow namespace        |
+
+Response:
+
+```json
+{
+    "root": "guid",
+    "truncated": false,
+    "workflows": ["Workflow, same shape as the SSE payload"],
+    "edges": [{ "from": "guid", "to": "guid", "kind": "dependency | link" }]
+}
+```
+
 ### `GET /dashboard/scheduled`
 
 All workflows with future `startAt`. Response: `Workflow[]`
@@ -198,12 +245,15 @@ Each workflow renders as a card with a header row and a pipeline of step nodes.
 Left to right:
 
 1. **Label segments** — Clickable spans for namespace, collectionKey, and labels. Clicking toggles a label filter. CSS class `seg key` for namespace/collectionKey (bold cyan), `seg` for label values.
-2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`.
+2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`. Note this parsing collapses distinct operationId prefixes into the same transition text (a head and its side-effects sibling display the same name) — the side-chain badge and card chrome carry the distinction; the full operationId is in the name's tooltip.
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
-5. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts.
-6. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
-7. **Action buttons** — Copy idempotency key, open state modal, Grafana trace link.
+5. **Side-chain badge** — Shown when the workflow was enqueued with `IsHead = false` (deliberately invisible to collection head tracking, e.g. the process-next side-effects workflows). Dashed violet "side chain" pill. The card itself also carries the side-chain identity: dashed violet border plus a violet inset left edge (`.workflow-card.side-chain`, toggled in `setCardFilterData` — and inline for scheduled cards — so it survives re-renders in every section).
+6. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts.
+7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
+8. **Copy idempotency key button**
+9. **Relation chips** — One chip per non-empty relation group: `↑` dependsOn, `↓` dependents, chain icon for links. Each chip shows a status-colored dot per related workflow (capped at 5, then `+N`); the tooltip lists `operationId (status)` pairs. Click behavior: exactly one relation whose card is on screen → smooth-scroll to it and flash it (`rel-flash`); otherwise → toggle the collection filter (connected workflows share a collection). Relation arrays are tri-state: active/scheduled cards carry them inline from their source queries; recent/query cards don't — a ghost `rel?` chip (full cards only) or expanding a compact card fetches them via `/dashboard/relations` and re-renders. Relation dot colors on active cards refresh via the live fingerprint (which includes relation statuses).
+10. **Action buttons** — Collection filter funnel, chain modal (tree icon, all cards), open state modal, Grafana trace link.
 
 ### Pipeline
 
@@ -233,6 +283,12 @@ Horizontal row of step circles connected by SVG lines.
 - Animated: processing in progress
 - Gray/empty: not yet reached
 
+**Vertical density:** Live pipelines reserve meta-row height (`.step-meta` min-height) so cards
+don't jump as retry/backoff/timing rows appear mid-processing; static pipelines
+(`.pipeline-static` — recent/query/scheduled and expanded chain rows) render final content and
+drop the reservation. The phase-bracket headroom (`.pipeline-grouped`) applies only when at least
+one step maps to a phase.
+
 **Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing or Requeued step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found.
 
 **BPMN grouping:** Steps are grouped by task phase using `stepPhase()` which maps command detail names to `start`/`end`/`process-end` phases. Groups show bracket lines and task labels from `parseTransition()`. The transition is parsed from `operationId` (format: `"Process next: TaskA → TaskB"`).
@@ -256,7 +312,7 @@ Cards carry `data-*` attributes for client-side filtering without re-parsing:
 
 ```
 data-wfkey="{databaseId}"
-data-filter="{searchable text: namespace, operationId, idempotencyKey, labels, step commands}"
+data-filter="{searchable text: namespace, operationId, idempotencyKey, labels, step commands, related workflow ids/names}"
 data-status="{space-separated status tags}"
 data-namespace="{namespace lowercase}"
 data-collectionKey="{collectionKey lowercase}"
@@ -360,6 +416,92 @@ Each block shows syntax-highlighted JSON (pre-processed with `expandJsonStrings(
 
 ---
 
+## Chain Rows (shared renderer)
+
+`modules/shared/chain.js` renders a set of workflows as a dependency-ordered vertical spine — the
+"story of the collection" — rather than a general graph layout (process-next graphs are a
+near-linear spine of heads with side-chain leaves). It is shared by the chain modal and the Recent
+section's Chains view.
+
+**Spine layout — two builders:**
+
+1. `buildSpineFromEdges(nodes, edges)` — heads (`isHead !== false`) topologically sorted over
+   `dependency` edges (Kahn), `createdAt` as tiebreak; a cycle guard appends anything the sort
+   missed in creation order. Each `isHead === false` node attaches under the head it shares an
+   edge with, **preferring `link` edges** (side-effects workflows carry a link to their producer
+   Main) and falling back to any edge; unattached side nodes render at the bottom.
+2. `buildSpineByCreation(nodes)` — no edges needed: plain `createdAt` order with `isHead === false`
+   nodes marked as side rows. Correct for process-next collections because side chains are always
+   enqueued while their producer Main executes — after the Main's `createdAt` and before the next
+   head can exist (heads gate the following transition).
+
+**Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
+tooltip), side-chain badge where applicable, one status-colored dot per step (clickable — opens the
+step modal), duration, status pill. Terminal rows show their real duration; active rows tick via
+the shared `[data-timer]` loop when the live section registered a timer. Side rows indent under
+their head with the violet side-chain card chrome and an elbow connector to the spine line. The
+root workflow (where a root id is given) gets a cyan spine marker and a brightened name.
+
+**Row expansion:** clicking a row (outside interactive elements) swaps it in place for the full
+pipeline card (`chainRowToggle`), fetching relations on first expand like compact-card expansion
+does; clicking the expanded card collapses it back. The expanded set survives re-renders.
+
+**Gap dividers:** wall-clock gaps > 1s between consecutive heads render as a dim `+ 4.2s` divider
+before the later head — that is where the time went between the engine's transitions (e.g. the
+user working in the task). Suppressed while the preceding head is still running.
+
+## Chain Modal
+
+Opened by clicking the tree button on a card. Fetches `/dashboard/graph?wf=<id>&ns=<namespace>` and
+renders it with the shared chain renderer (`buildSpineFromEdges`).
+
+Title: "Chain — {collectionKey}" when the opening card has a collection key, else "Workflow Chain".
+Same stale-guard pattern as the other modals (checks `_openWfId` before/after fetch).
+
+**Auto-refresh:** SSE-driven via `notifyChainChanged()` with 1s debounce. Triggers when a rendered
+workflow's fingerprint changes **or when a new live workflow joins the open root's collection** — a
+fresh transition's Main + side chains are new ids, so nothing already rendered changes when they
+land. **Keyboard:** Escape closes the modal.
+
+## Chains View
+
+Available in the Recent section (default mode) and the Query tab: the current window/page grouped
+by `collectionKey`, each collection rendered as a bordered group — newest collection first (by the
+source's own ordering), story inside oldest-first. Workflows without a collection render as plain
+compact cards in their original position. Group chrome and the history control live in
+`shared/chain-groups.js`; the history cache is shared across surfaces.
+
+**Group anatomy:** a header row (label segments from the newest head member, workflow count,
+wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
+history control) above the shared chain rows. Aggregate status: an in-flight member wins
+(Processing/Requeued/Enqueued), then the worst terminal outcome, then Completed.
+
+**Spine source:** groups use `buildSpineByCreation` over the members in the recent window — no
+fetches needed (`isHead` is already on the card DTOs). The **history** control fetches
+`/dashboard/graph` for the collection's full connected graph (beyond the 100-item window) and
+re-renders the group with the exact edge-based spine; the graph is cached per collection, and when
+new members appear that the cache doesn't know, it refetches in the background.
+
+**Live members:** in-flight workflows (from the active section's SSE state) that belong to a
+rendered collection are merged into their group, so the story includes the running transition —
+its row ticks via the shared timer loop. `notifyRecentChainsChanged()` re-renders the view
+(300 ms debounce) when a live workflow that belongs to a rendered group appears, changes, or
+finishes.
+
+**Filtering:** groups filter as one unit — `data-filter`/`data-status`/`data-labels` are unions
+over the members, so a group matches when any member matches (status chips count groups, not
+workflows). The expanded cards inside a group are not matched individually (`:scope >` selectors
+in `applyFilter`).
+
+**Query-mode differences:** query results are a filtered subset of each collection
+(status/time/search + page boundaries), so group counts read "N matching" instead of
+"N workflows" — with "N matching of M" once the history graph is loaded — and there is no live
+member merge (the tab is not SSE-driven). The killer flow: click a collection funnel → the query
+tab filtered to that collection in chains mode is the complete instance timeline over the
+database, unlimited by the recent window.
+
+---
+
 ## Filtering System
 
 ### Label Filters
@@ -452,6 +594,12 @@ interface Step {
     stateChanged: boolean;
 }
 
+interface WorkflowRelation {
+    databaseId: string;
+    operationId: string;
+    status: string;
+}
+
 interface Workflow {
     databaseId: string;
     idempotencyKey: string;
@@ -468,6 +616,13 @@ interface Workflow {
     removedAt: string | null;
     startAt: string | null;
     hasState: boolean;
+    // isHead === false marks workflows deliberately invisible to collection head tracking.
+    isHead: boolean | undefined;
+    // Tri-state: undefined = not loaded by the source query (fetch via /dashboard/relations),
+    // [] = loaded and none exist.
+    dependsOn: WorkflowRelation[] | undefined;
+    dependents: WorkflowRelation[] | undefined;
+    links: WorkflowRelation[] | undefined;
     steps: Step[];
 }
 ```
@@ -480,8 +635,10 @@ interface Workflow {
 
 Workflows are fingerprinted to avoid unnecessary DOM updates. Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
 
-Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...`
-Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z"`
+Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
+Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z|Completed||"`
+The trailing relation-status segments keep relation chip dot colors fresh when only a related
+workflow's status changed.
 
 ### Animations
 
