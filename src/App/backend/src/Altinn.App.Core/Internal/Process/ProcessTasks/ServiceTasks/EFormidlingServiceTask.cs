@@ -79,13 +79,14 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
         }
 
         // The message id sent to eFormidling is the instance guid, so only one shipment can ever be
-        // sent per instance (see ADR 008). The workflow id of the pass that sent it is recorded on
-        // the instance: a matching (or absent) owner means this execution is the first attempt or a
-        // retry of the same transition and may send/resume; a different owner means an earlier pass
-        // through this task already sent the shipment, and silently skipping (stale shipment) or
-        // re-sending (duplicate id) are both wrong - a human has to decide. The state-blob instance
-        // is sufficient for this read: a foreign owner was written before that pass's transition
-        // settled, so any later pass's blob (captured at its own process/next entry) contains it.
+        // sent per instance (see docs/adr/2026-07-24-eformidling-shipment-id.md). The workflow id of
+        // the pass that sent it is recorded on the instance: a matching (or absent) owner means this
+        // execution is the first attempt or a retry of the same transition and may send/resume; a
+        // different owner means an earlier pass through this task already sent the shipment, and
+        // silently skipping (stale shipment) or re-sending (duplicate id) are both wrong - a human
+        // has to decide. The state-blob instance is sufficient for this read: a foreign owner was
+        // written before that pass's transition settled, so any later pass's blob (captured at its
+        // own process/next entry) contains it.
         // Our own claim is invisible on a retry of this step (the blob predates it), but that case
         // converges through the send's duplicate-create self-healing instead.
         string? shipmentOwner = null;
