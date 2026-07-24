@@ -9,10 +9,10 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.18` (verified OCI digest
-`sha256:95014d10bbea8bb036ab91b63e4d7e106dc28a0838b1d4dcf6b37e85804887c9`),
+The public chart is pinned to `0.8.19` (verified OCI digest
+`sha256:5569f977a5f8e3a754654136be74bec987637fbddb3ddb05301ee7d1b2ef723c`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.18-629aa0e` production images without
+tag. It resolves the coordinated `0.8.19-97fadf5` production images without
 component overrides. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
 RuntimeClass. Its shared AgentRun template carries the matching
