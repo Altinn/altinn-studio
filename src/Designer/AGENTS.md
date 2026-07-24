@@ -33,6 +33,12 @@ develop a part without rebuilding its container, set the matching `DEVELOP_*` va
 load balancer then routes to your local dev server) and rebuild `studio_loadbalancer`. See the root
 [`README.md`](../../README.md) for the full list.
 
+**v9 app previews with a locally-run backend:** the Designer image builds and serves the Altinn
+app-frontend bundle from `wwwroot/altinn-app-frontend/`, which v9 previews load (no CDN). When running
+the Designer backend directly (`DEVELOP_BACKEND=1`), wwwroot comes from the source tree without the
+bundle, so run `yarn build-app-frontend-bundle` from the repo root once (rerun after app-frontend
+changes) to build and copy it in. The full docker stack already includes it via the Dockerfile.
+
 ## Build, run & test (per half)
 
 - **Backend** (`src/Designer/backend`): `dotnet build`, `dotnet run --project src/Designer` (or
