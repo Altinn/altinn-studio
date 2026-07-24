@@ -117,6 +117,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
+
         UpgradeConsole.WriteLine(
             returnCode switch
             {
@@ -624,6 +627,45 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating eFormidling service tasks: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Job 11: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
+    /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
+    /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
+    /// </summary>
+    static async Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Checking for feedback tasks behind service tasks...");
+
+            var advisor = new ProcessAdvisories.FeedbackAfterServiceTaskAdvisor(projectFolder);
+            var result = advisor.Analyze();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Feedback tasks behind service tasks need review. See the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync("No feedback tasks behind service tasks found");
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync(
+                $"Error checking for feedback tasks behind service tasks: {ex.Message}"
+            );
             return ExitError;
         }
     }

@@ -8,9 +8,11 @@ namespace Altinn.App.Models.TransitionControl
     [XmlRoot(ElementName = "TransitionControl")]
     public class TransitionControl
     {
-        /// <summary>Where the Task_1 -> Task_2 transition should misbehave:
-        /// "none" (clean run), "preCommit" (fail before Storage commit) or "postCommit"
-        /// (fail after the instance has moved to Task_2).</summary>
+        /// <summary>Where in the Task_1 -> Task_2 transition the scenario runs: "none" (clean
+        /// run, straight to Task_2), "preCommit" (in the task-ending hook, before the Storage
+        /// commit) or "postCommit" (in the service task the gateway routes through, after the
+        /// commit). The other levers decide what actually happens there. The field name is
+        /// historical; the user-facing lever is titled "Scenario".</summary>
         [XmlElement("path", Order = 1)]
         [JsonProperty("path")]
         [JsonPropertyName("path")]
@@ -38,5 +40,25 @@ namespace Altinn.App.Models.TransitionControl
         [JsonProperty("endState")]
         [JsonPropertyName("endState")]
         public string endState { get; set; }
+
+        /// <summary>What the service task does after a successful settle: "auto" (auto-advance to
+        /// Task_2, today's behavior), "park" (succeed WITHOUT advancing - the process stays on
+        /// the service task until an out-of-band process/next releases it, simulating a task that
+        /// waits for an external callback) or "parkThenRelease" (park, then the app's own
+        /// background task releases it after ~5s - the callback arriving on its own). Only
+        /// meaningful on the postCommit path.</summary>
+        [XmlElement("advance", Order = 5)]
+        [JsonProperty("advance")]
+        [JsonPropertyName("advance")]
+        public string advance { get; set; }
+
+        /// <summary>Which service task the postCommit path routes through: "default" (Task_Service,
+        /// no layout - the frontend renders its built-in waiting/failure views) or "layout"
+        /// (Task_ServiceLayout, which has a ui folder - the frontend renders the app's custom
+        /// layout instead of the default waiting view). Only meaningful on the postCommit path.</summary>
+        [XmlElement("serviceView", Order = 6)]
+        [JsonProperty("serviceView")]
+        [JsonPropertyName("serviceView")]
+        public string serviceView { get; set; }
     }
 }

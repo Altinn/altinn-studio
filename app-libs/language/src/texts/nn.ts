@@ -567,6 +567,9 @@ export function nn() {
       'Du kan prøve å utføre handsaminga på nytt ved å klikke på "{0}". Om problemet held fram, ta kontakt med oss på brukarservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
     'service_task.back_button': 'Gå tilbake',
+    'service_task.waiting_title': 'Vi behandlar førespurnaden din',
+    'service_task.waiting_body':
+      'Dette kan ta litt tid. Du treng ikkje å gjere noko, vi går automatisk vidare når alt er klart.',
     'service_task_custom_pdf_default.title': 'Noko gjekk gale',
     'service_task_custom_pdf_default.body':
       'Ein feil oppstod under automatisk handsaming av skjemaet.',
