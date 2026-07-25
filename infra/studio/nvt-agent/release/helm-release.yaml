@@ -154,6 +154,10 @@ spec:
               capabilities:
                 add:
                   - SYS_PTRACE
+            docker:
+              requiredNetworks:
+                - name: kind
+                  subnet: 172.31.250.0/24
             type: codex
             user: root
         - agentRuntimeConfig:
@@ -199,6 +203,10 @@ spec:
           name: jondyr
           runtime:
             autonomy: trusted-local
+            docker:
+              requiredNetworks:
+                - name: kind
+                  subnet: 172.31.250.0/24
             type: claude
             user: non-root
       workflowProfiles:
