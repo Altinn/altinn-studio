@@ -865,6 +865,10 @@ public class MaskinportenClientTests
                 new MaskinportenTokenRequest { Scopes = ["a"], Resource = "https://other.example.com" }
             },
             {
+                "resource with separator characters",
+                new MaskinportenTokenRequest { Scopes = ["a"], Resource = "https://api.example.com/a%7Cb%23c" }
+            },
+            {
                 "system user",
                 new MaskinportenTokenRequest
                 {
@@ -988,6 +992,66 @@ public class MaskinportenClientTests
 
         // Assert - one grant request per distinct token identity
         Assert.Equal(3, tokenRequestCount);
+    }
+
+    [Fact]
+    public async Task GetAltinnExchangedToken_ForwardsTheFullRequestToTheMaskinportenGrant()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        string? capturedAssertion = null;
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(maskinportenTokenResponse);
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(
+                        async (HttpRequestMessage req, CancellationToken ct) =>
+                        {
+                            var form = await TestHelpers.ParseFormUrlEncodedContent(
+                                (FormUrlEncodedContent)req.Content!
+                            );
+                            capturedAssertion = form["assertion"];
+                            return new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
+                            };
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await client.GetAltinnExchangedToken(
+            new MaskinportenTokenRequest
+            {
+                Scopes = ["scope"],
+                ConsumerOrg = OrganisationNumber.Parse("991825827"),
+                SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
+            }
+        );
+
+        // Assert - the exchange is fronted by a Maskinporten grant, which must carry the full request
+        Assert.NotNull(capturedAssertion);
+        var payload = DecodeJwtPayload(capturedAssertion);
+        Assert.Equal("991825827", payload.GetProperty("consumer_org").GetString());
+        var detail = payload.GetProperty("authorization_details").EnumerateArray().Single();
+        Assert.Equal("0192:311169963", detail.GetProperty("systemuser_org").GetProperty("ID").GetString());
     }
 
     [Fact]

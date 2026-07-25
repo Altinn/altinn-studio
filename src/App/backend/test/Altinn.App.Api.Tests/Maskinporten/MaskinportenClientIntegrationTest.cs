@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -190,6 +191,61 @@ public class MaskinportenClientIntegrationTests
         string[] inputScopes = [scope, .. additionalScopes];
         Assert.Equivalent(inputScopes, delegatingHandler.Request.Scopes);
         Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
+    }
+
+    [Theory]
+    [InlineData(nameof(TokenAuthority.Maskinporten))]
+    [InlineData(nameof(TokenAuthority.AltinnTokenExchange))]
+    public void UseMaskinportenAuthorization_WithRequest_BindsRequestToHandler(string tokenAuthority)
+    {
+        // Arrange
+        Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
+        var tokenRequest = new MaskinportenTokenRequest
+        {
+            Scopes = ["scope1", "scope2"],
+            ConsumerOrg = OrganisationNumber.Parse("991825827"),
+            SystemUser = new MaskinportenSystemUser
+            {
+                Organisation = OrganisationNumber.Parse("311169963"),
+                ExternalRef = "systembruker #1",
+            },
+        };
+
+        var app = AppBuilder.Build(registerCustomAppServices: services =>
+        {
+            _ = actualTokenAuthority switch
+            {
+                TokenAuthority.Maskinporten => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAuthorization(tokenRequest),
+                TokenAuthority.AltinnTokenExchange => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAltinnAuthorization(tokenRequest),
+                _ => throw new ArgumentException($"Unknown TokenAuthority {tokenAuthority}"),
+            };
+        });
+
+        // Act
+        var client = app.Services.GetRequiredService<DummyHttpClient>();
+
+        // Assert
+        var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
+        Assert.NotNull(delegatingHandler);
+        Assert.Equal(tokenRequest, delegatingHandler.Request);
+        Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
+    }
+
+    [Fact]
+    public void UseMaskinportenAuthorization_WithNullRequest_Throws()
+    {
+        var builder = new ServiceCollection().AddHttpClient<DummyHttpClient>();
+
+        Assert.Throws<ArgumentNullException>(() =>
+            builder.UseMaskinportenAuthorization((MaskinportenTokenRequest)null!)
+        );
+        Assert.Throws<ArgumentNullException>(() =>
+            builder.UseMaskinportenAltinnAuthorization((MaskinportenTokenRequest)null!)
+        );
     }
 
     private sealed class DummyHttpClient(HttpClient client)

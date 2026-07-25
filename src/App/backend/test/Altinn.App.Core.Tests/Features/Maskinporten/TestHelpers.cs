@@ -123,7 +123,7 @@ internal static class TestHelpers
         MaskinportenDelegatingHandler handler
     ) MockMaskinportenDelegatingHandlerFactory(
         TokenAuthority authority,
-        IEnumerable<string> scopes,
+        MaskinportenTokenRequest tokenRequest,
         JwtToken maskinportenToken,
         JwtToken altinnToken
     )
@@ -147,7 +147,6 @@ internal static class TestHelpers
             )
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
-        var tokenRequest = new MaskinportenTokenRequest { Scopes = scopes };
         mockMaskinportenClient
             .Setup(c => c.GetAccessToken(tokenRequest, It.IsAny<CancellationToken>()))
             .ReturnsAsync(maskinportenToken);

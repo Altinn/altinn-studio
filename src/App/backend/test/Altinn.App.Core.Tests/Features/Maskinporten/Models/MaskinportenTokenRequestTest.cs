@@ -11,12 +11,23 @@ public class MaskinportenTokenRequestTest
     [InlineData(new[] { "a b c" }, "a b c")]
     [InlineData(new[] { "a", "a", "b", "b", "c", "c" }, "a b c")]
     [InlineData(new[] { " a ", "", "  ", "b" }, "a b")]
+    [InlineData(new[] { "c", "b", "a" }, "a b c")]
+    [InlineData(new[] { "a\tb" }, "a b")]
     public void Scopes_AreNormalised(string[] input, string expected)
     {
         var request = new MaskinportenTokenRequest { Scopes = input };
 
         Assert.Equal(expected, request.FormattedScopes);
         Assert.Equal(expected.Split(' '), request.Scopes);
+    }
+
+    [Fact]
+    public void Scopes_CannotBeMutatedThroughTheGetter()
+    {
+        var request = new MaskinportenTokenRequest { Scopes = ["a", "b"] };
+
+        Assert.IsNotType<string[]>(request.Scopes);
+        Assert.Throws<NotSupportedException>(() => ((ICollection<string>)request.Scopes).Clear());
     }
 
     [Theory]
@@ -153,6 +164,7 @@ public class MaskinportenTokenRequestTest
 
         Assert.Equal(request1, request2);
         Assert.Equal(request1.GetHashCode(), request2.GetHashCode());
+        Assert.Equal(request1, request1 with { Scopes = ["b", "a"] }); // scope order is not significant
         Assert.NotEqual(request1, request1 with { Scopes = ["a"] });
         Assert.NotEqual(request1, request1 with { Resource = "https://other.example.com" });
         Assert.NotEqual(request1, request1 with { ConsumerOrg = null });

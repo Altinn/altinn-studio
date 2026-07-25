@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Maskinporten.Models;
@@ -18,15 +19,16 @@ namespace Altinn.App.Core.Features.Maskinporten.Models;
 /// </example>
 public sealed record MaskinportenTokenRequest
 {
-    private readonly string[] _scopes = [];
+    private readonly ReadOnlyCollection<string> _scopes = ReadOnlyCollection<string>.Empty;
     private readonly string _formattedScopes = string.Empty;
     private readonly OrganisationNumber? _consumerOrg;
     private readonly string? _resource;
 
     /// <summary>
     /// <p>The scopes to claim authorization for with Maskinporten. At least one scope is required.</p>
-    /// <p>Entries are split on whitespace and de-duplicated, so both <c>["a", "b"]</c> and <c>["a b"]</c>
-    /// are accepted.</p>
+    /// <p>Entries are split on whitespace, de-duplicated and ordered, so both <c>["a", "b"]</c> and
+    /// <c>["a b"]</c> are accepted, and requests differing only in scope ordering share a cached token.
+    /// Scope order carries no meaning in OAuth 2.0 (RFC 6749 §3.3).</p>
     /// </summary>
     /// <exception cref="ArgumentException">No usable scope was supplied.</exception>
     public required IEnumerable<string> Scopes
@@ -36,17 +38,19 @@ public sealed record MaskinportenTokenRequest
         {
             ArgumentNullException.ThrowIfNull(value, nameof(Scopes));
 
-            _scopes =
+            string[] scopes =
             [
                 .. value
-                    .SelectMany(static scope => (scope ?? string.Empty).Split(' ', SplitOptions))
-                    .Distinct(StringComparer.Ordinal),
+                    .SelectMany(static scope => (scope ?? string.Empty).Split(null as char[], SplitOptions))
+                    .Distinct(StringComparer.Ordinal)
+                    .Order(StringComparer.Ordinal),
             ];
 
-            if (_scopes.Length == 0)
+            if (scopes.Length == 0)
                 throw new ArgumentException("At least one scope must be supplied.", nameof(Scopes));
 
-            _formattedScopes = string.Join(' ', _scopes);
+            _scopes = scopes.AsReadOnly();
+            _formattedScopes = string.Join(' ', scopes);
         }
     }
 
