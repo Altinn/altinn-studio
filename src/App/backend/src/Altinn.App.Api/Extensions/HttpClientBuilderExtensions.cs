@@ -82,20 +82,4 @@ public static class HttpClientBuilderExtensions
 
         return builder.AddMaskinportenHttpMessageHandler(request, TokenAuthority.AltinnTokenExchange);
     }
-
-    /// <inheritdoc cref="UseMaskinportenAuthorization(IHttpClientBuilder, string, string[])"/>
-    [Obsolete("Use UseMaskinportenAuthorization instead")]
-    public static IHttpClientBuilder UseMaskinportenAuthorisation(
-        this IHttpClientBuilder builder,
-        string scope,
-        params string[] additionalScopes
-    ) => UseMaskinportenAuthorization(builder, scope, additionalScopes);
-
-    /// <inheritdoc cref="UseMaskinportenAltinnAuthorization(IHttpClientBuilder, string, string[])"/>
-    [Obsolete("Use UseMaskinportenAltinnAuthorization instead")]
-    public static IHttpClientBuilder UseMaskinportenAltinnAuthorisation(
-        this IHttpClientBuilder builder,
-        string scope,
-        params string[] additionalScopes
-    ) => UseMaskinportenAltinnAuthorization(builder, scope, additionalScopes);
 }

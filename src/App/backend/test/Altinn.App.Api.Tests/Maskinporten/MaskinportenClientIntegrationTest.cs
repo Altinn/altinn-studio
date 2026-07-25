@@ -116,45 +116,6 @@ public class MaskinportenClientIntegrationTests
         Assert.Equal(jwkBase64, settings.JwkBase64);
     }
 
-    // TODO: Remove this test when the obsolete method is removed
-    [Theory]
-    [InlineData(nameof(TokenAuthority.Maskinporten), "client1", "scope1")]
-    [InlineData(nameof(TokenAuthority.Maskinporten), "client2", "scope1", "scope2", "scope3")]
-    [InlineData(nameof(TokenAuthority.AltinnTokenExchange), "doesntmatter")]
-    public void UseMaskinportenAuthorisation_AddsHandler_BindsToSpecifiedClient(
-        string tokenAuthority,
-        string scope,
-        params string[] additionalScopes
-    )
-    {
-        // Arrange
-        Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
-        var app = AppBuilder.Build(registerCustomAppServices: services =>
-        {
-            _ = actualTokenAuthority switch
-            {
-                TokenAuthority.Maskinporten => services
-                    .AddHttpClient<DummyHttpClient>()
-                    .UseMaskinportenAuthorisation(scope, additionalScopes),
-                TokenAuthority.AltinnTokenExchange => services
-                    .AddHttpClient<DummyHttpClient>()
-                    .UseMaskinportenAltinnAuthorisation(scope, additionalScopes),
-                _ => throw new ArgumentException($"Unknown TokenAuthority {tokenAuthority}"),
-            };
-        });
-
-        // Act
-        var client = app.Services.GetRequiredService<DummyHttpClient>();
-
-        // Assert
-        Assert.NotNull(client);
-        var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
-        Assert.NotNull(delegatingHandler);
-        string[] inputScopes = [scope, .. additionalScopes];
-        Assert.Equivalent(inputScopes, delegatingHandler.Request.Scopes);
-        Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
-    }
-
     [Theory]
     [InlineData(nameof(TokenAuthority.Maskinporten), "client1", "scope1")]
     [InlineData(nameof(TokenAuthority.Maskinporten), "client2", "scope1", "scope2", "scope3")]
