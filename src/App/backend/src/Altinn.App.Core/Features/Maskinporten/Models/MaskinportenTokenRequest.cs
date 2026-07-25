@@ -38,11 +38,14 @@ public sealed record MaskinportenTokenRequest
         {
             ArgumentNullException.ThrowIfNull(value, nameof(Scopes));
 
-            // A null separator array makes `Split` break on any whitespace
+            // A null separator array makes `Split` break on any whitespace, which also means no fragment
+            // it produces can have whitespace of its own to trim
             string[] scopes =
             [
                 .. value
-                    .SelectMany(static scope => (scope ?? string.Empty).Split(_whitespaceSeparators, SplitOptions))
+                    .SelectMany(static scope =>
+                        (scope ?? string.Empty).Split(_whitespaceSeparators, StringSplitOptions.RemoveEmptyEntries)
+                    )
                     .Distinct(StringComparer.Ordinal)
                     .Order(StringComparer.Ordinal),
             ];
@@ -124,8 +127,6 @@ public sealed record MaskinportenTokenRequest
     /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(_formattedScopes, _consumerOrg, _resource, SystemUser);
 
-    private const StringSplitOptions SplitOptions =
-        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
     private static readonly char[]? _whitespaceSeparators = null;
 }
 
