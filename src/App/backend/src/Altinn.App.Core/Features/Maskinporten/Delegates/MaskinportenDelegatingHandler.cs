@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Delegates;
 /// </summary>
 internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
 {
-    public MaskinportenTokenRequest Request { get; init; }
+    internal MaskinportenTokenRequest Request { get; init; }
     internal readonly TokenAuthority Authority;
 
     private readonly ILogger<MaskinportenDelegatingHandler> _logger;
