@@ -150,7 +150,7 @@ public class MaskinportenClientIntegrationTests
         var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
         Assert.NotNull(delegatingHandler);
         string[] inputScopes = [scope, .. additionalScopes];
-        Assert.Equivalent(inputScopes, delegatingHandler.Scopes);
+        Assert.Equivalent(inputScopes, delegatingHandler.Request.Scopes);
         Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
     }
 
@@ -188,7 +188,7 @@ public class MaskinportenClientIntegrationTests
         var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
         Assert.NotNull(delegatingHandler);
         string[] inputScopes = [scope, .. additionalScopes];
-        Assert.Equivalent(inputScopes, delegatingHandler.Scopes);
+        Assert.Equivalent(inputScopes, delegatingHandler.Request.Scopes);
         Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
     }
 

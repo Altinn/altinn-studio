@@ -1,6 +1,7 @@
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using Moq;
 
@@ -36,16 +37,17 @@ public class MaskinportenDelegatingHandlerTest
         Assert.NotNull(request.Headers.Authorization);
         Assert.Equal(AuthorizationSchemes.Bearer, request.Headers.Authorization.Scheme);
 
+        var expectedRequest = new MaskinportenTokenRequest { Scopes = scopes };
         if (actualTokenAuthority == TokenAuthority.Maskinporten)
         {
-            client.Verify(c => c.GetAccessToken(scopes, It.IsAny<CancellationToken>()), Times.Once);
-            client.Verify(c => c.GetAltinnExchangedToken(scopes, It.IsAny<CancellationToken>()), Times.Never);
+            client.Verify(c => c.GetAccessToken(expectedRequest, It.IsAny<CancellationToken>()), Times.Once);
+            client.Verify(c => c.GetAltinnExchangedToken(expectedRequest, It.IsAny<CancellationToken>()), Times.Never);
             Assert.Equal(maskinportenToken.ToStringUnmasked(), request.Headers.Authorization.Parameter);
         }
         else
         {
-            client.Verify(c => c.GetAccessToken(scopes, It.IsAny<CancellationToken>()), Times.Never);
-            client.Verify(c => c.GetAltinnExchangedToken(scopes, It.IsAny<CancellationToken>()), Times.Once);
+            client.Verify(c => c.GetAccessToken(expectedRequest, It.IsAny<CancellationToken>()), Times.Never);
+            client.Verify(c => c.GetAltinnExchangedToken(expectedRequest, It.IsAny<CancellationToken>()), Times.Once);
             Assert.Equal(altinnToken.ToStringUnmasked(), request.Headers.Authorization.Parameter);
         }
     }

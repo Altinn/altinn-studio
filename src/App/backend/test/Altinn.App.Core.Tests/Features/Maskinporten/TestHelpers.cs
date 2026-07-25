@@ -147,16 +147,17 @@ internal static class TestHelpers
             )
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
+        var tokenRequest = new MaskinportenTokenRequest { Scopes = scopes };
         mockMaskinportenClient
-            .Setup(c => c.GetAccessToken(scopes, It.IsAny<CancellationToken>()))
+            .Setup(c => c.GetAccessToken(tokenRequest, It.IsAny<CancellationToken>()))
             .ReturnsAsync(maskinportenToken);
         mockMaskinportenClient
-            .Setup(c => c.GetAltinnExchangedToken(scopes, It.IsAny<CancellationToken>()))
+            .Setup(c => c.GetAltinnExchangedToken(tokenRequest, It.IsAny<CancellationToken>()))
             .ReturnsAsync(altinnToken);
 
         var handler = new MaskinportenDelegatingHandler(
             authority,
-            scopes,
+            tokenRequest,
             mockMaskinportenClient.Object,
             mockLogger.Object
         )

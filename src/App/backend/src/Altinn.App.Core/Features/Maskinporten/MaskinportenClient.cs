@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using SystemUserAuthorizationDetail = Altinn.App.Core.Features.Maskinporten.Constants.JwtClaimTypes.Maskinporten.SystemUserAuthorizationDetail;
 
 namespace Altinn.App.Core.Features.Maskinporten;
 
@@ -94,22 +95,36 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     }
 
     /// <inheritdoc/>
+    public Task<JwtToken> GetAccessToken(IEnumerable<string> scopes, CancellationToken cancellationToken = default) =>
+        GetAccessToken(new MaskinportenTokenRequest { Scopes = scopes }, cancellationToken);
+
+    /// <inheritdoc/>
     public async Task<JwtToken> GetAccessToken(
-        IEnumerable<string> scopes,
+        MaskinportenTokenRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        var result = await GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, scopes, cancellationToken);
+        ArgumentNullException.ThrowIfNull(request);
+
+        var result = await GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, request, cancellationToken);
         return result.Token;
     }
 
     /// <inheritdoc/>
-    public async Task<JwtToken> GetAltinnExchangedToken(
+    public Task<JwtToken> GetAltinnExchangedToken(
         IEnumerable<string> scopes,
+        CancellationToken cancellationToken = default
+    ) => GetAltinnExchangedToken(new MaskinportenTokenRequest { Scopes = scopes }, cancellationToken);
+
+    /// <inheritdoc/>
+    public async Task<JwtToken> GetAltinnExchangedToken(
+        MaskinportenTokenRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        var result = await GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, scopes, cancellationToken);
+        ArgumentNullException.ThrowIfNull(request);
+
+        var result = await GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, request, cancellationToken);
         return result.Token;
     }
 
@@ -120,15 +135,14 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </summary>
     internal async Task<TokenCacheEntry> GetOrCreateTokenFromCache(
         TokenAuthority authority,
-        IEnumerable<string> scopes,
+        MaskinportenTokenRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        string formattedScopes = GetFormattedScopes(scopes);
-        string cacheKey = GetCacheKey(authority, formattedScopes);
+        string cacheKey = GetCacheKey(authority, request);
 
-        _logger.LogDebug("Retrieving {Authority} token for scopes: {Scopes}", authority, formattedScopes);
-        using var activity = TelemetryStartActivityFactory(authority, Variant, Settings.ClientId, formattedScopes);
+        _logger.LogDebug("Retrieving {Authority} token for scopes: {Scopes}", authority, request.FormattedScopes);
+        using var activity = TelemetryStartActivityFactory(authority, Variant, Settings.ClientId, request);
 
         // We are making some binary assumptions below, so lets guard against future expansion of the TokenAuthority enum.
         if (authority is not (TokenAuthority.Maskinporten or TokenAuthority.AltinnTokenExchange))
@@ -139,7 +153,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
 
         var result = await _tokenCache.GetOrCreateAsync(
             cacheKey,
-            new CacheFactoryState(this, formattedScopes),
+            new CacheFactoryState(this, request),
             tokenFactory,
             cancellationToken: cancellationToken,
             options: _defaultCacheExpiration
@@ -174,12 +188,12 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// <summary>
     /// Handles the sending of grant requests to Maskinporten and parsing the returned response.
     /// </summary>
-    /// <param name="formattedScopes">A single space-separated string containing the scopes to authorize for.</param>
+    /// <param name="request">The token request to build a grant assertion from.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
-    /// <returns><inheritdoc cref="GetAccessToken"/></returns>
-    /// <exception cref="MaskinportenAuthenticationException"><inheritdoc cref="GetAccessToken"/></exception>
+    /// <returns><inheritdoc cref="GetAccessToken(MaskinportenTokenRequest, CancellationToken)"/></returns>
+    /// <exception cref="MaskinportenAuthenticationException"><inheritdoc cref="GetAccessToken(MaskinportenTokenRequest, CancellationToken)"/></exception>
     private async Task<JwtToken> HandleMaskinportenAuthentication(
-        string formattedScopes,
+        MaskinportenTokenRequest request,
         CancellationToken cancellationToken = default
     )
     {
@@ -187,7 +201,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         {
             _logger.LogDebug("Using MaskinportenClient.Variant={Variant} for authorization", Variant);
             string audience = await GetAudienceFromWellKnown(cancellationToken);
-            string jwtGrant = GenerateJwtGrant(formattedScopes, audience);
+            string jwtGrant = GenerateJwtGrant(request, audience);
             FormUrlEncodedContent payload = AuthenticationPayloadFactory(jwtGrant);
 
             _logger.LogDebug(
@@ -222,8 +236,8 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </summary>
     /// <param name="maskinportenToken">A Maskinporten issued token object</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
-    /// <returns><inheritdoc cref="GetAltinnExchangedToken"/></returns>
-    /// <exception cref="MaskinportenAuthenticationException"><inheritdoc cref="GetAltinnExchangedToken"/></exception>
+    /// <returns><inheritdoc cref="GetAltinnExchangedToken(MaskinportenTokenRequest, CancellationToken)"/></returns>
+    /// <exception cref="MaskinportenAuthenticationException"><inheritdoc cref="GetAltinnExchangedToken(MaskinportenTokenRequest, CancellationToken)"/></exception>
     private async Task<JwtToken> HandleMaskinportenAltinnTokenExchange(
         JwtToken maskinportenToken,
         CancellationToken cancellationToken = default
@@ -272,13 +286,13 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     }
 
     /// <summary>
-    /// Generates a JWT grant for the supplied scope claims along with the pre-configured client id and private key.
+    /// Generates a JWT grant for the supplied token request along with the pre-configured client id and private key.
     /// </summary>
-    /// <param name="formattedScopes">A space-separated list of scopes to make a claim for.</param>
+    /// <param name="request">The token request to build a grant assertion from.</param>
     /// <param name="audience">The audience claim value (typically the OAuth issuer from well-known metadata).</param>
     /// <returns><inheritdoc cref="JsonWebTokenHandler.CreateToken(SecurityTokenDescriptor)"/></returns>
     /// <exception cref="MaskinportenConfigurationException"></exception>
-    internal string GenerateJwtGrant(string formattedScopes, string audience)
+    internal string GenerateJwtGrant(MaskinportenTokenRequest request, string audience)
     {
         MaskinportenSettings? settings;
         try
@@ -293,6 +307,21 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             );
         }
 
+        var claims = new Dictionary<string, object>
+        {
+            [JwtClaimTypes.Scope] = request.FormattedScopes,
+            [JwtClaimTypes.JwtId] = Guid.NewGuid().ToString(),
+        };
+
+        if (request.ConsumerOrg is { } consumerOrg)
+            claims[JwtClaimTypes.Maskinporten.ConsumerOrg] = consumerOrg.Get(OrganisationNumberFormat.Local);
+
+        if (request.Resource is { } resource)
+            claims[JwtClaimTypes.Maskinporten.Resource] = resource;
+
+        if (request.SystemUser is { } systemUser)
+            claims[JwtClaimTypes.Maskinporten.AuthorizationDetails] = SystemUserAuthorizationDetails(systemUser);
+
         var now = _timeProvider.GetUtcNow();
         var expiry = now.AddMinutes(2);
         var jwtDescriptor = new SecurityTokenDescriptor
@@ -302,14 +331,35 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             IssuedAt = now.UtcDateTime,
             Expires = expiry.UtcDateTime,
             SigningCredentials = new SigningCredentials(settings.GetJsonWebKey(), SecurityAlgorithms.RsaSha256),
-            Claims = new Dictionary<string, object>
-            {
-                [JwtClaimTypes.Scope] = formattedScopes,
-                [JwtClaimTypes.JwtId] = Guid.NewGuid().ToString(),
-            },
+            Claims = claims,
         };
 
         return new JsonWebTokenHandler().CreateToken(jwtDescriptor);
+    }
+
+    /// <summary>
+    /// Builds the <c>authorization_details</c> claim value for a system user grant. Always a single-entry array,
+    /// as only one party can be queried per token.
+    /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker">the docs</a>.
+    /// </summary>
+    internal static List<Dictionary<string, object>> SystemUserAuthorizationDetails(MaskinportenSystemUser systemUser)
+    {
+        var detail = new Dictionary<string, object>
+        {
+            [SystemUserAuthorizationDetail.TypeKey] = SystemUserAuthorizationDetail.TypeValue,
+            [SystemUserAuthorizationDetail.OrganisationKey] = new Dictionary<string, object>
+            {
+                [SystemUserAuthorizationDetail.AuthorityKey] = SystemUserAuthorizationDetail.AuthorityValue,
+                [SystemUserAuthorizationDetail.IdentifierKey] = systemUser.Organisation.Get(
+                    OrganisationNumberFormat.International
+                ),
+            },
+        };
+
+        if (systemUser.ExternalRef is { } externalRef)
+            detail[SystemUserAuthorizationDetail.ExternalRefKey] = externalRef;
+
+        return [detail];
     }
 
     /// <summary>
@@ -375,9 +425,13 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     }
 
     /// <summary>
-    /// Generates a cache key for the supplied authority and scopes, in the format of `{salt}_{formattedScopes}`.
+    /// <para>Generates a cache key for the supplied authority and request.</para>
+    /// <para>Scopes-only requests use the format <c>{salt}_{formattedScopes}</c>. Requests carrying any of the
+    /// additional claims use <c>{salt}#{claims}|{formattedScopes}</c>, where the claim segment is percent-encoded.
+    /// Every claim that alters the identity of the resulting token must be part of the key, or we risk serving a
+    /// token minted for the wrong organisation or resource.</para>
     /// </summary>
-    internal string GetCacheKey(TokenAuthority authority, string formattedScopes)
+    internal string GetCacheKey(TokenAuthority authority, MaskinportenTokenRequest request)
     {
         var salt = authority switch
         {
@@ -386,7 +440,19 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             _ => throw new ArgumentException($"Unknown token authority {authority}", nameof(authority)),
         };
 
-        return $"{salt}_{formattedScopes}";
+        if (request is { ConsumerOrg: null, Resource: null, SystemUser: null })
+            return $"{salt}_{request.FormattedScopes}";
+
+        // `Uri.EscapeDataString` never emits `|`, so the field boundaries stay unambiguous for arbitrary input.
+        // `#` cannot occur in the salt, so an extended key can never collide with a scopes-only one either.
+        var consumerOrg = Escape(request.ConsumerOrg?.Get(OrganisationNumberFormat.Local));
+        var resource = Escape(request.Resource);
+        var systemUserOrg = Escape(request.SystemUser?.Organisation.Get(OrganisationNumberFormat.International));
+        var systemUserRef = Escape(request.SystemUser?.ExternalRef);
+
+        return $"{salt}#{consumerOrg}|{resource}|{systemUserOrg}|{systemUserRef}|{request.FormattedScopes}";
+
+        static string Escape(string? value) => value is null ? string.Empty : Uri.EscapeDataString(value);
     }
 
     /// <summary>
@@ -395,7 +461,8 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </summary>
     /// <param name="scopes">A collection of scopes.</param>
     /// <returns>A single string containing the supplied scopes.</returns>
-    internal static string GetFormattedScopes(IEnumerable<string> scopes) => string.Join(" ", scopes.Distinct());
+    internal static string GetFormattedScopes(IEnumerable<string> scopes) =>
+        new MaskinportenTokenRequest { Scopes = scopes }.FormattedScopes;
 
     /// <summary>
     /// Retrieves the OAuth issuer from the well-known metadata endpoint for use as the JWT audience claim.
@@ -496,15 +563,15 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         TokenAuthority authority,
         string variant,
         string clientId,
-        string formattedScopes
+        MaskinportenTokenRequest request
     ) =>
         authority switch
         {
-            TokenAuthority.Maskinporten => _telemetry?.StartGetAccessTokenActivity(variant, clientId, formattedScopes),
+            TokenAuthority.Maskinporten => _telemetry?.StartGetAccessTokenActivity(variant, clientId, request),
             TokenAuthority.AltinnTokenExchange => _telemetry?.StartGetAltinnExchangedAccessTokenActivity(
                 variant,
                 clientId,
-                formattedScopes
+                request
             ),
             _ => throw new ArgumentException($"Unknown token authority {authority}", nameof(authority)),
         };
@@ -520,7 +587,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     {
         state.Self._logger.LogDebug("Token is not in cache, generating new");
 
-        JwtToken token = await state.Self.HandleMaskinportenAuthentication(state.FormattedScopes, cancellationToken);
+        JwtToken token = await state.Self.HandleMaskinportenAuthentication(state.Request, cancellationToken);
 
         var expiresIn = state.Self.GetTokenExpiryWithMargin(token);
         if (expiresIn <= TimeSpan.Zero)
@@ -535,17 +602,17 @@ internal sealed class MaskinportenClient : IMaskinportenClient
 
     /// <summary>
     /// Factory method for creating a new Altinn-exchanged token, in the context of <see cref="GetOrCreateTokenFromCache"/>
-    /// This is mainly a wrapper for <see cref="GetAccessToken"/> + <see cref="HandleMaskinportenAltinnTokenExchange"/>
+    /// This is mainly a wrapper for <see cref="GetAccessToken(MaskinportenTokenRequest, CancellationToken)"/> + <see cref="HandleMaskinportenAltinnTokenExchange"/>
     /// with some additional cache-specific logic.
     /// </summary>
-    /// <remarks><see cref="GetAccessToken"/> itself may or may not return a cached response.</remarks>
+    /// <remarks><see cref="GetAccessToken(MaskinportenTokenRequest, CancellationToken)"/> itself may or may not return a cached response.</remarks>
     private static async ValueTask<TokenCacheEntry> AltinnTokenFactory(
         CacheFactoryState state,
         CancellationToken cancellationToken
     )
     {
         state.Self._logger.LogDebug("Token is not in cache, generating new");
-        JwtToken maskinportenToken = await state.Self.GetAccessToken([state.FormattedScopes], cancellationToken);
+        JwtToken maskinportenToken = await state.Self.GetAccessToken(state.Request, cancellationToken);
         JwtToken altinnToken = await state.Self.HandleMaskinportenAltinnTokenExchange(
             maskinportenToken,
             cancellationToken
@@ -562,5 +629,5 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         return new TokenCacheEntry(Token: altinnToken, ExpiresIn: expiresIn, HasSetExpiration: false);
     }
 
-    private sealed record CacheFactoryState(MaskinportenClient Self, string FormattedScopes);
+    private sealed record CacheFactoryState(MaskinportenClient Self, MaskinportenTokenRequest Request);
 }

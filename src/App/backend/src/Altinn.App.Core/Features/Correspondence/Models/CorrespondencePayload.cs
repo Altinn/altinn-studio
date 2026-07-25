@@ -45,7 +45,7 @@ public sealed record SendCorrespondencePayload : CorrespondencePayloadBase
     /// Instantiates a new payload for <see cref="CorrespondenceClient.Send"/>.
     /// </summary>
     /// <param name="request">The correspondence request to send</param>
-    /// <param name="accessTokenFactory">Access token factory delegate (e.g. <see cref="MaskinportenClient.GetAltinnExchangedToken"/>) to use for authorisation</param>
+    /// <param name="accessTokenFactory">Access token factory delegate (e.g. <see cref="IMaskinportenClient.GetAltinnExchangedToken(System.Collections.Generic.IEnumerable{string}, System.Threading.CancellationToken)"/>) to use for authorisation</param>
     [Obsolete("Use SendCorrespondencePayload(CorrespondenceRequest, CorrespondenceAuthenticationMethod) instead")]
     public SendCorrespondencePayload(CorrespondenceRequest request, Func<Task<JwtToken>> accessTokenFactory)
     {
@@ -91,7 +91,7 @@ public sealed record GetCorrespondenceStatusPayload : CorrespondencePayloadBase
     /// Instantiates a new payload for <see cref="CorrespondenceClient.GetStatus"/>.
     /// </summary>
     /// <param name="correspondenceId">The correspondence identifier to retrieve information about</param>
-    /// <param name="accessTokenFactory">Access token factory delegate (e.g. <see cref="MaskinportenClient.GetAltinnExchangedToken"/>) to use for authorisation</param>
+    /// <param name="accessTokenFactory">Access token factory delegate (e.g. <see cref="IMaskinportenClient.GetAltinnExchangedToken(System.Collections.Generic.IEnumerable{string}, System.Threading.CancellationToken)"/>) to use for authorisation</param>
     [Obsolete("Use GetCorrespondenceStatusPayload(Guid, CorrespondenceAuthenticationMethod) instead")]
     public GetCorrespondenceStatusPayload(Guid correspondenceId, Func<Task<JwtToken>> accessTokenFactory)
     {

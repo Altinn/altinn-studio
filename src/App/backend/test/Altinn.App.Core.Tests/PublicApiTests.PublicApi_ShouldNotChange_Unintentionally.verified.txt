@@ -1626,7 +1626,9 @@ namespace Altinn.App.Core.Features.Maskinporten
 {
     public interface IMaskinportenClient
     {
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAccessToken(Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest request, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAccessToken(System.Collections.Generic.IEnumerable<string> scopes, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAltinnExchangedToken(Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest request, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAltinnExchangedToken(System.Collections.Generic.IEnumerable<string> scopes, System.Threading.CancellationToken cancellationToken = default);
     }
 }
@@ -1682,6 +1684,22 @@ namespace Altinn.App.Core.Features.Maskinporten.Models
         [System.Text.Json.Serialization.JsonPropertyName("jwkBase64")]
         public string? JwkBase64 { get; set; }
         public Microsoft.IdentityModel.Tokens.JsonWebKey GetJsonWebKey() { }
+    }
+    public sealed class MaskinportenSystemUser : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSystemUser>
+    {
+        public MaskinportenSystemUser() { }
+        public string? ExternalRef { get; init; }
+        public required Altinn.App.Core.Models.OrganisationNumber Organisation { get; init; }
+    }
+    public sealed class MaskinportenTokenRequest : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest>
+    {
+        public MaskinportenTokenRequest() { }
+        public Altinn.App.Core.Models.OrganisationNumber? ConsumerOrg { get; init; }
+        public string? Resource { get; init; }
+        public required System.Collections.Generic.IEnumerable<string> Scopes { get; init; }
+        public Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSystemUser? SystemUser { get; init; }
+        public bool Equals(Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest? other) { }
+        public override int GetHashCode() { }
     }
 }
 namespace Altinn.App.Core.Features.Notifications.Cancellation
