@@ -38,10 +38,11 @@ public sealed record MaskinportenTokenRequest
         {
             ArgumentNullException.ThrowIfNull(value, nameof(Scopes));
 
+            // A null separator array makes `Split` break on any whitespace
             string[] scopes =
             [
                 .. value
-                    .SelectMany(static scope => (scope ?? string.Empty).Split(null as char[], SplitOptions))
+                    .SelectMany(static scope => (scope ?? string.Empty).Split(_whitespaceSeparators, SplitOptions))
                     .Distinct(StringComparer.Ordinal)
                     .Order(StringComparer.Ordinal),
             ];
@@ -125,6 +126,7 @@ public sealed record MaskinportenTokenRequest
 
     private const StringSplitOptions SplitOptions =
         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+    private static readonly char[]? _whitespaceSeparators = null;
 }
 
 /// <summary>
