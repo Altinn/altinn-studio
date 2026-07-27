@@ -49,6 +49,8 @@ public class SourceControlService(
     private const string CannotLockRefMessageSuffix = "', there are refs beneath that folder";
     private const string CouldNotRemoveDirectoryPrefix = "could not remove directory '";
     private const string ParentIsNotDirectorySuffix = "': parent is not directory";
+    private const string ReferenceCollisionMessagePrefix = "path to reference '";
+    private const string ReferenceCollisionMessageSuffix = "' collides with existing one";
 
     /// <inheritdoc/>
     public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext)
@@ -141,10 +143,15 @@ public class SourceControlService(
                 try
                 {
                     Tree head = repo.Head.Tip.Tree;
-                    MergeResult mergeResult = Commands.Pull(
+                    MergeResult mergeResult = ExecuteWithStaleRemoteTrackingRefRecovery(
                         repo,
-                        self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
-                        pullOptions
+                        repo.Network.Remotes,
+                        () =>
+                            Commands.Pull(
+                                repo,
+                                self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
+                                pullOptions
+                            )
                     );
                     mergeStatus = mergeResult.Status.ToString();
 
@@ -216,73 +223,119 @@ public class SourceControlService(
                 {
                     CredentialsProvider = self.GetCredentialsHandler(authenticatedContext),
                     CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext),
-                    Prune = true,
                 };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                    try
-                    {
-                        Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
-                    }
-                    catch (LibGit2SharpException ex)
-                    {
-                        // Libgit2 applies prune too late for branch shape changes like origin/develop/test <-> origin/develop.
-                        // Remove only blocking stale remote-tracking refs before retrying fetch.
-                        if (!RemoveRemoteTrackingRefsBlockingFetch(repo, remote, ex))
-                        {
-                            throw;
-                        }
-
-                        Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
-                    }
+                    ExecuteWithStaleRemoteTrackingRefRecovery(
+                        repo,
+                        [remote],
+                        () => Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage)
+                    );
                 }
             }
         );
     }
 
-    private static bool RemoveRemoteTrackingRefsBlockingFetch(
+    private static void ExecuteWithStaleRemoteTrackingRefRecovery(
         LibGit2Sharp.Repository repo,
-        Remote remote,
-        LibGit2SharpException exception
+        IEnumerable<Remote> remotes,
+        Action operation
     )
     {
-        string? blockedRef = GetBlockedRemoteTrackingRef(repo, remote, exception.Message);
-        if (blockedRef is null)
-        {
-            return false;
-        }
-
-        string remoteTrackingPrefix = $"refs/remotes/{remote.Name}/";
-        string staleChildRefPrefix = $"{blockedRef}/";
-        List<string> refsToRemove = repo
-            .Refs.Where(reference =>
-                reference.IsRemoteTrackingBranch
-                && reference.CanonicalName.StartsWith(staleChildRefPrefix, StringComparison.Ordinal)
-            )
-            .Select(reference => reference.CanonicalName)
-            .ToList();
-
-        for (
-            int slashIndex = blockedRef.LastIndexOf('/');
-            slashIndex > remoteTrackingPrefix.Length;
-            slashIndex = blockedRef.LastIndexOf('/', slashIndex - 1)
-        )
-        {
-            string staleParentRef = blockedRef[..slashIndex];
-            if (repo.Refs[staleParentRef]?.IsRemoteTrackingBranch == true)
+        ExecuteWithStaleRemoteTrackingRefRecovery(
+            repo,
+            remotes,
+            () =>
             {
-                refsToRemove.Add(staleParentRef);
+                operation();
+                return true;
+            }
+        );
+    }
+
+    private static T ExecuteWithStaleRemoteTrackingRefRecovery<T>(
+        LibGit2Sharp.Repository repo,
+        IEnumerable<Remote> remotes,
+        Func<T> operation
+    )
+    {
+        List<Remote> remoteList = remotes.ToList();
+        HashSet<string> attemptedRecoveries = new(StringComparer.Ordinal);
+
+        while (true)
+        {
+            try
+            {
+                return operation();
+            }
+            catch (LibGit2SharpException ex)
+            {
+                if (!TryRemoveRemoteTrackingRefsBlockingFetch(repo, remoteList, ex, attemptedRecoveries))
+                {
+                    throw;
+                }
             }
         }
+    }
 
-        foreach (string refToRemove in refsToRemove.Distinct())
+    private static bool TryRemoveRemoteTrackingRefsBlockingFetch(
+        LibGit2Sharp.Repository repo,
+        IEnumerable<Remote> remotes,
+        LibGit2SharpException exception,
+        HashSet<string> attemptedRecoveries
+    )
+    {
+        foreach (Remote remote in remotes)
         {
-            repo.Refs.Remove(refToRemove);
+            string? blockedRef = GetBlockedRemoteTrackingRef(repo, remote, exception.Message);
+            if (blockedRef is null || !attemptedRecoveries.Add(blockedRef))
+            {
+                continue;
+            }
+
+            string remoteTrackingPrefix = $"refs/remotes/{remote.Name}/";
+            string staleChildRefPrefix = $"{blockedRef}/";
+            List<string> refsToRemove = repo
+                .Refs.Where(reference =>
+                    reference.IsRemoteTrackingBranch
+                    && reference.CanonicalName.StartsWith(staleChildRefPrefix, StringComparison.Ordinal)
+                )
+                .Select(reference => reference.CanonicalName)
+                .ToList();
+
+            for (
+                int slashIndex = blockedRef.LastIndexOf('/');
+                slashIndex > remoteTrackingPrefix.Length;
+                slashIndex = blockedRef.LastIndexOf('/', slashIndex - 1)
+            )
+            {
+                string staleParentRef = blockedRef[..slashIndex];
+                if (repo.Refs[staleParentRef]?.IsRemoteTrackingBranch == true)
+                {
+                    refsToRemove.Add(staleParentRef);
+                }
+            }
+
+            foreach (string refToRemove in refsToRemove.Distinct())
+            {
+                try
+                {
+                    repo.Refs.Remove(refToRemove);
+                }
+                catch (NotFoundException)
+                {
+                    // Another request already removed the same stale tracking ref.
+                }
+            }
+
+            // A concurrent request or libgit2's partial fetch may already have removed the blocker.
+            // Retry once for each distinct blocked ref even when no stale ref remains visible.
+            return true;
         }
 
-        return refsToRemove.Count > 0;
+        return false;
     }
 
     private static string? GetBlockedRemoteTrackingRef(
@@ -295,6 +348,16 @@ public class SourceControlService(
             exceptionMessage,
             CannotLockRefMessagePrefix,
             CannotLockRefMessageSuffix
+        );
+        if (IsRemoteTrackingRefForRemote(canonicalRef, remote))
+        {
+            return canonicalRef;
+        }
+
+        canonicalRef = ExtractQuotedValue(
+            exceptionMessage,
+            ReferenceCollisionMessagePrefix,
+            ReferenceCollisionMessageSuffix
         );
         if (IsRemoteTrackingRefForRemote(canonicalRef, remote))
         {
