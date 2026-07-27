@@ -64,13 +64,6 @@ public interface ICorrespondenceAttachmentBuilder
     ICorrespondenceAttachmentBuilder WithIsEncrypted(bool isEncrypted);
 
     /// <summary>
-    /// Sets the storage location of the attachment data.
-    /// </summary>
-    /// <remarks>In this context, it is extremely likely that the storage location is <see cref="CorrespondenceDataLocationType.ExistingCorrespondenceAttachment"/></remarks>
-    /// <param name="dataLocationType">The data storage location</param>
-    ICorrespondenceAttachmentBuilder WithDataLocationType(CorrespondenceDataLocationType dataLocationType);
-
-    /// <summary>
     /// Builds the correspondence attachment.
     /// </summary>
     CorrespondenceAttachment Build();

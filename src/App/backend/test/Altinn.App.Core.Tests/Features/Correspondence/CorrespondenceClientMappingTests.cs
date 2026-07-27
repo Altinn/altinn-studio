@@ -43,7 +43,6 @@ public class CorrespondenceClientMappingTests
 
         string? capturedJson = null;
         var existingAttachmentId = Guid.NewGuid();
-        var orgSender = TestHelpers.GetOrganisationNumber(0);
         var orgRecipient = TestHelpers.GetOrganisationNumber(1);
         var ninRecipient = TestHelpers.GetNationalIdentityNumber(0);
         var requestedPublishTime = DateTimeOffset.UtcNow.AddDays(1);
@@ -52,7 +51,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(orgSender)
             .WithSendersReference("senders-ref")
             .WithRecipients([
                 OrganisationOrPersonIdentifier.Create(orgRecipient),
@@ -136,7 +134,8 @@ public class CorrespondenceClientMappingTests
         var corr = root.GetProperty("correspondence");
 
         corr.GetProperty("resourceId").GetString().Should().Be("resource-id");
-        // corr.GetProperty("sender").GetString().Should().Be(orgSender.ToUrnFormattedString()); Builder mapping removed
+        // `sender` was removed in v9: the API derives it from the Resource Registry via resourceId.
+        corr.TryGetProperty("sender", out _).Should().BeFalse();
         corr.GetProperty("sendersReference").GetString().Should().Be("senders-ref");
         corr.GetProperty("messageSender").GetString().Should().Be("message-sender");
         corr.GetProperty("ignoreReservation").GetBoolean().Should().BeTrue();
@@ -204,7 +203,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
@@ -281,7 +279,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
@@ -355,7 +352,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
@@ -415,7 +411,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")

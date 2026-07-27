@@ -40,16 +40,6 @@ internal sealed record CorrespondenceDetailsRequest
     public required string ResourceId { get; init; }
 
     /// <summary>
-    /// The sending organisation in URN format (e.g. <c>urn:altinn:organization:identifier-no:123456789</c>).
-    /// </summary>
-    [JsonPropertyName("sender")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [Obsolete(
-        "This property is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
-    )]
-    public string? Sender { get; init; }
-
-    /// <summary>
     /// A reference value given to the message by the creator.
     /// </summary>
     [JsonPropertyName("sendersReference")]
@@ -62,7 +52,7 @@ internal sealed record CorrespondenceDetailsRequest
     public string? MessageSender { get; init; }
 
     /// <summary>
-    /// The content of the message (title, summary, body, and attachment references).
+    /// The content of the message (title, summary, and body).
     /// </summary>
     [JsonPropertyName("content")]
     public required CorrespondenceContentRequest Content { get; init; }
@@ -151,62 +141,6 @@ internal sealed record CorrespondenceContentRequest
     /// </summary>
     [JsonPropertyName("messageBody")]
     public required string MessageBody { get; init; }
-
-    /// <summary>
-    /// Metadata references to pre-uploaded attachments that are part of this correspondence content.
-    /// The referenced attachments must have been initialised and uploaded before this request is sent.
-    /// </summary>
-    [JsonPropertyName("attachments")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyList<CorrespondenceAttachmentReferenceRequest>? Attachments { get; init; }
-}
-
-/// <summary>
-/// Metadata reference to a pre-uploaded attachment within <see cref="CorrespondenceContentRequest"/>.
-/// </summary>
-internal sealed record CorrespondenceAttachmentReferenceRequest
-{
-    /// <summary>
-    /// The attachment ID returned by <c>POST /correspondence/attachment</c>.
-    /// </summary>
-    [JsonPropertyName("id")]
-    public required Guid Id { get; init; }
-
-    /// <summary>
-    /// The location type of the attachment data.
-    /// </summary>
-    [JsonPropertyName("dataLocationType")]
-    public CorrespondenceDataLocationType DataLocationType { get; init; }
-
-    /// <summary>
-    /// The filename of the attachment.
-    /// </summary>
-    [JsonPropertyName("fileName")]
-    public string? FileName { get; init; }
-
-    /// <summary>
-    /// Whether the attachment data is encrypted.
-    /// </summary>
-    [JsonPropertyName("isEncrypted")]
-    public bool IsEncrypted { get; init; }
-
-    /// <summary>
-    /// MD5 checksum of the attachment data.
-    /// </summary>
-    [JsonPropertyName("checksum")]
-    public string? Checksum { get; init; }
-
-    /// <summary>
-    /// A reference value given to the attachment by the creator.
-    /// </summary>
-    [JsonPropertyName("sendersReference")]
-    public required string SendersReference { get; init; }
-
-    /// <summary>
-    /// The number of days until the attachment expires.
-    /// </summary>
-    [JsonPropertyName("expirationInDays")]
-    public int? ExpirationInDays { get; init; }
 }
 
 /// <summary>
@@ -285,14 +219,6 @@ internal sealed record CorrespondenceNotificationRequest
     /// </summary>
     [JsonPropertyName("customRecipient")]
     public CorrespondenceNotificationRecipientRequest? CustomRecipient { get; init; }
-
-    /// <summary>
-    /// Per-recipient notification overrides.
-    /// </summary>
-    /// <remarks>Only the first entry is used by the API.</remarks>
-    [Obsolete("This property is deprecated. Use CustomRecipient instead.")]
-    [JsonPropertyName("customNotificationRecipients")]
-    public IReadOnlyList<CorrespondenceCustomNotificationRecipientRequest>? CustomNotificationRecipients { get; init; }
 }
 
 /// <summary>
@@ -323,26 +249,4 @@ internal sealed record CorrespondenceNotificationRecipientRequest
     /// </summary>
     [JsonPropertyName("nationalIdentityNumber")]
     public string? NationalIdentityNumber { get; init; }
-}
-
-/// <summary>
-/// A per-recipient notification override within a <see cref="CorrespondenceNotificationRequest"/>.
-/// </summary>
-[Obsolete(
-    "This type is deprecated. Use CorrespondenceNotificationRecipientRequest via CorrespondenceNotificationRequest.CustomRecipient instead."
-)]
-internal sealed record CorrespondenceCustomNotificationRecipientRequest
-{
-    /// <summary>
-    /// The correspondence recipient whose notification should be overridden.
-    /// Organisation number or national identity number in URN format.
-    /// </summary>
-    [JsonPropertyName("recipientToOverride")]
-    public required string RecipientToOverride { get; init; }
-
-    /// <summary>
-    /// The custom recipients to use instead of the default.
-    /// </summary>
-    [JsonPropertyName("recipients")]
-    public required IReadOnlyList<CorrespondenceNotificationRecipientRequest> Recipients { get; init; }
 }

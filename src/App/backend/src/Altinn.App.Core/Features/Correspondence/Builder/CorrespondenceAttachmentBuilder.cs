@@ -12,8 +12,6 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     private Stream? _data;
     private ReadOnlyMemory<byte>? _dataAsBytes;
     private bool? _isEncrypted;
-    private CorrespondenceDataLocationType _dataLocationType =
-        CorrespondenceDataLocationType.ExistingCorrespondenceAttachment;
 
     private CorrespondenceAttachmentBuilder() { }
 
@@ -61,13 +59,6 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceAttachmentBuilder WithDataLocationType(CorrespondenceDataLocationType dataLocationType)
-    {
-        _dataLocationType = dataLocationType;
-        return this;
-    }
-
-    /// <inheritdoc/>
     public CorrespondenceAttachment Build()
     {
         BuilderUtils.NotNullOrEmpty(_filename);
@@ -88,7 +79,6 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
             SendersReference = _sendersReference,
             Data = data,
             IsEncrypted = _isEncrypted,
-            DataLocationType = _dataLocationType,
         };
     }
 }

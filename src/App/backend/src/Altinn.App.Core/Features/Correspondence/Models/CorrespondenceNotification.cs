@@ -81,20 +81,7 @@ public sealed record CorrespondenceNotification
     public string? SendersReference { get; init; }
 
     /// <summary>
-    /// The date and time for when the notification should be sent.
-    /// </summary>
-    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-    public DateTimeOffset? RequestedSendTime { get; init; }
-
-    /// <summary>
-    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
+    /// The recipient of the notification. If not set, the notification will be sent to the recipient of the Correspondence.
     /// </summary>
     public CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
-
-    /// <summary>
-    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
-    /// </summary>
-    /// <remarks> Only the first recipient in the list will be used for sending the notification. </remarks>
-    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipient instead.")]
-    public IReadOnlyList<CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
 }

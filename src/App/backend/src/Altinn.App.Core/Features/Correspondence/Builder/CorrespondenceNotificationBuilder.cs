@@ -20,9 +20,6 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     private string? _sendersReference;
     private CorrespondenceNotificationRecipient? _recipientOverride;
 
-    [Obsolete]
-    private List<CorrespondenceNotificationRecipientWrapper>? _recipientToOverrideWrapper;
-
     private CorrespondenceNotificationBuilder() { }
 
     /// <summary>
@@ -115,14 +112,6 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     }
 
     /// <inheritdoc/>
-    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-    public ICorrespondenceNotificationBuilder WithRequestedSendTime(DateTimeOffset? requestedSendTime)
-    {
-        // Intentional no-op: RequestedSendTime is no longer accepted by the Correspondence API.
-        return this;
-    }
-
-    /// <inheritdoc/>
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
     )
@@ -149,17 +138,6 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
             return WithRecipientOverride(recipientOverride);
         }
 
-        return this;
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("Use WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride) instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverride(
-        CorrespondenceNotificationRecipientWrapper recipientToOverrideWrapper
-    )
-    {
-        _recipientToOverrideWrapper ??= [];
-        _recipientToOverrideWrapper.Add(recipientToOverrideWrapper);
         return this;
     }
 

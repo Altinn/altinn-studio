@@ -14,7 +14,6 @@ public class CorrespondenceRequestTests
         var correspondence = new CorrespondenceRequest
         {
             ResourceId = "resource-id",
-            Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             Recipients =
             [
@@ -44,7 +43,6 @@ public class CorrespondenceRequestTests
         var correspondence = new CorrespondenceRequest
         {
             ResourceId = "resource-id",
-            Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             IsConfirmationNeeded = true,
             Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
@@ -71,7 +69,6 @@ public class CorrespondenceRequestTests
         var baseCorrespondence = new CorrespondenceRequest
         {
             ResourceId = "resource-id",
-            Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
             Content = new CorrespondenceContent
@@ -101,7 +98,6 @@ public class CorrespondenceRequestTests
         var baseCorrespondence = new CorrespondenceRequest
         {
             ResourceId = "resource-id",
-            Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             RequestedPublishTime = DateTimeOffset.Now.AddDays(2),
             Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],

@@ -33,30 +33,10 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     public static ICorrespondenceRequestBuilderResourceId Create() => new CorrespondenceRequestBuilder();
 
     /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderSender WithResourceId(string resourceId)
+    public ICorrespondenceRequestBuilderSendersReference WithResourceId(string resourceId)
     {
         BuilderUtils.NotNullOrEmpty(resourceId, "Resource ID cannot be empty");
         _resourceId = resourceId;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
-    )]
-    public ICorrespondenceRequestBuilderSendersReference WithSender(OrganisationNumber sender)
-    {
-        // Intentional no-op: sender is now automatically determined from the Resource Registry.
-        return this;
-    }
-
-    /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
-    )]
-    public ICorrespondenceRequestBuilderSendersReference WithSender(string sender)
-    {
-        // Intentional no-op: sender is now automatically determined from the Resource Registry.
         return this;
     }
 
@@ -162,14 +142,6 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     {
         BuilderUtils.NotNullOrEmpty(dueDateTime, "DueDateTime cannot be empty");
         _dueDateTime = dueDateTime;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-    public ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(DateTimeOffset allowSystemDeleteAfter)
-    {
-        // Intentional no-op: AllowSystemDeleteAfter is no longer accepted by the Correspondence API.
         return this;
     }
 

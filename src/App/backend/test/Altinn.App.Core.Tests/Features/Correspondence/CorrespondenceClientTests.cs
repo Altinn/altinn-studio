@@ -249,8 +249,6 @@ public class CorrespondenceClientTests
         get
         {
             TheoryData<(AuthenticationScenario scenario, IEnumerable<string> expectedScopes)> data = new();
-            data.Add((AuthenticationScenario.LegacyMaskinporten, ["altinn:correspondence.write", "altinn:serviceowner"]));
-            data.Add((AuthenticationScenario.LegacyCustom, ["old:custom"]));
             data.Add((AuthenticationScenario.Default, ["altinn:serviceowner", "altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "altinn:correspondence.write"]));
             data.Add((AuthenticationScenario.Custom, ["new:custom"]));
             return data;
@@ -275,14 +273,6 @@ public class CorrespondenceClientTests
         // csharpier-ignore
         switch (testCase.scenario)
         {
-            case AuthenticationScenario.LegacyMaskinporten:
-                sendPayload = PayloadFactory.Send(authorisation: CorrespondenceAuthorisation.Maskinporten);
-                statusPayload = PayloadFactory.GetStatus(authorisation: CorrespondenceAuthorisation.Maskinporten);
-                break;
-            case AuthenticationScenario.LegacyCustom:
-                sendPayload = PayloadFactory.Send(tokenFactory: () => TestHelpers.OrgTokenFactory(["old:custom"]));
-                statusPayload = PayloadFactory.GetStatus(tokenFactory: () => TestHelpers.OrgTokenFactory(["old:custom"]));
-                break;
             case AuthenticationScenario.Default:
                 sendPayload = PayloadFactory.Send(authenticationMethod: CorrespondenceAuthenticationMethod.Default());
                 statusPayload = PayloadFactory.GetStatus(authenticationMethod: CorrespondenceAuthenticationMethod.Default());
@@ -326,7 +316,7 @@ public class CorrespondenceClientTests
         mockHttpClient.Verify();
         Assert.Equivalent(testCase.expectedScopes, capturedToken!.Value.Scope!.Split(" "));
 
-        if (testCase.scenario is AuthenticationScenario.Default or AuthenticationScenario.LegacyMaskinporten)
+        if (testCase.scenario is AuthenticationScenario.Default)
         {
             mockMaskinportenClient.Verify();
         }
@@ -518,8 +508,6 @@ public class CorrespondenceClientTests
             CorrespondenceAuthenticationMethod.Default();
 
         public static SendCorrespondencePayload Send(
-            Func<Task<JwtToken>>? tokenFactory = null,
-            CorrespondenceAuthorisation? authorisation = null,
             CorrespondenceAuthenticationMethod? authenticationMethod = null,
             bool withAttachment = false
         )
@@ -527,7 +515,6 @@ public class CorrespondenceClientTests
             var builder = CorrespondenceRequestBuilder
                 .Create()
                 .WithResourceId("resource-id")
-                .WithSender(OrganisationNumber.Parse("991825827"))
                 .WithSendersReference("senders-ref")
                 .WithRecipient(OrganisationOrPersonIdentifier.Parse("213872702"))
                 .WithContent(
@@ -550,27 +537,13 @@ public class CorrespondenceClientTests
 
             var request = builder.Build();
 
-            if (tokenFactory is not null)
-                return new SendCorrespondencePayload(request, tokenFactory);
-
-            if (authorisation is not null)
-                return new SendCorrespondencePayload(request, authorisation.Value);
-
             return new SendCorrespondencePayload(request, authenticationMethod ?? _defaultAuthenticationMethod);
         }
 
         public static GetCorrespondenceStatusPayload GetStatus(
-            Func<Task<JwtToken>>? tokenFactory = null,
-            CorrespondenceAuthorisation? authorisation = null,
             CorrespondenceAuthenticationMethod? authenticationMethod = null
         )
         {
-            if (tokenFactory is not null)
-                return new GetCorrespondenceStatusPayload(Guid.NewGuid(), tokenFactory);
-
-            if (authorisation is not null)
-                return new GetCorrespondenceStatusPayload(Guid.NewGuid(), authorisation.Value);
-
             return new GetCorrespondenceStatusPayload(
                 Guid.NewGuid(),
                 authenticationMethod ?? _defaultAuthenticationMethod
@@ -580,8 +553,6 @@ public class CorrespondenceClientTests
 
     public enum AuthenticationScenario
     {
-        LegacyMaskinporten,
-        LegacyCustom,
         Default,
         Custom,
     }

@@ -15,14 +15,6 @@ public sealed record CorrespondenceRequest
     public required string ResourceId { get; init; }
 
     /// <summary>
-    /// The sending organisation of the correspondence.
-    /// </summary>
-    [Obsolete(
-        "This property is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
-    )]
-    public OrganisationNumber? Sender { get; init; }
-
-    /// <summary>
     /// A reference value given to the message by the creator.
     /// </summary>
     public required string SendersReference { get; init; }
@@ -37,12 +29,6 @@ public sealed record CorrespondenceRequest
     /// If omitted, the correspondence is available immediately.
     /// </summary>
     public DateTimeOffset? RequestedPublishTime { get; init; }
-
-    /// <summary>
-    /// When can Altinn remove the correspondence from its database?
-    /// </summary>
-    [Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-    public DateTimeOffset? AllowSystemDeleteAfter { get; init; }
 
     /// <summary>
     /// When must the recipient respond by?
