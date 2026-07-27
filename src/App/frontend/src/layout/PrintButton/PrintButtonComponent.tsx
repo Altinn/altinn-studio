@@ -15,7 +15,7 @@ export const PrintButtonComponent = ({ baseComponentId }: PropsFromGenericCompon
     <PrintButton
       componentId={componentId}
       title={textResourceBindings?.title}
-      onClick={window.print}
+      onClick={() => window.print()}
       innerGrid={innerGrid}
     />
   );
