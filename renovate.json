@@ -35,6 +35,31 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
+      "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "/^k8s\\.io\\//",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
+        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+      ],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "Kubernetes, Flux, and cluster tooling Go dependency patches",
+      "groupSlug": "k8s-flux-runtime-go-patches"
+    },
+    {
+      "description": "Kubernetes, Flux, and cluster tooling Go dependency minor/major updates are done manually after checking target cluster compatibility",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "/^k8s\\.io\\//",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
+        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+      ],
+      "matchUpdateTypes": ["minor", "major"],
+      "enabled": false
+    },
+    {
       "groupName": "LibGit2Sharp dependency",
       "groupSlug": "LibGit2Sharp",
       "matchPackageNames": ["LibGit2Sharp"]
@@ -55,8 +80,24 @@
     },
     {
       "matchFileNames": ["src/App/**"],
+      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
+      "groupName": "Design system in App"
+    },
+    {
+      "matchFileNames": ["src/App/**", "app-libs/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
+    },
+    {
+      "description": "Automerge non-major Altinn app template package updates",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/src/App/App.csproj"],
+      "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Altinn app template NuGet packages",
+      "groupSlug": "app-template-nuget",
+      "addLabels": ["approve"],
+      "automerge": true
     },
     {
       "matchFileNames": ["src/Runtime/localtest/**"],
@@ -67,17 +108,6 @@
       "matchFileNames": ["src/Runtime/pdf3/**"],
       "additionalBranchPrefix": "pdf3/",
       "commitMessageSuffix": " (pdf3)"
-    },
-    {
-      "matchFileNames": ["src/App/**"],
-      "matchPackageNames": [
-        "@digdir/designsystemet-react",
-        "@digdir/designsystemet-css",
-        "@digdir/designsystemet-theme"
-      ],
-      "groupName": "Digdir design system",
-      "schedule": ["* 0-7 * * 1-5"],
-      "minimumReleaseAge": "3 days"
     },
     {
       "matchFileNames": ["src/App/**"],
@@ -119,7 +149,6 @@
         "src/Altinn.Platform/**",
         "src/test/**",
         "src/Runtime/localtest/**",
-        "src/App/frontend/**",
         "src/App/backend/**",
         "src/App/fileanalyzers/**",
         "src/App/codelists/**"

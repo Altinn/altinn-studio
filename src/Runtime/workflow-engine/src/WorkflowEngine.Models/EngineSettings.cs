@@ -74,6 +74,14 @@ public sealed record EngineSettings
     public required TimeSpan DefaultStepCommandTimeout { get; set; }
 
     /// <summary>
+    /// The maximum per-step command timeout a client may request via a step's
+    /// <c>command.maxExecutionTime</c>. Enqueue requests exceeding this cap are rejected, protecting the
+    /// shared worker and HTTP pools from steps that would hold a slot for an unbounded amount of time.
+    /// </summary>
+    [JsonPropertyName("maxStepCommandTimeout")]
+    public required TimeSpan MaxStepCommandTimeout { get; set; }
+
+    /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
     [JsonPropertyName("defaultStepRetryStrategy")]
@@ -107,7 +115,7 @@ public sealed record EngineSettings
 
     /// <summary>
     /// Maximum number of times a workflow can be reclaimed before being marked as Failed.
-    /// Protects against poison workflows that crash workers repeatedly.
+    /// Protects against poisoned workflows that crash workers repeatedly.
     /// </summary>
     [JsonPropertyName("maxReclaimCount")]
     public required int MaxReclaimCount { get; set; }
@@ -117,6 +125,13 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("cancellationWatcherInterval")]
     public TimeSpan CancellationWatcherInterval { get; set; }
+
+    /// <summary>
+    /// Interval at which the database maintenance sweeps run (stale reclaim, poisoned finalization,
+    /// and dependency-recovery of workflows whose dependencies have since completed).
+    /// </summary>
+    [JsonPropertyName("maintenanceInterval")]
+    public TimeSpan MaintenanceInterval { get; set; }
 
     /// <summary>
     /// Concurrency settings.

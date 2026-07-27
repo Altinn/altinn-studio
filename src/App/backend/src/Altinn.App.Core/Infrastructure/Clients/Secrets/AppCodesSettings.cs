@@ -4,6 +4,7 @@ internal sealed class AppCodesSettings
 {
     public List<AppCode> NotificationCallback { get; set; } = [];
     public List<AppCode> PaymentsCallback { get; set; } = [];
+    public List<AppCode> WorkflowEngineCallback { get; set; } = [];
 }
 
 internal sealed class AppCode

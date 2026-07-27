@@ -1,0 +1,8 @@
+.imageItem {
+  flex-basis: auto;
+}
+
+.helpItem {
+  flex-basis: auto;
+  letter-spacing: 0.3px;
+}

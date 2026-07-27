@@ -177,7 +177,17 @@ public class ValidationServiceOldTests
             Data = [dataElement],
         };
 
-        var dataAccessorMock = new InstanceDataAccessorFake(instance, _applicationMetadata, "Task_1", "test")
+        var dataAccessorMock = new InstanceDataAccessorFake(
+            instance,
+            _applicationMetadata,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "Task_1",
+            "test"
+        )
         {
             { dataElement, new ReadOnlyMemory<byte>() },
         };

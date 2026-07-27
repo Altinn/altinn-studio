@@ -81,7 +81,7 @@ public class PdfController : ControllerBase
             return NotFound("Did not find instance or task");
         }
 
-        Stream pdfContent = await _pdfService.GeneratePdf(instance, taskId, true, CancellationToken.None);
+        Stream pdfContent = await _pdfService.GeneratePdf(instance, taskId, true, ct: CancellationToken.None);
         return new FileStreamResult(pdfContent, "application/pdf");
     }
 

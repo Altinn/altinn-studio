@@ -1,5 +1,3 @@
-var oidcEnabled = process.env.STUDIO_OIDC_ENABLED === 'true';
-
 // Restricts API key auth to git operations and Gitea REST API only (blocks web UI).
 // Part 1: ^/<owner>/<repo>[.git]/<git-endpoint>[?|end] — matches git clone/push/pull
 // Part 2: ^/api/v1/ — matches Gitea REST API calls
@@ -32,11 +30,6 @@ function getApiKey(r) {
 }
 
 function handleRequest(r) {
-  if (!oidcEnabled) {
-    r.internalRedirect('@proxy_to_gitea_clean');
-    return;
-  }
-
   var apiKey = getApiKey(r);
   r.variables.auth_api_key = apiKey;
   r.subrequest('/_internal/userinfo', { method: 'GET' }, function (reply) {
@@ -72,11 +65,6 @@ function handleRequest(r) {
 }
 
 function handleInternalRequest(r) {
-  if (!oidcEnabled) {
-    r.internalRedirect('@proxy_to_gitea_internal_clean');
-    return;
-  }
-
   var username = r.headersIn['X-WEBAUTH-USER'];
   if (username) {
     r.variables.auth_username = username;

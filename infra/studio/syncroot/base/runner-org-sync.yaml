@@ -1,0 +1,35 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: runner-org-sync
+  namespace: default
+spec:
+  interval: 5m
+  # Single artifact, multi-env tagged. Mirrors the lhci pattern (vs. Designer
+  # which uses per-env artifact names). The deploy-runner-org-sync workflow
+  # in .github/workflows pushes one artifact per build SHA, then tags it
+  # with the environment name in the `tag` matrix job.
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/runner-org-sync-repo
+  ref:
+    tag: ${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: runner-org-sync
+  namespace: default
+spec:
+  interval: 5m
+  targetNamespace: studio-runners
+  sourceRef:
+    kind: OCIRepository
+    name: runner-org-sync
+    namespace: default
+  path: ./${ENVIRONMENT}
+  prune: true
+  timeout: 1m
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}
+      RUNNER_ORG_SYNC_ENTRA_CLIENT_ID: ${RUNNER_ORG_SYNC_ENTRA_CLIENT_ID}

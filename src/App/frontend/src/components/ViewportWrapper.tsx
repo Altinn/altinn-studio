@@ -1,9 +1,10 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { rightToLeftISOLanguageCodes } from '@app/language';
+
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsMobile, useIsTablet } from 'src/hooks/useDeviceWidths';
-import { rightToLeftISOLanguageCodes } from 'src/language/languages';
 
 export const ViewportWrapper = ({ children }: PropsWithChildren) => {
   const isMobile = useIsMobile();

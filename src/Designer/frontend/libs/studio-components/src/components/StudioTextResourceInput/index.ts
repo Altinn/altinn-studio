@@ -1,2 +1,2 @@
 export * from './StudioTextResourceInput';
-export * from './types/TextResourceInputTexts';
+export type * from './types/TextResourceInputTexts';

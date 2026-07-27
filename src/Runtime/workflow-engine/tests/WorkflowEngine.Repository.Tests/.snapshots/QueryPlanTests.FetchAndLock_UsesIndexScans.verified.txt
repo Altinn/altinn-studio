@@ -108,7 +108,7 @@
                           Plan Width: {Scrubbed},
                           Disabled: false,
                           Index Cond: (id = wd.depends_on_workflow_id),
-                          Filter: ((status <> 3) AND (status <> 4) AND (status <> 6) AND (status <> 5))
+                          Filter: ((status <> 3) AND (status <> 4) AND (status <> 6) AND (status <> 5) AND (status <> 7))
                         }
                       ]
                     }

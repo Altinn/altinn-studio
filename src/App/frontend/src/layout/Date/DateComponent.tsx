@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { DisplayDate } from '@app/form-component';
+import { DisplayDate, getLabelId } from '@app/form-component';
 import cn from 'classnames';
 import { isValid, parseISO } from 'date-fns';
 
-import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

@@ -23,6 +23,7 @@ type releasePrepConfig struct {
 	prTitle             string
 	prBody              string
 	promoted            string
+	promotedSection     string
 	createReleaseBranch bool
 }
 
@@ -163,6 +164,10 @@ func prepareReleasePrepConfig(
 	}
 	previousVersion := previousReleasedVersion(promotedCl, verStr)
 	promoted := promotedCl.String()
+	promotedSection, err := promotedReleaseSection(promotedCl, verStr)
+	if err != nil {
+		return nil, fmt.Errorf("format promoted release section: %w", err)
+	}
 	prBody, err := buildPreparePRBody(comp, verStr, promotedCl)
 	if err != nil {
 		return nil, fmt.Errorf("build PR body: %w", err)
@@ -179,6 +184,7 @@ func prepareReleasePrepConfig(
 		prTitle:             "chore: release " + comp.ReleaseTitle(verStr),
 		prBody:              prBody,
 		promoted:            promoted,
+		promotedSection:     promotedSection,
 	}, nil
 }
 
@@ -278,12 +284,37 @@ func printReleasePrepDryRun(log Logger, cfg *releasePrepConfig) {
 	log.Info("Would create PR targeting: %s", cfg.baseBranch)
 	log.Info("Would set PR title: %s", cfg.prTitle)
 	log.Info("Would add label: %s", cfg.component.ReleaseLabel())
-	logPromotedChangelog(log, cfg.promoted)
+	logPromotedReleaseSection(log, cfg.promotedSection)
 }
 
-func logPromotedChangelog(log Logger, promoted string) {
-	log.Info("Promoted changelog:")
-	for line := range strings.SplitSeq(strings.TrimRight(promoted, "\n"), "\n") {
+func promotedReleaseSection(promotedCl *changelog.Changelog, version string) (string, error) {
+	if promotedCl == nil {
+		return "", errChangelogNil
+	}
+	section := promotedCl.GetVersion(version)
+	if section == nil {
+		return "", fmt.Errorf("%w: %s", changelog.ErrVersionNotFound, version)
+	}
+
+	var b strings.Builder
+	b.WriteString("## [")
+	b.WriteString(section.Version.Num)
+	b.WriteString("]")
+	if !section.Date.IsZero() {
+		b.WriteString(" - ")
+		b.WriteString(section.Date.Format("2006-01-02"))
+	}
+	content := section.String()
+	if content != "" {
+		b.WriteString("\n\n")
+		b.WriteString(content)
+	}
+	return b.String(), nil
+}
+
+func logPromotedReleaseSection(log Logger, section string) {
+	log.Info("Promoted release changelog:")
+	for line := range strings.SplitSeq(strings.TrimRight(section, "\n"), "\n") {
 		log.Info("  %s", line)
 	}
 }
@@ -325,7 +356,7 @@ func executeReleasePrepare(
 	if err := os.WriteFile(changelogFile, []byte(cfg.promoted), perm.FilePermDefault); err != nil {
 		return fmt.Errorf("write changelog: %w", err)
 	}
-	logPromotedChangelog(log, cfg.promoted)
+	logPromotedReleaseSection(log, cfg.promotedSection)
 
 	log.Step("Committing changelog")
 	if err := git.RunWrite(ctx, "add", clPath); err != nil {

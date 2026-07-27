@@ -3,6 +3,9 @@
 // Configuration
 const { BASE_URL, APP_PATH } = require('./scripts/lighthouse/lighthouse-config-constants');
 
+const chromePath =
+  process.env.CHROME_PATH || process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath();
+
 /**
  * Lighthouse CI configuration object
  * https://github.com/GoogleChrome/lighthouse-ci
@@ -20,7 +23,7 @@ module.exports = {
         args: ['--disable-features=HttpsFirstBalancedModeAutoEnable', '--no-sandbox', '--disable-setuid-sandbox'],
       },
 
-      chromePath: require('puppeteer').executablePath(),
+      chromePath,
     },
     upload: {
       target: process.env.LHCI_SERVER_URL ? 'lhci' : 'temporary-public-storage',

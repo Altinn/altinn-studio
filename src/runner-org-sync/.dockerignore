@@ -1,0 +1,15 @@
+bin/
+dist/
+coverage.out
+coverage.html
+*.test
+.git/
+.gitignore
+.golangci.yml
+Makefile
+README.md
+infra/
+test/
+**/testdata/
+**/*_test.go
+.DS_Store

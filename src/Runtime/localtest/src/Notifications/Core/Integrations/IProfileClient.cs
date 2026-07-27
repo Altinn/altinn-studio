@@ -1,4 +1,6 @@
-﻿using Altinn.Notifications.Core.Models.ContactPoints;
+#nullable disable
+
+using Altinn.Notifications.Core.Models.ContactPoints;
 
 namespace Altinn.Notifications.Core.Integrations;
 

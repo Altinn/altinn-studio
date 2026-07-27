@@ -10,6 +10,7 @@ help: ## Show this help message
 build: ## Build all packages
 	@echo "Building packages..."
 	@go build ./...
+	@cd test && go test ./cmd/tester
 	@echo "✓ Build successful"
 
 clean: ## Clean build artifacts and test cache
@@ -21,21 +22,25 @@ clean: ## Clean build artifacts and test cache
 tidy: ## Tidy go modules
 	@echo "Tidying go modules..."
 	@go mod tidy
+	@cd test && go mod tidy
 	@echo "✓ Modules tidied"
 
 fmt: golangci-lint ## Format Go code
 	@echo "Formatting code..."
 	@"$(GOLANGCI_LINT)" fmt
+	@cd test && "$(GOLANGCI_LINT)" fmt --config ../.golangci.yml
 	@echo "✓ Code formatted"
 
 lint: golangci-lint ## Run linters
 	@echo "Running linters..."
 	@"$(GOLANGCI_LINT)" run ./...
+	@cd test && "$(GOLANGCI_LINT)" run --config ../.golangci.yml ./...
 	@echo "✓ Lint passed"
 
 lint-fix: golangci-lint ## Run linters with auto-fix
 	@echo "Running linters with auto-fix..."
 	@"$(GOLANGCI_LINT)" run --fix ./...
+	@cd test && "$(GOLANGCI_LINT)" run --fix --config ../.golangci.yml ./...
 	@echo "✓ Lint fixes applied"
 
 lint-config: golangci-lint ## Verify linter configuration
@@ -44,16 +49,17 @@ lint-config: golangci-lint ## Verify linter configuration
 test: ## Run unit tests
 	@echo "Running unit tests..."
 	@go test ./internal/... ./cmd/...
+	@cd test && go test -count=1 -timeout 5m ./integration/pdfa/...
 	@echo "✓ Unit tests passed"
 
 test-e2e: ## Run all e2e tests (simple first, then smoke)
-	@go run ./cmd/tester test --keep-running
+	@cd test && go run ./cmd/tester test --keep-running
 
 test-e2e-smoke: ## Run e2e smoke tests only
-	@go run ./cmd/tester test --smoke --keep-running
+	@cd test && go run ./cmd/tester test --smoke --keep-running
 
 test-e2e-simple: ## Run e2e simple tests only
-	@go run ./cmd/tester test --simple --keep-running
+	@cd test && go run ./cmd/tester test --simple --keep-running
 
 check: tidy fmt lint test ## Run fmt, lint, and test
 	@echo ""
@@ -63,33 +69,33 @@ test-loop: ## Run tests n times (use 'make test-loop n=10' to run 10 times)
 ifndef n
 	$(error n parameter is required. Usage: make test-loop n=10)
 endif
-	@go run ./cmd/tester test --n $(n)
+	@cd test && go run ./cmd/tester test --n $(n)
 
 start: start-minimal ## Start the Kind cluster (alias for start-minimal)
 
 start-minimal: ## Start with minimal variant
-	@go run ./cmd/tester start minimal
+	@cd test && go run ./cmd/tester start minimal
 
 start-standard: ## Start with standard variant
-	@go run ./cmd/tester start standard
+	@cd test && go run ./cmd/tester start standard
 
 start-minimal-monitoring: ## Start minimal with monitoring stack
-	@go run ./cmd/tester start minimal --monitoring
+	@cd test && go run ./cmd/tester start minimal --monitoring
 
 start-standard-monitoring: ## Start standard with monitoring stack
-	@go run ./cmd/tester start standard --monitoring
+	@cd test && go run ./cmd/tester start standard --monitoring
 
 stop: ## Stop the runtime fixture/cluster
-	@go run ./cmd/tester stop
+	@cd test && go run ./cmd/tester stop
 
 logs: ## Stream logs from pdf3 components
 	stern -l component=pdf3 -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --tail -1
 
 loadtest-local: ## Run k6 load tests against local cluster (test-local.ts)
-	@go run ./cmd/tester loadtest-local --keep-running
+	@cd test && go run ./cmd/tester loadtest-local --keep-running
 
 loadtest-env: ## Run k6 browser tests against remote environment (test-env.js)
-	@go run ./cmd/tester loadtest-env
+	@cd test && go run ./cmd/tester loadtest-env
 
 browser:
 	mkdir -p .cache/

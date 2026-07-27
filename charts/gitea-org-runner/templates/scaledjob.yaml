@@ -1,0 +1,195 @@
+{{- range .Values.runners }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: {{ include "gitea-org-runner.fullname" $ }}-{{ .name }}
+  labels:
+    {{- include "gitea-org-runner.labels" $ | nindent 4 }}
+    runner: {{ .name }}
+spec:
+  # Per-org concurrency cap: take the override if defined, otherwise the chart-wide default.
+  # KEDA creates at most this many concurrent Jobs from the template below.
+  maxReplicaCount: {{ index $.Values.maxConcurrentOverrides .name | default $.Values.maxConcurrentDefault }}
+  minReplicaCount: 0
+  pollingInterval: {{ $.Values.keda.pollingInterval | default 30 }}
+  successfulJobsHistoryLimit: {{ $.Values.keda.successfulJobsHistoryLimit | default 5 }}
+  failedJobsHistoryLimit: {{ $.Values.keda.failedJobsHistoryLimit | default 5 }}
+  jobTargetRef:
+    backoffLimit: 0
+    ttlSecondsAfterFinished: {{ $.Values.keda.ttlSecondsAfterFinished | default 300 }}
+    # Cap on total Job runtime. Without this, a runner pod that registers
+    # but never gets dispatched a workflow polls Gitea forever (act_runner
+    # has no built-in idle timeout). Set generously enough that legitimate
+    # long workflows can finish, but short enough that orphaned idle
+    # runners get reaped.
+    activeDeadlineSeconds: {{ $.Values.keda.activeDeadlineSeconds | default 1800 }}
+    template:
+      metadata:
+        labels:
+          {{- include "gitea-org-runner.labels" $ | nindent 10 }}
+          runner: {{ .name }}
+          {{- with $.Values.podLabels }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with $.Values.podAnnotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        {{- with $.Values.runtimeClassName }}
+        runtimeClassName: {{ . }}
+        {{- end }}
+        restartPolicy: Never
+        {{- with $.Values.imagePullSecrets }}
+        imagePullSecrets:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with $.Values.podSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if $.Values.dockerInDocker.enabled }}
+        initContainers:
+          - name: dockerd
+            image: "{{ $.Values.dockerInDocker.image.repository }}:{{ $.Values.dockerInDocker.image.tag }}"
+            imagePullPolicy: {{ $.Values.dockerInDocker.image.pullPolicy }}
+            restartPolicy: Always
+            securityContext:
+              privileged: true
+            env:
+              - name: DOCKER_TLS_CERTDIR
+                value: "/certs"
+            command: ["sh", "-c"]
+            args:
+              - |
+                if [ "$(df -PT /var/lib/docker | awk 'NR==2 {print $2}')" = "virtiofs" ]; then
+                  apk add --no-cache e2fsprogs &&
+                  truncate -s {{ $.Values.dockerInDocker.diskSize | default "15G" }} /tmp/docker-disk.img &&
+                  mkfs.ext4 -F /tmp/docker-disk.img &&
+                  mount /tmp/docker-disk.img /var/lib/docker
+                fi
+                exec dockerd-entrypoint.sh --host=tcp://0.0.0.0:2376
+            # Kata reports runtime SIGKILL as raw exit code 9, which makes a
+            # successful Job look like Init:Error after Kubernetes stops this
+            # restartable init sidecar. Start dockerd shutdown from inside the
+            # guest so it can exit cleanly before the runtime stop path runs.
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - |
+                      kill -TERM 1 2>/dev/null || true
+                      sleep 5
+            startupProbe:
+              tcpSocket:
+                port: 2376
+              periodSeconds: 2
+              failureThreshold: 45
+            volumeMounts:
+              - name: docker-certs
+                mountPath: /certs
+              {{- if $.Values.shareWorkspace.enabled }}
+              - name: act-cache
+                mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
+              {{- end }}
+        {{- end }}
+        containers:
+          - name: {{ $.Chart.Name }}
+            {{- with $.Values.securityContext }}
+            securityContext:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+            imagePullPolicy: {{ $.Values.image.pullPolicy }}
+            env:
+              {{- if $.Values.dockerInDocker.enabled }}
+              - name: DOCKER_HOST
+                value: "tcp://localhost:2376"
+              - name: DOCKER_TLS_VERIFY
+                value: "1"
+              - name: DOCKER_CERT_PATH
+                value: "/certs/client"
+              {{- end }}
+              # Runner registration + behaviour. Constructed from chart-level config
+              # (giteaInstanceUrl, runnerLabels) and the per-org Secret produced by
+              # runner-org-sync — no per-runner environmentVariables block required.
+              - name: GITEA_INSTANCE_URL
+                value: {{ $.Values.gitea.instanceUrl | quote }}
+              - name: GITEA_RUNNER_EPHEMERAL
+                value: "1"
+              - name: GITEA_RUNNER_LABELS
+                value: {{ $.Values.gitea.runnerLabels | quote }}
+              - name: GITEA_RUNNER_REGISTRATION_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .registrationTokenSecretName }}
+                    key: token
+              {{- with $.Values.extraEnv }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- with $.Values.resources }}
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
+            volumeMounts:
+              {{- with $.Values.volumeMounts }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+              {{- if $.Values.dockerInDocker.enabled }}
+              - name: docker-certs
+                mountPath: /certs
+                readOnly: true
+              {{- end }}
+              {{- if $.Values.shareWorkspace.enabled }}
+              - name: act-cache
+                mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
+              {{- end }}
+            {{- end }}
+        {{- if or $.Values.volumes $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
+        volumes:
+          {{- with $.Values.volumes }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- if $.Values.dockerInDocker.enabled }}
+          - name: docker-certs
+            emptyDir: {}
+          {{- end }}
+          {{- if $.Values.shareWorkspace.enabled }}
+          - name: act-cache
+            emptyDir:
+              sizeLimit: {{ $.Values.shareWorkspace.sizeLimit | default "10Gi" }}
+          {{- end }}
+        {{- end }}
+        {{- with $.Values.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with $.Values.affinity }}
+        affinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with $.Values.tolerations }}
+        tolerations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+  triggers:
+    - type: github-runner
+      metadata:
+        # github-runner scaler is GitHub-compatible; pointed at Gitea's API URL
+        # it polls the org's Actions queue depth via the same shape.
+        # NOTE: the metadata key is `githubApiURL` — lowercase 'g', capital
+        # 'A' in 'Api', all-caps 'URL'. Any other casing is silently ignored
+        # and the scaler falls back to https://api.github.com.
+        githubApiURL: {{ $.Values.gitea.apiUrl | quote }}
+        owner: {{ .name | quote }}
+        runnerScope: "org"
+        labels: {{ $.Values.gitea.scalerLabels | default "ubuntu-latest" | quote }}
+        noDefaultLabels: "true"
+        targetWorkflowQueueLength: {{ $.Values.keda.targetWorkflowQueueLength | default "1" | quote }}
+      authenticationRef:
+        name: {{ $.Values.keda.authenticationRef.name }}
+{{- end }}

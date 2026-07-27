@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+const webpackPreprocessor = require('@cypress/webpack-preprocessor');
 const { defineConfig } = require('cypress');
 const path = require('node:path');
 const fs = require('node:fs/promises');
@@ -14,6 +15,8 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       const snapshotsPath = path.resolve('snapshots.json');
       require('cypress-terminal-report/src/installLogsPrinter')(on, { printLogsToConsole: 'always' });
+      on('file:preprocessor', webpackPreprocessor({ webpackOptions: getCypressWebpackOptions() }));
+
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.name === 'electron') {
           launchOptions.preferences.width = CYPRESS_WINDOW_WIDTH;
@@ -70,7 +73,21 @@ module.exports = defineConfig({
 
       const validEnvironments = ['localtest', 'tt02'];
       if (validEnvironments.includes(config.env.environment)) {
-        return getConfigurationByFile(config.env.environment);
+        return getConfigurationByFile(config.env.environment).then((fileConfig) => ({
+          ...fileConfig,
+          env: {
+            ...fileConfig.env,
+            // Specs that assert on backend-local date/time values need the backend's timezone.
+            // Only in localtest does the app backend run on the same machine as Cypress, so only
+            // then is the machine timezone valid - read it here in the Node process, since the
+            // browser's timezone may be emulated via CDP and cannot be trusted. Against remote
+            // environments (tt02) this is deliberately left unset; specs fall back to UTC, which
+            // is what those backends run in.
+            ...(config.env.environment === 'localtest'
+              ? { machineTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+              : {}),
+          },
+        }));
       }
 
       throw new Error(`Unknown environment "${config.env.environment}"
@@ -105,4 +122,26 @@ Valid environments are:
 async function getConfigurationByFile(file) {
   const pathToJsonDataFile = path.resolve('test/e2e/config', `${file}.json`);
   return JSON.parse((await fs.readFile(pathToJsonDataFile)).toString());
+}
+
+function getCypressWebpackOptions() {
+  return {
+    mode: 'development',
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+      modules: [__dirname, 'node_modules'],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.[mc]?[jt]sx?$/i,
+          exclude: /node_modules/,
+          loader: 'esbuild-loader',
+          options: {
+            target: 'es2020',
+          },
+        },
+      ],
+    },
+  };
 }

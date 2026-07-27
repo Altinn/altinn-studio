@@ -43,11 +43,12 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	"$(CONTROLLER_GEN)" object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	"$(CONTROLLER_GEN)" object paths="./..."
 
 .PHONY: fmt
 fmt: golangci-lint ## Format code with golangci-lint.
 	"$(GOLANGCI_LINT)" fmt
+	cd test && "$(abspath $(GOLANGCI_LINT))" fmt --config ../.golangci.yml
 
 .PHONY: vet
 vet: ## Run go vet against code.
@@ -55,24 +56,24 @@ vet: ## Run go vet against code.
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run unit tests.
-	go run ./cmd/tester test --envtest-k8s-version=$(ENVTEST_K8S_VERSION)
+	cd test && go run ./cmd/tester test --envtest-k8s-version=$(ENVTEST_K8S_VERSION)
 
 .PHONY: test-e2e
 test-e2e: manifests generate fmt vet ## Run e2e tests
-	go run ./cmd/tester test-e2e --keep-running
+	cd test && go run ./cmd/tester test-e2e --keep-running
 
 .PHONY: start start-minimal start-standard
 start: start-minimal ## Start the Kind cluster (alias for start-minimal)
 
 start-minimal: ## Start with minimal variant
-	go run ./cmd/tester start minimal
+	cd test && go run ./cmd/tester start minimal
 
 start-standard: ## Start with standard variant
-	go run ./cmd/tester start standard
+	cd test && go run ./cmd/tester start standard
 
 .PHONY: stop
 stop: ## Stop the Kind cluster and runtime fixture.
-	go run ./cmd/tester stop
+	cd test && go run ./cmd/tester stop
 
 .PHONY: sample
 sample: ## Apply the sample MaskinportenClient resource to the cluster.
@@ -90,10 +91,12 @@ bench: ## Run benchmarks. Usage: make bench filter=<regex> [packages=./internal/
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint linter
 	"$(GOLANGCI_LINT)" run ./...
+	cd test && "$(abspath $(GOLANGCI_LINT))" run --config ../.golangci.yml ./...
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 	"$(GOLANGCI_LINT)" run --fix ./...
+	cd test && "$(abspath $(GOLANGCI_LINT))" run --fix --config ../.golangci.yml ./...
 
 .PHONY: lint-config
 lint-config: golangci-lint ## Verify golangci-lint linter configuration
@@ -104,6 +107,7 @@ lint-config: golangci-lint ## Verify golangci-lint linter configuration
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
 	go build -o bin/manager cmd/main.go
+	cd test && go test ./cmd/tester
 
 ##@ Deployment
 
@@ -126,8 +130,8 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.7.1
-CONTROLLER_TOOLS_VERSION ?= v0.19.0
+KUSTOMIZE_VERSION ?= v5.8.1
+CONTROLLER_TOOLS_VERSION ?= v0.20.1
 
 #ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
 ENVTEST_VERSION ?= $(shell v='$(call gomodver,sigs.k8s.io/controller-runtime)'; \
@@ -139,7 +143,7 @@ ENVTEST_K8S_VERSION ?= $(shell v='$(call gomodver,k8s.io/api)'; \
   [ -n "$$v" ] || { echo "Set ENVTEST_K8S_VERSION manually (k8s.io/api replace has no tag)" >&2; exit 1; }; \
   printf '%s\n' "$$v" | sed -E 's/^v?[0-9]+\.([0-9]+).*/1.\1/')
 
-GOLANGCI_LINT_VERSION ?= v2.11.2
+GOLANGCI_LINT_VERSION ?= v2.11.4
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.

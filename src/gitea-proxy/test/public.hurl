@@ -3,8 +3,6 @@
 # Mock backend (mendhak/http-https-echo) echoes the request as JSON,
 # so we assert on the headers Gitea would have seen.
 
-# === OIDC enabled ===========================================================
-
 # Designer-resolved username is injected as X-WEBAUTH-USER
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=valid_user
@@ -174,22 +172,9 @@ HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" == "{{VALID_USERNAME}}"
 
-# === OIDC disabled ==========================================================
-
-# Client X-WEBAUTH-USER is stripped even with OIDC off
-GET {{proxy_off_pub}}/foo
-X-WEBAUTH-USER: attacker
-HTTP 200
-[Asserts]
-jsonpath "$.headers['x-webauth-user']" not contains "attacker"
-
-# === Internal endpoint boundary (independent of feature flag) ===============
+# === Internal endpoint boundary ===============
 
 # /_internal/userinfo is nginx-internal-only; external calls must 404
 # (regression: removing the `internal;` directive would expose Designer auth proxying)
 GET {{proxy_on_pub}}/_internal/userinfo
-HTTP 404
-
-# Same boundary holds with OIDC off
-GET {{proxy_off_pub}}/_internal/userinfo
 HTTP 404

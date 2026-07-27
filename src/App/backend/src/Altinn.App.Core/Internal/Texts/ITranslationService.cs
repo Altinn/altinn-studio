@@ -33,6 +33,9 @@ public interface ITranslationService
     /// <param name="context">The component context used for relative path resolution.</param>
     /// <param name="customTextParameters">Dictionary of extra parameters for rendering this text <see cref="ValidationIssue.CustomTextParameters"/></param>
     /// <returns>The translated text value, or null if the key cannot be translated.</returns>
+    [Obsolete(
+        "Use the overload that takes an IInstanceDataAccessor instead as LayoutEvaluatorState is being phased out"
+    )]
     Task<string?> TranslateTextKey(
         string key,
         LayoutEvaluatorState state,

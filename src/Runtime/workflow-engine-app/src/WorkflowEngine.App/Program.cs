@@ -10,6 +10,7 @@ builder.Configuration.AddJsonFile(
     optional: true,
     reloadOnChange: true
 );
+builder.Configuration.AddEnvironmentVariables();
 
 var connectionString =
     builder.Configuration.GetConnectionString("WorkflowEngine")

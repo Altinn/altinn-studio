@@ -356,6 +356,10 @@
     {
       "id": "AttachmentListPage",
       "value": ""
+    },
+    {
+      "id": "ParagraphPage",
+      "value": "Paragraph"
     }
   ]
 }

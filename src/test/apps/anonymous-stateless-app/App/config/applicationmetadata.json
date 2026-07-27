@@ -12,7 +12,6 @@
       ],
       "maxCount": 0,
       "minCount": 0,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     },
@@ -30,7 +29,6 @@
       "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
     }

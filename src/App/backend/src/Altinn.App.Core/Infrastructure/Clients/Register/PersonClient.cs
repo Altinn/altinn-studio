@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -12,6 +13,7 @@ using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Register;
@@ -31,41 +33,38 @@ public class PersonClient : IPersonClient
     private readonly HttpClient _httpClient;
     private readonly IAppMetadata _appMetadata;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
-    private readonly IUserTokenProvider _userTokenProvider;
+    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
+
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PersonClient"/> class.
     /// </summary>
     /// <param name="httpClient">The HttpClient to be used to send requests to Register.</param>
-    /// <param name="platformSettings">The platform settings from loaded configuration.</param>
-    /// <param name="accessTokenGenerator">An access token generator to create an access token.</param>
-    /// <param name="userTokenProvider">A service that can obtain the user JWT token.</param>
-    /// <param name="appMetadata">The service providing appmetadata</param>
-    public PersonClient(
-        HttpClient httpClient,
-        IOptions<PlatformSettings> platformSettings,
-        IAppMetadata appMetadata,
-        IAccessTokenGenerator accessTokenGenerator,
-        IUserTokenProvider userTokenProvider
-    )
+    /// <param name="serviceProvider">The service provider.</param>
+    public PersonClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
-        _httpClient.DefaultRequestHeaders.Add(
-            General.SubscriptionKeyHeaderName,
-            platformSettings.Value.SubscriptionKey
-        );
+
+        var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
+        _httpClient.BaseAddress = new Uri(platformSettings.ApiRegisterEndpoint);
+        _httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        _accessTokenGenerator = accessTokenGenerator;
-        _userTokenProvider = userTokenProvider;
-        _appMetadata = appMetadata;
+        _accessTokenGenerator = serviceProvider.GetRequiredService<IAccessTokenGenerator>();
+        _authenticationTokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
+        _appMetadata = serviceProvider.GetRequiredService<IAppMetadata>();
     }
 
     /// <inheritdoc/>
-    public async Task<Person?> GetPerson(string nationalIdentityNumber, string lastName, CancellationToken ct)
+    public async Task<Person?> GetPerson(
+        string nationalIdentityNumber,
+        string lastName,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken ct = default
+    )
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"persons");
-        await AddAuthHeaders(request);
+        await AddAuthHeaders(request, authenticationMethod);
 
         request.Headers.Add("X-Ai-NationalIdentityNumber", nationalIdentityNumber);
         request.Headers.Add("X-Ai-LastName", ConvertToBase64(lastName));
@@ -75,7 +74,7 @@ public class PersonClient : IPersonClient
         return await ReadResponse(response, ct);
     }
 
-    private async Task AddAuthHeaders(HttpRequestMessage request)
+    private async Task AddAuthHeaders(HttpRequestMessage request, StorageAuthenticationMethod? authenticationMethod)
     {
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         string issuer = application.Org;
@@ -84,10 +83,10 @@ public class PersonClient : IPersonClient
             General.PlatformAccessTokenHeaderName,
             _accessTokenGenerator.GenerateAccessToken(issuer, appName)
         );
-        request.Headers.Authorization = new AuthenticationHeaderValue(
-            AuthorizationSchemes.Bearer,
-            _userTokenProvider.GetUserToken()
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod
         );
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
     }
 
     private static async Task<Person?> ReadResponse(HttpResponseMessage response, CancellationToken ct)

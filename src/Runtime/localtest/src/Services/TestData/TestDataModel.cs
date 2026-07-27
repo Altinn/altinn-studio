@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;

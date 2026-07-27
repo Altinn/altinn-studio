@@ -82,7 +82,10 @@
       "format": "date-time"
     },
     "title": {
-      "$ref": "#/definitions/title"
+      "$ref": "#/definitions/Text"
+    },
+    "description": {
+      "$ref": "#/definitions/Text"
     },
     "org": {
       "type": "string",
@@ -134,6 +137,30 @@
     },
     "apiScopes": {
       "$ref": "#/definitions/apiScopesConfiguration"
+    },
+    "homepage": {
+      "type": "string",
+      "title": "Homepage",
+      "description": "The URL to the homepage for the application."
+    },
+    "keywords": {
+      "type": "array",
+      "title": "Keywords",
+      "description": "A list of keywords/tags for the application.",
+      "items": {
+        "$ref": "#/definitions/keyword"
+      }
+    },
+    "access": {
+      "$ref": "#/definitions/AppMetadataAccess"
+    },
+    "contactPoints": {
+      "type": "array",
+      "title": "Contact points",
+      "description": "A list of contact points for the application.",
+      "items": {
+        "$ref": "#/definitions/AppMetadataContactPoint"
+      }
     }
   },
   "definitions": {
@@ -535,10 +562,10 @@
         }
       }
     },
-    "title": {
+    "Text": {
       "type": "object",
-      "title": "Title",
-      "description": "The title of the application",
+      "title": "Text",
+      "description": "An application metadata text that supports multiple languages.",
       "additionalProperties": {
         "type": "string",
         "title": "Other language"
@@ -546,13 +573,18 @@
       "properties": {
         "nb": {
           "type": "string",
-          "title": "Norwegian",
-          "description": "The title in Norwegian"
+          "title": "Bokmål",
+          "description": "The text in Bokmål"
+        },
+        "nn": {
+          "type": "string",
+          "title": "Nynorsk",
+          "description": "The text in Nynorsk"
         },
         "en": {
           "type": "string",
           "title": "English",
-          "description": "The title in English"
+          "description": "The text in English"
         }
       },
       "examples": [
@@ -670,6 +702,79 @@
           "type": "string",
           "title": "Error message text resource key",
           "description": "Text resource key for a custom error message to show when a user tries to access the app API without having the required scopes. Will apply if set (takes precedence over the one in 'apiScopesConfiguration')."
+        }
+      }
+    },
+    "AppMetadataAccess": {
+      "type": "object",
+      "title": "Access",
+      "description": "Settings for access control of the application.",
+      "additionalProperties": false,
+      "properties": {
+        "rightDescription": {
+          "$ref": "#/definitions/Text",
+          "title": "Right description",
+          "description": "A description of the rights required to access the application. This is only used for documentation purposes and has no effect on the actual access control."
+        },
+        "delegable": {
+          "type": "boolean",
+          "title": "Delegable",
+          "description": "A value indicating whether the rights to access the application are delegable or not."
+        },
+        "visible": {
+          "type": "boolean",
+          "title": "Visible",
+          "description": "A value indicating whether the application should be visible in the application list in access control or not."
+        }
+      }
+    },
+    "AppMetadataContactPoint": {
+      "type": "object",
+      "title": "Contact point",
+      "description": "A contact point for the application.",
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "type": "string",
+          "title": "Category",
+          "description": "The category of the contact point."
+        },
+        "email": {
+          "type": "string",
+          "title": "Email",
+          "description": "The email address of the contact person or organization."
+        },
+        "telephone": {
+          "type": "string",
+          "title": "Telephone number",
+          "description": "The telephone number of the contact person or organization."
+        },
+        "contactPage": {
+          "type": "string",
+          "title": "Contact page",
+          "description": "A URL to a contact page for the application. F.ex. a URL to a webhook that can receive messages from Altinn when certain events happen in the application."
+        }
+       }
+    },
+    "keyword": {
+      "type": "object",
+      "title": "Keyword",
+      "description": "Keywords/tags for the application",
+      "additionalProperties": false,
+      "required": [
+        "word",
+        "language"
+      ],
+      "properties": {
+        "word": {
+          "type": "string",
+          "title": "Word",
+          "description": "The keyword, e.g. a system name or a category."
+        },
+        "language": {
+          "type": "string",
+          "title": "Language",
+          "description": "The language of the keyword."
         }
       }
     }

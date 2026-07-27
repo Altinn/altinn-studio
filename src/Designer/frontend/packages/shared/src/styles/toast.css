@@ -1,4 +1,4 @@
-:root {
+:root:root {
   --toastify-color-info: var(--fds-semantic-surface-action-primary-default);
   --toastify-color-success: var(--fds-semantic-surface-success-default);
   --toastify-color-warning: var(--fds-semantic-surface-warning-default);

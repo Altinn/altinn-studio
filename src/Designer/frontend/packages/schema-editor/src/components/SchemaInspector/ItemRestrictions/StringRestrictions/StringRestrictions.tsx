@@ -296,7 +296,7 @@ function splitStringByMatches(pattern: string, value: string): StrPart[] {
       strParts.push({ str: value.substring(lastIndex), match: false });
     }
     return strParts;
-  } catch (e) {
+  } catch {
     return defaultResult;
   }
 }

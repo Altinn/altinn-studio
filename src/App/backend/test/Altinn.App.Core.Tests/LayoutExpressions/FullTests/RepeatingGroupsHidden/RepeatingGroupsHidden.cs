@@ -43,11 +43,7 @@ public class RepeatingGroupsHidden
             }
             """;
         using var jsonDoc = JsonDocument.Parse(jsonData);
-        IInstanceDataAccessor dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
-            new Instance(),
-            jsonDoc.RootElement
-        );
-        var data = await dataAccessor.GetFormData(dataAccessor.Instance.Data.First());
+        var data = DynamicClassBuilder.DataObjectFromJsonDocument(jsonDoc.RootElement);
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "RepeatingGroupsHidden");
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 

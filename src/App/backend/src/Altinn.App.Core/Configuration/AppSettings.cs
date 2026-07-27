@@ -173,11 +173,6 @@ public class AppSettings
     public bool RegisterEventsWithEventsComponent { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the eFormidlingIntegration should be enabled.
-    /// </summary>
-    public bool EnableEFormidling { get; set; }
-
-    /// <summary>
     /// Gets or sets the sender of the eFormidling shipment.
     /// </summary>
     /// <remarks>

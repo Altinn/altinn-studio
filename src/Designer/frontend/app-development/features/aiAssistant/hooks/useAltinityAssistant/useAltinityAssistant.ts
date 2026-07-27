@@ -10,43 +10,45 @@ import { useAltinityWorkflow } from '../useAltinityWorkflow/useAltinityWorkflow'
 
 export interface UseAltinityAssistantResult {
   connectionStatus: ConnectionStatus;
-  workflowStatus: WorkflowStatus;
+  workflowStatusByThread: Record<string, WorkflowStatus>;
   chatThreads: ChatThread[];
   messages: Message[];
-  currentSessionId: string | null;
+  selectedThreadId: string | null;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
   selectThread: (threadId: string | null) => void;
-  clearCurrentSession: () => void;
   deleteThread: (threadId: string) => void;
 }
 
+/**
+ * Cohabitates all the callers that the main AiAssistant component needs. Do not add logic to this hook beyond this.
+ * TODO: consider exposing useAltinityWorkflow to the caller directly, and deleting this hook.
+ */
 export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   const threads = useAltinityThreads();
   const {
     connectionStatus,
-    workflowStatus,
+    workflowStatusByThread,
     onSubmitMessage,
-    clearCurrentSession,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
+    messages,
   } = useAltinityWorkflow(threads);
 
   return {
     connectionStatus,
-    workflowStatus,
+    workflowStatusByThread,
     chatThreads: threads.chatThreads,
-    messages: threads.chatMessages,
-    currentSessionId: threads.currentSessionId,
+    messages,
+    selectedThreadId: threads.selectedThreadId,
     onSubmitMessage,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread: threads.selectThread,
-    clearCurrentSession,
     deleteThread: threads.deleteThread,
   };
 };

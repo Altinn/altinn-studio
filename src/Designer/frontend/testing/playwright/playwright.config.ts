@@ -13,6 +13,7 @@ export default defineConfig<ExtendedTestOptions>({
     trace: 'on-first-retry',
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
     screenshot: 'only-on-failure',
+    channel: 'chrome',
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -146,6 +147,18 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
+      name: TestNames.BRANCHING,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/branching/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.BRANCHING_APP,
+        headless: true,
+      },
+    },
+    {
       name: TestNames.LOGOUT,
       dependencies: [
         TestNames.SETUP,
@@ -159,6 +172,7 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.TEXT_EDITOR,
         TestNames.PROCESS_EDITOR,
         TestNames.ORG_LIBRARY,
+        TestNames.BRANCHING,
       ],
       testDir: './tests/logout/',
       testMatch: '*.spec.ts',

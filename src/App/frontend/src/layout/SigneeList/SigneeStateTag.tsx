@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Tag } from '@digdir/designsystemet-react';
-import type { TagProps } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import type { SigneeState } from 'src/layout/SigneeList/api';
@@ -33,25 +32,16 @@ function getSigneeStatus(state: SigneeState): SigneeStatus {
 
 export function SigneeStateTag({ state }: { state: SigneeState }) {
   const status = getSigneeStatus(state);
-
-  let color: TagProps['color'];
-  switch (status) {
-    case 'signed':
-      color = 'success';
-      break;
-    case 'delegationFailed':
-      color = 'danger';
-      break;
-    case 'notificationFailed':
-      color = 'warning';
-      break;
-    default:
-      color = 'neutral';
-  }
+  const colorByStatus: Record<SigneeStatus, React.ComponentProps<typeof Tag>['data-color']> = {
+    signed: 'success',
+    delegationFailed: 'danger',
+    notificationFailed: 'warning',
+    waiting: 'neutral',
+  };
 
   return (
     <Tag
-      data-color={color}
+      data-color={colorByStatus[status]}
       data-size='sm'
     >
       <Lang id={SIGNEE_STATUS[status]} />

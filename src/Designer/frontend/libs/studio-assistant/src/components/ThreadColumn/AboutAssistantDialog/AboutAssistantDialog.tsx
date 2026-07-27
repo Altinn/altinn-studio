@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { useEffect, useRef } from 'react';
 import { StudioDialog, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
 import { ExternalLinkIcon, InformationIcon } from '@studio/icons';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
@@ -6,25 +7,38 @@ import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 const branchDocsUrl =
   'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/branching/#flette-grener-til-master';
 
+export const hasSeenDialogStorageKey = 'hasSeenAboutAssistantDialog';
+
 type AboutAssistantDialogProps = {
-  triggerText: string;
   texts: AboutAssistantDialogTexts;
 };
 
-export function AboutAssistantDialog({
-  triggerText,
-  texts,
-}: AboutAssistantDialogProps): ReactElement {
+export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): ReactElement {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const hasSeenDialog = localStorage.getItem(hasSeenDialogStorageKey) === 'true';
+    if (!hasSeenDialog) {
+      dialogRef.current?.showModal();
+    }
+  }, []);
+
+  const handleClose = (): void => localStorage.setItem(hasSeenDialogStorageKey, 'true');
+
   return (
     <StudioDialog.TriggerContext>
       <StudioDialog.Trigger variant='tertiary' icon={<InformationIcon />}>
-        {triggerText}
+        {texts.heading}
       </StudioDialog.Trigger>
-      <StudioDialog closedby='any'>
+      <StudioDialog closedby='any' ref={dialogRef} onClose={handleClose}>
         <StudioDialog.Block>
           <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
+          <StudioParagraph spacing>{texts.intro}</StudioParagraph>
+          <StudioHeading level={3} data-size='xs'>
+            {texts.howToHeading}
+          </StudioHeading>
           <StudioParagraph spacing>{texts.description}</StudioParagraph>
           <StudioParagraph spacing>
             {texts.branchInfo}
@@ -33,7 +47,11 @@ export function AboutAssistantDialog({
               <ExternalLinkIcon />
             </StudioLink>
           </StudioParagraph>
-          <StudioParagraph>{texts.disclaimer}</StudioParagraph>
+          <StudioParagraph spacing>{texts.disclaimer}</StudioParagraph>
+          <StudioHeading level={3} data-size='xs'>
+            {texts.privacyHeading}
+          </StudioHeading>
+          <StudioParagraph>{texts.privacyDataHandling}</StudioParagraph>
         </StudioDialog.Block>
       </StudioDialog>
     </StudioDialog.TriggerContext>

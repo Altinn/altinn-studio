@@ -1,5 +1,5 @@
 import { getLayoutSetIcon } from './getLayoutSetIcon';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import { QuestionmarkIcon } from '@studio/icons';
 
 describe('getLayoutSetIcon', () => {
@@ -17,10 +17,8 @@ describe('getLayoutSetIcon', () => {
 
   it('should return icon and iconColor for custom receipt', () => {
     const layoutSet = constructLayoutSetModel({
-      task: {
-        id: 'CustomReceipt',
-        type: '',
-      },
+      id: 'CustomReceipt',
+      taskType: '',
     });
     const result = getLayoutSetIcon(layoutSet);
     expect(result.icon).toBeTruthy();
@@ -41,10 +39,7 @@ describe('getLayoutSetIcon', () => {
 
   it('should return icon and iconColor for data tasks', () => {
     const layoutSet = constructLayoutSetModel({
-      task: {
-        id: '',
-        type: 'data',
-      },
+      taskType: 'data',
     });
     const result = getLayoutSetIcon(layoutSet);
     expect(result.icon).toBeTruthy();
@@ -54,10 +49,7 @@ describe('getLayoutSetIcon', () => {
 
   it('should return icon and iconColor for signing tasks', () => {
     const layoutSet = constructLayoutSetModel({
-      task: {
-        id: '',
-        type: 'signing',
-      },
+      taskType: 'signing',
     });
     const result = getLayoutSetIcon(layoutSet);
     expect(result.icon).toBeTruthy();
@@ -67,10 +59,7 @@ describe('getLayoutSetIcon', () => {
 
   it('should return icon and iconColor for user controlled signing tasks', () => {
     const layoutSet = constructLayoutSetModel({
-      task: {
-        id: '',
-        type: 'userControlledSigning',
-      },
+      taskType: 'userControlledSigning',
     });
     const result = getLayoutSetIcon(layoutSet);
     expect(result.icon).toBeTruthy();
@@ -79,15 +68,14 @@ describe('getLayoutSetIcon', () => {
   });
 });
 
-function constructLayoutSetModel(overrides: Partial<LayoutSetModel>): LayoutSetModel {
+function constructLayoutSetModel(
+  overrides: Partial<UiFolderLayoutSetModel>,
+): UiFolderLayoutSetModel {
   return {
     id: '',
     dataType: '',
     type: '',
-    task: {
-      id: '',
-      type: '',
-    },
+    taskType: '',
     ...overrides,
   };
 }

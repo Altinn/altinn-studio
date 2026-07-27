@@ -7,23 +7,22 @@ import {
   type StudioPageHeaderProps,
   type StudioProfileMenuGroup,
 } from '@studio/components';
-import { getTopBarMenuItems } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { getFilteredTopBarMenu } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { useIsRepoOwnerOrg } from 'app-development/hooks/useIsRepoOwnerOrg';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSearchParams } from 'react-router-dom';
-import { FeatureFlag, useFeatureFlagsContext } from '@studio/feature-flags';
-import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 export type PageHeaderContextProps = {
   user: User;
   menuItems: HeaderMenuItem[];
   profileMenuItems: StudioProfileMenuItem[];
   profileMenuGroups: StudioProfileMenuGroup[];
-  repoOwnerIsOrg: boolean;
   variant: StudioPageHeaderProps['variant'];
   returnTo: string | null;
 };
@@ -37,19 +36,16 @@ export type PageHeaderContextProviderProps = {
 export const PageHeaderContextProvider = ({
   children,
   user,
-  repoOwnerIsOrg,
 }: Partial<PageHeaderContextProviderProps>): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { flags } = useFeatureFlagsContext();
-  const { mutate: logout } = useLogoutMutation();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
-
-  const { environment } = useEnvironmentConfig();
+  const isRepoOwnerOrg = useIsRepoOwnerOrg();
 
   const repoType = getRepositoryType(org, app);
-  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg, flags);
+  const menuItems = getFilteredTopBarMenu(repoType, isRepoOwnerOrg, flags);
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl(), openInNewTab: true },
@@ -66,21 +62,17 @@ export const PageHeaderContextProvider = ({
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
+    action: { type: 'link', href: userLogoutAfterPath() },
     itemName: t('shared.header_logout'),
   };
 
-  const studioOidc = environment?.featureFlags?.studioOidc;
-  const isAdminEnabled = flags.includes(FeatureFlag.Admin);
-  const showSettingsLink = studioOidc || isAdminEnabled;
-
   const profileMenuItems: StudioProfileMenuItem[] = [
-    ...(showSettingsLink ? [settingsMenuItem] : []),
+    settingsMenuItem,
     docsMenuItem,
     logOutMenuItem,
   ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
+    { items: [settingsMenuItem] },
     { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];

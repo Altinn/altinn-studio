@@ -84,8 +84,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__StudioOidc
-      value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
     - name: RedisCacheSettings__UseRedisCache
@@ -172,8 +170,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__StudioOidc
-      value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "true"
     - name: RedisCacheSettings__UseRedisCache
@@ -258,8 +254,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
-    - name: FeatureManagement__StudioOidc
-      value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
     - name: RedisCacheSettings__UseRedisCache
@@ -350,5 +344,4 @@ lifecycle:
         - -c
         - >
           mkdir -p wwwroot/designer/config &&
-          STUDIO_OIDC_FLAG=$([ "${FeatureManagement__StudioOidc}" = "true" ] && echo true || echo false) &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"accountLinkUrl\": \"${StudioOidcLoginSettings__AccountLinkUrl}\", \"featureFlags\": {\"studioOidc\": ${STUDIO_OIDC_FLAG}}}" > wwwroot/designer/config/env.json
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"accountLinkUrl\": \"${StudioOidcLoginSettings__AccountLinkUrl}\", \"featureFlags\": {\"studioOidc\": true}}" > wwwroot/designer/config/env.json

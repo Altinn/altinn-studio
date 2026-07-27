@@ -1,0 +1,33 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-size-4);
+}
+
+.user {
+  flex-direction: row-reverse;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.user .content {
+  align-items: flex-end;
+  max-width: 100ch;
+}
+
+.assistant .content {
+  max-width: 100%;
+  width: 100%;
+}
+
+.meta {
+  font-size: var(--ds-font-size-small);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

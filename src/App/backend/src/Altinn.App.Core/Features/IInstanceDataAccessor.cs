@@ -2,6 +2,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features;
@@ -75,7 +76,7 @@ public interface IInstanceDataAccessor
     /// <see cref="IInstanceDataAccessor"/> directly in the expression evaluator.
     /// </summary>
     /// <returns></returns>
-    internal LayoutEvaluatorState? GetLayoutEvaluatorState();
+    internal LayoutEvaluatorState GetLayoutEvaluatorState();
 
     /// <summary>
     /// <para>Set the authentication method used when reading and writing data of the given data type.</para>
@@ -202,6 +203,74 @@ public static class IInstanceDataAccessorExtensions
         }
 
         return await accessor.GetFormData<T>(dataElement);
+    }
+
+    /// <summary>
+    /// Retrieves the form data wrapper based on the provided model binding and default data element identifier.
+    /// </summary>
+    /// <param name="dataAccessor">The instance data accessor used to fetch data elements and types.</param>
+    /// <param name="modelBinding">The model binding containing metadata, such as the data type to retrieve.</param>
+    /// <param name="defaultDataElementIdentifier">The identifier for the default data element to use if no specific type is defined in the model binding.</param>
+    /// <returns>The form data wrapper object if a data element of the specified type exists; otherwise, null.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the model binding specifies a data type with a MaxCount greater than 1,
+    /// as only data types with MaxCount equal to 1 can be used in data bindings outside subforms.
+    /// </exception>
+    public static async Task<IFormDataWrapper?> GetFormDataWrapper(
+        this IInstanceDataAccessor dataAccessor,
+        ModelBinding modelBinding,
+        DataElementIdentifier? defaultDataElementIdentifier
+    )
+    {
+        // Return default when data binding does not specify type
+        if (modelBinding.DataType is null)
+        {
+            if (!defaultDataElementIdentifier.HasValue)
+            {
+                throw new InvalidOperationException(
+                    $"DataModelBindings must either have DataType, or be in a context with a defaultDataElementIdentifier"
+                );
+            }
+            return await dataAccessor.GetFormDataWrapper(defaultDataElementIdentifier.Value);
+        }
+
+        // Return default when the specified type matches the default data element type
+        if (defaultDataElementIdentifier.HasValue)
+        {
+            var defaultDataElement = dataAccessor.GetDataElement(defaultDataElementIdentifier.Value);
+
+            if (defaultDataElement.DataType == modelBinding.DataType)
+            {
+                return await dataAccessor.GetFormDataWrapper(defaultDataElementIdentifier.Value);
+            }
+        }
+
+        // Verify MaxCount == 1 for referenced types
+        var dataType = dataAccessor.GetDataType(modelBinding.DataType);
+        if (dataType.MaxCount == 1)
+        {
+            if (dataAccessor.GetDataElementsForType(dataType).FirstOrDefault() is { } dataElement)
+            {
+                return await dataAccessor.GetFormDataWrapper(dataElement);
+            }
+
+            return null;
+        }
+
+        // Raise the correct error
+        if (dataType.AppLogic?.ClassRef is null)
+        {
+            throw new InvalidOperationException(
+                $"{dataType.Id} has no classRef in applicationmetadata.json and can't be used as a data model in layouts"
+            );
+        }
+        if (dataType.MaxCount != 1)
+        {
+            throw new InvalidOperationException(
+                $"{dataType.Id} has maxCount different from 1 in applicationmetadata.json and must be part of a subform when used in layouts"
+            );
+        }
+        throw new InvalidOperationException($"Data element with type {dataType.Id} not found on instance");
     }
 
     /// <summary>

@@ -1,0 +1,87 @@
+{
+  "description": {
+    "nb": "process-transition-test",
+    "en": "process-transition-test",
+    "nn": "process-transition-test"
+  },
+  "access": {
+    "rightDescription": {
+      "nb": "",
+      "en": "",
+      "nn": ""
+    },
+    "delegable": false,
+    "visible": false
+  },
+  "contactPoints": [
+    {
+      "category": "",
+      "email": "daniel.skovli@digdir.no",
+      "telephone": "",
+      "contactPage": ""
+    }
+  ],
+  "id": "ttd/process-transition-test",
+  "org": "ttd",
+  "title": {
+    "nb": "process-transition-test",
+    "nn": "process-transition-test",
+    "en": "process-transition-test"
+  },
+  "dataTypes": [
+    {
+      "id": "TransitionControl",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.TransitionControl.TransitionControl",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "disallowUserCreate": false,
+        "disallowUserDelete": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "Task2Data",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Task2Data.Task2Data",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "disallowUserCreate": false,
+        "disallowUserDelete": false
+      },
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 1,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "disallowUserInstantiation": false,
+  "created": "2026-07-08T08:41:02.670282Z",
+  "createdBy": "danielskovli",
+  "lastChanged": "2026-07-08T08:41:02.6702828Z",
+  "lastChangedBy": "danielskovli"
+}

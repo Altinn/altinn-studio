@@ -443,7 +443,8 @@ public class AppResourcesSI : IAppResources
         return Deserialize<LayoutSettings>(fileData, _jsonSerializerOptions);
     }
 
-    private GlobalPageSettings? GetGlobalUiSettings()
+    /// <inheritdoc />
+    public GlobalPageSettings? GetGlobalUiSettings()
     {
         string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
         string? settingsString = null;

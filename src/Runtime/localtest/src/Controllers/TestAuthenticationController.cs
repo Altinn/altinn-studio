@@ -1,4 +1,3 @@
-#nullable enable
 using Microsoft.AspNetCore.Mvc;
 using LocalTest.Models.Authentication;
 using LocalTest.Services.Authentication.Implementation;

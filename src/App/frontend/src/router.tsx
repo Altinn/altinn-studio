@@ -6,7 +6,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { AppLayout } from 'src/AppLayout';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
+import { ComponentRouting } from 'src/components/process/ProcessWrapper';
 import { Loader } from 'src/core/loading/Loader';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';

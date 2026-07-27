@@ -120,7 +120,7 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
         request.Content = new StringContent(payload);
         request.Content.Headers.ContentType = contentType is not null ? new MediaTypeHeaderValue(contentType) : null;
 
-        _logger.SendingWebhookPost(endpoint, payload);
+        _logger.SendingWebhookPost(endpoint, payload.Length, contentType);
         return await httpClient.SendAsync(request, cancellationToken);
     }
 
@@ -141,8 +141,18 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
 
 internal static partial class WebhookCommandDescriptorLogs
 {
-    [LoggerMessage(LogLevel.Information, "[POST] Sending Webhook to {Endpoint} with payload: {Payload}")]
-    internal static partial void SendingWebhookPost(this ILogger<WebhookCommand> logger, Uri endpoint, string payload);
+    // Log only the payload size and content type, never the body: webhook payloads can carry
+    // caller-supplied secrets or PII.
+    [LoggerMessage(
+        LogLevel.Information,
+        "[POST] Sending Webhook to {Endpoint} with payload ({PayloadLength} chars, contentType: {ContentType})"
+    )]
+    internal static partial void SendingWebhookPost(
+        this ILogger<WebhookCommand> logger,
+        Uri endpoint,
+        int payloadLength,
+        string? contentType
+    );
 
     [LoggerMessage(LogLevel.Information, "[GET] Sending Webhook to {Endpoint} without payload")]
     internal static partial void SendingWebhookGet(this ILogger<WebhookCommand> logger, Uri endpoint);

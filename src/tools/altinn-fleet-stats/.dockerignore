@@ -1,0 +1,4 @@
+backend/static
+data/
+.git
+.env

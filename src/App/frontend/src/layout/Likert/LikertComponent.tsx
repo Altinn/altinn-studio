@@ -1,21 +1,20 @@
 import React from 'react';
 
+import { Description, getDescriptionId, getLabelId } from '@app/form-component';
 import { Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import type { PropsFromGenericComponent } from '..';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { Description } from 'src/components/form/Description';
-import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import classes from 'src/layout/Likert/LikertComponent.module.css';
+import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';

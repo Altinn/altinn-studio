@@ -5,11 +5,14 @@ using System.Text;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -20,28 +23,25 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// </summary>
 public class InstanceEventClient : IInstanceEventClient
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly AppSettings _settings;
+    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly HttpClient _client;
+    private readonly IInstanceLocker _instanceLocker;
+
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="InstanceEventClient"/> class.
     /// </summary>
-    /// <param name="platformSettings">the platform settings</param>
-    /// <param name="httpContextAccessor">The http context accessor </param>
     /// <param name="httpClient">The Http client</param>
-    /// <param name="settings">The application settings.</param>
-    public InstanceEventClient(
-        IOptions<PlatformSettings> platformSettings,
-        IHttpContextAccessor httpContextAccessor,
-        HttpClient httpClient,
-        IOptionsMonitor<AppSettings> settings
-    )
+    /// <param name="serviceProvider">The service provider.</param>
+    public InstanceEventClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _settings = settings.CurrentValue;
-        httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
-        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+        _authenticationTokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
+        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
+
+        var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
+        httpClient.BaseAddress = new Uri(platformSettings.ApiStorageEndpoint);
+        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
         _client = httpClient;
@@ -55,11 +55,14 @@ public class InstanceEventClient : IInstanceEventClient
         string app,
         string[] eventTypes,
         string from,
-        string to
+        string to,
+        StorageAuthenticationMethod? authenticationMethod = null
     )
     {
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceId}/events";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod
+        );
 
         char paramSeparator = '?';
         if (eventTypes != null)
@@ -95,17 +98,25 @@ public class InstanceEventClient : IInstanceEventClient
     }
 
     /// <inheritdoc/>
-    public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app)
+    public async Task<string> SaveInstanceEvent(
+        object dataToSerialize,
+        string org,
+        string app,
+        StorageAuthenticationMethod? authenticationMethod = null
+    )
     {
         InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
         instanceEvent.Created = DateTime.UtcNow;
         string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod
+        );
 
         HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
-            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json")
+            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"),
+            lockToken: _instanceLocker.CurrentLockToken
         );
 
         if (response.IsSuccessStatusCode)

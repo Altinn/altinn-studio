@@ -162,14 +162,14 @@ function getClickableActionBar(): HTMLButtonElement {
 function getAddItemInlineHeading(): HTMLHeadingElement {
   return screen.getByRole('heading', {
     level: 4,
-    name: textMock('ux_editor.add_item.select_component_header'),
+    name: textMock('ux_editor.add_item.components_header'),
   });
 }
 
 function queryAddItemInlineHeading(): HTMLHeadingElement | null {
   return screen.queryByRole('heading', {
     level: 4,
-    name: textMock('ux_editor.add_item.select_component_header'),
+    name: textMock('ux_editor.add_item.components_header'),
   });
 }
 

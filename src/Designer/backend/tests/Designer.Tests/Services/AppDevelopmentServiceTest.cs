@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
@@ -10,6 +11,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using Moq;
+using NuGet.Versioning;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -17,6 +19,7 @@ namespace Designer.Tests.Services;
 public class AppDevelopmentServiceTest : IDisposable
 {
     private readonly Mock<ISchemaModelService> _schemaModelServiceMock;
+    private readonly Mock<IAppVersionService> _appVersionServiceMock;
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly string _org = "ttd";
@@ -26,8 +29,16 @@ public class AppDevelopmentServiceTest : IDisposable
     public AppDevelopmentServiceTest()
     {
         _schemaModelServiceMock = new Mock<ISchemaModelService>();
+        _appVersionServiceMock = new Mock<IAppVersionService>();
+        _appVersionServiceMock
+            .Setup(s => s.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(new SemanticVersion(8, 0, 0));
         _altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        _appDevelopmentService = new AppDevelopmentService(_altinnGitRepositoryFactory, _schemaModelServiceMock.Object);
+        _appDevelopmentService = new AppDevelopmentService(
+            _altinnGitRepositoryFactory,
+            _schemaModelServiceMock.Object,
+            _appVersionServiceMock.Object
+        );
     }
 
     public string CreatedTestRepoPath { get; set; }
@@ -93,6 +104,51 @@ public class AppDevelopmentServiceTest : IDisposable
         Assert.NotNull(layoutSettings);
 
         Assert.Equal(3, ((JsonArray)layoutSettings!["pages"]!["order"]!).Count);
+    }
+
+    [Fact]
+    public async Task SaveLayoutSettings_ToAppWithSetFolderButNoLayoutSetsFile_ShouldPersistPdfLayoutNameForSameSet()
+    {
+        // Regression: v9 apps have set folders but no layout-sets.json. Save and read must resolve
+        // the same Settings.json for a layoutSetName, else pdfLayoutName is lost (PDF convert revert).
+        string layoutSetName = "layoutSet1";
+        string pdfLayoutName = "layoutFile1";
+        string layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            _org,
+            targetRepository,
+            _developer
+        );
+
+        _appVersionServiceMock.Setup(s => s.IsV9App(It.IsAny<AltinnRepoEditingContext>())).Returns(true);
+
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+
+        // Remove layout-sets.json to mimic a v9 app (set folders without the manifest).
+        File.Delete(Path.Combine(CreatedTestRepoPath, "App", "ui", "layout-sets.json"));
+
+        var layoutSettingsToSave = JsonNode.Parse(
+            $@"{{
+            ""$schema"": ""{layoutSettingsSchemaUrl}"",
+            ""pages"": {{
+                ""order"": [],
+                ""pdfLayoutName"": ""{pdfLayoutName}""
+            }}
+        }}"
+        );
+
+        await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettingsToSave, layoutSetName);
+
+        var savedLayoutSettings = await _appDevelopmentService.GetLayoutSettings(editingContext, layoutSetName);
+
+        Assert.NotNull(savedLayoutSettings);
+        Assert.Equal(pdfLayoutName, savedLayoutSettings!["pages"]!["pdfLayoutName"]!.GetValue<string>());
     }
 
     [Fact]
@@ -298,6 +354,43 @@ public class AppDevelopmentServiceTest : IDisposable
 
         // Assert
         await Assert.ThrowsAsync<NoLayoutSetsFileFoundException>(act);
+    }
+
+    [Fact]
+    public async Task GetModelMetadata_WhenV9App_ShouldReadDefaultDataTypeFromSettings()
+    {
+        // Arrange
+        string layoutSetName = "layoutSet1";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            _org,
+            targetRepository,
+            _developer
+        );
+        _appVersionServiceMock
+            .Setup(s => s.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(new SemanticVersion(9, 0, 0));
+
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+
+        // Act
+        await _appDevelopmentService.GetModelMetadata(editingContext, layoutSetName, null);
+
+        // Assert: v9 reads defaultDataType from Settings.json
+        _schemaModelServiceMock.Verify(
+            s =>
+                s.GenerateModelMetadataFromJsonSchema(
+                    editingContext,
+                    "App/models/datamodel.schema.json",
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     private List<string> GetFileNamesInLayoutSet(string layoutSetName)

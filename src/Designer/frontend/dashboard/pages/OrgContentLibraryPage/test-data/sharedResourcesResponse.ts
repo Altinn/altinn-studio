@@ -1,21 +1,17 @@
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
-import { codeLists } from './codeLists';
-import { btoaUTF8 } from '../utils';
-
-const animalsFileContent = btoaUTF8(JSON.stringify(codeLists.animals));
-const vehiclesFileContent = btoaUTF8(JSON.stringify(codeLists.vehicles));
+import { codeListsBinary } from './codeLists';
 
 export const sharedResourcesResponse: SharedResourcesResponse = {
   files: [
     {
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
-      content: animalsFileContent,
+      content: codeListsBinary.animals,
     },
     {
       path: 'CodeLists/vehicles.json',
       contentType: 'application/json',
-      content: vehiclesFileContent,
+      content: codeListsBinary.vehicles,
     },
   ],
   commitSha: 'abc123def456ghi789jkl012mno345pqr678stu9',
@@ -26,7 +22,7 @@ export const sharedResourcesResponseWithProblem: SharedResourcesResponse = {
     {
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
-      content: animalsFileContent,
+      content: codeListsBinary.animals,
     },
     {
       path: 'CodeLists/vehicles.json',
@@ -46,23 +42,12 @@ export const sharedResourcesResponseWithInvalidFormat: SharedResourcesResponse =
     {
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
-      content: animalsFileContent,
+      content: codeListsBinary.animals,
     },
     {
       path: 'CodeLists/invalid.json',
       contentType: 'application/json',
       content: btoa(JSON.stringify({ notCodes: 'invalid' })),
-    },
-  ],
-  commitSha: 'abc123def456ghi789jkl012mno345pqr678stu9',
-};
-
-export const sharedResourcesResponseWithNonJson: SharedResourcesResponse = {
-  files: [
-    {
-      path: 'CodeLists/animals.txt',
-      contentType: 'application/text',
-      content: animalsFileContent,
     },
   ],
   commitSha: 'abc123def456ghi789jkl012mno345pqr678stu9',

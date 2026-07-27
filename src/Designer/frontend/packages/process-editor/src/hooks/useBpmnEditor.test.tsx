@@ -34,14 +34,13 @@ const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
   bpmnXml: undefined,
 };
 const layoutSetId = 'someLayoutSetId';
-const layoutSets: LayoutSets = {
-  sets: [
-    {
-      id: layoutSetId,
-      tasks: [mockBpmnDetails.id],
-    },
-  ],
-};
+const layoutSets: LayoutSets = [
+  {
+    id: layoutSetId,
+    taskId: mockBpmnDetails.id,
+  },
+];
+
 const defaultBpmnApiContextProps: BpmnApiContextProps = {
   availableDataTypeIds: [],
   availableDataModelIds: [],

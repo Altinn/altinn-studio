@@ -14,6 +14,7 @@ import (
 const (
 	colimaTool            = "colima"
 	dockerTool            = "docker"
+	dotnetTool            = "dotnet"
 	podmanTool            = "podman"
 	resolvedDockerDefault = "Docker Engine API -> Docker (Default)"
 )
@@ -30,7 +31,10 @@ func TestProbeContainerRuntime(t *testing.T) {
 		lookPath: func(string) (string, error) {
 			return "/bin/tool", nil
 		},
-		versionOutput: func(_ context.Context, name string) ([]byte, error) {
+		versionOutput: func(_ context.Context, name string, args ...string) ([]byte, error) {
+			if !testArgsEqual(args, "--version") {
+				return nil, errUnexpectedTool
+			}
 			switch name {
 			case dockerTool:
 				return []byte("Docker version 25.0.1, build deadbeef"), nil
@@ -47,9 +51,12 @@ func TestProbeContainerRuntime(t *testing.T) {
 		},
 	}
 
-	value, resolved, tools, err := svc.probeContainerRuntime(t.Context())
+	value, resolved, tools, toolchain, err := svc.probeContainerRuntime(t.Context())
 	if err != nil {
 		t.Fatalf("probeContainerRuntime() error = %v", err)
+	}
+	if toolchain.ClientVersion != "" || toolchain.ServerVersion != "" {
+		t.Fatalf("probeContainerRuntime() toolchain versions = %#v, want empty", toolchain)
 	}
 
 	if value != "Docker (25.0.1)" {
@@ -83,9 +90,12 @@ func TestCollectPrerequisitesIncludesDockerHost(t *testing.T) {
 			}
 			return "", errMissingTool
 		},
-		versionOutput: func(_ context.Context, name string) ([]byte, error) {
+		versionOutput: func(_ context.Context, name string, args ...string) ([]byte, error) {
+			if !testArgsEqual(args, "--version") {
+				return nil, errUnexpectedTool
+			}
 			switch name {
-			case "dotnet":
+			case dotnetTool:
 				return []byte("10.0.103"), nil
 			case dockerTool:
 				return []byte("Docker version 25.0.1, build deadbeef"), nil
@@ -118,7 +128,10 @@ func TestProbeContainerRuntimeReturnsDetectedToolsOnFailure(t *testing.T) {
 			}
 			return "", errMissingTool
 		},
-		versionOutput: func(_ context.Context, name string) ([]byte, error) {
+		versionOutput: func(_ context.Context, name string, args ...string) ([]byte, error) {
+			if !testArgsEqual(args, "--version") {
+				return nil, errUnexpectedTool
+			}
 			if name == dockerTool {
 				return []byte("Docker version 25.0.1, build deadbeef"), nil
 			}
@@ -129,7 +142,7 @@ func TestProbeContainerRuntimeReturnsDetectedToolsOnFailure(t *testing.T) {
 		},
 	}
 
-	value, resolved, tools, err := svc.probeContainerRuntime(t.Context())
+	value, resolved, tools, _, err := svc.probeContainerRuntime(t.Context())
 	if err == nil {
 		t.Fatal("probeContainerRuntime() error = nil, want non-nil")
 	}
@@ -147,7 +160,7 @@ func TestProbeContainerRuntime_APIWithoutCLIStillSucceeds(t *testing.T) {
 		lookPath: func(string) (string, error) {
 			return "", errMissingTool
 		},
-		versionOutput: func(_ context.Context, name string) ([]byte, error) {
+		versionOutput: func(_ context.Context, name string, args ...string) ([]byte, error) {
 			return nil, errUnexpectedTool
 		},
 		containerDetect: func(context.Context) (container.ContainerClient, error) {
@@ -157,12 +170,14 @@ func TestProbeContainerRuntime_APIWithoutCLIStillSucceeds(t *testing.T) {
 					Platform:   types.PlatformDocker,
 					AccessMode: types.AccessDockerEngineAPI,
 					Source:     types.SourceDefault,
+					SocketPath: "",
+					SELinux:    false,
 				},
 			}, nil
 		},
 	}
 
-	value, resolved, tools, err := svc.probeContainerRuntime(t.Context())
+	value, resolved, tools, _, err := svc.probeContainerRuntime(t.Context())
 	if err != nil {
 		t.Fatalf("probeContainerRuntime() error = %v", err)
 	}
@@ -175,6 +190,71 @@ func TestProbeContainerRuntime_APIWithoutCLIStillSucceeds(t *testing.T) {
 	if len(tools) != 0 {
 		t.Fatalf("probeContainerRuntime() tools = %#v, want empty", tools)
 	}
+}
+
+func TestCollectPrerequisitesReportsPodmanClientServerMismatch(t *testing.T) {
+	svc := &Service{
+		debugf: func(string, ...any) {},
+		lookPath: func(name string) (string, error) {
+			if name == podmanTool {
+				return "/bin/podman", nil
+			}
+			return "", errMissingTool
+		},
+		versionOutput: func(_ context.Context, name string, args ...string) ([]byte, error) {
+			if !testArgsEqual(args, "--version") {
+				return nil, errUnexpectedTool
+			}
+			switch name {
+			case dotnetTool:
+				return []byte("10.0.103"), nil
+			case podmanTool:
+				return []byte("podman version 5.8.2"), nil
+			default:
+				return nil, errUnexpectedTool
+			}
+		},
+		containerDetect: func(context.Context) (container.ContainerClient, error) {
+			return &dockerEngineClient{
+				Client: containermock.New(),
+				toolchain: types.ContainerToolchain{
+					ClientVersion: "5.8.2",
+					ServerVersion: "5.2.4",
+					Platform:      types.PlatformPodman,
+					AccessMode:    types.AccessPodmanCLI,
+					Source:        types.SourcePodmanCLI,
+				},
+			}, nil
+		},
+	}
+
+	prereqs := svc.collectPrerequisites(t.Context())
+	if prereqs.Container.OK {
+		t.Fatal("collectPrerequisites() Container.OK = true, want false")
+	}
+	if prereqs.ContainerClient != "5.8.2" || prereqs.ContainerServer != "5.2.4" {
+		t.Fatalf(
+			"collectPrerequisites() container versions = client %q server %q",
+			prereqs.ContainerClient,
+			prereqs.ContainerServer,
+		)
+	}
+	want := "podman client/server version mismatch: client 5.8.2, server 5.2.4"
+	if prereqs.Container.Error != want {
+		t.Fatalf("collectPrerequisites() Container.Error = %q, want %q", prereqs.Container.Error, want)
+	}
+}
+
+func testArgsEqual(got []string, want ...string) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			return false
+		}
+	}
+	return true
 }
 
 type dockerEngineClient struct {
@@ -191,5 +271,7 @@ func (c *dockerEngineClient) Toolchain() types.ContainerToolchain {
 		Platform:   types.PlatformDocker,
 		AccessMode: types.AccessDockerEngineAPI,
 		Source:     types.SourceDefault,
+		SocketPath: "",
+		SELinux:    false,
 	}
 }

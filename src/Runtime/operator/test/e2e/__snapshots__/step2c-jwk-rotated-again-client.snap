@@ -118,6 +118,14 @@
     "reason": "Reconciled",
     "status": "True",
     "type": "Ready"
+   },
+   {
+    "lastTransitionTime": "2024-01-01T00:00:00Z",
+    "message": "Maskinporten secret rotation is pending an app Deployment rollout for compatibility",
+    "observedGeneration": 2,
+    "reason": "PendingCompatibilityRollout",
+    "status": "True",
+    "type": "MaskinportenSecretRotationRestart"
    }
   ],
   "keyIds": [
@@ -125,7 +133,9 @@
    "<key-uuid>.1"
   ],
   "lastSynced": "2024-01-01T00:00:00Z",
-  "observedGeneration": 2
+  "observedGeneration": 2,
+  "pendingSecretRotationDetectedAt": "2024-01-01T00:00:00Z",
+  "pendingSecretRotationFingerprint": "<sanitized-rotation-fingerprint>"
  }
 }
 ---

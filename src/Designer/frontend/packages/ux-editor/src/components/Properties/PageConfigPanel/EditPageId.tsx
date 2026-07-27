@@ -4,7 +4,7 @@ import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext, useText } from '../../../hooks';
 import { useModifyPageMutation } from '../../../hooks/mutations/useModifyPageMutation';
-import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { ItemType } from '../ItemType';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';

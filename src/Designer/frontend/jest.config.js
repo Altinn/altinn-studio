@@ -15,6 +15,7 @@ const packagesToTransform = [
   'htm',
   'ids',
   'is-plain-obj',
+  'marked',
   'mdast.*',
   'micromark',
   'micromark-.*',

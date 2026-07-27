@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Newtonsoft.Json.Serialization;
 using Xunit.Abstractions;
+using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
 namespace Altinn.App.SourceGenerator.Tests;
 
@@ -223,6 +224,7 @@ public class FullTests(ITestOutputHelper output)
                 MetadataReference.CreateFromFile(typeof(JsonPropertyNameAttribute).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(IFormDataWrapper).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(DataModelException).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(DataType).Assembly.Location),
             ]);
 
         var compilation = CSharpCompilation.Create(

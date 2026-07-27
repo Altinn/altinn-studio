@@ -165,10 +165,10 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('logoutUrlAltinn() returning correct environments', () => {
-    expect(logoutUrlAltinn(hostTT)).toBe('https://tt02.altinn.no/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostAT)).toBe('https://at21.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostYT)).toBe('https://yt01.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostProd)).toBe('https://altinn.no/ui/authentication/LogOut');
+    expect(logoutUrlAltinn(hostTT)).toBe('https://platform.tt02.altinn.no/authentication/api/v1/logout');
+    expect(logoutUrlAltinn(hostAT)).toBe('https://platform.at21.altinn.cloud/authentication/api/v1/logout');
+    expect(logoutUrlAltinn(hostYT)).toBe('https://platform.yt01.altinn.cloud/authentication/api/v1/logout');
+    expect(logoutUrlAltinn(hostProd)).toBe('https://platform.altinn.no/authentication/api/v1/logout');
     expect(logoutUrlAltinn(hostDocker)).toBe('http://local.altinn.cloud/');
     expect(logoutUrlAltinn(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(logoutUrlAltinn(hostStudio)).toBe(undefined);

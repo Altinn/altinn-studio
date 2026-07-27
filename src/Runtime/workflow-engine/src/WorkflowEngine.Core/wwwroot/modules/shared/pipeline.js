@@ -146,7 +146,7 @@ export const buildPipelineHTML = (wf, isStatic) => {
     const tx = parseTransition(wf);
 
     if (!tx) {
-        let html = '<div class="pipeline">';
+        let html = `<div class="pipeline${isStatic ? ' pipeline-static' : ''}">`;
         steps.forEach((step, i) => {
             if (i > 0) html += buildConnectorHTML(steps[i - 1], step, isStatic);
             html += buildStepNodeHTML(wf, step, isStatic);
@@ -180,7 +180,10 @@ export const buildPipelineHTML = (wf, isStatic) => {
         }
     }
 
-    let html = '<div class="pipeline pipeline-grouped">';
+    // The grouped padding reserves headroom for the phase bracket labels — skip it when
+    // no step maps to a phase (e.g. a lone side-effect step), the brackets never render.
+    const hasPhases = phases.some((p) => p !== null);
+    let html = `<div class="pipeline${hasPhases ? ' pipeline-grouped' : ''}${isStatic ? ' pipeline-static' : ''}">`;
     steps.forEach((step, i) => {
         if (i > 0) html += buildConnectorHTML(steps[i - 1], step, isStatic);
 

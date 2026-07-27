@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Designer.Tests.Controllers.ApiTests;
@@ -18,18 +17,7 @@ public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpoints
     where TControllerTest : class
 {
     public AppScopesControllerTestsBase(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
-        : base(factory, designerDbFixture)
-    {
-        JsonConfigOverrides.Add(
-            $$"""
-               {
-                     "FeatureManagement": {
-                         "{{StudioFeatureFlags.StudioOidc}}": true
-                     }
-               }
-            """
-        );
-    }
+        : base(factory, designerDbFixture) { }
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {

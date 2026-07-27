@@ -18,7 +18,7 @@ namespace WorkflowEngine.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("engine")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -216,6 +216,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("initial_state");
 
+                    b.Property<bool?>("IsHead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_head");
+
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb")
                         .HasColumnName("labels");
@@ -275,7 +279,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("UpdatedAt")
                         .HasDatabaseName("ix_workflows_updated_at")
-                        .HasFilter("status IN (3, 4, 5, 6)");
+                        .HasFilter("status IN (3, 4, 5, 6, 7)");
 
                     b.HasIndex("BackoffUntil", "CreatedAt")
                         .HasDatabaseName("ix_workflows_backoff_until_created_at")

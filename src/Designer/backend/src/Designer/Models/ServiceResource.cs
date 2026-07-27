@@ -102,16 +102,6 @@ public class ServiceResource
     public ResourceAccessListMode AccessListMode { get; set; }
 
     /// <summary>
-    /// The user acting on behalf of party can be a selfidentifed users
-    /// </summary>
-    public bool SelfIdentifiedUserEnabled { get; set; }
-
-    /// <summary>
-    /// The user acting on behalf of party can be an enterprise users
-    /// </summary>
-    public bool EnterpriseUserEnabled { get; set; }
-
-    /// <summary>
     /// ResourceType
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]

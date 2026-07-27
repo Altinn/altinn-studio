@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
@@ -10,14 +11,14 @@ import { CompCategory } from 'src/layout/common';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { getRepeatingChildBaseIds } from 'src/utils/layout/plugins/claimRepeatingChildren';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal } from 'src/layout/layout';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { BaseRow } from 'src/utils/layout/types';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export interface RepGroupRow extends BaseRow {
   hidden: boolean;
@@ -285,17 +286,7 @@ export const RepGroupHooks = {
 
   useChildIds(baseComponentId: string) {
     const component = useExternalItem(baseComponentId, 'RepeatingGroup');
-    if (!component?.edit?.multiPage) {
-      return component?.children ?? [];
-    }
-
-    const childIds: string[] = [];
-    for (const id of component.children) {
-      const [_, baseId] = id.split(':', 2);
-      childIds.push(baseId);
-    }
-
-    return childIds;
+    return getRepeatingChildBaseIds(component?.children ?? [], component?.edit?.multiPage === true);
   },
 
   useChildIdsWithMultiPage(

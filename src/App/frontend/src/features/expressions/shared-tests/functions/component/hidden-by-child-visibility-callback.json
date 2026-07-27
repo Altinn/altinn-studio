@@ -1,0 +1,59 @@
+{
+  "name": "Lookup for component hidden by parent child-visibility callback",
+  "comment": "This may not work on the backend at all, because it's checking the edit.mode which hides the component when tableColumns[..].showInExpandedEdit = false. We should consider backend <-> frontend compatiblity here.",
+  "expression": ["component", "bedriftsNavn"],
+  "context": {
+    "component": "bransje",
+    "rowIndices": [0],
+    "currentLayout": "Page1"
+  },
+  "expects": null,
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "bedrifter",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Bedrifter"
+            },
+            "children": ["bedriftsNavn", "bransje"],
+            "edit": {
+              "mode": "hideTable"
+            },
+            "tableColumns": {
+              "bedriftsNavn": {
+                "showInExpandedEdit": false
+              }
+            }
+          },
+          {
+            "id": "bedriftsNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Navn"
+            }
+          },
+          {
+            "id": "bransje",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Bransje"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Bedrifter": [
+      {
+        "altinnRowId": "company0",
+        "Navn": "Hell og lykke AS",
+        "Bransje": "Grus og grofting"
+      }
+    ]
+  }
+}

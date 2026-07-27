@@ -7,12 +7,12 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Events;
@@ -22,50 +22,42 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events;
 /// </summary>
 public class EventsClient : IEventsClient
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly AppSettings _settings;
+    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly GeneralSettings _generalSettings;
     private readonly HttpClient _client;
     private readonly Telemetry? _telemetry;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IAppMetadata _appMetadata;
 
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="EventsClient"/> class.
     /// </summary>
-    /// <param name="platformSettings">The platform settings.</param>
-    /// <param name="httpContextAccessor">The http context accessor.</param>
-    /// <param name="httpClient">A HttpClient.</param>
-    /// <param name="accessTokenGenerator">The access token generator service.</param>
-    /// <param name="appMetadata">The app metadata service</param>
-    /// <param name="settings">The application settings.</param>
-    /// <param name="generalSettings">The general settings of the application.</param>
-    /// <param name="telemetry">Telemetry for metrics and traces.</param>
-    public EventsClient(
-        IOptions<PlatformSettings> platformSettings,
-        IHttpContextAccessor httpContextAccessor,
-        HttpClient httpClient,
-        IAccessTokenGenerator accessTokenGenerator,
-        IAppMetadata appMetadata,
-        IOptionsMonitor<AppSettings> settings,
-        IOptions<GeneralSettings> generalSettings,
-        Telemetry? telemetry = null
-    )
+    /// <param name="httpClient">A HttpClient from the built-in HttpClient factory.</param>
+    /// <param name="serviceProvider">The service provider.</param>
+    public EventsClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _settings = settings.CurrentValue;
-        _generalSettings = generalSettings.Value;
-        _accessTokenGenerator = accessTokenGenerator;
-        _appMetadata = appMetadata;
-        httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
-        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+        _authenticationTokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
+        _appMetadata = serviceProvider.GetRequiredService<IAppMetadata>();
+        _accessTokenGenerator = serviceProvider.GetRequiredService<IAccessTokenGenerator>();
+        _telemetry = serviceProvider.GetService<Telemetry>();
+
+        var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
+        _generalSettings = serviceProvider.GetRequiredService<IOptions<GeneralSettings>>().Value;
+
+        httpClient.BaseAddress = new Uri(platformSettings.ApiEventsEndpoint);
+        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = httpClient;
-        _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
-    public async Task<string> AddEvent(string eventType, Instance instance)
+    public async Task<string> AddEvent(
+        string eventType,
+        Instance instance,
+        StorageAuthenticationMethod? authenticationMethod = null
+    )
     {
         using var activity = _telemetry?.StartAddEventActivity(instance);
         string? alternativeSubject = null;
@@ -96,7 +88,9 @@ public class EventsClient : IEventsClient
         Application app = await _appMetadata.GetApplicationMetadata();
         string accessToken = _accessTokenGenerator.GenerateAccessToken(app?.Org, app?.Id.Split("/")[1]);
 
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod
+        );
 
         string serializedCloudEvent = JsonSerializer.Serialize(cloudEvent);
 

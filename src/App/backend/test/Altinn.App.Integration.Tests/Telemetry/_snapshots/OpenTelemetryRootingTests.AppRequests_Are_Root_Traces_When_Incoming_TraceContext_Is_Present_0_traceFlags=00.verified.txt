@@ -1,0 +1,8 @@
+﻿{
+  TraceId: <new trace id>,
+  SpanId: <span id>,
+  ParentSpanId: 0000000000000000,
+  ParentId: <null>,
+  Recorded: true,
+  IsAllDataRequested: true
+}

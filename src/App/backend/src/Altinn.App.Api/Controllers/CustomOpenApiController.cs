@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
@@ -16,10 +17,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Extensions;
-using Microsoft.OpenApi.Models;
-using Microsoft.OpenApi.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
@@ -68,7 +65,6 @@ public class CustomOpenApiController : Controller
     }
 
     internal static readonly OpenApiSpecVersion SpecVersion = OpenApiSpecVersion.OpenApi3_0;
-    internal static readonly OpenApiFormat SpecFormat = OpenApiFormat.Json;
 
     /// <summary>
     /// Shared text that should be shown in the description of the OpenAPI documentation.
@@ -110,16 +106,18 @@ public class CustomOpenApiController : Controller
             Components = new OpenApiComponents()
             {
                 Schemas = _schemaRepository.Schemas,
-                SecuritySchemes =
+                SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
                 {
-                    [Snippets.AltinnTokenSecurityScheme.Reference.Id] = Snippets.AltinnTokenSecurityScheme,
+                    [Snippets.AltinnTokenSecuritySchemeId] = Snippets.AltinnTokenSecurityScheme,
                 },
-                Responses = { [Snippets.ProblemDetailsResponseReference.Id] = Snippets.ProblemDetailsResponseSchema },
+                Responses = new Dictionary<string, IOpenApiResponse>
+                {
+                    [Snippets.ProblemDetailsResponseId] = Snippets.ProblemDetailsResponseSchema,
+                },
                 Parameters = Snippets.CommonParameters,
             },
-            SecurityRequirements = [new OpenApiSecurityRequirement() { [Snippets.AltinnTokenSecurityScheme] = [] }],
             Servers =
-            {
+            [
                 new OpenApiServer() { Url = $"http://local.altinn.cloud", Description = "Local development server" },
                 new OpenApiServer()
                 {
@@ -131,8 +129,18 @@ public class CustomOpenApiController : Controller
                     Url = $"https://{appMetadata.Org}.apps.altinn.no",
                     Description = "Production server",
                 },
-            },
+            ],
         };
+
+        // OpenApiSecuritySchemeReference needs the host document to resolve its name when serialized
+        // as the key of an OpenApiSecurityRequirement; otherwise the requirement renders as "{}".
+        document.Security ??= [];
+        document.Security.Add(
+            new OpenApiSecurityRequirement()
+            {
+                [new OpenApiSecuritySchemeReference(Snippets.AltinnTokenSecuritySchemeId, document)] = [],
+            }
+        );
 
         AddCommonRoutes(document, appMetadata);
 
@@ -145,7 +153,7 @@ public class CustomOpenApiController : Controller
         var walker = new OpenApiWalker(new SchemaPostVisitor());
         walker.Walk(document);
 
-        return Content(document.Serialize(SpecVersion, SpecFormat), "application/json");
+        return Content(await document.SerializeAsJsonAsync(SpecVersion), "application/json");
     }
 
     private string GetIntroDoc(ApplicationMetadata appMetadata)
@@ -261,26 +269,27 @@ public class CustomOpenApiController : Controller
 
     private void AddCommonRoutes(OpenApiDocument document, ApplicationMetadata appMetadata)
     {
-        OpenApiTag[] instanceTags = [new() { Name = "Instances", Description = "Operations on instances" }];
+        var instanceTags = new HashSet<OpenApiTagReference> { new OpenApiTagReference("Instances") };
+        document.Tags ??= new HashSet<OpenApiTag>([]);
+        document.Components ??= new OpenApiComponents();
+        document.Components.Schemas ??= new Dictionary<string, IOpenApiSchema>();
+        document.Tags.Add(new OpenApiTag() { Name = "Instances", Description = "Operations on instances" });
         var instanceSchema = _schemaGenerator.GenerateSchema(typeof(Instance), _schemaRepository);
         document.Components.Schemas.Add("InstanceWrite", Snippets.InstanceWriteSchema);
-        var instanceWriteSchema = new OpenApiSchema()
-        {
-            Reference = new OpenApiReference() { Id = "InstanceWrite", Type = ReferenceType.Schema },
-        };
+        var instanceWriteSchema = new OpenApiSchemaReference("InstanceWrite");
 
-        OpenApiMediaType multipartMediaType = new OpenApiMediaType()
+        var multipartProperties = new Dictionary<string, IOpenApiSchema> { ["instance"] = instanceWriteSchema };
+        var multipartEncodings = new Dictionary<string, OpenApiEncoding>
         {
-            Schema = new OpenApiSchema() { Type = "object", Properties = { ["instance"] = instanceWriteSchema } },
-            Encoding = { ["instance"] = new OpenApiEncoding() { ContentType = "application/json" } },
+            ["instance"] = new OpenApiEncoding() { ContentType = "application/json" },
         };
         foreach (var dataType in appMetadata.DataTypes)
         {
-            multipartMediaType.Schema.Properties.Add(
+            multipartProperties.Add(
                 dataType.Id,
-                new OpenApiSchema() { Type = "string", Format = "binary" }
+                new OpenApiSchema() { Type = JsonSchemaType.String, Format = "binary" }
             );
-            multipartMediaType.Encoding.Add(
+            multipartEncodings.Add(
                 dataType.Id,
                 new OpenApiEncoding()
                 {
@@ -296,25 +305,27 @@ public class CustomOpenApiController : Controller
             {
                 Summary = "Operations for instances",
                 Description = "CRUD operations for instances",
-                Operations =
+                Operations = new()
                 {
-                    [OperationType.Post] = new OpenApiOperation()
+                    [HttpMethod.Post] = new OpenApiOperation()
                     {
                         Tags = instanceTags,
                         Summary = "Create new instance",
                         Description = "The main api for creating new instances. ",
                         Parameters =
-                        {
-                            new OpenApiParameter(Snippets.InstanceOwnerPartyIdParameterReference)
+                        [
+                            new OpenApiParameter()
                             {
-                                // Use snippet, but override
+                                // required=false version of Snippet.InstanceOwnerPartyId
+                                Name = "instanceOwnerPartyId",
                                 Description =
                                     "The party id of the instance owner (use either this or an instance document in the body)",
                                 In = ParameterLocation.Query,
                                 Required = false,
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.Integer },
                             },
                             Snippets.LanguageParameterReference,
-                        },
+                        ],
                         RequestBody = new OpenApiRequestBody()
                         {
                             Required = false,
@@ -325,14 +336,22 @@ public class CustomOpenApiController : Controller
                             will require the ``instanceOwnerPartyId`` parameter. Otherwise you must use the simplified instance document to specify instance owner.
                             Either using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organisationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).
                             """,
-                            Content =
+                            Content = new Dictionary<string, OpenApiMediaType>
                             {
                                 ["empty"] = new OpenApiMediaType()
                                 {
-                                    Schema = new OpenApiSchema() { Type = "null", Example = new OpenApiNull() },
+                                    Schema = new OpenApiSchema() { Type = JsonSchemaType.Null, Example = null },
                                 },
                                 ["application/json"] = new OpenApiMediaType() { Schema = instanceWriteSchema },
-                                ["multipart/form-data"] = multipartMediaType,
+                                ["multipart/form-data"] = new OpenApiMediaType()
+                                {
+                                    Schema = new OpenApiSchema()
+                                    {
+                                        Type = JsonSchemaType.Object,
+                                        Properties = multipartProperties,
+                                    },
+                                    Encoding = multipartEncodings,
+                                },
                             },
                         },
                         Responses = Snippets.AddCommonErrorResponses(
@@ -340,7 +359,10 @@ public class CustomOpenApiController : Controller
                             new OpenApiResponse()
                             {
                                 Description = "Instance created",
-                                Content = { ["application/json"] = new OpenApiMediaType() { Schema = instanceSchema } },
+                                Content = new Dictionary<string, OpenApiMediaType>
+                                {
+                                    ["application/json"] = new OpenApiMediaType() { Schema = instanceSchema },
+                                },
                             }
                         ),
                     },
@@ -353,9 +375,9 @@ public class CustomOpenApiController : Controller
             {
                 Summary = "Operations for instance",
                 Description = "CRUD operations for a specific instance",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new OpenApiOperation()
+                    [HttpMethod.Get] = new OpenApiOperation()
                     {
                         Tags = instanceTags,
                         OperationId = "GetInstance",
@@ -366,11 +388,14 @@ public class CustomOpenApiController : Controller
                             new OpenApiResponse()
                             {
                                 Description = "Instance found",
-                                Content = { ["application/json"] = new OpenApiMediaType() { Schema = instanceSchema } },
+                                Content = new Dictionary<string, OpenApiMediaType>
+                                {
+                                    ["application/json"] = new OpenApiMediaType() { Schema = instanceSchema },
+                                },
                             }
                         ),
                     },
-                    [OperationType.Delete] = new OpenApiOperation()
+                    [HttpMethod.Delete] = new OpenApiOperation()
                     {
                         Tags = instanceTags,
                         Summary = "Delete instance",
@@ -396,16 +421,16 @@ public class CustomOpenApiController : Controller
             {
                 Summary = "Operations for data elements",
                 Description = "CRUD operations for data elements in an instance",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Patch] = new OpenApiOperation()
+                    [HttpMethod.Patch] = new OpenApiOperation()
                     {
                         Tags = instanceTags,
                         Summary = "Patch data elements on instance",
                         RequestBody = new OpenApiRequestBody()
                         {
                             Required = true,
-                            Content =
+                            Content = new Dictionary<string, OpenApiMediaType>
                             {
                                 ["application/json"] = new OpenApiMediaType() { Schema = Snippets.PatchSchema },
                             },
@@ -416,7 +441,7 @@ public class CustomOpenApiController : Controller
                                 ["200"] = new OpenApiResponse()
                                 {
                                     Description = "Data elements patched",
-                                    Content =
+                                    Content = new Dictionary<string, OpenApiMediaType>
                                     {
                                         ["application/json"] = new OpenApiMediaType()
                                         {
@@ -430,7 +455,7 @@ public class CustomOpenApiController : Controller
                                 ["409"] = new OpenApiResponse()
                                 {
                                     Description = "Precondition in patch failed",
-                                    Content =
+                                    Content = new Dictionary<string, OpenApiMediaType>
                                     {
                                         ["application/json"] = new OpenApiMediaType()
                                         {
@@ -444,7 +469,7 @@ public class CustomOpenApiController : Controller
                                 ["422"] = new OpenApiResponse()
                                 {
                                     Description = "JsonPatch operation failed",
-                                    Content =
+                                    Content = new Dictionary<string, OpenApiMediaType>
                                     {
                                         ["application/json"] = new OpenApiMediaType()
                                         {
@@ -473,9 +498,9 @@ public class CustomOpenApiController : Controller
             new OpenApiPathItem()
             {
                 Summary = $"Delete data element",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Delete] = new OpenApiOperation()
+                    [HttpMethod.Delete] = new OpenApiOperation()
                     {
                         Tags = instanceTags,
                         Summary = "Delete data element",
@@ -502,9 +527,9 @@ public class CustomOpenApiController : Controller
             new OpenApiPathItem()
             {
                 Summary = "Move instance to next process step",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Put] = new OpenApiOperation()
+                    [HttpMethod.Put] = new OpenApiOperation()
                     {
                         Tags = instanceTags,
                         Summary = "Move instance to next process step",
@@ -513,7 +538,7 @@ public class CustomOpenApiController : Controller
                         {
                             Required = false,
                             Description = "Optional body with specification of the action to perform",
-                            Content =
+                            Content = new Dictionary<string, OpenApiMediaType>
                             {
                                 ["application/json"] = new OpenApiMediaType()
                                 {
@@ -527,7 +552,7 @@ public class CustomOpenApiController : Controller
                                 ["200"] = new OpenApiResponse()
                                 {
                                     Description = "Instance moved to next process step. Returns the new process state",
-                                    Content =
+                                    Content = new Dictionary<string, OpenApiMediaType>
                                     {
                                         ["application/json"] = new OpenApiMediaType()
                                         {
@@ -540,8 +565,8 @@ public class CustomOpenApiController : Controller
                                 },
                                 ["409"] = new OpenApiResponse()
                                 {
-                                    Description = "Precondition failed",
-                                    Reference = Snippets.ProblemDetailsResponseReference,
+                                    Description = "Instance is not in a valid state to move to next process step",
+                                    Content = Snippets.ProblemDetailsResponseSchema.Content,
                                 },
                             }
                         ),
@@ -556,10 +581,8 @@ public class CustomOpenApiController : Controller
             }
         );
 
-        var commonTags = new[]
-        {
-            new OpenApiTag() { Name = "Static", Description = "Static info about the application" },
-        };
+        var commonTags = new HashSet<OpenApiTagReference> { new OpenApiTagReference("Static") };
+        document.Tags.Add(new OpenApiTag() { Name = "Static", Description = "Static info about the application" });
 
         document.Paths.Add(
             $"/{appMetadata.Id}/api/v1/applicationmetadata",
@@ -567,20 +590,20 @@ public class CustomOpenApiController : Controller
             {
                 Summary = "Get application metadata",
                 Description = "Get the metadata for the application",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new OpenApiOperation()
+                    [HttpMethod.Get] = new OpenApiOperation()
                     {
                         Tags = commonTags,
                         Summary = "Get application metadata",
                         Description = "Get the metadata for the application",
-                        Security = { },
+                        Security = [],
                         Responses = new()
                         {
                             ["200"] = new OpenApiResponse()
                             {
                                 Description = "Application metadata found",
-                                Content =
+                                Content = new Dictionary<string, OpenApiMediaType>
                                 {
                                     ["application/json"] = new OpenApiMediaType()
                                     {
@@ -597,27 +620,27 @@ public class CustomOpenApiController : Controller
             }
         );
         // Auth exchange endpoint
-        var authTags = new[]
-        {
+        var authTags = new HashSet<OpenApiTagReference> { new OpenApiTagReference("Authentication") };
+        document.Tags.Add(
             new OpenApiTag()
             {
                 Name = "Authentication",
                 Description = "Operations for exchanging Maskinporten or ID-Porten tokens to Altinn tokens",
-            },
-        };
+            }
+        );
         document.Paths.Add(
             "/authentication/api/v1/exchange/{tokenProvider}",
             new OpenApiPathItem()
             {
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new OpenApiOperation()
+                    [HttpMethod.Get] = new OpenApiOperation()
                     {
                         Tags = authTags,
                         Summary =
                             "Action for exchanging a JWT generated by a trusted token provider with a new JWT for further use as authentication against rest of Altinn.",
                         Parameters =
-                        {
+                        [
                             new OpenApiParameter()
                             {
                                 Name = "tokenProvider",
@@ -625,8 +648,8 @@ public class CustomOpenApiController : Controller
                                 Required = true,
                                 Schema = new OpenApiSchema()
                                 {
-                                    Type = "string",
-                                    Enum = [new OpenApiString("maskinporten"), new OpenApiString("id-porten")],
+                                    Type = JsonSchemaType.String,
+                                    Enum = ["maskinporten", "id-porten"],
                                 },
                             },
                             new OpenApiParameter()
@@ -635,9 +658,9 @@ public class CustomOpenApiController : Controller
                                 Description =
                                     "Bearer token from the selected token provider to exchange for an Altinn token",
                                 In = ParameterLocation.Header,
-                                Example = new OpenApiString("Bearer <token>"),
+                                Example = "Bearer <token>",
                                 Required = true,
-                                Schema = new OpenApiSchema() { Type = "string" },
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String },
                             },
                             // Test parameter is not relevant for external users?
                             // new OpenApiParameter()
@@ -649,22 +672,20 @@ public class CustomOpenApiController : Controller
                             //         Type = "boolean"
                             //     }
                             // }
-                        },
+                        ],
                         Responses = new OpenApiResponses()
                         {
                             ["200"] = new OpenApiResponse()
                             {
                                 Description = "Exchanged token",
-                                Content =
+                                Content = new Dictionary<string, OpenApiMediaType>
                                 {
                                     ["text/plain"] = new OpenApiMediaType()
                                     {
                                         Schema = new OpenApiSchema()
                                         {
-                                            Type = "string",
-                                            Example = new OpenApiString(
-                                                "eyJraWQiOiJIdFlaMU1UbFZXUGNCV0JQVWV3TmxZd1RCRklicU1Hb081O"
-                                            ),
+                                            Type = JsonSchemaType.String,
+                                            Example = "eyJraWQiOiJIdFlaMU1UbFZXUGNCV0JQVWV3TmxZd1RCRklicU1Hb081O",
                                         },
                                     },
                                 },
@@ -687,9 +708,9 @@ public class CustomOpenApiController : Controller
             new OpenApiPathItem()
             {
                 Description = "Get a test user token for use in the local development environment",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new OpenApiOperation()
+                    [HttpMethod.Get] = new OpenApiOperation()
                     {
                         Tags = authTags,
                         Parameters =
@@ -700,7 +721,7 @@ public class CustomOpenApiController : Controller
                                 Description = "The user id of the test user",
                                 In = ParameterLocation.Query,
                                 Required = true,
-                                Schema = new OpenApiSchema() { Type = "integer", Example = new OpenApiInteger(1337) },
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.Integer, Example = 1337 },
                             },
                             new OpenApiParameter()
                             {
@@ -709,17 +730,9 @@ public class CustomOpenApiController : Controller
                                 In = ParameterLocation.Query,
                                 Schema = new OpenApiSchema()
                                 {
-                                    Type = "integer",
-                                    Enum =
-                                    [
-                                        new OpenApiInteger(0),
-                                        new OpenApiInteger(1),
-                                        new OpenApiInteger(2),
-                                        new OpenApiInteger(3),
-                                        new OpenApiInteger(4),
-                                        new OpenApiInteger(5),
-                                    ],
-                                    Default = new OpenApiInteger(3),
+                                    Type = JsonSchemaType.Integer,
+                                    Enum = [0, 1, 2, 3, 4, 5],
+                                    Default = 3,
                                 },
                                 Required = true,
                             },
@@ -729,16 +742,14 @@ public class CustomOpenApiController : Controller
                             ["200"] = new OpenApiResponse()
                             {
                                 Description = "Test user token",
-                                Content =
+                                Content = new Dictionary<string, OpenApiMediaType>
                                 {
                                     ["text/plain"] = new OpenApiMediaType()
                                     {
                                         Schema = new OpenApiSchema()
                                         {
-                                            Type = "string",
-                                            Example = new OpenApiString(
-                                                "eyJraWQiOiJIdFlaMU1UbFZXUGNCV0JQVWV3TmxZd1RCRklicU1Hb081O"
-                                            ),
+                                            Type = JsonSchemaType.String,
+                                            Example = "eyJraWQiOiJIdFlaMU1UbFZXUGNCV0JQVWV3TmxZd1RCRklicU1Hb081O",
                                         },
                                     },
                                 },
@@ -751,10 +762,8 @@ public class CustomOpenApiController : Controller
         );
 
         // Options endpoint
-        var optionsTags = new[]
-        {
-            new OpenApiTag { Name = "Options", Description = "Operations for getting app options" },
-        };
+        var optionsTags = new HashSet<OpenApiTagReference> { new OpenApiTagReference("Options") };
+        document.Tags.Add(new OpenApiTag { Name = "Options", Description = "Operations for getting app options" });
         var allOptionsSchemaCollection = GetInstanceAppOptionsSchemaCollection();
         allOptionsSchemaCollection.AddRange(GetAppOptionsSchemaCollection(appMetadata));
         document.Paths.Add(
@@ -762,9 +771,9 @@ public class CustomOpenApiController : Controller
             new OpenApiPathItem()
             {
                 Summary = "Get instance app options",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new()
+                    [HttpMethod.Get] = new()
                     {
                         Tags = optionsTags,
                         OperationId = "GetInstanceAppOptions",
@@ -775,40 +784,44 @@ public class CustomOpenApiController : Controller
                         [
                             Snippets.InstanceOwnerPartyIdParameterReference,
                             Snippets.InstanceGuidParameterReference,
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "optionsId",
                                 Description = "OptionsId from a layout component.",
                                 In = ParameterLocation.Path,
-                                Schema = new OpenApiSchema() { Type = "string", Enum = allOptionsSchemaCollection },
+                                Schema = new OpenApiSchema()
+                                {
+                                    Type = JsonSchemaType.String,
+                                    Enum = allOptionsSchemaCollection,
+                                },
                             },
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "queryParams",
                                 Description = "Query parameters supplied.",
                                 In = ParameterLocation.Query,
                                 Schema = new OpenApiSchema()
                                 {
-                                    Type = "object",
-                                    AdditionalProperties = new OpenApiSchema() { Type = "string" },
-                                    Example = new OpenApiObject() { ["key"] = new OpenApiString("value") },
+                                    Type = JsonSchemaType.Object,
+                                    AdditionalProperties = new OpenApiSchema() { Type = JsonSchemaType.String },
+                                    Example = new JsonObject() { ["key"] = "value" },
                                 },
                             },
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "language",
                                 Description = "The language selected by the user (ISO 639-1, e.g., 'nb').",
                                 In = ParameterLocation.Query,
-                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Example = "nb" },
                             },
                         ],
                         Responses = Snippets.AddCommonErrorResponses(
                             new OpenApiResponses
                             {
-                                ["200"] = new()
+                                ["200"] = new OpenApiResponse()
                                 {
                                     Description = "AppOptions",
-                                    Content =
+                                    Content = new Dictionary<string, OpenApiMediaType>
                                     {
                                         ["application/json"] = new OpenApiMediaType()
                                         {
@@ -831,9 +844,9 @@ public class CustomOpenApiController : Controller
             new OpenApiPathItem()
             {
                 Summary = "Get app options",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new()
+                    [HttpMethod.Get] = new()
                     {
                         Tags = optionsTags,
                         OperationId = "GetAppOptions",
@@ -842,40 +855,44 @@ public class CustomOpenApiController : Controller
                             "Api that exposes app related options. The tags field is only populated when requesting library code lists.",
                         Parameters =
                         [
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "optionsId",
                                 Description = "OptionsId from a layout component.",
                                 In = ParameterLocation.Path,
-                                Schema = new OpenApiSchema() { Type = "string", Enum = appOptionsSchemaCollection },
+                                Schema = new OpenApiSchema()
+                                {
+                                    Type = JsonSchemaType.String,
+                                    Enum = appOptionsSchemaCollection,
+                                },
                             },
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "queryParams",
                                 Description = "Query parameters supplied.",
                                 In = ParameterLocation.Query,
                                 Schema = new OpenApiSchema()
                                 {
-                                    Type = "object",
-                                    AdditionalProperties = new OpenApiSchema() { Type = "string" },
-                                    Example = new OpenApiObject() { ["key"] = new OpenApiString("value") },
+                                    Type = JsonSchemaType.Object,
+                                    AdditionalProperties = new OpenApiSchema() { Type = JsonSchemaType.String },
+                                    Example = new JsonObject() { ["key"] = "value" },
                                 },
                             },
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "language",
                                 Description = "The language selected by the user (ISO 639-1, e.g., 'nb').",
                                 In = ParameterLocation.Query,
-                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Example = "nb" },
                             },
                         ],
                         Responses = Snippets.AddCommonErrorResponses(
                             new OpenApiResponses
                             {
-                                ["200"] = new()
+                                ["200"] = new OpenApiResponse()
                                 {
                                     Description = "AppOptions",
-                                    Content =
+                                    Content = new Dictionary<string, OpenApiMediaType>
                                     {
                                         ["application/json"] = new OpenApiMediaType()
                                         {
@@ -894,18 +911,16 @@ public class CustomOpenApiController : Controller
         );
 
         // Validation endpoint
-        var validationTags = new[]
-        {
-            new OpenApiTag { Name = "Validation", Description = "Operations for validating" },
-        };
+        var validationTags = new HashSet<OpenApiTagReference> { new OpenApiTagReference("Validation") };
+        document.Tags.Add(new OpenApiTag { Name = "Validation", Description = "Operations for validating" });
         document.Paths.Add(
             $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/validate",
-            new()
+            new OpenApiPathItem()
             {
                 Summary = "Validate an app instance",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new()
+                    [HttpMethod.Get] = new OpenApiOperation()
                     {
                         Tags = validationTags,
                         OperationId = "ValidateInstance",
@@ -916,42 +931,40 @@ public class CustomOpenApiController : Controller
                         [
                             Snippets.InstanceOwnerPartyIdParameterReference,
                             Snippets.InstanceGuidParameterReference,
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "ignoredValidators",
                                 Description = "Comma separated list of validators to ignore",
                                 In = ParameterLocation.Query,
                                 Schema = new OpenApiSchema()
                                 {
-                                    Type = "string",
-                                    Example = new OpenApiString(
-                                        "DataAnnotations, Altinn.App.Models.model.ModelValidation_FormData"
-                                    ),
+                                    Type = JsonSchemaType.String,
+                                    Example = "DataAnnotations, Altinn.App.Models.model.ModelValidation_FormData",
                                 },
                             },
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "onlyIncrementalValidators",
                                 Description =
                                     "When true, only run incremental validators (those that run on PATCH requests)",
                                 In = ParameterLocation.Query,
-                                Schema = new OpenApiSchema() { Type = "boolean", Example = new OpenApiBoolean(false) },
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.Boolean, Example = false },
                             },
-                            new()
+                            new OpenApiParameter
                             {
                                 Name = "language",
                                 Description = "The currently used language by the user (or null if not available)",
                                 In = ParameterLocation.Query,
-                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Example = "nb" },
                             },
                         ],
                         Responses = Snippets.AddCommonErrorResponses(
                             new OpenApiResponses
                             {
-                                ["200"] = new()
+                                ["200"] = new OpenApiResponse()
                                 {
                                     Description = "Validation result",
-                                    Content =
+                                    Content = new Dictionary<string, OpenApiMediaType>
                                     {
                                         ["application/json"] = new OpenApiMediaType()
                                         {
@@ -962,10 +975,10 @@ public class CustomOpenApiController : Controller
                                         },
                                     },
                                 },
-                                ["409"] = new()
+                                ["409"] = new OpenApiResponse()
                                 {
                                     Description = "Validation cannot be performed (e.g., no active task)",
-                                    Reference = Snippets.ProblemDetailsResponseReference,
+                                    Content = Snippets.ProblemDetailsResponseSchema.Content,
                                 },
                             }
                         ),
@@ -975,14 +988,14 @@ public class CustomOpenApiController : Controller
         );
     }
 
-    private List<IOpenApiAny> GetInstanceAppOptionsSchemaCollection()
+    private List<JsonNode> GetInstanceAppOptionsSchemaCollection()
     {
         var optionsIds = _appImplementationFactory.GetAll<IInstanceAppOptionsProvider>().Select(a => a.Id);
 
-        return optionsIds.Select(optionsId => new OpenApiString(optionsId)).Cast<IOpenApiAny>().ToList();
+        return optionsIds.Select(optionsId => (JsonNode)optionsId).ToList();
     }
 
-    private List<IOpenApiAny> GetAppOptionsSchemaCollection(ApplicationMetadata appMetadata)
+    private List<JsonNode> GetAppOptionsSchemaCollection(ApplicationMetadata appMetadata)
     {
         // Get Altinn 3 library code lists references configured in ApplicationMetadata:
         const string libraryRefRegex =
@@ -1011,19 +1024,17 @@ public class CustomOpenApiController : Controller
             );
         }
 
-        return optionsIds.Select(optionsId => new OpenApiString(optionsId)).Cast<IOpenApiAny>().ToList();
+        return optionsIds.WhereNotNull().Select(optionsId => (JsonNode)optionsId).ToList();
     }
 
     private void AddRoutsForDataType(OpenApiDocument doc, ApplicationMetadata appMetadata, DataType dataType)
     {
-        var tags = new[]
-        {
-            new OpenApiTag()
-            {
-                Name = $"{(dataType.AppLogic?.ClassRef is null ? "FileData" : "FormData")} {dataType.Id}",
-                Description = $"Operations on data elements of type {dataType.Id}",
-            },
-        };
+        var tagName = $"{(dataType.AppLogic?.ClassRef is null ? "FileData" : "FormData")} {dataType.Id}";
+        var tags = new HashSet<OpenApiTagReference> { new OpenApiTagReference(tagName) };
+        doc.Tags ??= new HashSet<OpenApiTag>();
+        doc.Tags.Add(
+            new OpenApiTag() { Name = tagName, Description = $"Operations on data elements of type {dataType.Id}" }
+        );
         var schema = GetSchemaForDataType(dataType);
         if (schema is not null)
         {
@@ -1037,8 +1048,8 @@ public class CustomOpenApiController : Controller
 
     private void AddOperationsForFormData(
         OpenApiDocument doc,
-        OpenApiTag[] tags,
-        OpenApiSchema schema,
+        HashSet<OpenApiTagReference> tags,
+        IOpenApiSchema schema,
         DataType dataType,
         ApplicationMetadata appMetadata
     )
@@ -1048,7 +1059,7 @@ public class CustomOpenApiController : Controller
         {
             Schema = new OpenApiSchema()
             {
-                Type = "string",
+                Type = JsonSchemaType.String,
                 Format = "binary",
                 Title = "Xml",
                 Description = $"""See xml schema""",
@@ -1060,9 +1071,9 @@ public class CustomOpenApiController : Controller
             {
                 Summary = $"Operations for {dataType.Id}",
                 Description = $"CRUD operations for data of type {dataType.Id}",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new OpenApiOperation()
+                    [HttpMethod.Get] = new OpenApiOperation()
                     {
                         Tags = tags,
                         Summary = "Get data",
@@ -1082,11 +1093,15 @@ public class CustomOpenApiController : Controller
 
 
                                 """,
-                                Content = { ["application/json"] = jsonType, ["application/xml"] = xmlType },
+                                Content = new Dictionary<string, OpenApiMediaType>
+                                {
+                                    ["application/json"] = jsonType,
+                                    ["application/xml"] = xmlType,
+                                },
                             }
                         ),
                     },
-                    [OperationType.Put] = new OpenApiOperation()
+                    [HttpMethod.Put] = new OpenApiOperation()
                     {
                         Tags = tags,
                         Summary = "Replace data element content",
@@ -1094,7 +1109,11 @@ public class CustomOpenApiController : Controller
                         RequestBody = new OpenApiRequestBody()
                         {
                             Required = true,
-                            Content = { ["application/json"] = jsonType, ["application/xml"] = xmlType },
+                            Content = new Dictionary<string, OpenApiMediaType>
+                            {
+                                ["application/json"] = jsonType,
+                                ["application/xml"] = xmlType,
+                            },
                         },
                         Responses = Snippets.AddCommonErrorResponses(
                             HttpStatusCode.OK,
@@ -1117,9 +1136,9 @@ public class CustomOpenApiController : Controller
             {
                 Summary = $"Operations for {dataType.Id}",
                 Description = $"CRUD operations for data of type {dataType.Id}",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Post] = new OpenApiOperation()
+                    [HttpMethod.Post] = new OpenApiOperation()
                     {
                         Tags = tags,
                         Summary = "Create data",
@@ -1127,14 +1146,18 @@ public class CustomOpenApiController : Controller
                         RequestBody = new OpenApiRequestBody()
                         {
                             Required = true,
-                            Content = { ["application/json"] = jsonType, ["application/xml"] = xmlType },
+                            Content = new Dictionary<string, OpenApiMediaType>
+                            {
+                                ["application/json"] = jsonType,
+                                ["application/xml"] = xmlType,
+                            },
                         },
                         Responses = new()
                         {
                             ["201"] = new OpenApiResponse()
                             {
                                 Description = "Data created",
-                                Content =
+                                Content = new Dictionary<string, OpenApiMediaType>
                                 {
                                     ["text/json"] = new OpenApiMediaType()
                                     {
@@ -1148,7 +1171,7 @@ public class CustomOpenApiController : Controller
                             ["400"] = new OpenApiResponse()
                             {
                                 Description = "Failed to add data element",
-                                Content =
+                                Content = new Dictionary<string, OpenApiMediaType>
                                 {
                                     ["application/json"] = new OpenApiMediaType()
                                     {
@@ -1175,20 +1198,26 @@ public class CustomOpenApiController : Controller
 
     private static void AddRoutesForAttachmentDataType(
         OpenApiDocument doc,
-        OpenApiTag[] tags,
+        HashSet<OpenApiTagReference> tags,
         DataType dataType,
         ApplicationMetadata appMetadata
     )
     {
+        var description =
+            dataType.Description?.Count > 0
+                ? dataType.Description.GetValueOrDefault("en")
+                    ?? dataType.Description.GetValueOrDefault("nb")
+                    ?? dataType.Description.FirstOrDefault().Value
+                : $"Http operations for data of type {dataType.Id}";
         doc.Paths.Add(
             $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/data/{{dataGuid}}/type/{dataType.Id}",
             new OpenApiPathItem()
             {
                 Summary = $"Operations for {dataType.Id}",
-                Description = $"CRUD operations for data of type {dataType.Id}",
-                Operations =
+                Description = description,
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Get] = new OpenApiOperation()
+                    [HttpMethod.Get] = new OpenApiOperation()
                     {
                         Tags = tags,
                         Summary = "Get attachment",
@@ -1198,11 +1227,15 @@ public class CustomOpenApiController : Controller
                             ["200"] = new OpenApiResponse()
                             {
                                 Description = "Attachment found",
-                                Content =
+                                Content = new Dictionary<string, OpenApiMediaType>
                                 {
                                     ["application/octet-stream"] = new OpenApiMediaType()
                                     {
-                                        Schema = new OpenApiSchema() { Format = "binary" },
+                                        Schema = new OpenApiSchema()
+                                        {
+                                            Type = JsonSchemaType.String,
+                                            Format = "binary",
+                                        },
                                     },
                                 },
                             },
@@ -1225,9 +1258,9 @@ public class CustomOpenApiController : Controller
             {
                 Summary = $"Operations for {dataType.Id}",
                 Description = $"CRUD operations for data of type {dataType.Id}",
-                Operations =
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
                 {
-                    [OperationType.Post] = new OpenApiOperation()
+                    [HttpMethod.Post] = new OpenApiOperation()
                     {
                         Tags = tags,
                         Summary = "Create attachment",
@@ -1238,10 +1271,7 @@ public class CustomOpenApiController : Controller
                                 dataType
                                     .AllowedContentTypes?.Distinct()
                                     .ToDictionary(contentType => contentType, contentType => new OpenApiMediaType())
-                                ?? new Dictionary<string, OpenApiMediaType>()
-                                {
-                                    ["application/octet-stream"] = new OpenApiMediaType(),
-                                },
+                                ?? new Dictionary<string, OpenApiMediaType>() { ["application/octet-stream"] = new() },
                         },
                         Responses = new() { ["201"] = new OpenApiResponse() { Description = "Attachment created" } },
                     },
@@ -1256,7 +1286,7 @@ public class CustomOpenApiController : Controller
         );
     }
 
-    private OpenApiSchema? GetSchemaForDataType(DataType dataType)
+    private IOpenApiSchema? GetSchemaForDataType(DataType dataType)
     {
         var classRef = dataType.AppLogic?.ClassRef;
         if (classRef == null)
@@ -1269,11 +1299,26 @@ public class CustomOpenApiController : Controller
             return null;
         }
         var schema = _schemaGenerator.GenerateSchema(model, _schemaRepository);
-        schema.Title = dataType.Id;
-        schema.Description =
-            dataType.Description?.GetValueOrDefault("en")
-            ?? dataType.Description?.GetValueOrDefault("nb")
-            ?? dataType.Description?.FirstOrDefault().Value;
+
+        // GenerateSchema may return either the concrete schema or a reference into _schemaRepository.Schemas.
+        // Resolve to the concrete schema in the repository so Title/Description can be mutated.
+        OpenApiSchema? target = schema as OpenApiSchema;
+        if (target is null && schema is OpenApiSchemaReference reference)
+        {
+            var id = reference.Reference?.Id;
+            if (id is not null && _schemaRepository.Schemas.TryGetValue(id, out var stored))
+            {
+                target = stored as OpenApiSchema;
+            }
+        }
+        if (target is not null)
+        {
+            target.Title = dataType.Id;
+            target.Description =
+                dataType.Description?.GetValueOrDefault("en")
+                ?? dataType.Description?.GetValueOrDefault("nb")
+                ?? dataType.Description?.FirstOrDefault().Value;
+        }
         return schema;
     }
 }
@@ -1281,7 +1326,7 @@ public class CustomOpenApiController : Controller
 /// <summary>
 /// Common parts from the schema generator
 /// </summary>
-public static class Snippets
+file static class Snippets
 {
     /// <summary>
     /// Schema for the POST endpoint for creating a new instance
@@ -1290,44 +1335,40 @@ public static class Snippets
         new()
         {
             Title = "InstanceWrite",
-            Properties =
+            Properties = new Dictionary<string, IOpenApiSchema>
             {
                 ["instanceOwner"] = new OpenApiSchema()
                 {
-                    Type = "object",
+                    Type = JsonSchemaType.Object,
                     Title = "Alternate ways to specify the instance owner",
                     Description = "Only one of these should be specified when creating a new instance",
-                    Properties =
+                    Properties = new Dictionary<string, IOpenApiSchema>
                     {
                         ["partyId"] = new OpenApiSchema()
                         {
-                            Type = "string",
-                            Nullable = true,
+                            Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Format = "int32",
                         },
                         ["personNumber"] = new OpenApiSchema()
                         {
-                            Type = "string",
-                            Nullable = true,
+                            Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Pattern = @"^\d{11}$",
                         },
                         ["organisationNumber"] = new OpenApiSchema()
                         {
-                            Type = "string",
-                            Nullable = true,
+                            Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Pattern = @"^\d{9}$",
                         },
                         ["username"] = new OpenApiSchema()
                         {
-                            Type = "string",
-                            Nullable = true,
+                            Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Description =
                                 "Initialization based on username is not yet supported (https://github.com/Altinn/app-lib-dotnet/issues/652)",
                         },
                     },
                 },
-                ["dueBefore"] = new OpenApiSchema() { Type = "string", Format = "date-time" },
-                ["visibleAfter"] = new OpenApiSchema() { Type = "string", Format = "date-time" },
+                ["dueBefore"] = new OpenApiSchema() { Type = JsonSchemaType.String, Format = "date-time" },
+                ["visibleAfter"] = new OpenApiSchema() { Type = JsonSchemaType.String, Format = "date-time" },
             },
         };
 
@@ -1338,54 +1379,47 @@ public static class Snippets
         new()
         {
             Title = "Run patches on multiple Form data elements at once",
-            Type = "object",
-            Properties =
+            Type = JsonSchemaType.Object,
+            Properties = new Dictionary<string, IOpenApiSchema>
             {
-                ["patches"] = new()
+                ["patches"] = new OpenApiSchema
                 {
-                    Type = "array",
-                    Items = new()
+                    Type = JsonSchemaType.Array,
+                    Items = new OpenApiSchema
                     {
-                        Type = "object",
+                        Type = JsonSchemaType.Object,
                         Required = new HashSet<string>(["dataElementId", "patch"]),
-                        Properties =
+                        Properties = new Dictionary<string, IOpenApiSchema>
                         {
-                            ["dataElementId"] = new()
+                            ["dataElementId"] = new OpenApiSchema { Type = JsonSchemaType.String, Format = "guid" },
+                            ["patch"] = new OpenApiSchema
                             {
-                                Type = "string",
-                                Format = "guid",
-                                Nullable = false,
-                            },
-                            ["patch"] = new()
-                            {
-                                Type = "array",
+                                Type = JsonSchemaType.Array,
                                 Title = "Json patch",
                                 Description = "A standard RFC 6902 document describing changes to one data element",
-                                Nullable = false,
-                                Items = new()
+                                Items = new OpenApiSchema
                                 {
-                                    Type = "object",
+                                    Type = JsonSchemaType.Object,
                                     Required = new HashSet<string>() { "op", "path" },
-                                    Nullable = false,
-                                    Properties =
+                                    Properties = new Dictionary<string, IOpenApiSchema>
                                     {
-                                        ["op"] = new()
+                                        ["op"] = new OpenApiSchema
                                         {
                                             Title = "Patch operation",
-                                            Type = "string",
-                                            Enum =
-                                            [
-                                                new OpenApiString("add"),
-                                                new OpenApiString("remove"),
-                                                new OpenApiString("replace"),
-                                                new OpenApiString("move"),
-                                                new OpenApiString("copy"),
-                                                new OpenApiString("test"),
-                                            ],
+                                            Type = JsonSchemaType.String,
+                                            Enum = ["add", "remove", "replace", "move", "copy", "test"],
                                         },
-                                        ["from"] = new() { Title = "JsonPointer", Type = "string" },
-                                        ["path"] = new() { Title = "JsonPointer", Type = "string" },
-                                        ["value"] = new()
+                                        ["from"] = new OpenApiSchema
+                                        {
+                                            Title = "JsonPointer",
+                                            Type = JsonSchemaType.String,
+                                        },
+                                        ["path"] = new OpenApiSchema
+                                        {
+                                            Title = "JsonPointer",
+                                            Type = JsonSchemaType.String,
+                                        },
+                                        ["value"] = new OpenApiSchema
                                         {
                                             Title = "the value",
                                             Description = "The value to add or replace",
@@ -1396,95 +1430,87 @@ public static class Snippets
                         },
                     },
                 },
-                ["ignoredValidators"] = new()
+                ["ignoredValidators"] = new OpenApiSchema
                 {
                     Title = "List of validators to not run incrementally",
                     Description =
                         "This is used for saving server resources, when frontend has a duplicated version of the validator. The validators will be executed on process/next anyway",
-                    Items = new() { Type = "string" },
-                    Type = "array",
+                    Items = new OpenApiSchema { Type = JsonSchemaType.String },
+                    Type = JsonSchemaType.Array,
                 },
             },
             Required = new HashSet<string>(["patches"]),
         };
 
+    internal const string InstanceOwnerPartyIdParameterId = "instanceOwnerPartyId";
+    internal const string InstanceGuidParameterId = "instanceGuid";
+    internal const string DataGuidParameterId = "dataGuid";
+    internal const string LanguageParameterId = "language";
+    internal const string ProblemDetailsResponseId = "ProblemDetails";
+    internal const string AltinnTokenSecuritySchemeId = General.AppTokenName;
+
     /// <summary>
     /// Reference to the shared instance owner party id parameter
     /// </summary>
-    public static OpenApiParameter InstanceOwnerPartyIdParameterReference =>
-        new()
-        {
-            Reference = new OpenApiReference() { Id = "instanceOwnerPartyId", Type = ReferenceType.Parameter },
-        };
+    public static OpenApiParameterReference InstanceOwnerPartyIdParameterReference =>
+        new(InstanceOwnerPartyIdParameterId);
 
     /// <summary>
     /// Reference to the shared instance guid parameter
     /// </summary>
-    public static OpenApiParameter InstanceGuidParameterReference =>
-        new()
-        {
-            Reference = new OpenApiReference() { Id = "instanceGuid", Type = ReferenceType.Parameter },
-        };
+    public static OpenApiParameterReference InstanceGuidParameterReference => new(InstanceGuidParameterId);
 
     /// <summary>
     /// Reference to the shared data guid parameter
     /// </summary>
-    public static OpenApiParameter DataGuidParameterReference =>
-        new()
-        {
-            Reference = new OpenApiReference() { Id = "dataGuid", Type = ReferenceType.Parameter },
-        };
+    public static OpenApiParameterReference DataGuidParameterReference => new(DataGuidParameterId);
 
     /// <summary>
     /// Reference to the shared language parameter
     /// </summary>
-    public static OpenApiParameter LanguageParameterReference =>
-        new()
-        {
-            Reference = new OpenApiReference() { Id = "language", Type = ReferenceType.Parameter },
-        };
+    public static OpenApiParameterReference LanguageParameterReference => new(LanguageParameterId);
 
     /// <summary>
     /// Common parameters that are used multiple places in the api
     /// </summary>
-    public static IDictionary<string, OpenApiParameter> CommonParameters =>
-        new Dictionary<string, OpenApiParameter>
+    public static IDictionary<string, IOpenApiParameter> CommonParameters =>
+        new Dictionary<string, IOpenApiParameter>
         {
-            [InstanceOwnerPartyIdParameterReference.Reference.Id] = new()
+            [InstanceOwnerPartyIdParameterId] = new OpenApiParameter
             {
                 Name = "instanceOwnerPartyId",
                 Description =
                     "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
                 In = ParameterLocation.Path,
                 Required = true,
-                Schema = new OpenApiSchema() { Type = "integer" },
+                Schema = new OpenApiSchema() { Type = JsonSchemaType.Integer },
             },
-            [InstanceGuidParameterReference.Reference.Id] = new()
+            [InstanceGuidParameterId] = new OpenApiParameter
             {
                 Name = "instanceGuid",
                 Description = "The guid part of instance.Id",
                 In = ParameterLocation.Path,
                 Required = true,
-                Schema = new OpenApiSchema() { Type = "string", Format = "guid" },
+                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Format = "guid" },
             },
-            ["dataGuid"] = new()
+            [DataGuidParameterId] = new OpenApiParameter
             {
                 Name = "dataGuid",
                 Description = "Id of this data element that belongs to an instance",
                 In = ParameterLocation.Path,
                 Required = true,
-                Schema = new OpenApiSchema() { Type = "string", Format = "guid" },
+                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Format = "guid" },
             },
-            ["language"] = new()
+            [LanguageParameterId] = new OpenApiParameter
             {
                 Name = "language",
                 In = ParameterLocation.Query,
                 AllowEmptyValue = false,
-                Example = new OpenApiString("nb"),
+                Example = "nb",
                 Description =
                     "Some apps make changes to the data models or validation based on the active language of the user",
                 Required = false,
-                Schema = new OpenApiSchema() { Type = "string", Pattern = @"\w\w" },
+                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Pattern = @"\w\w" },
             },
         };
 
@@ -1495,44 +1521,40 @@ public static class Snippets
         new OpenApiResponse()
         {
             Description = "Problem details",
-            Content =
+            Content = new Dictionary<string, OpenApiMediaType>
             {
                 ["application/problem+json"] = new OpenApiMediaType()
                 {
-                    Schema = new()
+                    Schema = new OpenApiSchema
                     {
-                        Type = "object",
-                        Properties =
+                        Type = JsonSchemaType.Object,
+                        Properties = new Dictionary<string, IOpenApiSchema>
                         {
                             ["type"] = new OpenApiSchema()
                             {
-                                Type = "string",
-                                Nullable = true,
-                                Example = new OpenApiString("https://datatracker.ietf.org/doc/html/rfc6902/"),
+                                Type = JsonSchemaType.String | JsonSchemaType.Null,
+                                Example = "https://datatracker.ietf.org/doc/html/rfc6902/",
                             },
                             ["title"] = new OpenApiSchema()
                             {
-                                Type = "string",
-                                Nullable = true,
-                                Example = new OpenApiString("Error in data processing"),
+                                Type = JsonSchemaType.String | JsonSchemaType.Null,
+                                Example = "Error in data processing",
                             },
                             ["status"] = new OpenApiSchema()
                             {
-                                Type = "integer",
+                                Type = JsonSchemaType.Integer | JsonSchemaType.Null,
                                 Format = "int32",
-                                Nullable = true,
-                                Example = new OpenApiInteger(400),
+                                Example = 400,
                             },
                             ["detail"] = new OpenApiSchema()
                             {
-                                Type = "string",
-                                Nullable = true,
-                                Example = new OpenApiString("Actually useful description of the error"),
+                                Type = JsonSchemaType.String | JsonSchemaType.Null,
+                                Example = "Actually useful description of the error",
                             },
-                            ["instance"] = new OpenApiSchema() { Type = "string", Nullable = true },
-                            ["traceId"] = new OpenApiSchema() { Type = "string", Nullable = true },
+                            ["instance"] = new OpenApiSchema() { Type = JsonSchemaType.String | JsonSchemaType.Null },
+                            ["traceId"] = new OpenApiSchema() { Type = JsonSchemaType.String | JsonSchemaType.Null },
                         },
-                        AdditionalProperties = new()
+                        AdditionalProperties = new OpenApiSchema
                         {
                             Title = "Additional properties",
                             Description = "Additional properties can be added to the problem details",
@@ -1547,7 +1569,6 @@ public static class Snippets
     /// </summary>
     public static readonly OpenApiSecurityScheme AltinnTokenSecurityScheme = new()
     {
-        Reference = new OpenApiReference() { Id = General.AppTokenName, Type = ReferenceType.SecurityScheme },
         Scheme = AuthorizationSchemes.Bearer,
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
@@ -1559,13 +1580,14 @@ public static class Snippets
     };
 
     /// <summary>
+    /// Reference to the AltinnToken security scheme
+    /// </summary>
+    public static OpenApiSecuritySchemeReference AltinnTokenSecuritySchemeReference => new(AltinnTokenSecuritySchemeId);
+
+    /// <summary>
     /// Reference to the ProblemDetails common response
     /// </summary>
-    public static readonly OpenApiReference ProblemDetailsResponseReference = new()
-    {
-        Id = "ProblemDetails",
-        Type = ReferenceType.Response,
-    };
+    public static OpenApiResponseReference ProblemDetailsResponseReference => new(ProblemDetailsResponseId);
 
     /// <summary>
     /// Add common error responses to a response collection
@@ -1584,26 +1606,11 @@ public static class Snippets
     /// </summary>
     public static OpenApiResponses AddCommonErrorResponses(OpenApiResponses responses)
     {
-        responses.TryAdd(
-            "400",
-            new OpenApiResponse() { Description = "Bad request", Reference = ProblemDetailsResponseReference }
-        );
-        responses.TryAdd(
-            "401",
-            new OpenApiResponse() { Description = "Unauthorized", Reference = ProblemDetailsResponseReference }
-        );
-        responses.TryAdd(
-            "403",
-            new OpenApiResponse() { Description = "Forbidden", Reference = ProblemDetailsResponseReference }
-        );
-        responses.TryAdd(
-            "404",
-            new OpenApiResponse() { Description = "Not found", Reference = ProblemDetailsResponseReference }
-        );
-        responses.TryAdd(
-            "500",
-            new OpenApiResponse() { Description = "Internal server error", Reference = ProblemDetailsResponseReference }
-        );
+        responses.TryAdd("400", ProblemDetailsResponseReference);
+        responses.TryAdd("401", ProblemDetailsResponseReference);
+        responses.TryAdd("403", ProblemDetailsResponseReference);
+        responses.TryAdd("404", ProblemDetailsResponseReference);
+        responses.TryAdd("500", ProblemDetailsResponseReference);
         return responses;
     }
 }
@@ -1611,29 +1618,39 @@ public static class Snippets
 /// <summary>
 /// Visitor that modifies the schema after it has been generated
 /// </summary>
-public class SchemaPostVisitor : OpenApiVisitorBase
+file class SchemaPostVisitor : OpenApiVisitorBase
 {
     /// <inheritdoc />
-    public override void Visit(OpenApiSchema schema)
+    public override void Visit(IOpenApiSchema schema)
     {
+        if (schema is not OpenApiSchema concrete)
+        {
+            base.Visit(schema);
+            return;
+        }
+
         // Remove `altinnRowId` from the data element schema (they are not intended for external usage)
-        schema.Properties.Remove("altinnRowId");
+        concrete.Properties?.Remove("altinnRowId");
 
         // openapi has xml extensions, but they can't represent tags with both attributes and values
         // <tag orid="323">value</tag>, so we just zero properties from SwaggerGen
-        schema.Xml = null;
+        concrete.Xml = null;
 
         // Mark the id property as required
-        if (schema.Properties.TryGetValue("id", out var property))
+        if (concrete.Properties is not null && concrete.Properties.TryGetValue("id", out var property))
         {
-            property.Nullable = false;
-            schema.Required.Add("id");
+            if (property is OpenApiSchema concreteProperty && concreteProperty.Type is { } propertyType)
+            {
+                concreteProperty.Type = propertyType & ~JsonSchemaType.Null;
+            }
+            concrete.Required ??= new HashSet<string>();
+            concrete.Required.Add("id");
         }
 
         // Don't allow additional properties on objects, when the type of the addional properties is not specified
-        if (schema.Type == "object" && schema.AdditionalProperties is null)
+        if (concrete.Type == JsonSchemaType.Object && concrete.AdditionalProperties is null)
         {
-            schema.AdditionalPropertiesAllowed = false;
+            concrete.AdditionalPropertiesAllowed = false;
         }
 
         base.Visit(schema);

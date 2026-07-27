@@ -37,6 +37,9 @@ public static class WorkflowEngineBuilderExtensions
         {
             builder.Services.AddSingleton(new EngineConnectionString(connectionString));
             bool isDev = builder.Environment.IsDevelopment();
+            bool isLocalEnvironment =
+                isDev
+                || string.Equals(builder.Environment.EnvironmentName, "Docker", StringComparison.OrdinalIgnoreCase);
 
             // Hosting fundamentals (from Altinn.Studio.Runtime.Common)
             builder.UseCommonHostingConfiguration();
@@ -46,7 +49,10 @@ public static class WorkflowEngineBuilderExtensions
 
             // Core engine services
             builder.Services.AddWorkflowEngineHost();
-            builder.Services.AddDbRepository(enableSensitiveDataLogging: isDev);
+            builder.Services.AddDbRepository(
+                enableSensitiveDataLogging: isDev,
+                enableAzureWorkloadIdentity: !isLocalEnvironment
+            );
             builder.Services.AddEngineHealthChecks();
             builder.Services.AddHttpContextAccessor();
 
@@ -84,6 +90,8 @@ public static class WorkflowEngineBuilderExtensions
             builder.Services.AddOpenApi(options =>
             {
                 options.AddOperationTransformer<WorkflowMetadataOperationTransformer>();
+                options.AddOperationTransformer<EngineApiDocsOperationTransformer>();
+                options.AddDocumentTransformer<EngineApiDocsDocumentTransformer>();
             });
 
             return builder;

@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace Altinn.Notifications.Core.Models.Recipients;
 
 /// <summary>

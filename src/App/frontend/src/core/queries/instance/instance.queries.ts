@@ -1,8 +1,12 @@
+import { useCallback } from 'react';
+
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
-import { parseInstanceId } from 'src/core/queries/instance/utils';
+import { parseInstanceId } from 'src/core/queries/instance';
+import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
+import type { IInstance } from 'src/types/shared';
 
 type InstantiationArgs = number | Instantiation;
 
@@ -47,6 +51,17 @@ export function activeInstancesQuery({ partyId, instanceApi }: ActiveInstancesQu
   });
 }
 
+export function useGetCachedInstanceData() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (instanceOwnerPartyId: string | undefined, instanceGuid: string | undefined): IInstance | undefined =>
+      instanceOwnerPartyId && instanceGuid
+        ? queryClient.getQueryData<IInstance>(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }))
+        : undefined,
+    [queryClient],
+  );
+}
+
 export function useCreateInstance(language: string) {
   const queryClient = useQueryClient();
   const instanceApi = useInstanceApi();
@@ -57,8 +72,13 @@ export function useCreateInstance(language: string) {
       typeof args === 'number'
         ? instanceApi.create({ instanceOwnerPartyId: args, language })
         : instanceApi.createWithPrefill({ data: args, language }),
-    onError: (error) => {
+    onError: async (error) => {
       window.logError('Instantiation failed:\n', error);
+
+      // If the instantiation failed because the user is authenticated with a too low security level, the backend
+      // responds with 403 and a RequiredAuthenticationLevel. We then redirect to step-up authentication instead of
+      // falling through to a generic "missing roles" error page. No-op for any other error.
+      await maybeAuthenticationRedirect(error);
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);

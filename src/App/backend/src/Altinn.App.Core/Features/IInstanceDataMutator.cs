@@ -3,6 +3,7 @@ using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Features;
 
@@ -34,27 +35,45 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// Add a new data element without app logic to the instance.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sent to storage.
+    /// </para>
+    /// <para>
+    /// <c>generatedFromTask</c> marks the element for automatic deletion when the process (re-)enters that task.
+    /// Use it for regenerable artifacts whose lifetime should follow the task, and leave it unset to manage the
+    /// element's lifecycle explicitly/manually.
+    /// </para>
     /// </remarks>
     BinaryDataChange AddBinaryDataElement(
         string dataTypeId,
         string contentType,
         string? filename,
-        ReadOnlyMemory<byte> bytes
+        ReadOnlyMemory<byte> bytes,
+        string? generatedFromTask = null,
+        List<KeyValueEntry>? metadata = null
     );
 
     /// <summary>
     /// Add a new data element without app logic to the instance.
     /// </summary>
     /// <remarks>
-    /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sendt to storage.
+    /// <para>
+    /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sent to storage.
+    /// </para>
+    /// <para>
+    /// <c>generatedFromTask</c> marks the element for automatic deletion when the process (re-)enters that task.
+    /// Use it for regenerable artifacts whose lifetime should follow the task, and leave it unset to manage the
+    /// element's lifecycle explicitly/manually.
+    /// </para>
     /// </remarks>
     BinaryDataChange AddBinaryDataElement(
         DataType dataType,
         string contentType,
         string? filename,
-        ReadOnlyMemory<byte> bytes
-    ) => AddBinaryDataElement(dataType.Id, contentType, filename, bytes);
+        ReadOnlyMemory<byte> bytes,
+        string? generatedFromTask = null,
+        List<KeyValueEntry>? metadata = null
+    ) => AddBinaryDataElement(dataType.Id, contentType, filename, bytes, generatedFromTask, metadata);
 
     /// <summary>
     /// Replace the binary content of an existing binary data element.

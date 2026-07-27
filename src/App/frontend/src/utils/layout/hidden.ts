@@ -4,19 +4,17 @@ import deepEqual from 'fast-deep-equal';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { getComponentDef, implementsIsChildHidden } from 'src/layout';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { CompExternal } from 'src/layout/layout';
-import type { IHiddenLayoutsExternal } from 'src/types';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
+import type { ILayoutCollection } from 'src/layout/layout';
+import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
 
 export interface IsHiddenOptions<Reason extends boolean = false> {
   /**
@@ -49,8 +47,7 @@ export function useIsHidden<Reason extends boolean = false>(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
-  const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse();
+  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups);
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
@@ -64,9 +61,9 @@ export function useIsHidden<Reason extends boolean = false>(
   });
 
   if (reason.hidden && forcedVisible && options.respectDevTools !== false) {
-    return (
-      options.includeReason === true ? { reason: 'forcedByDeVTools', hidden: false } : false
-    ) as Reason extends true ? HiddenWithReason : boolean;
+    return (options.includeReason === true ? forcedVisibleReason : false) as Reason extends true
+      ? HiddenWithReason
+      : boolean;
   }
 
   return (options.includeReason === true ? reason : reason.hidden) as Reason extends true ? HiddenWithReason : boolean;
@@ -88,13 +85,9 @@ export function useIsHiddenMulti(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
   const hiddenSources = useMemo(
-    () =>
-      baseComponentIds.map((baseComponentId) =>
-        findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse(),
-      ),
-    [baseComponentIds, hiddenPages, layoutLookups],
+    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups)),
+    [baseComponentIds, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
@@ -137,12 +130,12 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
     throw new Error("useIsHiddenPage doesn't support changing the pageKey, that would break the rule of hooks");
   }
 
-  const hiddenExpressions = FormStore.bootstrap.useHiddenLayoutsExpressions();
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
   const forcedVisible = useIsForcedVisibleByDevTools();
 
-  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
+  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, layoutCollection, ...options });
 
   if (hidden && forcedVisible && options.respectDevTools !== false) {
     return false;
@@ -155,14 +148,59 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
-  const pages = Object.keys(FormStore.bootstrap.useLaxLayouts() || {});
-  const hiddenExpressions = FormStore.bootstrap.useLaxHiddenLayoutsExpressions() || {};
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const stableOptions = useShallowMemo(options);
+  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
 
+  return useMemo(
+    () =>
+      getHiddenPages({
+        dataSources,
+        layoutCollection,
+        pageOrder,
+        options: stableOptions,
+      }),
+    [dataSources, layoutCollection, stableOptions, pageOrder],
+  );
+}
+
+export function getVisiblePageOrder({
+  dataSources,
+  layoutCollection,
+  pageOrder,
+  options = {},
+}: {
+  dataSources: ExpressionDataSources;
+  layoutCollection: ILayoutCollection | undefined;
+  pageOrder: string[];
+  options?: Omit<IsHiddenOptions, 'includeReason'>;
+}) {
+  const hiddenPages = getHiddenPages({ dataSources, layoutCollection, pageOrder, options });
+  return pageOrder.filter((page) => !hiddenPages.has(page));
+}
+
+function getHiddenPages({
+  dataSources,
+  layoutCollection,
+  pageOrder,
+  options = {},
+}: {
+  dataSources: ExpressionDataSources;
+  layoutCollection: ILayoutCollection | undefined;
+  pageOrder: string[];
+  options?: Omit<IsHiddenOptions, 'includeReason'>;
+}): Set<string> {
+  const pages = Object.keys(layoutCollection || {});
   const out = new Set<string>();
   for (const pageKey of pages) {
-    const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
+    const hidden = isHiddenPage({
+      pageKey,
+      dataSources,
+      pageOrder,
+      layoutCollection: layoutCollection!,
+      ...options,
+    });
     if (hidden) {
       out.add(pageKey);
     }
@@ -188,6 +226,9 @@ export type HiddenWithReason =
       reason: HiddenSource['type'] | 'pageOrder';
     };
 
+const visibleReason: HiddenWithReason = { hidden: false, reason: undefined };
+const forcedVisibleReason: HiddenWithReason = { hidden: false, reason: 'forcedByDeVTools' };
+
 function isHidden({
   hiddenSources,
   dataSources,
@@ -195,121 +236,34 @@ function isHidden({
   pageOrder,
   pageKey,
 }: IsHiddenProps): HiddenWithReason {
-  if (respectPageOrder && pageKey !== undefined && !pageOrder.includes(pageKey)) {
-    return { reason: 'pageOrder', hidden: true };
-  }
+  const result = evaluateHiddenSources({
+    hiddenSources,
+    pageOrder,
+    pageKey,
+    respectPageOrder,
+    evalHiddenExpression: (expr, source) => {
+      const options: EvalExprOptions = {
+        errorIntroText:
+          source.type === 'hiddenPage'
+            ? `Hidden expression for page ${source.id} failed`
+            : `Expression in property ${source.type} for component ${source.id} failed`,
+        defaultValue: false,
+        returnType: ExprVal.Boolean,
+      };
 
-  for (const source of hiddenSources) {
-    if (source.type === 'callback') {
-      const hidden = source.callback();
-      if (hidden) {
-        return { reason: source.type, hidden: true };
+      if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean)) {
+        return false;
       }
-      continue;
-    }
 
-    const { type, expr, id } = source;
-    const options: EvalExprOptions = {
-      errorIntroText:
-        type === 'hiddenPage'
-          ? `Hidden expression for page ${id} failed`
-          : `Expression in property ${type} for component ${id} failed`,
-      defaultValue: false,
-      returnType: ExprVal.Boolean,
-    };
+      return evalExpr(expr, dataSources, options);
+    },
+  });
 
-    if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean)) {
-      continue;
-    }
-
-    const hidden = evalExpr(expr, dataSources, options);
-    if (hidden) {
-      return { reason: type, hidden };
-    }
+  if (result.hidden) {
+    return { hidden: true, reason: result.reason! };
   }
 
-  return { reason: undefined, hidden: false };
-}
-
-interface Expr {
-  type: 'hidden' | 'hiddenRow' | 'hiddenPage';
-  expr: ExprValToActualOrExpr<ExprVal.Boolean>;
-  id: string;
-}
-
-interface Callback {
-  type: 'callback';
-  callback: () => boolean;
-  id: string;
-}
-
-type HiddenSource = Expr | Callback;
-
-function findHiddenSources(
-  baseComponentId: string | undefined,
-  layoutLookups: LayoutLookups,
-  hiddenPages: IHiddenLayoutsExternal,
-): HiddenSource[] {
-  const out: HiddenSource[] = [];
-  if (baseComponentId === undefined) {
-    return out;
-  }
-
-  const component = layoutLookups.allComponents[baseComponentId];
-  if (component?.hidden !== undefined) {
-    out.push({ type: 'hidden', expr: component.hidden, id: baseComponentId });
-  }
-
-  let childId = baseComponentId;
-  let parent = layoutLookups.componentToParent[childId];
-  while (parent?.type === 'node') {
-    const parentComponent = layoutLookups.getComponent(parent.id);
-    const parentDef = getComponentDef(parentComponent.type);
-    if (implementsIsChildHidden(parentDef)) {
-      const tmpParentId = parent.id;
-      const tmpChildId = childId;
-      const callback = () => parentDef.isChildHidden(tmpParentId, tmpChildId, layoutLookups);
-      out.push({ type: 'callback', callback, id: parent.id });
-    }
-    if (
-      parentComponent.type === 'RepeatingGroup' &&
-      parentComponent.hiddenRow !== undefined &&
-      isInRepGroupChildren(parentComponent, childId)
-    ) {
-      out.push({ type: 'hiddenRow', expr: parentComponent.hiddenRow, id: parent.id });
-    }
-    if (parentComponent.hidden !== undefined) {
-      out.push({ type: 'hidden', expr: parentComponent.hidden, id: parent.id });
-    }
-    childId = parent.id;
-    parent = layoutLookups.componentToParent[childId];
-  }
-
-  const page = layoutLookups.componentToPage[baseComponentId];
-  const hiddenExpr = page === undefined ? undefined : hiddenPages[page];
-  if (hiddenExpr !== undefined) {
-    out.push({ type: 'hiddenPage', expr: hiddenExpr, id: page! });
-  }
-
-  return out;
-}
-
-/**
- * Checks if a baseComponentId is in the repeating group children (returns false if the baseComponentId is included
- * via rowsBefore/rowsAfter).
- */
-function isInRepGroupChildren(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
-  const multiPage = parent.edit?.multiPage ?? false;
-  if (!multiPage) {
-    return parent.children.includes(baseComponentId);
-  }
-  for (const childId of parent.children) {
-    const [, id] = childId.split(':', 2);
-    if (id === baseComponentId) {
-      return true;
-    }
-  }
-  return false;
+  return visibleReason;
 }
 
 function useIsForcedVisibleByDevTools() {
@@ -318,7 +272,7 @@ function useIsForcedVisibleByDevTools() {
 
 interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
   pageKey: string | undefined;
-  hiddenExpressions: IHiddenLayoutsExternal;
+  layoutCollection: ILayoutCollection;
   dataSources: ExpressionDataSources;
   pageOrder: string[];
 }
@@ -326,7 +280,7 @@ interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageO
 function isHiddenPage({
   pageOrder,
   pageKey,
-  hiddenExpressions,
+  layoutCollection,
   dataSources,
   respectPageOrder = false,
 }: IsHiddenPageProps) {
@@ -336,7 +290,7 @@ function isHiddenPage({
   if (respectPageOrder && !pageOrder.includes(pageKey)) {
     return true;
   }
-  const hiddenExpr = hiddenExpressions[pageKey];
+  const hiddenExpr = layoutCollection[pageKey]?.data.hidden;
   if (hiddenExpr === undefined) {
     return false;
   }

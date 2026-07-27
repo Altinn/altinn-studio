@@ -1038,7 +1038,7 @@ blockquote {
 <h3 id="how-crashes-are-handled">How crashes are handled</h3>
 <ul>
 <li><code>HeartbeatService</code> proves worker liveness — if heartbeat expires, another worker reclaims the workflow</li>
-<li>Poison workflow protection after configurable max reclaim attempts</li>
+<li>Poisoned workflow protection after configurable max reclaim attempts</li>
 <li>Cross-pod cancellation propagation via DB polling; resume support for failed/canceled workflows</li>
 </ul>
 </section>

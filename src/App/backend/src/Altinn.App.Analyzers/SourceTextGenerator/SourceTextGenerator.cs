@@ -30,6 +30,10 @@ public static class SourceTextGenerator
 
                 public global::System.Type BackingDataType => typeof({{rootNode.TypeName}});
 
+                public global::Altinn.Platform.Storage.Interface.Models.DataType DataType { get; }
+
+                public global::Altinn.Platform.Storage.Interface.Models.DataElement? DataElement { get; }
+
                 public T BackingData<T>()
                     where T : class
                 {
@@ -39,13 +43,19 @@ public static class SourceTextGenerator
                         );
                 }
 
-                public {{className}}(object dataModel)
+                public {{className}}(
+                    object dataModel,
+                    global::Altinn.Platform.Storage.Interface.Models.DataType dataType,
+                    global::Altinn.Platform.Storage.Interface.Models.DataElement? dataElement = null
+                )
                 {
                     _dataModel =
                         dataModel as {{rootNode.TypeName}}
                         ?? throw new global::System.ArgumentException(
                             $"Data model must be of type {{rootNode.FullName}}, (was {dataModel?.GetType().FullName ?? "null"})"
                         );
+                    DataType = dataType;
+                    DataElement = dataElement;
                 }
 
             """
@@ -158,7 +168,8 @@ public static class SourceTextGenerator
                 internal static void Register()
                 {
                     global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<{{rootNode.TypeName}}>(
-                        dataModel => new {{className}}(dataModel)
+                        (dataModel, dataType, dataElement) =>
+                            new {{className}}(dataModel, dataType, dataElement)
                     );
                 }
 

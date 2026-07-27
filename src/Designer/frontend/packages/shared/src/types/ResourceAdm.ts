@@ -22,8 +22,6 @@ export interface Resource {
   version?: string;
   resourceReferences?: ResourceReference[];
   status?: ResourceStatusOption;
-  selfIdentifiedUserEnabled?: boolean;
-  enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
   accessListMode?: ResourceAccessListMode;
@@ -196,17 +194,6 @@ export interface ResourceFormError {
   field: keyof Resource;
   index?: number | keyof SupportedLanguage;
   error: string;
-}
-
-export interface DelegationCountOverview {
-  numberOfDelegations: number;
-  numberOfRelations: number;
-}
-
-export interface MigrateDelegationsRequest {
-  serviceCode: string;
-  serviceEditionCode: number;
-  resourceId: string;
 }
 
 interface ConsentTemplateTypeText {

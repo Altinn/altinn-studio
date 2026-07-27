@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
@@ -29,7 +30,7 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
         // Mock auth client to return the enum we want to test
         _authorizationClientMock = new Mock<IAuthorizationClient>();
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(It.IsAny<int>()))
+            .Setup(a => a.GetPartyList(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync([new() { PartyTypeName = PartyType.Person }]);
 
         _appMetadataMock = new Mock<IAppMetadata>();

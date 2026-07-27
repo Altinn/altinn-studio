@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -9,6 +10,7 @@ using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -574,6 +576,81 @@ public class PaymentControllerTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid)
         );
+
+        _services.VerifyMocks();
+    }
+
+    [Fact]
+    public async Task GetPaymentInformation_PersistFailsWithLockedDataElement_FallsBackToReadOnly()
+    {
+        // Reproduces the production race: a concurrent webhook advanced the process and locked the payment
+        // data element, so the persisting write fails with 409/Conflict — yet this request still reads the
+        // payment task as current (the locked state becomes visible before the current-task change does).
+        // The endpoint must degrade to a read-only result, not surface a 500. The current task is left
+        // unchanged here on purpose, so it is the 409 alone — not a moved task — that triggers the fallback.
+        SetupAltinnTaskExtensionMock(
+            "currentTask",
+            new AltinnTaskExtension
+            {
+                PaymentConfiguration = new()
+                {
+                    PaymentDataType = "paymentDataType",
+                    PaymentReceiptPdfDataType = "paymentPdfDataType",
+                },
+            },
+            Times.Once()
+        );
+
+        _services.Services.RemoveAll<IPaymentService>();
+
+        using var lockedResponse = new HttpResponseMessage(HttpStatusCode.Conflict)
+        {
+            Content = new StringContent(
+                "data element 00000000-0000-0000-0000-000000000abc is locked and cannot be updated"
+            ),
+        };
+        _services
+            .Mock<IPaymentService>()
+            .Setup(s =>
+                s.CheckAndStorePaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ValidAltinnPaymentConfiguration>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .ThrowsAsync(
+                new PlatformHttpException(
+                    lockedResponse,
+                    "409 - Conflict - data element is locked and cannot be updated"
+                )
+            );
+
+        var fallbackResult = new PaymentInformation
+        {
+            TaskId = "currentTask",
+            Status = PaymentStatus.Paid,
+            OrderDetails = _orderDetails,
+        };
+        _services
+            .Mock<IPaymentService>()
+            .Setup(s =>
+                s.CheckPaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ValidAltinnPaymentConfiguration>(),
+                    "currentTask",
+                    It.IsAny<string?>()
+                )
+            )
+            .ReturnsAsync(fallbackResult);
+
+        await using var sp = _services.BuildServiceProvider();
+        var controller = sp.GetRequiredService<PaymentController>();
+
+        var result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var info = Assert.IsType<PaymentInformation>(ok.Value);
+        Assert.Equal(PaymentStatus.Paid, info.Status);
 
         _services.VerifyMocks();
     }

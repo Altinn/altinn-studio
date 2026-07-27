@@ -153,6 +153,51 @@ func TestParseRunFlagsReadsDevFrontend(t *testing.T) {
 	}
 }
 
+func TestParseRunFlagsReadsStartupTimeout(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--startup-timeout", "60s"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if flags.startupTimeout != 60*time.Second {
+		t.Fatalf("startupTimeout = %s, want 1m0s", flags.startupTimeout)
+	}
+}
+
+func TestParseRunFlagsRejectsNonPositiveStartupTimeout(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, dotnetArgs, help, err := cmd.parseRunFlags([]string{"--startup-timeout", "0s"}, "run")
+	if err == nil {
+		t.Fatalf(
+			"parseRunFlags() = flags %#v, dotnetArgs %v, help %v, error nil; want error",
+			flags,
+			dotnetArgs,
+			help,
+		)
+	}
+	if !strings.Contains(err.Error(), "--startup-timeout must be at least 1s") {
+		t.Fatalf("parseRunFlags() error = %v, want startup-timeout error", err)
+	}
+}
+
+func TestBuildDotnetAppIfNeededSkipsBuildWhenRequested(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	spec := appsvc.DotnetRunSpec{
+		Dir:       filepath.Join(t.TempDir(), "does-not-exist"),
+		BuildArgs: []string{"build", "does-not-exist.csproj"},
+	}
+
+	if err := cmd.buildDotnetAppIfNeeded(t.Context(), spec, runFlags{skipBuild: true}); err != nil {
+		t.Fatalf("buildDotnetAppIfNeeded() error = %v, want nil when skip-build is set", err)
+	}
+}
+
 func TestRunAppFrontendAssetBaseUrlUsesTopologyFrontendDevServer(t *testing.T) {
 	t.Parallel()
 

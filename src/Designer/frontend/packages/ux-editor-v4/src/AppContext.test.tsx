@@ -54,13 +54,14 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
   queryClient.resetQueries = jest.fn();
-  queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
-    sets: [
+  queryClient.setQueryData(
+    [QueryKey.LayoutSets, org, app],
+    [
       {
         id: mockSelectedFormLayoutSetName,
       },
     ],
-  });
+  );
   queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, mockSelectedFormLayoutSetName], {
     pages: {
       order: [mockSelectedFormLayoutName],

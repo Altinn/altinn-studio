@@ -50,6 +50,17 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithCronSchedule(ChatInactivityCleanupJobConstants.CronScheduleNightly)
             );
 
+            configure.AddJob<LangfuseTraceCleanupJob>(options =>
+                options.WithIdentity(LangfuseTraceCleanupJobConstants.JobName)
+            );
+
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(LangfuseTraceCleanupJobConstants.JobName)
+                    .WithIdentity(LangfuseTraceCleanupJobConstants.TriggerName)
+                    .WithCronSchedule(LangfuseTraceCleanupJobConstants.CronScheduleNightly)
+            );
+
             if (schedulingSettings.UsePersistentScheduling)
             {
                 PostgreSQLSettings postgresSettings = configuration

@@ -1,10 +1,9 @@
 import React, { forwardRef } from 'react';
 
+import { getLabelId, RequiredIndicator } from '@app/form-component';
 import { Label, Radio, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { getLabelId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';

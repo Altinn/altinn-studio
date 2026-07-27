@@ -1,4 +1,3 @@
-#nullable enable
 using System.Security.Cryptography;
 using System.Text.Json;
 using Altinn.Platform.Storage.Models;

@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import type { ChatThread, UserMessage, Message } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
+import type { UserFeedback } from '../types/UserFeedback';
 import type { AssistantTexts } from '../types/AssistantTexts';
 import type { ConnectionStatus } from '../types/ConnectionStatus';
 import type { WorkflowStatus } from '../types/WorkflowStatus';
@@ -22,7 +23,8 @@ export type AssistantProps = {
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
-  workflowStatus: WorkflowStatus;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
+  workflowStatusByThread: Record<string, WorkflowStatus>;
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
   currentUser?: User;
@@ -35,7 +37,7 @@ export function Assistant({
   enableCompactInterface = false,
   activeThreadId,
   connectionStatus,
-  workflowStatus,
+  workflowStatusByThread,
   onSubmitMessage,
   onCancelWorkflow,
   cancelledMessageContent,
@@ -43,6 +45,7 @@ export function Assistant({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
@@ -56,7 +59,7 @@ export function Assistant({
       messages={messages}
       activeThreadId={activeThreadId}
       connectionStatus={connectionStatus}
-      workflowStatus={workflowStatus}
+      workflowStatusByThread={workflowStatusByThread}
       onSubmitMessage={onSubmitMessage}
       onCancelWorkflow={onCancelWorkflow}
       cancelledMessageContent={cancelledMessageContent}
@@ -64,6 +67,7 @@ export function Assistant({
       onSelectThread={onSelectThread}
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}
+      onMessageFeedback={onMessageFeedback}
       previewContent={previewContent}
       fileBrowserContent={fileBrowserContent}
       currentUser={currentUser}

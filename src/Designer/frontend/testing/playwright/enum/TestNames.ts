@@ -12,4 +12,5 @@ export enum TestNames {
   TEXT_EDITOR = 'text-editor',
   PROCESS_EDITOR = 'process-editor',
   ORG_LIBRARY = 'org-library',
+  BRANCHING = 'branching',
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Notifications.Exceptions;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.Extensions.Logging;
@@ -66,7 +67,7 @@ internal sealed class NotificationConditionCodeValidator(
             return false;
         }
 
-        string? secretId = jwt.GetClaim("secret_id")?.Value;
+        string? secretId = jwt.GetClaim(JwtClaimTypes.SecretId)?.Value;
         AppCode? appCode = secretId is not null
             ? secrets.FirstOrDefault(s => s.Id == secretId)
             : secrets.FirstOrDefault();
@@ -78,7 +79,7 @@ internal sealed class NotificationConditionCodeValidator(
                 secretId,
                 instanceGuid
             );
-            activity?.SetStatus(ActivityStatusCode.Error, "No secret found for token secret_id.");
+            activity?.SetStatus(ActivityStatusCode.Error, $"No secret found for token {JwtClaimTypes.SecretId}.");
             return false;
         }
 
@@ -108,7 +109,7 @@ internal sealed class NotificationConditionCodeValidator(
         }
 
         bool jtiMatches =
-            result.Claims.TryGetValue(JwtRegisteredClaimNames.Jti, out object? jti)
+            result.Claims.TryGetValue(JwtClaimTypes.JwtId, out object? jti)
             && jti?.ToString() == instanceGuid.ToString();
 
         if (!jtiMatches)

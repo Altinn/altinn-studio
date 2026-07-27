@@ -95,7 +95,7 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
             DataElementIdentifier? dataElement = instance.Data.Find(d => d.DataType == dataTypeId);
 
             var componentContext = new ComponentContext(
-                state,
+                state.DataAccessor,
                 component: null,
                 rowIndices: null,
                 dataElementIdentifier: dataElement

@@ -14,6 +14,7 @@ import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {
   useResourcePolicyPublishStatusQuery,
+  useResourcePolicyQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
 } from '../../hooks/queries';
@@ -24,6 +25,8 @@ import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { UrlConstants } from '../../utils/urlUtils';
+import { getDeprecatedAltinn2SubjectsFromRules } from 'app-shared/utils/altinn2RoleUtils';
+import { Altinn2RoleWarning } from 'app-shared/components/Altinn2RoleWarning/Altinn2RoleWarning';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -59,6 +62,11 @@ export const DeployResourcePage = ({
 
   // Queries to get metadata
   const { data: repoStatus, isFetching: isLoadingRepoStatus } = useRepoStatusQuery(org, app);
+  const { data: policyData, isFetching: isLoadingPolicyData } = useResourcePolicyQuery(
+    org,
+    app,
+    resourceId,
+  );
   const {
     status: publishStatusStatus,
     data: publishStatusData,
@@ -86,13 +94,15 @@ export const DeployResourcePage = ({
     onSaveVersion(newVersion);
   };
 
+  const deprecatedAltinn2Roles = getDeprecatedAltinn2SubjectsFromRules(policyData?.rules || []);
+
   /**
    * Gets either error, pending or success for the card type
    *
    * @returns error, pending or success
    */
   const getStatusCardType = (): 'error' | 'success' | 'pending' => {
-    if (isSavingResource || isLoadingRepoStatus) {
+    if (isSavingResource || isLoadingRepoStatus || isLoadingPolicyData) {
       return 'pending';
     } else if (
       validateResourceData.status !== 200 ||
@@ -199,6 +209,7 @@ export const DeployResourcePage = ({
       mergeQueryStatuses(publishStatusStatus, validatePolicyStatus, validateResourceStatus) ===
         'pending' ||
       isSavingResource ||
+      isLoadingPolicyData ||
       isLoadingRepoStatus;
 
     const canDeploy =
@@ -258,6 +269,12 @@ export const DeployResourcePage = ({
             </StudioHeading>
             <div className={classes.contentWrapper}>
               {displayStatusCard()}
+              {deprecatedAltinn2Roles.length > 0 && (
+                <Altinn2RoleWarning
+                  itemType={t('resourceadm.deploy_resource_item')}
+                  deprecatedAltinn2Roles={deprecatedAltinn2Roles}
+                />
+              )}
               <StudioParagraph className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>
                   <StudioLink href={UrlConstants.ALTINN} rel='noopener noreferrer' target='_blank'>

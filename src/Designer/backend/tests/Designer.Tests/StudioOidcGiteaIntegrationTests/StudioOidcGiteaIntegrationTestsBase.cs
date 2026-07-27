@@ -143,9 +143,6 @@ public abstract class StudioOidcGiteaIntegrationTestsBase<TControllerTest> : Api
         string configOverride =
             $@"
               {{
-                    ""FeatureManagement"": {{
-                        ""StudioOidc"": true
-                    }},
                     ""ServiceRepositorySettings"": {{
                         ""RepositoryLocation"": ""{reposLocation}"",
                         ""ApiEndPointHost"": ""localhost"",

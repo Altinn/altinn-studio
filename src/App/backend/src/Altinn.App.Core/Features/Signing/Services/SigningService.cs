@@ -71,7 +71,6 @@ internal sealed class SigningService(
                 "SigneeStatesDataTypeId is not set in the signature configuration."
             );
 
-        //TODO: Can be removed when AddBinaryDataElement supports setting generatedFromTask, because then it will be automatically deleted in ProcessTaskInitializer.
         RemoveSigneeState(instanceDataMutator, signeeStateDataTypeId);
 
         string instanceIdCombo = instanceDataMutator.Instance.Id;
@@ -151,7 +150,8 @@ internal sealed class SigningService(
             dataTypeId: signeeStateDataTypeId,
             contentType: ApplicationJsonContentType,
             filename: null,
-            bytes: JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions)
+            bytes: JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions),
+            generatedFromTask: taskId
         );
 
         return signeeContexts;
@@ -316,6 +316,10 @@ internal sealed class SigningService(
         return (serviceOwnerParty, true);
     }
 
+    /// <summary>
+    /// Stale signee states are normally already gone (via CleanupGeneratedFromTask callback),
+    /// but initialization must be able to start from a clean slate regardless of how it was reached.
+    /// </summary>
     private void RemoveSigneeState(IInstanceDataMutator instanceDataMutator, string? signeeStatesDataTypeId)
     {
         using Activity? activity = telemetry?.StartRemoveSigneeStateActivity();

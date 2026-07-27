@@ -135,25 +135,13 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         [
             $@"
               {{
-                    ""FeatureManagement"": {{
-                        ""StudioOidc"": false
-                    }},
-                    ""OidcLoginSettings"": {{
+                    ""StudioOidcLoginSettings"": {{
                         ""ClientId"": ""{Guid.NewGuid()}"",
                         ""ClientSecret"": ""{Guid.NewGuid()}"",
                         ""Authority"": ""http://studio.localhost/repos/"",
                         ""Scopes"": [
                             ""openid"",
-                            ""profile"",
-                            ""write:activitypub"",
-                            ""write:admin"",
-                            ""write:issue"",
-                            ""write:misc"",
-                            ""write:notification"",
-                            ""write:organization"",
-                            ""write:package"",
-                            ""write:repository"",
-                            ""write:user""
+                            ""profile""
                         ],
                         ""RequireHttpsMetadata"": false,
                         ""CookieExpiryTimeInMinutes"" : 59

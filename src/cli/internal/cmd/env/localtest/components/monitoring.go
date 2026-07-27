@@ -44,7 +44,7 @@ func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 
 func monitoringImage(ctx *Options, name, ref string) resource.ImageResource {
 	enabled := ctx.IncludeMonitoring
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    resourceEnabledRef(enabled),
 		Ref:        imageRef(ref, name, enabled),
 		PullPolicy: resource.PullIfNotPresent,

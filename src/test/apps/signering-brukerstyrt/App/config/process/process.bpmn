@@ -1,10 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:altinn="http://altinn.no/process"
-  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="SingleDataTask" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
@@ -20,12 +15,27 @@
       <bpmn:incoming>Flow_050c8r7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
     </bpmn:task>
+    <bpmn:serviceTask id="PdfTask_Task_1" name="Generate PDF">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>pdf</altinn:taskType>
+          <altinn:pdfConfig>
+            <altinn:autoPdfTaskIds>
+              <altinn:taskId>Task_1</altinn:taskId>
+            </altinn:autoPdfTaskIds>
+          </altinn:pdfConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+      <bpmn:outgoing>Flow_PdfTask_Task_1_to_SigningTask_Founders</bpmn:outgoing>
+    </bpmn:serviceTask>
     <bpmn:endEvent id="EndEvent_1">
       <bpmn:incoming>Flow_1p7jwuf</bpmn:incoming>
       <bpmn:incoming>Flow_013o2w9</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="SigningTask_Founders" />
+    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="PdfTask_Task_1" />
+    <bpmn:sequenceFlow id="Flow_PdfTask_Task_1_to_SigningTask_Founders" sourceRef="PdfTask_Task_1" targetRef="SigningTask_Founders" />
     <bpmn:task id="SigningTask_Founders" name="Signering stiftere">
       <bpmn:extensionElements>
         <altinn:taskExtension>
@@ -48,7 +58,7 @@
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+      <bpmn:incoming>Flow_PdfTask_Task_1_to_SigningTask_Founders</bpmn:incoming>
       <bpmn:outgoing>Flow_1if1sh9</bpmn:outgoing>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow_1if1sh9" sourceRef="SigningTask_Founders" targetRef="Gateway_SigningTask_Founders_Reject" />
@@ -139,8 +149,8 @@
         <di:waypoint x="300" y="99" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1oot28q_di" bpmnElement="SequenceFlow_1oot28q">
-        <di:waypoint x="400" y="99" />
-        <di:waypoint x="610" y="99" />
+        <di:waypoint x="350" y="139" />
+        <di:waypoint x="350" y="199" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1if1sh9_di" bpmnElement="Flow_1if1sh9">
         <di:waypoint x="710" y="99" />
@@ -179,6 +189,13 @@
         <di:waypoint x="930" y="0" />
         <di:waypoint x="1400" y="0" />
         <di:waypoint x="1400" y="81" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="PdfTask_Task_1_di" bpmnElement="PdfTask_Task_1">
+        <dc:Bounds x="300" y="199" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_PdfTask_Task_1_to_SigningTask_Founders_di" bpmnElement="Flow_PdfTask_Task_1_to_SigningTask_Founders">
+        <di:waypoint x="400" y="239" />
+        <di:waypoint x="610" y="99" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

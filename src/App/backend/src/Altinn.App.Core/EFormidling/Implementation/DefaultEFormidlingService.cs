@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
@@ -12,11 +14,13 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
+using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Arkivmelding = Altinn.Common.EFormidlingClient.Models.SBD.Arkivmelding;
 
 namespace Altinn.App.Core.EFormidling.Implementation;
 
@@ -35,7 +39,6 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly IDataClient _dataClient;
     private readonly IEventsClient _eventClient;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IEFormidlingLegacyConfigurationProvider _configurationProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
@@ -47,7 +50,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         IDataClient dataClient,
         IEventsClient eventClient,
         IServiceProvider sp,
-        IEFormidlingLegacyConfigurationProvider configurationProvider,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,
@@ -64,13 +66,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         _dataClient = dataClient;
         _eventClient = eventClient;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
-        _configurationProvider = configurationProvider;
-    }
-
-    /// <inheritdoc />
-    public async Task SendEFormidlingShipment(Instance instance)
-    {
-        await SendEFormidlingShipmentInternal(instance, await _configurationProvider.GetLegacyConfiguration());
     }
 
     /// <inheritdoc />
@@ -114,16 +109,58 @@ public class DefaultEFormidlingService : IEFormidlingService
         string instanceGuid = instance.Id.Split("/")[1];
 
         StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance, config);
-        await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
+
+        // The message id is the instance guid, so a retry of a send that already reached the
+        // integrasjonspunkt fails with MessageAlreadyExistsException on create. Instead of leaving
+        // the instance permanently stuck (the retry can never use a fresh id), resume the existing
+        // message: skip everything if it already left the outbox, otherwise finish the upload/send
+        // steps the earlier attempt did not complete.
+        bool resumingExistingMessage = false;
+        try
+        {
+            await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
+        }
+        catch (WebException e) when (IsMessageAlreadyExistsError(e))
+        {
+            Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, requestHeaders);
+            if (HasMessageLeftOutbox(statuses))
+            {
+                _logger.LogInformation(
+                    "eFormidling message {MessageId} already exists and has been sent; treating as an idempotent retry.",
+                    instanceGuid
+                );
+                return;
+            }
+
+            ThrowIfMessageFailed(statuses, instanceGuid);
+
+            _logger.LogInformation(
+                "eFormidling message {MessageId} already exists but has not been sent; resuming attachment upload and send.",
+                instanceGuid
+            );
+            resumingExistingMessage = true;
+        }
 
         (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance);
 
         await using (stream)
         {
-            await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataFilename, requestHeaders);
+            try
+            {
+                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataFilename, requestHeaders);
+            }
+            catch (WebException e) when (resumingExistingMessage)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Re-upload of eFormidling metadata {Filename} failed while resuming message {MessageId}; assuming it was uploaded by the earlier attempt.",
+                    metadataFilename,
+                    instanceGuid
+                );
+            }
         }
 
-        await SendInstanceData(instance, requestHeaders, metadataFilename, config);
+        await SendInstanceData(instance, requestHeaders, metadataFilename, config, resumingExistingMessage);
 
         try
         {
@@ -208,11 +245,84 @@ public class DefaultEFormidlingService : IEFormidlingService
         return sbd;
     }
 
+    /// <summary>
+    /// Identifies the integrasjonspunkt's duplicate-message error. The eFormidling client wraps the
+    /// error response in a <see cref="WebException"/> with the JSON body interpolated into the
+    /// message, so the structured <c>exception</c> field has to be dug out of the string.
+    /// </summary>
+    internal static bool IsMessageAlreadyExistsError(WebException exception)
+    {
+        string message = exception.Message;
+        int start = message.IndexOf('{');
+        int end = message.LastIndexOf('}');
+        if (start >= 0 && end > start)
+        {
+            try
+            {
+                using var body = JsonDocument.Parse(message[start..(end + 1)]);
+                if (
+                    body.RootElement.TryGetProperty("exception", out JsonElement exceptionName)
+                    && exceptionName.GetString()
+                        == "no.difi.meldingsutveksling.exceptions.MessageAlreadyExistsException"
+                )
+                {
+                    return true;
+                }
+            }
+            catch (JsonException)
+            {
+                // Not a JSON body - fall through to the substring match.
+            }
+        }
+
+        return message.Contains("MessageAlreadyExistsException", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// True when the message has been sent from the integrasjonspunkt's outbox (any status beyond
+    /// creation - the exact terminal state is the status-check event handler's concern).
+    /// </summary>
+    private static bool HasMessageLeftOutbox(Statuses statuses) =>
+        statuses.Content?.Exists(s =>
+            string.Equals(s.Status, "sendt", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "mottatt", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "levert", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "lest", StringComparison.OrdinalIgnoreCase)
+        )
+            is true;
+
+    private static void ThrowIfMessageFailed(Statuses statuses, string messageId)
+    {
+        var failedStatus = statuses.Content?.Find(s =>
+            string.Equals(s.Status, "feil", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Status, "levetid_utlopt", StringComparison.OrdinalIgnoreCase)
+        );
+        if (failedStatus is not null)
+        {
+            throw new EformidlingDeliveryException(
+                $"The existing eFormidling message {messageId} has failed with status '{failedStatus.Status}' "
+                    + $"({failedStatus.Description}) and its message id cannot be reused. Manual follow-up is required."
+            );
+        }
+    }
+
+    /// <param name="instance">The instance whose data elements are shipped.</param>
+    /// <param name="requestHeaders">Headers for the eFormidling client calls.</param>
+    /// <param name="eformidlingMetadataFilename">Filename already claimed by the metadata document.</param>
+    /// <param name="config">The validated eFormidling configuration for the task.</param>
+    /// <param name="tolerateUploadFailures">
+    /// Set when resuming a message created by an earlier attempt, where re-uploading an attachment
+    /// that already exists may be rejected. Known blind spot: a <see cref="WebException"/> here
+    /// cannot be told apart from a transient failure, so a resume could in principle proceed to
+    /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behaviour is
+    /// unverified. Hence the loud warning per skipped attachment rather than silence.
+    /// </param>
     private async Task SendInstanceData(
         Instance instance,
         Dictionary<string, string> requestHeaders,
         string eformidlingMetadataFilename,
-        ValidAltinnEFormidlingConfiguration config
+        ValidAltinnEFormidlingConfiguration config,
+        bool tolerateUploadFailures = false
     )
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
@@ -258,12 +368,26 @@ public class DefaultEFormidlingService : IEFormidlingService
             );
 
             Debug.Assert(_eFormidlingClient is not null, "This is validated before use");
-            bool successful = await _eFormidlingClient.UploadAttachment(
-                stream,
-                instanceGuid.ToString(),
-                uniqueFileName,
-                requestHeaders
-            );
+            bool successful;
+            try
+            {
+                successful = await _eFormidlingClient.UploadAttachment(
+                    stream,
+                    instanceGuid.ToString(),
+                    uniqueFileName,
+                    requestHeaders
+                );
+            }
+            catch (WebException e) when (tolerateUploadFailures)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Re-upload of eFormidling attachment {Filename} failed while resuming message {MessageId}; assuming it was uploaded by the earlier attempt.",
+                    uniqueFileName,
+                    instanceGuid
+                );
+                continue;
+            }
 
             if (!successful)
             {

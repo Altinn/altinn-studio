@@ -1,5 +1,3 @@
-#nullable enable
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 

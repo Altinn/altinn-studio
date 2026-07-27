@@ -17,5 +17,6 @@ export function useUpdateSharedResourcesMutation(
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [QueryKey.SharedResources, orgName, path] }),
+    meta: { hideDefaultError: true },
   });
 }

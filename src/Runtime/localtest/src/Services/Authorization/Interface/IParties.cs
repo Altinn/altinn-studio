@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Platform.Register.Models;
 
 namespace Altinn.Platform.Authorization.Services.Interface

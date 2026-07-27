@@ -3,6 +3,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
+    "types": ["node"],
     "paths": {
       "@studio/testing/*": ["../*"]
     }

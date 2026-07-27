@@ -178,4 +178,9 @@ public interface IAppResources
     /// Gets the validation configuration for a given data type
     /// </summary>
     string? GetValidationConfiguration(string dataTypeId);
+
+    /// <summary>
+    /// Gets the global UI settings (App/ui/Settings.json)
+    /// </summary>
+    public GlobalPageSettings? GetGlobalUiSettings();
 }

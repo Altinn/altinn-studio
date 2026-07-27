@@ -11,6 +11,7 @@ using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests;
@@ -107,7 +108,18 @@ public static class LayoutTestUtils
         using var scope = serviceProvider.CreateScope();
         var initializer = scope.ServiceProvider.GetRequiredService<ILayoutEvaluatorStateInitializer>();
 
-        var dataAccessor = new InstanceDataAccessorFake(_instance, applicationMetadata) { { _dataElement, model } };
+        var dataAccessor = new InstanceDataAccessorFake(
+            _instance,
+            applicationMetadata,
+            scope.ServiceProvider.GetRequiredService<ITranslationService>(),
+            layoutModel,
+            scope.ServiceProvider.GetRequiredService<IOptions<FrontEndSettings>>().Value,
+            null,
+            null
+        )
+        {
+            { _dataElement, model },
+        };
 
         return await initializer.Init(dataAccessor, TaskId);
     }

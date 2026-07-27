@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const breakpoints = {
   mini: 600,
@@ -36,9 +36,17 @@ export function useIsMobileOrTablet() {
 
 export function useBrowserWidth(condition: Condition) {
   const [state, setState] = useState(condition(window.innerWidth));
+  const stateRef = useRef(state);
 
   useEffect(() => {
-    const handleResize = () => setState(condition(window.innerWidth));
+    const handleResize = () => {
+      const nextState = condition(window.innerWidth);
+      if (stateRef.current !== nextState) {
+        stateRef.current = nextState;
+        setState(nextState);
+      }
+    };
+
     window.addEventListener('resize', handleResize);
     handleResize(); // Size may have changed between render and effect
     return () => window.removeEventListener('resize', handleResize);

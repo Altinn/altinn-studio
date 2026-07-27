@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Tests.Common.Data;
 using Altinn.Platform.Register.Models;
@@ -15,15 +16,20 @@ public class RegisterClientMock : IRegisterClient
 
     private readonly string _partyFolder = CommonTestData.GetAltinnProfilePath();
 
-    public async Task<Party?> GetPartyUnchecked(int partyId, CancellationToken cancellationToken)
+    public async Task<Party?> GetPartyUnchecked(
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        var partyList = await GetPartyListUnchecked([partyId], cancellationToken);
+        var partyList = await GetPartyListUnchecked([partyId], authenticationMethod, cancellationToken);
         return partyList.SingleOrDefault(p => p.PartyId == partyId);
     }
 
     public async Task<IReadOnlyList<Party>> GetPartyListUnchecked(
         IReadOnlyList<int> partyIds,
-        CancellationToken cancellationToken
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         List<Party> parties = [];

@@ -27,6 +27,15 @@ type baseBranchSelector struct {
 	minor  int
 }
 
+// ResolveWorkflowVersion resolves the release version from the component changelog and base branch.
+func ResolveWorkflowVersion(componentName, baseBranch, repoRoot string) (string, error) {
+	component, err := GetComponent(componentName)
+	if err != nil {
+		return "", err
+	}
+	return resolveWorkflowVersion(component, baseBranch, repoRoot)
+}
+
 func resolveWorkflowVersion(component *Component, baseBranch, repoRoot string) (string, error) {
 	if component == nil {
 		return "", errComponentRequired

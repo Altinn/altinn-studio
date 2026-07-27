@@ -1,9 +1,9 @@
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
-import { useExpressionResolverProps } from 'src/utils/layout/generator/NodeGenerator';
+import { useExpressionResolverProps } from 'src/utils/layout/expressionResolver';
 import { useDataModelBindingsFor, useIntermediateItem } from 'src/utils/layout/hooks';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { FormDataSelector } from 'src/layout';
 import type { CompInternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
@@ -25,8 +25,8 @@ export function useItemWhenType<T extends CompTypes>(
     const suffix = typeof type === 'string' ? ` (expected ${type})` : '';
     throw new Error(`Unexpected type for ${baseComponentId}: ${intermediate?.type}${suffix}`);
   }
-  const location = useCurrentDataModelLocation();
-  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const currentDataModelPath = useCurrentDataModelLocation();
+  const dataSources = useExpressionDataSources(intermediate, { runtime: { currentDataModelPath } });
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
   const def = getComponentDef(intermediate.type);
   return def.evalExpressions(props as never) as CompInternal<T>;
@@ -52,10 +52,10 @@ export function useItemIfType<T extends CompTypes>(
   }
   // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const location = useCurrentDataModelLocation();
+  const currentDataModelPath = useCurrentDataModelLocation();
   // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const dataSources = useExpressionDataSources(intermediate, { runtime: { currentDataModelPath } });
   // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
@@ -74,8 +74,8 @@ export function useItemFor<T extends CompTypes = CompTypes>(baseComponentId: str
   if (!intermediate) {
     throw new Error(`No component configuration found for ${baseComponentId}`);
   }
-  const location = useCurrentDataModelLocation();
-  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const currentDataModelPath = useCurrentDataModelLocation();
+  const dataSources = useExpressionDataSources(intermediate, { runtime: { currentDataModelPath } });
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
   const def = getComponentDef(intermediate.type);
   return def.evalExpressions(props as never) as CompInternal<T>;

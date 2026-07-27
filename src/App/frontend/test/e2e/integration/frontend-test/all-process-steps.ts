@@ -15,9 +15,11 @@ describe('All process steps', () => {
   it('Should be possible to fill out all steps from beginning to end', () => {
     cy.goto('message');
 
-    // Later in this test we will make sure PDFs are created, so we need to set the cookie to
-    // convince the backend to create them
-    cy.setCookie('createPdf', 'true');
+    // Later in this test we will make sure PDFs are created. PDF generation now runs as a
+    // 'pdfIfRequested' service task that only fires when the PdfSettings.CreatePdf toggle is true,
+    // so we opt in by selecting the toggle on the first task before submitting (defaults to off to
+    // keep other test runs fast).
+    cy.get('#createPdfToggle').findByRole('radio', { name: 'Yes' }).check();
     cy.get(appFrontend.sendinButton).clickAndGone();
 
     cy.fillOut('changename');
@@ -180,6 +182,9 @@ export function testCustomReceiptPage() {
   cy.findByText('Dette er neste side').should('exist');
   cy.findByRole('button', { name: /Forrige/ }).click();
 
+  // Wait until the first receipt page is showing again before snapshotting, otherwise the visual
+  // test can race the back-navigation and capture the second page ('Dette er neste side').
+  cy.findByText('Custom kvittering').should('be.visible');
   cy.visualTesting('custom-receipt');
 }
 
@@ -194,7 +199,12 @@ function testInstanceData() {
 
     cy.request({ url: instanceUrl }).then((response) => {
       const instanceData = response.body as IInstance;
-      const xmlElements = instanceData.data.filter((el) => el.contentType === 'application/xml');
+      // PdfSettings is a test-only control (opts this run into PDF generation), not submitted form
+      // data, and its value varies by scenario - exclude it so the snapshot captures only the
+      // canonical filled-out data models.
+      const xmlElements = instanceData.data.filter(
+        (el) => el.contentType === 'application/xml' && el.dataType !== 'PdfSettings',
+      );
       const dataModels: Record<string, unknown> = {};
 
       for (const dataElement of xmlElements) {

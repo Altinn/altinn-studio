@@ -1,0 +1,45 @@
+.helpTextButton {
+  background-color: transparent;
+  border-radius: 50px;
+  padding: 0;
+  cursor: pointer;
+  border: none;
+}
+
+@media print {
+  .helpTextButton {
+    display: none;
+  }
+}
+
+.helpTextIconFilled {
+  display: none;
+}
+
+.helpTextIcon {
+  color: var(--ds-color-accent-base-default);
+  height: 26px;
+  width: 26px;
+}
+
+.helpTextButton:where(:hover, :focus, [data-state^='open']) > .helpTextIcon {
+  display: none;
+}
+
+.helpTextButton:where(:hover, :focus, [data-state^='open']) > .helpTextIconFilled {
+  display: inline-block;
+}
+
+.helpTextContent {
+  font: var(--ds-typography-paragraph-md);
+  font-family: inherit;
+  font-weight: 400;
+  width: fit-content;
+  max-width: 700px;
+}
+
+.helpTextFocus:focus-visible {
+  outline: var(--ds-border-width-focus) solid var(--ds-color-neutral-text-default);
+  outline-offset: var(--ds-border-width-focus);
+  box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-neutral-background-default);
+}

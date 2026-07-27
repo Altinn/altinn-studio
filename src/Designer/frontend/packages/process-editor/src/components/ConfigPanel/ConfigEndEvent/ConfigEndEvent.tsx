@@ -26,7 +26,7 @@ export const ConfigEndEvent = () => {
         <StudioDetails.Content className={classes.detailsContent}>
           <div className={classes.container}>
             <div className={classes.customReceiptText}>
-              <StudioLabelAsParagraph data-size='sm'>
+              <StudioLabelAsParagraph>
                 {t('process_editor.configuration_panel_custom_receipt_default_receipt_heading')}
               </StudioLabelAsParagraph>
               <Paragraph size='small' className={classes.paragraph}>
@@ -45,7 +45,7 @@ export const ConfigEndEvent = () => {
             </div>
             <div>
               <div className={classes.customReceiptText}>
-                <StudioLabelAsParagraph data-size='sm'>
+                <StudioLabelAsParagraph>
                   {t('process_editor.configuration_panel_custom_receipt_heading')}
                 </StudioLabelAsParagraph>
                 <Paragraph size='small'>

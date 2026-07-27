@@ -79,7 +79,7 @@ public class NotificationServiceTests
         var instanceOwner = new InstanceOwner { PersonNumber = ssn };
 
         _profileClientMock
-            .Setup(p => p.GetUserProfile(ssn))
+            .Setup(p => p.GetUserProfile(ssn, null))
             .ReturnsAsync(
                 new UserProfile
                 {
@@ -90,7 +90,7 @@ public class NotificationServiceTests
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: null);
 
         Assert.Equal(LanguageConst.En, result);
-        _profileClientMock.Verify(p => p.GetUserProfile(ssn), Times.Once);
+        _profileClientMock.Verify(p => p.GetUserProfile(ssn, null), Times.Once);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class NotificationServiceTests
         var instanceOwner = new InstanceOwner { PersonNumber = ssn };
 
         _profileClientMock
-            .Setup(p => p.GetUserProfile(ssn))
+            .Setup(p => p.GetUserProfile(ssn, null))
             .ReturnsAsync(
                 new UserProfile { ProfileSettingPreference = new ProfileSettingPreference { Language = null } }
             );
@@ -117,7 +117,7 @@ public class NotificationServiceTests
         var instanceOwner = new InstanceOwner { PersonNumber = ssn };
 
         UserProfile? profile = null;
-        _profileClientMock.Setup(p => p.GetUserProfile(ssn)).ReturnsAsync(profile);
+        _profileClientMock.Setup(p => p.GetUserProfile(ssn, null)).ReturnsAsync(profile);
 
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: null);
 
@@ -143,7 +143,7 @@ public class NotificationServiceTests
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: requestedLanguage);
 
         Assert.Equal(expectedLanguage, result);
-        _profileClientMock.Verify(p => p.GetUserProfile(It.IsAny<string>()), Times.Never);
+        _profileClientMock.Verify(p => p.GetUserProfile(It.IsAny<string>(), null), Times.Never);
     }
 
     #endregion

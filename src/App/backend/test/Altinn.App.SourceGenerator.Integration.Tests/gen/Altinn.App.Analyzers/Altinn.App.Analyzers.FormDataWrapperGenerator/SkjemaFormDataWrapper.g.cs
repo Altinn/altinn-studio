@@ -10,6 +10,10 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
 
     public global::System.Type BackingDataType => typeof(global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema);
 
+    public global::Altinn.Platform.Storage.Interface.Models.DataType DataType { get; }
+
+    public global::Altinn.Platform.Storage.Interface.Models.DataElement? DataElement { get; }
+
     public T BackingData<T>()
         where T : class
     {
@@ -19,13 +23,19 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
             );
     }
 
-    public Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(object dataModel)
+    public Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
+        object dataModel,
+        global::Altinn.Platform.Storage.Interface.Models.DataType dataType,
+        global::Altinn.Platform.Storage.Interface.Models.DataElement? dataElement = null
+    )
     {
         _dataModel =
             dataModel as global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema
             ?? throw new global::System.ArgumentException(
                 $"Data model must be of type Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema, (was {dataModel?.GetType().FullName ?? "null"})"
             );
+        DataType = dataType;
+        DataElement = dataElement;
     }
 
     #region Getters
@@ -1198,7 +1208,11 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
     /// <inheritdoc />
     public global::Altinn.App.Core.Internal.Data.IFormDataWrapper Copy()
     {
-        return new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(CopyRecursive(_dataModel));
+        return new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
+            CopyRecursive(_dataModel),
+            DataType,
+            DataElement
+        );
     }
 
     [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("data")]
@@ -1887,7 +1901,8 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
     internal static void Register()
     {
         global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema>(
-            dataModel => new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(dataModel)
+            (dataModel, dataType, dataElement) =>
+                new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(dataModel, dataType, dataElement)
         );
     }
 }

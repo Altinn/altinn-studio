@@ -9,7 +9,11 @@ import { componentMocks } from '../../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import type { IFormLayouts } from '../../../types/global';
-import { layoutSet1NameMock, layoutSetsExtendedMock } from '../../../testing/layoutSetsMock';
+import {
+  layoutSet1NameMock,
+  layoutSetsExtendedMock,
+  layoutSetsMock,
+} from '../../../testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
@@ -338,7 +342,7 @@ const renderComponentConfig = (
   const queryClientMock = createQueryClientMock();
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSet1NameMock);
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   queryClientMock.setQueryData(
     [QueryKey.FormComponent, formItemContextProps.formItem?.type],
     componentSchemaMocks[formItemContextProps.formItem?.type],

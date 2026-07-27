@@ -41,6 +41,7 @@ export type AssistantMessage = {
   createdAt: string;
   filesChanged?: string[];
   sources?: Source[];
+  traceId?: string;
 };
 
 export type Message = UserMessage | AssistantMessage;

@@ -51,9 +51,7 @@ const dataModelMetadata: DataModelMetadataResponse = {
 
 const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 const getLayoutSets = () =>
-  Promise.resolve({
-    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
-  });
+  Promise.resolve([{ id: layoutSet1NameMock, dataType: defaultDataModel }]);
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {

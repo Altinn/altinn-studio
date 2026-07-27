@@ -92,6 +92,8 @@ internal sealed class WorkflowHandler(
             return;
         }
 
+        // Abandoned is deliberately not in the Failed set: a dependency whose failure has been
+        // explicitly written off no longer condemns its dependents.
         if (workflow.Dependencies?.Any(x => PersistentItemStatusMap.Failed.Contains(x.Status)) is true)
         {
             workflow.Status = PersistentItemStatus.DependencyFailed;
@@ -99,7 +101,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
-            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"));
+            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"), ("is_head", workflow.IsHeadTagValue()));
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -180,7 +182,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             workflow.EngineActivity?.Errored();
-            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"));
+            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"), ("is_head", workflow.IsHeadTagValue()));
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
         {

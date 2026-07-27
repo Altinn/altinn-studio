@@ -236,6 +236,5 @@ enum AppResourceFormFieldIds {
   Description = 'description',
   RightDescription = 'rightDescription',
   Status = 'status',
-  AvailableForType = 'availableForType',
   ContactPointsId = 'contactPoints',
 }

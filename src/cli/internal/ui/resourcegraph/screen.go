@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -33,7 +34,7 @@ func newScreenRenderer(
 	out *ui.Output,
 	resources []resource.Resource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 	rendererLayout layout,
 ) *screenRenderer {
 	return &screenRenderer{
@@ -50,9 +51,9 @@ func newScreenRenderer(
 
 func newScreenRendererPlanned(
 	out *ui.Output,
-	resources []resource.PlannedResource,
+	resources []executor.PlannedResource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 	rendererLayout layout,
 ) *screenRenderer {
 	return &screenRenderer{
@@ -109,7 +110,7 @@ func (r *screenRenderer) FailAll(message string) {
 	r.renderLocked()
 }
 
-func (r *screenRenderer) OnEvent(event resource.Event) {
+func (r *screenRenderer) OnEvent(event executor.Event) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

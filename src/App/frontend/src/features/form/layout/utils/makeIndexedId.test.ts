@@ -89,7 +89,7 @@ describe('makeIndexedId', () => {
     },
   ];
 
-  const lookups = makeLayoutLookups({ Page1: layout });
+  const lookups = makeLayoutLookups({ Page1: layout }, { Page1: { data: { layout } } });
 
   it.each([
     { id: 'topLevel', rowIds: [], expected: 'topLevel' },

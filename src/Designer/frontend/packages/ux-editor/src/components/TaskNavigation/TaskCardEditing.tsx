@@ -3,8 +3,8 @@ import {
   StudioParagraph,
   StudioCard,
   StudioSpinner,
-  StudioSelect,
   StudioTextfield,
+  StudioSuggestion,
 } from '@studio/components';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
@@ -12,16 +12,17 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import classes from './TaskCardEditing.module.css';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 export type TaskCardEditingProps = {
-  layoutSetModel: LayoutSetModel;
+  layoutSetModel: UiFolderLayoutSetModel;
   onClose: () => void;
 };
 
@@ -75,18 +76,25 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
       updateProcessDataType(
         {
           newDataTypes: [dataType],
-          connectedTaskId: layoutSetModel.task?.id,
+          connectedTaskId: layoutSetModel.id,
         },
         { onSettled },
       );
     }
   };
 
+  const availableDataModels = Array.from(
+    new Set(dataType ? [dataType, ...(dataModels || [])] : dataModels || []),
+  );
+
+  const isNameProtected = PROTECTED_TASK_NAME_CUSTOM_RECEIPT === layoutSetModel.id;
+
   return (
     <StudioCard className={classes.editCard}>
       <StudioParagraph data-size='xs'>{t(taskName)}</StudioParagraph>
       <StudioTextfield
         label={taskNameFieldLabel}
+        disabled={isNameProtected}
         value={id}
         error={idValidationError}
         onKeyUp={(event) => {
@@ -94,26 +102,20 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         }}
         onChange={(event: ChangeEvent<HTMLInputElement>) => setId(event.target.value)}
       ></StudioTextfield>
-      <StudioSelect
+      <StudioSuggestion
+        multiple={false}
         label={t('ux_editor.modal_properties_data_model_binding')}
-        disabled={layoutSetModel.type === 'subform'}
-        value={dataType}
-        onChange={(event) => setDataType(event.target.value)}
+        placeholder={t('ux_editor.task_card.choose_datamodel')}
+        selected={dataType}
+        emptyText={t('ux_editor.task_card.no_datamodels')}
+        onSelectedChange={(target) => setDataType(target.value)}
       >
-        <StudioSelect.Option value='' disabled>
-          {t('ux_editor.task_card.choose_datamodel')}
-        </StudioSelect.Option>
-        {layoutSetModel.dataType && (
-          <StudioSelect.Option value={layoutSetModel.dataType}>
-            {layoutSetModel.dataType}
-          </StudioSelect.Option>
-        )}
-        {dataModels?.map((dataModel) => (
-          <StudioSelect.Option key={dataModel} value={dataModel}>
-            {dataModel}
-          </StudioSelect.Option>
+        {availableDataModels?.map((option) => (
+          <StudioSuggestion.Option value={option} key={option} label={option}>
+            {option}
+          </StudioSuggestion.Option>
         ))}
-      </StudioSelect>
+      </StudioSuggestion>
       <div className={classes.btnGroup}>
         <StudioButton
           disabled={disableSaveButton}

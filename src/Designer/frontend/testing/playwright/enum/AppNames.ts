@@ -9,4 +9,5 @@ export enum AppNames {
   TEXT_EDITOR_APP = 'text-editor-app-test',
   PROCESS_EDITOR_APP = 'process-editor-app-test',
   ORG_LIBRARY = 'org-library-app-test',
+  BRANCHING_APP = 'branching-app-test',
 }

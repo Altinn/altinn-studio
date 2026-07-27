@@ -4,10 +4,11 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -23,29 +24,28 @@ public class ProcessClient : IProcessClient
     private readonly ILogger<ProcessClient> _logger;
     private readonly HttpClient _client;
     private readonly Telemetry? _telemetry;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
+
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessClient"/> class.
     /// </summary>
-    public ProcessClient(
-        IOptions<PlatformSettings> platformSettings,
-        IOptions<AppSettings> appSettings,
-        ILogger<ProcessClient> logger,
-        IHttpContextAccessor httpContextAccessor,
-        HttpClient httpClient,
-        Telemetry? telemetry = null
-    )
+    /// <param name="httpClient">A HttpClient from the HttpClientFactory.</param>
+    /// <param name="serviceProvider">The service provider.</param>
+    public ProcessClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
-        _appSettings = appSettings.Value;
-        _httpContextAccessor = httpContextAccessor;
-        _logger = logger;
-        httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
-        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+        _appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
+        _authenticationTokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
+        _logger = serviceProvider.GetRequiredService<ILogger<ProcessClient>>();
+        _telemetry = serviceProvider.GetService<Telemetry>();
+
+        var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
+        httpClient.BaseAddress = new Uri(platformSettings.ApiStorageEndpoint);
+        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
         _client = httpClient;
-        _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
@@ -75,13 +75,16 @@ public class ProcessClient : IProcessClient
     }
 
     /// <inheritdoc />
-    public async Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId)
+    public async Task<ProcessHistoryList> GetProcessHistory(
+        string instanceGuid,
+        string instanceOwnerPartyId,
+        StorageAuthenticationMethod? authenticationMethod = null
+    )
     {
         using var activity = _telemetry?.StartGetProcessHistoryActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
-        string token = JwtTokenUtil.GetTokenFromContext(
-            _httpContextAccessor.HttpContext,
-            _appSettings.RuntimeCookieName
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod
         );
 
         HttpResponseMessage response = await _client.GetAsync(token, apiUrl);

@@ -1,10 +1,9 @@
 import React, { useCallback, useRef } from 'react';
 
-import { Label } from '@app/form-component';
+import { getDescriptionId, Label } from '@app/form-component';
 import { EXPERIMENTAL_Suggestion as Suggestion, Field, Label as DSLabel } from '@digdir/designsystemet-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { getDescriptionId } from 'src/components/label/Label';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { FormStore } from 'src/features/form/FormContext';

@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { Description } from 'src/components/form/Description';
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
-import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } from '@app/form-component';
+
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';

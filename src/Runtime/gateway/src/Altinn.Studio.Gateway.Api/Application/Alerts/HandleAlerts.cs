@@ -87,7 +87,6 @@ internal static class HandleAlerts
                         Status = a.Status,
                         InstanceId = a.Labels.GetValueOrDefault("instanceId", string.Empty),
                     })
-                    .Where(i => !string.IsNullOrEmpty(i.InstanceId))
                     .ToList(),
             })
             .ToList();
@@ -103,7 +102,7 @@ internal static class HandleAlerts
         )
             ? interval
             : null;
-        var to = DateTimeOffset.UtcNow;
+        var to = alertPayload.Alerts.Max(a => a.StartsAt);
         var from = intervalInMinutes.HasValue ? to.AddMinutes(-intervalInMinutes.Value) : to.AddMinutes(-5);
         var appNames = apps.Select(a => a.App).ToList();
 

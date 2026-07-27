@@ -51,10 +51,15 @@ internal class InstanceDataUnitOfWorkInitializer
     /// Initializes an <see cref="InstanceDataUnitOfWork"/> with all the services it needs.
     /// This is marked as internal so that this class can only be used internally. Even if it is public for usage (as a DI service) in public classes.
     /// </summary>
-    internal async Task<InstanceDataUnitOfWork> Init(Instance instance, string? taskId, string? language)
+    internal async Task<InstanceDataUnitOfWork> Init(
+        Instance instance,
+        string? taskId,
+        string? language,
+        StorageAuthenticationMethod? authenticationMethodForAllDataTypes = null
+    )
     {
         var applicationMetadata = await _applicationMetadata.GetApplicationMetadata();
-        return new InstanceDataUnitOfWork(
+        var uow = new InstanceDataUnitOfWork(
             instance,
             _dataClient,
             _instanceClient,
@@ -67,5 +72,12 @@ internal class InstanceDataUnitOfWorkInitializer
             language,
             _telemetry
         );
+
+        if (authenticationMethodForAllDataTypes is not null)
+        {
+            uow.UseAuthenticationForAllDataTypes(authenticationMethodForAllDataTypes);
+        }
+
+        return uow;
     }
 }

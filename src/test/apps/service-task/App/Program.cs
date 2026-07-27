@@ -3,15 +3,15 @@ using Altinn.App.Api.Helpers;
 using Altinn.App.Code;
 using Altinn.App.Core.EFormidling.Extensions;
 using Altinn.App.Core.EFormidling.Implementation;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.Events;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 void RegisterCustomAppServices(
     IServiceCollection services,
@@ -21,6 +21,13 @@ void RegisterCustomAppServices(
 {
     // Register your apps custom service implementations here.
     services.AddTransient<IServiceTask, FailServiceTask>();
+    if (!env.IsDevelopment())
+    {
+        services.AddEFormidlingServices2<EFormidlingMetadata, DefaultEFormidlingReceivers>(config);
+        services
+            .AddHttpClient<IEventsSubscription, EventsSubscriptionClient>()
+            .UseMaskinportenAltinnAuthorization("altinn:serviceowner/instances.read");
+    }
 }
 
 // ###########################################################################

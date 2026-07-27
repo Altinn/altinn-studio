@@ -11,7 +11,7 @@ import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from './hooks/queries/useLayoutSetsExtendedQuery';
 import useUxEditorParams from './hooks/useUxEditorParams';
 
 /**
@@ -54,7 +54,8 @@ export function App() {
     org,
     app,
   );
-  const { status: layoutSetsExtendedStatus } = useLayoutSetsExtendedQuery(org, app);
+  const { status: layoutSetsExtendedStatus, isError: layoutSetsExtendedFetchedError } =
+    useLayoutSetsExtendedQuery(org, app);
   const { status: dataModelStatus, isError: dataModelFetchedError } = useDataModelMetadataQuery({
     org,
     app,
@@ -83,14 +84,14 @@ export function App() {
   const componentHasError = widgetsStatus === 'error' || dataModelStatus === 'error';
 
   const errors: ErrorKinds = {
-    layoutSetsError: layoutSetsFetchedError,
+    layoutSetsError: layoutSetsFetchedError || layoutSetsExtendedFetchedError,
     dataModelError: dataModelFetchedError,
     widgetError: widgetFetchedError,
   };
 
   const mappedError = mapErrorToDisplayError(t, errors);
 
-  if (layoutSetsFetchedError) {
+  if (layoutSetsFetchedError || layoutSetsExtendedFetchedError) {
     // If error fetching layoutSets show errorPage on whole page
     return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }

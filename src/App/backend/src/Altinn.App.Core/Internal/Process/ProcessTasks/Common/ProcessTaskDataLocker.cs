@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
@@ -36,7 +37,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
                 await _dataClient.UnlockDataElement(
                     instanceIdentifier,
                     Guid.Parse(dataElement.Id),
-                    authenticationMethod: null,
+                    StorageAuthenticationMethod.ServiceOwner(),
                     CancellationToken.None
                 );
             }
@@ -57,7 +58,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
                 await _dataClient.LockDataElement(
                     instanceIdentifier,
                     Guid.Parse(dataElement.Id),
-                    authenticationMethod: null,
+                    StorageAuthenticationMethod.ServiceOwner(),
                     CancellationToken.None
                 );
             }

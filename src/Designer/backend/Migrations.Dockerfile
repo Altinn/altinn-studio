@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:3ea83f1463983ba8b51babffebb8556f8b94041fbc5eee2190cc77e913cc6325 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:a63e271360552d87b556a2c1a78cfdfd2519ec33137acdce9ac16cff939f1ac0 AS build
 
 WORKDIR /app
 
@@ -7,17 +7,15 @@ COPY . .
 RUN dotnet tool install --version 9.0.0 --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 
-ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
-ENV OidcLoginSettings__ClientId=dummyRequired
-ENV OidcLoginSettings__ClientSecret=dummyRequired
-ENV FeatureManagement__StudioOidc=false
 ENV StudioOidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
+ENV StudioOidcLoginSettings__ClientId=dummyRequired
+ENV StudioOidcLoginSettings__ClientSecret=dummyRequired
 
 RUN dotnet restore src/Designer/Designer.csproj && \
     dotnet build src/Designer/Designer.csproj --no-restore && \
     dotnet ef migrations script --project src/Designer/Designer.csproj --no-build --idempotent -o /app/migrations.sql
 
-FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS final
+FROM alpine:3.23.5@sha256:fd791d74b68913cbb027c6546007b3f0d3bc45125f797758156952bc2d6daf40 AS final
 COPY --from=build /app/migrations.sql migrations.sql
 RUN apk --no-cache add postgresql-client
 

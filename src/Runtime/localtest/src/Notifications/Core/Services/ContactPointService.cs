@@ -1,4 +1,6 @@
-﻿using Altinn.Notifications.Core.Helpers;
+#nullable disable
+
+using Altinn.Notifications.Core.Helpers;
 using Altinn.Notifications.Core.Integrations;
 using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.Address;

@@ -4,6 +4,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
 
@@ -19,6 +20,16 @@ public interface IFormDataWrapper
     /// Get the C# class type of this form data
     /// </summary>
     public Type BackingDataType { get; }
+
+    /// <summary>
+    /// Get the data type from applicationmetadata
+    /// </summary>
+    public DataType DataType { get; }
+
+    /// <summary>
+    /// Get the data element, if this object references a stored element
+    /// </summary>
+    public DataElement? DataElement { get; }
 
     /// <summary>
     /// Get the backing data model as a T.

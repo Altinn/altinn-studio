@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 
-import { Button, Flex } from '@app/form-component';
-import { EXPERIMENTAL_Suggestion as Suggestion, ValidationMessage } from '@digdir/designsystemet-react';
+import { Button, ErrorValidations, Flex } from '@app/form-component';
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
+import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
+import { AttachmentUpdate } from 'src/features/attachments/hooks/attachmentUpdate';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import validationClasses from 'src/features/validation/ComponentValidations.module.css';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
-import comboboxClasses from 'src/styles/combobox.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionFilter } from 'src/utils/options';
@@ -46,7 +45,7 @@ export function EditWindowComponent({
   const [showMissingTagError, setShowMissingTagError] = useResettingErrorState(chosenTags);
   const chosenTagsLabels = chosenTags.map((tag) => langAsString(options?.find((o) => o.value === tag)?.label ?? ''));
   const nodeId = useIndexedId(baseComponentId);
-  const updateAttachment = useAttachmentsUpdater();
+  const updateAttachment = AttachmentUpdate.useAttachmentsUpdater();
 
   const formatSelectedValue = (tags: string[]): string | SuggestionItem | undefined => {
     const tag = tags[0];
@@ -239,13 +238,11 @@ export function EditWindowComponent({
       </Flex>
       {showMissingTagError ? (
         <div style={{ whiteSpace: 'pre-wrap' }}>
-          <ul className={validationClasses.errorList}>
-            <li>
-              <ValidationMessage
-                data-size='sm'
-                asChild
-              >
-                <span>
+          <ErrorValidations
+            validations={[
+              {
+                id: 'missing-tag',
+                message: (
                   <Lang
                     id='form_filler.file_uploader_validation_error_no_chosen_tag'
                     params={[
@@ -257,10 +254,10 @@ export function EditWindowComponent({
                         : 'tag',
                     ]}
                   />
-                </span>
-              </ValidationMessage>
-            </li>
-          </ul>
+                ),
+              },
+            ]}
+          />
         </div>
       ) : undefined}
     </div>

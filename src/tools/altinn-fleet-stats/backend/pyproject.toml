@@ -1,0 +1,18 @@
+[project]
+name = "altinn-fleet"
+version = "0.1.0"
+description = "Fleet analytics dashboard for Altinn 3 apps"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "httpx>=0.27",
+    "pydantic-settings>=2.0",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]

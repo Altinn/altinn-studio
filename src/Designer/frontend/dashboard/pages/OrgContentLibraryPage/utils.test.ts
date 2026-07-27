@@ -9,7 +9,9 @@ import type {
   TextResource,
   TextResources,
   TextResourceWithLanguage,
+  CodeList,
   CodeListData,
+  CodeListFile,
 } from '@studio/content-library';
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
@@ -17,9 +19,8 @@ import {
   sharedResourcesResponse,
   sharedResourcesResponseWithProblem,
   sharedResourcesResponseWithInvalidFormat,
-  sharedResourcesResponseWithNonJson,
 } from './test-data/sharedResourcesResponse';
-import { codeLists } from './test-data/codeLists';
+import { codeListsUTF8 } from './test-data/codeLists';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 
@@ -62,115 +63,95 @@ describe('utils', () => {
   describe('backendCodeListsToLibraryCodeLists', () => {
     it('Converts backend code lists to library code lists', () => {
       const result = backendCodeListsToLibraryCodeLists(sharedResourcesResponse);
-      const expectedResult: CodeListData[] = [
-        { name: 'animals', codes: codeLists.animals },
-        { name: 'vehicles', codes: codeLists.vehicles },
+      const { animals, vehicles } = codeListsUTF8;
+      const expectedResult: CodeListFile[] = [
+        { name: 'animals.json', content: animals },
+        { name: 'vehicles.json', content: vehicles },
       ];
       expect(result).toEqual(expectedResult);
     });
 
-    it('Returns empty array for code lists with problems', () => {
+    it('Returns problem info for code lists with problems', () => {
       const result = backendCodeListsToLibraryCodeLists(sharedResourcesResponseWithProblem);
-      const expectedResult: CodeListData[] = [
-        { name: 'animals', codes: codeLists.animals },
-        { name: 'vehicles', codes: [] },
+      const { animals } = codeListsUTF8;
+      const expectedResult: CodeListFile[] = [
+        { name: 'animals.json', content: animals },
+        { name: 'vehicles.json', problem: expect.objectContaining({ status: expect.anything() }) },
       ];
       expect(result).toEqual(expectedResult);
     });
 
-    it('Returns empty array for invalid code list format', () => {
+    it('Accepts invalid code list format', () => {
       const result = backendCodeListsToLibraryCodeLists(sharedResourcesResponseWithInvalidFormat);
-      const expectedResult: CodeListData[] = [
-        { name: 'animals', codes: codeLists.animals },
-        { name: 'invalid', codes: [] },
+      const { animals } = codeListsUTF8;
+      const expectedResult: CodeListFile[] = [
+        { name: 'animals.json', content: animals },
+        { name: 'invalid.json', content: expect.any(String) },
       ];
       expect(result).toEqual(expectedResult);
-    });
-
-    it('Throws when file is not json', () => {
-      expect(() =>
-        backendCodeListsToLibraryCodeLists(sharedResourcesResponseWithNonJson),
-      ).toThrow();
     });
   });
 
   describe('libraryCodeListsToUpdatePayload', () => {
     it('Converts library code lists to update payload', () => {
-      const updatedCodeLists: CodeListData[] = [
-        { name: 'animals', codes: codeLists.animals },
-        { name: 'vehicles', codes: codeLists.vehicles },
+      const updatedCodeLists: CodeListFile[] = [
+        { name: 'animals.json', content: codeListsUTF8.animals },
+        { name: 'vehicles.json', content: codeListsUTF8.vehicles },
       ];
       const commitMessage = 'Lorem ipsum';
-      const result = libraryCodeListsToUpdatePayload(
-        sharedResourcesResponse,
-        updatedCodeLists,
-        commitMessage,
-      );
+      const data = sharedResourcesResponse;
+      const result = libraryCodeListsToUpdatePayload(data, updatedCodeLists, commitMessage);
       const expectedResult: UpdateSharedResourcesRequest = {
         files: [
           {
             path: 'CodeLists/animals.json',
-            content: expect.stringMatching(
-              RegExp(
-                '^\\[\\s*{\\s*"value":\\s*"cat",\\s*"label":\\s*{\\s*"nb":\\s*"Katt",.+}\\s*},.+]$',
-                's',
-              ),
-            ),
+            content: codeListsUTF8.animals,
           },
           {
             path: 'CodeLists/vehicles.json',
-            content: expect.stringMatching(
-              RegExp(
-                '^\\[\\s*{\\s*"value":\\s*"car",\\s*"label":\\s*{\\s*"nb":\\s*"Bil",.+}\\s*},.+]$',
-                's',
-              ),
-            ),
+            content: codeListsUTF8.vehicles,
           },
         ],
-        baseCommitSha: sharedResourcesResponse.commitSha,
+        baseCommitSha: data.commitSha,
         commitMessage,
       };
       expect(result).toEqual(expectedResult);
     });
 
     it('Marks deleted code lists with null as content', () => {
-      const updatedCodeLists: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
+      const { animals } = codeListsUTF8;
+      const updatedCodeLists: CodeListFile[] = [{ name: 'animals.json', content: animals }];
       const commitMessage = 'Lorem ipsum';
-      const result = libraryCodeListsToUpdatePayload(
-        sharedResourcesResponse,
-        updatedCodeLists,
-        commitMessage,
-      );
+      const data = sharedResourcesResponse;
+      const result = libraryCodeListsToUpdatePayload(data, updatedCodeLists, commitMessage);
       const expectedResult: UpdateSharedResourcesRequest = {
         files: [
           {
             path: 'CodeLists/animals.json',
-            content: JSON.stringify(codeLists.animals, null, 2),
+            content: animals,
           },
           { path: 'CodeLists/vehicles.json', content: null },
         ],
-        baseCommitSha: sharedResourcesResponse.commitSha,
+        baseCommitSha: data.commitSha,
         commitMessage,
       };
       expect(result).toEqual(expectedResult);
     });
 
     it('Ignores code lists with problems in the original data', () => {
-      const updatedCodeLists: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
+      const { animals } = codeListsUTF8;
+      const updatedCodeLists: CodeListFile[] = [{ name: 'animals.json', content: animals }];
       const commitMessage = 'Lorem ipsum';
-      const result = libraryCodeListsToUpdatePayload(
-        sharedResourcesResponseWithProblem,
-        updatedCodeLists,
-        commitMessage,
-      );
+      const data = sharedResourcesResponseWithProblem;
+      const result = libraryCodeListsToUpdatePayload(data, updatedCodeLists, commitMessage);
       const expectedResult: UpdateSharedResourcesRequest = {
         files: [
           {
             path: 'CodeLists/animals.json',
-            content: JSON.stringify(codeLists.animals, null, 2),
+            content: animals,
           },
         ],
-        baseCommitSha: sharedResourcesResponseWithProblem.commitSha,
+        baseCommitSha: data.commitSha,
         commitMessage,
       };
       expect(result).toEqual(expectedResult);
@@ -179,15 +160,10 @@ describe('utils', () => {
 
   describe('libraryCodeListDataToBackendCodeListData', () => {
     it('Converts library code list data to backend code list data', () => {
-      const libraryCodeListData: CodeListData = {
-        name: 'animals',
-        codes: codeLists.animals,
-      };
+      const codes: CodeList = JSON.parse(codeListsUTF8.animals);
+      const libraryCodeListData: CodeListData = { name: 'animals', codes };
       const result = libraryCodeListDataToBackendCodeListData(libraryCodeListData);
-      const expectedResult: CodeListDataNew = {
-        title: 'animals',
-        codeList: { codes: codeLists.animals },
-      };
+      const expectedResult: CodeListDataNew = { title: 'animals', codeList: { codes } };
       expect(result).toEqual(expectedResult);
     });
   });

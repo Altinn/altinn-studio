@@ -11,6 +11,7 @@ export const defaultGlobalUiSettings: GlobalPageSettings = {
   taskNavigation: [],
   navigationTitle: 'navigation.form_pages',
   validationOnNavigation: undefined,
+  hideAppNameInPdf: false,
 };
 
 export function getUiConfig() {

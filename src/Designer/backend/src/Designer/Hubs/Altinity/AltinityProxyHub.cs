@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -11,6 +10,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelBinding.Constants;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.Altinity;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
@@ -38,10 +38,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly AltinityAttachmentBuffer _attachmentStore;
     private readonly IApiKeyService _apiKeyService;
     private readonly IUserOrganizationService _userOrganizationService;
+    private readonly IChatService _chatService;
 
-    private static readonly ConcurrentDictionary<string, string> s_sessionIdToDeveloper = new();
-
-    private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToSessionId = new();
+    private static readonly ConcurrentDictionary<string, HashSet<string>> s_connectionToSessionIds = new();
 
     public AltinityProxyHub(
         IHttpContextAccessor httpContextAccessor,
@@ -52,7 +51,8 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         IAltinityWebSocketService webSocketService,
         IUserOrganizationService userOrganizationService,
         AltinityAttachmentBuffer attachmentStore,
-        IApiKeyService apiKeyService
+        IApiKeyService apiKeyService,
+        IChatService chatService
     )
     {
         _httpContextAccessor = httpContextAccessor;
@@ -64,6 +64,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         _userOrganizationService = userOrganizationService;
         _attachmentStore = attachmentStore;
         _apiKeyService = apiKeyService;
+        _chatService = chatService;
     }
 
     public override async Task OnConnectedAsync()
@@ -73,43 +74,71 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         await Groups.AddToGroupAsync(connectionId, developer);
 
-        string sessionId = Guid.NewGuid().ToString();
-
         _logger.LogInformation(
-            "Altinity hub connection established for user: {Developer}, connectionId: {ConnectionId}, sessionId: {SessionId}",
+            "Altinity hub connection established for user: {Developer}, connectionId: {ConnectionId}",
             developer,
-            connectionId,
-            sessionId
+            connectionId
         );
 
         try
         {
             await _webSocketService.EnsureConnectedAsync(developer);
-            await _webSocketService.RegisterSessionAsync(developer, sessionId);
-
-            s_sessionIdToDeveloper.TryAdd(sessionId, developer);
-            s_signalRConnectionToSessionId.TryAdd(connectionId, sessionId);
-
-            _logger.LogInformation(
-                "Registered session {SessionId} on agents WS for developer {Developer}",
-                sessionId,
-                developer
-            );
-
-            await Clients.Caller.SessionCreated(sessionId);
         }
         catch (Exception ex)
         {
             _logger.LogError(
                 ex,
-                "Failed to establish WebSocket to Altinity for session {SessionId}. Aborting connection.",
-                sessionId
+                "Failed to establish WebSocket to Altinity for developer {Developer}. Aborting connection.",
+                developer
             );
             Context.Abort();
             return;
         }
 
         await base.OnConnectedAsync();
+    }
+
+    public async Task RegisterSession(string org, string app, string threadId)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string connectionId = Context.ConnectionId;
+
+        if (!Guid.TryParse(threadId, out Guid parsedThreadId))
+        {
+            throw new HubException("Invalid threadId format");
+        }
+
+        org.ValidPathSegment(nameof(org));
+        app.ValidPathSegment(nameof(app));
+
+        var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(parsedThreadId, context);
+        if (!isOwner)
+        {
+            throw new HubException("Access denied: Developer does not own current thread.");
+        }
+
+        s_connectionToSessionIds.AddOrUpdate(
+            connectionId,
+            _ => new HashSet<string> { threadId },
+            (_, existing) =>
+            {
+                lock (existing)
+                {
+                    existing.Add(threadId);
+                }
+                return existing;
+            }
+        );
+
+        await _webSocketService.RegisterSessionAsync(developer, threadId);
+
+        _logger.LogInformation(
+            "Registered session {SessionId} for developer {Developer} on connection {ConnectionId}",
+            threadId,
+            developer,
+            connectionId
+        );
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -119,10 +148,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         await Groups.RemoveFromGroupAsync(connectionId, developer);
 
-        if (s_signalRConnectionToSessionId.TryRemove(connectionId, out string? sessionId))
-        {
-            s_sessionIdToDeveloper.TryRemove(sessionId, out _);
-        }
+        s_connectionToSessionIds.TryRemove(connectionId, out _);
 
         // Don't close the developer WS — it persists across tab reconnects.
         // It will be cleaned up by the service when the developer has no active sessions.
@@ -141,7 +167,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string sessionId = ExtractSessionIdFromRequest(request);
-        ValidateSessionOwnership(sessionId, developer);
+        ValidateConnectionOwnsSession(sessionId);
         await ValidateOrgMembershipAsync(request, developer);
 
         _logger.LogInformation(
@@ -264,27 +290,26 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
     }
 
-    private void ValidateSessionOwnership(string sessionId, string developer)
+    private void ValidateConnectionOwnsSession(string sessionId)
     {
-        if (!s_sessionIdToDeveloper.TryGetValue(sessionId, out string? sessionOwner))
+        string connectionId = Context.ConnectionId;
+        bool isRegistered = false;
+        if (s_connectionToSessionIds.TryGetValue(connectionId, out HashSet<string>? sessions))
         {
-            _logger.LogWarning(
-                "User {Developer} attempted to use non-existent session {SessionId}",
-                developer,
-                sessionId
-            );
-            throw new HubException("Invalid session: Session does not exist");
+            lock (sessions)
+            {
+                isRegistered = sessions.Contains(sessionId);
+            }
         }
 
-        if (sessionOwner != developer)
+        if (!isRegistered)
         {
             _logger.LogWarning(
-                "User {Developer} attempted to access session {SessionId} owned by {SessionOwner}",
-                developer,
+                "Session {SessionId} is not registered on connection {ConnectionId}",
                 sessionId,
-                sessionOwner
+                connectionId
             );
-            throw new HubException("Access denied: You don't own this session");
+            throw new HubException("Access denied: Session is not registered on this connection");
         }
     }
 
@@ -368,7 +393,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     public async Task<object> CancelWorkflow(string sessionId)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        ValidateSessionOwnership(sessionId, developer);
+        ValidateConnectionOwnsSession(sessionId);
 
         _logger.LogInformation("CancelWorkflow called for session {SessionId} by {Developer}", sessionId, developer);
 

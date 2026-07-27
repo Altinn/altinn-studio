@@ -12,5 +12,7 @@ export type { PagesConfig } from './types/PagesProps';
 export { CodeListUsageTaskType } from './types/CodeListUsageTaskType';
 export type { CodeListDataWithTextResources } from './types/CodeListDataWithTextResources';
 export type { CodeListData } from './types/CodeListData';
+export type { CodeList } from './types/CodeList';
+export type { CodeListFile, OrdinaryCodeListFile } from './types/CodeListFile';
 export { PageName } from './types/PageName';
 export type { ContentLibraryRouter } from './types/ContentLibraryRouter';

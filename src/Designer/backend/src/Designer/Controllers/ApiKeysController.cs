@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Models.ApiKey;
@@ -10,14 +9,12 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.FeatureManagement.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("/designer/api/v1/user/api-keys")]
 public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
 {

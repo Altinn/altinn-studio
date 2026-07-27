@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
@@ -11,6 +13,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 internal sealed record V8Tov9UpgradeOptions(
     string ProjectFolder,
     string ProjectFile,
+    int TargetMajorVersion,
     string TargetFramework,
     bool SkipCsprojUpgrade,
     bool ConvertPackageReferences,
@@ -22,6 +25,20 @@ internal sealed record V8Tov9UpgradeOptions(
 
 internal static class V8Tov9Upgrade
 {
+    private static readonly Regex _programCsPathMatcher = new(
+        @"^Program\.cs$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
+
+    private static readonly Regex _allCSharpFilesMatcher = new(
+        @"\.cs$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
+
+    // Namespace the IServiceTask interface moved from / to between v8 and v9.
+    private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
+    private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
@@ -43,7 +60,7 @@ internal static class V8Tov9Upgrade
                 $"Version(s) in project file {projectFile} are not supported for the 'v8Tov9' upgrade. "
                     + "This upgrade is for apps on version 8.x.x. "
                     + "Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
-                exitCode: 2
+                exitCode: ExitUnsupportedVersion
             );
 
         var returnCode = 0;
@@ -51,54 +68,106 @@ internal static class V8Tov9Upgrade
         if (!options.SkipCsprojUpgrade)
         {
             if (options.ConvertPackageReferences)
+            {
                 returnCode = await ConvertToProjectReferences(
                     projectFolder,
                     projectFile,
                     options.TargetFramework,
                     options.StudioRoot
                 );
+            }
             else
-                returnCode = await UpgradeProjectFile(projectFile, options.TargetFramework);
+            {
+                var targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
+                    projectFolder,
+                    options.TargetMajorVersion,
+                    options.CancellationToken
+                );
+                returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
+            }
+
+            if (returnCode == 0)
+                returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
+        }
+
+        // The migration jobs below are independent of each other: one failing must not silently
+        // skip the rest (e.g. a malformed process.bpmn failing the PDF service task migration must
+        // not deprive the app of the service-owner policy check). Run them all and report the worst
+        // return code.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(projectFile));
+
+        // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
+        // fails to restore (NU1605). Only relevant when we actually bumped the csproj to v9 packages.
+        if (!options.SkipCsprojUpgrade && !options.ConvertPackageReferences)
+        {
+            options.CancellationToken.ThrowIfCancellationRequested();
+            returnCode = CombineExitCodes(
+                returnCode,
+                await MigrateNuGetDowngrades(projectFolder, projectFile, options.CancellationToken)
+            );
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await RemoveSwashbucklePackage(projectFile);
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await ConvertConditionalRenderingRules(projectFolder);
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await GenerateDataProcessors(projectFolder);
+        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await CleanupLegacyRuleFiles(projectFolder);
+        returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await MigrateLayoutSetsToTaskUi(projectFolder);
+        returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (returnCode == 0)
-            returnCode = await MigrateIndexCshtml(projectFolder);
+        returnCode = CombineExitCodes(returnCode, await GenerateDataProcessors(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         UpgradeConsole.WriteLine(
-            returnCode == 0
-                ? "Please verify that the application is still working as expected."
-                : "Upgrade completed with errors. Please check for errors in the log above."
+            returnCode switch
+            {
+                ExitSuccess => "Please verify that the application is still working as expected.",
+                ExitManualActionRequired =>
+                    "Upgrade completed, but some steps need manual follow-up. Please review the warnings above.",
+                _ => "Upgrade completed with errors. Please check for errors in the log above.",
+            }
         );
         return returnCode;
     }
 
-    static async Task<int> UpgradeProjectFile(string projectFile, string targetFramework)
+    static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
         try
         {
-            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
-            await rewriter.SetTargetFramework();
+            var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
+            await rewriter.Upgrade();
             return 0;
         }
         catch (Exception ex)
@@ -108,12 +177,197 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateDockerfile(string projectFolder, string targetFramework)
+    {
+        try
+        {
+            await DockerfileMigration.Migrate(projectFolder, targetFramework);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Dockerfile: {ex.Message}");
+            return 1;
+        }
+    }
+
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
-        var rewriter = new ProjectFileRewriter(projectFile);
-        await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
-        await UpgradeConsole.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
-        return 0;
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile);
+            await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
+            await UpgradeConsole.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync(
+                $"Error removing Swashbuckle.AspNetCore package reference: {ex.Message}"
+            );
+            return 1;
+        }
+    }
+
+    static async Task<int> MigrateOpenApiNamespace(string projectFile)
+    {
+        try
+        {
+            var migration = new UsingNamespaceMigration(projectFile);
+            migration.Migrate("Microsoft.OpenApi.Models", "Microsoft.OpenApi", _programCsPathMatcher);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating OpenAPI namespace in Program.cs: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Raises explicit package versions to the floors the v9 Altinn.App packages require (NU1605
+    /// downgrades), driven dynamically by parsing <c>dotnet restore</c> output.
+    /// </summary>
+    static async Task<int> MigrateNuGetDowngrades(
+        string projectFolder,
+        string projectFile,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Checking for package downgrades against the v9 dependency floors..."
+            );
+
+            var resolver = new NuGetDowngradeResolver();
+            var result = await resolver.ResolveAsync(projectFolder, projectFile, cancellationToken);
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Some package downgrades need manual follow-up. Review the messages above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            return ExitSuccess;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error resolving package downgrades: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
+    static async Task<int> MigrateServiceTaskNamespace(string projectFile)
+    {
+        try
+        {
+            var migration = new UsingNamespaceMigration(projectFile);
+            migration.Migrate(ServiceTaskOldNamespace, ServiceTaskNewNamespace, _allCSharpFilesMatcher);
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating IServiceTask namespace: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
+    /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
+    /// </summary>
+    static async Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
+    {
+        try
+        {
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var migration = new EFormidlingReceiversSignatureMigration(
+                scanner,
+                EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
+            );
+            var result = migration.Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating IEFormidlingReceivers signature: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
+    /// code, and removed internal engine handler types.
+    /// </summary>
+    static async Task<int> CheckRemovedCSharpApis(string projectFile)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Checking for removed or changed v9 C# APIs...");
+
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var result = WarnOnlyDetector.Combine(
+                new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new ServiceTaskResultApiDetector(scanner).Detect(),
+                new LegacyEFormidlingCodeDetector(scanner).Detect(),
+                new RemovedInternalProcessTypeDetector(scanner).Detect()
+            );
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Removed or changed C# APIs need manual follow-up. Review the messages above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error checking for removed C# APIs: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    static async Task<int> MigrateLaunchSettings(string projectFile)
+    {
+        try
+        {
+            await LaunchSettingsMigration.Migrate(projectFile);
+            await UpgradeConsole.Out.WriteLineAsync("Launch settings migrated");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating launch settings: {ex.Message}");
+            return 1;
+        }
     }
 
     static async Task<int> ConvertToProjectReferences(
@@ -414,7 +668,194 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    private static int WriteError(string message, int exitCode = 1)
+    /// <summary>
+    /// Job 8: Migrate the deprecated enablePdfCreation flag to 'pdf' service tasks
+    /// </summary>
+    static async Task<int> MigratePdfServiceTasks(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating enablePdfCreation to PDF service tasks...");
+
+            var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder);
+            var result = await migrator.Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "PDF service task migration needs manual follow-up. Review the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync(
+                result.Warnings.Count > 0
+                    ? "PDF service task migration completed with warnings. Review the warnings above."
+                    : "PDF service task migration completed"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating PDF service tasks: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Job 9: Ensure the policy grants the service owner the process-transition rights the v9 workflow
+    /// engine needs (it persists transitions to Storage out-of-band as the service owner)
+    /// </summary>
+    static async Task<int> MigrateServiceOwnerPolicy(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Checking service-owner process-transition rights in policy.xml..."
+            );
+
+            var migrator = new PolicyMigration.ServiceOwnerPolicyMigrator(projectFolder);
+            var result = await migrator.Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Service-owner policy migration needs manual follow-up. Review the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync(
+                result.Warnings.Count > 0
+                    ? "Service-owner policy migration completed with warnings. Review the warnings above."
+                    : "Service-owner policy migration completed (policy already covered the required actions)"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating service-owner policy: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Job 10: Migrate the deprecated eFormidling block in applicationmetadata.json to an eFormidling
+    /// process service task
+    /// </summary>
+    static async Task<int> MigrateEFormidlingServiceTasks(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating legacy eFormidling configuration to service tasks...");
+
+            var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
+            var result = await migrator.Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "eFormidling service task migration needs manual follow-up. Review the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync(
+                result.Warnings.Count > 0
+                    ? "eFormidling service task migration completed with warnings. Review the warnings above."
+                    : "eFormidling service task migration completed"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating eFormidling service tasks: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Job 11: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
+    /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
+    /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
+    /// </summary>
+    static async Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Checking for feedback tasks behind service tasks...");
+
+            var advisor = new ProcessAdvisories.FeedbackAfterServiceTaskAdvisor(projectFolder);
+            var result = advisor.Analyze();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  Warning: {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "Feedback tasks behind service tasks need review. See the warnings above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            await UpgradeConsole.Out.WriteLineAsync("No feedback tasks behind service tasks found");
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync(
+                $"Error checking for feedback tasks behind service tasks: {ex.Message}"
+            );
+            return ExitError;
+        }
+    }
+
+    // Process exit codes. A job that completes but leaves work for a human (e.g. a legacy flag kept in
+    // place) reports ManualActionRequired so tooling can tell "clean" from "needs manual follow-up".
+    private const int ExitSuccess = 0;
+    private const int ExitError = 1;
+    private const int ExitUnsupportedVersion = 2;
+    private const int ExitManualActionRequired = 3;
+
+    /// <summary>
+    /// Aggregates two job exit codes by severity: a genuine error must never be masked by a
+    /// manual-action or success result, and manual-action outranks success. (Numeric order does not
+    /// track severity, so this cannot be a plain <see cref="Math.Max(int,int)"/>.)
+    /// </summary>
+    private static int CombineExitCodes(int current, int next)
+    {
+        // Any non-zero that isn't the manual-action signal counts as a hard error and dominates, so an
+        // unexpected/future non-zero code can never be swallowed into success.
+        static bool IsError(int code) => code != ExitSuccess && code != ExitManualActionRequired;
+        if (IsError(current) || IsError(next))
+            return ExitError;
+        if (current == ExitManualActionRequired || next == ExitManualActionRequired)
+            return ExitManualActionRequired;
+        return ExitSuccess;
+    }
+
+    private static int WriteError(string message, int exitCode = ExitError)
     {
         UpgradeConsole.WriteErrorLine(message);
         return exitCode;

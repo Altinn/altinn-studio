@@ -65,6 +65,25 @@ func DepIDs(ids ...ResourceID) []ResourceRef {
 	return refs
 }
 
+func validateRef(ref ResourceRef, err error) error {
+	if ref.ID() == "" {
+		return err
+	}
+	return nil
+}
+
+func appendWithRequiredRef(deps []ResourceRef, ref ResourceRef) []ResourceRef {
+	refs := cloneRefs(deps)
+	if ref.ID() == "" {
+		return refs
+	}
+	return append(refs, ref)
+}
+
+func cloneRefs(refs []ResourceRef) []ResourceRef {
+	return append([]ResourceRef(nil), refs...)
+}
+
 // Resource is the core interface for all managed infrastructure resources.
 // Resources form a DAG where dependencies must be applied before dependents.
 //

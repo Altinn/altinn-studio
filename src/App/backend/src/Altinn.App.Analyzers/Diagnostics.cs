@@ -36,6 +36,23 @@ public static class Diagnostics
         );
     }
 
+    internal static class Deprecations
+    {
+        public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
+            "ALTINNAPP0600",
+            Category.Deprecation,
+            "enablePdfCreation is not supported",
+            "'enablePdfCreation' on dataType '{0}' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead."
+        );
+
+        public static readonly DiagnosticDescriptor LegacyEFormidling = Error(
+            "ALTINNAPP0601",
+            Category.Deprecation,
+            "Legacy eFormidling configuration is not supported",
+            "The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead."
+        );
+    }
+
     private const string DocsRoot = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/";
     private const string RulesRoot = DocsRoot + "rules/";
 
@@ -58,5 +75,6 @@ public static class Diagnostics
         public const string General = nameof(General);
         public const string Metadata = nameof(Metadata);
         public const string CodeSmells = nameof(CodeSmells);
+        public const string Deprecation = nameof(Deprecation);
     }
 }

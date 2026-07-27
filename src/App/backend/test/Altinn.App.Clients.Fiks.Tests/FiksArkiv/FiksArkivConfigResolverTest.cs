@@ -234,7 +234,7 @@ public class FiksArkivConfigResolverTest
             .Returns(modelDataElement);
         instanceDataAccessorMock
             .Setup(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()))
-            .ReturnsAsync(FormDataWrapperFactory.Create(model));
+            .ReturnsAsync(FormDataWrapperFactory.Create(model, null!, null));
 
         fixture
             .LayoutStateInitializerMock.Setup(x =>
@@ -361,7 +361,7 @@ public class FiksArkivConfigResolverTest
             .Returns(modelDataElement);
         instanceDataAccessorMock
             .Setup(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()))
-            .ReturnsAsync(FormDataWrapperFactory.Create(model));
+            .ReturnsAsync(FormDataWrapperFactory.Create(model, null!, null));
 
         fixture
             .LayoutStateInitializerMock.Setup(x =>
@@ -554,7 +554,7 @@ public class FiksArkivConfigResolverTest
                     : null,
         };
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        fixture.PartyClientMock.Setup(x => x.GetParty(123)).ReturnsAsync(party);
+        fixture.PartyClientMock.Setup(x => x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>())).ReturnsAsync(party);
 
         // Act
         var result = await fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(instance);
@@ -572,7 +572,7 @@ public class FiksArkivConfigResolverTest
         // Arrange
         var instance = new Instance { InstanceOwner = new InstanceOwner { PartyId = "123" } };
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        fixture.PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>())).ReturnsAsync((Party?)null);
+        fixture.PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>())).ReturnsAsync((Party?)null);
 
         // Act
         var result = await fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(instance);

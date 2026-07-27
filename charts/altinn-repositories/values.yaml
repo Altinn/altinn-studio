@@ -112,6 +112,8 @@ environmentVariables:
     value: "postgres"
   - name: GITEA__database__SSL_MODE
     value: require
+  - name: GITEA__api__DEFAULT_PAGING_NUM
+    value: "100"
   - name: GITEA__mailer__ENABLED
     value: "true"
   - name: GITEA__mailer__SKIP_VERIFY
@@ -153,8 +155,6 @@ proxy:
     publicPort: 80
   distinctEnvironmentVariables:
     dev:
-      - name: STUDIO_OIDC_ENABLED
-        value: "true"
       - name: OTEL_ENDPOINT
         value: http://otel-router.observability.svc.cluster.local:4317
       - name: OTEL_SERVICE_NAME
@@ -162,8 +162,6 @@ proxy:
       - name: OTEL_TRACE
         value: "on"
     staging:
-      - name: STUDIO_OIDC_ENABLED
-        value: "true"
       - name: OTEL_ENDPOINT
         value: http://otel-router.observability.svc.cluster.local:4317
       - name: OTEL_SERVICE_NAME
@@ -171,8 +169,6 @@ proxy:
       - name: OTEL_TRACE
         value: "on"
     prod:
-      - name: STUDIO_OIDC_ENABLED
-        value: "true"
       - name: OTEL_ENDPOINT
         value: http://otel-router.observability.svc.cluster.local:4317
       - name: OTEL_SERVICE_NAME

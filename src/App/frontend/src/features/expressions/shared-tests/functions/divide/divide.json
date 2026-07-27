@@ -12,19 +12,19 @@
       "expects": 0.5
     },
     {
-      "name": "Should return null when both of the arguments are null",
+      "name": "Should throw an exception when both of the arguments are null",
       "expression": ["divide", null, null],
-      "expects": null
+      "expectsFailure": "The second argument is 0, cannot divide by 0"
     },
     {
-      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "name": "Should return 0 when the dividend is null",
       "expression": ["divide", null, 2.1],
-      "expects": null
+      "expects": 0
     },
     {
-      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "name": "Should throw an exception when the divisor is null",
       "expression": ["divide", 2.1, null],
-      "expects": null
+      "expectsFailure": "The second argument is 0, cannot divide by 0"
     },
     {
       "name": "Should divide two integers",
@@ -172,9 +172,9 @@
       "expects": -0.5
     },
     {
-      "name": "Should return null when dividend is null and divisor is zero",
+      "name": "Should throw an exception when dividend is null and divisor is zero",
       "expression": ["divide", null, 0],
-      "expects": null
+      "expectsFailure": "The second argument is 0, cannot divide by 0"
     },
     {
       "name": "Should throw exception when trying to divide by zero",

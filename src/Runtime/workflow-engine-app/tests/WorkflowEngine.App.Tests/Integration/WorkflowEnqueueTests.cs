@@ -59,12 +59,13 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                 "idempotencyKey": "complex-dag-raw-json",
                 "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
                 "context": {
-                    "actor": { "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
+                    "actor": { "orgId": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
                     "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackToken": "test-callback-token"
                 },
                 "workflows": [
                     {
@@ -224,12 +225,13 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                 "idempotencyKey": "process-next-payload-test",
                 "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
                 "context": {
-                    "actor": { "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
+                    "actor": { "orgId": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
                     "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackToken": "test-callback-token"
                 },
                 "workflows": [
                     {

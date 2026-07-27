@@ -31,6 +31,18 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
         builder.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true).IsRequired();
 
         builder
+            .Property(e => e.Environments)
+            .HasColumnType("text[]")
+            .HasColumnName("environments")
+            .HasDefaultValueSql("'{}'::text[]")
+            .IsRequired();
+
+        builder
+            .Property(e => e.CreatedByUserAccountId)
+            .HasColumnType("uuid")
+            .HasColumnName("created_by_user_account_id");
+
+        builder
             .Property(e => e.CreatedAt)
             .HasColumnType("timestamptz")
             .HasColumnName("created_at")
@@ -39,11 +51,11 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
             .IsRequired();
 
         builder
-            .Property(e => e.Environments)
-            .HasColumnType("text[]")
-            .HasColumnName("environments")
-            .HasDefaultValueSql("'{}'::text[]")
-            .IsRequired();
+            .Property(e => e.UpdatedByUserAccountId)
+            .HasColumnType("uuid")
+            .HasColumnName("updated_by_user_account_id");
+
+        builder.Property(e => e.UpdatedAt).HasColumnType("timestamptz").HasColumnName("updated_at").IsRequired();
 
         builder
             .HasMany(e => e.Methods)
@@ -51,6 +63,18 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
             .HasForeignKey(e => e.ContactPointId)
             .HasConstraintName("fk_contact_methods_contact_point_id")
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(e => e.CreatedByUserAccount)
+            .WithMany()
+            .HasForeignKey(e => e.CreatedByUserAccountId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder
+            .HasOne(e => e.UpdatedByUserAccount)
+            .WithMany()
+            .HasForeignKey(e => e.UpdatedByUserAccountId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(e => e.Org, "idx_contact_points_org");
 

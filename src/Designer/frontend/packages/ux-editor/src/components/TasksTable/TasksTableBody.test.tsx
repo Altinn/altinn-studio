@@ -6,14 +6,18 @@ import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layoutSetsExtendedMock } from '../../testing/layoutSetsMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsExtendedMock,
+} from '../../testing/layoutSetsMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 const tasksMock: TaskNavigationGroup[] = [
-  { taskType: 'data', name: 'Task 1', taskId: 'Task_1' },
-  { taskType: 'data', name: 'Task 2', taskId: 'Task_2' },
+  { taskType: 'data', name: 'Task 1', taskId: layoutSet1NameMock },
+  { taskType: 'data', name: 'Task 2', taskId: layoutSet2NameMock },
   { taskType: 'receipt', taskId: 'fake' },
 ];
 
@@ -65,10 +69,10 @@ describe('TasksTableBody', () => {
   it('should show correct page count when the task is a custom receipt', () => {
     const layoutSetsExtended = [
       {
-        id: 'layoutSet3SubformNameMock',
+        id: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
         dataType: 'data-model-3',
         type: 'data',
-        task: { id: PROTECTED_TASK_NAME_CUSTOM_RECEIPT, type: 'data' },
+        taskType: 'data',
         pageCount: 4,
       },
     ];
@@ -133,7 +137,7 @@ const renderTasksTableBody = ({
   layoutSetsExtended = layoutSetsExtendedMock,
 }: {
   props?: Partial<TasksTableBodyProps>;
-  layoutSetsExtended?: LayoutSetModel[];
+  layoutSetsExtended?: UiFolderLayoutSetModel[];
 } = {}) => {
   const defaultProps: TasksTableBodyProps = {
     tasks: tasksMock,

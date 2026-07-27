@@ -12,6 +12,8 @@ import (
 	"altinn.studio/releaser/internal/version"
 )
 
+const fakeHeadCommit = "1234567890abcdef1234567890abcdef12345678"
+
 func TestWorkflow_Run_TagExists(t *testing.T) {
 	t.Parallel()
 
@@ -220,8 +222,57 @@ func TestWorkflow_Run_StableChecksOutReleaseBranch(t *testing.T) {
 	if git.pullCount != 1 {
 		t.Fatalf("expected pull to be called once, got %d", git.pullCount)
 	}
-	if gh.target != "release/studioctl/v1.2" {
-		t.Fatalf("target = %s, want release/studioctl/v1.2", gh.target)
+	if gh.target != fakeHeadCommit {
+		t.Fatalf("target = %s, want %s", gh.target, fakeHeadCommit)
+	}
+}
+
+func TestWorkflow_Run_PrereleaseTargetsHeadCommit(t *testing.T) {
+	t.Parallel()
+
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3-preview.1] - 2025-01-01
+
+### Added
+
+- Test entry
+`)
+
+	const headCommit = "abcdef1234567890abcdef1234567890abcdef12"
+	builder := &fakeBuilder{}
+	gh := &fakeGH{}
+	git := &fakeGit{
+		currentBranch:    "main",
+		headCommit:       headCommit,
+		workingTreeClean: true,
+	}
+
+	cfg := internal.WorkflowConfig{
+		Component:     "studioctl",
+		Version:       "v1.2.3-preview.1",
+		ChangelogPath: changelogPath,
+		OutputDir:     t.TempDir(),
+		DryRun:        false,
+		Draft:         true,
+		RepoRoot:      os.TempDir(),
+	}
+
+	workflow, err := internal.NewWorkflow(t.Context(), cfg, git, gh, builder, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("NewWorkflow() error: %v", err)
+	}
+	if err := workflow.Run(t.Context()); err != nil {
+		t.Fatalf("workflow.Run() error: %v", err)
+	}
+
+	if gh.target != headCommit {
+		t.Fatalf("target = %s, want %s", gh.target, headCommit)
+	}
+	if !gh.prerelease {
+		t.Fatal("expected prerelease GitHub release")
 	}
 }
 
@@ -474,6 +525,7 @@ func TestNewWorkflow_OutputDirSafety_RejectsSymlinkEscape(t *testing.T) {
 
 type fakeGit struct {
 	currentBranch      string
+	headCommit         string
 	lastCheckout       string
 	lastPull           string
 	checkoutCount      int
@@ -520,6 +572,13 @@ func (g *fakeGit) PushWithUpstream(_ context.Context, _, _ string) error {
 
 func (g *fakeGit) RepoRoot(_ context.Context) (string, error) {
 	return ".", nil
+}
+
+func (g *fakeGit) HeadCommit(_ context.Context) (string, error) {
+	if g.headCommit == "" {
+		return fakeHeadCommit, nil
+	}
+	return g.headCommit, nil
 }
 
 func (g *fakeGit) WorkingTreeClean(_ context.Context) (bool, error) {

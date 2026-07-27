@@ -1,0 +1,42 @@
+{
+  "id": "ttd/app-with-ordered-ui-folders",
+  "org": "ttd",
+  "title": {
+    "nb": "app-with-ordered-ui-folders"
+  },
+  "dataTypes": [
+    {
+      "id": "modelTaskOne",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.modelTaskOne"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
+      "id": "modelTaskTwo",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.modelTaskTwo"
+      },
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": true,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-01-01T00:00:00Z",
+  "createdBy": "testUser",
+  "lastChanged": "2024-01-01T00:00:00Z",
+  "lastChangedBy": "testUser"
+}

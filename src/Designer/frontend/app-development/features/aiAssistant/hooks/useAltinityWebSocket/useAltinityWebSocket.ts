@@ -11,38 +11,34 @@ import type {
 const ALTINITY_CONNECTION_INDEX = 0; // WSConnector uses single connection for Altinity hub
 
 enum AltinityClientsName {
-  SessionCreated = 'SessionCreated',
   ReceiveAgentMessage = 'ReceiveAgentMessage',
 }
 
 export interface UseAltinityWebSocketResult {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
-  sessionId: string | null;
   startWorkflow: (request: WorkflowRequest) => Promise<AgentResponse>;
   cancelWorkflow: (sessionId: string) => Promise<void>;
+  registerSession: (org: string, app: string, threadId: string) => Promise<void>;
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
 }
 
+// TODO: rename to useAssistantWebSocket.
 export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const wsInstanceRef = useRef<any>(null);
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);
 
   useEffect(() => {
     const wsInstance = new WSConnector(
       [altinityWebSocketHub()],
-      [AltinityClientsName.SessionCreated, AltinityClientsName.ReceiveAgentMessage],
+      [AltinityClientsName.ReceiveAgentMessage],
     );
     wsInstanceRef.current = wsInstance;
 
     const connection = getAltinitySignalRConnection(wsInstance);
     if (connection) {
-      registerSessionCreatedHandler(connection, (receivedSessionId) => {
-        setSessionId(receivedSessionId);
-        setConnectionStatus('connected');
-      });
       registerAgentMessageHandler(connection, messageCallbackRef);
+      setConnectionStatus('connected');
     }
 
     return () => {
@@ -50,7 +46,6 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
         cleanupConnectionHandlers(connection);
       }
       setConnectionStatus('disconnected');
-      setSessionId(null);
     };
   }, []);
 
@@ -81,11 +76,28 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
     }
   }, []);
 
+  const registerSession = useCallback(
+    async (org: string, app: string, threadId: string): Promise<void> => {
+      const connection = getAltinitySignalRConnection(wsInstanceRef.current);
+      if (!connection) {
+        throw new Error('No active SignalR connection to Altinity hub');
+      }
+
+      try {
+        await connection.invoke('RegisterSession', org, app, threadId);
+      } catch (error) {
+        console.error('Failed to register session:', error);
+        throw error;
+      }
+    },
+    [],
+  );
+
   return {
     connectionStatus,
-    sessionId,
     startWorkflow,
     cancelWorkflow,
+    registerSession,
     onAgentMessage,
   };
 };
@@ -99,17 +111,7 @@ function getAltinitySignalRConnection(wsInstance: any): any | null {
   return connections[ALTINITY_CONNECTION_INDEX];
 }
 
-function registerSessionCreatedHandler(
-  connection: any,
-  setSessionId: (sessionId: string) => void,
-): void {
-  connection.on(AltinityClientsName.SessionCreated, (receivedSessionId: string) => {
-    setSessionId(receivedSessionId);
-  });
-}
-
 function cleanupConnectionHandlers(connection: any): void {
-  connection.off(AltinityClientsName.SessionCreated);
   connection.off(AltinityClientsName.ReceiveAgentMessage);
 }
 

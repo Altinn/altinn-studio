@@ -116,6 +116,14 @@ func (in *MaskinportenClientStatus) DeepCopyInto(out *MaskinportenClientStatus) 
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.PendingSecretRotationDetectedAt != nil {
+		in, out := &in.PendingSecretRotationDetectedAt, &out.PendingSecretRotationDetectedAt
+		*out = (*in).DeepCopy()
+	}
+	if in.LastSecretRotationRestartedAt != nil {
+		in, out := &in.LastSecretRotationRestartedAt, &out.LastSecretRotationRestartedAt
+		*out = (*in).DeepCopy()
+	}
 	if in.ActionHistory != nil {
 		in, out := &in.ActionHistory, &out.ActionHistory
 		*out = make([]ActionRecord, len(*in))

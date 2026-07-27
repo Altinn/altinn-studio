@@ -132,7 +132,7 @@ describe('ConfigServiceTask', () => {
         bpmnDetails: pdfBpmnDetails,
       },
       bpmnApiContextProps: {
-        layoutSets: { sets: [] },
+        layoutSets: [],
       },
     });
 

@@ -148,6 +148,7 @@ export const ResourceTable = ({
       accessor: 'title',
       heading: t('dashboard.resource_table_header_name'),
       sortable: true,
+      bodyCellClass: classes.titleCell,
     },
     {
       accessor: 'identifier',

@@ -1,0 +1,51 @@
+# Git hooks managed by lefthook — https://lefthook.dev/
+# Replaces the previous husky + lint-staged setup.
+
+# Disable ANSI colors. VS Code's Git output panel doesn't interpret ANSI,
+# so colored output shows up as raw escape codes (e.g. ^[[38;2;...m).
+colors: false
+
+# Trim output to the useful parts. Dropping "meta" removes the decorative
+# banner box, and dropping "summary" removes a divider line that lefthook
+# 2.1.9 colorizes even with colors disabled. Failures still show command
+# output via execution_out.
+output:
+  - failure
+  - execution
+  - execution_out
+
+pre-commit:
+  # Run the commands concurrently. Safe because no two file-modifying commands
+  # touch the same files: the two eslint commands have separate roots, and
+  # prettier excludes the JS/TS those eslint configs already format (via
+  # eslint-plugin-prettier).
+  parallel: true
+  commands:
+    check-skipped-tests:
+      glob: 'src/App/frontend/*.{js,jsx,ts,tsx}'
+      run: ./scripts/pre-commit-check-for-skipped-tests {staged_files}
+    app-frontend-eslint:
+      root: 'src/App/frontend/'
+      glob: '*.{js,jsx,ts,tsx,json}'
+      run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
+      stage_fixed: true
+    form-component-eslint:
+      root: 'app-libs/form-component/'
+      glob: '*.{js,jsx,ts,tsx}'
+      run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
+      stage_fixed: true
+    sort-language-texts:
+      glob: 'src/Designer/frontend/language/src/*.json'
+      run: yarn sort-texts
+      stage_fixed: true
+    prettier:
+      glob: '*.{js,jsx,tsx,ts,css,md}'
+      # JS/TS inside the eslint roots are already prettier-formatted by their
+      # eslint runs (eslint-plugin-prettier), so skip them here to avoid a
+      # redundant second pass and any parallel write race. CSS/MD in those
+      # dirs are still covered (not excluded).
+      exclude:
+        - 'src/App/frontend/**/*.{js,jsx,ts,tsx}'
+        - 'app-libs/form-component/**/*.{js,jsx,ts,tsx}'
+      run: yarn prettier -w {staged_files}
+      stage_fixed: true

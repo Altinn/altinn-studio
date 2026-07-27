@@ -54,4 +54,30 @@ describe('Decimal', () => {
       expect(Decimal.divide(dividend, divisor)).toBe(quotient);
     });
   });
+
+  describe('sum', () => {
+    test.each`
+      list          | sum
+      ${[]}         | ${0}
+      ${[1]}        | ${1}
+      ${[1, 2, 3]}  | ${6}
+      ${[1, -2]}    | ${-1}
+      ${[0.1, 0.2]} | ${0.3}
+    `('sum($list) = $sum', ({ list, sum }) => {
+      expect(Decimal.sum(list)).toBe(sum);
+    });
+  });
+
+  describe('average', () => {
+    test.each`
+      list            | average
+      ${[0]}          | ${0}
+      ${[1]}          | ${1}
+      ${[2, 2, 7, 5]} | ${4}
+      ${[1, -2]}      | ${-0.5}
+      ${[0.1, 0.2]}   | ${0.15}
+    `('average($list) = $average', ({ list, average }) => {
+      expect(Decimal.average(list)).toBe(average);
+    });
+  });
 });

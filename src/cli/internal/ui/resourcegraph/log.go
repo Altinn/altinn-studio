@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -28,9 +29,9 @@ func NewLog(
 // NewLogWithPlan creates the non-interactive line-based renderer from planned resources.
 func NewLogWithPlan(
 	out *ui.Output,
-	resources []resource.PlannedResource,
+	resources []executor.PlannedResource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 	startMessage string,
 ) *LogRenderer {
 	return &LogRenderer{
@@ -72,7 +73,7 @@ func (r *LogRenderer) FailAll(message string) {
 }
 
 // OnEvent consumes a resource lifecycle event.
-func (r *LogRenderer) OnEvent(event resource.Event) {
+func (r *LogRenderer) OnEvent(event executor.Event) {
 	r.mu.Lock()
 	changed := r.model.applyEvent(event, time.Now())
 	lines := r.linesForNamesLocked(changed)

@@ -1,6 +1,6 @@
 {
   "name": "@studio/icons",
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.16.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
@@ -8,16 +8,17 @@
   },
   "dependencies": {
     "@navikt/aksel-icons": "^7.0.0",
-    "react": "19.2.5",
-    "react-dom": "19.2.5"
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@types/jest": "^30.0.0",
+    "@typescript/native": "npm:typescript@7.0.2",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "ts-jest": "^29.1.1",
-    "typescript": "5.9.3"
+    "typescript": "npm:@typescript/typescript6@6.0.2"
   }
 }

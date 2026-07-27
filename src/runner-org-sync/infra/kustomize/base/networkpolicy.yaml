@@ -1,0 +1,29 @@
+# Egress allowance for the OTel collector in the `observability` namespace.
+#
+# The studio-runners namespace has a cluster-wide default-deny egress policy
+# (managed in altinn-studio-infra/provisioning/studio-runners-infra.tf) which
+# whitelists DNS + Gitea + external internet, but not observability. Without
+# this additional rule, runner-org-sync's OTLP exporter times out at pod
+# exit and the run logs a `telemetry shutdown returned error` WARN.
+#
+# NetworkPolicies are additive: this policy adds to the studio-runners base
+# policy rather than replacing it. Scoped via `app: runner-org-sync` so only
+# this service gets the extra egress — tenant runner pods stay locked down.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: runner-org-sync-otel-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: runner-org-sync
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+      ports:
+        - port: 4317
+          protocol: TCP

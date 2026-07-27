@@ -34,7 +34,6 @@ export const useCreateSubform = (): UseCreateSubformReturn => {
     const handleAddLayoutSet = () => {
       addLayoutSet(
         {
-          layoutSetIdToUpdate: layoutSetName,
           layoutSetConfig: {
             id: layoutSetName,
             type: 'subform',

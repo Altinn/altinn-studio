@@ -1,12 +1,18 @@
 import React, { useMemo, useState } from 'react';
 
-import { Button, Fieldset, Input, Label, NumericInput } from '@app/form-component';
+import {
+  Button,
+  Description,
+  Fieldset,
+  getDescriptionId,
+  Input,
+  Label,
+  NumericInput,
+  RequiredIndicator,
+} from '@app/form-component';
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
-import { Description } from 'src/components/form/Description';
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { getDescriptionId } from 'src/components/label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

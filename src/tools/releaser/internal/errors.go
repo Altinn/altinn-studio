@@ -21,6 +21,7 @@ var (
 	errBackportNoEntries      = errors.New("no changelog entries found in commit")
 	errBackportInvalidVersion = errors.New("invalid branch version format (expected vX.Y)")
 	errUnsafeCleanDirPath     = errors.New("refusing to clean unsafe directory path")
+	errUnsafeReleaseNotesPath = errors.New("release notes intro path outside repo root")
 	errNoExistingParentPath   = errors.New("path has no existing parent directory")
 	errPromptIORequired       = errors.New("prompt input/output is required")
 

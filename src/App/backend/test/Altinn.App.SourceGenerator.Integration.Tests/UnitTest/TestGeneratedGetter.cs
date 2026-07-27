@@ -50,7 +50,8 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
     public void TestGetWithTypeExtensions()
     {
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
-            _skjema
+            _skjema,
+            null!
         );
 
         Assert.Equal("1243", dataWrapper.Get<string>("skjemanummer"));
@@ -69,7 +70,8 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
     {
         // Just ensure coverage when path is longer than we want to stackalloc
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
-            _skjema
+            _skjema,
+            null!
         );
         var minLengthToUseBufferInsteadOfStackalloc = 512;
         var tooLongPath = new string('s', minLengthToUseBufferInsteadOfStackalloc);
@@ -96,7 +98,8 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
     public void TestGetRaw(string path, object? expected)
     {
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
-            _skjema
+            _skjema,
+            null!
         );
         var actual = dataWrapper.Get(path);
         if (actual is Guid guid && expected is string stringGuid)
@@ -108,7 +111,7 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
             Assert.Equal(expected, actual);
         }
 
-        var reflector = new ReflectionFormDataWrapper(_skjema);
+        var reflector = new ReflectionFormDataWrapper(_skjema, null!);
         var reflectorActual = reflector.Get(path);
         if (reflectorActual is Guid rGuid && expected is string rstringGuid)
         {
@@ -140,11 +143,12 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
     {
         // These might all throw exceptions when we have better validation of data model bindings at startup
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
-            _skjema
+            _skjema,
+            null!
         );
         Assert.Null(dataWrapper.Get(path));
 
-        var reflector = new ReflectionFormDataWrapper(_skjema);
+        var reflector = new ReflectionFormDataWrapper(_skjema, null!);
         Assert.Null(reflector.Get(path));
     }
 
@@ -157,11 +161,12 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
     {
         // These might all throw exceptions when we have better validation of data model bindings at startup
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
-            _skjema
+            _skjema,
+            null!
         );
         testOutputHelper.WriteLine(Assert.Throws<DataModelException>(() => dataWrapper.Get(path)).ToString());
 
-        var reflector = new ReflectionFormDataWrapper(_skjema);
+        var reflector = new ReflectionFormDataWrapper(_skjema, null!);
         testOutputHelper.WriteLine(Assert.Throws<DataModelException>(() => reflector.Get(path)).ToString());
     }
 
@@ -172,11 +177,12 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
         var expected = _skjema.Skjemainnhold?[1]?.TidligereAdresse?[1]?.Tags;
         Assert.NotNull(expected);
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
-            _skjema
+            _skjema,
+            null!
         );
         Assert.Equivalent(expected, dataWrapper.Get(path));
 
-        var reflector = new ReflectionFormDataWrapper(_skjema);
+        var reflector = new ReflectionFormDataWrapper(_skjema, null!);
         Assert.Equivalent(expected, reflector.Get(path));
     }
 
@@ -187,11 +193,12 @@ public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
         var expected = _skjema.Skjemainnhold?[1]?.Adresse;
         Assert.NotNull(expected);
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
-            _skjema
+            _skjema,
+            null!
         );
         Assert.Equal(expected, dataWrapper.Get(path));
 
-        var reflector = new ReflectionFormDataWrapper(_skjema);
+        var reflector = new ReflectionFormDataWrapper(_skjema, null!);
         Assert.Equal(expected, reflector.Get(path));
     }
 

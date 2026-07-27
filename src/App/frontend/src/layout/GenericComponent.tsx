@@ -1,17 +1,14 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router';
-import type { SetURLSearchParams } from 'react-router';
+import React, { useEffect, useMemo } from 'react';
 
 import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
 import classNames from 'classnames';
 
-import { SearchParams } from 'src/core/routing/types';
-import { useIsNavigating } from 'src/core/routing/useIsNavigating';
+import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
-import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
+import { useHandleFocusComponent } from 'src/layout/focusComponent';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -20,9 +17,9 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { isDev } from 'src/utils/isDev';
 import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
@@ -42,13 +39,13 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const nodeId = useIndexedId(baseComponentId);
-  const generatorErrors = FormStore.nodes.useNodeData(nodeId, undefined, (node) => node.errors);
+  const layoutDiagnosticErrors = FormStore.layoutDiagnostics.useNodeErrors(nodeId);
 
-  if (generatorErrors && Object.keys(generatorErrors).length > 0) {
+  if (layoutDiagnosticErrors && Object.keys(layoutDiagnosticErrors).length > 0) {
     return (
       <ComponentErrorList
         baseComponentId={baseComponentId}
-        errors={Object.keys(generatorErrors)}
+        errors={Object.keys(layoutDiagnosticErrors)}
       />
     );
   }
@@ -93,6 +90,8 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
   const hiddenState = useIsHidden(baseComponentId, { includeReason: true });
   const howToHide = useDevToolsStore((state) => (state.isOpen ? state.hiddenComponents : 'hide'));
+  const layoutComponent = getComponentDef(component.type);
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useHandleFocusComponent(nodeId, containerDivRef);
 
@@ -103,6 +102,14 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       containerDivRef.current.style.filter = '';
     }
   }, [hiddenState, howToHide]);
+
+  useEffect(() => {
+    if (!layoutComponent) {
+      const error = `No component definition found for type '${component.type}' (component '${baseComponentId}')`;
+      window.logError(error);
+      addError(error, nodeId, 'node');
+    }
+  }, [addError, baseComponentId, component.type, layoutComponent, nodeId]);
 
   const formComponentContext = useMemo<IFormComponentContext>(
     () => ({
@@ -118,7 +125,10 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     return null;
   }
 
-  const layoutComponent = getComponentDef(component.type);
+  if (!layoutComponent) {
+    return null;
+  }
+
   const RenderComponent = layoutComponent.render as AnyComponent<Type>['render'];
 
   const componentProps: PropsFromGenericComponent<Type> = {
@@ -148,10 +158,12 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   if (overrideDisplay?.directRender || layoutComponent.directRender()) {
     return (
       <FormComponentContextProvider value={formComponentContext}>
-        <RenderComponent
-          {...componentProps}
-          ref={containerDivRef}
-        />
+        <AppLanguageTranslatorProvider>
+          <RenderComponent
+            {...componentProps}
+            ref={containerDivRef}
+          />
+        </AppLanguageTranslatorProvider>
       </FormComponentContextProvider>
     );
   }
@@ -169,7 +181,9 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         key={`grid-${nodeId}`}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
       >
-        <RenderComponent {...componentProps} />
+        <AppLanguageTranslatorProvider>
+          <RenderComponent {...componentProps} />
+        </AppLanguageTranslatorProvider>
       </Flex>
     </FormComponentContextProvider>
   );
@@ -212,98 +226,4 @@ export function ComponentErrorList({ baseComponentId, errors }: { baseComponentI
       </p>
     </FatalError>
   );
-}
-
-function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObject<HTMLDivElement | null>) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const indexedId = searchParams.get(SearchParams.FocusComponentId);
-  const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
-
-  const abortController = useRef(new AbortController());
-  const pathnameWas = window.location.pathname;
-  const isNavigating = useIsNavigating();
-  const shouldFocus = indexedId && indexedId == nodeId && !isNavigating;
-
-  useEffect(() => {
-    const div = containerDivRef.current;
-    if (shouldFocus && div) {
-      try {
-        requestAnimationFrame(() => {
-          !abortController.current.signal.aborted && div.scrollIntoView({ behavior: 'instant' });
-        });
-
-        const field = findElementToFocus(div, errorBinding);
-        if (field && !abortController.current.signal.aborted) {
-          field.focus();
-        }
-      } finally {
-        if (!abortController.current.signal.aborted && pathnameWas === window.location.pathname) {
-          // Only cleanup when pathname is the same as what it was during render. Navigation might have occurred, especially
-          // in Cypress tests where state changes will happen rapidly. These search params are cleaned up in
-          // useNavigatePage() automatically, so it shouldn't be a problem if the page has been changed. If something
-          // else happens, we'll re-render and get a new chance to clean up later.
-          cleanupQuery(searchParams, setSearchParams);
-        }
-      }
-    }
-  }, [containerDivRef, errorBinding, pathnameWas, nodeId, searchParams, setSearchParams, shouldFocus]);
-
-  useEffect(
-    () => () => {
-      // Abort on unmount so that we do not keep trying to focus this component
-      abortController.current.abort();
-    },
-    [abortController],
-  );
-}
-
-function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSearchParams) {
-  if (searchParams.has(SearchParams.FocusComponentId) || searchParams.has(SearchParams.FocusErrorBinding)) {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.delete(SearchParams.FocusComponentId);
-    newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, replaceAndPreventResetOptions);
-  }
-}
-
-export function findElementToFocus(div: HTMLDivElement | null, binding: string | null) {
-  if (!div) {
-    return undefined;
-  }
-
-  const targetElements = Array.from(
-    div.querySelectorAll<HTMLElement>(
-      ['input', 'textarea', 'select', 'button', '[tabindex]:not([tabindex="-1"])', '[contenteditable="true"]'].join(
-        ',',
-      ),
-    ),
-  );
-
-  if (targetElements.length === 0) {
-    return undefined;
-  }
-
-  const hasBinding = binding !== null;
-
-  if (hasBinding) {
-    const matchesBinding = (element: HTMLElement) => element.dataset.bindingkey === binding;
-    const bindingInput = targetElements.find(
-      (element) => matchesBinding(element) && element.matches('input,textarea,select'),
-    );
-    if (bindingInput) {
-      return bindingInput;
-    }
-
-    const anyBinding = targetElements.find(matchesBinding);
-    if (anyBinding) {
-      return anyBinding;
-    }
-  }
-
-  const firstInputLike = targetElements.find((element) => element.matches('input,textarea,select'));
-  if (firstInputLike) {
-    return firstInputLike;
-  }
-
-  return targetElements[0];
 }

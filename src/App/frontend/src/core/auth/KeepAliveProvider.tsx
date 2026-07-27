@@ -7,6 +7,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { getEnvironmentLoginUrl } from 'src/utils/urls/appUrlHelper';
 
 const ONE_MINUTE_IN_MILLISECONDS = 60000;
@@ -16,10 +17,10 @@ const redirectToLogin = (appOidcProvider: string | null): void => {
   window.location.href = getEnvironmentLoginUrl(appOidcProvider);
 };
 
-const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, allowAnonymous: boolean | undefined) => {
+const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, enabled: boolean) => {
   const { fetchRefreshJwtToken } = useAppQueries();
   const utils = useQuery({
-    enabled: allowAnonymous === false, // Only refresh token at page load if allowAnonymous === false
+    enabled,
     refetchOnWindowFocus: true,
     refetchInterval: TEN_MINUTE_IN_MILLISECONDS, // Refresh token every 10 minutes only if the tab is focused
 
@@ -48,8 +49,10 @@ const { Provider } = createContext<undefined>({
 export function KeepAliveProvider({ children }: PropsWithChildren) {
   const applicationSettings = useApplicationSettings();
   const allowAnonymous = useAllowAnonymous();
+  const isPdf = useIsPdf();
+  const enabled = allowAnonymous === false && !isPdf; // Only refresh token at page load if allowAnonymous === false
 
-  useRefreshJwtTokenQuery(applicationSettings?.appOidcProvider, allowAnonymous);
+  useRefreshJwtTokenQuery(applicationSettings?.appOidcProvider, enabled);
 
   return <Provider value={undefined}>{children}</Provider>;
 }

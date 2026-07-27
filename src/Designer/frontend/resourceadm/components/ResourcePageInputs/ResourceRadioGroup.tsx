@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import {
   StudioRadio,
@@ -21,7 +21,7 @@ type ResourceRadioGroupProps = {
   /**
    * The description of the dropdown
    */
-  description?: string;
+  description?: ReactNode;
   /**
    * The value selected
    */
@@ -52,7 +52,7 @@ type ResourceRadioGroupProps = {
  *
  * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the dropdown
- * @property {string}[description] - The description of the dropdown
+ * @property {ReactNode}[description] - The description of the dropdown
  * @property {string}[value] - The value selected
  * @property {{value: string, lable: string}[]}[options] - List of the options in the dropdown
  * @property {function}[onChange] - Function to be executed on change

@@ -1,4 +1,6 @@
-﻿using Altinn.Notifications.Core.Enums;
+#nullable disable
+
+using Altinn.Notifications.Core.Enums;
 
 namespace Altinn.Notifications.Core.Models.Orders;
 

@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
-import { getAvailableChildComponentsForContainer } from '../../../utils/formLayoutUtils';
-import type { IInternalLayout, IToolbarElement } from '../../../types/global';
+import type { IToolbarElement } from '../../../types/global';
 import { StudioDialog, StudioHeading } from '@studio/components';
 import type { AddedItem } from './types';
 import { AddItemContent } from './AddItemContent';
@@ -10,13 +9,18 @@ import classes from './AddItemModal.module.css';
 import { useTranslation } from 'react-i18next';
 
 export type AddItemModalProps = {
-  containerId: string;
-  layout: IInternalLayout;
   onAddComponent?: (addedItem: AddedItem) => void;
-  availableComponents?: KeyValuePairs<IToolbarElement[]>;
+  availableComponents: KeyValuePairs<IToolbarElement[]>;
+  isFavorite: (componentType: AddedItem['componentType']) => boolean;
+  toggleFavorite: (componentType: AddedItem['componentType']) => void;
 };
 
-export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemModalProps) => {
+export const AddItemModal = ({
+  onAddComponent,
+  availableComponents,
+  isFavorite,
+  toggleFavorite,
+}: AddItemModalProps) => {
   const [selectedItem, setSelectedItem] = useState<AddedItem | null>(null);
   const handleCloseModal = () => {
     setSelectedItem(null);
@@ -29,8 +33,6 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
     onAddComponent(addedItem);
     modalRef.current?.close();
   };
-
-  const availableComponents = getAvailableChildComponentsForContainer(layout, containerId);
 
   return (
     <StudioDialog.TriggerContext>
@@ -56,6 +58,8 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
             onAddItem={handleAddComponent}
             onCancel={handleCloseModal}
             availableComponents={availableComponents}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
           />
         </StudioDialog.Block>
       </StudioDialog>

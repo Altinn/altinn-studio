@@ -39,14 +39,6 @@ public static class StudioOidcAuthenticationExtensions
         IWebHostEnvironment env
     )
     {
-        bool featureEnabled =
-            configuration.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
-
-        if (!featureEnabled)
-        {
-            return services;
-        }
-
         StudioOidcLoginSettings? oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
 
         if (oidcSettings == null)
@@ -172,6 +164,12 @@ public static class StudioOidcAuthenticationExtensions
                         {
                             context.ProtocolMessage.SetParameters(parameters);
                         }
+                    };
+
+                    options.Events.OnRedirectToIdentityProviderForSignOut = context =>
+                    {
+                        context.ProtocolMessage.ClientId = oidcSettings.ClientId;
+                        return Task.CompletedTask;
                     };
 
                     // Temporarily using client_secret_basic (Authorization header) instead of client_secret_post to support the same client that Gitea uses
@@ -329,11 +327,21 @@ public static class StudioOidcAuthenticationExtensions
                 .AddSeconds(expiresIn)
                 .ToString("o", CultureInfo.InvariantCulture);
 
-            properties.StoreTokens([
-                new AuthenticationToken { Name = "access_token", Value = newAccessToken },
-                new AuthenticationToken { Name = "refresh_token", Value = resolvedRefreshToken },
-                new AuthenticationToken { Name = "expires_at", Value = newExpiresAt },
-            ]);
+            var tokens = new List<AuthenticationToken>
+            {
+                new() { Name = "access_token", Value = newAccessToken },
+                new() { Name = "refresh_token", Value = resolvedRefreshToken },
+                new() { Name = "expires_at", Value = newExpiresAt },
+            };
+
+            bool newIdTokenIssued = root.TryGetProperty("id_token", out var idt);
+            string? resolvedIdToken = newIdTokenIssued ? idt.GetString() : properties.GetTokenValue("id_token");
+            if (!string.IsNullOrEmpty(resolvedIdToken))
+            {
+                tokens.Add(new AuthenticationToken { Name = "id_token", Value = resolvedIdToken });
+            }
+
+            properties.StoreTokens(tokens);
 
             context.ShouldRenew = true;
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { AriaAttributes } from 'react';
 
-import { Pagination as CustomPagination } from '@app/form-component';
+import { Description, getLabelId, Pagination as CustomPagination, RequiredIndicator } from '@app/form-component';
 import {
   Checkbox,
   Fieldset,
@@ -13,10 +13,7 @@ import {
 } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { Description } from 'src/components/form/Description';
 import { RadioButton } from 'src/components/form/RadioButton';
-import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { getLabelId } from 'src/components/label/Label';
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';

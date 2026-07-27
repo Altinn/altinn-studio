@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.EventHandlers.ComponentDeleted;
 
 public class ComponentDeletedLayoutsHandler(
     IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-    IAppDevelopmentService appDevelopmentService
+    ILayoutReferenceUpdater layoutReferenceUpdater
 ) : INotificationHandler<ComponentDeletedEvent>
 {
     public async Task Handle(ComponentDeletedEvent notification, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ public class ComponentDeletedLayoutsHandler(
                 [
                     new Reference(ReferenceType.Component, notification.LayoutSetName, notification.ComponentId),
                 ];
-                return await appDevelopmentService.UpdateLayoutReferences(
+                return await layoutReferenceUpdater.UpdateLayoutReferences(
                     notification.EditingContext,
                     referencesToDelete,
                     cancellationToken

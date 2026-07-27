@@ -16,6 +16,7 @@ internal static class Defaults
         MaxLabels = 50,
         MetricsCollectionInterval = TimeSpan.FromSeconds(5),
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
+        MaxStepCommandTimeout = TimeSpan.FromHours(2),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
             maxDelay: TimeSpan.FromMinutes(5),
@@ -30,6 +31,7 @@ internal static class Defaults
         StaleWorkflowThreshold = TimeSpan.FromSeconds(30),
         MaxReclaimCount = 5,
         CancellationWatcherInterval = TimeSpan.FromSeconds(2),
+        MaintenanceInterval = TimeSpan.FromMinutes(1),
         Concurrency = new ConcurrencySettings()
         {
             MaxWorkers = 400,

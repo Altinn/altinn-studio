@@ -1,5 +1,6 @@
 using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
+using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Models;
 
@@ -106,12 +107,16 @@ public sealed class BinaryDataChange : DataElementChange
         string contentType,
         DataElement? dataElement,
         string? fileName,
-        ReadOnlyMemory<byte> currentBinaryData
+        ReadOnlyMemory<byte> currentBinaryData,
+        string? generatedFromTask = null,
+        List<KeyValueEntry>? metadata = null
     )
         : base(type, dataType, contentType, dataElement)
     {
         FileName = fileName;
         CurrentBinaryData = currentBinaryData;
+        GeneratedFromTask = generatedFromTask;
+        Metadata = metadata;
     }
 
     /// <summary>
@@ -123,6 +128,16 @@ public sealed class BinaryDataChange : DataElementChange
     /// The binary data
     /// </summary>
     public ReadOnlyMemory<byte> CurrentBinaryData { get; }
+
+    /// <summary>
+    /// The task ID that generated this data element
+    /// </summary>
+    public string? GeneratedFromTask { get; }
+
+    /// <summary>
+    /// Metadata to associate with the data element
+    /// </summary>
+    public List<KeyValueEntry>? Metadata { get; }
 }
 
 /// <summary>

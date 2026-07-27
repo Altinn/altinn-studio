@@ -11,7 +11,7 @@ import { FileIcon, InformationIcon, TasklistIcon } from '@studio/icons';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import classes from './GroupConfigPanel.module.css';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';

@@ -73,19 +73,9 @@
 }
 
 .cellValue {
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 .cellValidationMessage {
   margin-top: var(--ds-size-1);
-  white-space: nowrap;
-}
-
-.cellValidationMessage * {
-  white-space: inherit;
-}
-
-.mobileTable .cellValue,
-.mobileTable .cellValidationMessage {
-  white-space: normal;
 }

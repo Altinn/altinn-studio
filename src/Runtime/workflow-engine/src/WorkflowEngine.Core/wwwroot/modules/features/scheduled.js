@@ -39,6 +39,7 @@ export const loadScheduled = async () => {
         for (const wf of workflows) {
             const card = document.createElement('div');
             card.className = `workflow-card${state.compactSections.scheduled ? ' compact' : ''}`;
+            card.classList.toggle('side-chain', wf.isHead === false);
             card.style.animation = 'none';
             card.dataset.wfkey = wf.databaseId;
             workflowData[wf.databaseId] = wf;

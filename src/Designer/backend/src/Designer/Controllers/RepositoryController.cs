@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Hubs.Sync;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -74,6 +75,7 @@ public class RepositoryController : ControllerBase
     /// All parameters create the search parameters
     /// </remarks>
     /// <returns>List of filtered repositories that user has access to.</returns>
+    [AllowApiKey]
     [HttpGet]
     [Route("search")]
     public async Task<SearchResults> Search(

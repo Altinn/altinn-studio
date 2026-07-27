@@ -359,6 +359,76 @@ public class InstancesController_CopyInstanceTests
     }
 
     [Fact]
+    public async Task CopyInstance_CopyInstanceValidationFails_ReturnsForbidden()
+    {
+        // Arrange
+        const string Org = "ttd";
+        const string AppName = "copy-instance";
+        int instanceOwnerPartyId = 343234;
+        Guid instanceGuid = Guid.NewGuid();
+        Instance instance = new()
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            Status = new InstanceStatus() { IsArchived = true },
+        };
+        InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
+        InstantiationValidationResult? copyInstanceValidationResult = new() { Valid = false };
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+
+        fixture
+            .Mock<HttpContext>()
+            .Setup(httpContext => httpContext.User)
+            .Returns(TestAuthentication.GetUserPrincipal(partyId: instanceOwnerPartyId));
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(a => a.GetApplicationMetadata())
+            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        fixture
+            .Mock<IPDP>()
+            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i =>
+                i.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstantiationValidator>()
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(instantiationValidationResult);
+        fixture
+            .Mock<ICopyInstanceValidator>()
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(copyInstanceValidationResult);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance("ttd", "copy-instance", instanceOwnerPartyId, instanceGuid);
+
+        // Assert
+        Assert.IsType<ObjectResult>(actual);
+        ObjectResult objectResult = (ObjectResult)actual;
+        Assert.Equal(403, objectResult.StatusCode);
+
+        fixture.Mock<IAppMetadata>().VerifyAll();
+        fixture.Mock<IPDP>().VerifyAll();
+        fixture.Mock<IInstanceClient>().VerifyAll();
+        fixture.Mock<IInstantiationValidator>().VerifyAll();
+        fixture.Mock<ICopyInstanceValidator>().VerifyAll();
+
+        fixture.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task CopyInstance_EverythingIsFine_ReturnsRedirect()
     {
         // Arrange
@@ -437,21 +507,16 @@ public class InstancesController_CopyInstanceTests
             .Setup(v => v.Validate(It.IsAny<Instance>()))
             .ReturnsAsync(instantiationValidationResult);
         fixture
+            .Mock<ICopyInstanceValidator>()
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(instantiationValidationResult);
+        fixture
             .Mock<IProcessEngine>()
-            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<ProcessStartRequest>()))
             .ReturnsAsync(() =>
             {
                 return new ProcessChangeResult() { Success = true };
             });
-        fixture
-            .Mock<IProcessEngine>()
-            .Setup(p =>
-                p.HandleEventsAndUpdateStorage(
-                    It.IsAny<Instance>(),
-                    It.IsAny<Dictionary<string, string>>(),
-                    It.IsAny<List<InstanceEvent>>()
-                )
-            );
         fixture
             .Mock<IDataClient>()
             .Setup(p =>
@@ -586,18 +651,13 @@ public class InstancesController_CopyInstanceTests
             .Setup(v => v.Validate(It.IsAny<Instance>()))
             .ReturnsAsync(instantiationValidationResult);
         fixture
-            .Mock<IProcessEngine>()
-            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
-            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+            .Mock<ICopyInstanceValidator>()
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(instantiationValidationResult);
         fixture
             .Mock<IProcessEngine>()
-            .Setup(p =>
-                p.HandleEventsAndUpdateStorage(
-                    It.IsAny<Instance>(),
-                    It.IsAny<Dictionary<string, string>>(),
-                    It.IsAny<List<InstanceEvent>>()
-                )
-            );
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
 
         // Form data mocks
         fixture
@@ -811,18 +871,13 @@ public class InstancesController_CopyInstanceTests
             .Setup(v => v.Validate(It.IsAny<Instance>()))
             .ReturnsAsync(instantiationValidationResult);
         fixture
-            .Mock<IProcessEngine>()
-            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
-            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+            .Mock<ICopyInstanceValidator>()
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(instantiationValidationResult);
         fixture
             .Mock<IProcessEngine>()
-            .Setup(p =>
-                p.HandleEventsAndUpdateStorage(
-                    It.IsAny<Instance>(),
-                    It.IsAny<Dictionary<string, string>>(),
-                    It.IsAny<List<InstanceEvent>>()
-                )
-            );
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
 
         // Form data mocks (should be copied)
         fixture
@@ -1035,18 +1090,13 @@ public class InstancesController_CopyInstanceTests
             .Setup(v => v.Validate(It.IsAny<Instance>()))
             .ReturnsAsync(instantiationValidationResult);
         fixture
-            .Mock<IProcessEngine>()
-            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
-            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+            .Mock<ICopyInstanceValidator>()
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(instantiationValidationResult);
         fixture
             .Mock<IProcessEngine>()
-            .Setup(p =>
-                p.HandleEventsAndUpdateStorage(
-                    It.IsAny<Instance>(),
-                    It.IsAny<Dictionary<string, string>>(),
-                    It.IsAny<List<InstanceEvent>>()
-                )
-            );
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
 
         // Binary data mocks (should be called)
         fixture
@@ -1266,18 +1316,13 @@ public class InstancesController_CopyInstanceTests
             .Setup(v => v.Validate(It.IsAny<Instance>()))
             .ReturnsAsync(instantiationValidationResult);
         fixture
-            .Mock<IProcessEngine>()
-            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
-            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+            .Mock<ICopyInstanceValidator>()
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(instantiationValidationResult);
         fixture
             .Mock<IProcessEngine>()
-            .Setup(p =>
-                p.HandleEventsAndUpdateStorage(
-                    It.IsAny<Instance>(),
-                    It.IsAny<Dictionary<string, string>>(),
-                    It.IsAny<List<InstanceEvent>>()
-                )
-            );
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
 
         // Binary data mocks (should be called)
         fixture

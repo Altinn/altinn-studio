@@ -30,6 +30,13 @@ describe('StudioSuggestion', () => {
     expect(screen.getByText('required')).toBeInTheDocument();
   });
 
+  it('renders the placeholder on the input when given', () => {
+    const placeholder = 'Search…';
+    renderStudioSuggestion({ suggestionProps: { placeholder } });
+
+    expect(getInput()).toHaveAttribute('placeholder', placeholder);
+  });
+
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) =>
       renderStudioSuggestion({ suggestionProps: { className } }),

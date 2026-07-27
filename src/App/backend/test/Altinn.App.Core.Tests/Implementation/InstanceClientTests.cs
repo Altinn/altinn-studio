@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -32,6 +33,18 @@ public sealed class InstanceClientTests : IDisposable
         _telemetry = new TelemetrySink();
     }
 
+    private InstanceClient CreateTarget(HttpClient httpClient)
+    {
+        return new InstanceClient(
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _authenticationTokenResolver.Object,
+            httpClient,
+            Mock.Of<IInstanceLocker>(),
+            _telemetry.Object
+        );
+    }
+
     [Fact]
     public async Task AddCompleteConfirmation_SuccessfulCallToStorage()
     {
@@ -54,13 +67,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         // Act
         await target.AddCompleteConfirmation(1337, Guid.NewGuid());
@@ -85,13 +92,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         PlatformHttpException? actualException = null;
 
@@ -125,13 +126,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         PlatformHttpException? actualException = null;
 
@@ -167,13 +162,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         // Act
         Instance actual = await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
@@ -205,13 +194,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         // Act
         Instance actual = await target.UpdateSubstatus(
@@ -240,13 +223,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         PlatformHttpException? actualException = null;
 
@@ -289,13 +266,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         // Act
         Instance actual = await target.DeleteInstance(1337, Guid.NewGuid(), false);
@@ -321,13 +292,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         PlatformHttpException? actualException = null;
 
@@ -363,13 +328,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         PlatformHttpException? actualException = null;
 
@@ -412,13 +371,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         // Act
         await target.UpdatePresentationTexts(instanceOwnerId, instanceGuid, new PresentationTexts());
@@ -457,6 +410,7 @@ public sealed class InstanceClientTests : IDisposable
             _logger.Object,
             _authenticationTokenResolver.Object,
             httpClient,
+            Mock.Of<IInstanceLocker>(),
             _telemetry.Object
         );
 
@@ -542,13 +496,7 @@ public sealed class InstanceClientTests : IDisposable
 
         HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
-        InstanceClient target = new InstanceClient(
-            _platformSettingsOptions.Object,
-            _logger.Object,
-            _authenticationTokenResolver.Object,
-            httpClient,
-            _telemetry.Object
-        );
+        InstanceClient target = CreateTarget(httpClient);
 
         Dictionary<string, StringValues> queryParams = new()
         {
@@ -581,7 +529,7 @@ public sealed class InstanceClientTests : IDisposable
     {
         PlatformSettings platformSettings = new PlatformSettings
         {
-            ApiStorageEndpoint = "http://localhost",
+            ApiStorageEndpoint = "http://localhost/",
             SubscriptionKey = "key",
         };
         _platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);

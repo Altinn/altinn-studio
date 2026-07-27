@@ -1,3 +1,14 @@
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ds-size-2);
+}
+
+.headerTitle {
+  flex: 1;
+}
+
 .allComponentsWrapper {
   display: flex;
   flex-direction: column;

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
@@ -52,6 +53,57 @@ public class ProcessModelingService : IProcessModelingService
             altinnRepoEditingContext.Developer
         );
         await altinnAppGitRepository.SaveProcessDefinitionFileAsync(bpmnStream, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task UpdateTaskId(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string oldId,
+        string newId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        XDocument processDefinition;
+        await using (Stream processDefinitionStream = altinnAppGitRepository.GetProcessDefinitionFile())
+        {
+            processDefinition = await XDocument.LoadAsync(
+                processDefinitionStream,
+                LoadOptions.PreserveWhitespace,
+                cancellationToken
+            );
+        }
+
+        // A task id is a unique token used both as the element id and in every reference to it
+        // (sequenceFlow sourceRef/targetRef, bpmndi bpmnElement, etc.), so every attribute whose
+        // value equals the old id must be updated.
+        bool hasChanged = false;
+        foreach (
+            XAttribute attribute in processDefinition
+                .Root!.DescendantsAndSelf()
+                .Attributes()
+                .Where(a => a.Value == oldId)
+        )
+        {
+            attribute.Value = newId;
+            hasChanged = true;
+        }
+
+        if (!hasChanged)
+        {
+            return;
+        }
+
+        await using MemoryStream outputStream = new();
+        await processDefinition.SaveAsync(outputStream, SaveOptions.DisableFormatting, cancellationToken);
+        outputStream.Position = 0;
+        await altinnAppGitRepository.SaveProcessDefinitionFileAsync(outputStream, cancellationToken);
     }
 
     /// <inheritdoc/>

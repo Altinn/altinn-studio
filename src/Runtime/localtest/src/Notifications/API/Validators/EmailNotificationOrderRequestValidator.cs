@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+#nullable disable
+
+using System.Text.RegularExpressions;
 
 using Altinn.Notifications.Models;
 

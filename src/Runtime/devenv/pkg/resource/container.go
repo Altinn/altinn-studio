@@ -2,6 +2,7 @@ package resource
 
 import (
 	"errors"
+	"strings"
 
 	"altinn.studio/devenv/pkg/container/types"
 )
@@ -22,6 +23,7 @@ type Container struct {
 	Name           string
 	RestartPolicy  string
 	User           string
+	UsernsMode     string
 	Networks       []ResourceRef
 	DependsOn      []ResourceRef
 	Ports          []types.PortMapping
@@ -37,9 +39,28 @@ func (c *Container) ID() ResourceID {
 	return ContainerID(c.Name)
 }
 
+const containerIDPrefix = "container:"
+
 // ContainerID returns the unique resource ID for a container name.
 func ContainerID(name string) ResourceID {
-	return ResourceID("container:" + name)
+	return ResourceID(containerIDPrefix + name)
+}
+
+// ContainerNameFromRef resolves the container name from a resource reference.
+func ContainerNameFromRef(ref ResourceRef) (string, bool) {
+	if container, ok := ref.Resource().(*Container); ok {
+		return container.Name, container.Name != ""
+	}
+	return ContainerNameFromID(ref.ID())
+}
+
+// ContainerNameFromID resolves the container name from a container resource ID.
+func ContainerNameFromID(id ResourceID) (string, bool) {
+	name, ok := strings.CutPrefix(id.String(), containerIDPrefix)
+	if !ok || name == "" {
+		return "", false
+	}
+	return name, true
 }
 
 // Dependencies returns resources that must be applied before this container.

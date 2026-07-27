@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
-import type { MutableRefObject } from 'react';
+import { useCallback, useState } from 'react';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
+import type { ChatMessage } from 'app-shared/types/api';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
@@ -11,40 +11,29 @@ import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDele
 
 export interface AltinityThreadState {
   chatThreads: ChatThread[];
-  currentSessionId: string | null;
-  currentSessionIdRef: MutableRefObject<string | null>;
+  selectedThreadId: string | null;
   chatMessages: Message[];
-  setCurrentSession: (sessionId: string | null) => void;
   selectThread: (threadId: string | null) => void;
   createThread: (title: string) => Promise<string>;
   deleteThread: (threadId: string) => void;
   deleteMessage: (threadId: string, messageId: string) => void;
-  createMessage: (threadId: string, message: UserMessage | AssistantMessage) => void;
+  createMessage: (
+    threadId: string,
+    message: UserMessage | AssistantMessage,
+  ) => Promise<ChatMessage>;
 }
 
+// TODO: rename to useAssistantThreads.
 export const useAltinityThreads = (): AltinityThreadState => {
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const currentSessionIdRef = useRef<string | null>(null);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
   const { data: chatThreads } = useChatThreadsQuery();
   const { mutateAsync: createChatThread } = useCreateChatThreadMutation();
   const { mutate: deleteChatThread } = useDeleteChatThreadMutation();
 
-  const { data: chatMessages } = useChatMessagesQuery(currentSessionId);
-  const { mutate: createChatMessage } = useCreateChatMessageMutation();
+  const { data: chatMessages } = useChatMessagesQuery(selectedThreadId);
+  const { mutateAsync: createChatMessage } = useCreateChatMessageMutation();
   const { mutate: deleteChatMessage } = useDeleteChatMessageMutation();
-
-  const setCurrentSession = useCallback((sessionId: string | null) => {
-    setCurrentSessionId(sessionId);
-    currentSessionIdRef.current = sessionId;
-  }, []);
-
-  const selectThread = useCallback(
-    (threadId: string | null) => {
-      setCurrentSession(threadId);
-    },
-    [setCurrentSession],
-  );
 
   const createThread = useCallback(
     async (title: string): Promise<string> => {
@@ -58,19 +47,19 @@ export const useAltinityThreads = (): AltinityThreadState => {
     (threadId: string) => {
       deleteChatThread(threadId, {
         onSuccess: () => {
-          if (currentSessionIdRef.current === threadId) {
-            setCurrentSession(null);
+          if (selectedThreadId === threadId) {
+            setSelectedThreadId(null);
           }
         },
       });
     },
-    [deleteChatThread, setCurrentSession],
+    [deleteChatThread, selectedThreadId],
   );
 
   const createMessage = useCallback(
-    (threadId: string, message: UserMessage | AssistantMessage) => {
+    (threadId: string, message: UserMessage | AssistantMessage): Promise<ChatMessage> => {
       const isUser = message.role === MessageAuthor.User;
-      createChatMessage({
+      return createChatMessage({
         threadId,
         payload: {
           role: message.role,
@@ -95,10 +84,8 @@ export const useAltinityThreads = (): AltinityThreadState => {
   return {
     chatThreads: chatThreads ?? [],
     chatMessages: chatMessages ?? [],
-    currentSessionId,
-    currentSessionIdRef,
-    setCurrentSession,
-    selectThread,
+    selectedThreadId,
+    selectThread: setSelectedThreadId,
     createThread,
     deleteThread,
     deleteMessage,

@@ -9,7 +9,6 @@ public interface IResourceRegistryRepository
     public Task<List<ServiceResource>> GetServiceResources(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false,
         bool includeMigratedApps = false
     );
 }

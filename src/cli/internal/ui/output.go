@@ -13,7 +13,11 @@ import (
 // Colors checks if color output is enabled.
 func Colors() bool {
 	_, noColor := os.LookupEnv("NO_COLOR")
-	return !noColor
+	return !noColor && terminalDecorations()
+}
+
+func terminalDecorations() bool {
+	return os.Getenv(osutil.DisableTerminalDecorationsEnv) == "" && !osutil.IsPowerShellISEHost()
 }
 
 // Style functions return ANSI styles for terminal output.

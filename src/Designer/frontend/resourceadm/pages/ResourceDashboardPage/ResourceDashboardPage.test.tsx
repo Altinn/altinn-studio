@@ -127,27 +127,6 @@ describe('ResourceDashBoardPage', () => {
     expect(screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'))).toBeInTheDocument();
   });
 
-  it('opens the import resource from altinn 2 modal on click', async () => {
-    const user = userEvent.setup();
-    const getResourceList = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    renderResourceDashboardPage({ getResourceList });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
-    );
-
-    const modalTitle = screen.queryByText(textMock('resourceadm.dashboard_import_modal_title'));
-    expect(modalTitle).not.toBeVisible();
-
-    const importButton = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_import_resource'),
-    });
-    await user.click(importButton);
-
-    expect(screen.getByText(textMock('resourceadm.dashboard_import_modal_title'))).toBeVisible();
-  });
-
   it('opens the create new resource modal on click', async () => {
     const user = userEvent.setup();
     const getResourceList = jest

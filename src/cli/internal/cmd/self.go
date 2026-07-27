@@ -23,6 +23,9 @@ import (
 const (
 	selfCompleteInstallSubcmd = "__complete-install"
 	selfMigrateSubcmd         = "__migrate"
+	selfWindowsHelperSubcmd   = "__windows-helper"
+	selfUpdateSubcmd          = "update"
+	selfUninstallSubcmd       = "uninstall"
 )
 
 // SelfCommand implements the 'self' subcommand.
@@ -39,6 +42,8 @@ type applyBundleOptions struct {
 	Candidates []selfcmd.Candidate
 	WarnPath   bool
 }
+
+type uninstallBinaryFunc func() (installpkg.UninstallResult, error)
 
 // NewSelfCommand creates a new self command.
 func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
@@ -112,13 +117,15 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 	switch subCmd {
 	case "install":
 		return c.runInstall(ctx, subArgs)
-	case "update":
+	case selfUpdateSubcmd:
 		return c.runUpdate(ctx, subArgs)
-	case "uninstall":
+	case selfUninstallSubcmd:
 		return c.runUninstall(ctx, subArgs)
 	case selfCompleteInstallSubcmd, selfMigrateSubcmd:
 		// __migrate is a preview.7 compatibility alias used by old updaters after replacing the binary.
 		return c.runCompleteInstall(ctx, subArgs)
+	case selfWindowsHelperSubcmd:
+		return c.runWindowsSelfHelper(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -323,16 +330,39 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	c.out.Printlnf("Current version: %s", c.cfg.Version)
-	resolved, err := c.service.ResolveUpdateBundle(
-		ctx,
-		installpkg.UpdateOptions{
-			Version:      version,
-			SkipChecksum: skipChecksum,
-		},
-	)
+	opts := installpkg.UpdateOptions{
+		Version:      version,
+		SkipChecksum: skipChecksum,
+	}
+
+	target, proceed, err := c.resolveUpdateTarget(ctx, opts)
+	if err != nil {
+		return err
+	}
+	if !proceed {
+		return nil
+	}
+
+	// Pin the download to the resolved version so we do not resolve the latest
+	// release a second time.
+	opts.Version = target
+	resolved, err := c.service.ResolveUpdateBundle(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("resolve update bundle: %w", err)
+	}
+	if runtime.GOOS == osutil.OSWindows {
+		if err := c.startWindowsUpdateHelper(ctx, resolved); err != nil {
+			if resolved.Cleanup != nil {
+				err = errors.Join(err, resolved.Cleanup())
+			}
+			return err
+		}
+		c.out.Successf(
+			"%s update to %s started. The replacement will finish after this process exits.",
+			osutil.CurrentBin(),
+			target,
+		)
+		return nil
 	}
 	if resolved.Cleanup != nil {
 		defer func() {
@@ -350,8 +380,52 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("apply update bundle: %w", err)
 	}
 
-	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
+	c.out.Successf("%s updated successfully to %s.", osutil.CurrentBin(), target)
 	return nil
+}
+
+// resolveUpdateTarget resolves and reports the release version an update would
+// install. It returns proceed=false when the running build is already on the
+// target version, in which case no update is needed.
+func (c *SelfCommand) resolveUpdateTarget(
+	ctx context.Context,
+	opts installpkg.UpdateOptions,
+) (target string, proceed bool, err error) {
+	c.out.Printlnf("Current version: %s", c.cfg.Version)
+
+	target, err = c.service.ResolveUpdateVersion(ctx, opts)
+	if err != nil {
+		return "", false, fmt.Errorf("resolve update version: %w", err)
+	}
+
+	versionLabel := "Latest version"
+	if opts.Version != "" {
+		versionLabel = "Target version"
+	}
+	c.out.Printlnf("%s: %s", versionLabel, target)
+
+	if isSameReleaseVersion(c.cfg.Version.String(), target) {
+		c.out.Successf("%s is already up to date.", osutil.CurrentBin())
+		return target, false, nil
+	}
+
+	c.out.Printlnf("Updating to %s...", target)
+	return target, true, nil
+}
+
+// isSameReleaseVersion reports whether the running build and the resolved
+// release target refer to the same version, tolerating "studioctl/" and "v"
+// prefix differences. An empty current version (unknown/dev build) never
+// matches, so those builds always proceed with the update.
+func isSameReleaseVersion(current, target string) bool {
+	current = normalizeCompareVersion(current)
+	target = normalizeCompareVersion(target)
+	return current != "" && current == target
+}
+
+func normalizeCompareVersion(v string) string {
+	v = strings.TrimPrefix(strings.TrimSpace(v), "studioctl/")
+	return strings.TrimPrefix(v, "v")
 }
 
 func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctlPath string) error {
@@ -443,19 +517,27 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == osutil.OSWindows {
-		c.out.Error("Self-uninstall while running is not supported on Windows.")
-		c.out.Println("Run this after studioctl has exited:")
-		c.out.Println(`  Remove-Item "<path-to-studioctl.exe>"`)
-		return nil
-	}
-
 	if proceed, err := c.confirmUninstallIfNeeded(ctx, flags); err != nil {
 		return err
 	} else if !proceed {
 		return nil
 	}
 
+	if runtime.GOOS == osutil.OSWindows {
+		if err := c.startWindowsUninstallHelper(ctx); err != nil {
+			return err
+		}
+		c.out.Successf(
+			"%s uninstall started. The binary will be removed after this process exits.",
+			osutil.CurrentBin(),
+		)
+		return nil
+	}
+
+	return c.runConfirmedUninstall(ctx, c.service.UninstallBinary)
+}
+
+func (c *SelfCommand) runConfirmedUninstall(ctx context.Context, uninstallBinary uninstallBinaryFunc) error {
 	state, err := c.transition.Prepare(ctx)
 	if err != nil {
 		return fmt.Errorf("prepare uninstall: %w", err)
@@ -479,13 +561,16 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("remove home directory: %w", err)
 	}
 
-	result, err := c.service.UninstallBinary()
+	result, err := uninstallBinary()
 	if err != nil {
 		return fmt.Errorf("self uninstall: %w", err)
 	}
 	removed = true
 
 	c.out.Successf("Removed %s", result.RemovedPath)
+	if result.RemovedDir != "" {
+		c.out.Successf("Removed %s", result.RemovedDir)
+	}
 	c.out.Successf("Removed %s", removedHome)
 	return nil
 }

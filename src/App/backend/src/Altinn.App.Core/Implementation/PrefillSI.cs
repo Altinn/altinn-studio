@@ -99,8 +99,10 @@ public class PrefillSI : IPrefill
                 details.Party,
             // We use the unchecked register client here,
             // thinking that it is fine to do so because it is the calling code
-            // that is responsible for authorizing the overarching request
-            _ => await _registerClient.GetPartyUnchecked(partyIdNum, default),
+            // that is responsible for authorizing the overarching request.
+            // ServiceOwner is used because this fallback runs in contexts without a user token
+            // (e.g. workflow engine callbacks).
+            _ => await _registerClient.GetPartyUnchecked(partyIdNum, StorageAuthenticationMethod.ServiceOwner()),
         };
         if (party == null)
         {

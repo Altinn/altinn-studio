@@ -26,7 +26,7 @@
       } else {
         <pre>
           @(Model.HttpException.ToString())
-          @(Model.HttpException.StackTrace.ToString())
+          @(Model.HttpException.StackTrace?.ToString())
         </pre>
       }
     </div>

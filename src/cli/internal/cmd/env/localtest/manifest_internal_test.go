@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
@@ -26,6 +27,28 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	assertPdf3ContainerConfig(t, mustContainerSpec(t, resources, components.ContainerPDF3))
 	assertWorkflowEngineDbContainerConfig(t, mustContainerSpec(t, resources, components.ContainerWorkflowEngineDb))
 	assertWorkflowEngineContainerConfig(t, mustContainerSpec(t, resources, components.ContainerWorkflowEngine))
+}
+
+func TestCoreContainers_ServiceContainersUseImageUser(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	opts := newResourceBuildOptions(t.TempDir(), false)
+	opts.RuntimeUser = "501:20"
+	opts.RuntimeUsernsMode = "keep-id"
+
+	resources := mustManifest(t, opts).Resources
+	for _, name := range []string{components.ContainerPDF3, components.ContainerWorkflowEngine} {
+		container := findResource(resources, resource.ContainerID(name))
+		if container == nil {
+			t.Fatalf("manifest missing %q", name)
+		}
+		if container.User != "" {
+			t.Fatalf("%s.User = %q, want image default", name, container.User)
+		}
+		if container.UsernsMode != "" {
+			t.Fatalf("%s.UsernsMode = %q, want image default", name, container.UsernsMode)
+		}
+	}
 }
 
 func assertLocaltestContainerConfig(t *testing.T, localtest components.ContainerSpec, dataDir string) {
@@ -64,6 +87,27 @@ func assertWorkflowEngineDbContainerConfig(t *testing.T, workflowEngineDb compon
 	t.Helper()
 	if got := workflowEngineDb.Ports; got != nil {
 		t.Fatalf("workflowEngineDb.Ports = %v, want nil", got)
+	}
+	if workflowEngineDb.HealthCheck == nil {
+		t.Fatal("workflowEngineDb.HealthCheck = nil, want postgres healthcheck")
+	}
+	if !slices.Equal(
+		workflowEngineDb.HealthCheck.Test,
+		[]string{"CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U postgres"},
+	) {
+		t.Fatalf("workflowEngineDb.HealthCheck.Test = %v, want pg_isready", workflowEngineDb.HealthCheck.Test)
+	}
+	if got := workflowEngineDb.HealthCheck.Interval; got != 10*time.Second {
+		t.Fatalf("workflowEngineDb.HealthCheck.Interval = %s, want 10s", got)
+	}
+	if got := workflowEngineDb.HealthCheck.Timeout; got != 5*time.Second {
+		t.Fatalf("workflowEngineDb.HealthCheck.Timeout = %s, want 5s", got)
+	}
+	if got := workflowEngineDb.HealthCheck.Retries; got != 9 {
+		t.Fatalf("workflowEngineDb.HealthCheck.Retries = %d, want 9", got)
+	}
+	if got := workflowEngineDb.HealthCheck.StartPeriod; got != 30*time.Second {
+		t.Fatalf("workflowEngineDb.HealthCheck.StartPeriod = %s, want 30s", got)
 	}
 	wantDbVolume := containertypes.VolumeMount{
 		HostPath:      "localtest-workflow-engine-db-data",
@@ -214,7 +258,7 @@ func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 func TestResourceBuilder_FailsForUnknownContainerDependency(t *testing.T) {
 	t.Setenv(config.EnvCI, "true")
 
-	image := &resource.RemoteImage{Ref: "example.local/dependent:latest"}
+	image := &resource.PulledImage{Ref: "example.local/dependent:latest"}
 	network := resource.Ref(&resource.Network{Name: components.NetworkName})
 	containerResource := &resource.Container{
 		Name:      "localtest-dependent",

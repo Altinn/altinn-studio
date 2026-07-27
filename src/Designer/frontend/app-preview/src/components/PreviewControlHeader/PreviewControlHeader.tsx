@@ -46,7 +46,7 @@ export const PreviewControlHeader = ({
             onChange={handleLayoutSetChange}
             value={selectedLayoutSet}
           >
-            {layoutSets.sets.map((layoutSet) => (
+            {layoutSets.map((layoutSet) => (
               <StudioSelect.Option key={layoutSet.id} value={layoutSet.id}>
                 {layoutSet.id}
               </StudioSelect.Option>

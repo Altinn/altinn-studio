@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"path/filepath"
@@ -190,6 +191,47 @@ func TestRunPrepareWithDeps_PRBodyFormat(t *testing.T) {
 			t.Fatalf("PR body missing snippet %q\nbody:\n%s", snippet, gh.prBody)
 		}
 	}
+}
+
+func TestRunPrepareWithDeps_DryRunLogsOnlyPromotedReleaseSection(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, changelogWithPreviousRelease())
+	t.Chdir(repo)
+
+	var output bytes.Buffer
+	logger := internal.NewConsoleLogger(internal.WithWriters(&output, &output))
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Version:   "v0.1.0-preview.2",
+		DryRun:    true,
+	}, git, gh, logger)
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	assertPromotedReleaseLog(t, output.String())
+}
+
+func TestRunPrepareWithDeps_LogsOnlyPromotedReleaseSectionWhenUpdatingChangelog(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, changelogWithPreviousRelease())
+	t.Chdir(repo)
+
+	var output bytes.Buffer
+	logger := internal.NewConsoleLogger(internal.WithWriters(&output, &output))
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Version:   "v0.1.0-preview.2",
+	}, git, gh, logger)
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	assertPromotedReleaseLog(t, output.String())
 }
 
 func TestRunPrepareWithDeps_PRBodyIncludesCompareLink(t *testing.T) {
@@ -463,4 +505,58 @@ func (p *scriptedPrompter) Confirm(action string, details []string) (bool, error
 
 func containsDetail(details []string, want string) bool {
 	return slices.Contains(details, want)
+}
+
+func changelogWithPreviousRelease() string {
+	return `# Changelog
+
+All notable changes to studioctl will be documented in this file.
+
+## [Unreleased]
+
+### Added
+
+- New local harness command
+
+### Fixed
+
+- Launch profile migration
+
+## [0.1.0-preview.1] - 2025-01-01
+
+### Added
+
+- Previous release entry
+`
+}
+
+func assertPromotedReleaseLog(t *testing.T, output string) {
+	t.Helper()
+
+	wantSnippets := []string{
+		"Promoted release changelog:",
+		"## [0.1.0-preview.2] - ",
+		"### Added",
+		"- New local harness command",
+		"### Fixed",
+		"- Launch profile migration",
+	}
+	for _, snippet := range wantSnippets {
+		if !strings.Contains(output, snippet) {
+			t.Fatalf("output missing %q:\n%s", snippet, output)
+		}
+	}
+
+	unwantedSnippets := []string{
+		"# Changelog",
+		"All notable changes to studioctl will be documented in this file.",
+		"## [Unreleased]",
+		"## [0.1.0-preview.1]",
+		"- Previous release entry",
+	}
+	for _, snippet := range unwantedSnippets {
+		if strings.Contains(output, snippet) {
+			t.Fatalf("output should not contain %q:\n%s", snippet, output)
+		}
+	}
 }

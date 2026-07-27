@@ -97,7 +97,7 @@
       IsArchived: false,
       IsSoftDeleted: false,
       IsHardDeleted: false,
-      ReadStatus: Read
+      ReadStatus: UpdatedSinceLastReview
     },
     Data: [
       {
@@ -112,16 +112,16 @@
         },
         Size: 200,
         Locked: false,
-        IsRead: true,
+        IsRead: false,
         Created: DateTime_4,
-        CreatedBy: 1337,
+        CreatedBy: 991825827,
         LastChanged: DateTime_4,
-        LastChangedBy: 1337
+        LastChangedBy: 991825827
       }
     ],
     Created: DateTime_1,
     CreatedBy: 1337,
-    LastChanged: DateTime_1,
-    LastChangedBy: 1337
+    LastChanged: DateTime_5,
+    LastChangedBy: 991825827
   }
 }

@@ -39,10 +39,9 @@ internal static class HostExtensions
             host.ForceInitializeTracerProvider();
             using var activity = Metrics.Source.StartActivity("Engine.ApplyDatabaseMigrations");
 
-            var connectionString = host.Services.GetRequiredService<EngineConnectionString>().Value;
             using var scope = host.Services.CreateScope();
             var migrationService = scope.ServiceProvider.GetRequiredService<DbMigrationService>();
-            await migrationService.Migrate(connectionString, cancellationToken);
+            await migrationService.Migrate(cancellationToken);
         }
 
         private void ForceInitializeTracerProvider()

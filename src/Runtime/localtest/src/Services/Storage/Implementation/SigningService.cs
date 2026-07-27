@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Text.Json;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;

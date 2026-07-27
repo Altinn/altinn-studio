@@ -17,6 +17,7 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
+import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
@@ -345,7 +346,9 @@ function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceP
   return (
     <InstanceProvider>
       <FormDataWriteProxyProvider value={formDataProxies}>
-        <FormProvider>{children}</FormProvider>
+        <FormProvider>
+          <AppLanguageTranslatorProvider>{children}</AppLanguageTranslatorProvider>
+        </FormProvider>
       </FormDataWriteProxyProvider>
     </InstanceProvider>
   );
@@ -469,7 +472,7 @@ const renderBase = async ({
         devTools={false}
         dataModelFetcher={false}
       >
-        {children}
+        <AppLanguageTranslatorProvider>{children}</AppLanguageTranslatorProvider>
       </RenderStart>
     </Providers>
   );
@@ -589,6 +592,7 @@ export const renderWithInstanceAndLayout = async ({
   taskId,
   alwaysRouteToChildren,
   initialPage = 'FormLayout',
+  query,
   ...renderOptions
 }: ExtendedRenderOptionsWithInstance) => {
   const initialRenderRef: InitialRenderRef = { current: true };
@@ -627,6 +631,7 @@ export const renderWithInstanceAndLayout = async ({
           taskId={taskId}
           initialPage={initialPage}
           alwaysRouteToChildren={alwaysRouteToChildren}
+          query={query}
         >
           {children}
         </InstanceRouter>

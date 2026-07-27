@@ -22,6 +22,7 @@ import {
   getPaymentInformationForTaskUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
+  getProcessResumeUrl,
   getUpdateFileTagsUrl,
   refreshJwtTokenUrl,
 } from 'src/utils/urls/appUrlHelper';
@@ -36,10 +37,12 @@ import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
-import type { IActionType, IData, PostalCodesRegistry } from 'src/types/shared';
+import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
+
+export const doProcessResume = async (instanceId: string) => httpPost<IProcess>(getProcessResumeUrl(instanceId));
 
 export const doAttachmentUpload = async (
   instanceId: string,
@@ -187,7 +190,7 @@ export const fetchPaymentInformationForTask = (
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));
 
-export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
+export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
   // Hacky (and only) way to get the correct CDN url
   const schemaBaseUrl = document
     .querySelector('script[src$="altinn-app-frontend.js"]')
@@ -195,10 +198,10 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
     ?.replace('altinn-app-frontend.js', 'schemas/json/layout/');
 
   if (!schemaBaseUrl) {
-    return Promise.resolve(undefined);
+    return Promise.resolve(null);
   }
 
-  return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? undefined;
+  return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? null;
 };
 
 export function fetchExternalApi({

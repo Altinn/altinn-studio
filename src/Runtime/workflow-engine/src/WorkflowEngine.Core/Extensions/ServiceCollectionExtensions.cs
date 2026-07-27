@@ -169,6 +169,9 @@ public static class OptionsBuilderExtensions
                 if (config.DefaultStepCommandTimeout <= TimeSpan.Zero)
                     config.DefaultStepCommandTimeout = Defaults.EngineSettings.DefaultStepCommandTimeout;
 
+                if (config.MaxStepCommandTimeout <= TimeSpan.Zero)
+                    config.MaxStepCommandTimeout = Defaults.EngineSettings.MaxStepCommandTimeout;
+
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
@@ -183,6 +186,9 @@ public static class OptionsBuilderExtensions
 
                 if (config.CancellationWatcherInterval <= TimeSpan.Zero)
                     config.CancellationWatcherInterval = Defaults.EngineSettings.CancellationWatcherInterval;
+
+                if (config.MaintenanceInterval <= TimeSpan.Zero)
+                    config.MaintenanceInterval = Defaults.EngineSettings.MaintenanceInterval;
 
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
@@ -246,6 +252,11 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.DefaultStepCommandTimeout > TimeSpan.Zero,
                 $"{ns}.{nameof(EngineSettings.DefaultStepCommandTimeout)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxStepCommandTimeout >= config.DefaultStepCommandTimeout,
+                $"{ns}.{nameof(EngineSettings.MaxStepCommandTimeout)} must be greater than or equal to {ns}.{nameof(EngineSettings.DefaultStepCommandTimeout)}."
             );
 
             builder.Validate(

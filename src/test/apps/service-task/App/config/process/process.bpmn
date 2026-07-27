@@ -54,6 +54,32 @@
       <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
       <bpmn:outgoing>Flow_19ikt1z</bpmn:outgoing>
     </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Send_EFormidling" name="eFormidling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>eFormidling</altinn:taskType>
+          <altinn:eFormidlingConfig>
+            <!-- Local development (incl. e2e) has no eFormidling integration point, and this app only
+                 registers the eFormidling services outside Development (see Program.cs) - the engine
+                 completes a disabled eFormidling task without sending anything. -->
+            <altinn:disabled env="development">true</altinn:disabled>
+            <altinn:receiver>910075918</altinn:receiver>
+            <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
+            <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
+            <altinn:typeVersion>2.0</altinn:typeVersion>
+            <altinn:type>arkivmelding</altinn:type>
+            <altinn:securityLevel>3</altinn:securityLevel>
+            <altinn:dpfShipmentType>altinn3.skjema</altinn:dpfShipmentType>
+            <altinn:dataTypes>
+              <altinn:dataType>model</altinn:dataType>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+            </altinn:dataTypes>
+          </altinn:eFormidlingConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1uewkmg</bpmn:incoming>
+      <bpmn:outgoing>Flow_0c1ure8</bpmn:outgoing>
+    </bpmn:serviceTask>
     <bpmn:serviceTask id="Task_Fail" name="Fail">
       <bpmn:extensionElements>
         <altinn:taskExtension>
@@ -116,9 +142,10 @@
     <bpmn:sequenceFlow id="Flow_039bpvi" sourceRef="Gateway_19sxbsr" targetRef="Task_Utfylling2">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1uewkmg" sourceRef="Gateway_0xx0u3h" targetRef="Gateway_0x86z9e">
+    <bpmn:sequenceFlow id="Flow_1uewkmg" sourceRef="Gateway_0xx0u3h" targetRef="Task_Send_EFormidling">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0c1ure8" sourceRef="Task_Send_EFormidling" targetRef="Gateway_0x86z9e" />
     <bpmn:sequenceFlow id="Flow_0cefe1f" sourceRef="Task_Fail" targetRef="Gateway_0xx0u3h" />
     <bpmn:sequenceFlow id="Flow_0wi2fss" sourceRef="Gateway_19sxbsr" targetRef="Task_Fail">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
@@ -155,6 +182,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0x86z9e_di" bpmnElement="Gateway_0x86z9e" isMarkerVisible="true">
         <dc:Bounds x="2265" y="96" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Send_EFormidling_di" bpmnElement="Task_Send_EFormidling">
+        <dc:Bounds x="2100" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_0yyd3hy" bpmnElement="Task_Fail">
         <dc:Bounds x="1750" y="81" width="100" height="80" />

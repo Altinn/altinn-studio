@@ -6,7 +6,7 @@ import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnCollapsed/ThreadColumnCollapsed';
-import { ChatColumn } from '../ChatColumn/ChatColumn';
+import { MessageColumn } from '../MessageColumn/MessageColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
@@ -25,10 +25,11 @@ export function CompleteInterface({
   onCancelledMessageConsumed,
   activeThreadId,
   connectionStatus,
-  workflowStatus,
+  workflowStatusByThread,
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
@@ -36,8 +37,9 @@ export function CompleteInterface({
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
 
-  const currentThreadWorkflowStatus =
-    workflowStatus?.sessionId === activeThreadId ? workflowStatus : undefined;
+  const currentThreadWorkflowStatus = activeThreadId
+    ? workflowStatusByThread?.[activeThreadId]
+    : undefined;
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
@@ -84,13 +86,14 @@ export function CompleteInterface({
           )}
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={400}>
-          <ChatColumn
+          <MessageColumn
             texts={texts}
             messages={messages}
             onSubmitMessage={onSubmitMessage}
             onCancelWorkflow={onCancelWorkflow}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
+            onMessageFeedback={onMessageFeedback}
             workflowStatus={currentThreadWorkflowStatus}
             enableCompactInterface={false}
             currentUser={currentUser}

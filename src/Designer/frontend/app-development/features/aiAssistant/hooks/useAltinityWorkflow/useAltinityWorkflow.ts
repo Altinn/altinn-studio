@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type {
   UserMessage,
   AssistantMessage,
+  Message,
   WorkflowEvent,
   WorkflowStatus,
   TrailStep,
@@ -18,6 +19,7 @@ import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckou
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import {
+  decorateMessagesWithTraceIds,
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
@@ -31,106 +33,107 @@ const WORKFLOW_ERROR_MESSAGE =
 
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
-  workflowStatus: WorkflowStatus;
+  workflowStatusByThread: Record<string, WorkflowStatus>;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
-  clearCurrentSession: () => void;
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
+  messages: Message[];
 }
 
+// TODO: rename to useAssistantWorkflow.
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
+  const [workflowStatusByThread, setWorkflowStatusByThread] = useState<
+    Record<string, WorkflowStatus>
+  >({});
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
-  const {
-    connectionStatus,
-    sessionId: backendSessionId,
-    startWorkflow,
-    cancelWorkflow,
-    onAgentMessage,
-  } = useAltinityWebSocket();
+  const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
+  const { connectionStatus, startWorkflow, cancelWorkflow, registerSession, onAgentMessage } =
+    useAltinityWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
-  const backendSessionIdRef = useRef<string | null>(backendSessionId);
-  const activeWorkflowThreadId = useRef<string | null>(null);
-  // Monotonic clock anchor for the current workflow. Each trail step records
+  // Monotonic clock anchor per workflow thread. Each trail step records
   // its offset from this value so timestamps don't drift if the wall clock
   // changes mid-flight.
-  const workflowStartedAtMsRef = useRef<number | null>(null);
+  const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
 
   const {
-    currentSessionId,
-    currentSessionIdRef,
-    setCurrentSession,
+    selectedThreadId,
+    selectThread,
     createThread,
     deleteMessage,
     createMessage,
     chatMessages,
   } = threads;
 
-  useEffect(() => {
-    backendSessionIdRef.current = backendSessionId;
-  }, [backendSessionId]);
-
-  const clearCurrentSession = useCallback(() => {
-    setCurrentSession(null);
-    setWorkflowStatus({ isActive: false });
-  }, [setCurrentSession]);
+  const setWorkflowStatus = useCallback((threadId: string, status: WorkflowStatus) => {
+    setWorkflowStatusByThread((prev) => ({ ...prev, [threadId]: status }));
+  }, []);
 
   const markWorkflowCompleted = useCallback(
-    (assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
-      setWorkflowStatus((prev) => ({
-        ...prev,
+    (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
+      setWorkflowStatus(threadId, {
+        isActive: false,
+        sessionId: threadId,
         currentStep: 'Completed',
         message: 'AI agent workflow completed successfully',
-        isActive: false,
         lastCompletedAt: messageTimestamp,
         filesChanged: assistantMessage.filesChanged || [],
-      }));
+      });
+    },
+    [setWorkflowStatus],
+  );
+
+  const applyStatusMessage = useCallback(
+    (threadId: string, statusMessage: string, toolUseId?: string) => {
+      setWorkflowStatusByThread((prev) => {
+        const prevStatus = prev[threadId];
+        if (!prevStatus?.isActive) return prev;
+        const steps = prevStatus.steps ?? [];
+        const lastStep = steps.at(-1);
+
+        // Same tool_use block: the placeholder ("Leser fil") is now landing
+        // with the real subject ("Leser App/ui/Side1.json"). Upgrade the
+        // existing row in place rather than stacking a duplicate.
+        if (toolUseId && lastStep?.toolUseId === toolUseId) {
+          const updated: TrailStep = { ...lastStep, message: statusMessage };
+          return {
+            ...prev,
+            [threadId]: {
+              ...prevStatus,
+              message: statusMessage,
+              steps: [...steps.slice(0, -1), updated],
+            },
+          };
+        }
+
+        // Dedupe identical text bursts; refresh legacy `message` only.
+        if (lastStep?.message === statusMessage) {
+          return { ...prev, [threadId]: { ...prevStatus, message: statusMessage } };
+        }
+
+        const startedAtMs = workflowStartedAtMsByThreadRef.current[threadId] ?? performance.now();
+        const newStep: TrailStep = {
+          id: `${steps.length}-${Math.round(performance.now())}`,
+          message: statusMessage,
+          offsetMs: performance.now() - startedAtMs,
+          toolUseId,
+        };
+        return {
+          ...prev,
+          [threadId]: {
+            ...prevStatus,
+            message: statusMessage,
+            steps: [...steps, newStep],
+          },
+        };
+      });
     },
     [],
   );
-
-  const applyStatusMessage = useCallback((statusMessage: string, toolUseId?: string) => {
-    setWorkflowStatus((prev) => {
-      if (!prev.isActive) return prev;
-      const steps = prev.steps ?? [];
-      const lastStep = steps.at(-1);
-
-      // Same tool_use block: the placeholder ("Leser fil") is now landing
-      // with the real subject ("Leser App/ui/Side1.json"). Upgrade the
-      // existing row in place rather than stacking a duplicate.
-      if (toolUseId && lastStep?.toolUseId === toolUseId) {
-        const updated: TrailStep = { ...lastStep, message: statusMessage };
-        return {
-          ...prev,
-          message: statusMessage,
-          steps: [...steps.slice(0, -1), updated],
-        };
-      }
-
-      // Dedupe identical text bursts; refresh legacy `message` only.
-      if (lastStep?.message === statusMessage) {
-        return { ...prev, message: statusMessage };
-      }
-
-      const startedAtMs = workflowStartedAtMsRef.current ?? performance.now();
-      const newStep: TrailStep = {
-        id: `${steps.length}-${Math.round(performance.now())}`,
-        message: statusMessage,
-        offsetMs: performance.now() - startedAtMs,
-        toolUseId,
-      };
-      return {
-        ...prev,
-        message: statusMessage,
-        steps: [...steps, newStep],
-      };
-    });
-  }, []);
 
   const resetRepoForSession = useCallback(
     (sessionId: string) => {
@@ -145,14 +148,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   );
 
   const handleAssistantMessage = useCallback(
-    (event: WorkflowEvent & { type: 'assistant_message' }) => {
+    async (event: WorkflowEvent & { type: 'assistant_message' }) => {
+      const threadId = event.session_id;
+      if (!threadId) return;
+
       const assistantMessage = event.data;
       const messageContent = getAssistantMessageContent(assistantMessage);
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
-      markWorkflowCompleted(assistantMessage, messageTimestamp);
-
-      const threadId = activeWorkflowThreadId.current || currentSessionIdRef.current;
-      if (!threadId) return;
+      markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
 
       const finalAssistantMessage: AssistantMessage = {
         role: MessageAuthor.Assistant,
@@ -161,43 +164,56 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         filesChanged: assistantMessage.filesChanged || [],
         sources: assistantMessage.sources || [],
       };
-      createMessage(threadId, finalAssistantMessage);
+      const persisted = await createMessage(threadId, finalAssistantMessage);
 
-      if (event.session_id && !shouldSkipBranchOps(assistantMessage)) {
-        resetRepoForSession(event.session_id);
+      if (assistantMessage.traceId && persisted?.id) {
+        setTraceIdsByMessageId((prev) => ({
+          ...prev,
+          [persisted.id]: assistantMessage.traceId,
+        }));
+      }
+
+      if (!shouldSkipBranchOps(assistantMessage)) {
+        resetRepoForSession(threadId);
       }
     },
-    [currentSessionIdRef, resetRepoForSession, markWorkflowCompleted, createMessage],
+    [resetRepoForSession, markWorkflowCompleted, createMessage],
   );
 
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
         handleAssistantMessage(event);
-      } else if (event.type === 'status') {
+        return;
+      }
+
+      const threadId = event.session_id;
+      if (!threadId) return;
+
+      if (event.type === 'status') {
         const isTerminal =
           event.data?.status === 'completed' ||
           event.data?.status === 'failed' ||
           event.data?.done === true;
         if (isTerminal) {
-          setWorkflowStatus({ isActive: false });
+          setWorkflowStatus(threadId, { isActive: false });
         } else {
           applyStatusMessage(
+            threadId,
             event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
             event.data?.tool_use_id,
           );
         }
       } else if (event.type === 'workflow_status') {
         applyStatusMessage(
+          threadId,
           event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
           event.data?.tool_use_id,
         );
       } else if (event.type === 'error') {
-        setWorkflowStatus({ isActive: false });
-        const sessionId = activeWorkflowThreadId.current || currentSessionIdRef.current;
-        if (!sessionId) return;
+        setWorkflowStatus(threadId, { isActive: false });
         if (event.data?.status === 'cancelled') return;
-        createMessage(sessionId, {
+        createMessage(threadId, {
           role: MessageAuthor.Assistant,
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
@@ -205,17 +221,11 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [applyStatusMessage, handleAssistantMessage, currentSessionIdRef, createMessage],
+    [applyStatusMessage, handleAssistantMessage, createMessage, setWorkflowStatus],
   );
 
   useEffect(() => {
     onAgentMessage((event: WorkflowEvent) => {
-      const activeBackendSession = backendSessionIdRef.current;
-
-      if (event.session_id && activeBackendSession && event.session_id !== activeBackendSession) {
-        return;
-      }
-
       handleWorkflowEvent(event);
     });
   }, [onAgentMessage, handleWorkflowEvent]);
@@ -227,17 +237,15 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       allowAppChanges: boolean,
       attachments?: UserAttachment[],
     ): Promise<AgentResponse> => {
-      const activeSession = backendSessionIdRef.current;
-      if (!activeSession) throw new Error('No active backend session — connection not established');
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
-      workflowStartedAtMsRef.current = performance.now();
+      workflowStartedAtMsByThreadRef.current[threadId] = performance.now();
       const initialStep: TrailStep = {
         id: 'initial',
         message: INITIAL_WORKFLOW_MESSAGE,
         offsetMs: 0,
       };
-      setWorkflowStatus({
+      setWorkflowStatus(threadId, {
         isActive: true,
         sessionId: threadId,
         currentStep: 'Initializing',
@@ -246,7 +254,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       });
       try {
         const result = await startWorkflow({
-          session_id: activeSession,
+          session_id: threadId,
           goal,
           org,
           app,
@@ -254,19 +262,18 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           allow_app_changes: allowAppChanges,
           attachments,
         });
-        if (!result.accepted) setWorkflowStatus({ isActive: false });
+        if (!result.accepted) setWorkflowStatus(threadId, { isActive: false });
         return result;
       } catch (error) {
-        setWorkflowStatus({ isActive: false });
+        setWorkflowStatus(threadId, { isActive: false });
         throw error;
       }
     },
-    [app, currentBranch, org, startWorkflow],
+    [app, currentBranch, org, startWorkflow, setWorkflowStatus],
   );
 
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
-      activeWorkflowThreadId.current = threadId;
       createMessage(threadId, userMessage);
       try {
         const result = await startAgentWorkflow(
@@ -300,35 +307,44 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     async (message: UserMessage): Promise<void> => {
       if (!message.content) return;
 
-      if (currentSessionId) {
-        await runWorkflowForSession(currentSessionId, message);
-        return;
+      let threadId = selectedThreadId;
+      if (!threadId) {
+        try {
+          threadId = await createThread(createThreadTitle(message.content));
+          selectThread(threadId);
+        } catch (error) {
+          console.error('Failed to create thread:', error);
+          return;
+        }
       }
-
-      if (!backendSessionId) {
-        console.error('No backend session ID available - connection not established');
-        return;
-      }
-
-      const threadTitle = createThreadTitle(message.content);
 
       try {
-        const threadId = await createThread(threadTitle);
-        setCurrentSession(threadId);
-        await runWorkflowForSession(threadId, message);
+        await registerSession(org, app, threadId);
       } catch (error) {
-        console.error('Failed to create thread:', error);
-        setWorkflowStatus({ isActive: false });
+        console.error('Failed to register session for thread:', error);
+        setWorkflowStatus(threadId, { isActive: false });
+        return;
       }
+
+      await runWorkflowForSession(threadId, message);
     },
-    [backendSessionId, currentSessionId, createThread, runWorkflowForSession, setCurrentSession],
+    [
+      selectedThreadId,
+      createThread,
+      registerSession,
+      org,
+      app,
+      runWorkflowForSession,
+      selectThread,
+      setWorkflowStatus,
+    ],
   );
 
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
-    const threadId = currentSessionIdRef.current;
-    if (!threadId) return;
+    const threadId = selectedThreadId;
+    if (!selectedThreadId) return;
 
-    setWorkflowStatus({ isActive: false });
+    setWorkflowStatus(threadId, { isActive: false });
 
     const latestPersistedMessage = chatMessages.at(-1);
     const noAssistantResponseReceived = latestPersistedMessage?.role === MessageAuthor.User;
@@ -337,28 +353,30 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       setCancelledMessageContent(latestPersistedMessage.content);
     }
 
-    const activeSession = backendSessionIdRef.current;
-    if (!activeSession) return;
-
     try {
-      await cancelWorkflow(activeSession);
+      await cancelWorkflow(threadId);
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, currentSessionIdRef, deleteMessage, chatMessages]);
+  }, [cancelWorkflow, selectedThreadId, deleteMessage, chatMessages, setWorkflowStatus]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
   }, []);
 
+  const messages = useMemo(
+    () => decorateMessagesWithTraceIds(chatMessages, traceIdsByMessageId),
+    [chatMessages, traceIdsByMessageId],
+  );
+
   return {
     connectionStatus,
-    workflowStatus,
+    workflowStatusByThread,
     onSubmitMessage,
-    clearCurrentSession,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
+    messages,
   };
 };
 

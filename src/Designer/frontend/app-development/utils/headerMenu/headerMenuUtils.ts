@@ -79,23 +79,13 @@ export const topBarMenuItems: HeaderMenuItem[] = [
 
 export const getFilteredTopBarMenu = (
   repositoryType: RepositoryType,
+  isRepoOwnerOrg: boolean,
   activeFeatureFlags: FeatureFlag[],
 ): HeaderMenuItem[] => {
   return topBarMenuItems
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
+    .filter((menuItem) => isMenuItemVisibleForOwnerType(menuItem, isRepoOwnerOrg))
     .filter((menuItem) => isMenuItemEnabledByFeatureFlag(menuItem, activeFeatureFlags));
-};
-
-export const getTopBarMenuItems = (
-  repositoryType: RepositoryType,
-  repoOwnerIsOrg: boolean,
-  activeFeatureFlags: FeatureFlag[],
-): HeaderMenuItem[] => {
-  const filteredMenuItems: HeaderMenuItem[] = getFilteredTopBarMenu(
-    repositoryType,
-    activeFeatureFlags,
-  );
-  return filterOutDeployItem(filteredMenuItems, repoOwnerIsOrg, repositoryType);
 };
 
 export const isMenuItemEnabledByFeatureFlag = (
@@ -107,17 +97,13 @@ export const isMenuItemEnabledByFeatureFlag = (
   return activeFeatureFlags.includes(menuItem.featureFlagName);
 };
 
-const filterOutDeployItem = (
-  menuItems: HeaderMenuItem[],
-  repoOwnerIsOrg: boolean,
-  repositoryType: RepositoryType,
-): HeaderMenuItem[] => {
-  return menuItems.filter((menuItem: HeaderMenuItem) => {
-    if (menuItem.key === HeaderMenuItemKey.Deploy) {
-      if (!repoOwnerIsOrg || repositoryType === RepositoryType.DataModels) return false;
-    }
-    return true;
-  });
+const isMenuItemVisibleForOwnerType = (
+  menuItem: HeaderMenuItem,
+  isRepoOwnerOrg: boolean,
+): boolean => {
+  if (isRepoOwnerOrg) return true;
+  const orgOnlyMenuItemKeys = [HeaderMenuItemKey.Deploy, HeaderMenuItemKey.AiAssistant];
+  return !orgOnlyMenuItemKeys.includes(menuItem.key);
 };
 
 export const groupMenuItemsByGroup = (menuItems: HeaderMenuItem[]): HeaderMenuGroup[] => {
@@ -150,8 +136,9 @@ export const mapHeaderMenuGroupToNavigationMenu = (
 
 export const getFilteredMenuListForOverviewPage = (
   activeFeatureFlags: FeatureFlag[],
+  isRepoOwnerOrg: boolean,
 ): HeaderMenuItem[] => {
-  return getFilteredTopBarMenu(RepositoryType.App, activeFeatureFlags).filter(
+  return getFilteredTopBarMenu(RepositoryType.App, isRepoOwnerOrg, activeFeatureFlags).filter(
     (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
   );
 };

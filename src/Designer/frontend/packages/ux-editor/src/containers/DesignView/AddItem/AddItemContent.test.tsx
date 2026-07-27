@@ -48,6 +48,8 @@ describe('AddItemContent', () => {
     onAddItem: jest.fn(),
     onCancel: jest.fn(),
     availableComponents: mockAvailableComponents,
+    isFavorite: jest.fn(),
+    toggleFavorite: jest.fn(),
   };
 
   const renderAddItemContent = (props: Partial<AddItemContentProps> = {}) => {

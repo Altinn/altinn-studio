@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace LocalTest.Services.Storage.Implementation;
 
 internal sealed class PartitionedAsyncLock : IDisposable

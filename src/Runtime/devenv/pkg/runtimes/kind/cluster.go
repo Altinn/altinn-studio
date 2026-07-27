@@ -25,15 +25,3 @@ func (r *KindContainerRuntime) clusterExists() (bool, error) {
 
 	return false, nil
 }
-
-// createCluster creates a new kind cluster using the specified config.
-func (r *KindContainerRuntime) createCluster() error {
-	writeKindStdoutf("Creating kind cluster %s...\n", r.clusterName)
-
-	if err := r.KindClient.CreateCluster(r.clusterName, r.kindConfig); err != nil {
-		return fmt.Errorf("failed to create cluster: %w", err)
-	}
-
-	writeKindStdoutf("Cluster %s created successfully\n", r.clusterName)
-	return nil
-}

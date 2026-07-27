@@ -21,7 +21,7 @@ describe('Auto save behavior', () => {
       };
       globalData.ui.settings.autoSaveBehavior = 'onChangeFormData';
     });
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null, tenorUser: null });
 
     cy.get(appFrontend.stateless.name).type('Per');
     cy.wait('@putFormData').then(() => {
@@ -53,7 +53,7 @@ describe('Auto save behavior', () => {
       };
       globalData.ui.settings.autoSaveBehavior = 'onChangePage';
     });
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null, tenorUser: null });
 
     cy.get(appFrontend.stateless.name).type('Per');
     // Doing a hard wait to be sure no request is sent to backend

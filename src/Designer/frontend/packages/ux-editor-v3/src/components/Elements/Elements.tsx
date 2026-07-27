@@ -19,7 +19,7 @@ export const Elements = () => {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const receiptName = formLayoutSettings?.receiptLayoutName;
-  const layoutSetNames = layoutSetsQuery?.data?.sets;
+  const layoutSetNames = layoutSetsQuery?.data;
 
   const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
 

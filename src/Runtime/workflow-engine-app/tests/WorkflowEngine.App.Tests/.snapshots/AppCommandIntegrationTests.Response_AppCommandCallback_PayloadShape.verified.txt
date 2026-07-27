@@ -1,7 +1,7 @@
 ﻿{
   commandKey: /snapshot-callback,
   actor: {
-    userIdOrOrgNumber: test-user,
+    orgId: test-user,
     language: null
   },
   lockToken: e2e-lock-token-abc123,

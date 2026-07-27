@@ -209,7 +209,7 @@ Retries are per-step with configurable backoff (exponential, linear, constant), 
 ### How crashes are handled
 
 - `HeartbeatService` proves worker liveness &mdash; if heartbeat expires, another worker reclaims the workflow
-- Poison workflow protection after configurable max reclaim attempts
+- Poisoned workflow protection after configurable max reclaim attempts
 - Cross-pod cancellation propagation via DB polling; resume support for failed/canceled workflows
 
 ---

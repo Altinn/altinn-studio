@@ -5,6 +5,7 @@ Simple release flow for a component.
 ## Supported components
 
 - `studioctl`: uses a Go builder registered by the releaser CLI.
+- `app`: uses a Go builder registered by the releaser CLI.
 - `fileanalyzers`: has no releaser builder; the GitHub workflow handles package build and publish.
 
 ## Builders

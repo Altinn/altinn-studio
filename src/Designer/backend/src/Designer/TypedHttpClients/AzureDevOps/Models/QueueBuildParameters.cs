@@ -67,6 +67,12 @@ public class QueueBuildParameters
     public string TagName { get; set; }
 
     /// <summary>
+    /// The logical deployment attempt id from Designer
+    /// </summary>
+    [JsonPropertyName("DEPLOYMENT_ID")]
+    public string DeploymentId { get; set; }
+
+    /// <summary>
     /// The hostname of the altinn studio env
     /// </summary>
     [JsonPropertyName("ALTINN_STUDIO_HOSTNAME")]
