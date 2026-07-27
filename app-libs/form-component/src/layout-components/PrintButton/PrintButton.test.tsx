@@ -32,8 +32,8 @@ describe('PrintButton', () => {
   it('calls onClick when the button is pressed', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render({ title: 'my.title', onClick }, { overrides: { 'my.title': 'Skriv ut' } });
-    await user.click(screen.getByRole('button', { name: 'Skriv ut' }));
+    render({ onClick });
+    await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 

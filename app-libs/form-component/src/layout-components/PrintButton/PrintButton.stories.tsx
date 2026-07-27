@@ -1,3 +1,4 @@
+import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -8,7 +9,7 @@ export const PRINT_BUTTON_PROP_CATEGORIES = {
   title: 'text',
   componentId: 'content',
   onClick: 'runtime',
-  innerGrid: 'runtime',
+  innerGrid: 'content',
 } satisfies PropCategories<PrintButtonProps>;
 
 const meta = {
@@ -20,8 +21,7 @@ const meta = {
   },
   args: {
     componentId: 'print-button-preview',
-    title: 'Skriv ut',
-    onClick: () => undefined,
+    onClick: fn(),
   },
 } satisfies Meta<typeof PrintButton>;
 
@@ -31,8 +31,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {};
 
-export const DefaultTextKey: Story = {
+export const CustomText: Story = {
   args: {
-    title: undefined,
+    title: 'Skriv ut',
   },
 };
