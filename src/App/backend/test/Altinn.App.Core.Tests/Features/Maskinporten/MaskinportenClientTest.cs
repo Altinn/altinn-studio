@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
@@ -9,9 +10,12 @@ using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
@@ -89,6 +93,40 @@ public class MaskinportenClientTests
             });
 
             return new Fixture(app);
+        }
+
+        /// <summary>
+        /// A client wired to a logger that records every rendered Debug message into <paramref name="sink"/>.
+        /// </summary>
+        public MaskinportenClient ClientWithLogCapture(string variant, List<string> sink) =>
+            new(
+                variant,
+                App.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>(),
+                App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
+                App.Services.GetRequiredService<IHttpClientFactory>(),
+                App.Services.GetRequiredService<HybridCache>(),
+                new CapturingLogger(sink),
+                App.Services.GetRequiredService<TimeProvider>()
+            );
+
+        private sealed class CapturingLogger(List<string> sink) : ILogger<MaskinportenClient>
+        {
+            public IDisposable? BeginScope<TState>(TState state)
+                where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter
+            )
+            {
+                lock (sink)
+                    sink.Add(formatter(state, exception));
+            }
         }
 
         public async ValueTask DisposeAsync() => await App.DisposeAsync();
@@ -1079,6 +1117,65 @@ public class MaskinportenClientTests
         Assert.Equal("991825827", payload.GetProperty("consumer_org").GetString());
         var detail = payload.GetProperty("authorization_details").EnumerateArray().Single();
         Assert.Equal("0192:311169963", detail.GetProperty("systemuser_org").GetProperty("ID").GetString());
+    }
+
+    [Fact]
+    public async Task GenerateJwtGrant_SignatureIsNeverLoggedInFull()
+    {
+        // Arrange: the grant assertion is a replayable credential for its lifetime, so the signature must be
+        // masked the same way `JwtToken` masks itself. Every grant carries a fresh `jti`, so this has to assert
+        // against the assertion that actually went over the wire — comparing against a separately generated one
+        // would pass no matter what we log.
+        await using var fixture = Fixture.Create();
+        var request = new MaskinportenTokenRequest { Scopes = ["scope"] };
+        var logged = new List<string>();
+        string? sentAssertion = null;
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(maskinportenTokenResponse);
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(
+                        async (HttpRequestMessage req, CancellationToken _) =>
+                        {
+                            var form = await TestHelpers.ParseFormUrlEncodedContent(
+                                (FormUrlEncodedContent)req.Content!
+                            );
+                            sentAssertion = form["assertion"];
+                            return new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
+                            };
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await fixture.ClientWithLogCapture(MaskinportenClient.VariantDefault, logged).GetAccessToken(request);
+
+        // Assert
+        Assert.NotNull(sentAssertion);
+        var parts = sentAssertion.Split('.');
+        Assert.Equal(3, parts.Length);
+        Assert.NotEmpty(parts[2]);
+
+        Assert.DoesNotContain(logged, x => x.Contains(parts[2], StringComparison.Ordinal));
+        Assert.Contains(logged, x => x.Contains($"{parts[0]}.{parts[1]}.<masked>", StringComparison.Ordinal));
     }
 
     [Fact]

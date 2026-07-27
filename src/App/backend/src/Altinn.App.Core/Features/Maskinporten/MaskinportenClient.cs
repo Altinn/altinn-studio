@@ -31,6 +31,13 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </summary>
     internal static readonly TimeSpan WellKnownCacheDuration = TimeSpan.FromHours(1);
 
+    /// <summary>
+    /// Upper bound for a single outbound call to Maskinporten or the Altinn token exchange endpoint.
+    /// <remarks>Without this, these calls inherit the 100 second <see cref="HttpClient"/> default, which is far
+    /// longer than any caller waiting on a token can reasonably tolerate.</remarks>
+    /// </summary>
+    internal static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
+
     private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt);
 
     internal MaskinportenSettings Settings =>
@@ -204,16 +211,15 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             string jwtGrant = GenerateJwtGrant(request, audience);
             FormUrlEncodedContent payload = AuthenticationPayloadFactory(jwtGrant);
 
-            _logger.LogDebug(
-                "Sending grant request to Maskinporten: {GrantRequest}",
-                await payload.ReadAsStringAsync(cancellationToken)
-            );
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("Sending grant request to Maskinporten with assertion: {Assertion}", Mask(jwtGrant));
 
             string tokenUri = Settings.Authority.Trim('/') + "/token";
             using HttpClient client = _httpClientFactory.CreateClient();
-            using HttpResponseMessage response = await client.PostAsync(tokenUri, payload, cancellationToken);
+            using var timeout = CreateTimeout(cancellationToken);
+            using HttpResponseMessage response = await client.PostAsync(tokenUri, payload, timeout.Token);
 
-            MaskinportenTokenResponse tokenResponse = await ParseServerResponse(response, cancellationToken);
+            MaskinportenTokenResponse tokenResponse = await ParseServerResponse(response, timeout.Token);
 
             _logger.LogDebug("Token retrieved successfully from remote: {Token}", tokenResponse);
             _telemetry?.RecordMaskinportenTokenRequest(Telemetry.Maskinporten.RequestResult.New);
@@ -221,6 +227,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             return tokenResponse.AccessToken;
         }
         catch (MaskinportenException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -263,10 +273,11 @@ internal sealed class MaskinportenClient : IMaskinportenClient
                 maskinportenToken.Value
             );
 
-            using HttpResponseMessage response = await client.SendAsync(request, cancellationToken);
+            using var timeout = CreateTimeout(cancellationToken);
+            using HttpResponseMessage response = await client.SendAsync(request, timeout.Token);
             response.EnsureSuccessStatusCode();
 
-            string tokenResponse = await response.Content.ReadAsStringAsync(cancellationToken);
+            string tokenResponse = await response.Content.ReadAsStringAsync(timeout.Token);
             JwtToken token = JwtToken.Parse(tokenResponse);
 
             _logger.LogDebug("Token retrieved successfully from remote: {Token}", token);
@@ -275,6 +286,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             return token;
         }
         catch (MaskinportenException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -549,6 +564,23 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         );
         return metadata ?? throw new JsonException("Well-known metadata response was null");
     }
+
+    /// <summary>
+    /// Links the caller's cancellation token to a <see cref="RequestTimeout"/> budget for a single outbound call.
+    /// </summary>
+    private static CancellationTokenSource CreateTimeout(CancellationToken cancellationToken)
+    {
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(RequestTimeout);
+        return cts;
+    }
+
+    /// <summary>
+    /// Renders a JWT with its signature masked, matching how <see cref="JwtToken"/> stringifies itself. The grant
+    /// assertion is a short-lived but replayable credential, so the signature must not reach the logs.
+    /// </summary>
+    private static string Mask(string jwt) =>
+        JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparseable>";
 
     private TimeSpan GetTokenExpiryWithMargin(JwtToken token) =>
         token.ExpiresAt - _timeProvider.GetUtcNow() - TokenExpirationMargin;

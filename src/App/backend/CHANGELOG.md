@@ -19,6 +19,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: Maskinporten scopes are now de-duplicated and ordered before use, and a request without any usable scope throws `ArgumentException` instead of being sent to Maskinporten. `UseMaskinportenAuthorization`/`UseMaskinportenAltinnAuthorization` validate at registration time rather than on first request.
 - Validate `MaskinportenTokenRequest.Resource` and `MaskinportenSystemUser.ExternalRef` against the rules Maskinporten enforces (no URI fragment; external references limited to 255 characters from `a-z A-Z 0-9 ø Ø æ Æ å Å _ -`), so these fail locally rather than as an opaque `invalid_target`/`MP_302` from the token endpoint.
 
+### Fixed
+
+- Apply a 30 second timeout to the Maskinporten token request and the Altinn token exchange, which previously inherited the 100 second `HttpClient` default. A cancellation from the caller now surfaces as `OperationCanceledException` rather than being wrapped as an authentication failure.
+- Mask the signature of the Maskinporten grant assertion in debug logs, matching how `JwtToken` renders itself.
+
 ### Removed
 
 - Breaking: remove the obsolete `UseMaskinportenAuthorisation` and `UseMaskinportenAltinnAuthorisation` extension methods. Use the `-ization` spellings instead.
