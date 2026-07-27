@@ -1,0 +1,56 @@
+# Agent skills
+
+Each subdirectory is one skill: a `SKILL.md` with a one-line
+`description` in the frontmatter and a markdown body of curated domain
+knowledge. The loop surfaces only the descriptions (via the system
+prompt listing); the body loads when the model calls the `skill` tool.
+
+See `agents/core/skills.py` for the loader and
+`agents/core/tools/skill_tool.py` for the tool.
+
+## These files are the canonical source
+
+The skills ARE the single source of truth for Altinn domain knowledge.
+(They were originally derived from the retired MCP server's context
+files — see `MCP_CONSOLIDATION.md` — but ownership moved here with the
+consolidation.) Edit them directly.
+
+| Skill              | Covers                                                            |
+| ------------------ | ----------------------------------------------------------------- |
+| altinn-datamodel   | Data models: JSON Schema conventions, C# generation, bindings     |
+| altinn-policy      | Authorization policy (policy.xml): rules, roles, actions          |
+| altinn-resources   | Text resources: key naming, locales, layout references            |
+| altinn-prefill     | Prefill: registry data → form fields                              |
+| altinn-expressions | Dynamic expressions: array-shaped hidden/required/readOnly logic  |
+| altinn-planning    | Planning an app change: files per task type, ordering, validation |
+| altinn-docs        | Navigating docs.altinn.studio via the curated llms.txt index      |
+
+## Adding a skill
+
+1. `mkdir agents/skills/<kebab-name>`
+2. Write `SKILL.md`:
+
+   ```markdown
+   ---
+   description: One sentence on what this covers and when to load it.
+   ---
+
+   # Title
+
+   The full instructions/reference content.
+   ```
+
+3. Discovery is automatic at session start. Keep the description under
+   250 chars; the body can be as long as it needs to be (it only costs
+   tokens when actually loaded).
+
+Reference files (indexes, data, scripts) live next to SKILL.md; the
+loaded body starts with a "Base directory for this skill" header so the
+model can `read_file` them on demand.
+
+## External installation
+
+These skills are usable outside the agent: any Claude Code / Cursor /
+Windsurf user can install them from this public repo (clone + symlink
+into their skills directory, or via the skills CLI). Keep frontmatter
+descriptions client-agnostic for that reason.

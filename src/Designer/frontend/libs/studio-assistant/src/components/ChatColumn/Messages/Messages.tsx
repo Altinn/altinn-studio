@@ -1,17 +1,18 @@
 import type { ReactElement } from 'react';
-import { StudioCard, StudioParagraph, StudioTag, StudioSpinner } from '@studio/components';
+import { StudioCard, StudioParagraph, StudioTag } from '@studio/components';
 import { PaperclipIcon } from '@studio/icons';
 import type { User } from '../../../types/User';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
 import type { Message, UserAttachment, UserMessage, Source } from '../../../types/ChatThread';
-import type { WorkflowStatus } from '../../../types/WorkflowStatus';
+import type { WorkflowStatus, TrailStep } from '../../../types/WorkflowStatus';
 import {
   formatAssistantMessageContent,
   formatFileSize,
   isUrlSafe,
 } from '../../../utils/messageUtils';
 import { ChatAvatar } from '../ChatAvatar';
+import { ActivityTrail } from './ActivityTrail';
 
 const ASSISTANT_LABEL = 'Altinity';
 const DEFAULT_USER_LABEL = 'Deg';
@@ -29,8 +30,8 @@ export function Messages({
   currentUser,
   assistantAvatarUrl,
 }: MessagesProps): ReactElement {
-  const showLoadingBubble = workflowStatus?.isActive === true;
-  const loadingBubbleText = workflowStatus?.message ?? '';
+  const showTrail = workflowStatus?.isActive === true;
+  const trailSteps = resolveTrailSteps(workflowStatus);
 
   return (
     <div className={classes.messagesContainer}>
@@ -42,37 +43,52 @@ export function Messages({
           assistantAvatarUrl={assistantAvatarUrl}
         />
       ))}
-      {showLoadingBubble && (
-        <AssistantLoadingBubble
-          content={loadingBubbleText}
-          assistantAvatarUrl={assistantAvatarUrl}
-        />
+      {showTrail && (
+        <ActivityTrailBubble steps={trailSteps} assistantAvatarUrl={assistantAvatarUrl} />
       )}
     </div>
   );
 }
 
-type AssistantLoadingBubbleProps = {
-  content: string;
+/**
+ * The trail bubble takes the place of the assistant's reply while the
+ * workflow is active. When the agent finishes, this bubble is replaced by
+ * the final assistant message — the trail is intentionally not persisted.
+ */
+type ActivityTrailBubbleProps = {
+  steps: TrailStep[];
   assistantAvatarUrl?: string;
 };
 
-function AssistantLoadingBubble({
-  content,
+function ActivityTrailBubble({
+  steps,
   assistantAvatarUrl,
-}: AssistantLoadingBubbleProps): ReactElement {
+}: ActivityTrailBubbleProps): ReactElement {
   return (
     <div className={`${classes.messageRow} ${classes.assistantRow}`}>
       <ChatAvatar src={assistantAvatarUrl} label={ASSISTANT_LABEL} variant='assistant' />
       <div className={classes.assistantMessage}>
         <div className={classes.messageMeta}>{ASSISTANT_LABEL}</div>
-        <div className={classes.assistantBody}>
-          <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
-          <div className={`${classes.assistantContent} ${classes.loadingText}`}>{content}</div>
-        </div>
+        <ActivityTrail steps={steps} />
       </div>
     </div>
   );
+}
+
+/**
+ * Older callers that only set `message` (no `steps[]`) still get a single
+ * step rendered so the trail bubble doesn't appear empty — keeps the
+ * component robust against partial state.
+ */
+function resolveTrailSteps(workflowStatus: WorkflowStatus | undefined): TrailStep[] {
+  if (!workflowStatus) return [];
+  if (workflowStatus.steps && workflowStatus.steps.length > 0) {
+    return workflowStatus.steps;
+  }
+  if (workflowStatus.message) {
+    return [{ id: 'legacy', message: workflowStatus.message, offsetMs: 0 }];
+  }
+  return [];
 }
 
 type MessageItemProps = {

@@ -1,19 +1,15 @@
 """LangGraph runner for agent workflow"""
-from langgraph.graph import StateGraph, END
-from .state import AgentState
-from .nodes.intake_node import handle as intake_node
-from .nodes.intake_node import scan_repository as scan_node
-from .nodes.spec_node import handle as spec_node
-from .nodes.planning_tool_node import handle as planning_tool_node
-from .nodes.planner_node import handle as planner_node
-from .nodes.actor_node import handle as actor_node
-from .nodes.verifier_node import handle as verifier_node
-from .nodes.reviewer_node import handle as reviewer_node
-from agents.services.events import AgentEvent, EventSink, sink
-from shared.utils.logging_utils import get_logger
 import asyncio
 import json
 
+from langgraph.graph import StateGraph, END
+
+from .state import AgentState
+from .nodes.agentic_loop_node import handle as agentic_loop_node
+from .nodes.intake_node import handle as intake_node
+from .nodes.spec_node import handle as spec_node
+from agents.services.events import AgentEvent, EventSink, sink
+from shared.utils.logging_utils import get_logger
 
 _active_tasks: set = set()
 
@@ -39,88 +35,57 @@ def _with_cancellation(fn):
 
 log = get_logger(__name__)
 
-def should_continue_after_intake(state: AgentState) -> str:
-    """Route from intake to spec (if attachments) or scan"""
+
+def _route_after_intake(state: AgentState) -> str:
+    """intake → spec (if attachments) → agentic_loop, or stop on error."""
     if state.next_action == "stop":
         return "stop"
     if state.attachments:
         return "spec"
-    return "scan"
+    return "agentic_loop"
 
-def should_continue_after_spec(state: AgentState) -> str:
-    """Route from spec to scan or stop"""
+
+def _route_after_spec(state: AgentState) -> str:
     if state.next_action == "stop":
         return "stop"
-    return "scan"
+    return "agentic_loop"
 
-def should_continue_after_scan(state: AgentState) -> str:
-    """Route from scan to planning_tool or stop"""
-    import logging
-    log = logging.getLogger(__name__)
-    log.info(f"🔀 Routing after scan: next_action={state.next_action}, has_repo_facts={bool(state.repo_facts)}")
-    
-    # CRITICAL: Ignore next_action value - ALWAYS route to planning_tool after scan
-    # The next_action="plan" is legacy behavior, we want to go through planning_tool first
-    if state.next_action == "stop":
-        log.info("🛑 Routing to STOP due to error")
-        return "stop"
-    
-    log.info("➡️ Routing to planning_tool (forced route from scan)")
-    return "planning_tool"
-
-def should_continue_after_planning_tool(state: AgentState) -> str:
-    """Route from planning_tool to planner or stop"""
-    if state.next_action == "stop":
-        return "stop"
-    return "planner"
-
-def should_continue_to_verifier(state: AgentState) -> str:
-    """Decide whether to continue to verifier or stop"""
-    if state.next_action == "stop":
-        return "stop"
-    return "verifier"
-
-def should_continue_to_reviewer(state: AgentState) -> str:
-    """Decide whether to continue to reviewer or stop"""
-    if state.next_action == "stop":
-        return "stop"
-    return "reviewer"
 
 def build_graph():
-    """Build the LangGraph workflow: intake → repo_scan → planning_tool → general_planning → execution"""
+    """Build the workflow graph: intake → [spec] → agentic_loop → END.
+
+    Repo scan, planning, code generation, verification, and review all
+    collapse into tools the model can invoke from inside the agentic
+    loop. The intake and spec nodes still run up front to validate the
+    request and extract any attached FormSpec.
+    """
     g = StateGraph(AgentState)
-    
-    # Add all nodes (wrapped with cancellation checks)
+
     g.add_node("intake", _with_cancellation(intake_node))
     g.add_node("spec", _with_cancellation(spec_node))
-    g.add_node("scan", _with_cancellation(scan_node))
-    g.add_node("planning_tool", _with_cancellation(planning_tool_node))
-    g.add_node("planner", _with_cancellation(planner_node))
-    g.add_node("actor", _with_cancellation(actor_node))
-    g.add_node("verifier", _with_cancellation(verifier_node))
-    g.add_node("reviewer", _with_cancellation(reviewer_node))
-    
-    # Set entry point
+    g.add_node("agentic_loop", _with_cancellation(agentic_loop_node))
+
     g.set_entry_point("intake")
-    
-    # Define workflow: intake → [spec] → scan → planning_tool → planner → actor → verifier → reviewer
-    g.add_conditional_edges("intake", should_continue_after_intake, {"spec": "spec", "scan": "scan", "stop": END})
-    g.add_conditional_edges("spec", should_continue_after_spec, {"scan": "scan", "stop": END})
-    g.add_conditional_edges("scan", should_continue_after_scan, {"planning_tool": "planning_tool", "stop": END})
-    g.add_conditional_edges("planning_tool", should_continue_after_planning_tool, {"planner": "planner", "stop": END})
-    g.add_edge("planner", "actor")
-    
-    # Conditional edges based on next_action
-    g.add_conditional_edges("actor", should_continue_to_verifier, {"verifier": "verifier", "stop": END})
-    g.add_conditional_edges("verifier", should_continue_to_reviewer, {"reviewer": "reviewer", "stop": END})
-    g.add_edge("reviewer", END)
-    
+
+    g.add_conditional_edges(
+        "intake",
+        _route_after_intake,
+        {"spec": "spec", "agentic_loop": "agentic_loop", "stop": END},
+    )
+    g.add_conditional_edges(
+        "spec",
+        _route_after_spec,
+        {"agentic_loop": "agentic_loop", "stop": END},
+    )
+    g.add_edge("agentic_loop", END)
+
     return g.compile()
+
 
 graph = build_graph()
 
 from langfuse import get_client, propagate_attributes
-from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client
+from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client, flush_langfuse
 from agents.services.llm import parse_intent_async, suggest_goal_correction
 
 import logging as _logging
@@ -257,8 +222,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 try:
                     await _validate_intent(state)
 
-                    current_graph = build_graph()
-                    final_state = await current_graph.ainvoke(state)
+                    final_state = await graph.ainvoke(state)
 
                     root_span.update(output={
                         "success": bool(final_state.get("tests_passed", False)),
@@ -290,8 +254,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     raise
     else:
         await _validate_intent(state)
-        current_graph = build_graph()
-        final_state = await current_graph.ainvoke(state)
+        final_state = await graph.ainvoke(state)
 
     # Check if cancelled during execution
     if event_sink.is_cancelled(state.session_id):
@@ -367,6 +330,11 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "message": f"Workflow failed: {e!s}"
                 }
             ))
+        finally:
+            # Force Langfuse to export buffered spans now instead of waiting for
+            # the BatchSpanProcessor's periodic flush. Without this the trace can
+            # sit invisible in the UI until the next batch tick (or process exit).
+            flush_langfuse()
 
     # Create background task
     task = asyncio.create_task(_run())

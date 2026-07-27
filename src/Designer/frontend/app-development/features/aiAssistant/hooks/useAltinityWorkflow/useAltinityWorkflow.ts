@@ -4,6 +4,7 @@ import type {
   AssistantMessage,
   WorkflowEvent,
   WorkflowStatus,
+  TrailStep,
   ConnectionStatus,
   AssistantMessageData,
   AgentResponse,
@@ -23,7 +24,7 @@ import {
   shouldSkipBranchOps,
 } from '../../utils/messageUtils';
 
-const INITIAL_WORKFLOW_MESSAGE = 'Jobber med saken...';
+const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
@@ -55,6 +56,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const currentBranch = currentBranchInfo?.branchName;
   const backendSessionIdRef = useRef<string | null>(backendSessionId);
   const activeWorkflowThreadId = useRef<string | null>(null);
+  // Monotonic clock anchor for the current workflow. Each trail step records
+  // its offset from this value so timestamps don't drift if the wall clock
+  // changes mid-flight.
+  const workflowStartedAtMsRef = useRef<number | null>(null);
 
   const {
     currentSessionId,
@@ -89,8 +94,42 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [],
   );
 
-  const applyStatusMessage = useCallback((statusMessage: string) => {
-    setWorkflowStatus((prev) => ({ ...prev, message: statusMessage }));
+  const applyStatusMessage = useCallback((statusMessage: string, toolUseId?: string) => {
+    setWorkflowStatus((prev) => {
+      if (!prev.isActive) return prev;
+      const steps = prev.steps ?? [];
+      const lastStep = steps.at(-1);
+
+      // Same tool_use block: the placeholder ("Leser fil") is now landing
+      // with the real subject ("Leser App/ui/Side1.json"). Upgrade the
+      // existing row in place rather than stacking a duplicate.
+      if (toolUseId && lastStep?.toolUseId === toolUseId) {
+        const updated: TrailStep = { ...lastStep, message: statusMessage };
+        return {
+          ...prev,
+          message: statusMessage,
+          steps: [...steps.slice(0, -1), updated],
+        };
+      }
+
+      // Dedupe identical text bursts; refresh legacy `message` only.
+      if (lastStep?.message === statusMessage) {
+        return { ...prev, message: statusMessage };
+      }
+
+      const startedAtMs = workflowStartedAtMsRef.current ?? performance.now();
+      const newStep: TrailStep = {
+        id: `${steps.length}-${Math.round(performance.now())}`,
+        message: statusMessage,
+        offsetMs: performance.now() - startedAtMs,
+        toolUseId,
+      };
+      return {
+        ...prev,
+        message: statusMessage,
+        steps: [...steps, newStep],
+      };
+    });
   }, []);
 
   const resetRepoForSession = useCallback(
@@ -143,10 +182,16 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         if (isTerminal) {
           setWorkflowStatus({ isActive: false });
         } else {
-          applyStatusMessage(event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+          applyStatusMessage(
+            event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+            event.data?.tool_use_id,
+          );
         }
       } else if (event.type === 'workflow_status') {
-        applyStatusMessage(event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+        applyStatusMessage(
+          event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+          event.data?.tool_use_id,
+        );
       } else if (event.type === 'error') {
         setWorkflowStatus({ isActive: false });
         const sessionId = activeWorkflowThreadId.current || currentSessionIdRef.current;
@@ -186,11 +231,18 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       if (!activeSession) throw new Error('No active backend session — connection not established');
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
+      workflowStartedAtMsRef.current = performance.now();
+      const initialStep: TrailStep = {
+        id: 'initial',
+        message: INITIAL_WORKFLOW_MESSAGE,
+        offsetMs: 0,
+      };
       setWorkflowStatus({
         isActive: true,
         sessionId: threadId,
         currentStep: 'Initializing',
         message: INITIAL_WORKFLOW_MESSAGE,
+        steps: [initialStep],
       });
       try {
         const result = await startWorkflow({
