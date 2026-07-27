@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -54,7 +55,7 @@ public class SourceControlServiceTest : IDisposable
         _sourceControlService = new SourceControlService(
             _settings,
             _giteaClientMock.Object,
-            new Mock<IGitServerAuthHeadersProvider>().Object
+            CreateAuthHeadersProvider()
         );
     }
 
@@ -367,6 +368,146 @@ public class SourceControlServiceTest : IDisposable
         Assert.Empty(result);
     }
 
+    [Theory]
+    [InlineData("develop", "develop/test", false)]
+    [InlineData("develop/test", "develop", false)]
+    [InlineData("develop", "develop/test", true)]
+    [InlineData("develop/test", "develop", true)]
+    public void FetchRemoteChanges_RemoteBranchShapeChangedByPush_RebuildsRemoteTrackingBranches(
+        string staleRemoteBranchName,
+        string replacementRemoteBranchName,
+        bool packRefs
+    )
+    {
+        VerifyRemoteTrackingBranchesAreRebuilt(
+            staleRemoteBranchName,
+            replacementRemoteBranchName,
+            packRefs,
+            context => _sourceControlService.FetchRemoteChanges(context),
+            expectPulledChanges: false
+        );
+    }
+
+    [Theory]
+    [InlineData("develop", "develop/test", false)]
+    [InlineData("develop/test", "develop", false)]
+    [InlineData("develop", "develop/test", true)]
+    [InlineData("develop/test", "develop", true)]
+    public void PullRemoteChanges_RemoteBranchShapeChangedByPush_RebuildsRemoteTrackingBranches(
+        string staleRemoteBranchName,
+        string replacementRemoteBranchName,
+        bool packRefs
+    )
+    {
+        VerifyRemoteTrackingBranchesAreRebuilt(
+            staleRemoteBranchName,
+            replacementRemoteBranchName,
+            packRefs,
+            context => _sourceControlService.PullRemoteChanges(context),
+            expectPulledChanges: true
+        );
+    }
+
+    private void VerifyRemoteTrackingBranchesAreRebuilt(
+        string staleRemoteBranchName,
+        string replacementRemoteBranchName,
+        bool packRefs,
+        Action<AltinnAuthenticatedRepoEditingContext> synchronize,
+        bool expectPulledChanges
+    )
+    {
+        Setup();
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        string remoteRepoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, $"{repoName}-remote", _developer);
+        string publisherRepoDir = TestDataHelper.GetTestDataRepositoryDirectory(
+            _org,
+            $"{repoName}-publisher",
+            _developer
+        );
+        _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
+
+        try
+        {
+            Directory.CreateDirectory(remoteRepoDir);
+            Repository.Init(remoteRepoDir, true);
+            Directory.CreateDirectory(publisherRepoDir);
+            Repository.Init(publisherRepoDir);
+
+            using (var publisherRepo = new Repository(publisherRepoDir))
+            {
+                LibGit2Sharp.Commit initialCommit = CommitFile(
+                    publisherRepo,
+                    publisherRepoDir,
+                    "test.txt",
+                    "Initial content"
+                );
+                EnsureServiceDefaultBranch(publisherRepo);
+                publisherRepo.CreateBranch(staleRemoteBranchName, initialCommit);
+                publisherRepo.CreateBranch("deleted-remotely", initialCommit);
+                Remote remote = publisherRepo.Network.Remotes.Add("origin", remoteRepoDir);
+                PushBranch(publisherRepo, remote, General.DefaultBranch);
+                PushBranch(publisherRepo, remote, staleRemoteBranchName);
+                PushBranch(publisherRepo, remote, "deleted-remotely");
+            }
+
+            Repository.Clone(remoteRepoDir, _repoDir);
+
+            using (var clonedRepo = new Repository(_repoDir))
+            {
+                Assert.NotNull(clonedRepo.Branches[$"origin/{staleRemoteBranchName}"]);
+                Assert.NotNull(clonedRepo.Branches["origin/deleted-remotely"]);
+                Assert.Equal(
+                    $"refs/remotes/origin/{General.DefaultBranch}",
+                    Assert.IsType<SymbolicReference>(clonedRepo.Refs["refs/remotes/origin/HEAD"]).TargetIdentifier
+                );
+                clonedRepo.CreateBranch("local-only");
+                File.WriteAllText(Path.Join(_repoDir, "local-change.txt"), "Local work");
+            }
+
+            if (packRefs)
+            {
+                PackRefs(_repoDir);
+            }
+
+            using (var publisherRepo = new Repository(publisherRepoDir))
+            {
+                Remote remote = publisherRepo.Network.Remotes["origin"];
+                DeleteRemoteBranch(publisherRepo, remote, staleRemoteBranchName);
+                DeleteRemoteBranch(publisherRepo, remote, "deleted-remotely");
+                publisherRepo.CreateBranch(replacementRemoteBranchName, publisherRepo.Head.Tip);
+                PushBranch(publisherRepo, remote, replacementRemoteBranchName);
+                CommitFile(publisherRepo, publisherRepoDir, "remote-change.txt", "Remote work", "Remote change");
+                PushBranch(publisherRepo, remote, General.DefaultBranch);
+            }
+
+            synchronize(authenticatedContext);
+
+            using var repo = new Repository(_repoDir);
+            Assert.Null(repo.Branches[$"origin/{staleRemoteBranchName}"]);
+            Assert.NotNull(repo.Branches[$"origin/{replacementRemoteBranchName}"]);
+            Assert.Null(repo.Branches["origin/deleted-remotely"]);
+            Assert.NotNull(repo.Branches["local-only"]);
+            Assert.Equal(
+                $"refs/remotes/origin/{General.DefaultBranch}",
+                Assert.IsType<SymbolicReference>(repo.Refs["refs/remotes/origin/HEAD"]).TargetIdentifier
+            );
+            Assert.Equal("Local work", File.ReadAllText(Path.Join(_repoDir, "local-change.txt")));
+            Assert.Equal(expectPulledChanges, File.Exists(Path.Join(_repoDir, "remote-change.txt")));
+            Assert.Equal(
+                expectPulledChanges,
+                repo.Head.Tip.Id == repo.Branches[$"origin/{General.DefaultBranch}"].Tip.Id
+            );
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(remoteRepoDir);
+            DeleteDirectoryIfExists(publisherRepoDir);
+        }
+    }
+
     private static HttpContext GetHttpContextForTestUser(string userName)
     {
         List<Claim> claims = new();
@@ -400,13 +541,17 @@ public class SourceControlServiceTest : IDisposable
                 + Path.DirectorySeparatorChar,
         };
 
-        SourceControlService service = new(
-            repoSettings,
-            giteaMock.Object,
-            new Mock<IGitServerAuthHeadersProvider>().Object
-        );
+        SourceControlService service = new(repoSettings, giteaMock.Object, CreateAuthHeadersProvider());
 
         return service;
+    }
+
+    private static IGitServerAuthHeadersProvider CreateAuthHeadersProvider()
+    {
+        Mock<IGitServerAuthHeadersProvider> authHeadersProvider = new();
+        authHeadersProvider.Setup(provider => provider.GetAuthHeaders()).Returns(new Dictionary<string, string>());
+
+        return authHeadersProvider.Object;
     }
 
     private AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)
@@ -444,6 +589,51 @@ public class SourceControlServiceTest : IDisposable
         File.WriteAllText(filePath, content);
     }
 
+    private static LibGit2Sharp.Commit CommitFile(
+        Repository repo,
+        string repoDirectory,
+        string fileName,
+        string content,
+        string commitMessage = "Initial commit"
+    )
+    {
+        string filePath = Path.Join(repoDirectory, fileName);
+        File.WriteAllText(filePath, content);
+        Commands.Stage(repo, fileName);
+        var signature = new LibGit2Sharp.Signature("testUser", "testUser@test.com", DateTimeOffset.Now);
+        return repo.Commit(commitMessage, signature, signature);
+    }
+
+    private static void PushBranch(Repository repo, Remote remote, string branchName)
+    {
+        repo.Network.Push(remote, $"refs/heads/{branchName}:refs/heads/{branchName}", new PushOptions());
+    }
+
+    private static void DeleteRemoteBranch(Repository repo, Remote remote, string branchName)
+    {
+        repo.Network.Push(remote, $":refs/heads/{branchName}", new PushOptions());
+        repo.Branches.Remove(branchName);
+    }
+
+    private static void PackRefs(string repositoryDirectory)
+    {
+        ProcessStartInfo startInfo = new("git")
+        {
+            WorkingDirectory = repositoryDirectory,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+        };
+        startInfo.ArgumentList.Add("pack-refs");
+        startInfo.ArgumentList.Add("--all");
+
+        using Process process = Process.Start(startInfo);
+        string standardError = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+
+        Assert.True(process.ExitCode == 0, standardError);
+    }
+
     private string GetHeadBranchName()
     {
         using var repo = new Repository(_repoDir);
@@ -469,11 +659,17 @@ public class SourceControlServiceTest : IDisposable
         {
             return;
         }
+
+        DeleteDirectoryIfExists(_repoDir);
+    }
+
+    private static void DeleteDirectoryIfExists(string directory)
+    {
         try
         {
-            if (Directory.Exists(_repoDir))
+            if (Directory.Exists(directory))
             {
-                Directory.Delete(_repoDir, true);
+                Directory.Delete(directory, true);
             }
         }
         catch (Exception ex)

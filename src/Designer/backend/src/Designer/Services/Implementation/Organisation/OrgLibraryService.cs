@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -24,7 +25,8 @@ public class OrgLibraryService(
     IGiteaClient giteaClient,
     ISourceControl sourceControl,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-    ISharedContentClient sharedContentClient
+    ISharedContentClient sharedContentClient,
+    ILockService synchronizationLockService
 ) : IOrgLibraryService
 {
     private const string DefaultCommitMessage = "Update shared resources.";
@@ -126,6 +128,10 @@ public class OrgLibraryService(
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
         ValidateCommitMessage(request.CommitMessage);
+        await using var _ = await synchronizationLockService.AcquireRepoUserWideLockAsync(
+            authenticatedContext.RepoEditingContext,
+            cancellationToken: cancellationToken
+        );
         sourceControl.CloneIfNotExists(authenticatedContext);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(

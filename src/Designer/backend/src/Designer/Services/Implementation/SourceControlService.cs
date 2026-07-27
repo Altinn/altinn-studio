@@ -134,10 +134,15 @@ public class SourceControlService(
                 try
                 {
                     Tree head = repo.Head.Tip.Tree;
-                    MergeResult mergeResult = Commands.Pull(
+                    MergeResult mergeResult = ExecuteWithRemoteTrackingRefRecovery(
                         repo,
-                        self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
-                        pullOptions
+                        repo.Head.RemoteName,
+                        () =>
+                            Commands.Pull(
+                                repo,
+                                self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
+                                pullOptions
+                            )
                     );
                     mergeStatus = mergeResult.Status.ToString();
 
@@ -214,10 +219,78 @@ public class SourceControlService(
                 foreach (Remote remote in repo.Network.Remotes)
                 {
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                    Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    ExecuteWithRemoteTrackingRefRecovery(
+                        repo,
+                        remote.Name,
+                        () => Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage)
+                    );
                 }
             }
         );
+    }
+
+    private static void ExecuteWithRemoteTrackingRefRecovery(
+        LibGit2Sharp.Repository repo,
+        string remoteName,
+        Action operation
+    )
+    {
+        ExecuteWithRemoteTrackingRefRecovery(
+            repo,
+            remoteName,
+            () =>
+            {
+                operation();
+                return true;
+            }
+        );
+    }
+
+    private static T ExecuteWithRemoteTrackingRefRecovery<T>(
+        LibGit2Sharp.Repository repo,
+        string? remoteName,
+        Func<T> operation
+    )
+    {
+        try
+        {
+            return operation();
+        }
+        catch (LibGit2SharpException ex) when (ReferencesRemoteTrackingBranch(ex, remoteName))
+        {
+            RemoveRemoteTrackingBranches(repo, remoteName!);
+            return operation();
+        }
+    }
+
+    private static bool ReferencesRemoteTrackingBranch(LibGit2SharpException exception, string? remoteName)
+    {
+        if (remoteName is null)
+        {
+            return false;
+        }
+
+        return exception.Message.Contains($"refs/remotes/{remoteName}/", StringComparison.Ordinal)
+            || exception.Message.Contains($"refs\\remotes\\{remoteName}\\", StringComparison.Ordinal);
+    }
+
+    private static void RemoveRemoteTrackingBranches(LibGit2Sharp.Repository repo, string remoteName)
+    {
+        // The retry recreates direct tracking refs. Symbolic metadata such as origin/HEAD is retained.
+        string prefix = $"refs/remotes/{remoteName}/";
+        List<string> refsToRemove = repo
+            .Refs.Where(reference =>
+                reference is DirectReference
+                && reference.IsRemoteTrackingBranch
+                && reference.CanonicalName.StartsWith(prefix, StringComparison.Ordinal)
+            )
+            .Select(reference => reference.CanonicalName)
+            .ToList();
+
+        foreach (string reference in refsToRemove)
+        {
+            repo.Refs.Remove(reference);
+        }
     }
 
     /// <inheritdoc/>
