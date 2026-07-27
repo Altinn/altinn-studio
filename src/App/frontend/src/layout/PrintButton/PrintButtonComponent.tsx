@@ -1,25 +1,22 @@
 import React from 'react';
 
-import { Button } from '@app/form-component';
+import { PrintButton } from '@app/form-component';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { Lang } from 'src/features/language/Lang';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export const PrintButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'PrintButton'>) => {
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'PrintButton');
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <Button
-        variant='secondary'
-        color='first'
-        onClick={window.print}
-      >
-        <Lang id={textResourceBindings?.title ?? 'general.print_button_text'} />
-      </Button>
-    </ComponentStructureWrapper>
+    <PrintButton
+      componentId={componentId}
+      title={textResourceBindings?.title}
+      onClick={window.print}
+      innerGrid={innerGrid}
+    />
   );
 };
