@@ -1028,7 +1028,7 @@ public class MaskinportenClientTests
                     .Protected()
                     .Setup<Task<HttpResponseMessage>>(
                         "SendAsync",
-                        ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post),
+                        ItExpr.Is<HttpRequestMessage>(req => IsGrantRequest(req)),
                         ItExpr.IsAny<CancellationToken>()
                     )
                     .Returns(() =>
@@ -1081,7 +1081,7 @@ public class MaskinportenClientTests
                     .Protected()
                     .Setup<Task<HttpResponseMessage>>(
                         "SendAsync",
-                        ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post),
+                        ItExpr.Is<HttpRequestMessage>(req => IsGrantRequest(req)),
                         ItExpr.IsAny<CancellationToken>()
                     )
                     .Returns(
@@ -1145,7 +1145,7 @@ public class MaskinportenClientTests
                     .Protected()
                     .Setup<Task<HttpResponseMessage>>(
                         "SendAsync",
-                        ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post),
+                        ItExpr.Is<HttpRequestMessage>(req => IsGrantRequest(req)),
                         ItExpr.IsAny<CancellationToken>()
                     )
                     .Returns(
@@ -1191,6 +1191,14 @@ public class MaskinportenClientTests
             client.GetAltinnExchangedToken((MaskinportenTokenRequest)null!)
         );
     }
+
+    /// <summary>
+    /// Matches only the grant request to Maskinporten's token endpoint. The Altinn exchange is a GET today, so
+    /// matching on the verb alone would also work — but that would silently couple these tests to the verb.
+    /// </summary>
+    private static bool IsGrantRequest(HttpRequestMessage request) =>
+        request.Method == HttpMethod.Post
+        && request.RequestUri!.AbsolutePath.EndsWith("/token", StringComparison.Ordinal);
 
     private static JsonElement DecodeJwtPayload(string jwt)
     {
