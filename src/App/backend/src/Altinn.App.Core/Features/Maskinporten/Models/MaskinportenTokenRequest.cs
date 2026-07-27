@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Maskinporten.Models;
@@ -72,10 +73,10 @@ public sealed record MaskinportenTokenRequest
     /// <summary>
     /// <p><c>resource</c>: audience-restricts the resulting token to a specific API (RFC 8707), which prevents
     /// token replay against other APIs sharing the same scope.</p>
-    /// <p>The value is defined by the API owner and must be an absolute URI.
+    /// <p>The value is defined by the API owner and must be an absolute URI without a fragment.
     /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_audience_restricted_tokens">the docs</a>.</p>
     /// </summary>
-    /// <exception cref="ArgumentException">The supplied value is not an absolute URI.</exception>
+    /// <exception cref="ArgumentException">The supplied value is not an absolute URI, or carries a fragment.</exception>
     public string? Resource
     {
         get => _resource;
@@ -92,6 +93,16 @@ public sealed record MaskinportenTokenRequest
             {
                 throw new ArgumentException(
                     $"The resource indicator must be an absolute URI, received: {trimmed}",
+                    nameof(Resource)
+                );
+            }
+
+            // Maskinporten rejects a resource carrying a fragment with `invalid_target`, so fail here
+            // rather than on the round trip
+            if (trimmed.Contains('#', StringComparison.Ordinal))
+            {
+                throw new ArgumentException(
+                    $"The resource indicator must not contain a fragment, received: {trimmed}",
                     nameof(Resource)
                 );
             }
@@ -134,7 +145,7 @@ public sealed record MaskinportenTokenRequest
 /// Identifies the Altinn system user a token is requested for, as part of
 /// <see cref="MaskinportenTokenRequest.SystemUser"/>.
 /// </summary>
-public sealed record MaskinportenSystemUser
+public sealed partial record MaskinportenSystemUser
 {
     private readonly OrganisationNumber _organisation;
     private readonly string? _externalRef;
@@ -151,13 +162,37 @@ public sealed record MaskinportenSystemUser
     /// <summary>
     /// <p>Optional external reference, needed only when several system users for the same customer
     /// reference the same system.</p>
-    /// <p>Note that this value is not echoed back in the resulting token.</p>
+    /// <p>Limited to 255 characters from <c>a-z A-Z 0-9 ø Ø æ Æ å Å _ -</c>, as enforced by Maskinporten.
+    /// Note that this value is not echoed back in the resulting token.</p>
     /// </summary>
+    /// <exception cref="ArgumentException">The supplied value is too long or contains unsupported characters.</exception>
     public string? ExternalRef
     {
         get => _externalRef;
-        init => _externalRef = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        init
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                _externalRef = null;
+                return;
+            }
+
+            var trimmed = value.Trim();
+            if (trimmed.Length > 255 || !ExternalRefPattern().IsMatch(trimmed))
+            {
+                throw new ArgumentException(
+                    $"The external reference must be at most 255 characters from `a-z A-Z 0-9 ø Ø æ Æ å Å _ -`, received: {trimmed}",
+                    nameof(ExternalRef)
+                );
+            }
+
+            _externalRef = trimmed;
+        }
     }
+
+    /// <remarks>Mirrors the pattern Maskinporten validates against, which rejects anything else with `MP_302`.</remarks>
+    [GeneratedRegex(@"^[a-zA-Z0-9øØæÆåÅ_\-]*$")]
+    private static partial Regex ExternalRefPattern();
 }
 
 /// <summary>

@@ -798,7 +798,7 @@ public class MaskinportenClientTests
             SystemUser = new MaskinportenSystemUser
             {
                 Organisation = OrganisationNumber.Parse("991825827"),
-                ExternalRef = "systembruker #1",
+                ExternalRef = "systembruker-1",
             },
         };
 
@@ -811,7 +811,7 @@ public class MaskinportenClientTests
         Assert.Equal(JsonValueKind.Array, details.ValueKind);
         var detail = Assert.Single(details.EnumerateArray().ToArray());
         Assert.Equal("urn:altinn:systemuser", detail.GetProperty("type").GetString());
-        Assert.Equal("systembruker #1", detail.GetProperty("externalRef").GetString());
+        Assert.Equal("systembruker-1", detail.GetProperty("externalRef").GetString());
 
         var organisation = detail.GetProperty("systemuser_org");
         Assert.Equal("iso6523-actorid-upis", organisation.GetProperty("authority").GetString());
@@ -923,15 +923,16 @@ public class MaskinportenClientTests
                 }
             },
             {
-                // Separator characters in caller-supplied values must not be able to forge another request's key
-                "system user with adversarial external ref",
+                // Maskinporten's charset rules keep separators out of `externalRef`, so a second legal ref is
+                // all we can probe here; `resource` above carries the adversarial separator case
+                "system user with other external ref",
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["a"],
                     SystemUser = new MaskinportenSystemUser
                     {
                         Organisation = OrganisationNumber.Parse("991825827"),
-                        ExternalRef = "|a|b|c",
+                        ExternalRef = "other-ref",
                     },
                 }
             },

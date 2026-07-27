@@ -14,7 +14,7 @@ public class MaskinportenTelemetryTest
         SystemUser = new MaskinportenSystemUser
         {
             Organisation = OrganisationNumber.Parse("311169963"),
-            ExternalRef = "systembruker #1",
+            ExternalRef = "systembruker-1",
         },
     };
 
@@ -57,7 +57,7 @@ public class MaskinportenTelemetryTest
         Assert.Equal("991825827", captured.GetTagItem("maskinporten.consumer_org"));
         Assert.Equal("https://api.example.com", captured.GetTagItem("maskinporten.resource"));
         Assert.Equal("0192:311169963", captured.GetTagItem("maskinporten.systemuser_org"));
-        Assert.Equal("systembruker #1", captured.GetTagItem("maskinporten.systemuser_external_ref"));
+        Assert.Equal("systembruker-1", captured.GetTagItem("maskinporten.systemuser_external_ref"));
     }
 
     [Theory]

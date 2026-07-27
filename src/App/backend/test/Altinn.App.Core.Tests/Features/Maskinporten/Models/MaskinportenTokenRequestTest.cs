@@ -91,6 +91,71 @@ public class MaskinportenTokenRequestTest
     }
 
     [Theory]
+    [InlineData("https://api.example.com/v1#section")]
+    [InlineData("urn:example:api#frag")]
+    public void Resource_RejectsFragments(string input)
+    {
+        // Maskinporten answers `invalid_target` for these, so we should never get that far
+        var act = () => new MaskinportenTokenRequest { Scopes = ["a"], Resource = input };
+
+        var ex = Assert.Throws<ArgumentException>(act);
+        Assert.Equal("Resource", ex.ParamName);
+        Assert.Contains("fragment", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Resource_AllowsPercentEncodedHash()
+    {
+        // Only a real fragment delimiter is rejected by Maskinporten; an encoded `#` is part of the path
+        var request = new MaskinportenTokenRequest { Scopes = ["a"], Resource = "https://api.example.com/a%23b" };
+
+        Assert.Equal("https://api.example.com/a%23b", request.Resource);
+    }
+
+    [Theory]
+    [InlineData("systembruker1")]
+    [InlineData("system-bruker_1")]
+    [InlineData("blåbærsyltetøyØÆÅ")]
+    public void SystemUser_AcceptsSupportedExternalRefCharacters(string input)
+    {
+        var systemUser = new MaskinportenSystemUser
+        {
+            Organisation = OrganisationNumber.Parse("991825827"),
+            ExternalRef = input,
+        };
+
+        Assert.Equal(input, systemUser.ExternalRef);
+    }
+
+    [Theory]
+    [InlineData("systembruker #1")] // space and #
+    [InlineData("ref:with:colons")]
+    [InlineData("ref/with/slashes")]
+    public void SystemUser_RejectsUnsupportedExternalRefCharacters(string input)
+    {
+        // Maskinporten answers MP_302 for these
+        var act = () =>
+            new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827"), ExternalRef = input };
+
+        var ex = Assert.Throws<ArgumentException>(act);
+        Assert.Equal("ExternalRef", ex.ParamName);
+    }
+
+    [Fact]
+    public void SystemUser_RejectsOverlongExternalRef()
+    {
+        var act = () =>
+            new MaskinportenSystemUser
+            {
+                Organisation = OrganisationNumber.Parse("991825827"),
+                ExternalRef = new string('a', 256),
+            };
+
+        var ex = Assert.Throws<ArgumentException>(act);
+        Assert.Equal("ExternalRef", ex.ParamName);
+    }
+
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]

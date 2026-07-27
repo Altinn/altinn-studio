@@ -168,7 +168,7 @@ public class MaskinportenClientIntegrationTests
             SystemUser = new MaskinportenSystemUser
             {
                 Organisation = OrganisationNumber.Parse("311169963"),
-                ExternalRef = "systembruker #1",
+                ExternalRef = "systembruker-1",
             },
         };
 
