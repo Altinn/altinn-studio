@@ -95,7 +95,8 @@ public partial class PreviewController(
         // As a first step we return hardcoded HTML from the backend so the preview iframe renders it.
         if (appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)))
         {
-            const string HTML = "<!DOCTYPE html><html><head><title>Preview</title></head>"
+            const string HTML =
+                "<!DOCTYPE html><html><head><title>Preview</title></head>"
                 + "<body><h1>Hello from the Designer backend (v9 preview)</h1></body></html>";
             return Content(HTML, "text/html");
         }
