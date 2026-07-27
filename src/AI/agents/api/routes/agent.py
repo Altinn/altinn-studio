@@ -75,6 +75,8 @@ async def start_agent(
         sink.register_developer_session(developer, req.session_id)
         log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
 
+        app_name = app_name_from_repo_url(req.repo_url)
+
         # Clone the repository for this session
         repo_manager = get_repo_manager()
         repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, api_key=designer_api_key)

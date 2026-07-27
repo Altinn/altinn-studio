@@ -1,5 +1,5 @@
 import contextlib
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -39,18 +39,15 @@ def reset_rate_limiters():
 
 @contextlib.contextmanager
 def _stubbed_agent_start(repo_path):
-    """Stub the side effects of a successful start so the body returns 200 without cloning or MCP."""
+    """Stub the side effects of a successful start so the body returns 200 without cloning."""
     repo_manager = Mock()
     repo_manager.clone_repo_for_session.return_value = str(repo_path)
-    mcp_client = Mock()
-    mcp_client.check_server_status = AsyncMock()
     sink_stub = Mock()
     sink_stub.get_conversation_history.return_value = []
     with (
         patch("api.routes.agent.get_repo_manager", return_value=repo_manager),
         patch("api.routes.agent.run_in_background"),
         patch("api.routes.agent.sink", sink_stub),
-        patch("agents.services.mcp.get_mcp_client", return_value=mcp_client),
     ):
         yield
 

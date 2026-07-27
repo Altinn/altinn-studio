@@ -41,6 +41,7 @@ def _state(**overrides: Any) -> AgentState:
         session_id="sess-1",
         user_goal="add a date field",
         repo_path="/tmp/repo",
+        app_name="test-app",
         developer="dev",
         org="ttd",
     )
