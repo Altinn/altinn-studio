@@ -31,6 +31,7 @@ public class OrgLibraryService(
 {
     private const string DefaultCommitMessage = "Update shared resources.";
     private const string JsonExtension = ".json";
+    private static readonly TimeSpan s_lockWaitTimeout = TimeSpan.FromSeconds(30);
 
     /// <inheritdoc />
     public async Task<string> GetLatestCommitOnBranch(
@@ -130,6 +131,7 @@ public class OrgLibraryService(
         ValidateCommitMessage(request.CommitMessage);
         await using var _ = await synchronizationLockService.AcquireRepoUserWideLockAsync(
             authenticatedContext.RepoEditingContext,
+            s_lockWaitTimeout,
             cancellationToken: cancellationToken
         );
         sourceControl.CloneIfNotExists(authenticatedContext);

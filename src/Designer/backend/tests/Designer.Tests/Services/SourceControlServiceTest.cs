@@ -621,13 +621,13 @@ public class SourceControlServiceTest : IDisposable
         {
             WorkingDirectory = repositoryDirectory,
             RedirectStandardError = true,
-            RedirectStandardOutput = true,
             UseShellExecute = false,
         };
         startInfo.ArgumentList.Add("pack-refs");
         startInfo.ArgumentList.Add("--all");
 
-        using Process process = Process.Start(startInfo);
+        using Process process =
+            Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start 'git pack-refs'.");
         string standardError = process.StandardError.ReadToEnd();
         process.WaitForExit();
 
