@@ -5,7 +5,7 @@
 !package.json
 !yarn.lock
 !.yarn*
-!src/App/frontend/package.json
+!src/App/frontend
 !src/App/template/src
 !app-libs
 

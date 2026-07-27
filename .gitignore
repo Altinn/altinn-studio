@@ -458,3 +458,6 @@ logs/
 /src/tools/altinn-fleet-stats/apps-tt02/
 /src/tools/altinn-fleet-stats/altinn-apps-cloned-*/
 **/fleet-*.sqlite*
+
+# Altinn app frontend bundle copied into Designer wwwroot for local v9 preview dev (built artifact)
+src/Designer/backend/src/Designer/wwwroot/altinn-app-frontend/
