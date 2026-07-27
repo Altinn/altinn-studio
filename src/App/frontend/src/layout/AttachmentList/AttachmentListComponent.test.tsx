@@ -9,7 +9,6 @@ import { DataTypeReference } from 'src/utils/attachmentsUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IData, IDataType } from 'src/types/shared';
 
-// Mock application metadata data types with only the properties used in tests
 const mockDataTypes = [
   {
     id: 'dataType1',
@@ -28,7 +27,6 @@ const mockDataTypes = [
   },
 ] as unknown as IDataType[];
 
-// Mock instance data with only the properties used in tests
 const mockInstanceData = [
   {
     id: 'attachment1',
@@ -44,14 +42,22 @@ const mockInstanceData = [
   },
   {
     id: 'attachment3',
-    dataType: 'dataType3', // This data type is from a different task (Task_2)
+    dataType: 'dataType3',
     filename: 'file3.pdf',
     selfLinks: { apps: 'https://example.com/file3.pdf' },
   },
 ] as unknown as IData[];
 
-// Mock the hooks and utilities
 jest.mock('src/utils/layout/useNodeItem');
+
+jest.mock('src/utils/layout/useComponentStructureData', () => ({
+  useComponentStructureData: jest.fn(() => ({
+    componentId: 'attachment-list-1',
+    innerGrid: undefined,
+    validationGrid: undefined,
+    showValidationMessages: false,
+  })),
+}));
 
 jest.mock('src/features/instance/InstanceContext', () => ({
   useInstanceDataElements: jest.fn(() => mockInstanceData),
@@ -67,35 +73,16 @@ jest.mock('src/features/instance/useProcessQuery', () => ({
   })),
 }));
 
-jest.mock('src/features/language/Lang', () => ({
-  Lang: ({ id }) => <span data-testid='lang-component'>{id}</span>,
-}));
-
-jest.mock('src/layout/ComponentStructureWrapper', () => ({
-  ComponentStructureWrapper: ({ children }) => <div data-testid='component-structure-wrapper'>{children}</div>,
-}));
-
-// Mock the components that are conditionally rendered
-jest.mock('src/components/atoms/AltinnAttachments', () => ({
-  AltinnAttachments: jest.fn(({ attachments, title, showLinks, showDescription }) => (
-    <div data-testid='altinn-attachments'>
-      <div data-testid='altinn-attachments-title'>{title}</div>
-      <div data-testid='altinn-attachments-showlinks'>{showLinks ? 'true' : 'false'}</div>
-      <div data-testid='altinn-attachments-showdescription'>{showDescription ? 'true' : 'false'}</div>
-      <div data-testid='altinn-attachments-count'>{attachments?.length ?? 0}</div>
-    </div>
-  )),
-}));
-
-jest.mock('src/components/organisms/AttachmentGroupings', () => ({
-  AttachmentGroupings: jest.fn(
-    ({ attachments, collapsibleTitle, hideCollapsibleCount, showLinks, showDescription }) => (
-      <div data-testid='attachment-groupings'>
-        <div data-testid='attachment-groupings-title'>{collapsibleTitle}</div>
-        <div data-testid='attachment-groupings-hidecount'>{hideCollapsibleCount ? 'true' : 'false'}</div>
-        <div data-testid='attachment-groupings-showlinks'>{showLinks ? 'true' : 'false'}</div>
-        <div data-testid='attachment-groupings-showdescription'>{showDescription ? 'true' : 'false'}</div>
-        <div data-testid='attachment-groupings-count'>{attachments?.length ?? 0}</div>
+jest.mock('@app/form-component', () => ({
+  AttachmentList: jest.fn(
+    ({ attachments, title, groupByDataTypeGrouping, showLinks, showDescription, componentId }) => (
+      <div data-testid='attachment-list'>
+        <div data-testid='attachment-list-component-id'>{componentId}</div>
+        <div data-testid='attachment-list-title'>{title}</div>
+        <div data-testid='attachment-list-grouped'>{groupByDataTypeGrouping ? 'true' : 'false'}</div>
+        <div data-testid='attachment-list-showlinks'>{showLinks ? 'true' : 'false'}</div>
+        <div data-testid='attachment-list-showdescription'>{showDescription ? 'true' : 'false'}</div>
+        <div data-testid='attachment-list-count'>{attachments?.length ?? 0}</div>
       </div>
     ),
   ),
@@ -105,7 +92,6 @@ describe('AttachmentListComponent', () => {
   const mockUseItemWhenType = jest.mocked(useItemWhenType<'AttachmentList'>);
   const mockUseInstanceDataElements = jest.mocked(useInstanceDataElements);
 
-  // Helper function to set up mockUseNodeItem with specific values
   const setupMockUseNodeItem = ({
     groupByDataTypeGrouping = false,
     textResourceBindings = { title: 'test-title' },
@@ -127,7 +113,6 @@ describe('AttachmentListComponent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Set up default mock implementation
     setupMockUseNodeItem();
 
     window.altinnAppGlobalData.applicationMetadata = {
@@ -136,7 +121,7 @@ describe('AttachmentListComponent', () => {
     };
   });
 
-  it('should render AltinnAttachments when groupByDataTypeGrouping is false', () => {
+  it('should render AttachmentList with grouping disabled by default', () => {
     setupMockUseNodeItem({ groupByDataTypeGrouping: false });
 
     render(
@@ -146,11 +131,11 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    expect(screen.getByTestId('altinn-attachments')).toBeInTheDocument();
-    expect(screen.queryByTestId('attachment-groupings')).not.toBeInTheDocument();
+    expect(screen.getByTestId('attachment-list')).toBeInTheDocument();
+    expect(screen.getByTestId('attachment-list-grouped')).toHaveTextContent('false');
   });
 
-  it('should render AttachmentGroupings when groupByDataTypeGrouping is true', () => {
+  it('should enable grouping when groupByDataTypeGrouping is true', () => {
     setupMockUseNodeItem({ groupByDataTypeGrouping: true });
 
     render(
@@ -160,14 +145,13 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    expect(screen.getByTestId('attachment-groupings')).toBeInTheDocument();
-    expect(screen.queryByTestId('altinn-attachments')).not.toBeInTheDocument();
+    expect(screen.getByTestId('attachment-list-grouped')).toHaveTextContent('true');
   });
 
-  it('should pass the correct props to AttachmentGroupings when groupByDataTypeGrouping is true', () => {
+  it('should pass title and showLinks props', () => {
     setupMockUseNodeItem({
-      groupByDataTypeGrouping: true,
       textResourceBindings: { title: 'custom-title' },
+      links: true,
     });
 
     render(
@@ -177,26 +161,8 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    expect(screen.getByTestId('attachment-groupings-title')).toBeInTheDocument();
-    expect(screen.getByTestId('attachment-groupings-showlinks')).toHaveTextContent('true');
-    expect(screen.getByTestId('attachment-groupings-hidecount')).toHaveTextContent('true');
-  });
-
-  it('should pass the correct props to AltinnAttachments when groupByDataTypeGrouping is false', () => {
-    setupMockUseNodeItem({
-      groupByDataTypeGrouping: false,
-      textResourceBindings: { title: 'custom-title' },
-    });
-
-    render(
-      <AttachmentListComponent
-        baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
-      />,
-    );
-
-    expect(screen.getByTestId('altinn-attachments-title')).toBeInTheDocument();
-    expect(screen.getByTestId('altinn-attachments-showlinks')).toHaveTextContent('true');
+    expect(screen.getByTestId('attachment-list-title')).toHaveTextContent('custom-title');
+    expect(screen.getByTestId('attachment-list-showlinks')).toHaveTextContent('true');
   });
 
   it('should filter attachments based on dataTypeIds when allowedAttachmentTypes is set', () => {
@@ -212,12 +178,10 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    // Should only show attachments with dataType1 (1 out of 3 total attachments)
-    expect(screen.getByTestId('altinn-attachments-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('1');
   });
 
   it('should include all attachments when dataTypeIds includes IncludeAll', () => {
-    // Mock the instance data to include a RefDataAsPdf attachment
     mockUseInstanceDataElements.mockReturnValueOnce([
       ...mockInstanceData,
       {
@@ -240,12 +204,10 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    // Should include all attachments (3 from mockInstanceData + 1 RefDataAsPdf)
-    expect(screen.getByTestId('altinn-attachments-count')).toHaveTextContent('4');
+    expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('4');
   });
 
   it('should include PDF attachments when dataTypeIds includes RefDataAsPdf', () => {
-    // Mock the instance data to include a RefDataAsPdf attachment
     mockUseInstanceDataElements.mockReturnValueOnce([
       ...mockInstanceData,
       {
@@ -268,11 +230,10 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    // Should include the RefDataAsPdf attachment
-    expect(screen.getByTestId('altinn-attachments-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('1');
   });
 
-  it('should pass attachments with grouping information to AttachmentGroupings', () => {
+  it('should pass all attachments when grouping is enabled', () => {
     setupMockUseNodeItem({
       groupByDataTypeGrouping: true,
     });
@@ -284,14 +245,13 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    // Should include all attachments from mockInstanceData (dataType1, dataType2, and dataType3)
-    expect(screen.getByTestId('attachment-groupings-count')).toHaveTextContent('3');
+    expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('3');
   });
 
   it('should include only attachments from current task when dataTypeIds includes FromTask', () => {
     setupMockUseNodeItem({
       groupByDataTypeGrouping: false,
-      dataTypeIds: [DataTypeReference.FromTask], // Only include attachments from current task
+      dataTypeIds: [DataTypeReference.FromTask],
     });
 
     render(
@@ -301,12 +261,10 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    // Should only include attachments from the current task (dataType1 and dataType2)
-    // and exclude the attachment from a different task (dataType3)
-    expect(screen.getByTestId('altinn-attachments-count')).toHaveTextContent('2');
+    expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('2');
   });
 
-  it('should pass showDescription=false to AltinnAttachments by default', () => {
+  it('should pass showDescription=false by default', () => {
     setupMockUseNodeItem({
       groupByDataTypeGrouping: false,
     });
@@ -318,10 +276,10 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    expect(screen.getByTestId('altinn-attachments-showdescription')).toHaveTextContent('false');
+    expect(screen.getByTestId('attachment-list-showdescription')).toHaveTextContent('false');
   });
 
-  it('should pass showDescription=true to AltinnAttachments when showDataTypeDescriptions is true', () => {
+  it('should pass showDescription=true when showDataTypeDescriptions is true', () => {
     setupMockUseNodeItem({
       groupByDataTypeGrouping: false,
       showDataTypeDescriptions: true,
@@ -334,37 +292,6 @@ describe('AttachmentListComponent', () => {
       />,
     );
 
-    expect(screen.getByTestId('altinn-attachments-showdescription')).toHaveTextContent('true');
-  });
-
-  it('should pass showDescription=false to AttachmentGroupings by default', () => {
-    setupMockUseNodeItem({
-      groupByDataTypeGrouping: true,
-    });
-
-    render(
-      <AttachmentListComponent
-        baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
-      />,
-    );
-
-    expect(screen.getByTestId('attachment-groupings-showdescription')).toHaveTextContent('false');
-  });
-
-  it('should pass showDescription=true to AttachmentGroupings when showDataTypeDescriptions is true', () => {
-    setupMockUseNodeItem({
-      groupByDataTypeGrouping: true,
-      showDataTypeDescriptions: true,
-    });
-
-    render(
-      <AttachmentListComponent
-        baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
-      />,
-    );
-
-    expect(screen.getByTestId('attachment-groupings-showdescription')).toHaveTextContent('true');
+    expect(screen.getByTestId('attachment-list-showdescription')).toHaveTextContent('true');
   });
 });
