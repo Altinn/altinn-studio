@@ -240,6 +240,23 @@ public class CorrespondenceClientTests
             .WithInnerExceptionExactly(typeof(HttpRequestException));
     }
 
+    [Fact]
+    public void Payloads_RejectMissingAuthenticationMethod()
+    {
+        // Arrange
+        var request = PayloadFactory.Send().CorrespondenceRequest;
+
+        // Act
+        var send = () => new SendCorrespondencePayload(request, null!);
+        var getStatus = () => new GetCorrespondenceStatusPayload(Guid.NewGuid(), null!);
+        var missingRequest = () => new SendCorrespondencePayload(null!, CorrespondenceAuthenticationMethod.Default());
+
+        // Assert
+        send.Should().Throw<ArgumentNullException>().WithParameterName("authenticationMethod");
+        getStatus.Should().Throw<ArgumentNullException>().WithParameterName("authenticationMethod");
+        missingRequest.Should().Throw<ArgumentNullException>().WithParameterName("request");
+    }
+
     // csharpier-ignore
     public static TheoryData<(
         AuthenticationScenario scenario,

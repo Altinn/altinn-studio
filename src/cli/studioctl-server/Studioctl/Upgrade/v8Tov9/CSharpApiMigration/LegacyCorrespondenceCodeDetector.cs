@@ -15,10 +15,12 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <c>CorrespondenceNotificationRecipientResponse.IsReserved</c>, the Notifications feature's own
 /// <c>RequestedSendTime</c>, <c>CorrespondenceAttachmentResponse.DataLocationType</c>), so matching them
 /// bare would report far more correct code than broken code. They are instead matched precisely where
-/// they are assigned in an object initializer of a known type. Likewise, a removed
-/// <c>Func&lt;Task&lt;JwtToken&gt;&gt;</c> payload constructor is only reported when the token factory is
-/// passed as a lambda, not when it comes from a variable. Anything missed still fails the app build with
-/// a compiler error naming the member.
+/// they are assigned in an object initializer of a known type. That pairing needs a written-out type
+/// name, so a target-typed <c>CorrespondenceRequest r = new() { Sender = .. }</c> is also missed.
+/// Likewise, a removed <c>Func&lt;Task&lt;JwtToken&gt;&gt;</c> payload constructor is only reported when the
+/// token factory is passed as a lambda - a variable or method group is indistinguishable from a
+/// <c>CorrespondenceAuthenticationMethod</c> without binding, and reporting it would flag already-migrated
+/// call sites. Anything missed still fails the app build with a compiler error naming the member.
 /// </remarks>
 internal sealed class LegacyCorrespondenceCodeDetector
 {
@@ -70,9 +72,13 @@ internal sealed class LegacyCorrespondenceCodeDetector
         "DataLocationType",
     };
 
-    private static readonly IReadOnlySet<string> _removedDataLocationTypes = new HashSet<string>(StringComparer.Ordinal)
+    // Named alongside the data-location enum because both are removed types whose migration guidance is
+    // the same "delete it" as the dropped fields. `ICorrespondenceRequestBuilderSender` existed only to
+    // host WithSender, so `WithResourceId` now returns `ICorrespondenceRequestBuilderSendersReference`.
+    private static readonly IReadOnlySet<string> _removedDroppedFieldTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         "CorrespondenceDataLocationType",
+        "ICorrespondenceRequestBuilderSender",
     };
 
     private static readonly IReadOnlySet<string> _removedOverrideTypes = new HashSet<string>(StringComparer.Ordinal)
@@ -121,8 +127,9 @@ internal sealed class LegacyCorrespondenceCodeDetector
         + "removed builder methods were already no-ops that discarded the value, so deleting the calls changes no "
         + "request: drop WithSender (the sender is derived from the Resource Registry via resourceId), "
         + "WithAllowSystemDeleteAfter, WithRequestedSendTime and WithDataLocationType, and stop setting Sender, "
-        + "AllowSystemDeleteAfter, RequestedSendTime and DataLocationType. The CorrespondenceDataLocationType enum is "
-        + "removed with them. Usages found:";
+        + "AllowSystemDeleteAfter, RequestedSendTime and DataLocationType. The CorrespondenceDataLocationType enum "
+        + "goes with them, as does the ICorrespondenceRequestBuilderSender step interface - WithResourceId now "
+        + "returns ICorrespondenceRequestBuilderSendersReference. Usages found:";
 
     private const string RecipientOverrideSummary =
         "The legacy Correspondence notification recipient-override API is removed in v9. Use the singular "
@@ -161,8 +168,8 @@ internal sealed class LegacyCorrespondenceCodeDetector
                 .InvokedMethods(file, _removedNoOpMethods)
                 .Concat(CSharpSyntaxQueries.MemberReferences(file, _removedDistinctiveMembers))
                 .Concat(CSharpSyntaxQueries.ObjectInitializerMembers(file, _droppedFieldOwners, _droppedFieldMembers))
-                .Concat(CSharpSyntaxQueries.TypesImplementing(file, _removedDataLocationTypes))
-                .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedDataLocationTypes))
+                .Concat(CSharpSyntaxQueries.TypesImplementing(file, _removedDroppedFieldTypes))
+                .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedDroppedFieldTypes))
         );
 
         var recipientOverrideMatches = _scanner.Files.SelectMany(file =>

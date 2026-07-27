@@ -9,6 +9,10 @@ public abstract record CorrespondencePayloadBase
 
     internal CorrespondencePayloadBase(CorrespondenceAuthenticationMethod authenticationMethod)
     {
+        // Guarded rather than left to the nullable annotation: the legacy authorisation path used to
+        // reject a missing authentication method with a CorrespondenceArgumentException, and a
+        // nullable-oblivious caller passing null would otherwise only fail deep inside Send/GetStatus.
+        ArgumentNullException.ThrowIfNull(authenticationMethod);
         AuthenticationMethod = authenticationMethod;
     }
 }
@@ -31,6 +35,7 @@ public sealed record SendCorrespondencePayload : CorrespondencePayloadBase
     )
         : base(authenticationMethod)
     {
+        ArgumentNullException.ThrowIfNull(request);
         CorrespondenceRequest = request;
     }
 }

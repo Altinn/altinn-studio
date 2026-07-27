@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Breaking: `ICorrespondenceRequestBuilderResourceId.WithResourceId` now returns `ICorrespondenceRequestBuilderSendersReference` instead of `ICorrespondenceRequestBuilderSender`, and the now-empty `ICorrespondenceRequestBuilderSender` step interface is gone. Fluent chains are unaffected; only code that names these types explicitly needs updating.
-- Breaking: `CorrespondencePayloadBase` can no longer be derived from outside `Altinn.App.Core`. Use `SendCorrespondencePayload` / `GetCorrespondenceStatusPayload`.
+- Breaking: `CorrespondencePayloadBase` no longer exposes a parameterless `protected` constructor; its authentication method is now supplied by an internal constructor and is non-nullable. Construct payloads through `SendCorrespondencePayload` / `GetCorrespondenceStatusPayload`, which now throw `ArgumentNullException` instead of failing later when passed a null request or authentication method.
 
 ### Removed
 

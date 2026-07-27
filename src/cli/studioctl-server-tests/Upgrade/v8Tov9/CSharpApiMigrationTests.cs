@@ -1,3 +1,4 @@
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
@@ -9,6 +10,14 @@ public sealed class CSharpApiMigrationTests : IDisposable
     public void Dispose() => _app.Dispose();
 
     private CSharpSourceScanner Scanner() => new(Path.Combine(_app.Root, "App"));
+
+    /// <summary>
+    /// The reported <c>path:line: symbol</c> lines only, excluding the leading guidance summary. Negative
+    /// assertions must use these: a summary legitimately names the surviving APIs to migrate towards, so
+    /// searching the whole warning set for an API name that must not be flagged matches the summary.
+    /// </summary>
+    private static IEnumerable<string> Locations(MigrationResult result) =>
+        result.Warnings.Where(static w => w.Contains(".cs:", StringComparison.Ordinal));
 
     // --- RemovedTaskEventInterfaceDetector -------------------------------------------------------
 
@@ -540,7 +549,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         );
         Assert.Contains(result.Warnings, w => w.Contains("BuildLetter.cs:12") && w.Contains("WithRequestedSendTime"));
         // WithSendersReference survives v9 and must not be confused with WithSender.
-        Assert.DoesNotContain(result.Warnings, w => w.Contains("WithSendersReference"));
+        Assert.DoesNotContain(Locations(result), w => w.Contains("WithSendersReference"));
     }
 
     [Fact]
@@ -584,7 +593,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             result.Warnings,
             w => w.Contains("Letter.cs:15") && w.Contains("CorrespondenceAttachment.DataLocationType")
         );
-        Assert.DoesNotContain(result.Warnings, w => w.Contains("SendersReference"));
+        Assert.DoesNotContain(Locations(result), w => w.Contains("SendersReference"));
     }
 
     [Fact]
@@ -710,6 +719,55 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Attach.cs:3") && w.Contains("CorrespondenceDataLocationType")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsFullyQualifiedLegacyAuthorisationEnum()
+    {
+        _app.Write(
+            "logic/SendLetter.cs",
+            """
+            public class SendLetter
+            {
+                public SendCorrespondencePayload Legacy(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(
+                        request,
+                        Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAuthorisation.Maskinporten
+                    );
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("SendLetter.cs:6") && w.Contains("CorrespondenceAuthorisation")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsRemovedBuilderStepInterface()
+    {
+        _app.Write(
+            "logic/Steps.cs",
+            """
+            public class Steps
+            {
+                public ICorrespondenceRequestBuilderSender Start() =>
+                    CorrespondenceRequestBuilder.Create().WithResourceId("resource");
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Steps.cs:3") && w.Contains("ICorrespondenceRequestBuilderSender")
         );
     }
 

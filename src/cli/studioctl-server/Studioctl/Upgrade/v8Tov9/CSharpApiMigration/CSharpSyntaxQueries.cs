@@ -76,8 +76,15 @@ internal static class CSharpSyntaxQueries
             }
 
             // Skip the name half of a member access (e.g. the `Member` in `X.Member`); those are
-            // handled by MemberReferences/InvokedMethods and are not type references.
-            if (name.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == name)
+            // handled by MemberReferences/InvokedMethods and are not type references. A qualified type
+            // in EXPRESSION position is the exception: `Models.SomeEnum.Member` parses as nested member
+            // accesses, so `SomeEnum` is a `.Name` even though it is the type being referenced. It is
+            // distinguishable by being the receiver of a further member access.
+            if (
+                name.Parent is MemberAccessExpressionSyntax memberAccess
+                && memberAccess.Name == name
+                && !(memberAccess.Parent is MemberAccessExpressionSyntax outer && outer.Expression == memberAccess)
+            )
             {
                 continue;
             }
