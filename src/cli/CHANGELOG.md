@@ -8,6 +8,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Warn (exit code `3`) in `studioctl app upgrade v9` about the deprecated Correspondence APIs removed in v9, with per-cluster guidance: the legacy authorisation model (`CorrespondenceAuthorisation` and the payload constructors taking it or a token factory, superseded by `CorrespondenceAuthenticationMethod` — including the scope widening that comes with `Default()`), the fields the Correspondence API dropped (`Sender`, `AllowSystemDeleteAfter`, `RequestedSendTime`, `DataLocationType` and their no-op builder methods), and the legacy notification recipient-override API (`WithRecipientToOverride`, `WithCorrespondenceNotificationRecipients`, `CorrespondenceNotificationRecipientWrapper`, `CustomNotificationRecipients`, `IsReserved`).
+
+### Changed
+
+- Point the `path:line` in `studioctl app upgrade v9` removed-API warnings at the offending call or member itself rather than at the start of the enclosing expression. Warnings about a method in a multi-line fluent builder chain previously reported the line the chain started on.
+
 ## [0.1.0-preview.18] - 2026-07-24
 
 ### Added

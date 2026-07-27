@@ -189,6 +189,10 @@ public class CorrespondenceClientMappingTests
         var customRecipient = notification.GetProperty("customRecipient");
         customRecipient.GetProperty("emailAddress").GetString().Should().Be("override@example.com");
         customRecipient.GetProperty("mobileNumber").GetString().Should().Be("+4799999999");
+
+        // `customNotificationRecipients` was removed in v9 in favour of the singular `customRecipient`.
+        // The API honoured only the first entry of that list, so nothing is lost by not sending it.
+        notification.TryGetProperty("customNotificationRecipients", out _).Should().BeFalse();
     }
 
     [Fact]

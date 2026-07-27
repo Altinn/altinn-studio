@@ -448,6 +448,290 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.False(EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
     }
 
+    // --- LegacyCorrespondenceCodeDetector --------------------------------------------------------
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsLegacyAuthorisationEnumAndTokenFactoryPayload()
+    {
+        _app.Write(
+            "logic/SendLetter.cs",
+            """
+            using Altinn.App.Core.Features.Correspondence.Models;
+            public class SendLetter
+            {
+                public SendCorrespondencePayload Legacy(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthorisation.Maskinporten);
+
+                public GetCorrespondenceStatusPayload LegacyFactory(Guid id) =>
+                    new GetCorrespondenceStatusPayload(id, () => _client.GetAltinnExchangedToken(_scopes));
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("SendLetter.cs:5") && w.Contains("CorrespondenceAuthorisation")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("SendLetter.cs:8") && w.Contains("new GetCorrespondenceStatusPayload(.., lambda)")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("CorrespondenceAuthenticationMethod"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_DoesNotFlagMigratedPayloadConstruction()
+    {
+        _app.Write(
+            "logic/SendLetter.cs",
+            """
+            public class SendLetter
+            {
+                public SendCorrespondencePayload Default(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default());
+
+                public SendCorrespondencePayload Custom(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(
+                        request,
+                        CorrespondenceAuthenticationMethod.Custom(() => _client.GetToken())
+                    );
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsNoOpBuilderMethodsIncludingNullConditional()
+    {
+        _app.Write(
+            "logic/BuildLetter.cs",
+            """
+            public class BuildLetter
+            {
+                public CorrespondenceRequest Build() =>
+                    CorrespondenceRequestBuilder
+                        .Create()
+                        .WithResourceId("resource")
+                        .WithSender(_org)
+                        .WithSendersReference("ref")
+                        .WithAllowSystemDeleteAfter(_deleteAfter)
+                        .Build();
+
+                public void Notify() => _notificationBuilder?.WithRequestedSendTime(_sendTime);
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("BuildLetter.cs:7") && w.Contains("WithSender"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("BuildLetter.cs:9") && w.Contains("WithAllowSystemDeleteAfter")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("BuildLetter.cs:12") && w.Contains("WithRequestedSendTime"));
+        // WithSendersReference survives v9 and must not be confused with WithSender.
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("WithSendersReference"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsDroppedFieldsInObjectInitialisers()
+    {
+        _app.Write(
+            "logic/Letter.cs",
+            """
+            public class Letter
+            {
+                public CorrespondenceRequest Request() =>
+                    new CorrespondenceRequest
+                    {
+                        Sender = _org,
+                        AllowSystemDeleteAfter = _deleteAfter,
+                        SendersReference = "ref",
+                    };
+
+                public CorrespondenceNotification Notification() =>
+                    new CorrespondenceNotification { RequestedSendTime = _sendTime };
+
+                public CorrespondenceAttachment Attachment() =>
+                    new CorrespondenceAttachment { DataLocationType = _location };
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Letter.cs:6") && w.Contains("CorrespondenceRequest.Sender"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Letter.cs:7") && w.Contains("CorrespondenceRequest.AllowSystemDeleteAfter")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Letter.cs:12") && w.Contains("CorrespondenceNotification.RequestedSendTime")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Letter.cs:15") && w.Contains("CorrespondenceAttachment.DataLocationType")
+        );
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("SendersReference"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_DoesNotFlagSurvivingSenderAndIsReservedOnResponses()
+    {
+        _app.Write(
+            "logic/ReadStatus.cs",
+            """
+            public class ReadStatus
+            {
+                public void Read(GetCorrespondenceStatusResponse status)
+                {
+                    var sender = status.Sender;
+                    var reserved = status.Notifications[0].Recipient.IsReserved;
+                    var location = status.Content.Attachments[0].DataLocationType;
+                    var sendTime = _notificationOrder.RequestedSendTime;
+                }
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsRecipientOverrideSurface()
+    {
+        _app.Write(
+            "logic/Override.cs",
+            """
+            public class Override
+            {
+                public ICorrespondenceNotificationOverrideBuilder Legacy() =>
+                    CorrespondenceNotificationOverrideBuilder
+                        .Create()
+                        .WithRecipientToOverride(_org)
+                        .WithCorrespondenceNotificationRecipients(_recipients);
+
+                public CorrespondenceNotification Wrapped() =>
+                    new CorrespondenceNotification
+                    {
+                        CustomNotificationRecipients = [new CorrespondenceNotificationRecipientWrapper()],
+                    };
+
+                public CorrespondenceNotificationRecipient Reserved() =>
+                    new CorrespondenceNotificationRecipient { IsReserved = true };
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Override.cs:6") && w.Contains("WithRecipientToOverride"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:7") && w.Contains("WithCorrespondenceNotificationRecipients")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:12") && w.Contains("CorrespondenceNotification.CustomNotificationRecipients")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:12") && w.Contains("CorrespondenceNotificationRecipientWrapper")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:16") && w.Contains("CorrespondenceNotificationRecipient.IsReserved")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_DoesNotFlagSurvivingRecipientOverrideApi()
+    {
+        _app.Write(
+            "logic/Override.cs",
+            """
+            public class Override
+            {
+                public CorrespondenceNotification Build() =>
+                    CorrespondenceNotificationBuilder
+                        .Create()
+                        .WithNotificationTemplate(_template)
+                        .WithRecipientOverride(
+                            CorrespondenceNotificationOverrideBuilder
+                                .Create()
+                                .WithOrganizationNumber(_org)
+                                .WithEmailAddress("nobody@example.com")
+                                .Build()
+                        )
+                        .Build();
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsRemovedDataLocationTypeEnum()
+    {
+        _app.Write(
+            "logic/Attach.cs",
+            """
+            public class Attach
+            {
+                private CorrespondenceDataLocationType _location =
+                    CorrespondenceDataLocationType.ExistingCorrespondenceAttachment;
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Attach.cs:3") && w.Contains("CorrespondenceDataLocationType")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- Scanner ---------------------------------------------------------------------------------
 
     [Fact]

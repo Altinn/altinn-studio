@@ -106,18 +106,15 @@ internal static class CSharpSyntaxQueries
     {
         foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
-            var invokedName = invocation.Expression switch
-            {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.Text,
-                // Null-conditional calls (`x?.Method(...)`) bind the name via a member binding.
-                MemberBindingExpressionSyntax memberBinding => memberBinding.Name.Identifier.Text,
-                SimpleNameSyntax simple => simple.Identifier.Text,
-                _ => null,
-            };
+            var invokedName = InvokedName(invocation);
 
-            if (invokedName is not null && methodSimpleNames.Contains(invokedName))
+            if (invokedName is not null && methodSimpleNames.Contains(invokedName.Identifier.Text))
             {
-                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(invocation), invokedName);
+                yield return new CSharpApiMatch(
+                    file.RelativePath,
+                    file.GetLine(invokedName),
+                    invokedName.Identifier.Text
+                );
             }
         }
     }
@@ -145,7 +142,7 @@ internal static class CSharpSyntaxQueries
             {
                 yield return new CSharpApiMatch(
                     file.RelativePath,
-                    file.GetLine(invocation),
+                    file.GetLine(memberAccess.Name),
                     $"{receiverSimpleName}.{memberAccess.Name.Identifier.Text}"
                 );
             }
@@ -165,20 +162,13 @@ internal static class CSharpSyntaxQueries
     {
         foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
-            var invokedName = invocation.Expression switch
-            {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.Text,
-                // Null-conditional calls (`x?.Method(...)`) bind the name via a member binding.
-                MemberBindingExpressionSyntax memberBinding => memberBinding.Name.Identifier.Text,
-                SimpleNameSyntax simple => simple.Identifier.Text,
-                _ => null,
-            };
+            var invokedName = InvokedName(invocation);
 
-            if (invokedName == methodName && invocation.ArgumentList.Arguments.Count == argumentCount)
+            if (invokedName?.Identifier.Text == methodName && invocation.ArgumentList.Arguments.Count == argumentCount)
             {
                 yield return new CSharpApiMatch(
                     file.RelativePath,
-                    file.GetLine(invocation),
+                    file.GetLine(invokedName),
                     $"{methodName}({argumentCount} arg)"
                 );
             }
@@ -221,7 +211,89 @@ internal static class CSharpSyntaxQueries
         {
             if (memberNames.Contains(access.Name.Identifier.Text))
             {
-                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(access), access.Name.Identifier.Text);
+                yield return new CSharpApiMatch(
+                    file.RelativePath,
+                    file.GetLine(access.Name),
+                    access.Name.Identifier.Text
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Assignments inside an object initializer <c>new T { Member = ... }</c> where <c>T</c>'s simple
+    /// name is in <paramref name="typeSimpleNames"/> and <c>Member</c> is in
+    /// <paramref name="memberNames"/>. Use for removed properties whose names are too generic to match
+    /// on their own (e.g. <c>Sender</c>, <c>IsReserved</c>): pairing the member with the constructed
+    /// type keeps the match precise without a semantic model.
+    /// <see cref="CSharpApiMatch.Symbol"/> is <c>"&lt;TypeName&gt;.&lt;MemberName&gt;"</c>.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> ObjectInitializerMembers(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> typeSimpleNames,
+        IReadOnlySet<string> memberNames
+    )
+    {
+        foreach (var creation in file.Root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        {
+            var typeName = SimpleName(creation.Type);
+            if (typeName is null || !typeSimpleNames.Contains(typeName) || creation.Initializer is null)
+            {
+                continue;
+            }
+
+            foreach (var expression in creation.Initializer.Expressions)
+            {
+                if (
+                    expression is AssignmentExpressionSyntax assignment
+                    && assignment.Left is IdentifierNameSyntax member
+                    && memberNames.Contains(member.Identifier.Text)
+                )
+                {
+                    yield return new CSharpApiMatch(
+                        file.RelativePath,
+                        file.GetLine(assignment),
+                        $"{typeName}.{member.Identifier.Text}"
+                    );
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Object creations <c>new T(..)</c> where <c>T</c>'s simple name is in
+    /// <paramref name="typeSimpleNames"/> and the argument at <paramref name="argumentIndex"/> is a
+    /// lambda or anonymous method. Use to single out a removed delegate-taking constructor overload
+    /// from a surviving overload of the same arity: a lambda cannot bind to a non-delegate parameter,
+    /// so this reports the removed shape without over-reporting already-migrated call sites.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> ObjectCreationsWithLambdaArgument(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> typeSimpleNames,
+        int argumentIndex
+    )
+    {
+        foreach (var creation in file.Root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        {
+            var typeName = SimpleName(creation.Type);
+            if (typeName is null || !typeSimpleNames.Contains(typeName))
+            {
+                continue;
+            }
+
+            var arguments = creation.ArgumentList?.Arguments;
+            if (arguments is null || arguments.Value.Count <= argumentIndex)
+            {
+                continue;
+            }
+
+            if (arguments.Value[argumentIndex].Expression is AnonymousFunctionExpressionSyntax)
+            {
+                yield return new CSharpApiMatch(
+                    file.RelativePath,
+                    file.GetLine(creation),
+                    $"new {typeName}(.., lambda)"
+                );
             }
         }
     }
@@ -248,6 +320,22 @@ internal static class CSharpSyntaxQueries
 
         return name == definingName;
     }
+
+    /// <summary>
+    /// The name node identifying the method an invocation calls, or <c>null</c>. Reported instead of the
+    /// invocation itself so the <c>path:line</c> lands on the offending call rather than on the start of
+    /// the enclosing expression - the difference matters for the multi-line fluent builder chains that
+    /// dominate the Correspondence and Signing APIs.
+    /// </summary>
+    private static SimpleNameSyntax? InvokedName(InvocationExpressionSyntax invocation) =>
+        invocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccess => memberAccess.Name,
+            // Null-conditional calls (`x?.Method(...)`) bind the name via a member binding.
+            MemberBindingExpressionSyntax memberBinding => memberBinding.Name,
+            SimpleNameSyntax simple => simple,
+            _ => null,
+        };
 
     /// <summary>The trailing (unqualified) identifier of an expression, or <c>null</c>.</summary>
     private static string? TrailingName(ExpressionSyntax expression) =>

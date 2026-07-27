@@ -317,7 +317,7 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
-    /// code, and removed internal engine handler types.
+    /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>
     static async Task<int> CheckRemovedCSharpApis(string projectFile)
     {
@@ -330,7 +330,8 @@ internal static class V8Tov9Upgrade
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(scanner).Detect(),
                 new LegacyEFormidlingCodeDetector(scanner).Detect(),
-                new RemovedInternalProcessTypeDetector(scanner).Detect()
+                new RemovedInternalProcessTypeDetector(scanner).Detect(),
+                new LegacyCorrespondenceCodeDetector(scanner).Detect()
             );
 
             foreach (var warning in result.Warnings)
