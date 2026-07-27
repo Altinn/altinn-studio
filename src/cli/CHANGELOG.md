@@ -8,6 +8,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Update the terminal text-width handling dependency.
+
 ## [0.1.0-preview.18] - 2026-07-24
 
 ### Added
