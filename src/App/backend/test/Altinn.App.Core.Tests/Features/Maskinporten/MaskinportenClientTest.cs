@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
@@ -815,6 +816,31 @@ public class MaskinportenClientTests
         var organisation = detail.GetProperty("systemuser_org");
         Assert.Equal("iso6523-actorid-upis", organisation.GetProperty("authority").GetString());
         Assert.Equal("0192:991825827", organisation.GetProperty("ID").GetString());
+    }
+
+    [Fact]
+    public async Task GenerateJwtGrant_SystemUserDetails_AreReadableByTheInboundTokenParser()
+    {
+        // Arrange: `Authenticated` already parses the `authorization_details` Maskinporten returns on inbound
+        // system user tokens. That parser was written independently of this client, so round-tripping our
+        // outbound grant through it cross-checks the fields both sides share — the `urn:altinn:systemuser`
+        // discriminator and the `systemuser_org` authority/ID pair — instead of trusting one hand-written spelling.
+        await using var fixture = Fixture.Create();
+        var request = new MaskinportenTokenRequest
+        {
+            Scopes = ["scope1"],
+            SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+        };
+
+        // Act
+        var jwt = fixture.Client(MaskinportenClient.VariantDefault).GenerateJwtGrant(request, "https://aud/");
+        var details = DecodeJwtPayload(jwt).GetProperty("authorization_details");
+        var parsed = Authenticated.AuthorizationDetailsClaim.Parse(details);
+
+        // Assert
+        var systemUser = Assert.IsType<Authenticated.SystemUserAuthorizationDetailsClaim>(parsed);
+        Assert.Equal("iso6523-actorid-upis", systemUser.SystemUserOrg.Authority);
+        Assert.Equal("0192:991825827", systemUser.SystemUserOrg.Id);
     }
 
     [Fact]
