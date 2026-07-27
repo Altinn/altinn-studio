@@ -98,6 +98,22 @@ _TRUNCATION_PARTIAL_NOTICE = (
     "missing and re-issue only that work, in smaller batches."
 )
 
+# With this many turns left, inject a wrap-up notice so the model stops
+# exploring and lands what it has.  A max_turns termination throws away
+# the final message and leaves the work uncommitted (modulo the
+# auto-commit safety net) — far worse than a slightly less polished
+# result.
+_WRAPUP_WARNING_TURNS = 4
+
+_WRAPUP_NOTICE = (
+    "NOTE: only {turns_remaining} turns remain in this session's budget.  "
+    "Stop exploring and reading documentation.  Next turn: batch ALL "
+    "remaining `write_file`/`edit_file` calls at once.  Then "
+    "`verify_changes`, then `commit_session_branch`, then the final "
+    "message.  An unfinished-but-committed subset beats running out of "
+    "turns with nothing landed."
+)
+
 # Hard cap on the size of a concurrency-safe batch.  Even when the model
 # fires 20 reads in one turn, we never run more than this many in
 # parallel — protects shared resources (MCP server, filesystem, network)
@@ -372,6 +388,11 @@ async def run_loop(
             # surface that so the model re-checks what's missing instead
             # of assuming the whole batch landed.
             blocks.append(TextBlock(text=_TRUNCATION_PARTIAL_NOTICE))
+        turns_remaining = max_turns - turn
+        if turns_remaining == _WRAPUP_WARNING_TURNS:
+            blocks.append(
+                TextBlock(text=_WRAPUP_NOTICE.format(turns_remaining=turns_remaining))
+            )
         messages.append(UserMessage(content=blocks))
 
     await _emit(on_event, "terminated", {"reason": "max_turns", "turn": max_turns})

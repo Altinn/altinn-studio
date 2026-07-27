@@ -44,9 +44,10 @@ consolidation.) Edit them directly.
    250 chars; the body can be as long as it needs to be (it only costs
    tokens when actually loaded).
 
-Reference files (indexes, data, scripts) live next to SKILL.md; the
-loaded body starts with a "Base directory for this skill" header so the
-model can `read_file` them on demand.
+Reference files (indexes, data) live next to SKILL.md and are inlined
+into the loaded body via a frontmatter `include:` list (comma-separated
+sibling file names). They must travel inside the body — the loop's
+`read_file` is repo-scoped and cannot reach the skill directory.
 
 ## External installation
 

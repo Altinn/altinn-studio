@@ -95,17 +95,15 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         const steps = prevStatus.steps ?? [];
         const lastStep = steps.at(-1);
 
-        // Same tool_use block: the placeholder ("Leser fil") is now landing
-        // with the real subject ("Leser App/ui/Side1.json"). Upgrade the
-        // existing row in place rather than stacking a duplicate.
-        if (toolUseId && lastStep?.toolUseId === toolUseId) {
-          const updated: TrailStep = { ...lastStep, message: statusMessage };
+        const matchIndex = toolUseId ? findStepIndexByToolUseId(steps, toolUseId) : -1;
+        if (matchIndex >= 0) {
+          const updated: TrailStep = { ...steps[matchIndex], message: statusMessage };
           return {
             ...prev,
             [threadId]: {
               ...prevStatus,
               message: statusMessage,
-              steps: [...steps.slice(0, -1), updated],
+              steps: [...steps.slice(0, matchIndex), updated, ...steps.slice(matchIndex + 1)],
             },
           };
         }
@@ -379,6 +377,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     messages,
   };
 };
+
+function findStepIndexByToolUseId(steps: TrailStep[], toolUseId: string): number {
+  for (let index = steps.length - 1; index >= 0; index--) {
+    if (steps[index].toolUseId === toolUseId) return index;
+  }
+  return -1;
+}
 
 function buildSessionBranchName(sessionId: string): string {
   const uniqueIdWithoutPrefix = sessionId.startsWith('session_')

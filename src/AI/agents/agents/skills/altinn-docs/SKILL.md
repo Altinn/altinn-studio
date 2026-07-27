@@ -1,38 +1,32 @@
 ---
 description: Navigate the official Altinn documentation (docs.altinn.studio). Load when you need information the other skills don't cover — APIs, process/BPMN, signing, payment, authorization details, deployment, or anything unfamiliar. Contains a curated page index.
+include: llms.txt
 ---
 
 # Altinn documentation navigation
 
-The official docs live at https://docs.altinn.studio. This skill's
-directory contains `llms.txt` — a curated index of the most useful
-pages, one line each: `[Title](URL): one-line description`.
+The official docs live at https://docs.altinn.studio. A curated index
+of the most useful pages is included at the end of this skill (see
+"Included file: llms.txt") — one line per page:
+`[Title](URL): one-line description`.
 
 ## How to find something
 
-1. `read_file` the `llms.txt` in this skill's directory (see the base
-   directory header above).
-2. Scan the descriptions for the page(s) matching your question.
-3. `web_fetch` the page URL. The tool returns the page as readable
-   text.
-4. If one page references another you need, fetch that too — batch
+1. Scan the included index below for the page(s) matching your
+   question.
+2. `web_fetch` the page URL **copied verbatim from the index**. Never
+   construct or guess a docs URL — the site's paths don't follow a
+   guessable pattern and guesses 404.
+3. If one page references another you need, fetch that too — batch
    independent fetches in one turn.
 
 ## Component examples (canonical layouts)
 
 For real-world examples of every layout component type, the
-`ttd/component-library` app is the canonical source. It is publicly
-clonable without authentication:
-
-```
-git clone --depth=1 https://altinn.studio/repos/ttd/component-library.git /tmp/component-library
-```
-
-Example layouts live in `App/ui/ComponentLayouts/layouts/` — one file
-per component type, showing correct property usage. Prefer
-`altinn_layout_props` for the authoritative property list; use these
-examples for idiomatic composition (how components are actually
-combined in practice).
+`ttd/component-library` app is the canonical source (publicly clonable:
+`https://altinn.studio/repos/ttd/component-library.git` — for
+environments with shell access; the agent loop has none). In the loop,
+use `altinn_layout_props` for the authoritative property list.
 
 ## Tips
 
@@ -40,7 +34,10 @@ combined in practice).
   Norwegian mirror has the same structure under `/nb/`.
 - Don't fetch more than you need; each page is a full document. The
   index descriptions are usually enough to pick the single right page.
-- If the index has no matching entry, try the section landing pages:
+- If the index has no matching entry, the section landing pages are
+  safe URLs to fetch:
   https://docs.altinn.studio/en/altinn-studio/ (Studio),
   https://docs.altinn.studio/en/api/ (APIs),
   https://docs.altinn.studio/en/app-template/ (app architecture).
+- If the docs genuinely don't cover it, proceed with your best
+  Altinn knowledge instead of fetching more URLs.

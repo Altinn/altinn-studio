@@ -81,15 +81,41 @@ class TestDiscoverSkills:
 
 
 class TestLoadBody:
-    def test_body_excludes_frontmatter_and_includes_base_dir(self, tmp_path):
+    def test_body_excludes_frontmatter(self, tmp_path):
         _write_skill(tmp_path, "my-skill", "Desc.", body="# The Guide\nLine two.")
         skill = discover_skills(tmp_path)[0]
 
         body = skill.load_body()
 
-        assert body.startswith(f"Base directory for this skill: {tmp_path / 'my-skill'}")
-        assert "# The Guide" in body
+        assert body.startswith("# The Guide")
         assert "description: Desc." not in body
+
+    def test_include_inlines_sibling_file(self, tmp_path):
+        skill_dir = tmp_path / "docs-skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\ndescription: Docs.\ninclude: index.txt\n---\n\n# Docs\n",
+            encoding="utf-8",
+        )
+        (skill_dir / "index.txt").write_text("[Page](https://x/y): about y", encoding="utf-8")
+
+        body = discover_skills(tmp_path)[0].load_body()
+
+        assert "## Included file: index.txt" in body
+        assert "[Page](https://x/y): about y" in body
+
+    def test_include_skips_missing_and_non_sibling_files(self, tmp_path):
+        skill_dir = tmp_path / "docs-skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\ndescription: Docs.\ninclude: gone.txt, ../escape.txt\n---\n\n# Docs\n",
+            encoding="utf-8",
+        )
+
+        body = discover_skills(tmp_path)[0].load_body()
+
+        assert body.startswith("# Docs")
+        assert "Included file" not in body
 
     def test_body_without_frontmatter_loads_whole_file(self, tmp_path):
         skill_file = tmp_path / "raw" / "SKILL.md"

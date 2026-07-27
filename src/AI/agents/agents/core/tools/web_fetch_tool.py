@@ -72,8 +72,15 @@ class WebFetchTool(Tool):
                 response = await client.get(args.url)
                 response.raise_for_status()
         except httpx.HTTPStatusError as exc:
+            status = exc.response.status_code
+            hint = ""
+            if status == 404:
+                hint = (
+                    "  Do not guess URLs — load `skill(altinn-docs)` and use a "
+                    "URL verbatim from its index."
+                )
             return ToolResult(
-                content=f"HTTP {exc.response.status_code} fetching {args.url}",
+                content=f"HTTP {status} fetching {args.url}.{hint}",
                 is_error=True,
             )
         except httpx.HTTPError as exc:

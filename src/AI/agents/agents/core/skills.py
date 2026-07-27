@@ -53,14 +53,36 @@ class Skill:
     def load_body(self) -> str:
         """Read the skill body (markdown after the frontmatter).
 
-        Prepends a base-directory header so the model can reference
-        sibling files (references/, examples/) via `read_file` if the
-        body points to them.
+        Frontmatter `include: <file>[, <file>…]` inlines sibling files
+        after the body.  The loop's `read_file` is repo-scoped and can
+        NEVER reach the skill directory, so anything the model must see
+        (an index, a reference table) has to travel inside the skill
+        body itself.
         """
         raw = self.path.read_text(encoding="utf-8")
         match = _FRONTMATTER_PATTERN.match(raw)
         body = raw[match.end():] if match else raw
-        return f"Base directory for this skill: {self.path.parent}\n\n{body.strip()}"
+        sections = [body.strip()]
+
+        fields = _parse_frontmatter(raw)
+        for file_name in _split_include_list(fields.get("include", "")):
+            if "/" in file_name or ".." in file_name:
+                log.warning("Skill %s: refusing non-sibling include %r", self.name, file_name)
+                continue
+            include_path = self.path.parent / file_name
+            try:
+                content = include_path.read_text(encoding="utf-8")
+            except OSError as exc:
+                log.warning("Skill %s: cannot read include %r — %s", self.name, file_name, exc)
+                continue
+            sections.append(f"## Included file: {file_name}\n\n{content.strip()}")
+
+        return "\n\n".join(sections)
+
+
+def _split_include_list(value: str) -> list[str]:
+    """`include: llms.txt, table.md` → `['llms.txt', 'table.md']`."""
+    return [name.strip() for name in value.split(",") if name.strip()]
 
 
 def _parse_frontmatter(raw: str) -> dict[str, str]:

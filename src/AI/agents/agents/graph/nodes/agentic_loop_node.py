@@ -124,6 +124,8 @@ _TOOL_PENDING_MESSAGES = {
     "discard_file_changes": "Tilbakestiller fil",
     "verify_changes": "Validerer endringer",
     "commit_session_branch": "Lagrer endringer",
+    "skill": "Henter kunnskap",
+    "web_fetch": "Leser dokumentasjon",
 }
 
 
@@ -140,8 +142,8 @@ def _status_for_tool_pending(name: str) -> str | None:
         return base
     if name.startswith("altinn_"):
         return _ALTINN_TOOL_LABELS.get(name, "Slår opp dokumentasjon")
-    if name:
-        return name
+    # Unknown tool: show nothing rather than the raw tool name — "skill"
+    # or "web_fetch" as a trail row means nothing to end users.
     return None
 
 
@@ -180,7 +182,7 @@ def _phase_for_tool(name: str) -> str:
 # Cap on turns inside a single workflow run.  20 comfortably covers a
 # scan → read → edit → verify → commit sequence with room for retries;
 # can be raised via env var without code changes if a session needs more.
-_DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "20"))
+_DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "40"))
 
 
 async def handle(state: AgentState) -> AgentState:

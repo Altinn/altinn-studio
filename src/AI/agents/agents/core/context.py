@@ -50,6 +50,7 @@ _OPERATING_PRINCIPLES = """\
 - **One concrete change per `edit_file` call.**  Each `edit_file` call replaces ONE specific string in ONE file.  Don't try to encode five unrelated changes inside a single `edit_file` (this is about the *content* of one call, not the *number* of calls you emit per turn).
 - **Don't retry an identical tool call.**  If a call fails, read the error and change what you're doing on the next call (different `old_string`, a `read_file` first, a different file).  Calling the same tool with the same arguments three times in a row triggers an automatic stop.
 - **Batch independent work into one turn.**  Reads (`read_file`, `altinn_*`) parallelise — fire all the lookups you'll need at once.  **Writes to DIFFERENT files also batch:** when you're creating `Side1.json`, `Side2.json`, and `resource.nb.json`, emit all three `write_file` calls in the same turn.  Each one targets a different path, so they don't conflict, and you collapse three LLM round-trips into one.  Serialise only when a later write *depends on the result of an earlier one* (e.g. an `edit_file` whose `old_string` was just inserted by another edit, or two edits to the same file).
+- **Act, don't narrate.**  Wall-clock time is dominated by the tokens you emit, and the user is watching a progress indicator while you type.  Keep any text before tool calls to ONE short sentence.  Never draft file contents, JSON, or multi-step plans in prose — decide, then emit the `write_file`/`edit_file` calls directly.  Long explanations belong in the final message only, and even there stay brief.
 - **Stop on real blockers.**  If you genuinely cannot accomplish the goal safely (missing context, ambiguous request, conflicting state), say so in a final message instead of guessing."""
 
 
@@ -104,7 +105,9 @@ _CRITICAL_RULES = """\
 
 6.  **Dynamic expressions are array-shaped, not boolean.**
     - ❌ `if (field == "x") hide`
-    - ✅ `["not", ["equals", ["dataModel", "field"], "x"]]`"""
+    - ✅ `["not", ["equals", ["dataModel", "field"], "x"]]`
+
+7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one."""
 
 
 # ---------------------------------------------------------------------------

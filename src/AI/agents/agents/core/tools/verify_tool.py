@@ -89,6 +89,11 @@ class VerifyChangesTool(WriteToolMixin):
             else:
                 passed = False
 
+        nav_ok, nav_notes = _check_page_navigation(ctx, changed)
+        notes.extend(nav_notes)
+        if not nav_ok:
+            passed = False
+
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
         # files while others still fail — refuse the easy short-circuit.
@@ -153,6 +158,78 @@ def _is_text_resource(file_path: str) -> bool:
         return False
     name = Path(file_path).name
     return "texts" in file_path and name.startswith("resource.")
+
+
+# ---------------------------------------------------------------------------
+# Cross-file check: page navigation
+# ---------------------------------------------------------------------------
+
+
+_NAVIGATION_COMPONENT_TYPES = {"NavigationButtons", "NavigationBar"}
+
+
+def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    """In a multi-page layout set, every changed page must carry a
+    navigation component.
+
+    `pages.order` in Settings.json controls the page sequence, but without
+    a `NavigationButtons` (or `NavigationBar`) component on the page the
+    user has nothing to click to move between pages — a schema-valid
+    layout that is unusable in the runtime.  Only pages the session
+    actually touched are checked, so pre-existing pages with bespoke
+    navigation never block a commit.
+    """
+    repo = Path(ctx.repo_path)
+    notes: list[str] = []
+    ok = True
+
+    changed_layouts = [f for f in changed if _is_layout_file(f)]
+    for file_path in changed_layouts:
+        layouts_dir = Path(file_path).parent
+        settings_path = repo / layouts_dir.parent / "Settings.json"
+        order = _read_page_order(settings_path)
+        if order is None or len(order) < 2:
+            continue  # single-page set (or unreadable settings) — nothing to navigate
+        if Path(file_path).stem not in order:
+            continue  # not part of the ordered page flow
+        if _has_navigation_component(repo / file_path):
+            continue
+        ok = False
+        notes.append(
+            f"{file_path}: page is in a multi-page flow ({len(order)} pages in "
+            "`pages.order`) but has no `NavigationButtons` component — users "
+            "cannot move between pages.  Add a `NavigationButtons` component "
+            "to the layout (check `altinn_layout_props(component_type="
+            "'NavigationButtons')` for its schema)."
+        )
+
+    return ok, notes
+
+
+def _read_page_order(settings_path: Path) -> list[str] | None:
+    """Return `pages.order` from a layout-set Settings.json, or None."""
+    try:
+        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    order = (settings.get("pages") or {}).get("order")
+    if isinstance(order, list) and all(isinstance(p, str) for p in order):
+        return order
+    return None
+
+
+def _has_navigation_component(layout_path: Path) -> bool:
+    """Does the layout contain a NavigationButtons/NavigationBar component?"""
+    try:
+        parsed = json.loads(layout_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return True  # unreadable/invalid JSON is the schema validator's problem
+    layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
+    if not isinstance(layout, list):
+        return True
+    return any(
+        isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout
+    )
 
 
 # ---------------------------------------------------------------------------

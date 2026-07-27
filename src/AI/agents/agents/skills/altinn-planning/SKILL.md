@@ -45,63 +45,50 @@ Forms use declarative JSON with component types like `Panel`, `Header`, `Input` 
 
 Always reference existing layout files when adding new form components.
 
-### Important
+### Important — new pages need TWO things
 
-When adding a new page layout under App/ui/form/layouts, always remember to update App/ui/form/Settings.json to include the new page ID in the "pages.order" array.
-Otherwise, the page won’t appear in the app’s navigation.
+When adding a new page layout under App/ui/form/layouts:
+
+1. Add the page ID to the "pages.order" array in App/ui/form/Settings.json — otherwise the page is not part of the form's sequence.
+2. Give the page a `NavigationButtons` component (typically the last component in the layout) — the order array only defines the sequence; without NavigationButtons the user has nothing to click to move between pages. The final page usually also gets a submit `Button`.
+
+Both are required on every page of a multi-page form. `verify_changes` rejects a page in a multi-page flow that lacks a navigation component.
 
 ## Planning Requirements for Development
 
-### 1. Required Tool Usage Patterns
+### 1. Which tool for which task
 
-- **UI components** → `layout_components_tool` to find appropriate Altinn components
-- **Data models** → `datamodel_tool` to create/update model.cs, model.xsd, model.schema.json
-- **Text content** → `resource_tool` to manage Norwegian text resources and translations
-- **Configuration** → `prefill_tool` when pre-population from external sources needed
-- **Authorization** → `policy_tool` for access control and role-based permissions
-- **Layout Property Context** → `layout_properties_tool` to get info on available properties for layout components
-- **Dynamic Expressions** → `dynamic_expression_tool` to create dynamic expressions
-- **Schema Validation** → `schema_validator_tool` to validate XSD schemas
-- **Policy Validation** → `policy_validation_tool` to validate policies
-- **Policy Summarization** → `policy_summarization_tool` to summarize policies
-- **Studio Examples** → `studio_examples_tool` to get examples of C# logic from existing Altinn Studio apps. Very relevant for writing C# logic.
-- **AppLib Examples** → `app_lib_examples_tool` to get examples of for relevant C# code from the Altinn AppLib. Very relevant for writing C# logic.
+- **UI components** → `altinn_layout_props(component_type=…)` for the canonical property list before adding or editing any component
+- **Data models** → edit `App/models/model.schema.json`, then `altinn_datamodel_sync` to regenerate model.xsd and model.cs — never hand-edit the generated files
+- **Text content** → edit `App/config/texts/resource.<locale>.json` directly; update every locale the app has in the same change
+- **Prefill** → `skill(altinn-prefill)` when pre-population from external sources is needed
+- **Authorization / policy** → `skill(altinn-policy)`
+- **Dynamic expressions** → `skill(altinn-expressions)`
+- **Anything the skills don't cover** → `skill(altinn-docs)`, then `web_fetch` on URLs taken verbatim from its index
 
-### 2. Testing Requirements
+### 2. Validation strategy
 
-- Run app locally with `dotnet run --project App` before testing
-  - If the app crashes, fix the issue before running playwright tests
-- Test with Playwright MCP until requirements are fulfilled
-- Default app path: http://local.altinn.cloud
-- Always select a test user (default: person representing organization)
-- Use Playwright to ensure that all components are visible and functional
-- Test that all fields set up to be prefilled are prefilled with correct content
-- Test that all dynamic expressions are working as expected
-- Test that available languages (Norwegian/English) are working as expected
-- Verify validation rules work correctly for Norwegian formats
-- Note that the app must be restarted after making changes to the app
+- `verify_changes` after the last edit, always — it schema-validates layouts and text resources and checks page navigation
+- On failure, fix the specific flagged rule with a targeted `edit_file`, then re-run
+- `commit_session_branch` refuses to commit unverified changes
 
 ## Critical Development Reminders
 
-- **Always test with Playwright until requirements are fulfilled**
-- **Always specify required tools in the plan**
-- **Consider dependencies between tools** (datamodel → layout → resources)
+- **Consider dependencies between layers** (datamodel → layout → resources)
 - **Follow Altinn namespace conventions** (`Altinn.App.*`)
 - **Reference existing layout files** when adding new components unless specified otherwise
-- **Update all three datamodel files** when making model changes (model.cs, model.xsd, model.schema.json)
-- **Use Schema Validator Tool** to validate XSD schemas after updating them
+- **Change the data model via model.schema.json + `altinn_datamodel_sync`** — the .cs and .xsd files are generated from it
 - **Remember to update service registration in Program.cs** when adding new services
 
 ## Common Mistakes to AVOID
 
 **DON'T**: Ask for React components or frontend code
-**DON'T**: Create files without thorough searching first  
+**DON'T**: Create files without thorough searching first
 **DON'T**: Assume file locations without exploring
-**DON'T**: Ignore MCP tool context in favor of general knowledge
+**DON'T**: Ignore tool output in favor of general knowledge
 **DON'T**: Create new schema URLs or metadata properties
 **DON'T**: Skip the file discovery phase
 
 **DO**: Search thoroughly before concluding files don't exist
-**DO**: Follow MCP tool examples exactly
 **DO**: Explore directory structure systematically
 **DO**: Validate against existing schemas and patterns

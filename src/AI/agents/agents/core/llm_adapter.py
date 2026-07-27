@@ -291,6 +291,12 @@ class AnthropicAdapter(LLMAdapter):
                 ],
                 "messages": api_messages,
                 "max_tokens": self.max_tokens,
+                # Explicitly OFF.  Some gateways (Azure AI Foundry) default
+                # newer Claude models to adaptive extended thinking; the loop
+                # drops thinking blocks on parse, so every thinking token is
+                # paid, slow, and invisible — observed as turns burning 10-24k
+                # output tokens to emit a single small tool call.
+                "thinking": {"type": "disabled"},
             }
             if tool_schemas:
                 kwargs["tools"] = _with_tool_cache_breakpoint(tool_schemas)
@@ -313,6 +319,7 @@ class AnthropicAdapter(LLMAdapter):
             )
 
             content: list[ContentBlock] = []
+            dropped_block_types: dict[str, int] = {}
             for block in response.content:
                 block_type = getattr(block, "type", None)
                 if block_type == "text":
@@ -321,8 +328,20 @@ class AnthropicAdapter(LLMAdapter):
                     content.append(
                         ToolUseBlock(id=block.id, name=block.name, input=dict(block.input))
                     )
-                # Other block types (e.g. thinking) are dropped — the loop
-                # only acts on text + tool_use.
+                else:
+                    # Other block types (e.g. thinking) are dropped — the loop
+                    # only acts on text + tool_use.  Log them: dropped blocks
+                    # are tokens we paid for without seeing, and their presence
+                    # means the request config (`thinking` above) isn't doing
+                    # what we think it does.
+                    key = str(block_type or "unknown")
+                    dropped_block_types[key] = dropped_block_types.get(key, 0) + 1
+            if dropped_block_types:
+                log.warning(
+                    "Dropped non-text/tool_use response blocks: %s (model=%s)",
+                    dropped_block_types,
+                    self.model,
+                )
 
             usage_obj = getattr(response, "usage", None)
             usage = {

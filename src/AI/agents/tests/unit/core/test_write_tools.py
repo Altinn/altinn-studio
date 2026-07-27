@@ -154,6 +154,89 @@ class TestVerifyChanges:
         body = json.loads(result.content)
         assert any("no automated validator" in note for note in body["notes"])
 
+    async def test_multipage_layout_without_navigation_fails(
+        self, tmp_path: Path, permissive_schema
+    ):
+        layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts_dir.mkdir(parents=True)
+        settings = {"pages": {"order": ["Side1", "Side2"]}}
+        (layouts_dir.parent / "Settings.json").write_text(json.dumps(settings), encoding="utf-8")
+        page = {"data": {"layout": [{"id": "name-input", "type": "Input"}]}}
+        (layouts_dir / "Side2.json").write_text(json.dumps(page), encoding="utf-8")
+
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/form/layouts/Side2.json"},
+        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert result.is_error
+        body = json.loads(result.content)
+        assert not body["passed"]
+        assert any("NavigationButtons" in note for note in body["notes"])
+        assert "verified_files" not in ctx.extras or not ctx.extras["verified_files"]
+
+    async def test_multipage_layout_with_navigation_passes(
+        self, tmp_path: Path, permissive_schema
+    ):
+        layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts_dir.mkdir(parents=True)
+        settings = {"pages": {"order": ["Side1", "Side2"]}}
+        (layouts_dir.parent / "Settings.json").write_text(json.dumps(settings), encoding="utf-8")
+        page = {
+            "data": {
+                "layout": [
+                    {"id": "name-input", "type": "Input"},
+                    {"id": "nav-buttons", "type": "NavigationButtons"},
+                ]
+            }
+        }
+        (layouts_dir / "Side2.json").write_text(json.dumps(page), encoding="utf-8")
+
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/form/layouts/Side2.json"},
+        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert not result.is_error
+
+    async def test_single_page_layout_needs_no_navigation(
+        self, tmp_path: Path, permissive_schema
+    ):
+        layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts_dir.mkdir(parents=True)
+        settings = {"pages": {"order": ["Side1"]}}
+        (layouts_dir.parent / "Settings.json").write_text(json.dumps(settings), encoding="utf-8")
+        page = {"data": {"layout": [{"id": "name-input", "type": "Input"}]}}
+        (layouts_dir / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/form/layouts/Side1.json"},
+        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert not result.is_error
+
+    async def test_page_outside_order_array_needs_no_navigation(
+        self, tmp_path: Path, permissive_schema
+    ):
+        layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts_dir.mkdir(parents=True)
+        settings = {"pages": {"order": ["Side1", "Side2"]}}
+        (layouts_dir.parent / "Settings.json").write_text(json.dumps(settings), encoding="utf-8")
+        page = {"data": {"layout": [{"id": "summary-text", "type": "Paragraph"}]}}
+        (layouts_dir / "Hidden.json").write_text(json.dumps(page), encoding="utf-8")
+
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/form/layouts/Hidden.json"},
+        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert not result.is_error
+
     async def test_layout_validation_failure_marks_is_error(self, tmp_path: Path, monkeypatch):
         layout_path = tmp_path / "App" / "ui" / "layouts" / "P.json"
         layout_path.parent.mkdir(parents=True)
