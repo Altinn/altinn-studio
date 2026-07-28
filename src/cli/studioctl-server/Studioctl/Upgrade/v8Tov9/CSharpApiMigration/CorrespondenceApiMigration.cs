@@ -118,7 +118,13 @@ internal sealed class CorrespondenceApiMigration
             .NormalizeWhitespace()
             .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
 
-        return unit.WithUsings(unit.Usings.Add(directive));
+        // Inserted in sorted position rather than appended, so the app's using order survives a
+        // `dotnet format` / CSharpier gate.
+        var insertAt = unit.Usings.IndexOf(existing =>
+            string.CompareOrdinal(existing.Name?.ToString(), namespaceName) > 0
+        );
+
+        return unit.WithUsings(insertAt < 0 ? unit.Usings.Add(directive) : unit.Usings.Insert(insertAt, directive));
     }
 
     private sealed class Rewriter : CSharpSyntaxRewriter
@@ -216,23 +222,32 @@ internal sealed class CorrespondenceApiMigration
                 ? " - NOTE: the discarded argument contained a call, which is no longer evaluated"
                 : string.Empty;
 
-        public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
+        public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) =>
+            RewriteCreation(node, base.VisitObjectCreationExpression(node));
+
+        // A target-typed `T x = new() { .. }` is a distinct node kind, so it needs its own override or
+        // the rewrites above never see it.
+        public override SyntaxNode? VisitImplicitObjectCreationExpression(
+            ImplicitObjectCreationExpressionSyntax node
+        ) => RewriteCreation(node, base.VisitImplicitObjectCreationExpression(node));
+
+        private SyntaxNode? RewriteCreation(BaseObjectCreationExpressionSyntax original, SyntaxNode? rewritten)
         {
-            var rewritten = base.VisitObjectCreationExpression(node);
-            if (rewritten is not ObjectCreationExpressionSyntax visited)
+            if (rewritten is not BaseObjectCreationExpressionSyntax visited)
             {
                 return rewritten;
             }
 
-            var typeName = TrailingTypeName(visited.Type);
+            // Resolved from the ORIGINAL node: a rewritten node is detached from the declaration that
+            // gives a target-typed `new()` its type.
+            var typeName = CSharpSyntaxQueries.ConstructedTypeName(original);
             if (typeName is null)
             {
                 return visited;
             }
 
-            visited = RewritePayloadAuthentication(node, visited, typeName);
-            visited = RewriteInitializer(node, visited, typeName);
-            return visited;
+            visited = RewritePayloadAuthentication(original, visited, typeName);
+            return RewriteInitializer(original, visited, typeName);
         }
 
         /// <summary>
@@ -240,9 +255,9 @@ internal sealed class CorrespondenceApiMigration
         /// <c>CorrespondenceAuthenticationMethod.Custom(factory)</c>, and the legacy authorisation enum
         /// becomes <c>CorrespondenceAuthenticationMethod.Default()</c>.
         /// </summary>
-        private ObjectCreationExpressionSyntax RewritePayloadAuthentication(
-            ObjectCreationExpressionSyntax original,
-            ObjectCreationExpressionSyntax visited,
+        private BaseObjectCreationExpressionSyntax RewritePayloadAuthentication(
+            BaseObjectCreationExpressionSyntax original,
+            BaseObjectCreationExpressionSyntax visited,
             string typeName
         )
         {
@@ -266,7 +281,7 @@ internal sealed class CorrespondenceApiMigration
                 AnonymousFunctionExpressionSyntax => StaticCall(
                     AuthenticationMethodType,
                     "Custom",
-                    argument.Expression
+                    argument.Expression.WithoutTrivia()
                 ),
                 // `CorrespondenceAuthorisation.Maskinporten` - the only member the enum ever had.
                 MemberAccessExpressionSyntax enumAccess
@@ -295,7 +310,12 @@ internal sealed class CorrespondenceApiMigration
             NeedsAuthenticationMethodUsing = true;
 
             return visited.WithArgumentList(
-                visited.ArgumentList.WithArguments(arguments.Replace(argument, argument.WithExpression(replacement)))
+                visited.ArgumentList.WithArguments(
+                    arguments.Replace(
+                        argument,
+                        argument.WithExpression(replacement.WithTriviaFrom(argument.Expression))
+                    )
+                )
             );
         }
 
@@ -303,9 +323,9 @@ internal sealed class CorrespondenceApiMigration
         /// Drops initializer assignments that v8 discarded, and renames the singular recipient property to
         /// the v9 list.
         /// </summary>
-        private ObjectCreationExpressionSyntax RewriteInitializer(
-            ObjectCreationExpressionSyntax original,
-            ObjectCreationExpressionSyntax visited,
+        private BaseObjectCreationExpressionSyntax RewriteInitializer(
+            BaseObjectCreationExpressionSyntax original,
+            BaseObjectCreationExpressionSyntax visited,
             string typeName
         )
         {
@@ -315,18 +335,16 @@ internal sealed class CorrespondenceApiMigration
             }
 
             _noOpProperties.TryGetValue(typeName, out var removable);
-            var expressions = visited.Initializer.Expressions;
-            var kept = new List<ExpressionSyntax>();
-            var changed = false;
+            var toRemove = new List<ExpressionSyntax>();
+            AssignmentExpressionSyntax? toRename = null;
 
-            foreach (var expression in expressions)
+            foreach (var expression in visited.Initializer.Expressions)
             {
                 if (
                     expression is not AssignmentExpressionSyntax assignment
                     || assignment.Left is not IdentifierNameSyntax member
                 )
                 {
-                    kept.Add(expression);
                     continue;
                 }
 
@@ -335,36 +353,50 @@ internal sealed class CorrespondenceApiMigration
                 if (removable is not null && removable.Contains(name))
                 {
                     Record(original, $"removed the no-op initializer `{typeName}.{name}`");
-                    changed = true;
-                    continue;
+                    toRemove.Add(expression);
                 }
-
-                if (typeName == NotificationType && name == SingularRecipientProperty)
+                else if (typeName == NotificationType && name == SingularRecipientProperty)
                 {
                     Record(original, $"changed `{SingularRecipientProperty}` to the `{PluralRecipientProperty}` list");
-                    changed = true;
-                    kept.Add(
-                        assignment
-                            .WithLeft(SyntaxFactory.IdentifierName(PluralRecipientProperty).WithTriviaFrom(member))
-                            .WithRight(CollectionOf(assignment.Right))
-                    );
-                    continue;
+                    toRename = assignment;
                 }
-
-                kept.Add(expression);
             }
 
-            if (!changed)
+            if (toRemove.Count == 0 && toRename is null)
             {
                 return visited;
             }
 
-            // Dropping every entry would leave `new T { }`, which is valid but pointless - drop the
-            // initializer with it.
-            var initializer =
-                kept.Count == 0 ? null : visited.Initializer.WithExpressions(SyntaxFactory.SeparatedList(kept));
+            // One RemoveNodes call for every removal: removing them one at a time does not work, because
+            // each edit re-parents the surviving nodes and the next lookup would be a stale reference.
+            // RemoveNodes also handles the separator tokens, whose trivia carries the line breaks.
+            var initializer = visited.Initializer;
+            if (toRemove.Count > 0)
+            {
+                initializer = initializer.RemoveNodes(toRemove, SyntaxRemoveOptions.KeepNoTrivia) ?? initializer;
+            }
 
-            return visited.WithInitializer(initializer);
+            if (toRename is not null)
+            {
+                // Re-found by name, since the removals above invalidated the original reference.
+                var target = initializer
+                    .Expressions.OfType<AssignmentExpressionSyntax>()
+                    .FirstOrDefault(a =>
+                        a.Left is IdentifierNameSyntax n && n.Identifier.Text == SingularRecipientProperty
+                    );
+
+                if (target is not null)
+                {
+                    initializer = initializer.ReplaceNode(
+                        target,
+                        target
+                            .WithLeft(SyntaxFactory.IdentifierName(PluralRecipientProperty).WithTriviaFrom(target.Left))
+                            .WithRight(CollectionOf(target.Right))
+                    );
+                }
+            }
+
+            return visited.WithInitializer(initializer.Expressions.Count == 0 ? null : initializer);
         }
 
         public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
@@ -400,17 +432,6 @@ internal sealed class CorrespondenceApiMigration
                     SyntaxFactory.ExpressionElement(element.WithoutLeadingTrivia())
                 )
             );
-
-        private static string? TrailingTypeName(TypeSyntax? type) =>
-            type switch
-            {
-                IdentifierNameSyntax identifier => identifier.Identifier.Text,
-                GenericNameSyntax generic => generic.Identifier.Text,
-                QualifiedNameSyntax qualified => qualified.Right.Identifier.Text,
-                AliasQualifiedNameSyntax alias => alias.Name.Identifier.Text,
-                NullableTypeSyntax nullable => TrailingTypeName(nullable.ElementType),
-                _ => null,
-            };
 
         private static string? TrailingName(ExpressionSyntax expression) =>
             expression switch

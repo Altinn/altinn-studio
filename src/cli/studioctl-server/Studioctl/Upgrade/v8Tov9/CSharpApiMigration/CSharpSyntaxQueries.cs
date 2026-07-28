@@ -241,9 +241,9 @@ internal static class CSharpSyntaxQueries
         IReadOnlySet<string> memberNames
     )
     {
-        foreach (var creation in file.Root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        foreach (var creation in file.Root.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
         {
-            var typeName = SimpleName(creation.Type);
+            var typeName = ConstructedTypeName(creation);
             if (typeName is null || !typeSimpleNames.Contains(typeName) || creation.Initializer is null)
             {
                 continue;
@@ -280,9 +280,9 @@ internal static class CSharpSyntaxQueries
         int argumentIndex
     )
     {
-        foreach (var creation in file.Root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        foreach (var creation in file.Root.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
         {
-            var typeName = SimpleName(creation.Type);
+            var typeName = ConstructedTypeName(creation);
             if (typeName is null || !typeSimpleNames.Contains(typeName))
             {
                 continue;
@@ -303,6 +303,43 @@ internal static class CSharpSyntaxQueries
                 );
             }
         }
+    }
+
+    /// <summary>
+    /// The simple name of the type an object creation constructs. For a target-typed <c>new()</c> the
+    /// creation itself carries no type, so the written-out type of the enclosing variable, field or
+    /// property declaration is used instead — <c>CorrespondenceNotificationRecipient x = new() { .. }</c>
+    /// is ordinary modern C# and must not be missed.
+    /// </summary>
+    public static string? ConstructedTypeName(BaseObjectCreationExpressionSyntax creation)
+    {
+        if (creation is ObjectCreationExpressionSyntax explicitCreation)
+        {
+            return SimpleName(explicitCreation.Type);
+        }
+
+        for (SyntaxNode? node = creation.Parent; node is not null; node = node.Parent)
+        {
+            switch (node)
+            {
+                case VariableDeclarationSyntax variable:
+                    return SimpleName(variable.Type);
+                case PropertyDeclarationSyntax property:
+                    return SimpleName(property.Type);
+                case ParameterSyntax parameter:
+                    return SimpleName(parameter.Type);
+                // Stop at the first construct that decides the target type, so an unrelated outer
+                // declaration cannot be mistaken for this creation's type.
+                case AssignmentExpressionSyntax:
+                case ArgumentSyntax:
+                case ReturnStatementSyntax:
+                case ArrowExpressionClauseSyntax:
+                case InitializerExpressionSyntax:
+                    return null;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

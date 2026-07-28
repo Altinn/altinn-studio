@@ -15,8 +15,12 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <c>CorrespondenceNotificationRecipientResponse.IsReserved</c>, the Notifications feature's own
 /// <c>RequestedSendTime</c>, <c>CorrespondenceAttachmentResponse.DataLocationType</c>), so matching them
 /// bare would report far more correct code than broken code. They are instead matched precisely where
-/// they are assigned in an object initializer of a known type. That pairing needs a written-out type
-/// name, so a target-typed <c>CorrespondenceRequest r = new() { Sender = .. }</c> is also missed.
+/// they are assigned in an object initializer of a known type, including a target-typed
+/// <c>T x = new() { .. }</c> whose type comes from the declaration.
+/// <p>The sharpest edge of that trade: <c>CorrespondenceNotificationOrderResponse.RequestedSendTime</c>
+/// and <c>GetCorrespondenceStatusResponse.AllowSystemDeleteAfter</c> are also removed in v9, and an app
+/// that <em>reads</em> them is only warned about the latter, whose name is distinctive enough to match
+/// bare. A read of the former surfaces as a compiler error with no guidance.</p>
 /// Likewise, a removed <c>Func&lt;Task&lt;JwtToken&gt;&gt;</c> payload constructor is only reported when the
 /// token factory is passed as a lambda - a variable or method group is indistinguishable from a
 /// <c>CorrespondenceAuthenticationMethod</c> without binding, and reporting it would flag already-migrated
@@ -135,7 +139,10 @@ internal sealed class LegacyCorrespondenceCodeDetector
         + "WithAllowSystemDeleteAfter, WithRequestedSendTime and WithDataLocationType, and stop setting Sender, "
         + "AllowSystemDeleteAfter, RequestedSendTime and DataLocationType. The CorrespondenceDataLocationType enum "
         + "goes with them, as does the ICorrespondenceRequestBuilderSender step interface - WithResourceId now "
-        + "returns ICorrespondenceRequestBuilderSendersReference. Usages found:";
+        + "returns ICorrespondenceRequestBuilderSendersReference. If you READ one of these instead of setting it, "
+        + "the story is different: GetCorrespondenceStatusResponse.AllowSystemDeleteAfter and "
+        + "CorrespondenceNotificationOrderResponse.RequestedSendTime are gone from the response with no "
+        + "replacement, so that information is no longer available and the feature using it has to go. Usages found:";
 
     private const string RecipientOverrideSummary =
         "The Correspondence notification recipient-override API changed in v9. Notifications now carry a list: "
@@ -144,9 +151,16 @@ internal sealed class LegacyCorrespondenceCodeDetector
         + "only that list's first entry). Set recipients with WithRecipientOverride(recipient), which now accumulates "
         + "and can be chained, WithRecipientOverrides(recipients) for several at once, or "
         + "WithRecipientOverrideIfConfigured(recipient) to skip a null. Build each recipient with "
-        + "WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber - the override builder "
-        + "is otherwise unchanged, and only WithRecipientToOverride and WithCorrespondenceNotificationRecipients were "
-        + "removed from it. Replace IsReserved with IgnoreReservation on the correspondence. Usages found:";
+        + "WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber, or "
+        + "WithOrganisationOrPersonIdentifier for a 1:1 swap of the OrganisationOrPersonIdentifier overload. The "
+        + "string overload has no direct replacement - it used to parse the value and convert a FormatException into "
+        + "CorrespondenceArgumentException, so call OrganisationOrPersonIdentifier.Parse yourself and handle its "
+        + "exceptions. The override builder is otherwise unchanged; only WithRecipientToOverride and "
+        + "WithCorrespondenceNotificationRecipients were removed from it. Note that these recipients SUPPLEMENT the "
+        + "correspondence recipient's registered contact information rather than replacing it, despite the naming - "
+        + "set WithOverrideRegisteredContactInformation(true) if you need only them. IsReserved moves to a DIFFERENT "
+        + "object: use IgnoreReservation on the correspondence request, not on the notification recipient. "
+        + "Usages found:";
 
     private readonly CSharpSourceScanner _scanner;
 

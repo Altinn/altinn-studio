@@ -1080,6 +1080,59 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void CorrespondenceMigration_PreservesSurroundingFormatting()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            using Microsoft.Extensions.Logging;
+
+            public class Send
+            {
+                public CorrespondenceNotification Notification() =>
+                    new CorrespondenceNotification
+                    {
+                        NotificationTemplate = _template,
+                        EmailSubject = "subject",
+                        RequestedSendTime = _time,
+                        CustomRecipient = _recipient,
+                        SmsBody = "sms",
+                    };
+
+                public GetCorrespondenceStatusPayload Status(Guid id) =>
+                    new GetCorrespondenceStatusPayload(
+                        id,
+                        () => _client.GetAltinnExchangedToken(_scopes)
+                    );
+            }
+            """
+        );
+
+        // A rewrite that reflows the surrounding code produces an unreviewable diff and fails a
+        // formatter gate, so the entries that survive must keep their own lines and indentation.
+        Assert.Contains(
+            """
+                    {
+                        NotificationTemplate = _template,
+                        EmailSubject = "subject",
+                        CustomRecipients = [_recipient],
+                        SmsBody = "sms",
+                    };
+            """.ReplaceLineEndings("\n"),
+            migrated
+        );
+
+        // The inserted call must sit where the expression it replaced sat, not at column 0.
+        Assert.Contains(
+            "            CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))\n",
+            migrated
+        );
+
+        // And the added using goes in sorted position, not appended after unrelated ones.
+        Assert.StartsWith("using Altinn.App.Core.Features;\nusing Microsoft.Extensions.Logging;", migrated);
+    }
+
+    [Fact]
     public void CorrespondenceMigration_CleanApp_ChangesNothing()
     {
         var source = """
@@ -1092,6 +1145,65 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
         Assert.Empty(_lastMigrationWarnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsTargetTypedNewViaTheDeclaredType()
+    {
+        // `T x = new() { .. }` is ordinary modern C#. The creation node carries no type, so without
+        // resolving it from the declaration this is missed entirely - and the app then hits a bare
+        // compiler error with no guidance.
+        _app.Write(
+            "logic/Varsel.cs",
+            """
+            public class Varsel
+            {
+                public CorrespondenceNotificationRecipient Mottaker(string fnr)
+                {
+                    CorrespondenceNotificationRecipient mottaker = new()
+                    {
+                        NationalIdentityNumber = fnr,
+                        IsReserved = true,
+                    };
+                    return mottaker;
+                }
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Varsel.cs:8") && w.Contains("CorrespondenceNotificationRecipient.IsReserved")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_RewritesTargetTypedNewViaTheDeclaredType()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Varsel.cs",
+            """
+            public class Varsel
+            {
+                public CorrespondenceNotification Notification()
+                {
+                    CorrespondenceNotification varsel = new()
+                    {
+                        NotificationTemplate = _template,
+                        RequestedSendTime = _time,
+                        CustomRecipient = _recipient,
+                    };
+                    return varsel;
+                }
+            }
+            """
+        );
+
+        Assert.DoesNotContain("RequestedSendTime", migrated);
+        Assert.Contains("CustomRecipients = [_recipient]", migrated);
     }
 
     // --- Scanner ---------------------------------------------------------------------------------
