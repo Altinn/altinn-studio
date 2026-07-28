@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using CorrespondenceResult = Altinn.App.Core.Features.Telemetry.Correspondence.CorrespondenceResult;
-#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace Altinn.App.Core.Features.Correspondence;
 
@@ -27,13 +26,11 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly PlatformSettings _platformSettings;
     private readonly Telemetry? _telemetry;
-    private readonly CorrespondenceAuthorisationFactory _authorisationFactory;
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
 
     public CorrespondenceClient(
         IHttpClientFactory httpClientFactory,
         IOptions<PlatformSettings> platformSettings,
-        IServiceProvider serviceProvider,
         ILogger<CorrespondenceClient> logger,
         IAuthenticationTokenResolver authenticationTokenResolver,
         Telemetry? telemetry = null
@@ -44,7 +41,6 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         _platformSettings = platformSettings.Value;
         _telemetry = telemetry;
         _authenticationTokenResolver = authenticationTokenResolver;
-        _authorisationFactory = new CorrespondenceAuthorisationFactory(serviceProvider);
     }
 
     /// <inheritdoc />
@@ -326,6 +322,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             },
             Recipients = request.Recipients.Select(r => r.ToUrnFormattedString()).ToList(),
             ExistingAttachments = allExistingAttachments.Count > 0 ? allExistingAttachments : [],
+            IdempotentKey = request.IdempotentKey,
         };
     }
 
@@ -357,83 +354,11 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             NotificationChannel = notification.NotificationChannel,
             ReminderNotificationChannel = notification.ReminderNotificationChannel,
             SendersReference = notification.SendersReference,
-            CustomRecipients = BuildCustomRecipients(notification),
+            CustomRecipients = notification.CustomRecipients is null or { Count: 0 }
+                ? null
+                : [.. notification.CustomRecipients.Select(BuildNotificationRecipient)],
             OverrideRegisteredContactInformation = notification.OverrideRegisteredContactInformation,
-#pragma warning disable CS0618 // Type or member is obsolete - mapped for backwards compatibility
-            CustomNotificationRecipients = notification
-                .CustomNotificationRecipients?.Select(x => new CorrespondenceCustomNotificationRecipientRequest
-                {
-                    RecipientToOverride = x.RecipientToOverride.ToUrnFormattedString(),
-                    Recipients = x.CorrespondenceNotificationRecipients.Select(BuildNotificationRecipient).ToList(),
-                })
-                .ToList(),
-#pragma warning restore CS0618
         };
-    }
-
-    private static List<CorrespondenceNotificationRecipientRequest>? BuildCustomRecipients(
-        CorrespondenceNotification notification
-    )
-    {
-        List<CorrespondenceNotificationRecipientRequest>? recipients = null;
-
-        if (notification.CustomRecipients is not null)
-        {
-            foreach (CorrespondenceNotificationRecipient recipient in notification.CustomRecipients)
-            {
-                (recipients ??= []).AddRange(ExplodeNotificationRecipient(recipient));
-            }
-        }
-
-#pragma warning disable CS0618 // Type or member is obsolete - folded into the plural customRecipients for compatibility
-        if (notification.CustomRecipient is not null)
-        {
-            (recipients ??= []).AddRange(ExplodeNotificationRecipient(notification.CustomRecipient));
-        }
-#pragma warning restore CS0618
-
-        return recipients;
-    }
-
-    /// <summary>
-    /// Splits a recipient into one request per populated identifier. The Correspondence API requires each custom
-    /// recipient to carry exactly one of email, mobile, organisation number or national identity number.
-    /// </summary>
-    private static IEnumerable<CorrespondenceNotificationRecipientRequest> ExplodeNotificationRecipient(
-        CorrespondenceNotificationRecipient recipient
-    )
-    {
-        string? nin = recipient.NationalIdentityNumber?.ToUrnFormattedString();
-        string? orgNumber = recipient.OrganizationNumber?.ToUrnFormattedString();
-        string? email = recipient.EmailAddress;
-        string? mobile = recipient.MobileNumber;
-
-        if (nin is null && orgNumber is null && email is null && mobile is null)
-        {
-            throw new CorrespondenceArgumentException(
-                "Each custom notification recipient must have at least one identifier populated (email address, mobile number, organisation number or national identity number)."
-            );
-        }
-
-        if (email is not null)
-        {
-            yield return new CorrespondenceNotificationRecipientRequest { EmailAddress = email };
-        }
-
-        if (mobile is not null)
-        {
-            yield return new CorrespondenceNotificationRecipientRequest { MobileNumber = mobile };
-        }
-
-        if (orgNumber is not null)
-        {
-            yield return new CorrespondenceNotificationRecipientRequest { OrganizationNumber = orgNumber };
-        }
-
-        if (nin is not null)
-        {
-            yield return new CorrespondenceNotificationRecipientRequest { NationalIdentityNumber = nin };
-        }
     }
 
     private static CorrespondenceNotificationRecipientRequest BuildNotificationRecipient(
@@ -457,9 +382,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     )
     {
         _logger.LogDebug("Fetching access token via factory");
-        JwtToken accessToken = payload.AuthenticationMethod is not null
-            ? await _authenticationTokenResolver.GetAccessToken(payload.AuthenticationMethod)
-            : await _authorisationFactory.Resolve(payload);
+        JwtToken accessToken = await _authenticationTokenResolver.GetAccessToken(payload.AuthenticationMethod);
 
         _logger.LogDebug("Constructing authorized http request for target uri {TargetEndpoint}", uri);
         HttpRequestMessage request = new(method, uri) { Content = content };

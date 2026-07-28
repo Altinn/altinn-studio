@@ -7,7 +7,6 @@ namespace Altinn.App.Core.Features.Correspondence.Builder;
 /// <summary>
 /// Builder factory for creating <see cref="CorrespondenceNotificationRecipient"/> objects.
 /// </summary>
-[Obsolete("This builder is deprecated and will be removed in a future version.")]
 public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotificationOverrideBuilder
 {
     private string? _emailAddress;
@@ -20,12 +19,10 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     /// <summary>
     /// Creates a new <see cref="CorrespondenceNotificationOverrideBuilder"/> instance.
     /// </summary>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public static ICorrespondenceNotificationOverrideBuilder Create() =>
         new CorrespondenceNotificationOverrideBuilder();
 
     /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithEmailAddress(string? emailAddress)
     {
         _emailAddress = emailAddress;
@@ -33,7 +30,6 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber)
     {
         _mobileNumber = mobileNumber;
@@ -41,7 +37,6 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithNationalIdentityNumber(
         NationalIdentityNumber? nationalIdentityNumber
     )
@@ -51,7 +46,6 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganisationNumber? organizationNumber)
     {
         _organizationNumber = organizationNumber;
@@ -59,7 +53,6 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(
         OrganisationOrPersonIdentifier? organisationOrPersonIdentifier
     )
@@ -76,85 +69,6 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(string identifierAsString)
-    {
-        OrganisationOrPersonIdentifier identifier;
-
-        try
-        {
-            identifier = OrganisationOrPersonIdentifier.Parse(identifierAsString);
-        }
-        catch (FormatException ex)
-        {
-            throw new CorrespondenceArgumentException("Failed to parse identifier, invalid format.", ex);
-        }
-        catch (ArgumentException ex)
-        {
-            throw new CorrespondenceArgumentException("Failed to parse identifier, null or empty value.", ex);
-        }
-
-        return identifier switch
-        {
-            OrganisationOrPersonIdentifier.Organisation organizationNumber => WithOrganizationNumber(
-                organizationNumber
-            ),
-            OrganisationOrPersonIdentifier.Person nathionalIdentityNumber => WithNationalIdentityNumber(
-                nathionalIdentityNumber
-            ),
-            _ => throw new CorrespondenceArgumentException(
-                "Parse succeeded, but identifier is neither an organization nor a person."
-            ),
-        };
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(OrganisationNumber organizationNumber)
-    {
-        return WithOrganizationNumber(organizationNumber);
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(NationalIdentityNumber nin)
-    {
-        return WithNationalIdentityNumber(nin);
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(OrganisationOrPersonIdentifier identifier)
-    {
-        return identifier switch
-        {
-            OrganisationOrPersonIdentifier.Organisation org => WithOrganizationNumber(org),
-            OrganisationOrPersonIdentifier.Person person => WithNationalIdentityNumber(person),
-            _ => throw new CorrespondenceArgumentException(
-                "Recipient identifier must be either an organization or a person."
-            ),
-        };
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
-    public ICorrespondenceNotificationOverrideBuilder WithCorrespondenceNotificationRecipients(
-        List<CorrespondenceNotificationRecipient> correspondenceNotificationRecipients
-    )
-    {
-        var firstRecipient =
-            correspondenceNotificationRecipients.FirstOrDefault()
-            ?? throw new CorrespondenceArgumentException("At least one recipient must be provided.");
-
-        _emailAddress = firstRecipient.EmailAddress;
-        _mobileNumber = firstRecipient.MobileNumber;
-        _nationalIdentityNumber = firstRecipient.NationalIdentityNumber;
-        _organizationNumber = firstRecipient.OrganizationNumber;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
     public CorrespondenceNotificationRecipient Build()
     {
         if (_emailAddress is not null || _mobileNumber is not null)

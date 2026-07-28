@@ -149,6 +149,6 @@ internal static class SigningNotificationHelper
             recipients.Add(new CorrespondenceNotificationRecipient { MobileNumber = mobileNumber });
         }
 
-        return builder.WithCustomRecipients(recipients).WithOverrideRegisteredContactInformation(true);
+        return builder.WithRecipientOverrides(recipients).WithOverrideRegisteredContactInformation(true);
     }
 }

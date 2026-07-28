@@ -29,7 +29,6 @@ public class CorrespondenceBuilderTests
         var builder = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId(resourceId)
-            .WithSender(sender)
             .WithSendersReference(sendersReference)
             .WithRecipients(recipients)
             .WithContent(contentLanguage, contentTitle, contentSummary, contentBody);
@@ -40,7 +39,6 @@ public class CorrespondenceBuilderTests
         // Assert
         correspondence.Should().NotBeNull();
         correspondence.ResourceId.Should().Be("resource-id");
-        // correspondence.Sender.Should().Be(sender); Builder mapping removed, sender is now determined from resource registry
         correspondence.SendersReference.Should().Be("sender-reference");
         correspondence.Recipients.Should().BeEquivalentTo(recipients);
         correspondence.Content.Title.Should().Be(contentTitle);
@@ -99,7 +97,6 @@ public class CorrespondenceBuilderTests
                     sendersReference = "1234-1",
                     dataType = "text/plain",
                     data = "attachment-data-1",
-                    dataLocationType = CorrespondenceDataLocationType.ExistingCorrespondenceAttachment,
                     isEncrypted = false,
                 },
                 new
@@ -110,7 +107,6 @@ public class CorrespondenceBuilderTests
                     sendersReference = "1234-2",
                     dataType = "text/plain",
                     data = "attachment-data-2",
-                    dataLocationType = CorrespondenceDataLocationType.NewCorrespondenceAttachment,
                     isEncrypted = true,
                 },
                 new
@@ -121,7 +117,6 @@ public class CorrespondenceBuilderTests
                     sendersReference = "1234-3",
                     dataType = "text/plain",
                     data = "attachment-data-3",
-                    dataLocationType = CorrespondenceDataLocationType.ExisitingExternalStorage,
                     isEncrypted = false,
                 },
             },
@@ -144,7 +139,6 @@ public class CorrespondenceBuilderTests
         var builder = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId(data.resourceId)
-            .WithSender(data.sender)
             .WithSendersReference(data.sendersReference)
             .WithRecipient(data.recipient)
             .WithContent(
@@ -188,7 +182,6 @@ public class CorrespondenceBuilderTests
                     .WithFilename(data.attachments[0].filename)
                     .WithSendersReference(data.attachments[0].sendersReference)
                     .WithData(new MemoryStream(Encoding.UTF8.GetBytes(data.attachments[0].data)))
-                    .WithDataLocationType(data.attachments[0].dataLocationType)
                     .WithIsEncrypted(data.attachments[0].isEncrypted)
             )
             .WithAttachment(
@@ -197,7 +190,6 @@ public class CorrespondenceBuilderTests
                     Filename = data.attachments[1].filename,
                     SendersReference = data.attachments[1].sendersReference,
                     Data = new MemoryStream(Encoding.UTF8.GetBytes(data.attachments[1].data)),
-                    DataLocationType = data.attachments[1].dataLocationType,
                     IsEncrypted = data.attachments[1].isEncrypted,
                 }
             )
@@ -207,7 +199,6 @@ public class CorrespondenceBuilderTests
                     Filename = data.attachments[2].filename,
                     SendersReference = data.attachments[2].sendersReference,
                     Data = new MemoryStream(Encoding.UTF8.GetBytes(data.attachments[2].data)),
-                    DataLocationType = data.attachments[2].dataLocationType,
                     IsEncrypted = data.attachments[2].isEncrypted,
                 },
             ])
@@ -244,7 +235,6 @@ public class CorrespondenceBuilderTests
         Assert.NotNull(correspondence.ReplyOptions);
 
         correspondence.ResourceId.Should().Be(data.resourceId);
-        // correspondence.Sender.Should().Be(data.sender); Builder mapping removed, sender is now determined from resource registry
         correspondence.SendersReference.Should().Be(data.sendersReference);
         correspondence.Recipients.Should().BeEquivalentTo([data.recipient]);
         correspondence.DueDateTime.Should().Be(data.dueDateTime);
@@ -264,7 +254,6 @@ public class CorrespondenceBuilderTests
             correspondence.Content.Attachments[i].Filename.Should().Be(data.attachments[i].filename);
             correspondence.Content.Attachments[i].IsEncrypted.Should().Be(data.attachments[i].isEncrypted);
             correspondence.Content.Attachments[i].SendersReference.Should().Be(data.attachments[i].sendersReference);
-            correspondence.Content.Attachments[i].DataLocationType.Should().Be(data.attachments[i].dataLocationType);
             using var ms = new MemoryStream();
             correspondence.Content.Attachments[i].Data.CopyTo(ms);
             Encoding.UTF8.GetString(ms.ToArray()).Should().Be(data.attachments[i].data);
@@ -315,7 +304,6 @@ public class CorrespondenceBuilderTests
         var builder = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resourceId-1")
-            .WithSender(TestHelpers.GetOrganisationNumber(1))
             .WithSendersReference("sender-reference-1")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(
@@ -342,7 +330,6 @@ public class CorrespondenceBuilderTests
             .WithIsConfirmationNeeded(true);
 
         builder.WithResourceId("resourceId-2");
-        builder.WithSender(TestHelpers.GetOrganisationNumber(2).Get(OrganisationNumberFormat.Local));
         builder.WithSendersReference("sender-reference-2");
         builder.WithRecipient(TestHelpers.GetOrganisationNumber(2).Get(OrganisationNumberFormat.International));
         builder.WithRecipient(TestHelpers.GetOrganisationNumber(3));
@@ -479,7 +466,6 @@ public class CorrespondenceBuilderTests
         var baseBuilder = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resourceId-1")
-            .WithSender(TestHelpers.GetOrganisationNumber(1)) // WithSender is a no-op, so this won't throw even with invalid input
             .WithSendersReference("sender-reference-1")
             .WithRecipient(TestHelpers.GetOrganisationNumber(1))
             .WithContent(
@@ -504,5 +490,151 @@ public class CorrespondenceBuilderTests
         // Assert
         act1.Should().Throw<FormatException>();
         act2.Should().Throw<FormatException>();
+    }
+
+    [Fact]
+    public void NotificationBuilder_RecipientOverrides_AccumulateAcrossChainedCalls()
+    {
+        // Arrange
+        var org = TestHelpers.GetOrganisationNumber(1);
+        var nin = TestHelpers.GetNationalIdentityNumber(0);
+
+        // Act: mix all four entry points on one builder
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
+            .WithRecipientOverride(CorrespondenceNotificationOverrideBuilder.Create().WithOrganizationNumber(org))
+            .WithRecipientOverrideIfConfigured(null)
+            .WithRecipientOverrideIfConfigured(new CorrespondenceNotificationRecipient { MobileNumber = "+4799999999" })
+            .WithRecipientOverrides([new CorrespondenceNotificationRecipient { NationalIdentityNumber = nin }])
+            .Build();
+
+        // Assert: order preserved, the null skipped
+        notification.CustomRecipients.Should().HaveCount(4);
+        notification.CustomRecipients![0].EmailAddress.Should().Be("a@example.com");
+        notification.CustomRecipients[1].OrganizationNumber.Should().Be(org);
+        notification.CustomRecipients[2].MobileNumber.Should().Be("+4799999999");
+        notification.CustomRecipients[3].NationalIdentityNumber.Should().Be(nin);
+    }
+
+    [Fact]
+    public void NotificationBuilder_NoRecipientOverride_LeavesCustomRecipientsNull()
+    {
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverrideIfConfigured(null)
+            .Build();
+
+        notification.CustomRecipients.Should().BeNull();
+    }
+
+    [Fact]
+    public void Builders_Build_SnapshotsCollections_SoLaterCallsDoNotMutateBuiltObjects()
+    {
+        // Arrange: a builder that is reused after Build(), for both the notification and the request
+        var notificationBuilder = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "first@example.com" });
+
+        var requestBuilder = CorrespondenceRequestBuilder
+            .Create()
+            .WithResourceId("resource-id")
+            .WithSendersReference("senders-ref")
+            .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+            .WithContent(LanguageCode<Iso6391>.Parse("no"), "title", "summary", "body")
+            .WithExternalReference(CorrespondenceReferenceType.Generic, "ref-1")
+            .WithReplyOption("https://example.com/1", "Link 1")
+            .WithExistingAttachment(Guid.NewGuid())
+            .WithPropertyList(new Dictionary<string, string> { ["a"] = "1" })
+            .WithAttachment(
+                CorrespondenceAttachmentBuilder
+                    .Create()
+                    .WithFilename("early.txt")
+                    .WithSendersReference("early-ref")
+                    .WithData(new MemoryStream("early"u8.ToArray()))
+            );
+
+        var notification = notificationBuilder.Build();
+        var request = requestBuilder.Build();
+
+        // Act: keep building on the same builders
+        notificationBuilder.WithRecipientOverride(
+            new CorrespondenceNotificationRecipient { EmailAddress = "second@example.com" }
+        );
+        requestBuilder
+            .WithExternalReference(CorrespondenceReferenceType.Generic, "ref-2")
+            .WithReplyOption("https://example.com/2", "Link 2")
+            .WithExistingAttachment(Guid.NewGuid())
+            .WithPropertyList(new Dictionary<string, string> { ["b"] = "2" })
+            .WithAttachment(
+                CorrespondenceAttachmentBuilder
+                    .Create()
+                    .WithFilename("late.txt")
+                    .WithSendersReference("late-ref")
+                    .WithData(new MemoryStream("late"u8.ToArray()))
+            );
+        requestBuilder.WithRecipient(TestHelpers.GetOrganisationNumber(2));
+
+        // Assert: the already-built objects are untouched
+        notification.CustomRecipients.Should().ContainSingle();
+        notification.CustomRecipients![0].EmailAddress.Should().Be("first@example.com");
+
+        request.ExternalReferences.Should().ContainSingle();
+        request.ReplyOptions.Should().ContainSingle();
+        request.ExistingAttachments.Should().ContainSingle();
+        request.Recipients.Should().ContainSingle();
+        request.Content.Attachments.Should().ContainSingle();
+        request.PropertyList.Should().HaveCount(1);
+        request.PropertyList.Should().NotContainKey("b");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void NotificationBuilder_OverrideRegisteredContactInformation_RoundTrips(bool overrideRegistered)
+    {
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
+            .WithOverrideRegisteredContactInformation(overrideRegistered)
+            .Build();
+
+        notification.OverrideRegisteredContactInformation.Should().Be(overrideRegistered);
+    }
+
+    [Fact]
+    public void NotificationBuilder_OverrideRegisteredContactInformation_DefaultsToFalse()
+    {
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
+            .Build();
+
+        notification.OverrideRegisteredContactInformation.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Builder_IdempotentKey_RoundTripsAndDefaultsToNull()
+    {
+        var key = Guid.NewGuid();
+
+        CorrespondenceRequest Build(bool withKey)
+        {
+            var builder = CorrespondenceRequestBuilder
+                .Create()
+                .WithResourceId("resource-id")
+                .WithSendersReference("senders-ref")
+                .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+                .WithContent(LanguageCode<Iso6391>.Parse("no"), "title", "summary", "body");
+            return withKey ? builder.WithIdempotentKey(key).Build() : builder.Build();
+        }
+
+        Build(withKey: true).IdempotentKey.Should().Be(key);
+        Build(withKey: false).IdempotentKey.Should().BeNull();
     }
 }

@@ -18,7 +18,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     private CorrespondenceNotificationChannel? _notificationChannel;
     private CorrespondenceNotificationChannel? _reminderNotificationChannel;
     private string? _sendersReference;
-    private IReadOnlyList<CorrespondenceNotificationRecipient>? _customRecipients;
+    private List<CorrespondenceNotificationRecipient>? _recipientOverrides;
     private bool _overrideRegisteredContactInformation;
 
     private CorrespondenceNotificationBuilder() { }
@@ -113,41 +113,41 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     }
 
     /// <inheritdoc/>
-    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-    public ICorrespondenceNotificationBuilder WithRequestedSendTime(DateTimeOffset? requestedSendTime)
+    public ICorrespondenceNotificationBuilder WithRecipientOverride(
+        ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
+    )
     {
-        // Intentional no-op: RequestedSendTime is no longer accepted by the Correspondence API.
+        return WithRecipientOverrides([recipientOverrideBuilder.Build()]);
+    }
+
+    /// <inheritdoc/>
+    public ICorrespondenceNotificationBuilder WithRecipientOverride(
+        CorrespondenceNotificationRecipient recipientOverride
+    )
+    {
+        return WithRecipientOverrides([recipientOverride]);
+    }
+
+    /// <inheritdoc/>
+    public ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(
+        CorrespondenceNotificationRecipient? recipientOverride
+    )
+    {
+        if (recipientOverride is not null)
+        {
+            return WithRecipientOverrides([recipientOverride]);
+        }
+
         return this;
     }
 
     /// <inheritdoc/>
-    [Obsolete("Use WithCustomRecipients instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverride(
-        ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
-    ) => WithCustomRecipients([recipientOverrideBuilder.Build()]);
-
-    /// <inheritdoc/>
-    [Obsolete("Use WithCustomRecipients instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverride(
-        CorrespondenceNotificationRecipient recipientOverride
-    ) => WithCustomRecipients([recipientOverride]);
-
-    /// <summary>
-    /// Same as <see cref="WithRecipientOverride(CorrespondenceNotificationRecipient)"/>, but only applied if
-    /// <paramref name="recipientOverride"/> is not <c>null</c>.
-    /// </summary>
-    /// <param name="recipientOverride">The recipient override</param>
-    [Obsolete("Use WithCustomRecipients instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(
-        CorrespondenceNotificationRecipient? recipientOverride
-    ) => recipientOverride is not null ? WithCustomRecipients([recipientOverride]) : this;
-
-    /// <inheritdoc/>
-    public ICorrespondenceNotificationBuilder WithCustomRecipients(
-        IReadOnlyList<CorrespondenceNotificationRecipient> customRecipients
+    public ICorrespondenceNotificationBuilder WithRecipientOverrides(
+        IEnumerable<CorrespondenceNotificationRecipient> recipientOverrides
     )
     {
-        _customRecipients = customRecipients;
+        _recipientOverrides ??= [];
+        _recipientOverrides.AddRange(recipientOverrides);
         return this;
     }
 
@@ -178,7 +178,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
             NotificationChannel = _notificationChannel,
             ReminderNotificationChannel = _reminderNotificationChannel,
             SendersReference = _sendersReference,
-            CustomRecipients = _customRecipients,
+            CustomRecipients = _recipientOverrides?.ToArray(),
             OverrideRegisteredContactInformation = _overrideRegisteredContactInformation,
         };
     }

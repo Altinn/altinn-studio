@@ -6,7 +6,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Correspondence;
 using Altinn.App.Core.Features.Correspondence.Builder;
-using Altinn.App.Core.Features.Correspondence.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Models;
@@ -44,7 +43,6 @@ public class CorrespondenceClientMappingTests
 
         string? capturedJson = null;
         var existingAttachmentId = Guid.NewGuid();
-        var orgSender = TestHelpers.GetOrganisationNumber(0);
         var orgRecipient = TestHelpers.GetOrganisationNumber(1);
         var ninRecipient = TestHelpers.GetNationalIdentityNumber(0);
         var requestedPublishTime = DateTimeOffset.UtcNow.AddDays(1);
@@ -53,7 +51,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(orgSender)
             .WithSendersReference("senders-ref")
             .WithRecipients([
                 OrganisationOrPersonIdentifier.Create(orgRecipient),
@@ -101,6 +98,13 @@ public class CorrespondenceClientMappingTests
                             .WithMobileNumber("+4799999999")
                             .Build()
                     )
+                    .WithRecipientOverride(
+                        CorrespondenceNotificationOverrideBuilder
+                            .Create()
+                            .WithOrganizationNumber(TestHelpers.GetOrganisationNumber(2))
+                            .Build()
+                    )
+                    .WithOverrideRegisteredContactInformation(true)
             )
             .WithExistingAttachment(existingAttachmentId)
             .Build();
@@ -137,7 +141,8 @@ public class CorrespondenceClientMappingTests
         var corr = root.GetProperty("correspondence");
 
         corr.GetProperty("resourceId").GetString().Should().Be("resource-id");
-        // corr.GetProperty("sender").GetString().Should().Be(orgSender.ToUrnFormattedString()); Builder mapping removed
+        // `sender` was removed in v9: the API derives it from the Resource Registry via resourceId.
+        corr.TryGetProperty("sender", out _).Should().BeFalse();
         corr.GetProperty("sendersReference").GetString().Should().Be("senders-ref");
         corr.GetProperty("messageSender").GetString().Should().Be("message-sender");
         corr.GetProperty("ignoreReservation").GetBoolean().Should().BeTrue();
@@ -156,6 +161,10 @@ public class CorrespondenceClientMappingTests
         recipients[1].GetString().Should().Be(ninRecipient.ToUrnFormattedString());
 
         root.GetProperty("existingAttachments")[0].GetGuid().Should().Be(existingAttachmentId);
+
+        // No key configured - omitted rather than sent as null. (This request has two recipients, which
+        // the API does not allow an idempotent key with.)
+        root.TryGetProperty("idempotentKey", out _).Should().BeFalse();
 
         var propList = corr.GetProperty("propertyList");
         propList.GetProperty("prop-key-1").GetString().Should().Be("prop-value-1");
@@ -188,131 +197,70 @@ public class CorrespondenceClientMappingTests
         notification.GetProperty("reminderNotificationChannel").GetString().Should().Be("SmsPreferred");
         notification.GetProperty("sendersReference").GetString().Should().Be("notification-senders-ref");
 
-        // The deprecated singular recipient override is folded into the plural customRecipients and exploded into
-        // one entry per identifier (email and mobile become separate single-identifier recipients).
+        // Every recipient must reach the wire, in order - not just the first.
         var customRecipients = notification.GetProperty("customRecipients");
         customRecipients.GetArrayLength().Should().Be(2);
         customRecipients[0].GetProperty("emailAddress").GetString().Should().Be("override@example.com");
-        customRecipients[1].GetProperty("mobileNumber").GetString().Should().Be("+4799999999");
+        customRecipients[0].GetProperty("mobileNumber").GetString().Should().Be("+4799999999");
+        customRecipients[1]
+            .GetProperty("organizationNumber")
+            .GetString()
+            .Should()
+            .Be(TestHelpers.GetOrganisationNumber(2).ToUrnFormattedString());
+
+        // The API deprecated both of these in favour of `customRecipients`, which we now emit directly.
+        // It honoured only the first entry of `customNotificationRecipients`, so nothing is lost.
+        notification.TryGetProperty("customRecipient", out _).Should().BeFalse();
+        notification.TryGetProperty("customNotificationRecipients", out _).Should().BeFalse();
+
+        notification.GetProperty("overrideRegisteredContactInformation").GetBoolean().Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData(true)] // Override mode: only the custom recipients are notified.
-    [InlineData(false)] // Additive mode: custom recipients are notified alongside the registered contact information.
-    public async Task Send_WithCustomRecipients_MapsToCustomRecipientsJsonAndOverrideFlag(
-        bool overrideRegisteredContactInformation
-    )
+    [Fact]
+    public async Task Send_WithoutOverrideRegisteredContactInformation_SendsFlagAsFalse()
     {
         // Arrange
         await using var fixture = Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
-
         string? capturedJson = null;
-        var orgRecipient = TestHelpers.GetOrganisationNumber(1);
+        var idempotentKey = Guid.NewGuid();
 
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
-            .WithRecipient(OrganisationOrPersonIdentifier.Create(orgRecipient))
-            .WithContent(
-                CorrespondenceContentBuilder
-                    .Create()
-                    .WithLanguage(LanguageCode<Iso6391>.Parse("nb"))
-                    .WithTitle("message-title")
-                    .WithSummary("message-summary")
-                    .WithBody("message-body")
-            )
+            .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+            .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
             .WithNotification(
                 CorrespondenceNotificationBuilder
                     .Create()
-                    .WithNotificationTemplate(CorrespondenceNotificationTemplate.CustomMessage)
-                    .WithNotificationChannel(CorrespondenceNotificationChannel.EmailPreferred)
-                    .WithCustomRecipients([
-                        new CorrespondenceNotificationRecipient { EmailAddress = "override@example.com" },
-                        new CorrespondenceNotificationRecipient { MobileNumber = "+4799999999" },
-                    ])
-                    .WithOverrideRegisteredContactInformation(overrideRegisteredContactInformation)
+                    .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+                    .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
             )
+            .WithIdempotentKey(idempotentKey)
             .Build();
-
-        var payload = new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default());
 
         fixture.HttpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
         mockHttpClient
             .Setup(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-            .Callback(
-                (HttpRequestMessage req, CancellationToken _) =>
-                {
-                    if (req.Method == HttpMethod.Post && req.RequestUri!.AbsolutePath.EndsWith("/correspondence"))
-                        capturedJson = ReadBody(req.Content);
-                }
-            )
-            .ReturnsAsync(
-                (HttpRequestMessage req, CancellationToken _) =>
-                    (req.Method, req.RequestUri!.AbsolutePath) switch
-                    {
-                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("/correspondence") =>
-                            TestHelpers.ResponseMessageFactory(TestHelpers.DummySendCorrespondenceResponse),
-                        _ => throw FailException.ForFailure($"Unexpected request: {req.Method} {req.RequestUri}"),
-                    }
-            );
+            .Callback((HttpRequestMessage req, CancellationToken _) => capturedJson = ReadBody(req.Content))
+            .ReturnsAsync(() => TestHelpers.ResponseMessageFactory(TestHelpers.DummySendCorrespondenceResponse));
 
         // Act
-        await fixture.CorrespondenceClient.Send(payload);
+        await fixture.CorrespondenceClient.Send(
+            new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default())
+        );
 
-        // Assert
+        // Assert: the additive default must reach the wire as false, not be assumed
         Assert.NotNull(capturedJson);
         using var doc = JsonDocument.Parse(capturedJson);
         var notification = doc.RootElement.GetProperty("correspondence").GetProperty("notification");
+        notification.GetProperty("overrideRegisteredContactInformation").GetBoolean().Should().BeFalse();
+        notification.GetProperty("customRecipients").GetArrayLength().Should().Be(1);
 
-        notification
-            .GetProperty("overrideRegisteredContactInformation")
-            .GetBoolean()
-            .Should()
-            .Be(overrideRegisteredContactInformation);
-
-        var customRecipients = notification.GetProperty("customRecipients");
-        customRecipients.GetArrayLength().Should().Be(2);
-        customRecipients[0].GetProperty("emailAddress").GetString().Should().Be("override@example.com");
-        customRecipients[1].GetProperty("mobileNumber").GetString().Should().Be("+4799999999");
-    }
-
-    [Fact]
-    public async Task Send_WithCustomRecipientWithoutIdentifiers_ThrowsCorrespondenceArgumentException()
-    {
-        // Arrange: a custom recipient that carries no identifier is invalid and must not be silently dropped.
-        await using var fixture = Fixture.Create();
-        var mockHttpClient = new Mock<HttpClient>();
-
-        var request = CorrespondenceRequestBuilder
-            .Create()
-            .WithResourceId("resource-id")
-            .WithSendersReference("senders-ref")
-            .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
-            .WithContent(
-                CorrespondenceContentBuilder
-                    .Create()
-                    .WithLanguage(LanguageCode<Iso6391>.Parse("nb"))
-                    .WithTitle("message-title")
-                    .WithSummary("message-summary")
-                    .WithBody("message-body")
-            )
-            .WithNotification(
-                CorrespondenceNotificationBuilder
-                    .Create()
-                    .WithNotificationTemplate(CorrespondenceNotificationTemplate.CustomMessage)
-                    .WithNotificationChannel(CorrespondenceNotificationChannel.EmailPreferred)
-                    .WithCustomRecipients([new CorrespondenceNotificationRecipient()])
-            )
-            .Build();
-
-        var payload = new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default());
-
-        fixture.HttpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<CorrespondenceArgumentException>(() => fixture.CorrespondenceClient.Send(payload));
+        // `idempotentKey` is a sibling of `correspondence`, not one of its properties.
+        doc.RootElement.GetProperty("idempotentKey").GetGuid().Should().Be(idempotentKey);
+        doc.RootElement.GetProperty("correspondence").TryGetProperty("idempotentKey", out _).Should().BeFalse();
     }
 
     [Fact]
@@ -327,7 +275,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
@@ -404,7 +351,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
@@ -478,7 +424,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
@@ -538,7 +483,6 @@ public class CorrespondenceClientMappingTests
         var request = CorrespondenceRequestBuilder
             .Create()
             .WithResourceId("resource-id")
-            .WithSender(TestHelpers.GetOrganisationNumber(0))
             .WithSendersReference("senders-ref")
             .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")

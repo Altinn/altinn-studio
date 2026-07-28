@@ -6,12 +6,14 @@ const appFrontend = new AppFrontend();
  * E2E for the live workflow-status state machine (ADR 2026-07-08), driving the REAL workflow engine
  * via the ttd/process-transition-test app instead of intercept stubbing.
  *
- * The app is Task_1 (data) -> gateway -> [Task_Service (service task) -> gateway ->] Task_2 (data)
- * -> gateway -> EndEvent, where Task_2's reject action routes back to Task_1 (backwards
- * navigation) and Task_Service's reject action routes back to Task_1 as well (backing out of a
- * failed service task from its failure view). The gateway after Task_1 routes through Task_Service
- * ONLY when the postCommit path is chosen; every other path goes straight to Task_2. Task_1 has a
- * form of "levers" that two app hooks read to control the forward transition. The levers describe
+ * The app is Task_1 (data) -> gateway -> [Task_Service or Task_ServiceLayout (service task) ->
+ * gateway ->] Task_2 (data) -> gateway -> EndEvent, where Task_2's reject action routes back to
+ * Task_1 (backwards navigation) and the service tasks' reject action routes back to Task_1 as
+ * well (backing out of a failed service task from its failure view). The gateway after Task_1
+ * routes through a service task ONLY when the postCommit path is chosen (Task_ServiceLayout -
+ * which has a ui folder, so the app's custom layout renders - when serviceView is "layout",
+ * Task_Service otherwise); every other path goes straight to Task_2. Task_1 has a form of
+ * "levers" that two app hooks read to control the forward transition. The levers describe
  * a scenario:
  *   - path       WHERE the transition misbehaves: "none" (clean), "preCommit" (fail before the
  *                Storage commit, committed=Task_1) or "postCommit" (fail after it,
@@ -23,6 +25,11 @@ const appFrontend = new AppFrontend();
  *                (terminal failure -> error page; every replay fails the same way) or
  *                "failureThenSuccess" (terminal failure once, then success when the failed step
  *                is re-run via process/resume - i.e. the failed task view's "Prøv igjen").
+ *   - advance    after a successful settle: "auto" (auto-advance to Task_2) or "park" (succeed
+ *                WITHOUT advancing - the process stays on the service task until an out-of-band
+ *                process/next releases it; the frontend renders its implicit waiting step, #18935).
+ *   - serviceView "default" (Task_Service, built-in waiting/failure views) or "layout"
+ *                (Task_ServiceLayout, the app's own layout renders while parked).
  *
  * The two hooks:
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
@@ -55,6 +62,8 @@ type Levers = {
   delayMs?: 0 | 3000 | 8000 | 15000 | 30000;
   attempts?: 1 | 2 | 3 | 5;
   endState?: 'success' | 'failure' | 'failureThenSuccess';
+  advance?: 'auto' | 'park' | 'parkThenRelease';
+  serviceView?: 'default' | 'layout';
 };
 
 // Button labels from the app's resource.nb.json: Task_1 advances with "Gå til Task 2", Task_2
@@ -68,9 +77,9 @@ const task2SubmitButton = 'Send inn';
 // on the instant no-error path).
 const leverLabels = {
   path: {
-    none: 'Ingen feil – overgangen går rett gjennom',
-    preCommit: 'Feil før commit (instansen står fremdeles i Task 1)',
-    postCommit: 'Feil etter commit (i behandlingssteget etter Task 1)',
+    none: 'Ingen scenario – overgangen går rett til Task 2',
+    preCommit: 'Før commit – i task-ending-hooken (instansen står fremdeles i Task 1)',
+    postCommit: 'Etter commit – i behandlingssteget (service task) etter Task 1',
   },
   delayMs: {
     0: 'Ingen – overgangen fullføres umiddelbart',
@@ -90,11 +99,20 @@ const leverLabels = {
     failure: 'Feil – behandlingen stopper og feilsiden vises',
     failureThenSuccess: 'Feil, så suksess – behandlingen stopper, men «Prøv igjen» lykkes',
   },
+  advance: {
+    auto: 'Automatisk – prosessen går selv videre til Task 2',
+    park: 'Parker – prosessen blir stående til noen driver den videre',
+    parkThenRelease: 'Parker og slipp – kjører videre av seg selv etter ca. 5 sekunder',
+  },
+  serviceView: {
+    default: 'Standard venteside',
+    layout: 'Egendefinert layout',
+  },
 } as const;
 
 // path is applied first so it reveals the delayMs/attempts/endState dropdowns (all hidden while path
 // is "none") before we try to fill them.
-function fillLevers({ path, delayMs, attempts, endState }: Levers) {
+function fillLevers({ path, delayMs, attempts, endState, advance, serviceView }: Levers) {
   cy.get('#finishedLoading').should('exist');
   if (path !== undefined) {
     cy.dsSelect('#path', leverLabels.path[path]);
@@ -107,6 +125,12 @@ function fillLevers({ path, delayMs, attempts, endState }: Levers) {
   }
   if (endState !== undefined) {
     cy.dsSelect('#endState', leverLabels.endState[endState]);
+  }
+  if (advance !== undefined) {
+    cy.dsSelect('#advance', leverLabels.advance[advance]);
+  }
+  if (serviceView !== undefined) {
+    cy.dsSelect('#serviceView', leverLabels.serviceView[serviceView]);
   }
   // The hooks read the levers from Storage, so they must be persisted before we advance the process.
   cy.waitUntilSaved();
@@ -294,6 +318,93 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task1AdvanceButton }).click();
     cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
+  });
+
+  it('parked (post-commit): a healthy parked service task shows the waiting view, survives refresh, and follows the release', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // park: the transition commits and the service task succeeds WITHOUT auto-advancing - the
+    // process stays on Task_Service, simulating a task waiting for an external callback.
+    fillLevers({ path: 'postCommit', advance: 'park' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The submitting session lands on the parked service task and renders the implicit waiting
+    // step (#18935): spinner + reassurance, with NO recovery buttons - before this feature the
+    // parked-but-healthy task showed the failure-styled retry/back screen.
+    cy.contains('Vi behandler forespørselen din', { timeout: 30000 }).should('be.visible');
+    cy.contains('Du trenger ikke å gjøre noe').should('be.visible');
+    cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
+    cy.findByRole('button', { name: 'Gå tilbake' }).should('not.exist');
+
+    // The waiting state is server truth (committed task + idle workflow), so a reload lands on
+    // the same view.
+    waitForProcessState({ workflowStatus: 'idle', currentTask: 'Task_Service' });
+    cy.reload();
+    cy.contains('Vi behandler forespørselen din', { timeout: 15000 }).should('be.visible');
+
+    // Release the parked task out-of-band (an authorized process/next - what an external
+    // callback's handler would trigger). The polling waiting view observes the advance and
+    // navigates onto Task_2 on its own - no reload, no manual navigation.
+    cy.moveProcessNext();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('parked (post-commit): parkThenRelease drives itself onwards - no manual trigger', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // parkThenRelease: the service task parks AND schedules its own release (~5s) - the app-side
+    // background task drives an ordinary authorized process/next, imitating an external system's
+    // callback arriving on its own. The frontend needs no trigger from this session at all.
+    fillLevers({ path: 'postCommit', advance: 'parkThenRelease' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    cy.contains('Vi behandler forespørselen din', { timeout: 30000 }).should('be.visible');
+
+    // No cy.moveProcessNext() here - the waiting view's poll observes the app's own release and
+    // navigates onto Task_2 by itself.
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('parked with a custom layout: the app page renders instead of the default waiting view, and still follows the process', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // serviceView layout routes through Task_ServiceLayout, which has a ui folder: supplying a
+    // layout is the app's opt-out of the built-in waiting view.
+    fillLevers({ path: 'postCommit', advance: 'park', serviceView: 'layout' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 30000 }).should('be.visible');
+    cy.contains('Vi behandler forespørselen din').should('not.exist');
+
+    // Reload: same custom page, from server truth.
+    waitForProcessState({ workflowStatus: 'idle', currentTask: 'Task_ServiceLayout' });
+    cy.reload();
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 15000 }).should('be.visible');
+
+    // Even with a custom layout, the frontend follows the process (elementType-keyed, not
+    // layout-keyed) and carries the user onto Task_2 when the parked task is released.
+    cy.moveProcessNext();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+  });
+
+  it('failed on the layouted service task: the failure view takes precedence over the custom layout', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', serviceView: 'layout', attempts: 1, endState: 'failure' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // A custom layout must not bury a terminal failure: the recoverable failure view wins over
+    // the app's page (#18935 - failure takes precedence over layout).
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
+    cy.findByRole('button', { name: 'Gå tilbake' }).should('be.visible');
+    cy.findByRole('heading', { name: 'Egendefinert venteside' }).should('not.exist');
   });
 
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {

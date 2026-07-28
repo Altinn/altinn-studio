@@ -81,39 +81,24 @@ public sealed record CorrespondenceNotification
     public string? SendersReference { get; init; }
 
     /// <summary>
-    /// The date and time for when the notification should be sent.
+    /// Additional recipients of the notification.
     /// </summary>
-    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-    public DateTimeOffset? RequestedSendTime { get; init; }
-
-    /// <summary>
-    /// <p>A list of custom recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence.</p>
-    /// <p>Each recipient must have exactly one identifier populated (one of <see cref="CorrespondenceNotificationRecipient.EmailAddress"/>,
-    /// <see cref="CorrespondenceNotificationRecipient.MobileNumber"/>, <see cref="CorrespondenceNotificationRecipient.OrganizationNumber"/>
-    /// or <see cref="CorrespondenceNotificationRecipient.NationalIdentityNumber"/>). To notify a recipient on multiple channels, add one
-    /// entry per channel.</p>
-    /// </summary>
-    /// <remarks>See <see cref="OverrideRegisteredContactInformation"/> for how these recipients interact with the registered contact information in KRR.</remarks>
+    /// <remarks>
+    /// <p>Despite the name of the builder methods that set it, this does <em>not</em> replace the
+    /// correspondence recipient: the Correspondence API notifies the correspondence recipient's registered
+    /// contact information <em>and</em> everyone listed here. Leaving it unset notifies the correspondence
+    /// recipient only. The API de-duplicates byte-identical entries, but note that it keys organisation and
+    /// person recipients on the bare number while this client sends them URN-formatted, so listing the
+    /// correspondence recipient here again yields two notifications rather than one.</p>
+    /// <p>Set <see cref="OverrideRegisteredContactInformation"/> to notify only these recipients.</p>
+    /// </remarks>
     public IReadOnlyList<CorrespondenceNotificationRecipient>? CustomRecipients { get; init; }
 
     /// <summary>
-    /// <p>Controls how <see cref="CustomRecipients"/> interact with the contact information registered in Kontakt- og reservasjonsregisteret (KRR).</p>
-    /// <p><c>false</c> (default): notifications are sent to both the registered contact information and the <see cref="CustomRecipients"/>.</p>
-    /// <p><c>true</c>: notifications are sent only to the <see cref="CustomRecipients"/>, overriding the registered contact information.</p>
+    /// Whether <see cref="CustomRecipients"/> replaces the correspondence recipient's registered contact
+    /// information, rather than supplementing it. Defaults to <c>false</c>.
     /// </summary>
-    /// <remarks>Can only be set to <c>true</c> when <see cref="CustomRecipients"/> is provided.</remarks>
+    /// <remarks>Requires at least one entry in <see cref="CustomRecipients"/>; setting this without any is
+    /// rejected before the request is sent.</remarks>
     public bool OverrideRegisteredContactInformation { get; init; }
-
-    /// <summary>
-    /// A single custom recipient for the notification. If not set, the notification will be sent to the recipient of the Correspondence
-    /// </summary>
-    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipients instead.")]
-    public CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
-
-    /// <summary>
-    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
-    /// </summary>
-    /// <remarks> Only the first recipient in the list will be used for sending the notification. </remarks>
-    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipients instead.")]
-    public IReadOnlyList<CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
 }

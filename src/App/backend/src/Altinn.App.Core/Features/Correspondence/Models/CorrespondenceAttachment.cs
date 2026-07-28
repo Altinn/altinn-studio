@@ -21,12 +21,6 @@ public sealed record CorrespondenceAttachment
     public required string SendersReference { get; init; }
 
     /// <summary>
-    /// Specifies the storage location of the attachment data.
-    /// </summary>
-    public CorrespondenceDataLocationType DataLocationType { get; init; } =
-        CorrespondenceDataLocationType.ExistingCorrespondenceAttachment;
-
-    /// <summary>
     /// The data stream for the attachment content.
     /// The stream must be open (not disposed) when the correspondence is sent.
     /// Ownership of the stream is transferred to the client upon sending: the client will dispose

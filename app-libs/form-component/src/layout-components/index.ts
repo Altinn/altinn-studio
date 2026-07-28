@@ -1,6 +1,8 @@
 export * from './Accordion';
+export * from './ActionButton';
 export * from './Address';
 export * from './Alert';
+export * from './AttachmentList';
 export * from './Audio';
 export * from './ButtonGroup';
 export * from './Datepicker';
@@ -12,6 +14,7 @@ export * from './Image';
 export * from './InstanceInformation';
 export * from './Link';
 export * from './Paragraph';
+export * from './PrintButton';
 export * from './Tabs';
 export * from './Text';
 export * from './TextArea';
