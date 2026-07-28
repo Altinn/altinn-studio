@@ -58,6 +58,28 @@ internal sealed class CorrespondenceApiMigration
         "GetCorrespondenceStatusPayload",
     };
 
+    private const string WithDataMethod = "WithData";
+
+    /// <summary>Expressions that can only be a byte payload, so wrapping them is provably correct.</summary>
+    private static readonly IReadOnlySet<string> _byteProducingMethods = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "GetBytes",
+        "FromBase64String",
+        "ReadAllBytes",
+        "ReadAllBytesAsync",
+        "GetDataBytes",
+    };
+
+    /// <summary>Written-out types that mean "byte payload" when a declaration names one.</summary>
+    private static readonly IReadOnlySet<string> _byteTypeNames = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "byte[]",
+        "ReadOnlyMemory<byte>",
+        "Memory<byte>",
+        "ReadOnlyMemory<byte>?",
+        "Memory<byte>?",
+    };
+
     private const string AuthenticationMethodType = "CorrespondenceAuthenticationMethod";
     private const string LegacyAuthorisationType = "CorrespondenceAuthorisation";
     private const string AuthenticationMethodNamespace = "Altinn.App.Core.Features";
@@ -72,11 +94,14 @@ internal sealed class CorrespondenceApiMigration
     public MigrationResult Migrate()
     {
         var warnings = new List<string>();
+        var unresolved = new List<string>();
+        var files = _scanner.Files;
 
-        foreach (var file in _scanner.Files)
+        foreach (var file in files)
         {
-            var rewriter = new Rewriter(file);
+            var rewriter = new Rewriter(file, files);
             var updated = rewriter.Visit(file.Root);
+            unresolved.AddRange(rewriter.Unresolved);
             if (rewriter.Changes.Count == 0)
             {
                 continue;
@@ -100,8 +125,19 @@ internal sealed class CorrespondenceApiMigration
             );
         }
 
-        // Auto-migration: the app compiles again, so no manual action is required for these rewrites.
-        return new MigrationResult(ManualActionRequired: false, warnings);
+        if (unresolved.Count > 0)
+        {
+            warnings.Add(
+                "These `WithData` call sites could not be classified from syntax alone - the removed "
+                    + "ReadOnlyMemory<byte> overload and the surviving Stream overload share a name and an arity, "
+                    + "so wrapping blindly could break working code:"
+            );
+            warnings.AddRange(unresolved);
+        }
+
+        // Auto-migration: the rewrites leave the app compiling. Unclassifiable WithData sites do need a
+        // human, so they set the manual-action flag - the app will not build until they are resolved.
+        return new MigrationResult(ManualActionRequired: unresolved.Count > 0, warnings);
     }
 
     private static CompilationUnitSyntax AddUsingIfMissing(CompilationUnitSyntax unit, string namespaceName)
@@ -130,13 +166,18 @@ internal sealed class CorrespondenceApiMigration
     private sealed class Rewriter : CSharpSyntaxRewriter
     {
         private readonly ScannedCSharpFile _file;
+        private readonly IReadOnlyList<ScannedCSharpFile> _allFiles;
 
-        public Rewriter(ScannedCSharpFile file)
+        public Rewriter(ScannedCSharpFile file, IReadOnlyList<ScannedCSharpFile> allFiles)
         {
             _file = file;
+            _allFiles = allFiles;
         }
 
         public List<string> Changes { get; } = [];
+
+        /// <summary>Call sites this migration could not classify, for the developer to resolve.</summary>
+        public List<string> Unresolved { get; } = [];
 
         public bool NeedsAuthenticationMethodUsing { get; private set; }
 
@@ -172,10 +213,18 @@ internal sealed class CorrespondenceApiMigration
                 return rewritten;
             }
 
-            if (
-                visited.Expression is not MemberAccessExpressionSyntax memberAccess
-                || !_noOpBuilderMethods.Contains(memberAccess.Name.Identifier.Text)
-            )
+            if (visited.Expression is not MemberAccessExpressionSyntax memberAccess)
+            {
+                return visited;
+            }
+
+            var dataRewrite = RewriteWithData(node, visited, memberAccess.Name);
+            if (dataRewrite is not null)
+            {
+                return dataRewrite;
+            }
+
+            if (!_noOpBuilderMethods.Contains(memberAccess.Name.Identifier.Text))
             {
                 return visited;
             }
@@ -195,6 +244,192 @@ internal sealed class CorrespondenceApiMigration
             );
             return memberAccess.Expression.WithTriviaFrom(visited);
         }
+
+        /// <summary>
+        /// `WithData(ReadOnlyMemory&lt;byte&gt;)` is gone; only `WithData(Stream)` survives. The two overloads
+        /// share a name and an arity, so an argument can only be classified when the syntax settles it:
+        /// a provable byte payload is wrapped in a `MemoryStream`, a provable stream is left alone, and
+        /// anything else is reported rather than guessed at — wrapping a stream would not compile.
+        /// </summary>
+        private InvocationExpressionSyntax? RewriteWithData(
+            InvocationExpressionSyntax original,
+            InvocationExpressionSyntax visited,
+            SimpleNameSyntax name
+        )
+        {
+            if (name.Identifier.Text != WithDataMethod || visited.ArgumentList.Arguments.Count != 1)
+            {
+                return null;
+            }
+
+            var argument = visited.ArgumentList.Arguments[0];
+            switch (ClassifyDataArgument(argument.Expression))
+            {
+                case DataKind.Stream:
+                    return null;
+
+                case DataKind.Bytes:
+                    Record(original, "wrapped the byte payload passed to `WithData` in a `MemoryStream`");
+                    return visited.WithArgumentList(
+                        visited.ArgumentList.WithArguments(
+                            visited.ArgumentList.Arguments.Replace(
+                                argument,
+                                argument.WithExpression(
+                                    NewObject("MemoryStream", argument.Expression.WithoutTrivia())
+                                        .WithTriviaFrom(argument.Expression)
+                                )
+                            )
+                        )
+                    );
+
+                default:
+                    Unresolved.Add(
+                        $"{_file.RelativePath}:{_file.GetLine(name)}: `WithData({argument.Expression})` - "
+                            + "WithData(ReadOnlyMemory<byte>) is removed. If this argument is a byte payload, wrap it "
+                            + "as `new MemoryStream(..)`; if it is already a Stream, nothing needs to change. Its type "
+                            + "could not be determined here."
+                    );
+                    return null;
+            }
+        }
+
+        private enum DataKind
+        {
+            Unknown,
+            Bytes,
+            Stream,
+        }
+
+        private DataKind ClassifyDataArgument(ExpressionSyntax expression) => ClassifyDataArgument(expression, 0);
+
+        private DataKind ClassifyDataArgument(ExpressionSyntax expression, int depth) =>
+            // Bounded because following `var` to its initializer can chain, and pathological source could
+            // make it cycle.
+            depth > 4
+                ? DataKind.Unknown
+                : expression switch
+                {
+                    // `new MemoryStream(..)` / `new byte[..]` settle it outright.
+                    ObjectCreationExpressionSyntax creation => TypeNameKind(creation.Type.ToString()),
+                    ArrayCreationExpressionSyntax array => TypeNameKind(array.Type.ToString()),
+                    ImplicitArrayCreationExpressionSyntax => DataKind.Bytes,
+                    // `Encoding.UTF8.GetBytes(..)`, `"x"u8.ToArray()`, `File.ReadAllBytes(..)`.
+                    InvocationExpressionSyntax invocation => InvokedNameKind(invocation),
+                    AwaitExpressionSyntax await => ClassifyDataArgument(await.Expression, depth + 1),
+                    // A name resolves only if some declaration in the app writes its type out.
+                    IdentifierNameSyntax identifier => DeclaredTypeKind(identifier.Identifier.Text, depth),
+                    MemberAccessExpressionSyntax member => DeclaredTypeKind(member.Name.Identifier.Text, depth),
+                    _ => DataKind.Unknown,
+                };
+
+        private DataKind InvokedNameKind(InvocationExpressionSyntax invocation)
+        {
+            var invoked = invocation.Expression switch
+            {
+                MemberAccessExpressionSyntax invokedAccess => invokedAccess.Name.Identifier.Text,
+                MemberBindingExpressionSyntax binding => binding.Name.Identifier.Text,
+                SimpleNameSyntax simple => simple.Identifier.Text,
+                _ => null,
+            };
+            if (invoked is null)
+            {
+                return DataKind.Unknown;
+            }
+
+            if (_byteProducingMethods.Contains(invoked))
+            {
+                return DataKind.Bytes;
+            }
+
+            // `"literal"u8.ToArray()` is a byte array; any other `ToArray()` is not knowable.
+            if (
+                invoked == "ToArray"
+                && invocation.Expression is MemberAccessExpressionSyntax access
+                && access.Expression is LiteralExpressionSyntax literal
+                && literal.Token.Text.EndsWith("u8", StringComparison.Ordinal)
+            )
+            {
+                return DataKind.Bytes;
+            }
+
+            return DeclaredTypeKind(invoked, 0);
+        }
+
+        private static DataKind TypeNameKind(string typeName) =>
+            typeName.EndsWith("Stream", StringComparison.Ordinal) ? DataKind.Stream
+            : _byteTypeNames.Contains(typeName) || typeName.StartsWith("byte[", StringComparison.Ordinal)
+                ? DataKind.Bytes
+            : DataKind.Unknown;
+
+        /// <summary>
+        /// The kind implied by any declaration of <paramref name="name"/> anywhere in the scanned app —
+        /// a local with a written-out type, a field, a property, a record parameter or a method return
+        /// type. `var` declarations carry no type and stay Unknown.
+        /// </summary>
+        private DataKind DeclaredTypeKind(string name, int depth)
+        {
+            foreach (var file in _allFiles)
+            {
+                foreach (var node in file.Root.DescendantNodes())
+                {
+                    // `var payload = await GetBytes(..)` writes out no type, but its initializer often
+                    // settles the question - the common shape for a byte payload fetched from a client.
+                    if (
+                        node is VariableDeclaratorSyntax implicitly
+                        && implicitly.Identifier.Text == name
+                        && implicitly.Parent is VariableDeclarationSyntax { Type.IsVar: true }
+                        && implicitly.Initializer is not null
+                    )
+                    {
+                        var fromInitializer = ClassifyDataArgument(implicitly.Initializer.Value, depth + 1);
+                        if (fromInitializer != DataKind.Unknown)
+                        {
+                            return fromInitializer;
+                        }
+                    }
+
+                    var typeName = node switch
+                    {
+                        VariableDeclaratorSyntax v
+                            when v.Identifier.Text == name && v.Parent is VariableDeclarationSyntax d =>
+                            d.Type.ToString(),
+                        PropertyDeclarationSyntax prop when prop.Identifier.Text == name => prop.Type.ToString(),
+                        ParameterSyntax param when param.Identifier.Text == name => param.Type?.ToString(),
+                        MethodDeclarationSyntax method when method.Identifier.Text == name => UnwrapTask(
+                            method.ReturnType.ToString()
+                        ),
+                        _ => null,
+                    };
+
+                    if (typeName is null)
+                    {
+                        continue;
+                    }
+
+                    var kind = TypeNameKind(typeName);
+                    if (kind != DataKind.Unknown)
+                    {
+                        return kind;
+                    }
+                }
+            }
+
+            return DataKind.Unknown;
+        }
+
+        private static string UnwrapTask(string returnType) =>
+            returnType.StartsWith("Task<", StringComparison.Ordinal)
+            && returnType.EndsWith(">", StringComparison.Ordinal)
+                ? returnType[5..^1]
+                : returnType;
+
+        private static ObjectCreationExpressionSyntax NewObject(string type, ExpressionSyntax argument) =>
+            SyntaxFactory
+                .ObjectCreationExpression(SyntaxFactory.IdentifierName(type))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(argument)))
+                )
+                .WithNewKeyword(SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxFactory.Space));
 
         /// <summary>
         /// Whether the parent expression consumes this invocation's value in a position where a bare

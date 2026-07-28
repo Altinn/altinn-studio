@@ -10,7 +10,6 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     private string? _filename;
     private string? _sendersReference;
     private Stream? _data;
-    private ReadOnlyMemory<byte>? _dataAsBytes;
     private bool? _isEncrypted;
 
     private CorrespondenceAttachmentBuilder() { }
@@ -44,14 +43,6 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     }
 
     /// <inheritdoc/>
-    [Obsolete("This method is inefficient for large attachments. Consider using WithData(Stream) instead.")]
-    public ICorrespondenceAttachmentBuilder WithData(ReadOnlyMemory<byte> data)
-    {
-        _dataAsBytes = data;
-        return this;
-    }
-
-    /// <inheritdoc/>
     public ICorrespondenceAttachmentBuilder WithIsEncrypted(bool isEncrypted)
     {
         _isEncrypted = isEncrypted;
@@ -63,21 +54,13 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     {
         BuilderUtils.NotNullOrEmpty(_filename);
         BuilderUtils.NotNullOrEmpty(_sendersReference);
-        BuilderUtils.RequireAtLeastOneOf(_data, _dataAsBytes, "Data cannot be empty");
-
-        Stream data =
-            _data
-            ?? (
-                _dataAsBytes.HasValue
-                    ? new MemoryStream(_dataAsBytes.Value.ToArray())
-                    : throw new InvalidOperationException("Data cannot be empty")
-            );
+        BuilderUtils.NotNullOrEmpty(_data, "Data cannot be empty");
 
         return new CorrespondenceAttachment
         {
             Filename = _filename,
             SendersReference = _sendersReference,
-            Data = data,
+            Data = _data,
             IsEncrypted = _isEncrypted,
         };
     }

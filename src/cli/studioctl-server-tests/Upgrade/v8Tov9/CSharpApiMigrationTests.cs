@@ -812,7 +812,6 @@ public sealed class CSharpApiMigrationTests : IDisposable
     {
         var path = _app.Write(relativePath, source);
         var result = new CorrespondenceApiMigration(Scanner()).Migrate();
-        Assert.False(result.ManualActionRequired);
         _lastMigrationWarnings = result.Warnings;
 
         var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
@@ -1130,6 +1129,92 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // And the added using goes in sorted position, not appended after unrelated ones.
         Assert.StartsWith("using Altinn.App.Core.Features;\nusing Microsoft.Extensions.Logging;", migrated);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_WrapsProvableByteDataAndLeavesStreamsAlone()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Attach.cs",
+            """
+            public record Vedlegg(string Navn, ReadOnlyMemory<byte> Innhold);
+
+            public class Attach
+            {
+                public void Provable(Vedlegg vedlegg, byte[] raw)
+                {
+                    Builder.Create().WithData(raw);
+                    Builder.Create().WithData(vedlegg.Innhold);
+                    Builder.Create().WithData(Encoding.UTF8.GetBytes(_text));
+                    Builder.Create().WithData("literal"u8.ToArray());
+                }
+
+                public void AlreadyStreams(Stream open)
+                {
+                    Builder.Create().WithData(new MemoryStream(_bytes));
+                    Builder.Create().WithData(open);
+                }
+            }
+            """
+        );
+
+        // Provably bytes - wrapped.
+        Assert.Contains("WithData(new MemoryStream(raw))", migrated);
+        Assert.Contains("WithData(new MemoryStream(vedlegg.Innhold))", migrated);
+        Assert.Contains("WithData(new MemoryStream(Encoding.UTF8.GetBytes(_text)))", migrated);
+        Assert.Contains("WithData(new MemoryStream(\"literal\"u8.ToArray()))", migrated);
+
+        // Provably a stream - untouched. Wrapping either of these would not compile.
+        Assert.Contains("WithData(new MemoryStream(_bytes));", migrated);
+        Assert.DoesNotContain("new MemoryStream(new MemoryStream", migrated);
+        Assert.Contains("WithData(open);", migrated);
+
+        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_FollowsVarToItsInitializerToClassifyByteData()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Attach.cs",
+            """
+            public class Attach
+            {
+                public async Task Send()
+                {
+                    var bytes = await _dataClient.GetDataBytes(_party, _instance, _element);
+                    Builder.Create().WithData(bytes);
+                }
+            }
+            """
+        );
+
+        // `var` writes out no type, but its initializer settles it - the common shape for a payload
+        // fetched from a client, and the one real-world case that would otherwise need a hand edit.
+        Assert.Contains("WithData(new MemoryStream(bytes))", migrated);
+        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_ReportsWithDataItCannotClassify()
+    {
+        MigrateCorrespondence(
+            "logic/Attach.cs",
+            """
+            public class Attach
+            {
+                public void Ambiguous()
+                {
+                    var payload = await _client.GetSomething();
+                    Builder.Create().WithData(payload);
+                }
+            }
+            """
+        );
+
+        // `var` with an unrecognisable initializer stays unknown, so guessing would risk wrapping a Stream.
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("Attach.cs:6") && w.Contains("WithData(payload)"));
     }
 
     [Fact]

@@ -38,15 +38,10 @@ public interface ICorrespondenceAttachmentBuilderData
     /// Ownership of the stream is transferred to the client: the client will dispose the stream
     /// after the upload completes.
     /// </summary>
+    /// <remarks>Wrap an in-memory payload yourself — <c>WithData(new MemoryStream(bytes))</c>. Prefer
+    /// streaming large attachments straight from their source rather than materialising them first.</remarks>
     /// <param name="data">The data stream</param>
     ICorrespondenceAttachmentBuilder WithData(Stream data);
-
-    /// <summary>
-    /// Sets the byte array of the data content of the attachment.
-    /// </summary>
-    /// <param name="data">The data</param>
-    [Obsolete("This method is inefficient for large attachments. Consider using WithData(Stream) instead.")]
-    ICorrespondenceAttachmentBuilder WithData(ReadOnlyMemory<byte> data);
 }
 
 /// <summary>

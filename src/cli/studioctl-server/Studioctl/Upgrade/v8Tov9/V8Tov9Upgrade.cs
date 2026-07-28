@@ -340,7 +340,10 @@ internal static class V8Tov9Upgrade
                 await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
             }
 
-            return ExitSuccess;
+            // Unlike the other auto-fixes, this one can leave work behind: a `WithData` argument whose type
+            // cannot be determined from syntax is reported rather than rewritten, and the app will not
+            // build until it is resolved.
+            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
         }
         catch (Exception ex)
         {
