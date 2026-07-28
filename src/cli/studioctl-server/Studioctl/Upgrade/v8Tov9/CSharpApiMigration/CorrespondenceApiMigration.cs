@@ -192,6 +192,10 @@ internal sealed class CorrespondenceApiMigration
                 node.Expression is InvocationExpressionSyntax invocation
                 && invocation.Expression is MemberAccessExpressionSyntax memberAccess
                 && _noOpBuilderMethods.Contains(memberAccess.Name.Identifier.Text)
+                // Only when the no-op IS the whole statement. If the receiver is itself a call, as in
+                // `builder.WithResourceId("x").WithSender(y);`, deleting the statement would take
+                // WithResourceId with it - the unlinking path below keeps the rest of the chain.
+                && memberAccess.Expression is not InvocationExpressionSyntax
             )
             {
                 Record(
@@ -317,8 +321,8 @@ internal sealed class CorrespondenceApiMigration
                     InvocationExpressionSyntax invocation => InvokedNameKind(invocation),
                     AwaitExpressionSyntax awaited => ClassifyDataArgument(awaited.Expression, depth + 1),
                     // A name resolves only if some declaration in the app writes its type out.
-                    IdentifierNameSyntax identifier => DeclaredTypeKind(identifier.Identifier.Text, depth),
-                    MemberAccessExpressionSyntax member => DeclaredTypeKind(member.Name.Identifier.Text, depth),
+                    IdentifierNameSyntax identifier => DeclaredTypeKind(identifier.Identifier.Text, depth, identifier),
+                    MemberAccessExpressionSyntax member => DeclaredTypeKind(member.Name.Identifier.Text, depth, member),
                     _ => DataKind.Unknown,
                 };
 
@@ -352,7 +356,7 @@ internal sealed class CorrespondenceApiMigration
                 return DataKind.Bytes;
             }
 
-            return DeclaredTypeKind(invoked, 0);
+            return DeclaredTypeKind(invoked, 0, invocation);
         }
 
         private static DataKind TypeNameKind(string typeName)
@@ -375,55 +379,98 @@ internal sealed class CorrespondenceApiMigration
         /// a local with a written-out type, a field, a property, a record parameter or a method return
         /// type. `var` declarations carry no type and stay Unknown.
         /// </summary>
-        private DataKind DeclaredTypeKind(string name, int depth)
+        private DataKind DeclaredTypeKind(string name, int depth, SyntaxNode? origin)
         {
-            foreach (var file in _allFiles)
+            // Nearest scope wins: the enclosing member, then the enclosing type. Only if neither
+            // declares the name do we look app-wide, and then a name declared with conflicting kinds is
+            // treated as unknown - guessing would emit `new MemoryStream(stream)`, which does not
+            // compile, and the syntax check cannot catch that because the result still parses.
+            for (SyntaxNode? scope = origin?.Parent; scope is not null; scope = scope.Parent)
             {
-                foreach (var node in file.Root.DescendantNodes())
+                if (scope is not (MemberDeclarationSyntax or TypeDeclarationSyntax))
                 {
-                    // `var payload = await GetBytes(..)` writes out no type, but its initializer often
-                    // settles the question - the common shape for a byte payload fetched from a client.
-                    if (
-                        node is VariableDeclaratorSyntax implicitly
-                        && implicitly.Identifier.Text == name
-                        && implicitly.Parent is VariableDeclarationSyntax { Type.IsVar: true }
-                        && implicitly.Initializer is not null
-                    )
-                    {
-                        var fromInitializer = ClassifyDataArgument(implicitly.Initializer.Value, depth + 1);
-                        if (fromInitializer != DataKind.Unknown)
-                        {
-                            return fromInitializer;
-                        }
-                    }
+                    continue;
+                }
 
-                    var typeName = node switch
-                    {
-                        VariableDeclaratorSyntax v
-                            when v.Identifier.Text == name && v.Parent is VariableDeclarationSyntax d =>
-                            d.Type.ToString(),
-                        PropertyDeclarationSyntax prop when prop.Identifier.Text == name => prop.Type.ToString(),
-                        ParameterSyntax param when param.Identifier.Text == name => param.Type?.ToString(),
-                        MethodDeclarationSyntax method when method.Identifier.Text == name => UnwrapTask(
-                            method.ReturnType.ToString()
-                        ),
-                        _ => null,
-                    };
+                var local = KindsDeclaredWithin(scope, name, depth);
+                if (local.Count == 1)
+                {
+                    return local.Single();
+                }
 
-                    if (typeName is null)
-                    {
-                        continue;
-                    }
-
-                    var kind = TypeNameKind(typeName);
-                    if (kind != DataKind.Unknown)
-                    {
-                        return kind;
-                    }
+                if (local.Count > 1)
+                {
+                    return DataKind.Unknown;
                 }
             }
 
-            return DataKind.Unknown;
+            var kinds = new HashSet<DataKind>();
+            foreach (var file in _allFiles)
+            {
+                kinds.UnionWith(KindsDeclaredWithin(file.Root, name, depth));
+                if (kinds.Count > 1)
+                {
+                    return DataKind.Unknown;
+                }
+            }
+
+            return kinds.Count == 1 ? kinds.Single() : DataKind.Unknown;
+        }
+
+        /// <summary>
+        /// Every kind implied by a declaration of <paramref name="name"/> inside <paramref name="scope"/> —
+        /// a local with a written-out type, a field, a property, a parameter, or a method return type. More
+        /// than one kind means the name is ambiguous.
+        /// </summary>
+        private HashSet<DataKind> KindsDeclaredWithin(SyntaxNode scope, string name, int depth)
+        {
+            var kinds = new HashSet<DataKind>();
+
+            foreach (var node in scope.DescendantNodesAndSelf())
+            {
+                // `var payload = await GetBytes(..)` writes out no type, but its initializer often
+                // settles the question - the common shape for a byte payload fetched from a client.
+                if (
+                    node is VariableDeclaratorSyntax declarator
+                    && declarator.Identifier.Text == name
+                    && declarator.Parent is VariableDeclarationSyntax { Type.IsVar: true }
+                    && declarator.Initializer is not null
+                )
+                {
+                    var fromInitializer = ClassifyDataArgument(declarator.Initializer.Value, depth + 1);
+                    if (fromInitializer != DataKind.Unknown)
+                    {
+                        kinds.Add(fromInitializer);
+                    }
+
+                    continue;
+                }
+
+                var typeName = node switch
+                {
+                    VariableDeclaratorSyntax v
+                        when v.Identifier.Text == name && v.Parent is VariableDeclarationSyntax d => d.Type.ToString(),
+                    PropertyDeclarationSyntax prop when prop.Identifier.Text == name => prop.Type.ToString(),
+                    ParameterSyntax param when param.Identifier.Text == name => param.Type?.ToString(),
+                    MethodDeclarationSyntax method when method.Identifier.Text == name => UnwrapTask(
+                        method.ReturnType.ToString()
+                    ),
+                    _ => null,
+                };
+
+                if (typeName is null)
+                {
+                    continue;
+                }
+
+                var kind = TypeNameKind(typeName);
+                if (kind != DataKind.Unknown)
+                {
+                    kinds.Add(kind);
+                }
+            }
+
+            return kinds;
         }
 
         private static string UnwrapTask(string returnType) =>
@@ -452,6 +499,11 @@ internal sealed class CorrespondenceApiMigration
                 ReturnStatementSyntax => true,
                 ArgumentSyntax => true,
                 AssignmentExpressionSyntax assignment => assignment.Right == node,
+                // `builder.WithResourceId("x").WithSender(y);` - unlinking leaves a call, which is a
+                // valid statement. A non-invocation receiver would leave a bare `builder;`, which is not,
+                // so VisitExpressionStatement deletes that whole statement instead.
+                ExpressionStatementSyntax => node.Expression
+                    is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax },
                 _ => false,
             };
 

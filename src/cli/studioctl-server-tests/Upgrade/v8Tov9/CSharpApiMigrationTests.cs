@@ -902,6 +902,87 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void CorrespondenceMigration_KeepsSurvivingCallsWhenTheNoOpEndsTheStatement()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithResourceId("resource").WithSender(_org);
+                }
+            }
+            """
+        );
+
+        // Deleting the whole statement here would take WithResourceId with it.
+        Assert.Contains("builder.WithResourceId(\"resource\");", migrated);
+        Assert.DoesNotContain("WithSender(", migrated);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_DoesNotRewriteWithDataWhenTheNameIsAmbiguousAcrossFiles()
+    {
+        // `payload` is a byte array in one file and a Stream in the other. Letting the first match win
+        // would emit `new MemoryStream(stream)`, which does not compile - and the syntax check cannot
+        // catch it, because the result still parses.
+        _app.Write(
+            "logic/A.cs",
+            """
+            public class A
+            {
+                public void Send(byte[] payload) => Builder.Create().WithData(payload);
+            }
+            """
+        );
+        var pathB = _app.Write(
+            "logic/B.cs",
+            """
+            public class B
+            {
+                public void Send(Stream payload) => Builder.Create().WithData(payload);
+            }
+            """
+        );
+
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate();
+
+        // Each is resolved from its own scope, so both are handled correctly rather than conflated.
+        Assert.Contains("WithData(payload)", File.ReadAllText(pathB));
+        Assert.DoesNotContain("new MemoryStream(payload)", File.ReadAllText(pathB));
+        Assert.Contains("new MemoryStream(payload)", File.ReadAllText(Path.Combine(_app.Root, "App", "logic", "A.cs")));
+        Assert.False(result.ManualActionRequired);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_ReportsWithDataWhenAnOutOfScopeNameIsAmbiguous()
+    {
+        // Nothing in the calling scope declares `Innhold`, and the app-wide fallback finds it declared
+        // as both a byte array and a Stream. Picking either would risk emitting code that does not
+        // compile, so it is reported instead.
+        _app.Write("models/A.cs", "public record VedleggA(byte[] Innhold);");
+        _app.Write("models/B.cs", "public record VedleggB(Stream Innhold);");
+        var path = _app.Write(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Attach(dynamic vedlegg) => Builder.Create().WithData(vedlegg.Innhold);
+            }
+            """
+        );
+
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate();
+
+        Assert.Contains("WithData(vedlegg.Innhold)", File.ReadAllText(path));
+        Assert.DoesNotContain("new MemoryStream(", File.ReadAllText(path));
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("could not be classified"));
+    }
+
+    [Fact]
     public void CorrespondenceMigration_WarnsAboutDiscardedArgumentContainingACall()
     {
         MigrateCorrespondence(
