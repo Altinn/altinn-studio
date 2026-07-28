@@ -10,7 +10,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Warn (exit code `3`) in `studioctl app upgrade v9` about the deprecated Correspondence APIs removed in v9, with per-cluster guidance: the legacy authorisation model (`CorrespondenceAuthorisation` and the payload constructors taking it or a token factory, superseded by `CorrespondenceAuthenticationMethod` — including the scope widening that comes with `Default()`), the fields the Correspondence API dropped (`Sender`, `AllowSystemDeleteAfter`, `RequestedSendTime`, `DataLocationType` and their no-op builder methods), and the legacy notification recipient-override API (`WithRecipientToOverride`, `WithCorrespondenceNotificationRecipients`, `CorrespondenceNotificationRecipientWrapper`, `CustomNotificationRecipients`, `IsReserved`).
+- Warn (exit code `3`) in `studioctl app upgrade v9` about the deprecated Correspondence APIs removed in v9, with per-cluster guidance: the legacy authorisation model (`CorrespondenceAuthorisation` and the payload constructors taking it or a token factory, superseded by `CorrespondenceAuthenticationMethod` — including the scope widening that comes with `Default()`), the fields the Correspondence API dropped (`Sender`, `AllowSystemDeleteAfter`, `RequestedSendTime`, `DataLocationType` and their no-op builder methods), and the changed notification recipient-override API (`WithRecipientToOverride`, `WithCorrespondenceNotificationRecipients`, `CorrespondenceNotificationRecipientWrapper`, `CustomNotificationRecipients`, `IsReserved`, and the singular `CustomRecipient` now that notifications carry a `CustomRecipients` list).
 
 ### Changed
 

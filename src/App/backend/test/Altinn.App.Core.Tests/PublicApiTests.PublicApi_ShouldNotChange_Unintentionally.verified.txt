@@ -503,6 +503,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient recipientOverride) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? recipientOverride) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrides(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient> recipientOverrides) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailBody(string? reminderEmailBody) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailSubject(string? reminderEmailSubject) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? reminderNotificationChannel) { }
@@ -609,6 +610,8 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? notificationChannel);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient recipientOverride);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? recipientOverride);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrides(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient> recipientOverrides);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailBody(string? reminderEmailBody);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailSubject(string? reminderEmailSubject);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? reminderNotificationChannel);
@@ -815,7 +818,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class CorrespondenceNotification : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotification>
     {
         public CorrespondenceNotification() { }
-        public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient>? CustomRecipients { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(10000, MinimumLength=0)]
         public string? EmailBody { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(128, MinimumLength=0)]

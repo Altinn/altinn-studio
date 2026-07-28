@@ -103,6 +103,9 @@ internal sealed class LegacyCorrespondenceCodeDetector
     private static readonly IReadOnlySet<string> _removedOverrideMembers = new HashSet<string>(StringComparer.Ordinal)
     {
         "CustomNotificationRecipients",
+        // Singular, and never obsolete in v8 - v9 replaces it with the plural `CustomRecipients` list.
+        // Matched exactly, so the surviving `CustomRecipients` does not hit this.
+        "CustomRecipient",
         "IsReserved",
     };
 
@@ -132,14 +135,15 @@ internal sealed class LegacyCorrespondenceCodeDetector
         + "returns ICorrespondenceRequestBuilderSendersReference. Usages found:";
 
     private const string RecipientOverrideSummary =
-        "The legacy Correspondence notification recipient-override API is removed in v9. Use the singular "
-        + "CorrespondenceNotification.CustomRecipient, set via "
-        + "WithRecipientOverride(CorrespondenceNotificationRecipient) or "
-        + "WithRecipientOverride(ICorrespondenceNotificationOverrideBuilder), and build the recipient with "
-        + "WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber. The override builder "
-        + "itself is unchanged - only WithRecipientToOverride and WithCorrespondenceNotificationRecipients are gone, "
-        + "along with CorrespondenceNotificationRecipientWrapper and CustomNotificationRecipients (the API honoured "
-        + "only its first entry). Replace IsReserved with IgnoreReservation on the correspondence. Usages found:";
+        "The Correspondence notification recipient-override API changed in v9. Notifications now carry a list: "
+        + "CorrespondenceNotification.CustomRecipients replaces the singular CustomRecipient, and "
+        + "CorrespondenceNotificationRecipientWrapper plus CustomNotificationRecipients are gone (the API honoured "
+        + "only that list's first entry). Set recipients with WithRecipientOverride(recipient), which now accumulates "
+        + "and can be chained, WithRecipientOverrides(recipients) for several at once, or "
+        + "WithRecipientOverrideIfConfigured(recipient) to skip a null. Build each recipient with "
+        + "WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber - the override builder "
+        + "is otherwise unchanged, and only WithRecipientToOverride and WithCorrespondenceNotificationRecipients were "
+        + "removed from it. Replace IsReserved with IgnoreReservation on the correspondence. Usages found:";
 
     private readonly CSharpSourceScanner _scanner;
 

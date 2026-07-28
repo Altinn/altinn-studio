@@ -91,19 +91,40 @@ public interface ICorrespondenceNotificationBuilder : ICorrespondenceNotificatio
     ICorrespondenceNotificationBuilder WithSendersReference(string? sendersReference);
 
     /// <summary>
-    /// Sets the recipient override for the correspondence notification.
+    /// Adds a recipient override to the correspondence notification.
     /// </summary>
+    /// <remarks>Calls accumulate, so this may be chained to add several recipients.</remarks>
     /// <param name="recipientOverride">The recipient override</param>
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         CorrespondenceNotificationRecipient recipientOverride
     );
 
     /// <summary>
-    /// Sets the recipient override for the correspondence notification.
+    /// Adds a recipient override to the correspondence notification.
     /// </summary>
+    /// <remarks>Calls accumulate, so this may be chained to add several recipients.</remarks>
     /// <param name="recipientOverrideBuilder">The recipient override builder.</param>
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
+    );
+
+    /// <summary>
+    /// Adds a recipient override to the correspondence notification, if one is configured.
+    /// </summary>
+    /// <remarks>A <c>null</c> value is ignored, so an optionally-configured recipient needs no
+    /// null check at the call site. Calls accumulate, as with <see cref="WithRecipientOverride(CorrespondenceNotificationRecipient)"/>.</remarks>
+    /// <param name="recipientOverride">The recipient override, or <c>null</c> to add nothing</param>
+    public ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(
+        CorrespondenceNotificationRecipient? recipientOverride
+    );
+
+    /// <summary>
+    /// Adds several recipient overrides to the correspondence notification.
+    /// </summary>
+    /// <remarks>Calls accumulate, and compose with <see cref="WithRecipientOverride(CorrespondenceNotificationRecipient)"/>.</remarks>
+    /// <param name="recipientOverrides">The recipient overrides</param>
+    public ICorrespondenceNotificationBuilder WithRecipientOverrides(
+        IEnumerable<CorrespondenceNotificationRecipient> recipientOverrides
     );
 
     /// <summary>

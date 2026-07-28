@@ -18,7 +18,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     private CorrespondenceNotificationChannel? _notificationChannel;
     private CorrespondenceNotificationChannel? _reminderNotificationChannel;
     private string? _sendersReference;
-    private CorrespondenceNotificationRecipient? _recipientOverride;
+    private List<CorrespondenceNotificationRecipient>? _recipientOverrides;
 
     private CorrespondenceNotificationBuilder() { }
 
@@ -116,7 +116,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
         ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
     )
     {
-        return WithRecipientOverride(recipientOverrideBuilder.Build());
+        return WithRecipientOverrides([recipientOverrideBuilder.Build()]);
     }
 
     /// <inheritdoc/>
@@ -124,8 +124,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
         CorrespondenceNotificationRecipient recipientOverride
     )
     {
-        _recipientOverride = recipientOverride;
-        return this;
+        return WithRecipientOverrides([recipientOverride]);
     }
 
     /// <inheritdoc/>
@@ -135,9 +134,19 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     {
         if (recipientOverride is not null)
         {
-            return WithRecipientOverride(recipientOverride);
+            return WithRecipientOverrides([recipientOverride]);
         }
 
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ICorrespondenceNotificationBuilder WithRecipientOverrides(
+        IEnumerable<CorrespondenceNotificationRecipient> recipientOverrides
+    )
+    {
+        _recipientOverrides ??= [];
+        _recipientOverrides.AddRange(recipientOverrides);
         return this;
     }
 
@@ -159,7 +168,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
             NotificationChannel = _notificationChannel,
             ReminderNotificationChannel = _reminderNotificationChannel,
             SendersReference = _sendersReference,
-            CustomRecipient = _recipientOverride,
+            CustomRecipients = _recipientOverrides,
         };
     }
 }

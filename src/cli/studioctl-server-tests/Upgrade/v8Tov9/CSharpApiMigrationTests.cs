@@ -643,6 +643,12 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
                 public CorrespondenceNotificationRecipient Reserved() =>
                     new CorrespondenceNotificationRecipient { IsReserved = true };
+
+                public CorrespondenceNotification Singular() =>
+                    new CorrespondenceNotification { CustomRecipient = _recipient };
+
+                public CorrespondenceNotification Plural() =>
+                    new CorrespondenceNotification { CustomRecipients = [_recipient] };
             }
             """
         );
@@ -667,6 +673,12 @@ public sealed class CSharpApiMigrationTests : IDisposable
             result.Warnings,
             w => w.Contains("Override.cs:16") && w.Contains("CorrespondenceNotificationRecipient.IsReserved")
         );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:19") && w.Contains("CorrespondenceNotification.CustomRecipient")
+        );
+        // `CustomRecipients` (plural) is the v9 replacement and must not be reported.
+        Assert.DoesNotContain(Locations(result), w => w.Contains("Override.cs:22"));
     }
 
     [Fact]

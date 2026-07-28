@@ -272,10 +272,10 @@ public class CorrespondenceBuilderTests
         correspondence
             .Notification.ReminderNotificationChannel.Should()
             .Be(data.notification.reminderNotificationChannel);
-        correspondence.Notification.CustomRecipient.Should().NotBeNull();
-        correspondence.Notification.CustomRecipient!.OrganizationNumber.Should().NotBeNull();
+        correspondence.Notification.CustomRecipients.Should().ContainSingle();
+        correspondence.Notification.CustomRecipients![0].OrganizationNumber.Should().NotBeNull();
 
-        correspondence.Notification.CustomRecipient.OrganizationNumber.Should().Be(data.recipient.Value);
+        correspondence.Notification.CustomRecipients[0].OrganizationNumber.Should().Be(data.recipient.Value);
 
         correspondence.ExistingAttachments.Should().BeEquivalentTo(data.existingAttachments);
 
@@ -490,5 +490,43 @@ public class CorrespondenceBuilderTests
         // Assert
         act1.Should().Throw<FormatException>();
         act2.Should().Throw<FormatException>();
+    }
+
+    [Fact]
+    public void NotificationBuilder_RecipientOverrides_AccumulateAcrossChainedCalls()
+    {
+        // Arrange
+        var org = TestHelpers.GetOrganisationNumber(1);
+        var nin = TestHelpers.GetNationalIdentityNumber(0);
+
+        // Act: mix all four entry points on one builder
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
+            .WithRecipientOverride(CorrespondenceNotificationOverrideBuilder.Create().WithOrganizationNumber(org))
+            .WithRecipientOverrideIfConfigured(null)
+            .WithRecipientOverrideIfConfigured(new CorrespondenceNotificationRecipient { MobileNumber = "+4799999999" })
+            .WithRecipientOverrides([new CorrespondenceNotificationRecipient { NationalIdentityNumber = nin }])
+            .Build();
+
+        // Assert: order preserved, the null skipped
+        notification.CustomRecipients.Should().HaveCount(4);
+        notification.CustomRecipients![0].EmailAddress.Should().Be("a@example.com");
+        notification.CustomRecipients[1].OrganizationNumber.Should().Be(org);
+        notification.CustomRecipients[2].MobileNumber.Should().Be("+4799999999");
+        notification.CustomRecipients[3].NationalIdentityNumber.Should().Be(nin);
+    }
+
+    [Fact]
+    public void NotificationBuilder_NoRecipientOverride_LeavesCustomRecipientsNull()
+    {
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverrideIfConfigured(null)
+            .Build();
+
+        notification.CustomRecipients.Should().BeNull();
     }
 }

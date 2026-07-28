@@ -81,7 +81,7 @@ public sealed record CorrespondenceNotification
     public string? SendersReference { get; init; }
 
     /// <summary>
-    /// The recipient of the notification. If not set, the notification will be sent to the recipient of the Correspondence.
+    /// The recipients of the notification. If not set, the notification is sent to the recipient of the Correspondence.
     /// </summary>
-    public CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
+    public IReadOnlyList<CorrespondenceNotificationRecipient>? CustomRecipients { get; init; }
 }

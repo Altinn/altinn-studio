@@ -353,9 +353,9 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             NotificationChannel = notification.NotificationChannel,
             ReminderNotificationChannel = notification.ReminderNotificationChannel,
             SendersReference = notification.SendersReference,
-            CustomRecipients = notification.CustomRecipient is null
+            CustomRecipients = notification.CustomRecipients is null or { Count: 0 }
                 ? null
-                : [BuildNotificationRecipient(notification.CustomRecipient)],
+                : [.. notification.CustomRecipients.Select(BuildNotificationRecipient)],
         };
     }
 
