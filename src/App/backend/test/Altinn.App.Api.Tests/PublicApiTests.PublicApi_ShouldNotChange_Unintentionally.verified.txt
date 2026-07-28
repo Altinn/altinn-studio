@@ -737,11 +737,9 @@ namespace Altinn.App.Api.Extensions
     }
     public static class HttpClientBuilderExtensions
     {
-        [System.Obsolete("Use UseMaskinportenAltinnAuthorization instead")]
-        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder UseMaskinportenAltinnAuthorisation(this Microsoft.Extensions.DependencyInjection.IHttpClientBuilder builder, string scope, params string[] additionalScopes) { }
+        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder UseMaskinportenAltinnAuthorization(this Microsoft.Extensions.DependencyInjection.IHttpClientBuilder builder, Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest request) { }
         public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder UseMaskinportenAltinnAuthorization(this Microsoft.Extensions.DependencyInjection.IHttpClientBuilder builder, string scope, params string[] additionalScopes) { }
-        [System.Obsolete("Use UseMaskinportenAuthorization instead")]
-        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder UseMaskinportenAuthorisation(this Microsoft.Extensions.DependencyInjection.IHttpClientBuilder builder, string scope, params string[] additionalScopes) { }
+        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder UseMaskinportenAuthorization(this Microsoft.Extensions.DependencyInjection.IHttpClientBuilder builder, Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest request) { }
         public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder UseMaskinportenAuthorization(this Microsoft.Extensions.DependencyInjection.IHttpClientBuilder builder, string scope, params string[] additionalScopes) { }
     }
     public static class SecurityHeadersApplicationBuilderExtensions

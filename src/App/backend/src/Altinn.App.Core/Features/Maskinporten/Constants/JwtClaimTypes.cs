@@ -39,5 +39,9 @@ internal static class JwtClaimTypes
         public const string Supplier = "supplier";
         public const string DelegationSource = "delegation_source";
         public const string PersonIdentifier = "pid";
+
+        public const string ConsumerOrg = "consumer_org";
+        public const string Resource = "resource";
+        public const string AuthorizationDetails = "authorization_details";
     }
 }
