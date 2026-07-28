@@ -31,11 +31,22 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     internal static readonly TimeSpan WellKnownCacheDuration = TimeSpan.FromHours(1);
 
     /// <summary>
+    /// Duration to cache the fallback audience after a failed well-known lookup, so that an outage
+    /// fails fast instead of every caller blocking on its own fetch attempt.
+    /// </summary>
+    internal static readonly TimeSpan WellKnownFallbackRetryInterval = TimeSpan.FromSeconds(30);
+
+    /// <summary>
     /// Upper bound for a single outbound call to Maskinporten or the Altinn token exchange endpoint.
     /// </summary>
     private static readonly TimeSpan _requestTimeout = TimeSpan.FromSeconds(30);
 
-    private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt);
+    /// <summary>
+    /// Upper bound for a single fetch of the OAuth well-known metadata document.
+    /// </summary>
+    private static readonly TimeSpan _wellKnownFetchTimeout = TimeSpan.FromSeconds(10);
+
+    private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt, bool IsFallback = false);
 
     internal MaskinportenSettings Settings =>
         _options.Get(Variant == VariantDefault ? Microsoft.Extensions.Options.Options.DefaultName : Variant);
@@ -443,23 +454,35 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// Uses cached value if fresh. When stale, triggers background refresh and returns stale value immediately.
     /// Only blocks on first call (cold start).
     /// </summary>
+    /// <remarks>
+    /// When the lookup fails, the audience falls back to <see cref="MaskinportenSettings.Authority"/> with a
+    /// trailing slash. Maskinporten only accepts an audience equal to its issuer or token endpoint URL, so the
+    /// fallback keeps token requests working through a well-known outage only when the configured Authority
+    /// equals the issuer URL — true for the standard Maskinporten environments, but not for e.g. a proxy host.
+    /// In that case grant requests fail with "Invalid audience" until the well-known lookup recovers.
+    /// </remarks>
     internal ValueTask<string> GetAudienceFromWellKnown(CancellationToken cancellationToken = default)
     {
         var cached = Volatile.Read(ref _wellKnownCache);
         var now = _timeProvider.GetUtcNow();
 
-        // Fresh cache - return immediately
-        if (cached is not null && now - cached.FetchedAt < WellKnownCacheDuration)
-        {
-            return new ValueTask<string>(cached.Issuer);
-        }
-
-        // Stale cache - trigger background refresh, return stale immediately
         if (cached is not null)
         {
+            // Fresh cache - return immediately. Fallback entries are retried on a much shorter
+            // interval than real ones, so a well-known outage heals quickly.
+            var freshness = cached.IsFallback ? WellKnownFallbackRetryInterval : WellKnownCacheDuration;
+            if (now - cached.FetchedAt < freshness)
+            {
+                return new ValueTask<string>(cached.Issuer);
+            }
+
+            // Stale cache - trigger background refresh, return stale immediately.
+            // The refresh serves all future callers, so it must not observe this caller's cancellation:
+            // Task.Run with a pre-cancelled token never invokes the delegate, which would leave
+            // _wellKnownRefreshing latched at 1 for the lifetime of this singleton.
             if (Interlocked.CompareExchange(ref _wellKnownRefreshing, 1, 0) == 0)
             {
-                _ = Task.Run(() => RefreshWellKnownInBackground(), cancellationToken);
+                _ = Task.Run(RefreshWellKnownInBackground, CancellationToken.None);
             }
             return new ValueTask<string>(cached.Issuer);
         }
@@ -477,12 +500,27 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now));
             return metadata.Issuer;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The caller is gone - don't taint the shared cache with a fallback entry.
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch OAuth metadata, falling back to authority");
             var authorityFallback = Settings.Authority;
             if (authorityFallback[^1] != '/')
                 authorityFallback += '/';
+
+            // Cache the fallback so subsequent callers fail fast instead of each blocking on a fetch.
+            // Once WellKnownFallbackRetryInterval lapses, the stale branch above retries in the
+            // background. Never clobber an entry a concurrent successful fetch may have written.
+            var now = _timeProvider.GetUtcNow();
+            Interlocked.CompareExchange(
+                ref _wellKnownCache,
+                new WellKnownCacheEntry(authorityFallback, now, IsFallback: true),
+                null
+            );
             return authorityFallback;
         }
     }
@@ -511,7 +549,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     )
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(10));
+        cts.CancelAfter(_wellKnownFetchTimeout);
         cancellationToken = cts.Token;
         var wellKnownUrl = new Uri(new Uri(authority), ".well-known/oauth-authorization-server");
         using var client = _httpClientFactory.CreateClient();

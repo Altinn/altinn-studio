@@ -803,6 +803,226 @@ public class MaskinportenClientTests
         Assert.Equal("https://maskinporten.dev/", result);
     }
 
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_BackgroundRefreshSurvivesPreCancelledToken(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        const string issuer1 = "https://issuer1.maskinporten.no/";
+        const string issuer2 = "https://issuer2.maskinporten.no/";
+        var currentIssuer = issuer1;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(() =>
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.OK,
+                            Content = new StringContent(JsonSerializer.Serialize(new { issuer = currentIssuer })),
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - populate the cache, then let it expire
+        var result1 = await client.GetAudienceFromWellKnown();
+        currentIssuer = issuer2;
+        fixture.FakeTime.Advance(MaskinportenClient.WellKnownCacheDuration + TimeSpan.FromSeconds(1));
+
+        // A cancelled caller observing the stale cache must not prevent the background refresh:
+        // Task.Run with a pre-cancelled token never invokes its delegate, which used to leave the
+        // refresh flag latched for the lifetime of this singleton (no refresh ever again).
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        var result2 = await client.GetAudienceFromWellKnown(cts.Token);
+
+        // Wait for the background refresh to complete
+        string result3 = issuer1;
+        var timeout = TimeSpan.FromSeconds(5);
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < timeout)
+        {
+            result3 = await client.GetAudienceFromWellKnown();
+            if (result3 == issuer2)
+                break;
+            await Task.Delay(10);
+        }
+
+        // Assert
+        Assert.Equal(issuer1, result1);
+        Assert.Equal(issuer1, result2); // Returns stale immediately, even for a cancelled caller
+        Assert.Equal(issuer2, result3); // The refresh still happened
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_CachesFallbackOnFailure_FailsFastWithinRetryInterval(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        var callCount = 0;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                callCount++;
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError });
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - first call blocks, fails and caches the fallback
+        var result1 = await client.GetAudienceFromWellKnown();
+        var result2 = await client.GetAudienceFromWellKnown();
+        fixture.FakeTime.Advance(MaskinportenClient.WellKnownFallbackRetryInterval - TimeSpan.FromSeconds(1));
+        var result3 = await client.GetAudienceFromWellKnown();
+
+        // Assert - subsequent calls within the retry interval reuse the cached fallback (no blocking refetch)
+        Assert.Equal(client.Settings.Authority, result1);
+        Assert.Equal(client.Settings.Authority, result2);
+        Assert.Equal(client.Settings.Authority, result3);
+        Assert.Equal(1, callCount);
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_FallbackRetriesInBackgroundAndRecovers(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        const string realIssuer = "https://issuer.maskinporten.no/";
+        var shouldFail = true;
+        var callCount = 0;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                callCount++;
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(() =>
+                        shouldFail
+                            ? new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError }
+                            : new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(new { issuer = realIssuer })),
+                            }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - first call fails and caches the fallback, then the well-known endpoint recovers
+        var result1 = await client.GetAudienceFromWellKnown();
+        shouldFail = false;
+        fixture.FakeTime.Advance(MaskinportenClient.WellKnownFallbackRetryInterval + TimeSpan.FromSeconds(1));
+
+        // Stale fallback - returns immediately and refreshes in the background
+        var result2 = await client.GetAudienceFromWellKnown();
+
+        // Wait for the background refresh to complete
+        string result3 = result2;
+        var timeout = TimeSpan.FromSeconds(5);
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < timeout)
+        {
+            result3 = await client.GetAudienceFromWellKnown();
+            if (result3 == realIssuer)
+                break;
+            await Task.Delay(10);
+        }
+
+        // Once recovered, the normal cache duration applies again
+        fixture.FakeTime.Advance(TimeSpan.FromMinutes(30));
+        var callCountAfterRecovery = callCount;
+        var result4 = await client.GetAudienceFromWellKnown();
+
+        // Assert
+        Assert.Equal(client.Settings.Authority, result1);
+        Assert.Equal(client.Settings.Authority, result2);
+        Assert.Equal(realIssuer, result3);
+        Assert.Equal(realIssuer, result4);
+        Assert.Equal(callCountAfterRecovery, callCount); // No refetch within the normal cache duration
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_CallerCancellationPropagatesAndDoesNotCacheFallback(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        const string realIssuer = "https://issuer.maskinporten.no/";
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(
+                        (HttpRequestMessage _, CancellationToken token) =>
+                        {
+                            token.ThrowIfCancellationRequested();
+                            return Task.FromResult(
+                                new HttpResponseMessage
+                                {
+                                    StatusCode = HttpStatusCode.OK,
+                                    Content = new StringContent(JsonSerializer.Serialize(new { issuer = realIssuer })),
+                                }
+                            );
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - a cancelled caller on the cold path propagates the cancellation
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            await client.GetAudienceFromWellKnown(cts.Token)
+        );
+
+        // Assert - the aborted attempt did not cache a fallback entry; the next caller gets the real issuer
+        var result = await client.GetAudienceFromWellKnown();
+        Assert.Equal(realIssuer, result);
+    }
+
     [Fact]
     public async Task GenerateJwtGrant_IncludesConsumerOrgAndResourceClaims()
     {
