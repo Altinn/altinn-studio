@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -17,6 +18,13 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.App.Core.Features.Maskinporten;
 
 /// <inheritdoc/>
+[SuppressMessage(
+    "Design",
+    "CA1001:Types that own disposable fields should be disposable",
+    Justification = "Process-lifetime singleton. The SemaphoreSlim never allocates its wait handle since "
+        + "AvailableWaitHandle is not accessed, so there is nothing to dispose — and disposing would hang "
+        + "queued waiters if shutdown overlaps a lookup."
+)]
 internal sealed class MaskinportenClient : IMaskinportenClient
 {
     /// <summary>
@@ -26,16 +34,20 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     internal static readonly TimeSpan TokenExpirationMargin = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// Duration to cache the OAuth well-known metadata (issuer) before refreshing.
+    /// How long to wait after a failed well-known metadata fetch before trying again.
+    /// While inside this window, callers get the authority fallback immediately instead of retrying.
     /// </summary>
-    internal static readonly TimeSpan WellKnownCacheDuration = TimeSpan.FromHours(1);
+    internal static readonly TimeSpan WellKnownRetryInterval = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Upper bound for a single fetch of the well-known metadata document.
+    /// </summary>
+    private static readonly TimeSpan _wellKnownFetchTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// Upper bound for a single outbound call to Maskinporten or the Altinn token exchange endpoint.
     /// </summary>
     private static readonly TimeSpan _requestTimeout = TimeSpan.FromSeconds(30);
-
-    private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt);
 
     internal MaskinportenSettings Settings =>
         _options.Get(Variant == VariantDefault ? Microsoft.Extensions.Options.Options.DefaultName : Variant);
@@ -57,9 +69,11 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     private readonly HybridCache _tokenCache;
     private readonly Telemetry? _telemetry;
 
-    // Well-known cache with background refresh
-    private WellKnownCacheEntry? _wellKnownCache;
-    private int _wellKnownRefreshing;
+    // Well-known metadata state: the issuer is fetched once and cached for the process lifetime.
+    // See GetAudienceFromWellKnown for the full semantics.
+    private string? _issuer;
+    private long _lastFailureTicks;
+    private readonly SemaphoreSlim _wellKnownFetchLock = new(1, 1);
 
     /// <summary>
     /// Instantiates a new <see cref="MaskinportenClient"/> object.
@@ -440,69 +454,82 @@ internal sealed class MaskinportenClient : IMaskinportenClient
 
     /// <summary>
     /// Retrieves the OAuth issuer from the well-known metadata endpoint for use as the JWT audience claim.
-    /// Uses cached value if fresh. When stale, triggers background refresh and returns stale value immediately.
-    /// Only blocks on first call (cold start).
     /// </summary>
+    /// <remarks>
+    /// <para>The issuer is fetched once and cached for the process lifetime — an environment's issuer cannot
+    /// realistically change without breaking every consumer, and pods restart on every deploy. There is no
+    /// staleness concept and no background refresh.</para>
+    /// <para>On fetch failure, callers fall back to <see cref="MaskinportenSettings.Authority"/> (with a
+    /// trailing slash). This is only valid when the configured authority equals the issuer URL — which holds
+    /// for all shipped environments, but is a documented limitation for proxy-style authority configurations.
+    /// After a failure, one caller per <see cref="WellKnownRetryInterval"/> retries the fetch (blocking up to
+    /// <see cref="_wellKnownFetchTimeout"/>) while other callers get the fallback immediately; as soon as the
+    /// endpoint recovers, the retrying caller gets the real issuer.</para>
+    /// </remarks>
     internal ValueTask<string> GetAudienceFromWellKnown(CancellationToken cancellationToken = default)
     {
-        var cached = Volatile.Read(ref _wellKnownCache);
-        var now = _timeProvider.GetUtcNow();
+        // Fast path: issuer already resolved for this process.
+        var issuer = Volatile.Read(ref _issuer);
+        if (issuer is not null)
+            return new ValueTask<string>(issuer);
 
-        // Fresh cache - return immediately
-        if (cached is not null && now - cached.FetchedAt < WellKnownCacheDuration)
-        {
-            return new ValueTask<string>(cached.Issuer);
-        }
+        // Fail-fast path: a fetch failed recently, don't retry yet.
+        if (IsInFailureWindow())
+            return new ValueTask<string>(GetAuthorityFallback());
 
-        // Stale cache - trigger background refresh, return stale immediately
-        if (cached is not null)
+        return FetchWellKnownIssuer(cancellationToken);
+    }
+
+    private async ValueTask<string> FetchWellKnownIssuer(CancellationToken cancellationToken)
+    {
+        // Waiting outside the try: a cancelled waiter never releases a permit it never took.
+        await _wellKnownFetchLock.WaitAsync(cancellationToken);
+        try
         {
-            if (Interlocked.CompareExchange(ref _wellKnownRefreshing, 1, 0) == 0)
+            // Re-check both conditions: another caller may have resolved the issuer,
+            // or failed moments ago, while we waited for the lock.
+            var issuer = Volatile.Read(ref _issuer);
+            if (issuer is not null)
+                return issuer;
+
+            if (IsInFailureWindow())
+                return GetAuthorityFallback();
+
+            // Read the authority before the fetch try/catch so that a configuration error
+            // (OptionsValidationException) propagates as-is instead of stamping the failure window.
+            string authority = Settings.Authority;
+            try
             {
-                _ = Task.Run(() => RefreshWellKnownInBackground(), cancellationToken);
+                var metadata = await FetchWellKnownMetadata(authority, cancellationToken);
+                Volatile.Write(ref _issuer, metadata.Issuer);
+                return metadata.Issuer;
             }
-            return new ValueTask<string>(cached.Issuer);
-        }
-
-        // No cache (cold start) - must block and fetch
-        return FetchWellKnownBlocking(cancellationToken);
-    }
-
-    private async ValueTask<string> FetchWellKnownBlocking(CancellationToken cancellationToken)
-    {
-        try
-        {
-            var metadata = await FetchWellKnownMetadata(Settings.Authority, cancellationToken);
-            var now = _timeProvider.GetUtcNow();
-            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now));
-            return metadata.Issuer;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to fetch OAuth metadata, falling back to authority");
-            var authorityFallback = Settings.Authority;
-            if (authorityFallback[^1] != '/')
-                authorityFallback += '/';
-            return authorityFallback;
-        }
-    }
-
-    private async Task RefreshWellKnownInBackground()
-    {
-        try
-        {
-            var metadata = await FetchWellKnownMetadata(Settings.Authority, CancellationToken.None);
-            var now = _timeProvider.GetUtcNow();
-            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Background refresh of OAuth metadata failed");
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // The caller is gone. Don't stamp the failure window — a disconnecting client
+                // must not push other callers onto the fallback.
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch OAuth metadata, falling back to authority");
+                Volatile.Write(ref _lastFailureTicks, _timeProvider.GetUtcNow().UtcTicks);
+                return GetAuthorityFallback();
+            }
         }
         finally
         {
-            Volatile.Write(ref _wellKnownRefreshing, 0);
+            _wellKnownFetchLock.Release();
         }
+    }
+
+    private bool IsInFailureWindow() =>
+        _timeProvider.GetUtcNow().UtcTicks - Volatile.Read(ref _lastFailureTicks) < WellKnownRetryInterval.Ticks;
+
+    private string GetAuthorityFallback()
+    {
+        var authority = Settings.Authority;
+        return authority[^1] == '/' ? authority : authority + '/';
     }
 
     private async Task<OAuthAuthorizationServerMetadata> FetchWellKnownMetadata(
@@ -511,7 +538,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     )
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(10));
+        cts.CancelAfter(_wellKnownFetchTimeout);
         cancellationToken = cts.Token;
         var wellKnownUrl = new Uri(new Uri(authority), ".well-known/oauth-authorization-server");
         using var client = _httpClientFactory.CreateClient();

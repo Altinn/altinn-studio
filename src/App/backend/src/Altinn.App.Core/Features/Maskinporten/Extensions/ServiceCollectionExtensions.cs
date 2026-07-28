@@ -2,6 +2,7 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App.Core.Features.Maskinporten.Extensions;
 
@@ -30,6 +31,10 @@ internal static class ServiceCollectionExtensions
             MaskinportenClient.VariantInternal,
             (sp, key) => ActivatorUtilities.CreateInstance<MaskinportenClient>(sp, MaskinportenClient.VariantInternal)
         );
+
+        // Warms the well-known metadata (issuer) at startup. TryAddEnumerable makes double registration
+        // safe, and a container without a host simply never runs it.
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MaskinportenWellKnownWarmupService>());
 
         return services;
     }
