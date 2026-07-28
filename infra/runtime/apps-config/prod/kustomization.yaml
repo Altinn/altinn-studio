@@ -22,6 +22,8 @@ patches:
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.altinn.no/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.altinn.no/correspondence/api/v1/
         GeneralSettings__HostName: altinn.no
+        PlatformFrontendSettings__ArbeidsflateBaseUrl: https://af.altinn.no/
+        PlatformFrontendSettings__AccessManagementBaseUrl: https://am.ui.altinn.no/
         AppSettings__OpenIdWellKnownEndpoint: https://platform.altinn.no/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Production
         AppSettings__EFormidlingSender: "991825827"
@@ -47,6 +49,10 @@ patches:
             },
             "GeneralSettings": {
               "HostName": "altinn.no"
+            },
+            "PlatformFrontendSettings": {
+              "ArbeidsflateBaseUrl": "https://af.altinn.no/",
+              "AccessManagementBaseUrl": "https://am.ui.altinn.no/"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.altinn.no/authentication/api/v1/openid/",

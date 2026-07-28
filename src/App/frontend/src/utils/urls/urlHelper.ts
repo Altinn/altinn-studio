@@ -12,12 +12,16 @@ function extractAltinnHost(host: string): string | undefined {
   return match?.[1];
 }
 
-/**
- * Base URL for the Altinn 3 arbeidsflate (inbox/message box, profile), resolved per environment by the
- * backend and exposed through the runtime config map (PlatformFrontendSettings).
- */
+function withTrailingSlash(baseUrl: string): string {
+  return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+}
+
 function getArbeidsflateBaseUrl(): string {
-  return GlobalData.platformFrontendSettings.arbeidsflateBaseUrl;
+  return withTrailingSlash(GlobalData.platformFrontendSettings.arbeidsflateBaseUrl);
+}
+
+function getAccessManagementBaseUrl(): string {
+  return withTrailingSlash(GlobalData.platformFrontendSettings.accessManagementBaseUrl);
 }
 
 function arbeidsflateEnvironment(host: string): 'local' | 'app' | 'none' {
@@ -45,20 +49,18 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
     return undefined;
   }
   if (environment === 'local') {
-    // Localtest is a stub homepage; party switching and dialogs are not simulated locally.
     return `http://${host}/`;
   }
 
   const arbeidsflateUrl = getArbeidsflateBaseUrl();
-  const targetUrl = dialogId ? `${arbeidsflateUrl.replace(/\/$/, '')}/inbox/${dialogId}` : arbeidsflateUrl;
+  const targetUrl = dialogId ? `${arbeidsflateUrl}inbox/${dialogId}` : arbeidsflateUrl;
 
   if (partyId === undefined) {
     return targetUrl;
   }
 
   // Use access management changeandredirect endpoint to switch party and redirect to A3 arbeidsflate
-  const amBaseUrl = GlobalData.platformFrontendSettings.accessManagementBaseUrl;
-  return `${amBaseUrl}${redirectAndChangeParty(targetUrl, partyId)}`;
+  return `${getAccessManagementBaseUrl()}${redirectAndChangeParty(targetUrl, partyId)}`;
 }
 
 export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
@@ -86,7 +88,7 @@ export const returnUrlToProfile = (host: string, _partyId?: number | undefined):
   }
 
   const arbeidsflateUrl = environment === 'local' ? `http://${host}/` : getArbeidsflateBaseUrl();
-  return `${arbeidsflateUrl.replace(/\/$/, '')}/profile`;
+  return `${arbeidsflateUrl}profile`;
 };
 
 export const returnUrlToAllForms = (host: string): string | undefined => {

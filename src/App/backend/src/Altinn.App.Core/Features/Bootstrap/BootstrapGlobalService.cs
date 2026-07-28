@@ -22,7 +22,6 @@ internal sealed class BootstrapGlobalService(
     IAppMetadata _appMetadata,
     IAppResources _appResources,
     IOptions<FrontEndSettings> _frontEndSettings,
-    IOptions<GeneralSettings> _generalSettings,
     IOptionsMonitor<PlatformFrontendSettings> _platformFrontendSettings,
     IApplicationLanguage _applicationLanguage,
     IReturnUrlService _returnUrlService,
@@ -90,7 +89,7 @@ internal sealed class BootstrapGlobalService(
             OrgName = orgName,
             OrgLogoUrl = orgLogoUrl,
             SelectedParty = await currentPartyTask,
-            PlatformFrontendSettings = _platformFrontendSettings.CurrentValue.Resolve(_generalSettings.Value.HostName),
+            PlatformFrontendSettings = _platformFrontendSettings.CurrentValue,
         };
     }
 
