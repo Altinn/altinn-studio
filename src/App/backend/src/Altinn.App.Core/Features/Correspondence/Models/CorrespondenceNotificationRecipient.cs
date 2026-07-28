@@ -26,12 +26,4 @@ public sealed record CorrespondenceNotificationRecipient
     /// The national identity number of the recipient.
     /// </summary>
     public NationalIdentityNumber? NationalIdentityNumber { get; init; }
-
-    /// <summary>
-    /// Boolean indicating if the recipient is reserved.
-    /// </summary>
-    [Obsolete(
-        "This property is deprecated and will be removed in a future version. Use Correspondence.IgnoreReservation instead."
-    )]
-    public bool IsReserved { get; init; }
 }

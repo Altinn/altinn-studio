@@ -1,28 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { ReactElement } from 'react';
 
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { AltinnCollapsible } from 'src/components/AltinnCollapsible';
-import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
-import classes from 'src/components/molecules/AltinnCollapsibleAttachments.module.css';
-import type { IDisplayAttachment } from 'src/types/shared';
+import { Attachments } from './Attachments';
+import { Collapsible } from './Collapsible';
+import classes from './CollapsibleAttachments.module.css';
+import type { DisplayAttachment } from './types';
 
-interface IAltinnCollapsibleAttachmentsProps {
-  attachments: IDisplayAttachment[] | undefined;
-  title: React.ReactElement;
-  showLinks: boolean | undefined;
+export type CollapsibleAttachmentsProps = {
+  attachments: DisplayAttachment[] | undefined;
+  title: ReactElement;
+  showLinks?: boolean;
   showDescription: boolean;
-}
+};
 
-export function AltinnCollapsibleAttachments({
+export function CollapsibleAttachments({
   attachments,
   title,
   showLinks = true,
   showDescription,
-}: IAltinnCollapsibleAttachmentsProps) {
+}: CollapsibleAttachmentsProps) {
   const isCollapsible = useIsPrint() ? false : Boolean(attachments && attachments.length > 4);
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
 
   function handleOpenClose() {
     setOpen(!open);
@@ -45,19 +46,19 @@ export function AltinnCollapsibleAttachments({
           />
           {title}
         </div>
-        <AltinnCollapsible open={open}>
-          <AltinnAttachments
+        <Collapsible open={open}>
+          <Attachments
             attachments={attachments}
             showLinks={showLinks}
             showDescription={showDescription}
           />
-        </AltinnCollapsible>
+        </Collapsible>
       </div>
     );
   }
 
   return (
-    <AltinnAttachments
+    <Attachments
       id='attachment-list'
       title={title}
       attachments={attachments}
@@ -67,9 +68,6 @@ export function AltinnCollapsibleAttachments({
   );
 }
 
-/**
- * Watches the print media query and returns true if the page is being printed
- */
 function useIsPrint() {
   const [isPrint, setIsPrint] = useState(() => window.matchMedia('print').matches);
 
