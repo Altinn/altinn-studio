@@ -15,7 +15,6 @@ const buttonStyles: {
 
 export interface ActionButtonProps {
   componentId: string;
-  id?: string;
   title: string;
   buttonStyle: ActionButtonStyle;
   disabled?: boolean;
@@ -26,7 +25,6 @@ export interface ActionButtonProps {
 
 export function ActionButton({
   componentId,
-  id,
   title,
   buttonStyle,
   disabled = false,
@@ -40,7 +38,7 @@ export function ActionButton({
   return (
     <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
       <Button
-        id={id}
+        id={`action-button-${componentId}`}
         variant={variant}
         color={color}
         disabled={disabled}

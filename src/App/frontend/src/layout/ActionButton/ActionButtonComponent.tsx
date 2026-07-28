@@ -12,7 +12,7 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export function ActionButtonComponent({ baseComponentId }: PropsFromGenericComponent<'ActionButton'>) {
   const { action, buttonStyle, id, textResourceBindings } = useItemWhenType(baseComponentId, 'ActionButton');
-  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
+  const { innerGrid } = useComponentStructureData(baseComponentId);
   const { mutate: processNext, isPending: isPerformingProcessNext } = useProcessNext({ action });
   const isAuthorized = useIsAuthorized();
 
@@ -22,8 +22,7 @@ export function ActionButtonComponent({ baseComponentId }: PropsFromGenericCompo
 
   return (
     <ActionButton
-      componentId={componentId}
-      id={`action-button-${id}`}
+      componentId={id}
       title={textResourceBindings?.title ?? `actions.${action}`}
       buttonStyle={buttonStyle}
       disabled={!isAuthorized(action)}

@@ -8,7 +8,6 @@ import type { ActionButtonProps } from './ActionButton';
 export const ACTION_BUTTON_PROP_CATEGORIES = {
   title: 'text',
   componentId: 'content',
-  id: 'content',
   buttonStyle: 'content',
   disabled: 'runtime',
   isLoading: 'runtime',
@@ -31,7 +30,6 @@ const meta = {
   },
   args: {
     componentId: 'action-button-preview',
-    id: 'action-button-preview',
     title: 'Bekreft',
     buttonStyle: 'primary',
     onClick: fn(),

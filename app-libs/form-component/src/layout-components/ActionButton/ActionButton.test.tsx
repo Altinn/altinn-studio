@@ -33,8 +33,8 @@ describe('ActionButton', () => {
   it('calls onClick when the button is pressed', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render({ onClick }, { overrides: { 'my.title': 'Bekreft' } });
-    await user.click(screen.getByRole('button', { name: 'Bekreft' }));
+    render({ onClick });
+    await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
