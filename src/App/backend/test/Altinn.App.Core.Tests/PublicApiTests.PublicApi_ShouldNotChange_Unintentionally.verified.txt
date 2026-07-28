@@ -540,6 +540,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference externalReference) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReferenceType type, string value) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReferences(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference> externalReferences) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIdempotentKey(System.Guid idempotentKey) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIgnoreReservation(bool ignoreReservation) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfidential(bool isConfidential) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded) { }
@@ -647,6 +648,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference externalReference);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReferenceType type, string value);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReferences(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference> externalReferences);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIdempotentKey(System.Guid idempotentKey);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIgnoreReservation(bool ignoreReservation);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfidential(bool isConfidential);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded);
@@ -972,6 +974,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public System.DateTimeOffset? DueDateTime { get; init; }
         public System.Collections.Generic.IReadOnlyList<System.Guid>? ExistingAttachments { get; init; }
         public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference>? ExternalReferences { get; init; }
+        public System.Guid? IdempotentKey { get; init; }
         public bool? IgnoreReservation { get; init; }
         public bool? IsConfidential { get; init; }
         public bool? IsConfirmationNeeded { get; init; }

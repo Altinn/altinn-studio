@@ -162,6 +162,10 @@ public class CorrespondenceClientMappingTests
 
         root.GetProperty("existingAttachments")[0].GetGuid().Should().Be(existingAttachmentId);
 
+        // No key configured - omitted rather than sent as null. (This request has two recipients, which
+        // the API does not allow an idempotent key with.)
+        root.TryGetProperty("idempotentKey", out _).Should().BeFalse();
+
         var propList = corr.GetProperty("propertyList");
         propList.GetProperty("prop-key-1").GetString().Should().Be("prop-value-1");
         propList.GetProperty("prop-key-2").GetString().Should().Be("prop-value-2");
@@ -219,6 +223,7 @@ public class CorrespondenceClientMappingTests
         await using var fixture = Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
         string? capturedJson = null;
+        var idempotentKey = Guid.NewGuid();
 
         var request = CorrespondenceRequestBuilder
             .Create()
@@ -232,6 +237,7 @@ public class CorrespondenceClientMappingTests
                     .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
                     .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
             )
+            .WithIdempotentKey(idempotentKey)
             .Build();
 
         fixture.HttpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
@@ -251,6 +257,10 @@ public class CorrespondenceClientMappingTests
         var notification = doc.RootElement.GetProperty("correspondence").GetProperty("notification");
         notification.GetProperty("overrideRegisteredContactInformation").GetBoolean().Should().BeFalse();
         notification.GetProperty("customRecipients").GetArrayLength().Should().Be(1);
+
+        // `idempotentKey` is a sibling of `correspondence`, not one of its properties.
+        doc.RootElement.GetProperty("idempotentKey").GetGuid().Should().Be(idempotentKey);
+        doc.RootElement.GetProperty("correspondence").TryGetProperty("idempotentKey", out _).Should().BeFalse();
     }
 
     [Fact]

@@ -617,4 +617,24 @@ public class CorrespondenceBuilderTests
 
         notification.OverrideRegisteredContactInformation.Should().BeFalse();
     }
+
+    [Fact]
+    public void Builder_IdempotentKey_RoundTripsAndDefaultsToNull()
+    {
+        var key = Guid.NewGuid();
+
+        CorrespondenceRequest Build(bool withKey)
+        {
+            var builder = CorrespondenceRequestBuilder
+                .Create()
+                .WithResourceId("resource-id")
+                .WithSendersReference("senders-ref")
+                .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+                .WithContent(LanguageCode<Iso6391>.Parse("no"), "title", "summary", "body");
+            return withKey ? builder.WithIdempotentKey(key).Build() : builder.Build();
+        }
+
+        Build(withKey: true).IdempotentKey.Should().Be(key);
+        Build(withKey: false).IdempotentKey.Should().BeNull();
+    }
 }

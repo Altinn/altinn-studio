@@ -157,4 +157,40 @@ public class CorrespondenceRequestTests
         withEmpty.Should().Throw<CorrespondenceArgumentException>().WithMessage("*CustomRecipients*");
         withOne.Should().NotThrow();
     }
+
+    [Fact]
+    public void Validate_RejectsUnusableIdempotentKeys()
+    {
+        // Arrange
+        CorrespondenceRequest Build(Guid? key, int recipientCount) =>
+            new()
+            {
+                ResourceId = "resource-id",
+                SendersReference = "senders-reference",
+                Recipients = Enumerable
+                    .Range(1, recipientCount)
+                    .Select(i => OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(i)))
+                    .ToList(),
+                Content = new CorrespondenceContent
+                {
+                    Title = "title",
+                    Body = "body",
+                    Summary = "summary",
+                    Language = LanguageCode<Iso6391>.Parse("no"),
+                },
+                IdempotentKey = key,
+            };
+
+        // Act
+        var empty = () => Build(Guid.Empty, 1).Validate();
+        var manyRecipients = () => Build(Guid.NewGuid(), 2).Validate();
+        var valid = () => Build(Guid.NewGuid(), 1).Validate();
+        var noKeyManyRecipients = () => Build(null, 2).Validate();
+
+        // Assert: the API rejects both of these, so they must fail before the request is sent
+        empty.Should().Throw<CorrespondenceArgumentException>().WithMessage("*empty GUID*");
+        manyRecipients.Should().Throw<CorrespondenceArgumentException>().WithMessage("*more than one recipient*");
+        valid.Should().NotThrow();
+        noKeyManyRecipients.Should().NotThrow();
+    }
 }

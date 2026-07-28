@@ -322,6 +322,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             },
             Recipients = request.Recipients.Select(r => r.ToUrnFormattedString()).ToList(),
             ExistingAttachments = allExistingAttachments.Count > 0 ? allExistingAttachments : [],
+            IdempotentKey = request.IdempotentKey,
         };
     }
 

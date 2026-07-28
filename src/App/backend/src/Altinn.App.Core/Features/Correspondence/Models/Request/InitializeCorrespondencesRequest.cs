@@ -26,6 +26,16 @@ internal sealed record InitializeCorrespondencesRequest
     /// </summary>
     [JsonPropertyName("existingAttachments")]
     public IReadOnlyList<Guid>? ExistingAttachments { get; init; }
+
+    /// <summary>
+    /// Optional key that prevents the same correspondence being created twice. Omitted when unset.
+    /// </summary>
+    /// <remarks>The API answers a reused key with <c>409 Conflict</c> rather than replaying the original
+    /// response, rejects <see cref="Guid.Empty"/>, and rejects the key alongside multiple recipients.
+    /// <see cref="CorrespondenceRequest.Validate"/> pre-empts the latter two.</remarks>
+    [JsonPropertyName("idempotentKey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? IdempotentKey { get; init; }
 }
 
 /// <summary>

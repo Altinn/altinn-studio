@@ -269,6 +269,15 @@ public interface ICorrespondenceRequestBuilder
     ICorrespondenceRequestBuilder WithAttachments(IEnumerable<CorrespondenceAttachment> attachments);
 
     /// <summary>
+    /// Sets a key that prevents the same correspondence being created twice.
+    /// </summary>
+    /// <remarks>Reuse the same key when retrying a send that may already have succeeded. See
+    /// <see cref="CorrespondenceRequest.IdempotentKey"/> for how a duplicate is reported and what the key
+    /// cannot be combined with.</remarks>
+    /// <param name="idempotentKey">A stable, non-empty key for this correspondence</param>
+    ICorrespondenceRequestBuilder WithIdempotentKey(Guid idempotentKey);
+
+    /// <summary>
     /// Builds the <see cref="CorrespondenceRequest"/> instance.
     /// </summary>
     CorrespondenceRequest Build();

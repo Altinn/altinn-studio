@@ -24,6 +24,7 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     private bool? _isConfirmationNeeded;
     private bool? _isConfidential;
     private List<Guid>? _existingAttachments;
+    private Guid? _idempotentKey;
 
     private CorrespondenceRequestBuilder() { }
 
@@ -290,6 +291,13 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     }
 
     /// <inheritdoc/>
+    public ICorrespondenceRequestBuilder WithIdempotentKey(Guid idempotentKey)
+    {
+        _idempotentKey = idempotentKey;
+        return this;
+    }
+
+    /// <inheritdoc/>
     public CorrespondenceRequest Build()
     {
         BuilderUtils.NotNullOrEmpty(_resourceId);
@@ -312,6 +320,7 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
             Notification = _notification,
             IgnoreReservation = _ignoreReservation,
             ExistingAttachments = _existingAttachments?.ToArray(),
+            IdempotentKey = _idempotentKey,
             IsConfirmationNeeded = _isConfirmationNeeded,
             IsConfidential = _isConfidential,
         };
