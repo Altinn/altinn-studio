@@ -10,11 +10,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Warn (exit code `3`) in `studioctl app upgrade v9` about the deprecated Correspondence APIs removed in v9, with per-cluster guidance: the legacy authorisation model (`CorrespondenceAuthorisation` and the payload constructors taking it or a token factory, superseded by `CorrespondenceAuthenticationMethod` — including the scope widening that comes with `Default()`), the fields the Correspondence API dropped (`Sender`, `AllowSystemDeleteAfter`, `RequestedSendTime`, `DataLocationType` and their no-op builder methods), and the changed notification recipient-override API (`WithRecipientToOverride`, `WithCorrespondenceNotificationRecipients`, `CorrespondenceNotificationRecipientWrapper`, `CustomNotificationRecipients`, `IsReserved`, and the singular `CustomRecipient` now that notifications carry a `CustomRecipients` list). Measured against the v8.9.2 library sources: 87 usages reported, no false positives anywhere in `Altinn.App.Core` or the app template.
+- Warn in `studioctl app upgrade v9` about the Correspondence APIs removed in v9, with migration guidance for the legacy authorisation model, the dropped request fields, and the reworked notification recipient override.
 
 ### Changed
 
-- Point the `path:line` in `studioctl app upgrade v9` removed-API warnings at the offending call or member itself rather than at the start of the enclosing expression. Warnings about a method in a multi-line fluent builder chain previously reported the line the chain started on.
+- Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
 
 ## [0.1.0-preview.18] - 2026-07-24
 
