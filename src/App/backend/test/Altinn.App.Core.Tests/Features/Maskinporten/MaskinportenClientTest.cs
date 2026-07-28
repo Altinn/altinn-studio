@@ -97,6 +97,25 @@ public class MaskinportenClientTests
         }
 
         /// <summary>
+        /// A client constructed directly against the supplied options monitor (and optionally its own time
+        /// provider), for tests that need to mutate settings or control the clock independently of the fixture.
+        /// </summary>
+        public MaskinportenClient ClientWithOptions(
+            string variant,
+            IOptionsMonitor<MaskinportenSettings> options,
+            TimeProvider? timeProvider = null
+        ) =>
+            new(
+                variant,
+                options,
+                App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
+                App.Services.GetRequiredService<IHttpClientFactory>(),
+                App.Services.GetRequiredService<HybridCache>(),
+                App.Services.GetRequiredService<ILogger<MaskinportenClient>>(),
+                timeProvider ?? App.Services.GetRequiredService<TimeProvider>()
+            );
+
+        /// <summary>
         /// A client wired to a logger that records every rendered Debug message into <paramref name="sink"/>.
         /// </summary>
         public MaskinportenClient ClientWithLogCapture(string variant, List<string> sink) =>
@@ -813,6 +832,112 @@ public class MaskinportenClientTests
         var result = await client.GetAudienceFromWellKnown();
 
         // Assert - the cancelled call neither fetched nor stamped the retry window
+        Assert.Equal(expectedIssuer, result);
+        Assert.Equal(1, fetchCount());
+    }
+
+    [Theory]
+    [InlineData("""{"issuer":null}""")]
+    [InlineData("""{"issuer":""}""")]
+    [InlineData("""{"issuer":"   "}""")]
+    public async Task GetAudienceFromWellKnown_NullOrEmptyIssuerFailsTheFetch(string responseBody)
+    {
+        // Arrange - STJ `required` enforces presence, not non-nullness, so `{"issuer":null}` deserializes
+        // fine. It must be treated as a failed fetch, never cached or minted as the `aud` claim.
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (_, _) =>
+                Task.FromResult(
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(responseBody),
+                    }
+                )
+        );
+
+        // Act
+        var result1 = await client.GetAudienceFromWellKnown();
+        var result2 = await client.GetAudienceFromWellKnown();
+
+        // Assert - callers get the Authority fallback, and the retry window was stamped (no second fetch)
+        Assert.Equal(client.Settings.Authority, result1);
+        Assert.Equal(client.Settings.Authority, result2);
+        Assert.Equal(1, fetchCount());
+    }
+
+    [Fact]
+    public async Task GetAudienceFromWellKnown_RefetchesWhenAuthorityIsReconfigured()
+    {
+        // Arrange - MaskinportenSettings is deliberately hot-reloadable (Kubernetes secret rotation), so a
+        // corrected Authority must not keep serving the issuer that was resolved for the old one.
+        await using var fixture = Fixture.Create();
+        const string authorityA = "https://authority-a.maskinporten.dev/";
+        const string authorityB = "https://authority-b.maskinporten.dev/";
+        const string issuerA = "https://issuer-a.maskinporten.no/";
+        const string issuerB = "https://issuer-b.maskinporten.no/";
+        var currentSettings = Fixture.DefaultSettings with { Authority = authorityA };
+        var optionsMonitor = new Mock<IOptionsMonitor<MaskinportenSettings>>();
+        optionsMonitor.Setup(x => x.Get(It.IsAny<string?>())).Returns(() => currentSettings);
+        var client = fixture.ClientWithOptions(MaskinportenClient.VariantDefault, optionsMonitor.Object);
+
+        var requestedUrls = new List<Uri>();
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (request, _) =>
+            {
+                lock (requestedUrls)
+                    requestedUrls.Add(request.RequestUri!);
+                var issuer = request.RequestUri!.ToString().StartsWith(authorityA, StringComparison.Ordinal)
+                    ? issuerA
+                    : issuerB;
+                return Task.FromResult(WellKnownSuccessResponse(issuer));
+            }
+        );
+
+        // Act
+        var result1 = await client.GetAudienceFromWellKnown();
+        var result2 = await client.GetAudienceFromWellKnown(); // Cached for authority A
+        currentSettings = currentSettings with { Authority = authorityB };
+        var result3 = await client.GetAudienceFromWellKnown(); // Authority changed - must refetch
+        var result4 = await client.GetAudienceFromWellKnown(); // Cached for authority B
+
+        // Assert
+        Assert.Equal(issuerA, result1);
+        Assert.Equal(issuerA, result2);
+        Assert.Equal(issuerB, result3);
+        Assert.Equal(issuerB, result4);
+        Assert.Equal(2, fetchCount());
+        Assert.Equal(2, requestedUrls.Count);
+        Assert.StartsWith(authorityA, requestedUrls[0].ToString(), StringComparison.Ordinal);
+        Assert.StartsWith(authorityB, requestedUrls[1].ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetAudienceFromWellKnown_ClockNearMinValueDoesNotTriggerFailureWindow()
+    {
+        // Arrange - guard for the `_lastFailureTicks == 0` sentinel: a time provider whose current time is
+        // within the retry interval of DateTimeOffset.MinValue must not read as "recently failed" at startup.
+        await using var fixture = Fixture.Create();
+        const string expectedIssuer = "https://issuer.maskinporten.no/";
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (_, _) => Task.FromResult(WellKnownSuccessResponse(expectedIssuer))
+        );
+        var optionsMonitor = new Mock<IOptionsMonitor<MaskinportenSettings>>();
+        optionsMonitor.Setup(x => x.Get(It.IsAny<string?>())).Returns(Fixture.DefaultSettings);
+        var client = fixture.ClientWithOptions(
+            MaskinportenClient.VariantDefault,
+            optionsMonitor.Object,
+            new FakeTimeProvider(DateTimeOffset.MinValue)
+        );
+
+        // Act
+        var result = await client.GetAudienceFromWellKnown();
+
+        // Assert - the cold client fetched instead of fast-failing onto the fallback
         Assert.Equal(expectedIssuer, result);
         Assert.Equal(1, fetchCount());
     }

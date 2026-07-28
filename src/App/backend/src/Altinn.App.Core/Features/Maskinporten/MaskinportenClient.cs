@@ -69,9 +69,12 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     private readonly HybridCache _tokenCache;
     private readonly Telemetry? _telemetry;
 
-    // Well-known metadata state: the issuer is fetched once and cached for the process lifetime.
+    // Well-known metadata state: the issuer is fetched once and cached for the process lifetime,
+    // keyed to the authority that produced it (MaskinportenSettings is hot-reloadable).
     // See GetAudienceFromWellKnown for the full semantics.
-    private string? _issuer;
+    private sealed record ResolvedIssuer(string Authority, string Issuer);
+
+    private ResolvedIssuer? _issuer;
     private long _lastFailureTicks;
     private readonly SemaphoreSlim _wellKnownFetchLock = new(1, 1);
 
@@ -456,9 +459,11 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// Retrieves the OAuth issuer from the well-known metadata endpoint for use as the JWT audience claim.
     /// </summary>
     /// <remarks>
-    /// <para>The issuer is fetched once and cached for the process lifetime — an environment's issuer cannot
-    /// realistically change without breaking every consumer, and pods restart on every deploy. There is no
-    /// staleness concept and no background refresh.</para>
+    /// <para>The issuer is fetched once and cached for the process lifetime <em>for a given Authority</em> —
+    /// an environment's issuer cannot realistically change without breaking every consumer, and pods restart
+    /// on every deploy. There is no staleness concept and no background refresh. Since
+    /// <see cref="MaskinportenSettings"/> is hot-reloadable (e.g. Kubernetes secret rotation), the cached
+    /// issuer is keyed to the authority that produced it: reconfiguring the Authority triggers a fresh fetch.</para>
     /// <para>On fetch failure, callers fall back to <see cref="MaskinportenSettings.Authority"/> (with a
     /// trailing slash). This is only valid when the configured authority equals the issuer URL — which holds
     /// for all shipped environments, but is a documented limitation for proxy-style authority configurations.
@@ -468,10 +473,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </remarks>
     internal ValueTask<string> GetAudienceFromWellKnown(CancellationToken cancellationToken = default)
     {
-        // Fast path: issuer already resolved for this process.
-        var issuer = Volatile.Read(ref _issuer);
-        if (issuer is not null)
-            return new ValueTask<string>(issuer);
+        // Fast path: issuer already resolved for the currently configured authority.
+        var resolved = Volatile.Read(ref _issuer);
+        if (resolved is not null && resolved.Authority == Settings.Authority)
+            return new ValueTask<string>(resolved.Issuer);
 
         // Fail-fast path: a fetch failed recently, don't retry yet.
         if (IsInFailureWindow())
@@ -486,22 +491,23 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         await _wellKnownFetchLock.WaitAsync(cancellationToken);
         try
         {
+            // The authority is read before the fetch try/catch so that a configuration error
+            // (OptionsValidationException) propagates as-is instead of stamping the failure window.
+            string authority = Settings.Authority;
+
             // Re-check both conditions: another caller may have resolved the issuer,
             // or failed moments ago, while we waited for the lock.
-            var issuer = Volatile.Read(ref _issuer);
-            if (issuer is not null)
-                return issuer;
+            var resolved = Volatile.Read(ref _issuer);
+            if (resolved is not null && resolved.Authority == authority)
+                return resolved.Issuer;
 
             if (IsInFailureWindow())
                 return GetAuthorityFallback();
 
-            // Read the authority before the fetch try/catch so that a configuration error
-            // (OptionsValidationException) propagates as-is instead of stamping the failure window.
-            string authority = Settings.Authority;
             try
             {
                 var metadata = await FetchWellKnownMetadata(authority, cancellationToken);
-                Volatile.Write(ref _issuer, metadata.Issuer);
+                Volatile.Write(ref _issuer, new ResolvedIssuer(authority, metadata.Issuer));
                 return metadata.Issuer;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -523,8 +529,14 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         }
     }
 
-    private bool IsInFailureWindow() =>
-        _timeProvider.GetUtcNow().UtcTicks - Volatile.Read(ref _lastFailureTicks) < WellKnownRetryInterval.Ticks;
+    private bool IsInFailureWindow()
+    {
+        // 0 is the "never failed" sentinel — without the guard, a time provider whose current time is
+        // within the retry interval of DateTimeOffset.MinValue would report a failure window at startup.
+        long lastFailureTicks = Volatile.Read(ref _lastFailureTicks);
+        return lastFailureTicks != 0
+            && _timeProvider.GetUtcNow().UtcTicks - lastFailureTicks < WellKnownRetryInterval.Ticks;
+    }
 
     private string GetAuthorityFallback()
     {
@@ -545,10 +557,17 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         using var response = await client.GetAsync(wellKnownUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var metadata = await response.Content.ReadFromJsonAsync<OAuthAuthorizationServerMetadata>(
-            cancellationToken: cancellationToken
-        );
-        return metadata ?? throw new JsonException("Well-known metadata response was null");
+        var metadata =
+            await response.Content.ReadFromJsonAsync<OAuthAuthorizationServerMetadata>(
+                cancellationToken: cancellationToken
+            ) ?? throw new JsonException("Well-known metadata response was null");
+
+        // STJ `required` enforces presence, not non-nullness — `{"issuer":null}` deserializes fine.
+        // A null or empty issuer must fail the fetch (fallback + retry window), never be cached or minted as `aud`.
+        if (string.IsNullOrWhiteSpace(metadata.Issuer))
+            throw new JsonException("Well-known metadata response has a null or empty issuer");
+
+        return metadata;
     }
 
     /// <summary>
