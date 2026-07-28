@@ -186,12 +186,14 @@ public class CorrespondenceClientMappingTests
         notification.GetProperty("reminderNotificationChannel").GetString().Should().Be("SmsPreferred");
         notification.GetProperty("sendersReference").GetString().Should().Be("notification-senders-ref");
 
-        var customRecipient = notification.GetProperty("customRecipient");
-        customRecipient.GetProperty("emailAddress").GetString().Should().Be("override@example.com");
-        customRecipient.GetProperty("mobileNumber").GetString().Should().Be("+4799999999");
+        var customRecipients = notification.GetProperty("customRecipients");
+        customRecipients.GetArrayLength().Should().Be(1);
+        customRecipients[0].GetProperty("emailAddress").GetString().Should().Be("override@example.com");
+        customRecipients[0].GetProperty("mobileNumber").GetString().Should().Be("+4799999999");
 
-        // `customNotificationRecipients` was removed in v9 in favour of the singular `customRecipient`.
-        // The API honoured only the first entry of that list, so nothing is lost by not sending it.
+        // The API deprecated both of these in favour of `customRecipients`, which we now emit directly.
+        // It honoured only the first entry of `customNotificationRecipients`, so nothing is lost.
+        notification.TryGetProperty("customRecipient", out _).Should().BeFalse();
         notification.TryGetProperty("customNotificationRecipients", out _).Should().BeFalse();
     }
 

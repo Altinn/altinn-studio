@@ -10,6 +10,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Send correspondence notification recipient overrides as the Correspondence API's current `customRecipients` list instead of its deprecated singular `customRecipient`. No app-facing change — `CorrespondenceNotification.CustomRecipient` and `WithRecipientOverride` are unchanged, and the API normalised the singular form into this same one-element list anyway, so the resulting notification is identical. This gets the client off all three deprecated recipient-override tiers rather than moving it from the oldest to the middle one.
 - Breaking: `ICorrespondenceRequestBuilderResourceId.WithResourceId` now returns `ICorrespondenceRequestBuilderSendersReference` instead of `ICorrespondenceRequestBuilderSender`, and the now-empty `ICorrespondenceRequestBuilderSender` step interface is gone. Fluent chains are unaffected; only code that names these types explicitly needs updating.
 - Breaking: `CorrespondencePayloadBase` no longer exposes a parameterless `protected` constructor; its authentication method is now supplied by an internal constructor and is non-nullable. Construct payloads through `SendCorrespondencePayload` / `GetCorrespondenceStatusPayload`, which now throw `ArgumentNullException` instead of failing later when passed a null request or authentication method.
 

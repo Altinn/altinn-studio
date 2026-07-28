@@ -215,10 +215,17 @@ internal sealed record CorrespondenceNotificationRequest
     public string? SendersReference { get; init; }
 
     /// <summary>
-    /// A custom recipient for the notification. When set, overrides the default correspondence recipient.
+    /// Custom recipients for the notification. When set, overrides the default correspondence recipient.
     /// </summary>
-    [JsonPropertyName("customRecipient")]
-    public CorrespondenceNotificationRecipientRequest? CustomRecipient { get; init; }
+    /// <remarks>
+    /// The API also accepts a singular <c>customRecipient</c> and a <c>customNotificationRecipients</c> list,
+    /// both of which it has deprecated in favour of this property. It resolves them in that order of
+    /// precedence and normalises whichever it finds into this same list shape, so emitting this directly is
+    /// equivalent to the singular form and keeps us off the deprecated tiers.
+    /// </remarks>
+    [JsonPropertyName("customRecipients")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<CorrespondenceNotificationRecipientRequest>? CustomRecipients { get; init; }
 }
 
 /// <summary>
