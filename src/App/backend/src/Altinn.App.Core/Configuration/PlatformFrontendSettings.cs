@@ -20,4 +20,24 @@ internal class PlatformFrontendSettings
     /// URL for the help circle illustration SVG.
     /// </summary>
     public Uri HelpCircleIllustrationUrl { get; set; } = new("https://altinncdn.no/img/illustration-help-circle.svg");
+
+    /// <summary>
+    /// URL that logs the user out of Altinn.
+    /// </summary>
+    /// <remarks>
+    /// This and the URLs below are templates rather than <see cref="Uri"/>s: the frontend substitutes the
+    /// <c>{placeholder}</c> segments per request. Keeping the whole URL here means a change to the platform
+    /// authentication routes is a configuration change, not a new app frontend release.
+    /// </remarks>
+    public string? LogoutUrl { get; set; }
+
+    /// <summary>
+    /// URL that logs the user in and returns them to <c>{goTo}</c>.
+    /// </summary>
+    public string? LoginUrl { get; set; }
+
+    /// <summary>
+    /// URL that forces a step-up to authentication level high and returns the user to <c>{goTo}</c>.
+    /// </summary>
+    public string? UpgradeAuthenticationLevelUrl { get; set; }
 }

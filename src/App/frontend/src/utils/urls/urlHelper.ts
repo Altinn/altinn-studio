@@ -1,5 +1,18 @@
+import { GlobalData } from 'src/GlobalData';
+
 const prodStagingRegex = /^\w+\.apps\.((\w+\.)?altinn\.(no|cloud))$/;
 const localRegex = /^local\.altinn\.cloud(:\d+)?$/;
+
+/** Whole URLs live in config so a changed route structure doesn't require a new app frontend release. */
+export function fillUrlTemplate(
+  template: string | undefined,
+  values: Record<string, string | number> = {},
+): string | undefined {
+  return Object.entries(values).reduce(
+    (url, [name, value]) => url?.replaceAll(`{${name}}`, encodeURIComponent(String(value))),
+    template,
+  );
+}
 
 export function isLocalEnvironment(host: string): boolean {
   return localRegex.test(host);
@@ -109,11 +122,10 @@ export function logoutUrlAltinn(host: string): string | undefined {
     return `http://${host}/`;
   }
 
-  const altinnHost = extractAltinnHost(host);
-  if (!altinnHost) {
+  if (!extractAltinnHost(host)) {
     return;
   }
-  return `https://platform.${altinnHost}/authentication/api/v1/logout`;
+  return GlobalData.platformFrontendSettings.logoutUrl;
 }
 
 export function customEncodeURI(uri: string): string {
