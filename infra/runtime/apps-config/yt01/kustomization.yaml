@@ -22,8 +22,10 @@ patches:
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.yt01.altinn.cloud/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.yt01.altinn.cloud/correspondence/api/v1/
         GeneralSettings__HostName: yt01.altinn.cloud
-        PlatformFrontendSettings__ArbeidsflateBaseUrl: https://af.yt01.altinn.cloud/
-        PlatformFrontendSettings__AccessManagementBaseUrl: https://am.ui.yt01.altinn.cloud/
+        PlatformFrontendSettings__ArbeidsflateInboxUrl: https://af.yt01.altinn.cloud/
+        PlatformFrontendSettings__ArbeidsflateDialogUrl: https://af.yt01.altinn.cloud/inbox/{dialogId}
+        PlatformFrontendSettings__ArbeidsflateProfileUrl: https://af.yt01.altinn.cloud/profile
+        PlatformFrontendSettings__AccessManagementChangeAndRedirectUrl: https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}
         AppSettings__OpenIdWellKnownEndpoint: https://platform.yt01.altinn.cloud/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Staging
   - target:
@@ -49,8 +51,10 @@ patches:
               "HostName": "yt01.altinn.cloud"
             },
             "PlatformFrontendSettings": {
-              "ArbeidsflateBaseUrl": "https://af.yt01.altinn.cloud/",
-              "AccessManagementBaseUrl": "https://am.ui.yt01.altinn.cloud/"
+              "ArbeidsflateInboxUrl": "https://af.yt01.altinn.cloud/",
+              "ArbeidsflateDialogUrl": "https://af.yt01.altinn.cloud/inbox/{dialogId}",
+              "ArbeidsflateProfileUrl": "https://af.yt01.altinn.cloud/profile",
+              "AccessManagementChangeAndRedirectUrl": "https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.yt01.altinn.cloud/authentication/api/v1/openid/"

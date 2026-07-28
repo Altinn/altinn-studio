@@ -22,12 +22,31 @@ internal class PlatformFrontendSettings
     public Uri HelpCircleIllustrationUrl { get; set; } = new("https://altinncdn.no/img/illustration-help-circle.svg");
 
     /// <summary>
-    /// Base URL for the Altinn 3 "arbeidsflate" (inbox/message box, profile etc.).
+    /// URL of the Altinn 3 "arbeidsflate" inbox. Null in environments where the arbeidsflate is not
+    /// deployed, which hides every link to it.
     /// </summary>
-    public Uri ArbeidsflateBaseUrl { get; set; } = new("https://af.altinn.no/");
+    /// <remarks>
+    /// This and the URLs below are templates rather than <see cref="Uri"/>s: the frontend substitutes the
+    /// <c>{placeholder}</c> segments per request. Keeping the whole URL here means a change to the
+    /// arbeidsflate route structure is a configuration change, not a new app frontend release.
+    /// </remarks>
+    public string? ArbeidsflateInboxUrl { get; set; }
 
     /// <summary>
-    /// Base URL for the access management UI, used to switch party before redirecting to the arbeidsflate.
+    /// URL of a single dialog in the arbeidsflate inbox. Supports the <c>{dialogId}</c> placeholder.
+    /// Falls back to <see cref="ArbeidsflateInboxUrl"/> when null.
     /// </summary>
-    public Uri AccessManagementBaseUrl { get; set; } = new("https://am.ui.altinn.no/");
+    public string? ArbeidsflateDialogUrl { get; set; }
+
+    /// <summary>
+    /// URL of the user profile in the arbeidsflate.
+    /// </summary>
+    public string? ArbeidsflateProfileUrl { get; set; }
+
+    /// <summary>
+    /// URL of the access management endpoint that switches party and redirects onwards. Supports the
+    /// <c>{partyId}</c> and <c>{goTo}</c> placeholders. When null the arbeidsflate is linked without
+    /// switching party.
+    /// </summary>
+    public string? AccessManagementChangeAndRedirectUrl { get; set; }
 }

@@ -12,16 +12,15 @@ function extractAltinnHost(host: string): string | undefined {
   return match?.[1];
 }
 
-function withTrailingSlash(baseUrl: string): string {
-  return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-}
-
-function getArbeidsflateBaseUrl(): string {
-  return withTrailingSlash(GlobalData.platformFrontendSettings.arbeidsflateBaseUrl);
-}
-
-function getAccessManagementBaseUrl(): string {
-  return withTrailingSlash(GlobalData.platformFrontendSettings.accessManagementBaseUrl);
+/** Whole URLs live in config so a changed route structure doesn't require a new app frontend release. */
+function fillUrlTemplate(
+  template: string | undefined,
+  values: Record<string, string | number> = {},
+): string | undefined {
+  return Object.entries(values).reduce(
+    (url, [name, value]) => url?.replaceAll(`{${name}}`, encodeURIComponent(String(value))),
+    template,
+  );
 }
 
 function arbeidsflateEnvironment(host: string): 'local' | 'app' | 'none' {
@@ -29,10 +28,6 @@ function arbeidsflateEnvironment(host: string): 'local' | 'app' | 'none' {
     return 'local';
   }
   return extractAltinnHost(host) ? 'app' : 'none';
-}
-
-function redirectAndChangeParty(goTo: string, partyId: number): string {
-  return `accessmanagement/api/v1/reportee/changeandredirect?partyId=${partyId}&goTo=${encodeURIComponent(goTo)}`;
 }
 
 export const returnBaseUrlToAltinn = (host: string): string | undefined => {
@@ -52,15 +47,19 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
     return `http://${host}/`;
   }
 
-  const arbeidsflateUrl = getArbeidsflateBaseUrl();
-  const targetUrl = dialogId ? `${arbeidsflateUrl}inbox/${dialogId}` : arbeidsflateUrl;
+  const settings = GlobalData.platformFrontendSettings;
+  const inboxUrl = fillUrlTemplate(settings.arbeidsflateInboxUrl);
+  if (!inboxUrl) {
+    return undefined;
+  }
 
+  const targetUrl = (dialogId && fillUrlTemplate(settings.arbeidsflateDialogUrl, { dialogId })) || inboxUrl;
   if (partyId === undefined) {
     return targetUrl;
   }
 
   // Use access management changeandredirect endpoint to switch party and redirect to A3 arbeidsflate
-  return `${getAccessManagementBaseUrl()}${redirectAndChangeParty(targetUrl, partyId)}`;
+  return fillUrlTemplate(settings.accessManagementChangeAndRedirectUrl, { partyId, goTo: targetUrl }) ?? targetUrl;
 }
 
 export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
@@ -87,8 +86,11 @@ export const returnUrlToProfile = (host: string, _partyId?: number | undefined):
     return undefined;
   }
 
-  const arbeidsflateUrl = environment === 'local' ? `http://${host}/` : getArbeidsflateBaseUrl();
-  return `${arbeidsflateUrl}profile`;
+  if (environment === 'local') {
+    return `http://${host}/profile`;
+  }
+
+  return fillUrlTemplate(GlobalData.platformFrontendSettings.arbeidsflateProfileUrl);
 };
 
 export const returnUrlToAllForms = (host: string): string | undefined => {

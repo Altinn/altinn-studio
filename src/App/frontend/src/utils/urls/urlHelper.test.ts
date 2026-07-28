@@ -10,6 +10,7 @@ import {
   returnUrlToArchive,
   returnUrlToProfile,
 } from 'src/utils/urls/urlHelper';
+import type { IPlatformFrontendSettings } from 'src/types/shared';
 
 const hostTT = 'ttd.apps.tt02.altinn.no';
 const hostAT = 'ttd.apps.at21.altinn.cloud';
@@ -111,16 +112,25 @@ describe('Shared urlHelper.ts', () => {
   describe('arbeidsflate URLs come from the runtime config map', () => {
     const dialogId = '123e4567-e89b-12d3-a456-426614174000';
 
-    function configureArbeidsflate(arbeidsflateBaseUrl: string, accessManagementBaseUrl: string) {
+    function configureArbeidsflate(overrides: Partial<IPlatformFrontendSettings>) {
       window.altinnAppGlobalData.platformFrontendSettings = {
         ...window.altinnAppGlobalData.platformFrontendSettings,
-        arbeidsflateBaseUrl,
-        accessManagementBaseUrl,
+        arbeidsflateInboxUrl: undefined,
+        arbeidsflateDialogUrl: undefined,
+        arbeidsflateProfileUrl: undefined,
+        accessManagementChangeAndRedirectUrl: undefined,
+        ...overrides,
       };
     }
 
-    test('the configured base URLs are used, not ones derived from window.location.host', () => {
-      configureArbeidsflate('https://af.yt01.altinn.cloud/', 'https://am.ui.yt01.altinn.cloud/');
+    test('the configured URLs are used, not ones derived from window.location.host', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://af.yt01.altinn.cloud/',
+        arbeidsflateDialogUrl: 'https://af.yt01.altinn.cloud/inbox/{dialogId}',
+        arbeidsflateProfileUrl: 'https://af.yt01.altinn.cloud/profile',
+        accessManagementChangeAndRedirectUrl:
+          'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}',
+      });
 
       expect(returnUrlToProfile(hostTT)).toBe('https://af.yt01.altinn.cloud/profile');
       expect(returnUrlToArchive(hostTT)).toBe('https://af.yt01.altinn.cloud/');
@@ -132,24 +142,58 @@ describe('Shared urlHelper.ts', () => {
       );
     });
 
-    test('base URLs configured without a trailing slash still produce valid URLs', () => {
-      configureArbeidsflate('https://af.yt01.altinn.cloud', 'https://am.ui.yt01.altinn.cloud');
+    test('a changed route structure needs no frontend change', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://ny.altinn.no/meldingsboks',
+        arbeidsflateDialogUrl: 'https://ny.altinn.no/meldingsboks?dialog={dialogId}',
+        arbeidsflateProfileUrl: 'https://ny.altinn.no/min-profil',
+        accessManagementChangeAndRedirectUrl: 'https://ny.altinn.no/bytt?aktor={partyId}&videre={goTo}',
+      });
 
-      expect(returnUrlToProfile(hostTT)).toBe('https://af.yt01.altinn.cloud/profile');
-      expect(returnUrlToArchive(hostTT)).toBe('https://af.yt01.altinn.cloud/');
+      expect(returnUrlToProfile(hostTT)).toBe('https://ny.altinn.no/min-profil');
       expect(returnUrlToArchive(hostTT, undefined, dialogId)).toBe(
-        'https://af.yt01.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
+        'https://ny.altinn.no/meldingsboks?dialog=123e4567-e89b-12d3-a456-426614174000',
       );
       expect(returnUrlToArchive(hostTT, 12345)).toBe(
-        'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2F',
+        'https://ny.altinn.no/bytt?aktor=12345&videre=https%3A%2F%2Fny.altinn.no%2Fmeldingsboks',
       );
     });
 
-    test('localtest ignores the configured base URLs', () => {
-      configureArbeidsflate('https://af.yt01.altinn.cloud/', 'https://am.ui.yt01.altinn.cloud/');
+    test('localtest ignores the configured URLs', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://af.yt01.altinn.cloud/',
+        arbeidsflateProfileUrl: 'https://af.yt01.altinn.cloud/profile',
+      });
 
       expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/profile');
       expect(returnUrlToArchive(hostPodman, 12345, dialogId)).toBe('http://local.altinn.cloud:8000/');
+    });
+
+    test('no arbeidsflate link in environments where it is not deployed', () => {
+      configureArbeidsflate({});
+
+      expect(returnUrlToProfile(hostTT)).toBe(undefined);
+      expect(returnUrlToArchive(hostTT)).toBe(undefined);
+      expect(returnUrlToArchive(hostTT, 12345, dialogId)).toBe(undefined);
+      jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+      expect(getMessageBoxUrl()).toBe(undefined);
+    });
+
+    test('falls back to the inbox when the dialog or party-switch URL is missing', () => {
+      configureArbeidsflate({ arbeidsflateInboxUrl: 'https://af.at23.altinn.cloud/' });
+
+      expect(returnUrlToArchive(hostTT, undefined, dialogId)).toBe('https://af.at23.altinn.cloud/');
+      expect(returnUrlToArchive(hostTT, 12345)).toBe('https://af.at23.altinn.cloud/');
+      expect(returnUrlToArchive(hostTT, 12345, dialogId)).toBe('https://af.at23.altinn.cloud/');
+    });
+
+    test('placeholder values are encoded', () => {
+      configureArbeidsflate({
+        arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
+        arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
+      });
+
+      expect(returnUrlToArchive(hostTT, undefined, 'a/b?c=d')).toBe('https://af.tt02.altinn.no/inbox/a%2Fb%3Fc%3Dd');
     });
   });
 
