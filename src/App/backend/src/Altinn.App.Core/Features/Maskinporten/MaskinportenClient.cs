@@ -17,7 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.App.Core.Features.Maskinporten;
 
 /// <inheritdoc/>
-internal sealed class MaskinportenClient : IMaskinportenClient
+internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
 {
     /// <summary>
     /// The margin to take into consideration when determining if a token has expired (seconds).
@@ -46,7 +46,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </summary>
     private static readonly TimeSpan _wellKnownFetchTimeout = TimeSpan.FromSeconds(10);
 
-    private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt, bool IsFallback = false);
+    private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt, bool IsFallback);
 
     internal MaskinportenSettings Settings =>
         _options.Get(Variant == VariantDefault ? Microsoft.Extensions.Options.Options.DefaultName : Variant);
@@ -71,6 +71,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     // Well-known cache with background refresh
     private WellKnownCacheEntry? _wellKnownCache;
     private int _wellKnownRefreshing;
+    private readonly SemaphoreSlim _wellKnownFetchLock = new(1, 1);
 
     /// <summary>
     /// Instantiates a new <see cref="MaskinportenClient"/> object.
@@ -452,14 +453,17 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// <summary>
     /// Retrieves the OAuth issuer from the well-known metadata endpoint for use as the JWT audience claim.
     /// Uses cached value if fresh. When stale, triggers background refresh and returns stale value immediately.
-    /// Only blocks on first call (cold start).
+    /// Only blocks on cold start (no cache yet), and at most one fetch is in flight at a time — concurrent
+    /// cold callers wait for it and reuse its result.
     /// </summary>
     /// <remarks>
     /// When the lookup fails, the audience falls back to <see cref="MaskinportenSettings.Authority"/> with a
-    /// trailing slash. Maskinporten only accepts an audience equal to its issuer or token endpoint URL, so the
-    /// fallback keeps token requests working through a well-known outage only when the configured Authority
-    /// equals the issuer URL — true for the standard Maskinporten environments, but not for e.g. a proxy host.
-    /// In that case grant requests fail with "Invalid audience" until the well-known lookup recovers.
+    /// trailing slash, cached for <see cref="WellKnownFallbackRetryInterval"/> so that an outage fails fast
+    /// instead of every caller blocking on its own fetch attempt. Maskinporten only accepts an audience equal
+    /// to its issuer or token endpoint URL, so the fallback keeps token requests working through a well-known
+    /// outage only when the configured Authority equals the issuer URL — true for the standard Maskinporten
+    /// environments, but not for e.g. a proxy host. In that case grant requests fail with "Invalid audience"
+    /// until the well-known lookup recovers.
     /// </remarks>
     internal ValueTask<string> GetAudienceFromWellKnown(CancellationToken cancellationToken = default)
     {
@@ -493,11 +497,21 @@ internal sealed class MaskinportenClient : IMaskinportenClient
 
     private async ValueTask<string> FetchWellKnownBlocking(CancellationToken cancellationToken)
     {
+        // Single-flight: concurrent cold callers would otherwise each run their own blocking fetch
+        // (N x 10s during an outage). The first caller fetches; the rest wait here and reuse the entry.
+        await _wellKnownFetchLock.WaitAsync(cancellationToken);
         try
         {
+            // An entry can only appear here if another caller completed a fetch while we waited.
+            var cached = Volatile.Read(ref _wellKnownCache);
+            if (cached is not null)
+            {
+                return cached.Issuer;
+            }
+
             var metadata = await FetchWellKnownMetadata(Settings.Authority, cancellationToken);
             var now = _timeProvider.GetUtcNow();
-            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now));
+            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now, IsFallback: false));
             return metadata.Issuer;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -523,6 +537,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             );
             return authorityFallback;
         }
+        finally
+        {
+            _wellKnownFetchLock.Release();
+        }
     }
 
     private async Task RefreshWellKnownInBackground()
@@ -531,7 +549,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         {
             var metadata = await FetchWellKnownMetadata(Settings.Authority, CancellationToken.None);
             var now = _timeProvider.GetUtcNow();
-            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now));
+            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now, IsFallback: false));
         }
         catch (Exception ex)
         {
@@ -659,4 +677,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     }
 
     private sealed record CacheFactoryState(MaskinportenClient Self, MaskinportenTokenRequest Request);
+
+    public void Dispose() => _wellKnownFetchLock.Dispose();
 }

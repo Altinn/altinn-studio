@@ -961,6 +961,9 @@ public class MaskinportenClientTests
             await Task.Delay(10);
         }
 
+        // Let any straggler background refresh land before snapshotting the call count
+        await Task.Delay(50);
+
         // Once recovered, the normal cache duration applies again
         fixture.FakeTime.Advance(TimeSpan.FromMinutes(30));
         var callCountAfterRecovery = callCount;
@@ -972,6 +975,57 @@ public class MaskinportenClientTests
         Assert.Equal(realIssuer, result3);
         Assert.Equal(realIssuer, result4);
         Assert.Equal(callCountAfterRecovery, callCount); // No refetch within the normal cache duration
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_ColdStartIsSingleFlighted(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        const string realIssuer = "https://issuer.maskinporten.no/";
+        var fetchStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var fetchCount = 0;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                Interlocked.Increment(ref fetchCount);
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(
+                        async (HttpRequestMessage _, CancellationToken _) =>
+                        {
+                            fetchStarted.TrySetResult();
+                            await releaseFetch.Task;
+                            return new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(new { issuer = realIssuer })),
+                            };
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - start concurrent cold callers, let the first fetch begin, then release it
+        var tasks = Enumerable.Range(0, 10).Select(_ => client.GetAudienceFromWellKnown().AsTask()).ToArray();
+        await fetchStarted.Task;
+        releaseFetch.SetResult();
+        var results = await Task.WhenAll(tasks);
+
+        // Assert - everyone got the issuer from a single fetch
+        Assert.All(results, r => Assert.Equal(realIssuer, r));
+        Assert.Equal(1, fetchCount);
     }
 
     [Theory]
