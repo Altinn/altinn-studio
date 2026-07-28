@@ -93,6 +93,12 @@ public sealed record CorrespondenceRequest
     {
         if (Recipients.Count != Recipients.Distinct().Count())
             ValidationError($"Duplicate recipients found in {nameof(Recipients)} list");
+        if (Notification is { OverrideRegisteredContactInformation: true, CustomRecipients: null or { Count: 0 } })
+            ValidationError(
+                $"{nameof(CorrespondenceNotification.OverrideRegisteredContactInformation)} requires at least one "
+                    + $"entry in {nameof(CorrespondenceNotification.CustomRecipients)}, otherwise the notification "
+                    + "would have no recipient at all"
+            );
         if (IsConfirmationNeeded is true && DueDateTime is null)
             ValidationError($"When {nameof(IsConfirmationNeeded)} is set, {nameof(DueDateTime)} is also required");
 

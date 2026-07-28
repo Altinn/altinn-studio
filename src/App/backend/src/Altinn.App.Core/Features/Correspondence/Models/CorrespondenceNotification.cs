@@ -81,7 +81,22 @@ public sealed record CorrespondenceNotification
     public string? SendersReference { get; init; }
 
     /// <summary>
-    /// The recipients of the notification. If not set, the notification is sent to the recipient of the Correspondence.
+    /// Additional recipients of the notification.
     /// </summary>
+    /// <remarks>
+    /// <p>Despite the name of the builder methods that set it, this does <em>not</em> replace the
+    /// correspondence recipient: the Correspondence API notifies the correspondence recipient's registered
+    /// contact information <em>and</em> everyone listed here, then de-duplicates. Leaving it unset notifies
+    /// the correspondence recipient only.</p>
+    /// <p>Set <see cref="OverrideRegisteredContactInformation"/> to notify only these recipients.</p>
+    /// </remarks>
     public IReadOnlyList<CorrespondenceNotificationRecipient>? CustomRecipients { get; init; }
+
+    /// <summary>
+    /// Whether <see cref="CustomRecipients"/> replaces the correspondence recipient's registered contact
+    /// information, rather than supplementing it. Defaults to <c>false</c>.
+    /// </summary>
+    /// <remarks>Requires at least one entry in <see cref="CustomRecipients"/>; setting this without any is
+    /// rejected before the request is sent.</remarks>
+    public bool OverrideRegisteredContactInformation { get; init; }
 }

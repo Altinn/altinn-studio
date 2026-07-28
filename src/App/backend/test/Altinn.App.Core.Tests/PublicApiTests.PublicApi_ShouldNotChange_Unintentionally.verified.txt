@@ -500,6 +500,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithEmailSubject(string? emailSubject) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? notificationChannel) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithNotificationTemplate(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationTemplate notificationTemplate) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(bool overrideRegisteredContactInformation) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient recipientOverride) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? recipientOverride) { }
@@ -608,6 +609,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithEmailBody(string? emailBody);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithEmailSubject(string? emailSubject);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? notificationChannel);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(bool overrideRegisteredContactInformation);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient recipientOverride);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? recipientOverride);
@@ -825,6 +827,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public string? EmailSubject { get; init; }
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? NotificationChannel { get; init; }
         public required Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationTemplate NotificationTemplate { get; init; }
+        public bool OverrideRegisteredContactInformation { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(10000, MinimumLength=0)]
         public string? ReminderEmailBody { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(128, MinimumLength=0)]

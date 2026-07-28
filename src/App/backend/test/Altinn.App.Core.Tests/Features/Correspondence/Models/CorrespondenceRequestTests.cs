@@ -120,4 +120,41 @@ public class CorrespondenceRequestTests
         // Assert
         act.Should().Throw<CorrespondenceArgumentException>().WithMessage("*not be prior to*");
     }
+
+    [Fact]
+    public void Validate_RejectsOverrideRegisteredContactInformationWithoutCustomRecipients()
+    {
+        // Arrange
+        CorrespondenceRequest Build(IReadOnlyList<CorrespondenceNotificationRecipient>? customRecipients) =>
+            new()
+            {
+                ResourceId = "resource-id",
+                SendersReference = "senders-reference",
+                Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
+                Content = new CorrespondenceContent
+                {
+                    Title = "title",
+                    Body = "body",
+                    Summary = "summary",
+                    Language = LanguageCode<Iso6391>.Parse("no"),
+                },
+                Notification = new CorrespondenceNotification
+                {
+                    NotificationTemplate = CorrespondenceNotificationTemplate.GenericAltinnMessage,
+                    OverrideRegisteredContactInformation = true,
+                    CustomRecipients = customRecipients,
+                },
+            };
+
+        // Act
+        var withNone = () => Build(null).Validate();
+        var withEmpty = () => Build([]).Validate();
+        var withOne = () =>
+            Build([new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" }]).Validate();
+
+        // Assert
+        withNone.Should().Throw<CorrespondenceArgumentException>().WithMessage("*CustomRecipients*");
+        withEmpty.Should().Throw<CorrespondenceArgumentException>().WithMessage("*CustomRecipients*");
+        withOne.Should().NotThrow();
+    }
 }

@@ -215,17 +215,30 @@ internal sealed record CorrespondenceNotificationRequest
     public string? SendersReference { get; init; }
 
     /// <summary>
-    /// Custom recipients for the notification. When set, overrides the default correspondence recipient.
+    /// Additional recipients for the notification, notified alongside the correspondence recipient's
+    /// registered contact information rather than instead of it.
     /// </summary>
     /// <remarks>
-    /// The API also accepts a singular <c>customRecipient</c> and a <c>customNotificationRecipients</c> list,
+    /// <p>The API also accepts a singular <c>customRecipient</c> and a <c>customNotificationRecipients</c> list,
     /// both of which it has deprecated in favour of this property. It resolves them in that order of
     /// precedence and normalises whichever it finds into this same list shape, so emitting this directly is
     /// equivalent to the singular form and keeps us off the deprecated tiers.
+    /// </p>
+    /// <p>See <see cref="OverrideRegisteredContactInformation"/> to notify only these recipients.</p>
     /// </remarks>
     [JsonPropertyName("customRecipients")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<CorrespondenceNotificationRecipientRequest>? CustomRecipients { get; init; }
+
+    /// <summary>
+    /// Whether <see cref="CustomRecipients"/> replaces the correspondence recipient's registered contact
+    /// information rather than supplementing it.
+    /// </summary>
+    /// <remarks>The API rejects this with error 3022 unless <see cref="CustomRecipients"/> is non-empty,
+    /// which <see cref="CorrespondenceRequest.Validate"/> checks first so the failure is a local
+    /// <see cref="Exceptions.CorrespondenceArgumentException"/> rather than an opaque 400.</remarks>
+    [JsonPropertyName("overrideRegisteredContactInformation")]
+    public bool OverrideRegisteredContactInformation { get; init; }
 }
 
 /// <summary>

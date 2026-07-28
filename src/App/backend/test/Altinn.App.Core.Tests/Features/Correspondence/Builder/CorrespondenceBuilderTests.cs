@@ -581,4 +581,31 @@ public class CorrespondenceBuilderTests
         request.Content.Attachments.Should().BeNull();
         request.PropertyList.Should().HaveCount(1);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void NotificationBuilder_OverrideRegisteredContactInformation_RoundTrips(bool overrideRegistered)
+    {
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
+            .WithOverrideRegisteredContactInformation(overrideRegistered)
+            .Build();
+
+        notification.OverrideRegisteredContactInformation.Should().Be(overrideRegistered);
+    }
+
+    [Fact]
+    public void NotificationBuilder_OverrideRegisteredContactInformation_DefaultsToFalse()
+    {
+        var notification = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
+            .Build();
+
+        notification.OverrideRegisteredContactInformation.Should().BeFalse();
+    }
 }

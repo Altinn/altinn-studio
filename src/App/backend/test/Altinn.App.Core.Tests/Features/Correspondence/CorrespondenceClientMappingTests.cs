@@ -98,6 +98,7 @@ public class CorrespondenceClientMappingTests
                             .WithMobileNumber("+4799999999")
                             .Build()
                     )
+                    .WithOverrideRegisteredContactInformation(true)
             )
             .WithExistingAttachment(existingAttachmentId)
             .Build();
@@ -195,6 +196,8 @@ public class CorrespondenceClientMappingTests
         // It honoured only the first entry of `customNotificationRecipients`, so nothing is lost.
         notification.TryGetProperty("customRecipient", out _).Should().BeFalse();
         notification.TryGetProperty("customNotificationRecipients", out _).Should().BeFalse();
+
+        notification.GetProperty("overrideRegisteredContactInformation").GetBoolean().Should().BeTrue();
     }
 
     [Fact]

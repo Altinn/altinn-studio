@@ -19,6 +19,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     private CorrespondenceNotificationChannel? _reminderNotificationChannel;
     private string? _sendersReference;
     private List<CorrespondenceNotificationRecipient>? _recipientOverrides;
+    private bool _overrideRegisteredContactInformation;
 
     private CorrespondenceNotificationBuilder() { }
 
@@ -151,6 +152,15 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     }
 
     /// <inheritdoc/>
+    public ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(
+        bool overrideRegisteredContactInformation
+    )
+    {
+        _overrideRegisteredContactInformation = overrideRegisteredContactInformation;
+        return this;
+    }
+
+    /// <inheritdoc/>
     public CorrespondenceNotification Build()
     {
         BuilderUtils.NotNullOrEmpty(_notificationTemplate);
@@ -169,6 +179,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
             ReminderNotificationChannel = _reminderNotificationChannel,
             SendersReference = _sendersReference,
             CustomRecipients = _recipientOverrides?.ToArray(),
+            OverrideRegisteredContactInformation = _overrideRegisteredContactInformation,
         };
     }
 }

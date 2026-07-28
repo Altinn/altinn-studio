@@ -356,6 +356,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             CustomRecipients = notification.CustomRecipients is null or { Count: 0 }
                 ? null
                 : [.. notification.CustomRecipients.Select(BuildNotificationRecipient)],
+            OverrideRegisteredContactInformation = notification.OverrideRegisteredContactInformation,
         };
     }
 
