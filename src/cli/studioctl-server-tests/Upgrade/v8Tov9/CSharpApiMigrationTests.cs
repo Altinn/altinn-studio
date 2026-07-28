@@ -1,5 +1,7 @@
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
@@ -800,6 +802,296 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.False(result.ManualActionRequired);
         Assert.Empty(result.Warnings);
+    }
+
+    // --- CorrespondenceApiMigration --------------------------------------------------------------
+
+    private IReadOnlyList<string> _lastMigrationWarnings = [];
+
+    private string MigrateCorrespondence(string relativePath, string source)
+    {
+        var path = _app.Write(relativePath, source);
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate();
+        Assert.False(result.ManualActionRequired);
+        _lastMigrationWarnings = result.Warnings;
+
+        var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
+
+        // A rewriter that emits code the parser rejects would hand the developer an app that no longer
+        // builds, which is worse than the warning it replaced. Asserted for every case, not per-test.
+        var syntaxErrors = CSharpSyntaxTree
+            .ParseText(migrated)
+            .GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.ToString())
+            .ToList();
+        Assert.Empty(syntaxErrors);
+
+        return migrated;
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_RemovesNoOpCallsFromFluentChain()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public CorrespondenceRequest Build() =>
+                    CorrespondenceRequestBuilder
+                        .Create()
+                        .WithResourceId("resource")
+                        .WithSender(_org)
+                        .WithSendersReference("ref")
+                        .WithAllowSystemDeleteAfter(_deleteAfter)
+                        .Build();
+            }
+            """
+        );
+
+        Assert.DoesNotContain("WithSender(", migrated);
+        Assert.DoesNotContain("WithAllowSystemDeleteAfter", migrated);
+        // Surviving chain and its formatting must be intact.
+        Assert.Contains(
+            "            .WithResourceId(\"resource\")\n            .WithSendersReference(\"ref\")\n",
+            migrated
+        );
+        Assert.Contains(".Build();", migrated);
+        Assert.Equal(3, _lastMigrationWarnings.Count); // summary + two rewrites
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_RemovesNoOpStatementEntirely()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithSender(_org);
+                    builder.WithSendersReference("ref");
+                }
+            }
+            """
+        );
+
+        Assert.DoesNotContain("WithSender(", migrated);
+        Assert.Contains("builder.WithSendersReference(\"ref\");", migrated);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_UnlinksNoOpButKeepsRestOfStatementChain()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithSender(_org).WithSendersReference("ref");
+                }
+            }
+            """
+        );
+
+        Assert.Contains("builder.WithSendersReference(\"ref\");", migrated);
+        Assert.DoesNotContain("WithSender(", migrated);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_WarnsAboutDiscardedArgumentContainingACall()
+    {
+        MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithSender(ComputeSender()).WithSendersReference("ref");
+                }
+            }
+            """
+        );
+
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("no longer evaluated"));
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_LeavesShapesItCannotRewriteForTheDetector()
+    {
+        var source = """
+            public class Send
+            {
+                public void Arrow() => builder.WithSender(_org);
+
+                public void NullConditional() => builder?.WithRequestedSendTime(_time);
+            }
+            """;
+        var migrated = MigrateCorrespondence("logic/Send.cs", source);
+
+        // Unchanged: `=> builder;` would not compile, and `?.` binds via a member binding.
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
+
+        // The detector is the fallback for exactly these.
+        var detected = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+        Assert.True(detected.ManualActionRequired);
+        Assert.Contains(Locations(detected), w => w.Contains("WithSender"));
+        Assert.Contains(Locations(detected), w => w.Contains("WithRequestedSendTime"));
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_RemovesNoOpInitializersAndRenamesRecipient()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public CorrespondenceRequest Request() =>
+                    new CorrespondenceRequest
+                    {
+                        Sender = _org,
+                        SendersReference = "ref",
+                        AllowSystemDeleteAfter = _deleteAfter,
+                    };
+
+                public CorrespondenceNotification Notification() =>
+                    new CorrespondenceNotification { CustomRecipient = _recipient, RequestedSendTime = _time };
+            }
+            """
+        );
+
+        Assert.DoesNotContain("Sender = _org", migrated);
+        Assert.DoesNotContain("AllowSystemDeleteAfter", migrated);
+        Assert.DoesNotContain("RequestedSendTime", migrated);
+        Assert.Contains("SendersReference = \"ref\"", migrated);
+        Assert.Contains("CustomRecipients = [_recipient]", migrated);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_DoesNotTouchSameNamedPropertiesOnOtherTypes()
+    {
+        var source = """
+            public class Read
+            {
+                public object Response() =>
+                    new GetCorrespondenceStatusResponse { Sender = _org, AllowSystemDeleteAfter = _x };
+
+                public object Unrelated() => new MyOwnModel { Sender = _org, RequestedSendTime = _t };
+            }
+            """;
+        var migrated = MigrateCorrespondence("logic/Read.cs", source);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_ReplacesLegacyPayloadConstructors()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public SendCorrespondencePayload Enum(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthorisation.Maskinporten);
+
+                public GetCorrespondenceStatusPayload Factory(Guid id) =>
+                    new GetCorrespondenceStatusPayload(id, () => _client.GetAltinnExchangedToken(_scopes));
+            }
+            """
+        );
+
+        Assert.Contains(
+            "new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default())",
+            migrated
+        );
+        Assert.Contains(
+            "CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))",
+            migrated
+        );
+        Assert.DoesNotContain("CorrespondenceAuthorisation", migrated);
+        // The replacement type lives in a namespace the file may not have imported.
+        Assert.Contains("using Altinn.App.Core.Features;", migrated);
+        // The scope widening must be surfaced, not applied silently.
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("instances.read"));
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_DoesNotDuplicateAnExistingUsing()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            using Altinn.App.Core.Features;
+
+            public class Send
+            {
+                public SendCorrespondencePayload Enum(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthorisation.Maskinporten);
+            }
+            """
+        );
+
+        Assert.Equal(1, migrated.Split("using Altinn.App.Core.Features;").Length - 1);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_LeavesMigratedPayloadConstructionAlone()
+    {
+        var source = """
+            public class Send
+            {
+                public SendCorrespondencePayload Default(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default());
+            }
+            """;
+        var migrated = MigrateCorrespondence("logic/Send.cs", source);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_RenamesRemovedBuilderStepInterface()
+    {
+        var migrated = MigrateCorrespondence(
+            "logic/Steps.cs",
+            """
+            public class Steps
+            {
+                private ICorrespondenceRequestBuilderSender? _step;
+
+                public ICorrespondenceRequestBuilderSender Start() =>
+                    CorrespondenceRequestBuilder.Create().WithResourceId("resource");
+            }
+            """
+        );
+
+        Assert.Contains("ICorrespondenceRequestBuilderSendersReference? _step", migrated);
+        Assert.Contains("ICorrespondenceRequestBuilderSendersReference Start()", migrated);
+    }
+
+    [Fact]
+    public void CorrespondenceMigration_CleanApp_ChangesNothing()
+    {
+        var source = """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """;
+        var migrated = MigrateCorrespondence("logic/MyService.cs", source);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
     }
 
     // --- Scanner ---------------------------------------------------------------------------------
