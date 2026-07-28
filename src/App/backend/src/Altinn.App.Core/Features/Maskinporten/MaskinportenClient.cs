@@ -319,20 +319,8 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             );
         }
 
-        var claims = new Dictionary<string, object>
-        {
-            [JwtClaimTypes.Scope] = request.FormattedScopes,
-            [JwtClaimTypes.JwtId] = Guid.NewGuid().ToString(),
-        };
-
-        if (request.ConsumerOrg is { } consumerOrg)
-            claims[JwtClaimTypes.Maskinporten.ConsumerOrg] = consumerOrg.Get(OrganisationNumberFormat.Local);
-
-        if (request.Resource is { } resource)
-            claims[JwtClaimTypes.Maskinporten.Resource] = resource;
-
-        if (request.SystemUser is { } systemUser)
-            claims[JwtClaimTypes.Maskinporten.AuthorizationDetails] = SystemUserAuthorizationDetails(systemUser);
+        var claims = request.ToClaims();
+        claims[JwtClaimTypes.JwtId] = Guid.NewGuid().ToString();
 
         var now = _timeProvider.GetUtcNow();
         var expiry = now.AddMinutes(2);
@@ -347,29 +335,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         };
 
         return new JsonWebTokenHandler().CreateToken(jwtDescriptor);
-    }
-
-    /// <summary>
-    /// Builds the <c>authorization_details</c> claim value for a system user grant. Always a single-entry array, as
-    /// only one party can be queried per token. Field names and casing are dictated by
-    /// <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker">the docs</a>.
-    /// </summary>
-    private static List<Dictionary<string, object>> SystemUserAuthorizationDetails(MaskinportenSystemUser systemUser)
-    {
-        var detail = new Dictionary<string, object>
-        {
-            ["type"] = "urn:altinn:systemuser",
-            ["systemuser_org"] = new Dictionary<string, object>
-            {
-                ["authority"] = "iso6523-actorid-upis",
-                ["ID"] = systemUser.Organisation.Get(OrganisationNumberFormat.International),
-            },
-        };
-
-        if (systemUser.ExternalRef is { } externalRef)
-            detail["externalRef"] = externalRef;
-
-        return [detail];
     }
 
     /// <summary>

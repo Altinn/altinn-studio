@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Maskinporten.Models;
@@ -123,6 +124,32 @@ public sealed record MaskinportenTokenRequest
     /// </summary>
     internal string FormattedScopes => _formattedScopes;
 
+    /// <summary>
+    /// Renders the request as the claims of a JWT grant assertion. The envelope claims — issuer, audience,
+    /// lifetime and <c>jti</c> — belong to whoever signs the assertion.
+    /// </summary>
+    internal Dictionary<string, object> ToClaims()
+    {
+        var claims = new Dictionary<string, object> { [JwtClaimTypes.Scope] = _formattedScopes };
+
+        if (_consumerOrg is { } consumerOrg)
+            claims[JwtClaimTypes.Maskinporten.ConsumerOrg] = consumerOrg.Get(OrganisationNumberFormat.Local);
+
+        if (_resource is { } resource)
+            claims[JwtClaimTypes.Maskinporten.Resource] = resource;
+
+        // Always a single-entry array; only one party can be queried per token
+        if (SystemUser is { } systemUser)
+        {
+            claims[JwtClaimTypes.Maskinporten.AuthorizationDetails] = new List<Dictionary<string, object>>
+            {
+                systemUser.ToAuthorizationDetail(),
+            };
+        }
+
+        return claims;
+    }
+
     /// <remarks>
     /// Declared explicitly because the synthesised record equality would compare <see cref="Scopes"/> by reference,
     /// making two otherwise identical requests unequal.
@@ -185,6 +212,28 @@ public sealed partial record MaskinportenSystemUser
 
             _externalRef = trimmed;
         }
+    }
+
+    /// <summary>
+    /// Renders this system user as an <c>authorization_details</c> entry. Field names and casing are dictated by
+    /// <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker">the docs</a>.
+    /// </summary>
+    internal Dictionary<string, object> ToAuthorizationDetail()
+    {
+        var detail = new Dictionary<string, object>
+        {
+            ["type"] = "urn:altinn:systemuser",
+            ["systemuser_org"] = new Dictionary<string, object>
+            {
+                ["authority"] = "iso6523-actorid-upis",
+                ["ID"] = _organisation.Get(OrganisationNumberFormat.International),
+            },
+        };
+
+        if (_externalRef is { } externalRef)
+            detail["externalRef"] = externalRef;
+
+        return detail;
     }
 
     /// <remarks>Mirrors the pattern Maskinporten validates against, which rejects anything else with `MP_302`.</remarks>
