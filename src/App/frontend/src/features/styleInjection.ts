@@ -9,7 +9,8 @@
  * working), and library styles are inserted before the first of them to get the same precedence.
  */
 const appendHead = document.head.appendChild.bind(document.head);
-const getReferenceNode = () => document.head.querySelector('style[data-vite-dev-id]') ?? document.querySelector('link');
+const getReferenceNode = () =>
+  document.head.querySelector('style[data-vite-dev-id]') ?? document.head.querySelector('link');
 document.head.appendChild = function (child) {
   if (child instanceof HTMLStyleElement && !child.hasAttribute('data-vite-dev-id')) {
     return document.head.insertBefore(child, getReferenceNode());
