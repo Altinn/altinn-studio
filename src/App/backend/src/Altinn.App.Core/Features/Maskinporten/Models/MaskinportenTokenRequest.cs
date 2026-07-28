@@ -28,8 +28,7 @@ public sealed record MaskinportenTokenRequest
     /// <summary>
     /// <p>The scopes to claim authorization for with Maskinporten. At least one scope is required.</p>
     /// <p>Entries are split on whitespace, de-duplicated and ordered, so both <c>["a", "b"]</c> and
-    /// <c>["a b"]</c> are accepted, and requests differing only in scope ordering share a cached token.
-    /// Scope order carries no meaning in OAuth 2.0 (RFC 6749 §3.3).</p>
+    /// <c>["a b"]</c> are accepted.</p>
     /// </summary>
     /// <exception cref="ArgumentException">No usable scope was supplied.</exception>
     public required IEnumerable<string> Scopes
@@ -39,13 +38,13 @@ public sealed record MaskinportenTokenRequest
         {
             ArgumentNullException.ThrowIfNull(value, nameof(Scopes));
 
-            // A null separator array makes `Split` break on any whitespace, which also means no fragment
-            // it produces can have whitespace of its own to trim
+            // A null separator array splits on any whitespace. Ordering is safe because scope order carries no
+            // meaning in OAuth 2.0 (RFC 6749 §3.3), and it lets equal requests share a cached token.
             string[] scopes =
             [
                 .. value
                     .SelectMany(static scope =>
-                        (scope ?? string.Empty).Split(_whitespaceSeparators, StringSplitOptions.RemoveEmptyEntries)
+                        (scope ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
                     )
                     .Distinct(StringComparer.Ordinal)
                     .Order(StringComparer.Ordinal),
@@ -137,8 +136,6 @@ public sealed record MaskinportenTokenRequest
 
     /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(_formattedScopes, _consumerOrg, _resource, SystemUser);
-
-    private static readonly char[]? _whitespaceSeparators = null;
 }
 
 /// <summary>

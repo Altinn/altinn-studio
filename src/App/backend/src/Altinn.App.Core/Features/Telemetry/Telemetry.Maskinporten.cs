@@ -54,10 +54,6 @@ partial class Telemetry
         return activity;
     }
 
-    /// <remarks>
-    /// The optional claims all take part in the identity of the resulting token, so they are tagged alongside the
-    /// scopes to keep traces distinguishable.
-    /// </remarks>
     private static void SetRequestTags(
         Activity? activity,
         string variant,

@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using SystemUserAuthorizationDetail = Altinn.App.Core.Features.Maskinporten.Constants.JwtClaimTypes.Maskinporten.SystemUserAuthorizationDetail;
 
 namespace Altinn.App.Core.Features.Maskinporten;
 
@@ -33,10 +32,8 @@ internal sealed class MaskinportenClient : IMaskinportenClient
 
     /// <summary>
     /// Upper bound for a single outbound call to Maskinporten or the Altinn token exchange endpoint.
-    /// <remarks>Without this, these calls inherit the 100 second <see cref="HttpClient"/> default, which is far
-    /// longer than any caller waiting on a token can reasonably tolerate.</remarks>
     /// </summary>
-    internal static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan _requestTimeout = TimeSpan.FromSeconds(30);
 
     private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt);
 
@@ -353,26 +350,24 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     }
 
     /// <summary>
-    /// Builds the <c>authorization_details</c> claim value for a system user grant. Always a single-entry array,
-    /// as only one party can be queried per token.
-    /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker">the docs</a>.
+    /// Builds the <c>authorization_details</c> claim value for a system user grant. Always a single-entry array, as
+    /// only one party can be queried per token. Field names and casing are dictated by
+    /// <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker">the docs</a>.
     /// </summary>
-    internal static List<Dictionary<string, object>> SystemUserAuthorizationDetails(MaskinportenSystemUser systemUser)
+    private static List<Dictionary<string, object>> SystemUserAuthorizationDetails(MaskinportenSystemUser systemUser)
     {
         var detail = new Dictionary<string, object>
         {
-            [SystemUserAuthorizationDetail.TypeKey] = SystemUserAuthorizationDetail.TypeValue,
-            [SystemUserAuthorizationDetail.OrganisationKey] = new Dictionary<string, object>
+            ["type"] = "urn:altinn:systemuser",
+            ["systemuser_org"] = new Dictionary<string, object>
             {
-                [SystemUserAuthorizationDetail.AuthorityKey] = SystemUserAuthorizationDetail.AuthorityValue,
-                [SystemUserAuthorizationDetail.IdentifierKey] = systemUser.Organisation.Get(
-                    OrganisationNumberFormat.International
-                ),
+                ["authority"] = "iso6523-actorid-upis",
+                ["ID"] = systemUser.Organisation.Get(OrganisationNumberFormat.International),
             },
         };
 
         if (systemUser.ExternalRef is { } externalRef)
-            detail[SystemUserAuthorizationDetail.ExternalRefKey] = externalRef;
+            detail["externalRef"] = externalRef;
 
         return [detail];
     }
@@ -443,8 +438,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// <para>Generates a cache key for the supplied authority and request.</para>
     /// <para>Scopes-only requests use the format <c>{salt}_{formattedScopes}</c>. Requests carrying any of the
     /// additional claims use <c>{salt}#{claims}|{formattedScopes}</c>, where the claim segment is percent-encoded.
-    /// Every claim that alters the identity of the resulting token must be part of the key, or we risk serving a
-    /// token minted for the wrong organisation or resource.</para>
+    /// Every claim that alters the identity of the resulting token takes part in the key.</para>
     /// </summary>
     internal string GetCacheKey(TokenAuthority authority, MaskinportenTokenRequest request)
     {
@@ -566,18 +560,18 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     }
 
     /// <summary>
-    /// Links the caller's cancellation token to a <see cref="RequestTimeout"/> budget for a single outbound call.
+    /// Links the caller's cancellation token to a <see cref="_requestTimeout"/> budget for a single outbound call.
     /// </summary>
     private static CancellationTokenSource CreateTimeout(CancellationToken cancellationToken)
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(RequestTimeout);
+        cts.CancelAfter(_requestTimeout);
         return cts;
     }
 
     /// <summary>
-    /// Renders a JWT with its signature masked, matching how <see cref="JwtToken"/> stringifies itself. The grant
-    /// assertion is a short-lived but replayable credential, so the signature must not reach the logs.
+    /// Renders a JWT with its signature masked, as <see cref="JwtToken"/> does. The grant assertion is a replayable
+    /// credential for its lifetime, so the signature must not reach the logs.
     /// </summary>
     private static string Mask(string jwt) =>
         JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparseable>";
