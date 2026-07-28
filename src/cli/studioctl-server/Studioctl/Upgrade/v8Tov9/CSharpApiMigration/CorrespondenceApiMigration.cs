@@ -315,7 +315,7 @@ internal sealed class CorrespondenceApiMigration
                     ImplicitArrayCreationExpressionSyntax => DataKind.Bytes,
                     // `Encoding.UTF8.GetBytes(..)`, `"x"u8.ToArray()`, `File.ReadAllBytes(..)`.
                     InvocationExpressionSyntax invocation => InvokedNameKind(invocation),
-                    AwaitExpressionSyntax await => ClassifyDataArgument(await.Expression, depth + 1),
+                    AwaitExpressionSyntax awaited => ClassifyDataArgument(awaited.Expression, depth + 1),
                     // A name resolves only if some declaration in the app writes its type out.
                     IdentifierNameSyntax identifier => DeclaredTypeKind(identifier.Identifier.Text, depth),
                     MemberAccessExpressionSyntax member => DeclaredTypeKind(member.Name.Identifier.Text, depth),
@@ -355,11 +355,20 @@ internal sealed class CorrespondenceApiMigration
             return DeclaredTypeKind(invoked, 0);
         }
 
-        private static DataKind TypeNameKind(string typeName) =>
-            typeName.EndsWith("Stream", StringComparison.Ordinal) ? DataKind.Stream
-            : _byteTypeNames.Contains(typeName) || typeName.StartsWith("byte[", StringComparison.Ordinal)
-                ? DataKind.Bytes
-            : DataKind.Unknown;
+        private static DataKind TypeNameKind(string typeName)
+        {
+            if (typeName.EndsWith("Stream", StringComparison.Ordinal))
+            {
+                return DataKind.Stream;
+            }
+
+            if (_byteTypeNames.Contains(typeName) || typeName.StartsWith("byte[", StringComparison.Ordinal))
+            {
+                return DataKind.Bytes;
+            }
+
+            return DataKind.Unknown;
+        }
 
         /// <summary>
         /// The kind implied by any declaration of <paramref name="name"/> anywhere in the scanned app —
@@ -418,8 +427,7 @@ internal sealed class CorrespondenceApiMigration
         }
 
         private static string UnwrapTask(string returnType) =>
-            returnType.StartsWith("Task<", StringComparison.Ordinal)
-            && returnType.EndsWith(">", StringComparison.Ordinal)
+            returnType.StartsWith("Task<", StringComparison.Ordinal) && returnType.EndsWith('>')
                 ? returnType[5..^1]
                 : returnType;
 
