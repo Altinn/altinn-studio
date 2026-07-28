@@ -51,7 +51,7 @@ The codebase uses a hybrid approach with plans to modernize:
 - React Query for server state management
 - Reduced dependency on React Context
 - Zustand potentially replaced by React Query patterns
-- Migration from Webpack to Vite, Jest to Vitest, Cypress to Playwright
+- Migration from Jest to Vitest, Cypress to Playwright
 - Migration to wrap Designsystemet component and our own smaller components that Designsystemet doesn't have in our own dumb components in `src/app-components/`.
 
 ### Key Architectural Patterns
@@ -96,8 +96,8 @@ The codebase uses a hybrid approach with plans to modernize:
 
 ### Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build**: Webpack (migrating to Vite)
+- **Frontend**: React 19 with TypeScript
+- **Build**: Vite
 - **Testing**: Jest + React Testing Library (migrating to Vitest), Cypress (migrating to Playwright)
 - **State**: React Context + Zustand (evolving to React Query focus)
 - **Styling**: CSS Modules + Digdir Design System

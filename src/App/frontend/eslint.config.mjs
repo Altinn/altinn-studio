@@ -30,7 +30,6 @@ export default defineConfig([
     '**/*.snap',
     'src/features/expressions/shared-tests/**/*.json',
     'schemas/**/*.json',
-    'webpack*.js', // FIXME: should this be included?
     '.yarn/*',
     'test/e2e/k6-browser/**/*',
   ]),
