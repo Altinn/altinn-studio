@@ -34,7 +34,7 @@ export function Header({ header: _header, children }: IHeaderProps) {
           <Flex item>
             <Heading
               level={1}
-              data-size='md'
+              data-size='lg'
               className={cn({ [classes.noAboveHeader]: !appOwner })}
               data-testid='presentation-heading'
             >

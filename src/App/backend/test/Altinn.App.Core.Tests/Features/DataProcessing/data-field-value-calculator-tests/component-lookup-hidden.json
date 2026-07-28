@@ -1,0 +1,39 @@
+{
+    "name": "Should set field when looking up hidden component",
+    "expects": [
+        {
+            "field": "form.name",
+            "result": "nyVerdi"
+        }
+    ],
+    "calculationConfig": {
+        "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
+        "calculations": {
+            "form.name": {
+                "expression": "nyVerdi"
+            }
+        }
+    },
+    "formData": {
+        "form": {
+            "name": "feil"
+        }
+    },
+    "layouts": {
+        "Page": {
+            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+            "data": {
+                "layout": [
+                    {
+                        "id": "name-input",
+                        "type": "Input",
+                        "dataModelBindings": {
+                            "simpleBinding": "form.name"
+                        },
+                        "hidden": true
+                    }
+                ]
+            }
+        }
+    }
+}

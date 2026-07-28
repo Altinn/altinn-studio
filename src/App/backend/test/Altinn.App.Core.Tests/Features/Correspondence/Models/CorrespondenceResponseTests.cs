@@ -388,4 +388,180 @@ public class CorrespondenceResponseTests
         parsedResponse.IsConfirmationNeeded.Should().BeFalse();
         parsedResponse.IsConfidential.Should().BeFalse();
     }
+
+    [Fact]
+    public void Status_NotificationV2Response_DeserializesNullIdAndPluralRecipientLists()
+    {
+        // The Correspondence notification V2 integration may return a null notification "id" and exposes
+        // the per-channel status as "emails"/"smses" lists (in addition to the legacy singular "email"/"sms").
+        // See https://github.com/Altinn/altinn-studio/issues/17405.
+        var encodedResponse = """
+            {
+                "statusHistory": [
+                    {
+                        "status": "Published",
+                        "statusText": "Published",
+                        "statusChanged": "2025-05-16T09:55:28.64087+00:00"
+                    }
+                ],
+                "notifications": [
+                    {
+                        "id": "2d18f341-bb4a-457b-8b72-0ba2383494c7",
+                        "sendersReference": "1234",
+                        "creator": "TTD",
+                        "created": "2025-05-16T09:55:29.55345Z",
+                        "isReminder": false,
+                        "notificationChannel": "EmailAndSms",
+                        "ignoreReservation": true,
+                        "resourceId": "dagl-correspondence",
+                        "processingStatus": {
+                            "status": "Order_Completed",
+                            "description": null,
+                            "lastUpdate": "2025-05-16T09:55:32.065336Z"
+                        },
+                        "notificationStatusDetails": {
+                            "email": {
+                                "id": null,
+                                "succeeded": false,
+                                "recipient": {
+                                    "emailAddress": "tai.tien.huynh@digdir.no",
+                                    "mobileNumber": null,
+                                    "organizationNumber": null,
+                                    "nationalIdentityNumber": null,
+                                    "isReserved": null
+                                },
+                                "sendStatus": {
+                                    "status": "Email_Delivered",
+                                    "description": null,
+                                    "lastUpdate": "2025-05-16T10:02:25.620188Z"
+                                }
+                            },
+                            "sms": {
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "succeeded": false,
+                                "recipient": {
+                                    "emailAddress": null,
+                                    "mobileNumber": "+4793477179",
+                                    "organizationNumber": null,
+                                    "nationalIdentityNumber": null,
+                                    "isReserved": null
+                                },
+                                "sendStatus": {
+                                    "status": "SMS_Accepted",
+                                    "description": null,
+                                    "lastUpdate": "2025-05-16T10:01:02.034718Z"
+                                }
+                            },
+                            "emails": [
+                                {
+                                    "id": null,
+                                    "succeeded": false,
+                                    "recipient": {
+                                        "emailAddress": "tai.tien.huynh@digdir.no"
+                                    },
+                                    "sendStatus": {
+                                        "status": "Email_Delivered",
+                                        "description": null,
+                                        "lastUpdate": "2025-05-16T10:02:25.620188Z"
+                                    }
+                                }
+                            ],
+                            "smses": [
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000000",
+                                    "succeeded": false,
+                                    "recipient": {
+                                        "mobileNumber": "+4793477179"
+                                    },
+                                    "sendStatus": {
+                                        "status": "SMS_Accepted",
+                                        "description": null,
+                                        "lastUpdate": "2025-05-16T10:01:02.034718Z"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "recipient": "urn:altinn:organization:identifier-no:313756270",
+                "correspondenceId": "0196d885-2d03-74cc-885d-13159c39b588",
+                "created": "2025-05-16T09:55:28.641293+00:00",
+                "status": "Published",
+                "statusText": "Published",
+                "statusChanged": "2025-05-16T09:55:28.64087+00:00",
+                "resourceId": "dagl-correspondence",
+                "sender": "urn:altinn:organization:identifier-no:310356875",
+                "sendersReference": "1234",
+                "ignoreReservation": true,
+                "isConfirmationNeeded": true
+            }
+            """;
+
+        // Act
+        var parsedResponse = JsonSerializer.Deserialize<GetCorrespondenceStatusResponse>(encodedResponse);
+
+        // Assert
+        Assert.NotNull(parsedResponse);
+        var statusDetails = parsedResponse.Notifications!.Single().NotificationStatusDetails;
+        Assert.NotNull(statusDetails);
+
+        // Singular "email" with a null id must parse (regression: was a non-nullable Guid).
+        statusDetails.Email!.Id.Should().BeNull();
+        statusDetails.Email.Recipient!.EmailAddress.Should().Be("tai.tien.huynh@digdir.no");
+        statusDetails.Sms!.Id.Should().Be(Guid.Empty);
+        statusDetails.Sms.Recipient!.MobileNumber.Should().Be("+4793477179");
+
+        // Plural "emails"/"smses" lists are now exposed for multi-recipient notifications.
+        statusDetails.Emails.Should().ContainSingle();
+        statusDetails.Emails![0].Id.Should().BeNull();
+        statusDetails.Emails[0].Recipient!.EmailAddress.Should().Be("tai.tien.huynh@digdir.no");
+        statusDetails.Emails[0].SendStatus!.Status.Should().Be("Email_Delivered");
+
+        statusDetails.Smses.Should().ContainSingle();
+        statusDetails.Smses![0].Recipient!.MobileNumber.Should().Be("+4793477179");
+        statusDetails.Smses[0].SendStatus!.Status.Should().Be("SMS_Accepted");
+    }
+
+    [Fact]
+    public void Status_AttachmentsDownloadedStatus_DeserializesCorrectly()
+    {
+        // "AttachmentsDownloaded" is a valid CorrespondenceStatus returned by the API (e.g. once the
+        // recipient downloads attachments). It appears both as the top-level status and in the history.
+        // Regression: the value was missing from the enum, so JsonStringEnumConverter threw on it.
+        var encodedResponse = """
+            {
+                "statusHistory": [
+                    {
+                        "status": "Published",
+                        "statusText": "Published",
+                        "statusChanged": "2025-05-16T09:55:28.64087+00:00"
+                    },
+                    {
+                        "status": "AttachmentsDownloaded",
+                        "statusText": "Attachment 0196d885-2b97-7e8d-b8fb-21bd0e64b39b has been downloaded",
+                        "statusChanged": "2025-05-16T09:57:11.21523+00:00"
+                    }
+                ],
+                "recipient": "urn:altinn:organization:identifier-no:313756270",
+                "correspondenceId": "0196d885-2d03-74cc-885d-13159c39b588",
+                "created": "2025-05-16T09:55:28.641293+00:00",
+                "status": "AttachmentsDownloaded",
+                "statusText": "Attachment 0196d885-2b97-7e8d-b8fb-21bd0e64b39b has been downloaded",
+                "statusChanged": "2025-05-16T09:57:11.21523+00:00",
+                "resourceId": "dagl-correspondence",
+                "sender": "urn:altinn:organization:identifier-no:310356875",
+                "sendersReference": "1234",
+                "ignoreReservation": true,
+                "isConfirmationNeeded": true
+            }
+            """;
+
+        // Act
+        var parsedResponse = JsonSerializer.Deserialize<GetCorrespondenceStatusResponse>(encodedResponse);
+
+        // Assert
+        Assert.NotNull(parsedResponse);
+        parsedResponse.Status.Should().Be(CorrespondenceStatus.AttachmentsDownloaded);
+        parsedResponse.StatusHistory.Last().Status.Should().Be(CorrespondenceStatus.AttachmentsDownloaded);
+    }
 }

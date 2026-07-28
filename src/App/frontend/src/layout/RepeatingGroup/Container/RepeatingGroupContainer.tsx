@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import type { JSX } from 'react';
 
 import { Button, ConditionalWrapper, Fieldset, Flex, FullWidthWrapper } from '@app/form-component';
@@ -19,6 +19,7 @@ import {
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import utilClasses from 'src/styles/utils.module.css';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
@@ -57,10 +58,40 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
       >
         <AllComponentValidations baseComponentId={baseComponentId} />
       </Flex>
+      <RowDeletionAnnouncement />
     </Flex>
   );
 });
 RepeatingGroupContainer.displayName = 'RepeatingGroupContainer';
+
+function RowDeletionAnnouncement() {
+  const { langAsString } = useLanguage();
+  const deletedRowsCount = useRepeatingGroupSelector((state) => state.deletedRowsCount);
+  const { numVisibleRows } = useRepeatingGroupRowState();
+  const [message, setMessage] = React.useState('');
+
+  // Only announce when the count actually increases.
+  const lastAnnouncedCount = React.useRef(deletedRowsCount);
+
+  useEffect(() => {
+    if (deletedRowsCount <= lastAnnouncedCount.current) {
+      return;
+    }
+    lastAnnouncedCount.current = deletedRowsCount;
+    // Include the remaining row count so the message gets re-announced on later deletions
+    setMessage(langAsString('group.row_deleted_sr', [numVisibleRows]));
+  }, [deletedRowsCount, numVisibleRows, langAsString]);
+
+  return (
+    <div
+      role='status'
+      aria-live='polite'
+      className={utilClasses.visuallyHidden}
+    >
+      {message}
+    </div>
+  );
+}
 
 function ModeOnlyTable() {
   return (
@@ -176,7 +207,7 @@ export const alignStyle = (align: ButtonPosition): React.CSSProperties => {
 
 function AddButton() {
   const { lang, langAsString } = useLanguage();
-  const { triggerFocus } = useRepeatingGroupsFocusContext();
+  const { triggerFocus, registerAddButton } = useRepeatingGroupsFocusContext();
   const baseComponentId = useRepeatingGroupComponentId();
   const addRow = RepGroupContext.useAddRow();
   const { visibleRows } = useRepeatingGroupRowState();
@@ -214,6 +245,7 @@ function AddButton() {
 
   return (
     <Button
+      ref={registerAddButton}
       textAlign={addButton?.textAlign}
       fullWidth={fullWidth}
       id={`add-button-${id}`}
@@ -222,13 +254,6 @@ function AddButton() {
       onClick={async () => {
         const newRow = await addRow();
         newRow.index !== undefined && triggerFocus(newRow.index);
-      }}
-      onKeyUp={async (event: React.KeyboardEvent<HTMLButtonElement>) => {
-        const allowedKeys = ['enter', ' ', 'spacebar'];
-        if (allowedKeys.includes(event.key.toLowerCase())) {
-          const newRow = await addRow();
-          newRow.index !== undefined && triggerFocus(newRow.index);
-        }
       }}
       variant='secondary'
       disabled={currentlyAddingRow}

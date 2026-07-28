@@ -5,6 +5,8 @@
 .label {
   font-weight: 600;
   grid-area: label;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 .labelError {
   color: var(--colors-primary-red);
@@ -17,6 +19,7 @@
 .container {
   display: grid;
   width: 100%;
+  column-gap: var(--ds-size-2);
   grid-template-columns: 1fr auto;
   grid-template-areas:
     'label btn'

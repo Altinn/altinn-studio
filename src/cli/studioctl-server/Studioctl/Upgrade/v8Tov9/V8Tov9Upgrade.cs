@@ -118,6 +118,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -317,8 +320,38 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
-    /// code, and removed internal engine handler types.
+    /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>
+    /// <summary>
+    /// Rewrites the Correspondence v9 breaks that have a mechanical, semantics-preserving fix. Runs before
+    /// <see cref="CheckRemovedCSharpApis"/> so that whatever it cannot rewrite is reported there instead.
+    /// </summary>
+    static async Task<int> MigrateCorrespondenceApis(string projectFile)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating removed Correspondence APIs...");
+
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var result = new CorrespondenceApiMigration(scanner).Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            // Unlike the other auto-fixes, this one can leave work behind: a `WithData` argument whose type
+            // cannot be determined from syntax is reported rather than rewritten, and the app will not
+            // build until it is resolved.
+            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Correspondence APIs: {ex.Message}");
+            return ExitError;
+        }
+    }
+
     static async Task<int> CheckRemovedCSharpApis(string projectFile)
     {
         try
@@ -330,7 +363,8 @@ internal static class V8Tov9Upgrade
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(scanner).Detect(),
                 new LegacyEFormidlingCodeDetector(scanner).Detect(),
-                new RemovedInternalProcessTypeDetector(scanner).Detect()
+                new RemovedInternalProcessTypeDetector(scanner).Detect(),
+                new LegacyCorrespondenceCodeDetector(scanner).Detect()
             );
 
             foreach (var warning in result.Warnings)

@@ -1,3 +1,4 @@
+import { maskSsn } from 'src/utils/maskSsn';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IParty } from 'src/types/shared';
@@ -11,7 +12,7 @@ export function getInstanceSender(instanceOwnerParty?: IParty): string {
   if (!instanceOwnerParty) {
     return '';
   }
-  const identifier = instanceOwnerParty.ssn ?? instanceOwnerParty.orgNumber;
+  const identifier = instanceOwnerParty.ssn ? maskSsn(instanceOwnerParty.ssn) : instanceOwnerParty.orgNumber;
   return identifier ? `${identifier}-${instanceOwnerParty.name}` : instanceOwnerParty.name;
 }
 

@@ -326,6 +326,26 @@ internal sealed class TranslationService : ITranslationService
                         _ => "Dokumentet er en forhåndsvisning",
                     },
                 };
+            case "backend.xsd_validation":
+                return new TextResourceElement()
+                {
+                    Id = "backend.xsd_validation",
+                    Value = language switch
+                    {
+                        LanguageConst.Nb => "Et felt bryter reglene satt av XSD. Melding: {0}",
+                        LanguageConst.Nn => "Eit felt bryt reglane sette av XSD. Melding: {0}",
+                        _ => "A field is in violation of the rules set by the XSD schema. Message: {0}",
+                    },
+                    Variables =
+                    [
+                        new TextResourceVariable()
+                        {
+                            DataSource = "customTextParameters",
+                            Key = "message",
+                            DefaultValue = "",
+                        },
+                    ],
+                };
         }
 
         return null;

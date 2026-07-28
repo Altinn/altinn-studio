@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
+using Altinn.App.Core.Features.Maskinporten.Models;
 
 namespace Altinn.App.Api.Extensions;
 
@@ -13,7 +14,7 @@ public static class HttpClientBuilderExtensions
     /// <p>Authorises all requests with Maskinporten using the provided scopes,
     /// and injects the resulting token in the Authorization header using the Bearer scheme.</p>
     /// <p>If your target API does <em>not</em> use this authorisation scheme, you should consider implementing
-    /// <see cref="MaskinportenClient.GetAccessToken"/> directly and handling the specifics manually.</p>
+    /// <see cref="IMaskinportenClient.GetAccessToken(IEnumerable{string}, CancellationToken)"/> directly and handling the specifics manually.</p>
     /// </summary>
     /// <param name="builder">The Http client builder</param>
     /// <param name="scope">The scope to claim authorization for with Maskinporten</param>
@@ -32,7 +33,7 @@ public static class HttpClientBuilderExtensions
     /// The resulting token is then exchanged for an Altinn issued token and injected in
     /// the Authorization header using the Bearer scheme.</p>
     /// <p>If your target API does <em>not</em> use this authorisation scheme, you should consider implementing
-    /// <see cref="MaskinportenClient.GetAltinnExchangedToken(IEnumerable{string}, CancellationToken)"/> directly and handling the specifics manually.</p>
+    /// <see cref="IMaskinportenClient.GetAltinnExchangedToken(IEnumerable{string}, CancellationToken)"/> directly and handling the specifics manually.</p>
     /// </summary>
     /// <param name="builder">The Http client builder</param>
     /// <param name="scope">The scope to claim authorization for with Maskinporten</param>
@@ -46,19 +47,39 @@ public static class HttpClientBuilderExtensions
         return builder.AddMaskinportenHttpMessageHandler(scope, additionalScopes, TokenAuthority.AltinnTokenExchange);
     }
 
-    /// <inheritdoc cref="UseMaskinportenAuthorization"/>
-    [Obsolete("Use UseMaskinportenAuthorization instead")]
-    public static IHttpClientBuilder UseMaskinportenAuthorisation(
+    /// <summary>
+    /// <p>Authorises all requests with Maskinporten using the provided token request,
+    /// and injects the resulting token in the Authorization header using the Bearer scheme.</p>
+    /// <p>Use this overload when the target API requires more than scopes, e.g. an audience-restricted
+    /// (<c>resource</c>) or system user token.</p>
+    /// </summary>
+    /// <param name="builder">The Http client builder</param>
+    /// <param name="request">The token request to authorise every outgoing request with</param>
+    public static IHttpClientBuilder UseMaskinportenAuthorization(
         this IHttpClientBuilder builder,
-        string scope,
-        params string[] additionalScopes
-    ) => UseMaskinportenAuthorization(builder, scope, additionalScopes);
+        MaskinportenTokenRequest request
+    )
+    {
+        ArgumentNullException.ThrowIfNull(request);
 
-    /// <inheritdoc cref="UseMaskinportenAltinnAuthorization"/>
-    [Obsolete("Use UseMaskinportenAltinnAuthorization instead")]
-    public static IHttpClientBuilder UseMaskinportenAltinnAuthorisation(
+        return builder.AddMaskinportenHttpMessageHandler(request, TokenAuthority.Maskinporten);
+    }
+
+    /// <summary>
+    /// <p>Authorises all requests with Maskinporten using the provided token request.
+    /// The resulting token is then exchanged for an Altinn issued token and injected in
+    /// the Authorization header using the Bearer scheme.</p>
+    /// <p>Use this overload when the target API requires more than scopes, e.g. a system user token.</p>
+    /// </summary>
+    /// <param name="builder">The Http client builder</param>
+    /// <param name="request">The token request to authorise every outgoing request with</param>
+    public static IHttpClientBuilder UseMaskinportenAltinnAuthorization(
         this IHttpClientBuilder builder,
-        string scope,
-        params string[] additionalScopes
-    ) => UseMaskinportenAltinnAuthorization(builder, scope, additionalScopes);
+        MaskinportenTokenRequest request
+    )
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return builder.AddMaskinportenHttpMessageHandler(request, TokenAuthority.AltinnTokenExchange);
+    }
 }
