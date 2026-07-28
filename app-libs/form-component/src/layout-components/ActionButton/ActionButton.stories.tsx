@@ -13,7 +13,7 @@ export const ACTION_BUTTON_PROP_CATEGORIES = {
   disabled: 'runtime',
   isLoading: 'runtime',
   onClick: 'runtime',
-  innerGrid: 'runtime',
+  innerGrid: 'content',
 } satisfies PropCategories<ActionButtonProps>;
 
 const meta = {
