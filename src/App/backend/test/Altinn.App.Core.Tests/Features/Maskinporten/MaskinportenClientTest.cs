@@ -1019,12 +1019,58 @@ public class MaskinportenClientTests
 
         // Act - start concurrent cold callers, let the first fetch begin, then release it
         var tasks = Enumerable.Range(0, 10).Select(_ => client.GetAudienceFromWellKnown().AsTask()).ToArray();
-        await fetchStarted.Task;
+        await fetchStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
         releaseFetch.SetResult();
         var results = await Task.WhenAll(tasks);
 
         // Assert - everyone got the issuer from a single fetch
         Assert.All(results, r => Assert.Equal(realIssuer, r));
+        Assert.Equal(1, fetchCount);
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_ColdStartIsSingleFlighted_DuringOutage(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        var fetchStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var fetchCount = 0;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                Interlocked.Increment(ref fetchCount);
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(
+                        async (HttpRequestMessage _, CancellationToken _) =>
+                        {
+                            fetchStarted.TrySetResult();
+                            await releaseFetch.Task;
+                            return new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError };
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - start concurrent cold callers against a failing endpoint, let the first fetch begin, then release it
+        var tasks = Enumerable.Range(0, 10).Select(_ => client.GetAudienceFromWellKnown().AsTask()).ToArray();
+        await fetchStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        releaseFetch.SetResult();
+        var results = await Task.WhenAll(tasks);
+
+        // Assert - a single failed fetch produced the fallback for everyone (no N x blocking fetches)
+        Assert.All(results, r => Assert.Equal(client.Settings.Authority, r));
         Assert.Equal(1, fetchCount);
     }
 

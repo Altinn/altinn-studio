@@ -17,7 +17,14 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.App.Core.Features.Maskinporten;
 
 /// <inheritdoc/>
-internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1001:Types that own disposable fields should be disposable",
+    Justification = "Process-lifetime singleton. The SemaphoreSlim never allocates its wait handle "
+        + "(AvailableWaitHandle is not accessed), so there is nothing to dispose — disposing it would "
+        + "instead hang queued waiters if shutdown overlaps an in-flight well-known lookup."
+)]
+internal sealed class MaskinportenClient : IMaskinportenClient
 {
     /// <summary>
     /// The margin to take into consideration when determining if a token has expired (seconds).
@@ -677,6 +684,4 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     }
 
     private sealed record CacheFactoryState(MaskinportenClient Self, MaskinportenTokenRequest Request);
-
-    public void Dispose() => _wellKnownFetchLock.Dispose();
 }
