@@ -160,7 +160,11 @@ internal sealed class CorrespondenceApiMigration
 
         public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var visited = (InvocationExpressionSyntax)base.VisitInvocationExpression(node)!;
+            var rewritten = base.VisitInvocationExpression(node);
+            if (rewritten is not InvocationExpressionSyntax visited)
+            {
+                return rewritten;
+            }
 
             if (
                 visited.Expression is not MemberAccessExpressionSyntax memberAccess
@@ -214,7 +218,12 @@ internal sealed class CorrespondenceApiMigration
 
         public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
         {
-            var visited = (ObjectCreationExpressionSyntax)base.VisitObjectCreationExpression(node)!;
+            var rewritten = base.VisitObjectCreationExpression(node);
+            if (rewritten is not ObjectCreationExpressionSyntax visited)
+            {
+                return rewritten;
+            }
+
             var typeName = TrailingTypeName(visited.Type);
             if (typeName is null)
             {
