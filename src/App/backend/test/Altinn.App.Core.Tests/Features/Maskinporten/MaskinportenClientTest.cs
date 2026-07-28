@@ -961,8 +961,15 @@ public class MaskinportenClientTests
             await Task.Delay(10);
         }
 
-        // Let any straggler background refresh land before snapshotting the call count
-        await Task.Delay(50);
+        // Let any straggler background refresh land before snapshotting the call count:
+        // poll until the count has been stable for one interval (bounded by the outer timeout below)
+        var settle = Stopwatch.StartNew();
+        var previousCount = -1;
+        while (previousCount != callCount && settle.Elapsed < TimeSpan.FromSeconds(5))
+        {
+            previousCount = callCount;
+            await Task.Delay(50);
+        }
 
         // Once recovered, the normal cache duration applies again
         fixture.FakeTime.Advance(TimeSpan.FromMinutes(30));
