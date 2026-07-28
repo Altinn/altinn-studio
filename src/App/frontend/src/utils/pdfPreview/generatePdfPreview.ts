@@ -11,19 +11,22 @@ export async function generatePdfPreview(
     return { type: 'error', message: 'Missing instance id' };
   }
 
-  const response: Response | Error = await fetch(getPdfPreviewUrl(instanceId, language), {
-    signal,
-    headers: { Pragma: 'no-cache' },
-  }).catch((error) => error);
+  try {
+    const response = await fetch(getPdfPreviewUrl(instanceId, language), {
+      signal,
+      headers: { Pragma: 'no-cache' },
+    });
 
-  if (response instanceof Error) {
-    return { type: 'error', message: response.message };
+    if (response.status !== 200 || !response.headers.get('Content-Type')?.toLowerCase().startsWith('application/pdf')) {
+      const text = await response.text();
+      return { type: 'error', message: `${response.status} ${response.statusText}\n${text}` };
+    }
+
+    return { type: 'success', blob: await response.blob() };
+  } catch (error) {
+    return {
+      type: 'error',
+      message: error instanceof Error ? error.message : String(error),
+    };
   }
-
-  if (response.status !== 200 || response.headers.get('Content-Type') !== 'application/pdf') {
-    const text = await response.text();
-    return { type: 'error', message: `${response.status} ${response.statusText}\n${text}` };
-  }
-
-  return { type: 'success', blob: await response.blob() };
 }

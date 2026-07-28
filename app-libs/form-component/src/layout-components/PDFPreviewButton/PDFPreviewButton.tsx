@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@app/form-component/app-components/Button';
 import { Spinner } from '@app/form-component/app-components/Spinner';
@@ -46,6 +46,13 @@ export function PDFPreviewControls({
   const { langAsString } = useTranslation();
   const { color, variant } = buttonStyles[buttonStyle];
 
+  useEffect(() => {
+    if (!blobUrl) {
+      return;
+    }
+    return () => URL.revokeObjectURL(blobUrl);
+  }, [blobUrl]);
+
   async function handleClick() {
     if (disabled) {
       return;
@@ -54,15 +61,26 @@ export function PDFPreviewControls({
     setBlobUrl(null);
     setErrorText(null);
     abortRef.current?.abort();
-    abortRef.current = new AbortController();
+    const controller = new AbortController();
+    abortRef.current = controller;
     modalRef.current?.showModal();
 
-    const result = await onGenerate(abortRef.current.signal);
-    if (result.type === 'error') {
-      setErrorText(result.message);
-      return;
+    try {
+      const result = await onGenerate(controller.signal);
+      if (abortRef.current !== controller) {
+        return;
+      }
+      if (result.type === 'error') {
+        setErrorText(result.message);
+        return;
+      }
+      setBlobUrl(URL.createObjectURL(result.blob));
+    } catch (error) {
+      if (abortRef.current !== controller || controller.signal.aborted) {
+        return;
+      }
+      setErrorText(error instanceof Error ? error.message : String(error));
     }
-    setBlobUrl(URL.createObjectURL(result.blob));
   }
 
   return (
@@ -81,7 +99,7 @@ export function PDFPreviewControls({
           <iframe className={classes.iframe} title='Preview' src={blobUrl} />
         ) : errorText ? (
           <div style={{ textAlign: 'center' }}>
-            <Heading id='pdfPreview.error' />
+            <Heading>{langAsString('pdfPreview.error')}</Heading>
             {showErrorDetails &&
               errorText.split('\n').map((line) => (
                 <span key={line}>
