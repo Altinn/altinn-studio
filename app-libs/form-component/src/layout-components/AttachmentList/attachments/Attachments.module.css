@@ -48,7 +48,7 @@
 .attachmentText {
   display: flex;
   flex-wrap: wrap;
-  min-width: 0; /* Allows truncation to work in flex containers */
+  min-width: 0;
   width: 100%;
   gap: 4px;
 }
@@ -60,5 +60,5 @@
 
 .filename {
   display: flex;
-  min-width: 0; /* Allows truncation to work in flex containers */
+  min-width: 0;
 }

@@ -475,10 +475,6 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     {
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment Build() { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithData(System.IO.Stream data) { }
-        [System.Obsolete("This method is inefficient for large attachments. Consider using WithData(Stream)" +
-            " instead.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithData(System.ReadOnlyMemory<byte> data) { }
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithDataLocationType(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceDataLocationType dataLocationType) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderSendersReference WithFilename(string filename) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithIsEncrypted(bool isEncrypted) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderData WithSendersReference(string sendersReference) { }
@@ -501,18 +497,15 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithEmailSubject(string? emailSubject) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? notificationChannel) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithNotificationTemplate(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationTemplate notificationTemplate) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(bool overrideRegisteredContactInformation) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient recipientOverride) { }
-        [System.Obsolete("Use WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride) " +
-            "instead.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipientWrapper recipientToOverrideWrapper) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? recipientOverride) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrides(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient> recipientOverrides) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailBody(string? reminderEmailBody) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailSubject(string? reminderEmailSubject) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? reminderNotificationChannel) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderSmsBody(string? reminderSmsBody) { }
-        [System.Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRequestedSendTime(System.DateTimeOffset? requestedSendTime) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithSendReminder(bool? sendReminder) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithSendersReference(string? sendersReference) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithSmsBody(string? smsBody) { }
@@ -521,38 +514,16 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     public class CorrespondenceNotificationOverrideBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder
     {
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient Build() { }
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithCorrespondenceNotificationRecipients(System.Collections.Generic.List<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient> correspondenceNotificationRecipients) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithEmailAddress(string? emailAddress) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithNationalIdentityNumber(Altinn.App.Core.Models.NationalIdentityNumber? nationalIdentityNumber) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(Altinn.App.Core.Models.OrganisationOrPersonIdentifier? organisationOrPersonIdentifier) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(Altinn.App.Core.Models.OrganisationNumber? organizationNumber) { }
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(Altinn.App.Core.Models.NationalIdentityNumber nin) { }
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(Altinn.App.Core.Models.OrganisationNumber organizationNumber) { }
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(Altinn.App.Core.Models.OrganisationOrPersonIdentifier identifier) { }
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(string identifierAsString) { }
         public static Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder Create() { }
     }
-    public class CorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSender, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
+    public class CorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
     {
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest Build() { }
-        [System.Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(System.DateTimeOffset allowSystemDeleteAfter) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder builder) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment attachment) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachments(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment> attachments) { }
@@ -566,6 +537,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference externalReference) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReferenceType type, string value) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReferences(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference> externalReferences) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIdempotentKey(System.Guid idempotentKey) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIgnoreReservation(bool ignoreReservation) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfidential(bool isConfidential) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded) { }
@@ -584,28 +556,18 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithReplyOption(string linkUrl, string linkText) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithReplyOptions(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReplyOption> replyOptions) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithRequestedPublishTime(System.DateTimeOffset requestedPublishTime) { }
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSender WithResourceId(string resourceId) { }
-        [System.Obsolete("This method is deprecated. The sender is now automatically determined from the Re" +
-            "source Registry based on the resourceId.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference WithSender(Altinn.App.Core.Models.OrganisationNumber sender) { }
-        [System.Obsolete("This method is deprecated. The sender is now automatically determined from the Re" +
-            "source Registry based on the resourceId.")]
-        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference WithSender(string sender) { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference WithResourceId(string resourceId) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients WithSendersReference(string sendersReference) { }
         public static Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId Create() { }
     }
     public interface ICorrespondenceAttachmentBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderData, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderFilename, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderSendersReference
     {
         Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment Build();
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithDataLocationType(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceDataLocationType dataLocationType);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithIsEncrypted(bool isEncrypted);
     }
     public interface ICorrespondenceAttachmentBuilderData
     {
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithData(System.IO.Stream data);
-        [System.Obsolete("This method is inefficient for large attachments. Consider using WithData(Stream)" +
-            " instead.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder WithData(System.ReadOnlyMemory<byte> data);
     }
     public interface ICorrespondenceAttachmentBuilderFilename
     {
@@ -642,17 +604,15 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithEmailBody(string? emailBody);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithEmailSubject(string? emailSubject);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? notificationChannel);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(bool overrideRegisteredContactInformation);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient recipientOverride);
-        [System.Obsolete("Use WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride) " +
-            "instead.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverride(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipientWrapper recipientToOverrideWrapper);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? recipientOverride);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRecipientOverrides(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient> recipientOverrides);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailBody(string? reminderEmailBody);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderEmailSubject(string? reminderEmailSubject);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderNotificationChannel(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? reminderNotificationChannel);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithReminderSmsBody(string? reminderSmsBody);
-        [System.Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithRequestedSendTime(System.DateTimeOffset? requestedSendTime);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithSendReminder(bool? sendReminder);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithSendersReference(string? sendersReference);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder WithSmsBody(string? smsBody);
@@ -664,37 +624,15 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     public interface ICorrespondenceNotificationOverrideBuilder
     {
         Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient Build();
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithCorrespondenceNotificationRecipients(System.Collections.Generic.List<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient> correspondenceNotificationRecipients);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithEmailAddress(string? emailAddress);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithNationalIdentityNumber(Altinn.App.Core.Models.NationalIdentityNumber? nationalIdentityNumber);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(Altinn.App.Core.Models.OrganisationOrPersonIdentifier? organisationOrPersonIdentifier);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(Altinn.App.Core.Models.OrganisationNumber? organizationNumber);
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(Altinn.App.Core.Models.NationalIdentityNumber nin);
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(Altinn.App.Core.Models.OrganisationNumber organizationNumber);
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(Altinn.App.Core.Models.OrganisationOrPersonIdentifier identifier);
-        [System.Obsolete("This method is deprecated and will be removed in a future version. Use WithOrgani" +
-            "zationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instea" +
-            "d.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(string identifierAsString);
     }
-    public interface ICorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSender, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
+    public interface ICorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
     {
         Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest Build();
-        [System.Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(System.DateTimeOffset allowSystemDeleteAfter);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder builder);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment attachment);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachments(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment> attachments);
@@ -704,6 +642,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference externalReference);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReference(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReferenceType type, string value);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithExternalReferences(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference> externalReferences);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIdempotentKey(System.Guid idempotentKey);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIgnoreReservation(bool ignoreReservation);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfidential(bool isConfidential);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded);
@@ -735,16 +674,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     }
     public interface ICorrespondenceRequestBuilderResourceId
     {
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSender WithResourceId(string resourceId);
-    }
-    public interface ICorrespondenceRequestBuilderSender : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
-    {
-        [System.Obsolete("This method is deprecated. The sender is now automatically determined from the Re" +
-            "source Registry based on the resourceId.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference WithSender(Altinn.App.Core.Models.OrganisationNumber sender);
-        [System.Obsolete("This method is deprecated. The sender is now automatically determined from the Re" +
-            "source Registry based on the resourceId.")]
-        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference WithSender(string sender);
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference WithResourceId(string resourceId);
     }
     public interface ICorrespondenceRequestBuilderSendersReference
     {
@@ -791,7 +721,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     {
         public CorrespondenceAttachment() { }
         public required System.IO.Stream Data { get; init; }
-        public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceDataLocationType DataLocationType { get; init; }
         public required string Filename { get; init; }
         public bool? IsEncrypted { get; init; }
         public required string SendersReference { get; init; }
@@ -833,10 +762,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         Purged = 3,
         Failed = 4,
     }
-    public enum CorrespondenceAuthorisation
-    {
-        Maskinporten = 0,
-    }
     public sealed class CorrespondenceContent : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContent>
     {
         public CorrespondenceContent() { }
@@ -860,13 +785,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public required string MessageSummary { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("messageTitle")]
         public required string MessageTitle { get; init; }
-    }
-    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
-    public enum CorrespondenceDataLocationType
-    {
-        NewCorrespondenceAttachment = 0,
-        ExistingCorrespondenceAttachment = 1,
-        ExisitingExternalStorage = 2,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum CorrespondenceDataLocationTypeResponse
@@ -898,16 +816,14 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class CorrespondenceNotification : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotification>
     {
         public CorrespondenceNotification() { }
-        [System.Obsolete("This property is deprecated and will be removed in a future version. Use CustomRe" +
-            "cipient instead.")]
-        public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
-        public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient>? CustomRecipients { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(10000, MinimumLength=0)]
         public string? EmailBody { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(128, MinimumLength=0)]
         public string? EmailSubject { get; init; }
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? NotificationChannel { get; init; }
         public required Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationTemplate NotificationTemplate { get; init; }
+        public bool OverrideRegisteredContactInformation { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(10000, MinimumLength=0)]
         public string? ReminderEmailBody { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(128, MinimumLength=0)]
@@ -915,8 +831,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationChannel? ReminderNotificationChannel { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(2144, MinimumLength=0)]
         public string? ReminderSmsBody { get; init; }
-        [System.Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-        public System.DateTimeOffset? RequestedSendTime { get; init; }
         public bool? SendReminder { get; init; }
         public string? SendersReference { get; init; }
         [System.ComponentModel.DataAnnotations.StringLength(2144, MinimumLength=0)]
@@ -959,9 +873,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationSummaryResponse? NotificationStatusDetails { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("processingStatus")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationStatusSummaryResponse? ProcessingStatus { get; init; }
-        [System.Obsolete("RequestedSendTime is no longer returned by the Correspondence API.")]
-        [System.Text.Json.Serialization.JsonPropertyName("requestedSendTime")]
-        public System.DateTimeOffset? RequestedSendTime { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("resourceId")]
         public string? ResourceId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("sendersReference")]
@@ -971,9 +882,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     {
         public CorrespondenceNotificationRecipient() { }
         public string? EmailAddress { get; init; }
-        [System.Obsolete("This property is deprecated and will be removed in a future version. Use Correspo" +
-            "ndence.IgnoreReservation instead.")]
-        public bool IsReserved { get; init; }
         public string? MobileNumber { get; init; }
         public Altinn.App.Core.Models.NationalIdentityNumber? NationalIdentityNumber { get; init; }
         public Altinn.App.Core.Models.OrganisationNumber? OrganizationNumber { get; init; }
@@ -991,14 +899,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public string? NationalIdentityNumber { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("organizationNumber")]
         public string? OrganisationNumber { get; init; }
-    }
-    [System.Obsolete("This model is deprecated and will be removed in a future version. Use Corresponde" +
-        "nceNotificationRecipient instead.")]
-    public sealed class CorrespondenceNotificationRecipientWrapper : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipientWrapper>
-    {
-        public CorrespondenceNotificationRecipientWrapper() { }
-        public required System.Collections.Generic.List<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipient> CorrespondenceNotificationRecipients { get; init; }
-        public required Altinn.App.Core.Models.OrganisationOrPersonIdentifier RecipientToOverride { get; init; }
     }
     public sealed class CorrespondenceNotificationStatusDetailsResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationStatusDetailsResponse>
     {
@@ -1043,10 +943,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         CustomMessage = 0,
         GenericAltinnMessage = 1,
     }
-    public abstract class CorrespondencePayloadBase : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondencePayloadBase>
-    {
-        protected CorrespondencePayloadBase() { }
-    }
+    public abstract class CorrespondencePayloadBase : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondencePayloadBase> { }
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum CorrespondenceReferenceType
     {
@@ -1067,12 +964,11 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class CorrespondenceRequest : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest>
     {
         public CorrespondenceRequest() { }
-        [System.Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-        public System.DateTimeOffset? AllowSystemDeleteAfter { get; init; }
         public required Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContent Content { get; init; }
         public System.DateTimeOffset? DueDateTime { get; init; }
         public System.Collections.Generic.IReadOnlyList<System.Guid>? ExistingAttachments { get; init; }
         public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceExternalReference>? ExternalReferences { get; init; }
+        public System.Guid? IdempotentKey { get; init; }
         public bool? IgnoreReservation { get; init; }
         public bool? IsConfidential { get; init; }
         public bool? IsConfirmationNeeded { get; init; }
@@ -1083,9 +979,6 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceReplyOption>? ReplyOptions { get; init; }
         public System.DateTimeOffset? RequestedPublishTime { get; init; }
         public required string ResourceId { get; init; }
-        [System.Obsolete("This property is deprecated. The sender is now automatically determined from the " +
-            "Resource Registry based on the resourceId.")]
-        public Altinn.App.Core.Models.OrganisationNumber? Sender { get; init; }
         public required string SendersReference { get; init; }
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
@@ -1116,20 +1009,11 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     }
     public sealed class GetCorrespondenceStatusPayload : Altinn.App.Core.Features.Correspondence.Models.CorrespondencePayloadBase, System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.GetCorrespondenceStatusPayload>
     {
-        [System.Obsolete("Use GetCorrespondenceStatusPayload(Guid, CorrespondenceAuthenticationMethod) inst" +
-            "ead")]
-        public GetCorrespondenceStatusPayload(System.Guid correspondenceId, Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAuthorisation authorisation) { }
         public GetCorrespondenceStatusPayload(System.Guid correspondenceId, Altinn.App.Core.Features.CorrespondenceAuthenticationMethod authenticationMethod) { }
-        [System.Obsolete("Use GetCorrespondenceStatusPayload(Guid, CorrespondenceAuthenticationMethod) inst" +
-            "ead")]
-        public GetCorrespondenceStatusPayload(System.Guid correspondenceId, System.Func<System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken>> accessTokenFactory) { }
     }
     public sealed class GetCorrespondenceStatusResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.GetCorrespondenceStatusResponse>
     {
         public GetCorrespondenceStatusResponse() { }
-        [System.Obsolete("AllowSystemDeleteAfter is no longer returned by the Correspondence API.")]
-        [System.Text.Json.Serialization.JsonPropertyName("allowSystemDeleteAfter")]
-        public System.DateTimeOffset? AllowSystemDeleteAfter { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("content")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContentResponse? Content { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("correspondenceId")]
@@ -1179,13 +1063,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     }
     public sealed class SendCorrespondencePayload : Altinn.App.Core.Features.Correspondence.Models.CorrespondencePayloadBase, System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.SendCorrespondencePayload>
     {
-        [System.Obsolete("Use SendCorrespondencePayload(CorrespondenceRequest, CorrespondenceAuthentication" +
-            "Method) instead")]
-        public SendCorrespondencePayload(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest request, Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAuthorisation authorisation) { }
         public SendCorrespondencePayload(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest request, Altinn.App.Core.Features.CorrespondenceAuthenticationMethod authenticationMethod) { }
-        [System.Obsolete("Use SendCorrespondencePayload(CorrespondenceRequest, CorrespondenceAuthentication" +
-            "Method) instead")]
-        public SendCorrespondencePayload(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest request, System.Func<System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken>> accessTokenFactory) { }
     }
     public sealed class SendCorrespondenceResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.SendCorrespondenceResponse>
     {
@@ -1626,7 +1504,9 @@ namespace Altinn.App.Core.Features.Maskinporten
 {
     public interface IMaskinportenClient
     {
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAccessToken(Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest request, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAccessToken(System.Collections.Generic.IEnumerable<string> scopes, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAltinnExchangedToken(Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest request, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken> GetAltinnExchangedToken(System.Collections.Generic.IEnumerable<string> scopes, System.Threading.CancellationToken cancellationToken = default);
     }
 }
@@ -1682,6 +1562,22 @@ namespace Altinn.App.Core.Features.Maskinporten.Models
         [System.Text.Json.Serialization.JsonPropertyName("jwkBase64")]
         public string? JwkBase64 { get; set; }
         public Microsoft.IdentityModel.Tokens.JsonWebKey GetJsonWebKey() { }
+    }
+    public sealed class MaskinportenSystemUser : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSystemUser>
+    {
+        public MaskinportenSystemUser() { }
+        public string? ExternalRef { get; init; }
+        public required Altinn.App.Core.Models.OrganisationNumber Organisation { get; init; }
+    }
+    public sealed class MaskinportenTokenRequest : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest>
+    {
+        public MaskinportenTokenRequest() { }
+        public Altinn.App.Core.Models.OrganisationNumber? ConsumerOrg { get; init; }
+        public string? Resource { get; init; }
+        public required System.Collections.Generic.IEnumerable<string> Scopes { get; init; }
+        public Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSystemUser? SystemUser { get; init; }
+        public bool Equals(Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest? other) { }
+        public override int GetHashCode() { }
     }
 }
 namespace Altinn.App.Core.Features.Notifications.Cancellation
