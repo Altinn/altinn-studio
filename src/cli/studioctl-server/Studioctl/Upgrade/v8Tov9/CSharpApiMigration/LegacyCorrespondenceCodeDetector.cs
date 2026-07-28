@@ -109,11 +109,14 @@ internal sealed class LegacyCorrespondenceCodeDetector
         "IsReserved",
     };
 
+    // Matched anywhere they are read or assigned. Neither name survives v9, and the exact-match keeps the
+    // surviving plural `CustomRecipients` from colliding with the removed singular `CustomRecipient`.
     private static readonly IReadOnlySet<string> _removedOverrideDistinctiveMembers = new HashSet<string>(
         StringComparer.Ordinal
     )
     {
         "CustomNotificationRecipients",
+        "CustomRecipient",
     };
 
     private const string AuthorisationSummary =

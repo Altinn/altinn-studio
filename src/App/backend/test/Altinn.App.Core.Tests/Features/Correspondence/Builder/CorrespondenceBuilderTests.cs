@@ -548,7 +548,14 @@ public class CorrespondenceBuilderTests
             .WithExternalReference(CorrespondenceReferenceType.Generic, "ref-1")
             .WithReplyOption("https://example.com/1", "Link 1")
             .WithExistingAttachment(Guid.NewGuid())
-            .WithPropertyList(new Dictionary<string, string> { ["a"] = "1" });
+            .WithPropertyList(new Dictionary<string, string> { ["a"] = "1" })
+            .WithAttachment(
+                CorrespondenceAttachmentBuilder
+                    .Create()
+                    .WithFilename("early.txt")
+                    .WithSendersReference("early-ref")
+                    .WithData(new MemoryStream("early"u8.ToArray()))
+            );
 
         var notification = notificationBuilder.Build();
         var request = requestBuilder.Build();
@@ -561,6 +568,7 @@ public class CorrespondenceBuilderTests
             .WithExternalReference(CorrespondenceReferenceType.Generic, "ref-2")
             .WithReplyOption("https://example.com/2", "Link 2")
             .WithExistingAttachment(Guid.NewGuid())
+            .WithPropertyList(new Dictionary<string, string> { ["b"] = "2" })
             .WithAttachment(
                 CorrespondenceAttachmentBuilder
                     .Create()
@@ -578,8 +586,9 @@ public class CorrespondenceBuilderTests
         request.ReplyOptions.Should().ContainSingle();
         request.ExistingAttachments.Should().ContainSingle();
         request.Recipients.Should().ContainSingle();
-        request.Content.Attachments.Should().BeNull();
+        request.Content.Attachments.Should().ContainSingle();
         request.PropertyList.Should().HaveCount(1);
+        request.PropertyList.Should().NotContainKey("b");
     }
 
     [Theory]

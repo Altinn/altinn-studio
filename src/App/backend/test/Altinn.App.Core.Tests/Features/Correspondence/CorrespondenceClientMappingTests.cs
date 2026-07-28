@@ -98,6 +98,12 @@ public class CorrespondenceClientMappingTests
                             .WithMobileNumber("+4799999999")
                             .Build()
                     )
+                    .WithRecipientOverride(
+                        CorrespondenceNotificationOverrideBuilder
+                            .Create()
+                            .WithOrganizationNumber(TestHelpers.GetOrganisationNumber(2))
+                            .Build()
+                    )
                     .WithOverrideRegisteredContactInformation(true)
             )
             .WithExistingAttachment(existingAttachmentId)
@@ -187,10 +193,16 @@ public class CorrespondenceClientMappingTests
         notification.GetProperty("reminderNotificationChannel").GetString().Should().Be("SmsPreferred");
         notification.GetProperty("sendersReference").GetString().Should().Be("notification-senders-ref");
 
+        // Every recipient must reach the wire, in order - not just the first.
         var customRecipients = notification.GetProperty("customRecipients");
-        customRecipients.GetArrayLength().Should().Be(1);
+        customRecipients.GetArrayLength().Should().Be(2);
         customRecipients[0].GetProperty("emailAddress").GetString().Should().Be("override@example.com");
         customRecipients[0].GetProperty("mobileNumber").GetString().Should().Be("+4799999999");
+        customRecipients[1]
+            .GetProperty("organizationNumber")
+            .GetString()
+            .Should()
+            .Be(TestHelpers.GetOrganisationNumber(2).ToUrnFormattedString());
 
         // The API deprecated both of these in favour of `customRecipients`, which we now emit directly.
         // It honoured only the first entry of `customNotificationRecipients`, so nothing is lost.
@@ -198,6 +210,47 @@ public class CorrespondenceClientMappingTests
         notification.TryGetProperty("customNotificationRecipients", out _).Should().BeFalse();
 
         notification.GetProperty("overrideRegisteredContactInformation").GetBoolean().Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Send_WithoutOverrideRegisteredContactInformation_SendsFlagAsFalse()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var mockHttpClient = new Mock<HttpClient>();
+        string? capturedJson = null;
+
+        var request = CorrespondenceRequestBuilder
+            .Create()
+            .WithResourceId("resource-id")
+            .WithSendersReference("senders-ref")
+            .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+            .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
+            .WithNotification(
+                CorrespondenceNotificationBuilder
+                    .Create()
+                    .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+                    .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "a@example.com" })
+            )
+            .Build();
+
+        fixture.HttpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
+        mockHttpClient
+            .Setup(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+            .Callback((HttpRequestMessage req, CancellationToken _) => capturedJson = ReadBody(req.Content))
+            .ReturnsAsync(() => TestHelpers.ResponseMessageFactory(TestHelpers.DummySendCorrespondenceResponse));
+
+        // Act
+        await fixture.CorrespondenceClient.Send(
+            new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default())
+        );
+
+        // Assert: the additive default must reach the wire as false, not be assumed
+        Assert.NotNull(capturedJson);
+        using var doc = JsonDocument.Parse(capturedJson);
+        var notification = doc.RootElement.GetProperty("correspondence").GetProperty("notification");
+        notification.GetProperty("overrideRegisteredContactInformation").GetBoolean().Should().BeFalse();
+        notification.GetProperty("customRecipients").GetArrayLength().Should().Be(1);
     }
 
     [Fact]
