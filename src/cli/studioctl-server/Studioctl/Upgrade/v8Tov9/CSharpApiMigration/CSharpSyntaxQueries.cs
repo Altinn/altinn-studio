@@ -306,6 +306,61 @@ internal static class CSharpSyntaxQueries
     }
 
     /// <summary>
+    /// Object creations <c>new T(..)</c> where <c>T</c>'s simple name is in
+    /// <paramref name="typeSimpleNames"/> and the argument at <paramref name="argumentIndex"/> does not
+    /// mention <paramref name="expectedTypeName"/>. Use as a last resort for a removed constructor
+    /// overload whose surviving sibling has the same arity: without a semantic model an argument held in
+    /// a variable cannot be typed, so this reports it and accepts that an already-migrated call site
+    /// passing the surviving type through a variable is reported too.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> ObjectCreationsWithoutExpectedTypeInArgument(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> typeSimpleNames,
+        int argumentIndex,
+        string expectedTypeName
+    )
+    {
+        foreach (var creation in file.Root.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
+        {
+            var typeName = ConstructedTypeName(creation);
+            if (typeName is null || !typeSimpleNames.Contains(typeName))
+            {
+                continue;
+            }
+
+            var arguments = creation.ArgumentList?.Arguments;
+            if (arguments is null || arguments.Value.Count <= argumentIndex)
+            {
+                continue;
+            }
+
+            var argument = arguments.Value[argumentIndex].Expression;
+
+            // A lambda is already covered precisely by ObjectCreationsWithLambdaArgument.
+            if (argument is AnonymousFunctionExpressionSyntax)
+            {
+                continue;
+            }
+
+            if (
+                argument
+                    .DescendantNodesAndSelf()
+                    .OfType<SimpleNameSyntax>()
+                    .Any(name => name.Identifier.Text == expectedTypeName)
+            )
+            {
+                continue;
+            }
+
+            yield return new CSharpApiMatch(
+                file.RelativePath,
+                file.GetLine(creation),
+                $"new {typeName}(.., {argument})"
+            );
+        }
+    }
+
+    /// <summary>
     /// The simple name of the type an object creation constructs. For a target-typed <c>new()</c> the
     /// creation itself carries no type, so the written-out type of the enclosing variable, field or
     /// property declaration is used instead — <c>CorrespondenceNotificationRecipient x = new() { .. }</c>

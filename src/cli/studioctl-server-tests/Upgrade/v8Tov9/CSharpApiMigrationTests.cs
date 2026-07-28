@@ -1148,6 +1148,32 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void CorrespondenceDetector_FlagsTokenFactoryHeldInAVariable()
+    {
+        // A `Func<Task<JwtToken>>` in a field cannot be typed without binding, so it is reported rather
+        // than missed - staying silent here hid the whole authorisation break from an app that never
+        // wrote the enum inline.
+        _app.Write(
+            "logic/Purring.cs",
+            """
+            public class Purring
+            {
+                private Func<Task<JwtToken>> Tokenkilde => () => _client.GetAltinnExchangedToken(_scopes);
+
+                public GetCorrespondenceStatusPayload Status(Guid id) =>
+                    new GetCorrespondenceStatusPayload(id, Tokenkilde);
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(Locations(result), w => w.Contains("Purring.cs:6") && w.Contains("Tokenkilde"));
+        Assert.Contains(result.Warnings, w => w.Contains("held in a variable"));
+    }
+
+    [Fact]
     public void CorrespondenceDetector_FlagsTargetTypedNewViaTheDeclaredType()
     {
         // `T x = new() { .. }` is ordinary modern C#. The creation node carries no type, so without

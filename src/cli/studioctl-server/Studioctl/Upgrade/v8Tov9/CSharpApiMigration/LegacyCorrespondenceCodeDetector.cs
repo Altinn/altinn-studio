@@ -35,6 +35,8 @@ internal sealed class LegacyCorrespondenceCodeDetector
         "CorrespondenceAuthorisation",
     };
 
+    private const string AuthenticationMethodType = "CorrespondenceAuthenticationMethod";
+
     private static readonly IReadOnlySet<string> _payloadTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         "SendCorrespondencePayload",
@@ -130,7 +132,9 @@ internal sealed class LegacyCorrespondenceCodeDetector
         + "CorrespondenceAuthenticationMethod.Default() for a service owner token, or "
         + "CorrespondenceAuthenticationMethod.Custom(factory) to supply your own. Note that Default() requests "
         + "altinn:serviceowner/instances.read and altinn:serviceowner/instances.write in addition to the scopes the "
-        + "legacy Maskinporten path requested, so your Maskinporten client must have them. Usages found:";
+        + "legacy Maskinporten path requested, so your Maskinporten client must have them. A payload constructed with an "
+        + "authentication value held in a variable is listed too, since it cannot be typed without compiling - if it "
+        + "is already a CorrespondenceAuthenticationMethod, nothing needs to change. Usages found:";
 
     private const string DroppedFieldSummary =
         "These Correspondence fields are removed in v9 because the Correspondence API no longer accepts them. The "
@@ -180,6 +184,18 @@ internal sealed class LegacyCorrespondenceCodeDetector
                         file,
                         _payloadTypes,
                         PayloadAuthenticationArgumentIndex
+                    )
+                )
+                // A token factory held in a field or property is indistinguishable from an already-migrated
+                // CorrespondenceAuthenticationMethod without binding. Reported anyway: a needless warning
+                // costs seconds, whereas staying silent here can hide the whole authorisation break from an
+                // app that never writes the enum inline.
+                .Concat(
+                    CSharpSyntaxQueries.ObjectCreationsWithoutExpectedTypeInArgument(
+                        file,
+                        _payloadTypes,
+                        PayloadAuthenticationArgumentIndex,
+                        AuthenticationMethodType
                     )
                 )
         );
