@@ -14,6 +14,7 @@ export * from './Image';
 export * from './InstanceInformation';
 export * from './Link';
 export * from './Paragraph';
+export * from './PrintButton';
 export * from './Tabs';
 export * from './Text';
 export * from './TextArea';
