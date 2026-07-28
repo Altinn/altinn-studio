@@ -3,13 +3,21 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 
+/// <summary>
+/// Generates one PDF per subform data element. There is deliberately no pre-generation cleanup
+/// here: stale PDFs from a previous visit to the task are removed by the CleanupGeneratedFromTask
+/// task-start command, and a failed attempt persists nothing (data changes commit only on callback
+/// success), so any element this task could see in its state-blob instance is already gone. The one
+/// remaining duplication window - a retry after a success the engine failed to record - cannot be
+/// closed from the blob (it predates the lost save) and is accepted until Storage-side idempotent
+/// aggregate mutations land (altinn-storage#1049).
+/// </summary>
 internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
     IPdfService pdfService,
@@ -30,9 +38,6 @@ internal sealed class SubformPdfServiceTask(
         string? filenameTextResourceKey = config.FilenameTextResourceKey;
         string subformComponentId = config.SubformComponentId;
         string subformDataTypeId = config.SubformDataTypeId;
-
-        // Clean up any existing PDFs from previous failed attempts
-        RemoveDataElementsGeneratedFromTask(context.InstanceDataMutator, taskId);
 
         List<DataElement> subformDataElements = instance.Data.Where(x => x.DataType == subformDataTypeId).ToList();
 
@@ -85,20 +90,5 @@ internal sealed class SubformPdfServiceTask(
         }
 
         return subformPdfConfiguration.Validate();
-    }
-
-    private static void RemoveDataElementsGeneratedFromTask(IInstanceDataMutator instanceDataMutator, string taskId)
-    {
-        Instance instance = instanceDataMutator.Instance;
-        var dataElements =
-            instance.Data?.Where(de =>
-                de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
-            )
-            ?? [];
-
-        foreach (var dataElement in dataElements)
-        {
-            instanceDataMutator.RemoveDataElement(dataElement);
-        }
     }
 }
