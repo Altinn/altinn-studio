@@ -81,20 +81,24 @@ public sealed record CorrespondenceNotification
     public string? SendersReference { get; init; }
 
     /// <summary>
-    /// The date and time for when the notification should be sent.
+    /// Additional recipients of the notification.
     /// </summary>
-    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-    public DateTimeOffset? RequestedSendTime { get; init; }
+    /// <remarks>
+    /// <p>Despite the name of the builder methods that set it, this does <em>not</em> replace the
+    /// correspondence recipient: the Correspondence API notifies the correspondence recipient's registered
+    /// contact information <em>and</em> everyone listed here. Leaving it unset notifies the correspondence
+    /// recipient only. The API de-duplicates byte-identical entries, but note that it keys organisation and
+    /// person recipients on the bare number while this client sends them URN-formatted, so listing the
+    /// correspondence recipient here again yields two notifications rather than one.</p>
+    /// <p>Set <see cref="OverrideRegisteredContactInformation"/> to notify only these recipients.</p>
+    /// </remarks>
+    public IReadOnlyList<CorrespondenceNotificationRecipient>? CustomRecipients { get; init; }
 
     /// <summary>
-    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
+    /// Whether <see cref="CustomRecipients"/> replaces the correspondence recipient's registered contact
+    /// information, rather than supplementing it. Defaults to <c>false</c>.
     /// </summary>
-    public CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
-
-    /// <summary>
-    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
-    /// </summary>
-    /// <remarks> Only the first recipient in the list will be used for sending the notification. </remarks>
-    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipient instead.")]
-    public IReadOnlyList<CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
+    /// <remarks>Requires at least one entry in <see cref="CustomRecipients"/>; setting this without any is
+    /// rejected before the request is sent.</remarks>
+    public bool OverrideRegisteredContactInformation { get; init; }
 }
