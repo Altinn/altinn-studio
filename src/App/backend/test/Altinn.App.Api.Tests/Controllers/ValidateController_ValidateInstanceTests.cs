@@ -1,12 +1,11 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
-using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -35,7 +34,6 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     };
 
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
-    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     public ValidateControllerValidateInstanceTests(
         WebApplicationFactory<Program> factory,
@@ -43,40 +41,13 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     )
         : base(factory, outputHelper)
     {
-        _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
-        _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
-        _formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
-        _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
-        OverrideServicesForAllTests = (services) =>
-        {
-            services.AddSingleton(_dataProcessorMock.Object);
-            services.AddSingleton(_formDataValidatorMock.Object);
-        };
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
     }
 
     private async Task<HttpResponseMessage> CallValidateInstanceApi()
     {
-        using var httpClient = GetRootedClient(Org, App);
-        string token = TestAuthentication.GetUserToken(userId: 1337);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            AuthorizationSchemes.Bearer,
-            token
-        );
+        using var httpClient = GetRootedUserClient(Org, App, userId: 1337);
         return await httpClient.GetAsync($"/{Org}/{App}/instances/{InstanceId}/validate");
-    }
-
-    private async Task<(HttpResponseMessage response, string responseString)> CallValidateDataApi()
-    {
-        using var httpClient = GetRootedClient(Org, App);
-        string token = TestAuthentication.GetUserToken(userId: 1337);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            AuthorizationSchemes.Bearer,
-            token
-        );
-        var response = await httpClient.GetAsync($"/{Org}/{App}/instances/{InstanceId}/data/{DataGuid}/validate");
-        var responseString = await LogResponse(response);
-        return (response, responseString);
     }
 
     private async Task<string> LogResponse(HttpResponseMessage response)
@@ -95,6 +66,16 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     [Fact]
     public async Task ValidateInstance_NoSetup()
     {
+        var formDataValidatorMock = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
+        formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
+        formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
+        OverrideServicesForAllTests = (services) =>
+        {
+            services.AddSingleton(_dataProcessorMock.Object);
+            services.AddSingleton(formDataValidatorMock.Object);
+        };
         var response = await CallValidateInstanceApi();
         var responseString = await LogResponse(response);
 
@@ -103,7 +84,7 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
         parsedResponse.Should().BeEmpty();
 
         _dataProcessorMock.Verify();
-        _formDataValidatorMock.Verify();
+        formDataValidatorMock.Verify();
     }
 
     [Fact]
@@ -153,7 +134,52 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
         dataIssue.Severity.Should().Be(ValidationIssueSeverity.Fixed);
 
         _dataProcessorMock.Verify();
-        _formDataValidatorMock.Verify();
         oldTaskValidatorMock.Verify();
+    }
+
+    [Fact]
+    public async Task ValidateInstance_WithXsdValidator()
+    {
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IValidator, XsdValidator>();
+        };
+
+        TestData.UpdateXmlDataElement(
+            Org,
+            App,
+            InstanceOwnerPartyId,
+            InstanceGuid,
+            DataGuid,
+            new Skjema()
+            {
+                Melding = new()
+                {
+                    Name = "Name is required in layout",
+                    NestedList = [new() { AltinnRowId = Guid.NewGuid(), Key = "key" }],
+                    MissingFromXsd = "This will error",
+                },
+            }
+        );
+
+        var response = await CallValidateInstanceApi();
+        var responseString = await LogResponse(response);
+
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        var parsedResponse = ParseResponse<List<ValidationIssue>>(responseString);
+        parsedResponse.Should().HaveCount(1);
+
+        var issue = parsedResponse[0];
+
+        Assert.Equal(
+            "Et felt bryter reglene satt av XSD. Melding: The element 'melding' has invalid child element 'missing-from-xsd'. List of possible elements expected: 'tag-with-attribute, hidden, SF_test, hiddenNotRemove, hiddenPage, hiddenPageNotRemove'.",
+            issue.Description
+        );
+        Assert.Null(issue.Field); // XSD validator does not provide field references, only the data element id (would be nice if that could be fixed)
+        Assert.Equal(DataGuid.ToString(), issue.DataElementId);
+        Assert.Equal(ValidationIssueSeverity.Error, issue.Severity);
+        Assert.Equal("Xsd", issue.Source);
+
+        _dataProcessorMock.Verify();
     }
 }

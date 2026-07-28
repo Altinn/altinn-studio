@@ -2,9 +2,11 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 
+const organisationLookupIntercept = '**/api/v1/lookup/organisation/*';
+
 describe('Organisation lookup', () => {
   it('Renders the organisation lookup component correctly', () => {
-    cy.intercept('GET', '/ttd/component-library/api/v1/lookup/organisation/*', {
+    cy.intercept('GET', organisationLookupIntercept, {
       statusCode: 200,
       body: {
         success: true,
@@ -25,18 +27,8 @@ describe('Organisation lookup', () => {
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).should('exist');
     cy.findByRole('button', { name: /Hent opplysninger/i }).should('exist');
 
-    // Type invalid orgNr
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('123456789');
-    cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-    cy.findByText(/Organisasjonsnummeret er ugyldig/i).should('exist');
-
-    // Type valid orgNr
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).clear();
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('043871668');
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).blur();
-    cy.findByText(/Organisasjonsnummeret er ugyldig/i).should('not.exist');
-
-    // Fetch organisation
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@successfullyFetchedOrganisation');
     cy.findByRole('button', { name: /Fjern/i }).should('exist');
@@ -50,7 +42,7 @@ describe('Organisation lookup', () => {
     cy.findByRole('button', { name: /Fjern/i }).should('not.exist');
 
     // Add interceptor for failed fetch
-    cy.intercept('GET', '/ttd/component-library/api/v1/lookup/organisation/*', {
+    cy.intercept('GET', organisationLookupIntercept, {
       statusCode: 200,
       body: {
         success: false,
@@ -65,15 +57,20 @@ describe('Organisation lookup', () => {
     cy.findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i).should('exist');
 
     // Add interceptor for failed fetch due to server error
-    cy.intercept('GET', '/ttd/component-library/api/v1/lookup/organisation/*', {
+    cy.intercept('GET', organisationLookupIntercept, {
       statusCode: 500,
     }).as('failedFetchOrganisationServerError');
 
     // Fetch organisation with server error
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).clear();
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('043871668{Enter}');
+    cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedFetchOrganisationServerError');
     cy.findByText(/Ukjent feil. Vennligst prøv igjen senere/i).should('exist');
+
+    // Type invalid orgNr
+    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).numberFormatClear();
+    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('123456789');
+    cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+    cy.findByText(/Organisasjonsnummeret er ugyldig/i).should('exist');
 
     cy.changeLayout((component) => {
       if (component.type === 'OrganisationLookup') {

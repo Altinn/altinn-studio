@@ -13,7 +13,7 @@ describe('Instantiation', () => {
   // See ttd/frontend-test/App/logic/Instantiation/InstantiationValidator.cs
   const invalidParty =
     Cypress.env('type') === 'localtest'
-      ? /01899699001/ // Localtest: Person party for user 2001 (MultiParty Prompt, SSN 01899699001)
+      ? /018996\*\*\*\*\*/ // Localtest: Person party for user 2001 (MultiParty Prompt, SSN 01899699001)
       : /314277961/; // TT02: Offisiell Virtuell Tiger AS
 
   beforeEach(() => {

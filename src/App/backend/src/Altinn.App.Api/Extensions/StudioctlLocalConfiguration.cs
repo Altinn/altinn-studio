@@ -18,7 +18,7 @@ internal static class StudioctlLocalConfiguration
         }
         catch (Exception ex)
         {
-            WriteWarning("Failed to import local studioctl app configuration.", ex);
+            WriteDebug("Failed to import local studioctl app configuration.", ex);
         }
     }
 
@@ -93,7 +93,7 @@ internal static class StudioctlLocalConfiguration
         }
         catch (Exception ex)
         {
-            WriteWarning("studioctl app env returned invalid JSON.", ex);
+            WriteDebug("studioctl app env returned invalid JSON.", ex);
             return false;
         }
         using (document)
@@ -154,14 +154,14 @@ internal static class StudioctlLocalConfiguration
 
         if (!process.Start())
         {
-            WriteWarning("studioctl app env did not start.");
+            WriteDebug("studioctl app env did not start.");
             return false;
         }
 
         if (!process.WaitForExit(timeout))
         {
             TryKill(process);
-            WriteWarning($"studioctl app env timed out after {timeout.TotalSeconds} seconds.");
+            WriteDebug($"studioctl app env timed out after {timeout.TotalSeconds} seconds.");
             return false;
         }
 
@@ -174,7 +174,7 @@ internal static class StudioctlLocalConfiguration
         }
 
         string details = string.IsNullOrWhiteSpace(errorOutput) ? "." : $": {errorOutput}";
-        WriteWarning($"studioctl app env exited with code {process.ExitCode}{details}");
+        WriteDebug($"studioctl app env exited with code {process.ExitCode}{details}");
         return false;
     }
 
@@ -194,18 +194,19 @@ internal static class StudioctlLocalConfiguration
         }
         catch (Exception ex)
         {
-            WriteWarning("Failed to stop timed out studioctl app env process.", ex);
+            WriteDebug("Failed to stop timed out studioctl app env process.", ex);
         }
     }
 
-    private static void WriteWarning(string message, Exception? exception = null)
+    [Conditional("DEBUG")]
+    private static void WriteDebug(string message, Exception? exception = null)
     {
         if (exception is null)
         {
-            Console.Error.WriteLine($"Warning: {message}");
+            Debug.WriteLine(message);
             return;
         }
 
-        Console.Error.WriteLine($"Warning: {message}{Environment.NewLine}{exception}");
+        Debug.WriteLine($"{message}{Environment.NewLine}{exception}");
     }
 }

@@ -4,7 +4,19 @@
 
 .map {
   position: relative;
+  width: 100%;
+  max-width: 100%;
   height: 600px;
+}
+
+/* Attribution rendered outside the Leaflet container (see MapAttribution.tsx). Kept visually
+   present as required by the OpenStreetMap/Kartverket licenses. */
+.attribution {
+  margin: 1px 0 0 0;
+  padding: 2px 0;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 /**
@@ -46,21 +58,17 @@
     */
     font-size: 12px !important;
   }
-  .map div:has(> :global(.leaflet-control-attribution)) {
+  .attribution {
     width: 100%;
-  }
-  .map :global(.leaflet-control-attribution) {
-    background: white !important;
-    width: 100%;
-    padding: 0;
     text-align: center;
   }
 
-  .map :global(.leaflet-control-attribution) a {
+  .attribution a {
     color: black;
   }
 
-  .map :global(.leaflet-control-attribution) a[href]:after {
+  /* Print the underlying URL after each link, since hyperlinks can't be followed on paper */
+  .attribution a[href]:after {
     content: ' [' attr(href) ']';
   }
 }

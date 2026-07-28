@@ -4,6 +4,7 @@ namespace Altinn.App.Core.Configuration
 {
     public class AppSettings
     {
+        public const string CALCULATION_CONFIG_FILENAME = "calculation.json";
         public const string JSON_SCHEMA_FILENAME = "schema.json";
         public const string VALIDATION_CONFIG_FILENAME = "validation.json";
         public AppSettings() { }
@@ -17,6 +18,7 @@ namespace Altinn.App.Core.Configuration
         [System.Obsolete("This is not used, and will be removed in the next major version")]
         public string BaseResourceFolderContainer { get; set; }
         public int CacheResourceLifeTimeInSeconds { get; set; }
+        public string CalculationConfigurationFileName { get; set; }
         public string ConfigurationFolder { get; set; }
         public string DefaultBootstrapUrl { get; set; }
         public bool DisableCsrfCheck { get; set; }
@@ -45,6 +47,7 @@ namespace Altinn.App.Core.Configuration
         public bool UseOpenTelemetry { get; set; }
         public bool UseOpenTelemetryCollector { get; set; }
         public string ValidationConfigurationFileName { get; set; }
+        public bool XsdValidation { get; set; }
     }
     public class CacheSettings
     {
@@ -761,6 +764,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         Published = 2,
         Purged = 3,
         Failed = 4,
+        Expired = 5,
     }
     public sealed class CorrespondenceContent : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContent>
     {
@@ -843,6 +847,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         Sms = 1,
         EmailPreferred = 2,
         SmsPreferred = 3,
+        EmailAndSms = 4,
     }
     public sealed class CorrespondenceNotificationDetailsResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationDetailsResponse>
     {
@@ -904,7 +909,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     {
         public CorrespondenceNotificationStatusDetailsResponse() { }
         [System.Text.Json.Serialization.JsonPropertyName("id")]
-        public System.Guid Id { get; init; }
+        public System.Guid? Id { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("recipient")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationRecipientResponse? Recipient { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("sendStatus")]
@@ -932,10 +937,16 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class CorrespondenceNotificationSummaryResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationSummaryResponse>
     {
         public CorrespondenceNotificationSummaryResponse() { }
+        [System.Obsolete("Use Emails instead.")]
         [System.Text.Json.Serialization.JsonPropertyName("email")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationStatusDetailsResponse? Email { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("emails")]
+        public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationStatusDetailsResponse>? Emails { get; init; }
+        [System.Obsolete("Use Smses instead.")]
         [System.Text.Json.Serialization.JsonPropertyName("sms")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationStatusDetailsResponse? Sms { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("smses")]
+        public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceNotificationStatusDetailsResponse>? Smses { get; init; }
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum CorrespondenceNotificationTemplate
@@ -996,6 +1007,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         Archived = 9,
         Reserved = 10,
         Failed = 11,
+        AttachmentsDownloaded = 12,
     }
     public sealed class CorrespondenceStatusEventResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceStatusEventResponse>
     {
@@ -2207,7 +2219,7 @@ namespace Altinn.App.Core.Features.Validation.Default
     }
     public class ExpressionValidator : Altinn.App.Core.Features.IValidator
     {
-        public ExpressionValidator(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Features.Validation.Default.ExpressionValidator> logger, Altinn.App.Core.Internal.App.IAppResources appResourceService, Altinn.App.Core.Internal.Expressions.ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, System.IServiceProvider serviceProvider) { }
+        public ExpressionValidator(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Features.Validation.Default.ExpressionValidator> logger, Altinn.App.Core.Internal.App.IAppResources appResourceService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, System.IServiceProvider serviceProvider) { }
         public string TaskId { get; }
         public string ValidationSource { get; }
         public System.Threading.Tasks.Task<bool> HasRelevantChanges(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string taskId, Altinn.App.Core.Models.DataElementChanges changes) { }
@@ -2474,6 +2486,7 @@ namespace Altinn.App.Core.Implementation
         public Altinn.Platform.Storage.Interface.Models.Application GetApplication() { }
         public string? GetApplicationBPMNProcess() { }
         public string? GetApplicationXACMLPolicy() { }
+        public string? GetCalculationConfiguration(string dataTypeId) { }
         public string GetClassRefForLogicDataType(string dataType) { }
         public System.Threading.Tasks.Task<string?> GetFooter() { }
         public Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings() { }
@@ -2505,6 +2518,7 @@ namespace Altinn.App.Core.Implementation
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language) { }
         public Altinn.App.Core.Models.UiConfiguration? GetUiConfiguration() { }
         public string? GetValidationConfiguration(string dataTypeId) { }
+        public string? GetXsdSchema(string modelId) { }
     }
     public class DefaultAppEvents : Altinn.App.Core.Internal.App.IAppEvents
     {
@@ -2993,6 +3007,7 @@ namespace Altinn.App.Core.Internal.App
         [System.Obsolete("GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMet" +
             "adata.GetApplicationXACMLPolicy instead", false)]
         string? GetApplicationXACMLPolicy();
+        string? GetCalculationConfiguration(string dataTypeId);
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
         Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings();
@@ -3024,6 +3039,7 @@ namespace Altinn.App.Core.Internal.App
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language);
         Altinn.App.Core.Models.UiConfiguration? GetUiConfiguration();
         string? GetValidationConfiguration(string dataTypeId);
+        string? GetXsdSchema(string modelId);
     }
     public interface IApplicationClient
     {
@@ -3175,6 +3191,18 @@ namespace Altinn.App.Core.Internal.Data
     {
         public static System.Threading.Tasks.Task<T> GetFormData<T>(this Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
+    public interface IDataElementAccessChecker
+    {
+        System.Threading.Tasks.Task<bool> CanCreate(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.Auth.Authenticated? auth = null, long? contentLength = default);
+        System.Threading.Tasks.Task<bool> CanDelete(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType, System.Guid dataElementId, Altinn.App.Core.Features.Auth.Authenticated? auth = null);
+        System.Threading.Tasks.Task<bool> CanRead(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType);
+        System.Threading.Tasks.Task<bool> CanUpdate(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.Auth.Authenticated? auth = null);
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ProblemDetails?> GetCreateProblem(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.Auth.Authenticated? auth = null, long? contentLength = default);
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ProblemDetails?> GetDeleteProblem(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType, System.Guid dataElementId, Altinn.App.Core.Features.Auth.Authenticated? auth = null);
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ProblemDetails?> GetReaderProblem(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement);
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ProblemDetails?> GetReaderProblem(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType);
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ProblemDetails?> GetUpdateProblem(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.Auth.Authenticated? auth = null);
+    }
     public interface IDataService
     {
         System.Threading.Tasks.Task<bool> DeleteById(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Guid dataElementId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken ct = default);
@@ -3250,6 +3278,7 @@ namespace Altinn.App.Core.Internal.Expressions
         [System.Obsolete("Use ComponentContext.IsHidden or ComponentContext.EvaluateExpression instead")]
         public static System.Threading.Tasks.Task<bool> EvaluateBooleanExpression(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Expressions.ComponentContext context, string property, bool defaultReturn) { }
         public static System.Threading.Tasks.Task<object?> EvaluateExpression(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Expressions.Expression expr, Altinn.App.Core.Models.Expressions.ComponentContext context, object?[]? positionalArguments = null) { }
+        public static System.Threading.Tasks.Task<Altinn.App.Core.Internal.Expressions.ExpressionValue> EvaluateExpressionToExpressionValue(Altinn.App.Core.Features.IInstanceDataAccessor state, Altinn.App.Core.Models.Expressions.Expression expr, Altinn.App.Core.Models.Expressions.ComponentContext context, Altinn.App.Core.Internal.Expressions.ExpressionValue[]? positionalArguments = null) { }
     }
     public class ExpressionEvaluatorTypeErrorException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -3257,11 +3286,15 @@ namespace Altinn.App.Core.Internal.Expressions
         public ExpressionEvaluatorTypeErrorException(string msg, System.Exception innerException) { }
     }
     [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
-    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Internal.Expressions.ExpressionTypeUnionConverter?))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Internal.Expressions.ExpressionTypeUnionConverter))]
     public readonly struct ExpressionValue : System.IEquatable<Altinn.App.Core.Internal.Expressions.ExpressionValue>
     {
         public ExpressionValue() { }
         public bool Bool { get; }
+        public System.Text.Json.Nodes.JsonArray JsonArray { get; }
+        public System.Text.Json.JsonElement JsonElement { get; }
+        public System.Text.Json.Nodes.JsonNode? JsonNode { get; }
+        public System.Text.Json.Nodes.JsonObject JsonObject { get; }
         public double Number { get; }
         public string String { get; }
         public System.Text.Json.JsonValueKind ValueKind { get; }
@@ -3273,13 +3306,18 @@ namespace Altinn.App.Core.Internal.Expressions
         public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public bool? ToBoolLoose() { }
+        [System.Obsolete("ToObject is not type safe and should be avoided. Use the type-specific properties" +
+            " or TryDeserialize<T> instead.", false)]
         public object? ToObject() { }
         public override string ToString() { }
         public string? ToStringForEquals() { }
         public string? ToStringForText() { }
         public bool TryDeserialize(System.Type type, out object? result) { }
         public bool TryDeserialize<T>(out T? result) { }
+        public static Altinn.App.Core.Internal.Expressions.ExpressionValue FromJsonString(string jsonString) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue FromObject(object? value) { }
+        public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(System.Text.Json.JsonElement value) { }
+        public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(System.Text.Json.Nodes.JsonNode value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(bool? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(double? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(string? value) { }
@@ -4806,6 +4844,12 @@ namespace Altinn.App.Core.Models.Expressions
         minus = 38,
         multiply = 39,
         divide = 40,
+        list = 41,
+        @object = 42,
+        jmespath = 43,
+        sum = 44,
+        average = 45,
+        count = 46,
     }
 }
 namespace Altinn.App.Core.Models.Layout.Components.Base

@@ -227,6 +227,35 @@ public class TestFunctions
     [SharedTest("round")]
     public async Task Round_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
+    [Theory]
+    [SharedTestCases("list")]
+    public async Task List_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("object")]
+    public async Task Object_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTest("jmespath")]
+    public async Task Jmespath_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTestCases("sum")]
+    public async Task Sum_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("average")]
+    public async Task Average_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("count")]
+    public async Task Count_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
     private static async Task<ExpressionTestCaseRoot> LoadTestCase(string file, string folder)
     {
         ExpressionTestCaseRoot testCase = new();
@@ -271,7 +300,7 @@ public class TestFunctions
         List<DataType> dataTypes = new();
         if (test.DataModels is null)
         {
-            dataTypes.Add(new DataType() { Id = "default" });
+            dataTypes.Add(new DataType { Id = "default" });
         }
         else
         {
@@ -395,17 +424,20 @@ public class TestFunctions
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        await RunTestCaseItem(
-            new ExpressionTestCaseRoot.TestCaseItem()
-            {
-                Expects = test.Expects,
-                Expression = test.Expression,
-                ExpectsFailure = test.ExpectsFailure,
-            },
-            state,
-            context,
-            positionalArguments
-        );
+        if (test.Expression != null)
+        {
+            await RunTestCaseItem(
+                new ExpressionTestCaseRoot.TestCaseItem()
+                {
+                    Expects = test.Expects,
+                    Expression = (Expression)test.Expression,
+                    ExpectsFailure = test.ExpectsFailure,
+                },
+                state,
+                context,
+                positionalArguments
+            );
+        }
 
         if (test.TestCases != null)
         {

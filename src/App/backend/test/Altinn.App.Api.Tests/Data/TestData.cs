@@ -1,6 +1,10 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Xml;
+using System.Xml.Serialization;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -217,5 +221,33 @@ public static class TestData
         var path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
         var instanceJson = await File.ReadAllTextAsync(path);
         return JsonSerializer.Deserialize<Instance>(instanceJson, _jsonSerializerOptions)!;
+    }
+
+    public static void UpdateXmlDataElement(
+        string org,
+        string app,
+        int instanceOwnerId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        object model
+    )
+    {
+        var modelType = model.GetType();
+
+        // Ensure that model is mutated in the same way it would be when deserialized from storage
+        // (evaluate ShouldSerialize* methods, set empty strings to null, etc.)
+        ObjectUtils.PrepareModelForXmlStorage(model);
+
+        XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
+        {
+            Encoding = new UTF8Encoding(false),
+            NewLineHandling = NewLineHandling.None,
+        };
+        var path = GetDataBlobPath(org, app, instanceOwnerId, instanceGuid, dataGuid);
+        using var memoryStream = new FileStream(path, FileMode.Create, FileAccess.Write);
+        using XmlWriter xmlWriter = XmlWriter.Create(memoryStream, xmlWriterSettings);
+
+        XmlSerializer serializer = new(modelType);
+        serializer.Serialize(xmlWriter, model);
     }
 }

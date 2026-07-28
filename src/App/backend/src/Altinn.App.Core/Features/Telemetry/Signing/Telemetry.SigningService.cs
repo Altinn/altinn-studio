@@ -75,6 +75,13 @@ partial class Telemetry
         return activity;
     }
 
+    internal Activity? StartRevokeSigneeRightsOnTaskEndActivity(string taskId)
+    {
+        Activity? activity = ActivitySource.StartActivity("SigningService.RevokeSigneeRightsOnTaskEnd");
+        activity?.SetTag(Labels.TaskId, taskId);
+        return activity;
+    }
+
     internal Activity? StartGetServiceOwnerPartyActivity() =>
         ActivitySource.StartActivity("SigningService.GetServiceOwnerParty");
 

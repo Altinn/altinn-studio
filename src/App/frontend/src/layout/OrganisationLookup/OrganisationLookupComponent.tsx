@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import {
   Button,
@@ -14,12 +14,15 @@ import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/OrganisationLookup/OrganisationLookupComponent.module.css';
 import { validateOrganisationLookupResponse, validateOrgnr } from 'src/layout/OrganisationLookup/validation';
+import utilClasses from 'src/styles/utils.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { httpGet } from 'src/utils/network/networking';
@@ -34,6 +37,8 @@ const orgLookupQueries = {
       gcTime: 0,
     }),
 };
+
+const LIVE_REGION_RESET_DELAY_MS = 100;
 
 export type Organisation = {
   orgNr: string;
@@ -77,6 +82,8 @@ export function OrganisationLookupComponent({
   });
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
+  const [statusMessage, setStatusMessage] = useState('');
+  const statusRef = useRef<HTMLDivElement>(null);
 
   const {
     formData: { organisation_lookup_orgnr, organisation_lookup_name: orgName },
@@ -84,26 +91,69 @@ export function OrganisationLookupComponent({
   } = useDataModelBindings(dataModelBindings);
 
   const { langAsString } = useLanguage();
+  const currentLanguage = useCurrentLanguage();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const pickFormValue = FormStore.data.useCurrentSelector();
+  const waitForSave = FormStore.data.useWaitForSave();
 
   const { data, refetch: performLookup, isFetching } = useQuery(orgLookupQueries.lookup(tempOrgNr));
 
-  function handleValidateOrgnr(orgNr: string) {
+  function announceStatusMessage(message: string) {
+    setStatusMessage('');
+    window.setTimeout(() => {
+      setStatusMessage(message);
+      statusRef.current?.focus();
+    }, LIVE_REGION_RESET_DELAY_MS);
+  }
+
+  function announceOrgDetails(orgNr: string) {
+    const parts = [`${langAsString('organisation_lookup.orgnr_label')} ${orgNr}`];
+
+    const parent = layoutLookups.componentToParent[baseComponentId];
+    const childIds = parent?.type === 'node' ? layoutLookups.componentToChildren[parent.id] : undefined;
+    const lookupIndex = childIds?.indexOf(baseComponentId) ?? -1;
+
+    for (const childId of childIds?.slice(lookupIndex + 1) ?? []) {
+      const component = layoutLookups.allComponents[childId];
+      if (component?.type !== 'Text' || !Array.isArray(component.value) || component.value[0] !== 'dataModel') {
+        continue;
+      }
+
+      const [, field, dataType] = component.value;
+      if (typeof field !== 'string' || typeof dataType !== 'string') {
+        continue;
+      }
+
+      const textValue = String(pickFormValue({ field, dataType }) ?? '').trim();
+      if (!textValue) {
+        continue;
+      }
+
+      const titleKey = component.textResourceBindings?.title;
+      parts.push(typeof titleKey === 'string' ? `${langAsString(titleKey)} ${textValue}` : textValue);
+    }
+
+    announceStatusMessage(parts.join(', '));
+  }
+
+  function handleValidateOrgnr(orgNr: string): string[] | undefined {
     if (!validateOrgnr({ orgNr })) {
       const errors = validateOrgnr.errors
         ?.filter((error) => error.instancePath === '/orgNr')
         .map((error) => error.message)
         .filter((it) => it != null);
       setOrgNrErrors(errors);
-      return false;
+      return errors;
     }
     setOrgNrErrors(undefined);
-    return true;
+    return undefined;
   }
 
   async function handleSubmit() {
-    const isValid = handleValidateOrgnr(tempOrgNr);
+    const validationErrors = handleValidateOrgnr(tempOrgNr);
 
-    if (!isValid) {
+    if (validationErrors?.length) {
+      announceStatusMessage(langAsString(validationErrors.join(' ')));
       return;
     }
 
@@ -111,6 +161,10 @@ export function OrganisationLookupComponent({
     if (data?.org) {
       setValue('organisation_lookup_orgnr', data.org.orgNr);
       dataModelBindings.organisation_lookup_name && setValue('organisation_lookup_name', data.org.name);
+      await waitForSave(true);
+      announceOrgDetails(data.org.orgNr);
+    } else if (data?.error) {
+      announceStatusMessage(langAsString(data.error));
     }
   }
 
@@ -119,6 +173,7 @@ export function OrganisationLookupComponent({
     dataModelBindings.organisation_lookup_name && setValue('organisation_lookup_name', '');
     setTempOrgNr('');
     setOrgNrErrors(undefined);
+    setStatusMessage('');
   }
 
   const hasSuccessfullyFetched = !!organisation_lookup_orgnr;
@@ -159,10 +214,11 @@ export function OrganisationLookupComponent({
               value={hasSuccessfullyFetched ? organisation_lookup_orgnr : tempOrgNr}
               required={required}
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
-              error={isValid}
+              error={!!isValid}
               onValueChange={(e) => {
                 setTempOrgNr(e.value);
                 setOrgNrErrors(undefined);
+                setStatusMessage('');
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -212,11 +268,21 @@ export function OrganisationLookupComponent({
           {hasSuccessfullyFetched && orgName && (
             <div
               className={classes.orgname}
+              role='group'
               aria-label={langAsString('organisation_lookup.org_name')}
             >
-              {hasSuccessfullyFetched && <Paragraph data-size='sm'>{orgName}</Paragraph>}
+              <Paragraph data-size='sm'>{orgName}</Paragraph>
             </div>
           )}
+        </div>
+        <div
+          ref={statusRef}
+          tabIndex={-1}
+          lang={currentLanguage}
+          data-testid='organisation-lookup-status'
+          className={utilClasses.visuallyHidden}
+        >
+          {statusMessage}
         </div>
       </ComponentStructureWrapper>
     </Fieldset>
