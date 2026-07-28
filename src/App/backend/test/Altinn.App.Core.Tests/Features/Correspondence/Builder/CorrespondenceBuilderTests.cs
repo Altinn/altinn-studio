@@ -529,4 +529,56 @@ public class CorrespondenceBuilderTests
 
         notification.CustomRecipients.Should().BeNull();
     }
+
+    [Fact]
+    public void Builders_Build_SnapshotsCollections_SoLaterCallsDoNotMutateBuiltObjects()
+    {
+        // Arrange: a builder that is reused after Build(), for both the notification and the request
+        var notificationBuilder = CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.GenericAltinnMessage)
+            .WithRecipientOverride(new CorrespondenceNotificationRecipient { EmailAddress = "first@example.com" });
+
+        var requestBuilder = CorrespondenceRequestBuilder
+            .Create()
+            .WithResourceId("resource-id")
+            .WithSendersReference("senders-ref")
+            .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+            .WithContent(LanguageCode<Iso6391>.Parse("no"), "title", "summary", "body")
+            .WithExternalReference(CorrespondenceReferenceType.Generic, "ref-1")
+            .WithReplyOption("https://example.com/1", "Link 1")
+            .WithExistingAttachment(Guid.NewGuid())
+            .WithPropertyList(new Dictionary<string, string> { ["a"] = "1" });
+
+        var notification = notificationBuilder.Build();
+        var request = requestBuilder.Build();
+
+        // Act: keep building on the same builders
+        notificationBuilder.WithRecipientOverride(
+            new CorrespondenceNotificationRecipient { EmailAddress = "second@example.com" }
+        );
+        requestBuilder
+            .WithExternalReference(CorrespondenceReferenceType.Generic, "ref-2")
+            .WithReplyOption("https://example.com/2", "Link 2")
+            .WithExistingAttachment(Guid.NewGuid())
+            .WithAttachment(
+                CorrespondenceAttachmentBuilder
+                    .Create()
+                    .WithFilename("late.txt")
+                    .WithSendersReference("late-ref")
+                    .WithData(new MemoryStream("late"u8.ToArray()))
+            );
+        requestBuilder.WithRecipient(TestHelpers.GetOrganisationNumber(2));
+
+        // Assert: the already-built objects are untouched
+        notification.CustomRecipients.Should().ContainSingle();
+        notification.CustomRecipients![0].EmailAddress.Should().Be("first@example.com");
+
+        request.ExternalReferences.Should().ContainSingle();
+        request.ReplyOptions.Should().ContainSingle();
+        request.ExistingAttachments.Should().ContainSingle();
+        request.Recipients.Should().ContainSingle();
+        request.Content.Attachments.Should().BeNull();
+        request.PropertyList.Should().HaveCount(1);
+    }
 }

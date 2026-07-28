@@ -168,7 +168,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
             NotificationChannel = _notificationChannel,
             ReminderNotificationChannel = _reminderNotificationChannel,
             SendersReference = _sendersReference,
-            CustomRecipients = _recipientOverrides,
+            CustomRecipients = _recipientOverrides?.ToArray(),
         };
     }
 }
