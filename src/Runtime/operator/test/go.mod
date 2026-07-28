@@ -12,7 +12,7 @@ require (
 	github.com/fluxcd/helm-controller/api v1.5.5
 	github.com/fluxcd/pkg/apis/meta v1.25.1
 	github.com/fluxcd/source-controller/api v1.8.5
-	github.com/gkampitakis/go-snaps v0.5.22
+	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	k8s.io/api v0.35.6
@@ -77,7 +77,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.9.0 // indirect
 	github.com/go-git/go-git/v5 v5.19.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.24.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.6 // indirect
