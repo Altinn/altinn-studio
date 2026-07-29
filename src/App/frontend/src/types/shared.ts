@@ -362,11 +362,10 @@ export interface IPlatformFrontendSettings {
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
   postalCodesUrl: string;
-  /** URL templates; undefined in environments where they are not configured. */
   logoutUrl?: string;
-  /** Supports the {goTo} placeholder. */
+  /** Takes a {goTo} placeholder. */
   loginUrl?: string;
-  /** Supports the {goTo} placeholder. */
+  /** Takes a {goTo} placeholder. */
   upgradeAuthenticationLevelUrl?: string;
 }
 

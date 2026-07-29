@@ -93,6 +93,12 @@ describe('Frontend urlHelper.ts', () => {
         );
       });
 
+      it('starts the query string when the configured url has none', () => {
+        window.altinnAppGlobalData.platformFrontendSettings.loginUrl = 'https://ny.altinn.no/logg-inn';
+
+        expect(getEnvironmentLoginUrl('idporten')).toEqual('https://ny.altinn.no/logg-inn?iss=idporten');
+      });
+
       it('returns undefined when no login url is configured', () => {
         window.altinnAppGlobalData.platformFrontendSettings.loginUrl = undefined;
 

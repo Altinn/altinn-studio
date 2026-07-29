@@ -89,10 +89,7 @@ export const getProcessNextUrl = (instanceId: string, language?: string, returnI
 
 export const getProcessResumeUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process/resume`;
 
-/**
- * Platform authentication URL that triggers a step-up to security level high, returning the user to the
- * app once the higher level has been obtained. Undefined when the environment has no such URL configured.
- */
+/** Triggers a step-up to security level high, returning the user to the app afterwards. */
 export const getUpgradeAuthLevelUrl = () =>
   fillUrlTemplate(GlobalData.platformFrontendSettings.upgradeAuthenticationLevelUrl, { goTo: appPath });
 
@@ -103,7 +100,7 @@ export const getEnvironmentLoginUrl = (oidcProvider: string | null): string | un
   if (!loginUrl || !oidcProvider) {
     return loginUrl;
   }
-  return `${loginUrl}&iss=${oidcProvider}`;
+  return `${loginUrl}${loginUrl.includes('?') ? '&' : '?'}iss=${oidcProvider}`;
 };
 
 export const getHostname = () => {

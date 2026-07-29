@@ -24,11 +24,6 @@ internal class PlatformFrontendSettings
     /// <summary>
     /// URL that logs the user out of Altinn.
     /// </summary>
-    /// <remarks>
-    /// This and the URLs below are templates rather than <see cref="Uri"/>s: the frontend substitutes the
-    /// <c>{placeholder}</c> segments per request. Keeping the whole URL here means a change to the platform
-    /// authentication routes is a configuration change, not a new app frontend release.
-    /// </remarks>
     public string? LogoutUrl { get; set; }
 
     /// <summary>
