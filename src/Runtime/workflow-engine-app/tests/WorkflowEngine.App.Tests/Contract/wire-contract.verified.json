@@ -69,6 +69,21 @@
       }
     ]
   },
+  "AppCallbackDeferral": {
+    "Name": "AppCallbackDeferral",
+    "Fields": [
+      {
+        "Name": "delay",
+        "Kind": "timespan",
+        "Nullable": false
+      },
+      {
+        "Name": "reason",
+        "Kind": "string",
+        "Nullable": true
+      }
+    ]
+  },
   "AppCallbackPayload": {
     "Name": "AppCallbackPayload",
     "Fields": [
@@ -80,6 +95,11 @@
       {
         "Name": "commandKey",
         "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "deferCount",
+        "Kind": "int",
         "Nullable": false
       },
       {
@@ -98,6 +118,11 @@
         "Nullable": true
       },
       {
+        "Name": "waitDeadline",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "workflowId",
         "Kind": "guid",
         "Nullable": false
@@ -107,6 +132,11 @@
   "AppCallbackResponse": {
     "Name": "AppCallbackResponse",
     "Fields": [
+      {
+        "Name": "defer",
+        "Kind": "object<AppCallbackDeferral>",
+        "Nullable": true
+      },
       {
         "Name": "state",
         "Kind": "string",

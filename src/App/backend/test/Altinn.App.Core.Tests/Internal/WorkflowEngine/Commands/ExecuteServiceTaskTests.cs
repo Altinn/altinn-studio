@@ -12,7 +12,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 public class ExecuteServiceTaskTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance, string serviceTaskType)
+    private static ProcessEngineCommandContext CreateContext(
+        Instance instance,
+        string serviceTaskType,
+        int deferCount = 0,
+        DateTimeOffset? waitDeadline = null
+    )
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
@@ -34,6 +39,8 @@ public class ExecuteServiceTaskTests
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                DeferCount = deferCount,
+                WaitDeadline = waitDeadline,
             },
         };
     }
@@ -142,6 +149,73 @@ public class ExecuteServiceTaskTests
         Assert.Contains("Service task 'myServiceTask' failed: Something went wrong", failed.ErrorMessage);
         Assert.Equal("ServiceTaskFailedException", failed.ExceptionType);
         Assert.True(failed.NonRetryable);
+    }
+
+    [Fact]
+    public async Task Execute_WhenServiceTaskDefers_ReturnsDeferredResultCarryingDelayAndReason()
+    {
+        // Arrange
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .ReturnsAsync(ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "delivery not confirmed"));
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        // Act
+        var result = await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+
+        // Assert — a deferral is neither a success nor a failure: mapping it onto either would make the
+        // engine advance the process or record an error, and it must do neither.
+        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
+        Assert.Equal("delivery not confirmed", deferred.Reason);
+    }
+
+    [Fact]
+    public async Task Execute_ForwardsDeferCountAndWaitDeadlineToServiceTaskContext()
+    {
+        // Arrange — a polling task needs to know which check it is on and how much budget is left,
+        // otherwise it cannot pace itself or give up on its own terms.
+        var waitDeadline = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        ServiceTaskContext? observed = null;
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .Callback<ServiceTaskContext>(ctx => observed = ctx)
+            .ReturnsAsync(ServiceTaskResult.Success());
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(CreateInstance(), "myServiceTask", deferCount: 4, waitDeadline: waitDeadline);
+
+        // Act
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+
+        // Assert
+        Assert.NotNull(observed);
+        Assert.Equal(4, observed.DeferCount);
+        Assert.Equal(waitDeadline, observed.WaitDeadline);
+    }
+
+    [Fact]
+    public async Task Execute_FirstRun_ReportsNoDeferralsAndNoDeadline()
+    {
+        ServiceTaskContext? observed = null;
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .Callback<ServiceTaskContext>(ctx => observed = ctx)
+            .ReturnsAsync(ServiceTaskResult.Success());
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+
+        Assert.NotNull(observed);
+        Assert.Equal(0, observed.DeferCount);
+        Assert.Null(observed.WaitDeadline);
     }
 
     [Fact]

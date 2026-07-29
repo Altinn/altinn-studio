@@ -427,7 +427,7 @@ internal sealed class WorkflowHandler(
             return;
         }
 
-        var waitBudget = currentStep.Command.WaitBudget ?? _settings.DefaultStepWaitBudget;
+        var waitBudget = currentStep.ResolveWaitBudget(_settings);
         var waitDeadline = (currentStep.FirstDeferredAt ?? now).Add(waitBudget);
         var remainingBudget = waitDeadline - now;
 

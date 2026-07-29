@@ -212,6 +212,36 @@ public class WorkflowEngineCallbackController : ControllerBase
                 activity?.SetStatus(ActivityStatusCode.Ok);
                 return Ok(new AppCallbackResponse { State = updatedState });
 
+            case DeferredProcessEngineCommandResult deferred:
+                // A deferral is a successful execution, so data changes are saved and state is re-signed
+                // exactly as above — that is what lets a polling command record what it learned and read
+                // it back on its next attempt. What must NOT happen is auto-advance: the transition has
+                // not finished, so the process stays on this task until the awaited outcome arrives (or
+                // the step's wait budget runs out).
+                DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
+
+                await instanceDataUnitOfWork.UpdateInstanceData(deferredChanges);
+                await instanceDataUnitOfWork.SaveChanges(deferredChanges);
+
+                string deferredState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
+
+                _logger.LogInformation(
+                    "Callback handler deferred. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Delay: {Delay}",
+                    commandKey,
+                    instanceId,
+                    currentTaskId,
+                    deferred.Delay
+                );
+                activity?.SetStatus(ActivityStatusCode.Ok);
+
+                return Ok(
+                    new AppCallbackResponse
+                    {
+                        State = deferredState,
+                        Defer = new AppCallbackDeferral { Delay = deferred.Delay, Reason = deferred.Reason },
+                    }
+                );
+
             case FailedProcessEngineCommandResult failed:
                 _logger.LogError(
                     "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",

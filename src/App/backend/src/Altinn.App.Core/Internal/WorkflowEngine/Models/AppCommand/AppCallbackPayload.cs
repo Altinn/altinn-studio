@@ -38,8 +38,21 @@ public sealed record AppCallbackPayload
     public required Guid WorkflowId { get; init; }
 
     /// <summary>
-    /// Opaque state blob passed through from the previous command.
+    /// Opaque state blob passed through from the previous command — or, for a step being re-executed
+    /// after a deferral, the state that step itself produced on its previous attempt.
     /// </summary>
     [JsonPropertyName("state")]
     public string? State { get; init; }
+
+    /// <summary>
+    /// How many times this step has already deferred. <c>0</c> on a first execution.
+    /// </summary>
+    [JsonPropertyName("deferCount")]
+    public int DeferCount { get; init; }
+
+    /// <summary>
+    /// The instant this step's wait budget runs out, or <c>null</c> before its first deferral.
+    /// </summary>
+    [JsonPropertyName("waitDeadline")]
+    public DateTimeOffset? WaitDeadline { get; init; }
 }

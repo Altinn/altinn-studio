@@ -93,6 +93,19 @@ alert for a non-error condition.
 
 - eFormidling in v9 becomes: send step (idempotent per #18888) → await-delivery poll step (IP status
   mapped to Success / Defer / Critical / Retryable) → confirm-and-advance step.
+- The app-facing surface ships with the primitive rather than after it: `ServiceTaskResult.Defer` plus
+  the `ProcessStepOptions.WaitBudget` that bounds it. Splitting them would have released a public,
+  binary-compatible-forever knob configuring a wait no app could request — and would have cost two
+  public API events instead of one. The phase boundary is therefore capability vs consumer: the
+  primitive, the return shape and the `process-transition-test` fixture proving them land together;
+  migrating eFormidling, payment capture and signing onto them is the next phase.
+- Deferral is **stateful across attempts**: a deferring step's data changes are saved on every attempt
+  that makes them, and its own `StateOut` is fed back as the next attempt's `StateIn`. The alternative
+  — a `state` parameter on `Defer` — was rejected as a third state channel alongside Storage and the
+  signed blob, with precedence rules app authors would have to learn. Note this required a genuine fix,
+  not just a decision: `ResolveStateIn` previously read only *earlier* steps, so a deferring step's
+  state was persisted and then silently discarded, which an `IInstanceDataMutator` promising "changes
+  are saved" makes actively misleading.
 - The app-side Altinn Events **receive** stack is retired in v9 (`EformidlingStartup`,
   `EformidlingStatusCheckEventHandler2`'s process-advance, `EventsReceiverController`,
   `EventHandlerResolver`, `IEventsSubscription`, `IEventSecretCodeProvider` + KeyVault provider).

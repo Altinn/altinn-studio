@@ -120,6 +120,8 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
             State = context.StateIn,
+            DeferCount = context.Step.DeferCount,
+            WaitDeadline = context.WaitDeadline,
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
@@ -142,22 +144,34 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         if (response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (body.Length > 0)
+            if (body.Length == 0)
+                return ExecutionResult.Success();
+
+            AppCallbackResponse? callbackResponse;
+            try
             {
-                try
-                {
-                    var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(
-                        body,
-                        CommandDefinition.SerializerOptions
-                    );
-                    if (callbackResponse?.State is not null)
-                        context.Step.StateOut = callbackResponse.State;
-                }
-                catch (JsonException ex)
-                {
-                    return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
-                }
+                callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(
+                    body,
+                    CommandDefinition.SerializerOptions
+                );
             }
+            catch (JsonException ex)
+            {
+                return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
+            }
+
+            // State is captured before classifying the outcome, so a deferral carries its state forward
+            // exactly as a completion does. That is what makes the app's next re-check resume from the
+            // state this one produced rather than replaying from the previous step's.
+            if (callbackResponse?.State is not null)
+                context.Step.StateOut = callbackResponse.State;
+
+            if (callbackResponse?.Defer is { } deferral)
+            {
+                _logger.AppCommandDeferred(commandData.CommandKey, context.Workflow.DatabaseId, deferral.Delay);
+                return ExecutionResult.Defer(deferral.Delay, deferral.Reason);
+            }
+
             return ExecutionResult.Success();
         }
 
@@ -222,5 +236,18 @@ internal static partial class AppCommandDescriptorLogs
         Guid workflowId,
         int instanceOwnerPartyId,
         Guid instanceGuid
+    );
+
+    // The app's reason is deliberately not logged here: it is free text the app controls, and it already
+    // reaches the engine log through the deferral itself.
+    [LoggerMessage(
+        LogLevel.Information,
+        "AppCommand '{CommandKey}' deferred (workflowId: {WorkflowId}); re-checking in {Delay}"
+    )]
+    internal static partial void AppCommandDeferred(
+        this ILogger<AppCommand> logger,
+        string commandKey,
+        Guid workflowId,
+        TimeSpan delay
     );
 }

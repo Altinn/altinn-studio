@@ -102,7 +102,9 @@ Workflow-Id: Guid_3
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-1-payload",
   "workflowId": "Guid_3",
-  "state": "initial-workflow-state"
+  "state": "initial-workflow-state",
+  "deferCount": 0,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200
@@ -135,7 +137,9 @@ Workflow-Id: Guid_3
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-2-payload",
   "workflowId": "Guid_3",
-  "state": "step-1-result"
+  "state": "step-1-result",
+  "deferCount": 0,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200

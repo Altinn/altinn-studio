@@ -48,6 +48,8 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 InstanceDataMutator = instanceDataMutator,
                 CancellationToken = context.CancellationToken,
                 WorkflowId = context.Payload.WorkflowId,
+                DeferCount = context.Payload.DeferCount,
+                WaitDeadline = context.Payload.WaitDeadline,
             };
 
             IServiceTask serviceTask = GetServiceTask(serviceTaskType);
@@ -60,6 +62,15 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 return failedResult.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(errorMessage, "ServiceTaskFailedException")
                     : FailedProcessEngineCommandResult.Retryable(errorMessage, "ServiceTaskFailedException");
+            }
+
+            if (result is ServiceTaskDeferredResult deferredResult)
+            {
+                return new DeferredProcessEngineCommandResult
+                {
+                    Delay = deferredResult.Delay,
+                    Reason = deferredResult.Reason,
+                };
             }
 
             if (result is ServiceTaskSuccessResult { AutoAdvanceProcess: true } successResult)

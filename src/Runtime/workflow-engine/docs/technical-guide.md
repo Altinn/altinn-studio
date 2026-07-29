@@ -329,8 +329,20 @@ reason. A *positive but negligible* delay is the same class of mistake handled g
 up to `MinStepDeferDelay` (1s), because there is no honest threshold below which "wait a moment" means
 "wait no time at all", and a spinning park would hammer the callback target for the whole budget.
 
-`DeferCount` and `FirstDeferredAt` are exposed on `StepStatusResponse`, and `DeferCount` is readable
-from `CommandExecutionContext.Step` so a command can back off its own poll cadence adaptively.
+### Deferral is stateful across attempts
+
+A deferring step is handed **its own** `StateOut` back as the next attempt's `StateIn` — see
+`ResolveStateIn`. Without that, a command that yields state would have it persisted and then silently
+discarded on every re-execution, so each poll would restart from whatever the *previous step* left
+behind. A polling command therefore resumes from what it last recorded, and the state channel needs no
+special-casing for waiting.
+
+`DeferCount` and `FirstDeferredAt` are exposed on `StepStatusResponse`. A command reads `DeferCount`
+from `CommandExecutionContext.Step` and `WaitDeadline` from the context itself, so it can back off its
+own cadence adaptively — or give up early, deliberately, instead of being failed anonymously when the
+budget expires. `WaitDeadline` is an absolute instant rather than a remaining duration: a duration
+starts aging the moment it is computed, and a command that receives it across a network boundary (as
+the Altinn app callback does) cannot tell how much has already been spent.
 `engine.steps.wait.duration` records the budget a step actually consumed, once per deferring step at
 the moment it resolves — the only signal that shows budgets being *approached* rather than blown, so
 compare its upper percentiles against the configured budget when sizing one.

@@ -105,6 +105,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 TypedCommandData = typedCommandData,
                 TypedWorkflowContext = typedWorkflowContext,
                 StateIn = stateIn,
+                WaitDeadline = step.ResolveWaitDeadline(_engineSettings),
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };
 
@@ -160,8 +161,26 @@ internal class WorkflowExecutor : IWorkflowExecutor
         }
     }
 
+    /// <summary>
+    /// Resolves the state handed to a step: its own output if it has produced one, otherwise the most
+    /// recent output of an earlier step (or the workflow's initial state for the first step).
+    /// </summary>
+    /// <remarks>
+    /// A step seeing its own <see cref="Step.StateOut"/> is what makes deferral <em>stateful across
+    /// polls</em>: a command that yields with "not ready yet" hands back state, and its next execution
+    /// resumes from that state rather than from whatever the previous step left behind. Without this the
+    /// state would be written, persisted, and then silently discarded on every re-execution.
+    /// <para>
+    /// Only a success-shaped outcome writes <c>StateOut</c>, so this preference is narrower than it
+    /// looks: a step that failed retryably has none, and a completed step never runs again. Deferral is
+    /// currently the only path that produces state and then re-executes.
+    /// </para>
+    /// </remarks>
     private static string? ResolveStateIn(Workflow workflow, Step step)
     {
+        if (step.StateOut is not null)
+            return step.StateOut;
+
         if (step.ProcessingOrder == 0)
             return workflow.InitialState;
 

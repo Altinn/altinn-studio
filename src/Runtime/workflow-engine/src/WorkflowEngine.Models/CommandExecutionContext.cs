@@ -41,6 +41,18 @@ public sealed record CommandExecutionContext
     public string? StateIn { get; init; }
 
     /// <summary>
+    /// The absolute instant this step's wait budget runs out, or <c>null</c> before its first deferral.
+    /// Lets a deferring command pace itself against the budget it actually has — and give up early,
+    /// deliberately, rather than being failed by the engine when the budget expires.
+    /// </summary>
+    /// <remarks>
+    /// A deadline rather than a remaining duration: a duration starts aging the instant it is computed,
+    /// and a command that hands it across a network boundary (as the app callback does) cannot tell how
+    /// much of it has already been spent. Pair with <see cref="Step.DeferCount"/> on <see cref="Step"/>.
+    /// </remarks>
+    public DateTimeOffset? WaitDeadline { get; init; }
+
+    /// <summary>
     /// Parent trace context for distributed tracing.
     /// </summary>
     public ActivityContext? ParentTraceContext { get; init; }

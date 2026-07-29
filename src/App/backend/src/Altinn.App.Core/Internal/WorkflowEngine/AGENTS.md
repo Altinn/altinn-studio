@@ -9,7 +9,7 @@ The Workflow Engine service (external, .NET, PostgreSQL-backed) orchestrates pro
 1. **Orchestration**: `WorkflowEngineService` (`IWorkflowEngineService`) is the entry point used by the process engine. It builds the enqueue request, submits it, polls the engine until the transition settles, refetches the instance from Storage, and classifies any failure. It also exposes the reject/resume/abandon operations.
 2. **Outbound**: `ProcessNextRequestFactory` builds a `WorkflowEnqueueEnvelope` (the `WorkflowEnqueueRequest` body + the metadata that travels via URL path and HTTP headers: namespace, idempotency key, collection key). `WorkflowEngineClient` POSTs it to the engine's enqueue endpoint (`POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows`). Namespace is sent in the URL path; idempotency key and collection key go in HTTP headers (`Idempotency-Key`, `Collection-Key`). Context (`AppWorkflowContext`) carries actor, lock token, org/app, instance identification, and the callback token. `Namespace` = `{org}/{app}` (isolation boundary); the instance guid is the collection key and is also sent as the `processNextInstanceGuid` label (for querying all workflows for an instance).
 3. **Inbound**: The engine calls back to `WorkflowEngineCallbackController` (in the **Altinn.App.Api** project, not this folder) for each app command, one at a time, sequentially.
-4. **Per-callback lifecycle**: The controller restores `InstanceDataUnitOfWork` from the signed state blob, resolves the `IWorkflowEngineCommand` by key, executes it, saves data changes on success, captures the updated (re-signed) state, and returns it to the engine.
+4. **Per-callback lifecycle**: The controller restores `InstanceDataUnitOfWork` from the signed state blob, resolves the `IWorkflowEngineCommand` by key, executes it, saves data changes on success, captures the updated (re-signed) state, and returns it to the engine. A **deferral** takes the same path — it *is* a successful execution — except that it must not auto-advance: the transition is not finished, it is waiting.
 
 ```text
 App ProcessNext API
@@ -251,7 +251,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 3. Engine echoes it back in `AppCallbackPayload.State` for each callback
 4. `WorkflowCallbackStateService.RestoreState` → verifies the signature, deserializes, asserts the blob's instance matches the callback route instance, then creates an `InstanceDataUnitOfWork` with preloaded form data
 5. After command execution, the updated state is captured, re-signed, and returned in `AppCallbackResponse.State`
-6. Engine uses the returned state for the next callback — state evolves command by command
+6. Engine uses the returned state for the next callback — state evolves command by command, and for a **deferred** step the engine hands the state back to *that same step* on its next attempt (`ResolveStateIn` prefers a step's own `StateOut`). A polling command therefore resumes from what it last recorded rather than replaying from the previous command's state.
 
 **Capture point**: `ProcessEngine` captures state BEFORE the in-memory process state is mutated to the next task. The blob carries the OLD process state (CurrentTask = the task being left). `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
 
@@ -278,7 +278,7 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 ## Command Conventions
 
 - Every command has `public static string Key => "..."` and `public string GetKey() => Key`
-- Commands return `SuccessfulProcessEngineCommandResult` or `FailedProcessEngineCommandResult` (never throw from Execute). `FailedProcessEngineCommandResult` distinguishes `Retryable` (→ 500, engine retries) from `Permanent`/`NonRetryable` (→ 422, engine gives up)
+- Commands return `SuccessfulProcessEngineCommandResult`, `DeferredProcessEngineCommandResult` or `FailedProcessEngineCommandResult` (never throw from Execute). `FailedProcessEngineCommandResult` distinguishes `Retryable` (→ 500, engine retries) from `Permanent`/`NonRetryable` (→ 422, engine gives up). `DeferredProcessEngineCommandResult` is neither: it returns 200 with a `defer` block, so the engine parks the workflow in `Waiting` and re-executes the step later — no error recorded, retry counter reset. Today only `ExecuteServiceTask` produces one (from `ServiceTaskResult.Defer`); the app-facing contract, the wait budget (`ProcessStepOptions.WaitBudget`) and the `DeferCount`/`WaitDeadline` a task reads to pace itself are documented on those types
 - Commands get instance data through `context.InstanceDataMutator` (an `InstanceDataUnitOfWork`)
 - Commands pass `context.CancellationToken` into app-facing contexts (`ProcessTaskContext`, hook contexts, and `ServiceTaskContext`)
 - The callback controller saves data changes after successful execution - commands don't need to persist data themselves (except `SaveProcessStateToStorage`, which writes to the process/events API)

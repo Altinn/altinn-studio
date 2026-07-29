@@ -8071,6 +8071,15 @@
           "state": {
             "type": "string",
             "nullable": true
+          },
+          "deferCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waitDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false

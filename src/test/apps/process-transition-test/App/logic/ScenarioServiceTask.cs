@@ -47,6 +47,16 @@ public sealed class ScenarioServiceTask : IServiceTask
 
     public string Type => "scenario";
 
+    /// <summary>
+    /// A deliberately tiny wait budget. In production this is measured in hours or days; here it has to
+    /// expire inside a test run, so the <c>waitExpired</c> end state can demonstrate what a step that
+    /// waits forever actually does. Nothing else on this task is affected — the budget is only spent by
+    /// deferrals, so the non-deferring scenarios never touch it.
+    /// </summary>
+    internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
+
+    public ProcessStepOptions StepOptions => new() { WaitBudget = ScenarioWaitBudget };
+
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
@@ -72,6 +82,30 @@ public sealed class ScenarioServiceTask : IServiceTask
         if (delayMs > 0)
         {
             await Task.Delay(delayMs, context.CancellationToken);
+        }
+
+        // Deferral comes first, and reads context.DeferCount rather than the AttemptTracker: the engine
+        // already counts deferrals durably, and mixing them into the attempt counter would conflate
+        // "checked, not ready" with "failed, retrying" — the exact distinction this lever exists to show.
+        int deferrals = levers.deferrals ?? 0;
+        var deferDelay = TimeSpan.FromMilliseconds(levers.deferDelayMs ?? 2000);
+
+        if (levers.endState == "waitExpired")
+        {
+            // Never settles. The engine keeps re-running this task until ScenarioWaitBudget is spent,
+            // then fails the step with wait_expired — a failure nobody's code caused.
+            return ServiceTaskResult.Defer(
+                deferDelay,
+                $"waitExpired scenario: outcome will never arrive (check {context.DeferCount + 1})"
+            );
+        }
+
+        if (context.DeferCount < deferrals)
+        {
+            return ServiceTaskResult.Defer(
+                deferDelay,
+                $"TransitionControl forced a deferral ({context.DeferCount + 1} of {deferrals})"
+            );
         }
 
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/').Last());
