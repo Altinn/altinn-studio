@@ -62,9 +62,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     private readonly HybridCache _tokenCache;
     private readonly Telemetry? _telemetry;
 
-    // Well-known metadata state: the issuer is fetched once and cached for the process lifetime,
-    // keyed to the authority that produced it (MaskinportenSettings is hot-reloadable).
-    // See GetAudienceFromWellKnown for the full semantics.
     private sealed record ResolvedIssuer(string Authority, string Issuer);
 
     private ResolvedIssuer? _issuer;
@@ -452,28 +449,20 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// Retrieves the OAuth issuer from the well-known metadata endpoint for use as the JWT audience claim.
     /// </summary>
     /// <remarks>
-    /// <para>The request path has no refresh logic at all: the issuer is fetched once and cached
-    /// <em>for a given Authority</em>. Separately, <see cref="MaskinportenWellKnownRefreshService"/>
-    /// re-resolves it in the background every 12 hours via <see cref="RefreshWellKnownIssuer"/>, keeping
-    /// last-known-good on failure — apps can run for years between deploys, and that insures against the
-    /// upstream issuer changing under an unchanged Authority. Since <see cref="MaskinportenSettings"/> is
-    /// hot-reloadable (e.g. Kubernetes secret rotation), the cached issuer is keyed to the authority that
-    /// produced it: reconfiguring the Authority triggers a fresh fetch.</para>
-    /// <para>On fetch failure, callers fall back to <see cref="MaskinportenSettings.Authority"/> (with a
-    /// trailing slash). This is only valid when the configured authority equals the issuer URL — which holds
-    /// for all shipped environments, but is a documented limitation for proxy-style authority configurations.
-    /// After a failure, one caller per <see cref="WellKnownRetryInterval"/> retries the fetch (blocking up to
-    /// <see cref="_wellKnownFetchTimeout"/>) while other callers get the fallback immediately; as soon as the
-    /// endpoint recovers, the retrying caller gets the real issuer.</para>
+    /// <para>The issuer is fetched once and cached per configured Authority — reconfiguring the Authority
+    /// (settings are hot-reloadable) triggers a fresh fetch. <see cref="MaskinportenWellKnownRefreshService"/>
+    /// re-resolves it in the background; the request path itself never refreshes.</para>
+    /// <para>On fetch failure, callers fall back to <see cref="MaskinportenSettings.Authority"/> with a
+    /// trailing slash. That is only a valid audience when the Authority equals the issuer URL — true for all
+    /// shipped environments, but a known limitation for proxy-style configurations. One caller per
+    /// <see cref="WellKnownRetryInterval"/> retries the fetch; everyone else gets the fallback immediately.</para>
     /// </remarks>
     internal ValueTask<string> GetAudienceFromWellKnown(CancellationToken cancellationToken = default)
     {
-        // Fast path: issuer already resolved for the currently configured authority.
         var resolved = Volatile.Read(ref _issuer);
         if (resolved is not null && resolved.Authority == Settings.Authority)
             return new ValueTask<string>(resolved.Issuer);
 
-        // Fail-fast path: a fetch failed recently, don't retry yet.
         if (IsInFailureWindow())
             return new ValueTask<string>(GetAuthorityFallback());
 
@@ -482,16 +471,14 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
 
     private async ValueTask<string> FetchWellKnownIssuer(CancellationToken cancellationToken)
     {
-        // Waiting outside the try: a cancelled waiter never releases a permit it never took.
+        // WaitAsync outside the try: a cancelled waiter must not release a permit it never took.
         await _wellKnownFetchLock.WaitAsync(cancellationToken);
         try
         {
-            // The authority is read before the fetch try/catch so that a configuration error
-            // (OptionsValidationException) propagates as-is instead of stamping the failure window.
+            // Read before the fetch try/catch: a configuration error must propagate, not stamp the failure window.
             string authority = Settings.Authority;
 
-            // Re-check both conditions: another caller may have resolved the issuer,
-            // or failed moments ago, while we waited for the lock.
+            // Re-check under the lock: another caller may have resolved or failed while we waited.
             var resolved = Volatile.Read(ref _issuer);
             if (resolved is not null && resolved.Authority == authority)
                 return resolved.Issuer;
@@ -507,8 +494,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // The caller is gone. Don't stamp the failure window — a disconnecting client
-                // must not push other callers onto the fallback.
+                // Caller is gone — don't stamp the failure window and push other callers onto the fallback.
                 throw;
             }
             catch (Exception ex)
@@ -525,31 +511,27 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     }
 
     /// <summary>
-    /// Unconditionally re-resolves the well-known issuer for the currently configured authority,
-    /// overwriting any cached value. Used by <see cref="MaskinportenWellKnownRefreshService"/> — the
-    /// request path (<see cref="GetAudienceFromWellKnown"/>) never refreshes.
+    /// Unconditionally re-resolves the well-known issuer, overwriting any cached value.
+    /// Used by <see cref="MaskinportenWellKnownRefreshService"/>.
     /// </summary>
     /// <remarks>
-    /// Exceptions propagate to the caller and the failure window is deliberately NOT stamped: a failed
-    /// background refresh must keep the last-known-good issuer and never degrade live traffic — and since
-    /// the fast path wins once resolved, the untouched window is naturally inert.
+    /// Exceptions propagate and the failure window is deliberately not stamped: a failed background
+    /// refresh keeps the last-known-good issuer and must never degrade live traffic.
     /// </remarks>
     internal async Task RefreshWellKnownIssuer(CancellationToken cancellationToken)
     {
         await _wellKnownFetchLock.WaitAsync(cancellationToken);
         try
         {
-            // Read inside the lock (as the request path does) so the written (Authority, Issuer) pair is
-            // always the pair the fetch actually used — a concurrent hot-reload cannot tear them apart.
+            // Read inside the lock so the written (Authority, Issuer) pair is the one the fetch actually used.
             string authority = Settings.Authority;
             var metadata = await FetchWellKnownMetadata(authority, cancellationToken);
 
             var previous = Volatile.Read(ref _issuer);
             Volatile.Write(ref _issuer, new ResolvedIssuer(authority, metadata.Issuer));
 
-            // An actual issuer change under an unchanged authority is a significant event — every consumer
-            // of the environment is affected. A different issuer after an Authority reconfiguration is NOT
-            // that event, and warning about it would send an operator into the wrong investigation.
+            // Only an issuer change under the same authority is noteworthy — after an Authority
+            // reconfiguration, a different issuer is our own doing.
             if (previous is not null && previous.Authority == authority && previous.Issuer != metadata.Issuer)
             {
                 _logger.LogWarning(
@@ -567,8 +549,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
 
     private bool IsInFailureWindow()
     {
-        // 0 is the "never failed" sentinel — without the guard, a time provider whose current time is
-        // within the retry interval of DateTimeOffset.MinValue would report a failure window at startup.
+        // 0 = never failed; without the guard, a clock near DateTimeOffset.MinValue starts inside the window.
         long lastFailureTicks = Volatile.Read(ref _lastFailureTicks);
         return lastFailureTicks != 0
             && _timeProvider.GetUtcNow().UtcTicks - lastFailureTicks < WellKnownRetryInterval.Ticks;
@@ -599,7 +580,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
             ) ?? throw new JsonException("Well-known metadata response was null");
 
         // STJ `required` enforces presence, not non-nullness — `{"issuer":null}` deserializes fine.
-        // A null or empty issuer must fail the fetch (fallback + retry window), never be cached or minted as `aud`.
         if (string.IsNullOrWhiteSpace(metadata.Issuer))
             throw new JsonException("Well-known metadata response has a null or empty issuer");
 
