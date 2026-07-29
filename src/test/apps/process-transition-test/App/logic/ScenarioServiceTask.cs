@@ -78,18 +78,35 @@ public sealed class ScenarioServiceTask : IServiceTask
 
         int delayMs = levers.delayMs ?? 0;
         int attempts = levers.attempts ?? 1;
+        int deferrals = levers.deferrals ?? 0;
+        var deferDelay = TimeSpan.FromMilliseconds(levers.deferDelayMs ?? 2000);
+
+        // Don't start work this attempt cannot finish. The engine abandons an attempt at
+        // ExecutionDeadline and records it as a retryable failure, so burning the remaining budget on a
+        // delay that will be cut off mid-flight buys nothing — deferring hands the next attempt a full
+        // budget instead. Inert with the generous default timeout (10 minutes vs. a 30s delay at most);
+        // it exists because this is the pattern a real service task calling a slow system should follow.
+        if (delayMs > 0 && context.ExecutionDeadline is { } executionDeadline)
+        {
+            var remaining = executionDeadline - DateTimeOffset.UtcNow;
+            if (remaining < TimeSpan.FromMilliseconds(delayMs))
+            {
+                return ServiceTaskResult.Defer(
+                    deferDelay,
+                    $"only {remaining.TotalSeconds:F1}s left of this attempt, need {delayMs}ms — retrying with a fresh budget"
+                );
+            }
+        }
 
         if (delayMs > 0)
         {
             await Task.Delay(delayMs, context.CancellationToken);
         }
 
-        // Deferral comes first, and reads context.DeferCount rather than the AttemptTracker: the engine
-        // already counts deferrals durably, and mixing them into the attempt counter would conflate
-        // "checked, not ready" with "failed, retrying" — the exact distinction this lever exists to show.
-        int deferrals = levers.deferrals ?? 0;
-        var deferDelay = TimeSpan.FromMilliseconds(levers.deferDelayMs ?? 2000);
-
+        // Deferral is decided before the failure machinery, and reads context.DeferCount rather than the
+        // AttemptTracker: the engine already counts deferrals durably, and mixing them into the attempt
+        // counter would conflate "checked, not ready" with "failed, retrying" — the exact distinction
+        // this lever exists to demonstrate.
         if (levers.endState == "waitExpired")
         {
             // Never settles. The engine keeps re-running this task until ScenarioWaitBudget is spent,

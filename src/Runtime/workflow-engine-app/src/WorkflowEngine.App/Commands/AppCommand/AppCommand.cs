@@ -120,6 +120,8 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
             State = context.StateIn,
+            RetryCount = context.Step.RequeueCount,
+            ExecutionDeadline = context.ExecutionDeadline,
             DeferCount = context.Step.DeferCount,
             WaitDeadline = context.WaitDeadline,
         };

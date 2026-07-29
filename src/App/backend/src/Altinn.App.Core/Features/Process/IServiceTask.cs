@@ -47,6 +47,33 @@ public sealed record ServiceTaskContext
     public Guid? WorkflowId { get; init; }
 
     /// <summary>
+    /// How many times this task has been retried after a retryable failure
+    /// (<see cref="ServiceTaskResult.FailedRetryable"/>, or an unhandled exception). <c>0</c> on the
+    /// first run.
+    /// </summary>
+    /// <remarks>
+    /// Counts consecutive failures <em>since the last deferral</em>, not attempts across the task's
+    /// whole life — deferring resets it, deliberately, so a task that polls for hours through one
+    /// transient blip does not arrive at the end with its retry allowance spent. A task that has waited
+    /// six hours and never genuinely failed therefore reads <c>0</c> here and a high
+    /// <see cref="DeferCount"/>.
+    /// </remarks>
+    public int RetryCount { get; init; }
+
+    /// <summary>
+    /// The instant the engine stops waiting for <em>this attempt</em> and treats it as a retryable
+    /// failure — derived from <see cref="ProcessStepOptions.MaxExecutionTime"/>, or the engine default.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="CancellationToken"/> enforces this, but only tells the task it has already been cut
+    /// off. The deadline lets it decide beforehand: a task about to call a system that usually takes 30
+    /// seconds, with 10 left, does better to <see cref="ServiceTaskResult.Defer"/> — the next attempt
+    /// gets the full budget again — than to start work it cannot finish and be recorded as a failure.
+    /// Distinct from <see cref="WaitDeadline"/>, which bounds the whole wait rather than one attempt.
+    /// </remarks>
+    public DateTimeOffset? ExecutionDeadline { get; init; }
+
+    /// <summary>
     /// How many times this task has already deferred (<see cref="ServiceTaskResult.Defer"/>) while waiting
     /// for its outcome. <c>0</c> on the first run, so a task can tell an opening attempt from a re-check
     /// and, for instance, poll eagerly at first and then back off.

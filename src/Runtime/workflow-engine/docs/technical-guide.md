@@ -279,11 +279,17 @@ the gauge measures the state (`engine.workflows.waiting`).
 
 Each bounds a different thing, and none of them substitutes for another:
 
-| Clock | Bounds | Anchored at | Default |
-| --- | --- | --- | --- |
-| `command.maxExecutionTime` | One execution attempt | Attempt start | 100s |
-| `RetryStrategy` | A run of consecutive *errors* | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries |
-| `command.waitBudget` | Cumulative time spent *waiting* | `Step.FirstDeferredAt` | 24h |
+| Clock | Bounds | Anchored at | Default | A command reads |
+| --- | --- | --- | --- | --- |
+| `command.maxExecutionTime` | One execution attempt | Attempt start | 100s | `ExecutionDeadline` |
+| `RetryStrategy` | A run of consecutive *errors* | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries | `Step.RequeueCount` |
+| `command.waitBudget` | Cumulative time spent *waiting* | `Step.FirstDeferredAt` | 24h | `Step.DeferCount` + `WaitDeadline` |
+
+Each clock is observable from `CommandExecutionContext`, one field per clock, so a command can pace
+itself against the same limits the engine will enforce instead of guessing at them. Both deadlines are
+absolute instants rather than remaining durations: a duration starts aging the moment it is computed,
+and a command that receives one across a network boundary (as the Altinn app callback does) cannot tell
+how much has already been spent.
 
 Two persisted anchors, because they measure different spans and collapsing them breaks one of the two.
 `FirstDeferredAt` never moves once set, so the budget measures the whole wait. `LastDeferredAt` moves

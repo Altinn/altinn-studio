@@ -45,6 +45,20 @@ public sealed record AppCallbackPayload
     public string? State { get; init; }
 
     /// <summary>
+    /// How many times this step has been retried after a retryable failure. Reset to <c>0</c> whenever
+    /// the step defers, so it counts consecutive failures since the last re-check rather than attempts
+    /// across the step's whole life.
+    /// </summary>
+    [JsonPropertyName("retryCount")]
+    public int RetryCount { get; init; }
+
+    /// <summary>
+    /// The instant the engine stops waiting for this attempt and treats it as a retryable failure.
+    /// </summary>
+    [JsonPropertyName("executionDeadline")]
+    public DateTimeOffset? ExecutionDeadline { get; init; }
+
+    /// <summary>
     /// How many times this step has already deferred. <c>0</c> on a first execution.
     /// </summary>
     [JsonPropertyName("deferCount")]

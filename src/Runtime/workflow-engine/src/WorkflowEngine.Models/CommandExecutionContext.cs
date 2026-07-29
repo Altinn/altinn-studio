@@ -41,6 +41,20 @@ public sealed record CommandExecutionContext
     public string? StateIn { get; init; }
 
     /// <summary>
+    /// The absolute instant the engine stops waiting for <em>this attempt</em> and treats it as a
+    /// retryable failure — derived from <see cref="CommandDefinition.MaxExecutionTime"/> (or the engine
+    /// default) at the moment execution started.
+    /// </summary>
+    /// <remarks>
+    /// The cancellation token enforces this, but only tells a command that it has already been cut off.
+    /// The deadline lets it decide <em>beforehand</em>: a command about to call a system that typically
+    /// takes 30 seconds, with 10 left, is better off deferring — a fresh attempt gets the full budget
+    /// again — than starting work it cannot finish. Distinct from <see cref="WaitDeadline"/>, which
+    /// bounds the whole wait rather than one attempt.
+    /// </remarks>
+    public DateTimeOffset? ExecutionDeadline { get; init; }
+
+    /// <summary>
     /// The absolute instant this step's wait budget runs out, or <c>null</c> before its first deferral.
     /// Lets a deferring command pace itself against the budget it actually has — and give up early,
     /// deliberately, rather than being failed by the engine when the budget expires.

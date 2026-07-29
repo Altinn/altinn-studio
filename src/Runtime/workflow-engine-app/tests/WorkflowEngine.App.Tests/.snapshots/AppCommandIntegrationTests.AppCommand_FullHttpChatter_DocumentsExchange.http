@@ -103,6 +103,8 @@ Workflow-Id: Guid_3
   "payload": "step-1-payload",
   "workflowId": "Guid_3",
   "state": "initial-workflow-state",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
   "deferCount": 0,
   "waitDeadline": null
 }
@@ -138,6 +140,8 @@ Workflow-Id: Guid_3
   "payload": "step-2-payload",
   "workflowId": "Guid_3",
   "state": "step-1-result",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
   "deferCount": 0,
   "waitDeadline": null
 }

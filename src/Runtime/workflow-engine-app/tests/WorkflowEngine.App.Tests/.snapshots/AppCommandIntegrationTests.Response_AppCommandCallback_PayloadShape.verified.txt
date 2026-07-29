@@ -8,6 +8,8 @@
   payload: test-payload,
   workflowId: {Scrubbed},
   state: null,
+  retryCount: 0,
+  executionDeadline: DateTimeOffset_1,
   deferCount: 0,
   waitDeadline: null
 }

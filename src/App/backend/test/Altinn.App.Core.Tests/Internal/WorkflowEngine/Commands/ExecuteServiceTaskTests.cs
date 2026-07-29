@@ -16,7 +16,9 @@ public class ExecuteServiceTaskTests
         Instance instance,
         string serviceTaskType,
         int deferCount = 0,
-        DateTimeOffset? waitDeadline = null
+        DateTimeOffset? waitDeadline = null,
+        int retryCount = 0,
+        DateTimeOffset? executionDeadline = null
     )
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
@@ -41,6 +43,8 @@ public class ExecuteServiceTaskTests
                 WorkflowId = Guid.Empty,
                 DeferCount = deferCount,
                 WaitDeadline = waitDeadline,
+                RetryCount = retryCount,
+                ExecutionDeadline = executionDeadline,
             },
         };
     }
@@ -174,6 +178,37 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
+    public async Task Execute_ForwardsRetryCountAndExecutionDeadlineToServiceTaskContext()
+    {
+        // Arrange — the per-attempt pair, mirroring the per-wait pair below. A task that cannot see the
+        // execution deadline has no way to tell whether it has room to start a slow call, and would be
+        // recorded as a failure for work it could have deferred instead.
+        var executionDeadline = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        ServiceTaskContext? observed = null;
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .Callback<ServiceTaskContext>(ctx => observed = ctx)
+            .ReturnsAsync(ServiceTaskResult.Success());
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(
+            CreateInstance(),
+            "myServiceTask",
+            retryCount: 2,
+            executionDeadline: executionDeadline
+        );
+
+        // Act
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+
+        // Assert
+        Assert.NotNull(observed);
+        Assert.Equal(2, observed.RetryCount);
+        Assert.Equal(executionDeadline, observed.ExecutionDeadline);
+    }
+
+    [Fact]
     public async Task Execute_ForwardsDeferCountAndWaitDeadlineToServiceTaskContext()
     {
         // Arrange — a polling task needs to know which check it is on and how much budget is left,
@@ -216,6 +251,7 @@ public class ExecuteServiceTaskTests
         Assert.NotNull(observed);
         Assert.Equal(0, observed.DeferCount);
         Assert.Null(observed.WaitDeadline);
+        Assert.Equal(0, observed.RetryCount);
     }
 
     [Fact]

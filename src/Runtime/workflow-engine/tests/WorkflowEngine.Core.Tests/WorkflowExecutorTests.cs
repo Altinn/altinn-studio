@@ -294,6 +294,32 @@ public class WorkflowExecutorTests
     }
 
     [Fact]
+    public async Task Execute_ReportsExecutionDeadlineMatchingTheStepTimeout()
+    {
+        // The deadline a command paces itself against must agree with the clock that will actually cut
+        // it off, so it is derived from the same timeout the cancellation source counts down to.
+        var capture = new StateCapturingCommand();
+        using var fixture = WorkflowEngineTestFixture.Create(services =>
+        {
+            services.AddSingleton<ICommand>(capture);
+        });
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+
+        var timeout = TimeSpan.FromMinutes(3);
+        var step = WorkflowEngineTestFixture.CreateStep(
+            new CommandDefinition { Type = "test-capture", MaxExecutionTime = timeout }
+        );
+        var workflow = WorkflowWith(step);
+
+        var before = DateTimeOffset.UtcNow;
+        await executor.Execute(workflow, step, TestContext.Current.CancellationToken);
+        var after = DateTimeOffset.UtcNow;
+
+        Assert.NotNull(capture.ObservedExecutionDeadline);
+        Assert.InRange(capture.ObservedExecutionDeadline.Value, before.Add(timeout), after.Add(timeout));
+    }
+
+    [Fact]
     public async Task Execute_StepThatNeverDeferred_HasNoWaitDeadline()
     {
         var capture = new StateCapturingCommand();
@@ -351,6 +377,8 @@ internal sealed class StateCapturingCommand : ICommand
 
     public string? ObservedStateIn { get; private set; }
 
+    public DateTimeOffset? ObservedExecutionDeadline { get; private set; }
+
     public DateTimeOffset? ObservedWaitDeadline { get; private set; }
 
     public CommandValidationResult Validate(object? commandData, object? workflowContext) =>
@@ -359,6 +387,7 @@ internal sealed class StateCapturingCommand : ICommand
     public Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken cancellationToken)
     {
         ObservedStateIn = context.StateIn;
+        ObservedExecutionDeadline = context.ExecutionDeadline;
         ObservedWaitDeadline = context.WaitDeadline;
         return Task.FromResult(ExecutionResult.Success());
     }

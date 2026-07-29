@@ -48,6 +48,8 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 InstanceDataMutator = instanceDataMutator,
                 CancellationToken = context.CancellationToken,
                 WorkflowId = context.Payload.WorkflowId,
+                RetryCount = context.Payload.RetryCount,
+                ExecutionDeadline = context.Payload.ExecutionDeadline,
                 DeferCount = context.Payload.DeferCount,
                 WaitDeadline = context.Payload.WaitDeadline,
             };

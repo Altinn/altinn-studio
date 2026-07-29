@@ -103,6 +103,11 @@
         "Nullable": false
       },
       {
+        "Name": "executionDeadline",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "lockToken",
         "Kind": "string",
         "Nullable": false
@@ -111,6 +116,11 @@
         "Name": "payload",
         "Kind": "string",
         "Nullable": true
+      },
+      {
+        "Name": "retryCount",
+        "Kind": "int",
+        "Nullable": false
       },
       {
         "Name": "state",

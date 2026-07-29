@@ -2034,7 +2034,9 @@ namespace Altinn.App.Core.Features.Process
         public ServiceTaskContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public int DeferCount { get; init; }
+        public System.DateTimeOffset? ExecutionDeadline { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public int RetryCount { get; init; }
         public System.DateTimeOffset? WaitDeadline { get; init; }
         public System.Guid? WorkflowId { get; init; }
     }
@@ -4145,10 +4147,14 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public required string CommandKey { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("deferCount")]
         public int DeferCount { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("executionDeadline")]
+        public System.DateTimeOffset? ExecutionDeadline { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("lockToken")]
         public required string LockToken { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
         public string? Payload { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("retryCount")]
+        public int RetryCount { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public string? State { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("waitDeadline")]

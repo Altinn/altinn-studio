@@ -27,16 +27,19 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
     private readonly EngineSettings _engineSettings;
     private readonly ICommandRegistry _registry;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<WorkflowExecutor> _logger;
 
     public WorkflowExecutor(
         IOptions<EngineSettings> engineSettings,
         ICommandRegistry registry,
+        TimeProvider timeProvider,
         ILogger<WorkflowExecutor> logger
     )
     {
         _engineSettings = engineSettings.Value;
         _registry = registry;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -57,6 +60,11 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 $"Step has an invalid execution timeout ({timeout}); it must be positive and at most {_maxSupportedExecutionTimeout}."
             );
         }
+
+        // Read once and share: the deadline the command is told about must be the same instant the
+        // cancellation source is counting down to, or the command would pace itself against a clock
+        // that disagrees with the one that will cut it off.
+        var executionDeadline = _timeProvider.GetUtcNow().Add(timeout);
 
         using CancellationTokenSource cts = CreateExecutionTokenSource(timeout, cancellationToken);
         var startTimestamp = Stopwatch.GetTimestamp();
@@ -105,6 +113,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 TypedCommandData = typedCommandData,
                 TypedWorkflowContext = typedWorkflowContext,
                 StateIn = stateIn,
+                ExecutionDeadline = executionDeadline,
                 WaitDeadline = step.ResolveWaitDeadline(_engineSettings),
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };
