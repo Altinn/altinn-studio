@@ -32,6 +32,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-1",
               "payload": "step-1-payload"
@@ -45,6 +46,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-2",
               "payload": "step-2-payload"
@@ -180,6 +182,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-1-result"
     },
     {
@@ -192,6 +195,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-2-result"
     }
   ]

@@ -31,6 +31,21 @@ public sealed record ProcessStepOptions
     public ProcessStepRetryStrategy? RetryStrategy { get; init; }
 
     /// <summary>
+    /// The step's total wait allowance when its handler defers — the maximum <em>cumulative</em> time the
+    /// step may spend parked waiting for an external outcome (a dispatched shipment, a payment capture, a
+    /// signing order) before the engine gives up and fails it. Null falls back to the engine default.
+    /// </summary>
+    /// <remarks>
+    /// This is not a poll interval: a deferring handler chooses how long to wait before each re-check, and
+    /// this budget caps the sum of those waits, measured from the first deferral. Size it from how long the
+    /// awaited outcome can legitimately take — a recipient who has not downloaded a message by Monday
+    /// morning is normal, a shipment unconfirmed after a fortnight is not. A parked step keeps its workflow
+    /// (and anything depending on it) pending for the whole budget, so this is also the worst case for how
+    /// long the process transition stays unresolved.
+    /// </remarks>
+    public TimeSpan? WaitBudget { get; init; }
+
+    /// <summary>
     /// Validates the declared options, throwing <see cref="InvalidOperationException"/> with an
     /// actionable message when a field is degenerate (a non-positive timeout, or a retry strategy that
     /// would requeue in a tight loop). Called once per handler at startup and again per-step at enqueue
@@ -42,6 +57,13 @@ public sealed record ProcessStepOptions
         {
             throw new InvalidOperationException(
                 $"{nameof(ProcessStepOptions)}.{nameof(MaxExecutionTime)} must be positive when set (was {maxExecutionTime})."
+            );
+        }
+
+        if (WaitBudget is { } waitBudget && waitBudget <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(ProcessStepOptions)}.{nameof(WaitBudget)} must be positive when set (was {waitBudget})."
             );
         }
 

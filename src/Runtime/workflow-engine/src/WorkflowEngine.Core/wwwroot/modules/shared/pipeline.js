@@ -98,7 +98,7 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
         const action = step.status === 'Waiting' ? 'check now (skip wait timer)' : 'Retry now (skip backoff timer)';
         const label = step.status === 'Waiting' ? 'check now' : 'retry now';
         html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
-        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="${action}">${label}</button>`;
+        html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="${action}">${label}</button>`;
     }
     if (step.status === 'Failed') {
         html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;

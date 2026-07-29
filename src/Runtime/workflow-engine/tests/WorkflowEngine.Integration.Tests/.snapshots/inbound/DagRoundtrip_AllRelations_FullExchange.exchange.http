@@ -22,7 +22,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
-            "maxWaitDuration": null,
+            "waitBudget": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-up",
               "payload": null,
@@ -49,7 +49,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
-            "maxWaitDuration": null,
+            "waitBudget": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-side",
               "payload": null,
@@ -76,7 +76,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
-            "maxWaitDuration": null,
+            "waitBudget": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-mid",
               "payload": null,
@@ -109,7 +109,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
-            "maxWaitDuration": null,
+            "waitBudget": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-down",
               "payload": null,

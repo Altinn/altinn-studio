@@ -84,6 +84,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("error_history");
 
+                    b.Property<DateTimeOffset?>("FirstDeferredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_deferred_at");
+
                     b.Property<Guid>("JobId")
                         .HasColumnType("uuid")
                         .HasColumnName("job_id");
@@ -91,6 +95,10 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb")
                         .HasColumnName("labels");
+
+                    b.Property<DateTimeOffset?>("LastDeferredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_deferred_at");
 
                     b.Property<string>("OperationId")
                         .IsRequired()
@@ -121,10 +129,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
-
-                    b.Property<DateTimeOffset?>("WaitingSince")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("waiting_since");
 
                     b.HasKey("Id")
                         .HasName("pk_steps");

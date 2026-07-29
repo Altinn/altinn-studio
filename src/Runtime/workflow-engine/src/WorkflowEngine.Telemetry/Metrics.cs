@@ -156,6 +156,16 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of parked workflows (<c>Requeued</c> or <c>Waiting</c>) whose pending backoff was cleared
+    /// by a caller asking for an immediate re-check. For a <c>Waiting</c> step this is the push signal
+    /// that accelerates a poll; it is an optimization, never load-bearing for correctness.
+    /// </summary>
+    public static readonly Counter<long> WorkflowsNudged = Meter.CreateCounter<long>(
+        "engine.workflows.execution.nudged",
+        description: "Number of parked workflows whose pending backoff was cleared for an immediate re-check"
+    );
+
+    /// <summary>
     /// Counter of stale workflows reclaimed from crashed workers.
     /// </summary>
     public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
@@ -267,6 +277,19 @@ public static class Metrics
         "engine.steps.time.total",
         "s",
         "Total time for this step within the workflow attempt — queue + service (seconds). Recorded once per step per attempt."
+    );
+
+    /// <summary>
+    /// Histogram of how much wait budget a deferring step consumed, measured from its first deferral to
+    /// the moment it resolved. Recorded once per deferring step, at the transition out of
+    /// <c>Waiting</c> — whether it completed, expired (<c>wait_expired</c>), or failed some other way.
+    /// This is the only signal that shows budgets being approached rather than merely blown: compare the
+    /// upper percentiles against the configured <c>command.waitBudget</c> to size it from evidence.
+    /// </summary>
+    public static readonly Histogram<double> StepWaitDuration = Meter.CreateHistogram<double>(
+        "engine.steps.wait.duration",
+        "s",
+        "Wait budget consumed by a deferring step, from first deferral to resolution (seconds). Recorded once per deferring step."
     );
 
     /// <summary>

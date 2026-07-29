@@ -237,6 +237,35 @@ public class ProcessStepOptionsResolverTests
             _ => throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "Not a task hook key"),
         };
 
+    [Fact]
+    public void Resolve_ServiceTask_WaitBudgetOnly_IsResolvedIndependently()
+    {
+        // A handler that only needs a longer wait allowance (an eFormidling poll, say) must not have to
+        // restate the timeout or retry strategy: each field falls through its own tiers.
+        var serviceTask = ServiceTask("eformidling", new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(7) });
+        var resolver = CreateResolver(serviceTask.Object);
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "eformidling");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromDays(7), result.WaitBudget);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime); // tier 2
+        Assert.Null(result.RetryStrategy);
+    }
+
+    [Fact]
+    public void Resolve_ServiceTask_NonPositiveWaitBudget_ThrowsAtEnqueue()
+    {
+        var serviceTask = ServiceTask("signing", new ProcessStepOptions { WaitBudget = TimeSpan.Zero });
+        var resolver = CreateResolver(serviceTask.Object);
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "signing")
+        );
+
+        Assert.Contains(nameof(ProcessStepOptions.WaitBudget), ex.Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [MemberData(nameof(TaskHookKeys))]
     public void Resolve_TaskHook_MatchingTask_ResolvesImplementationOptions(string operationId)

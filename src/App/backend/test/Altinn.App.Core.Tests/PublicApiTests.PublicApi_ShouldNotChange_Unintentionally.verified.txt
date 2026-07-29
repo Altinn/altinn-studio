@@ -2014,6 +2014,7 @@ namespace Altinn.App.Core.Features.Process
         public ProcessStepOptions() { }
         public System.TimeSpan? MaxExecutionTime { get; init; }
         public Altinn.App.Core.Features.Process.ProcessStepRetryStrategy? RetryStrategy { get; init; }
+        public System.TimeSpan? WaitBudget { get; init; }
     }
     public sealed class ProcessStepRetryStrategy : System.IEquatable<Altinn.App.Core.Features.Process.ProcessStepRetryStrategy>
     {

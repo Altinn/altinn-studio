@@ -31,13 +31,18 @@ public sealed record CommandDefinition
     public TimeSpan? MaxExecutionTime { get; init; }
 
     /// <summary>
-    /// The maximum total wall-clock time the step may spend in <see cref="PersistentItemStatus.Waiting"/>
-    /// across deferrals (<see cref="ExecutionResult.Defer"/>) before the engine fails it.
-    /// Measured from when the step first became runnable. When <c>null</c>,
-    /// <see cref="EngineSettings.DefaultStepWaitDuration"/> applies.
+    /// The step's total wait allowance: the maximum <em>cumulative</em> wall-clock time it may spend in
+    /// <see cref="PersistentItemStatus.Waiting"/> across all deferrals (<see cref="ExecutionResult.Defer"/>)
+    /// before the engine fails it. This is <em>not</em> the delay between polls — the command chooses that
+    /// per deferral via <see cref="ExecutionResult.Defer"/>; this is the ceiling on the sum of them,
+    /// measured from the step's first deferral (<see cref="Step.FirstDeferredAt"/>).
+    /// A deferral asking for longer than the budget has left is clamped to the deadline rather than
+    /// rejected, so the step always gets one final execution once the budget runs out. When <c>null</c>,
+    /// <see cref="EngineSettings.DefaultStepWaitBudget"/> applies; values above
+    /// <see cref="EngineSettings.MaxStepWaitBudget"/> are rejected at enqueue.
     /// </summary>
-    [JsonPropertyName("maxWaitDuration")]
-    public TimeSpan? MaxWaitDuration { get; init; }
+    [JsonPropertyName("waitBudget")]
+    public TimeSpan? WaitBudget { get; init; }
 
     /// <summary>
     /// Command configuration. The engine deserializes this into the type
@@ -53,14 +58,14 @@ public sealed record CommandDefinition
         string type,
         TData data,
         TimeSpan? maxExecutionTime = null,
-        TimeSpan? maxWaitDuration = null
+        TimeSpan? waitBudget = null
     )
         where TData : class =>
         new()
         {
             Type = type,
             MaxExecutionTime = maxExecutionTime,
-            MaxWaitDuration = maxWaitDuration,
+            WaitBudget = waitBudget,
             Data = JsonSerializer.SerializeToElement(data, SerializerOptions),
         };
 
@@ -70,13 +75,13 @@ public sealed record CommandDefinition
     public static CommandDefinition Create(
         string type,
         TimeSpan? maxExecutionTime = null,
-        TimeSpan? maxWaitDuration = null
+        TimeSpan? waitBudget = null
     ) =>
         new()
         {
             Type = type,
             MaxExecutionTime = maxExecutionTime,
-            MaxWaitDuration = maxWaitDuration,
+            WaitBudget = waitBudget,
         };
 
     /// <inheritdoc/>

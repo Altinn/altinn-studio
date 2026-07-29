@@ -8,7 +8,7 @@ namespace WorkflowEngine.Models;
 /// <param name="Message">Optional message describing the outcome (used for logs and step error history).</param>
 /// <param name="Exception">Optional exception associated with a failed outcome.</param>
 /// <param name="HttpStatusCode">Optional HTTP status code captured from the underlying transport.</param>
-/// <param name="DeferDelay">For <see cref="ExecutionStatus.Deferred"/> outcomes: how long to wait before re-executing the step.</param>
+/// <param name="DeferDelay">For <see cref="ExecutionStatus.Deferred"/> outcomes: how long to wait before re-executing the step (this deferral only — see <see cref="CommandDefinition.WaitBudget"/> for the total).</param>
 public record struct ExecutionResult(
     ExecutionStatus Status,
     string? Message = null,
@@ -63,8 +63,14 @@ public record struct ExecutionResult(
     /// <see cref="PersistentItemStatus.Waiting"/> and re-executes it after <paramref name="delay"/>,
     /// releasing the worker slot in the meantime. Deferrals are not failures — they record no error
     /// history and reset the step's retry counter — but their total wall-clock time is bounded by the
-    /// step's wait budget (<see cref="CommandDefinition.MaxWaitDuration"/> or the engine default).
+    /// step's wait budget (<see cref="CommandDefinition.WaitBudget"/> or the engine default).
     /// </summary>
+    /// <param name="delay">
+    /// How long to wait before this step is executed again. Each deferral chooses its own delay, so a
+    /// command can poll at whatever cadence it likes; the sum is what the wait budget caps. Clamped up
+    /// to <see cref="EngineSettings.MinStepDeferDelay"/> and down to the remaining budget.
+    /// </param>
+    /// <param name="message">Optional description of what the command is waiting for, surfaced in logs.</param>
     public static ExecutionResult Defer(TimeSpan delay, string? message = null) =>
         new(ExecutionStatus.Deferred, message, DeferDelay: delay);
 };

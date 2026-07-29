@@ -30,6 +30,23 @@ internal static class EngineRepositoryQueryExtensions
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow);
 
+        /// <summary>
+        /// Incomplete workflows the fetch gate could claim right now — nothing parked behind a future
+        /// <c>StartAt</c> or <c>BackoffUntil</c>. This is the set that can hold (or imminently take)
+        /// a database transaction; a workflow waiting out a timer holds no lease and no transaction,
+        /// and cannot become runnable on its own until the timer elapses.
+        /// </summary>
+        public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
+            dbContext
+                .Workflows.Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
+                .Where(wf =>
+                    wf.Status == PersistentItemStatus.Processing
+                    || (
+                        (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
+                        && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
+                    )
+                );
+
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
             string? collectionKeyFilter = null,

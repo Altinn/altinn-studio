@@ -48,12 +48,14 @@ internal static class StepRequestStepOptionsExtensions
 
         return step with
         {
-            Command = options.MaxExecutionTime is not null
-                ? step.Command with
-                {
-                    MaxExecutionTime = options.MaxExecutionTime,
-                }
-                : step.Command,
+            Command =
+                options.MaxExecutionTime is not null || options.WaitBudget is not null
+                    ? step.Command with
+                    {
+                        MaxExecutionTime = options.MaxExecutionTime ?? step.Command.MaxExecutionTime,
+                        WaitBudget = options.WaitBudget ?? step.Command.WaitBudget,
+                    }
+                    : step.Command,
             RetryStrategy = options.RetryStrategy?.ToRetryStrategy() ?? step.RetryStrategy,
         };
     }

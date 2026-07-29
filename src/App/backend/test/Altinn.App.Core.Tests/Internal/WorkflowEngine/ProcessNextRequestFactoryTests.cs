@@ -1111,6 +1111,25 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
+    public async Task StepOptions_ServiceTask_WaitBudget_LandsOnTheWireCommand()
+    {
+        // Arrange - a handler that only widens the wait allowance, leaving the timeout to its tier-2 default
+        var serviceTaskMock = new Mock<IServiceTask>();
+        serviceTaskMock.Setup(x => x.Type).Returns("eformidling");
+        serviceTaskMock.Setup(x => x.StepOptions).Returns(new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(7) });
+        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "eformidling");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert - the budget reaches the engine, and the untouched timeout keeps its tier-2 default
+        var step = GetStep(bundle, ExecuteServiceTask.Key);
+        Assert.Equal(TimeSpan.FromDays(7), step.Command.WaitBudget);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, step.Command.MaxExecutionTime);
+    }
+
+    [Fact]
     public async Task StepOptions_NegativeMaxExecutionTime_ThrowsAtEnqueue()
     {
         // Arrange - a misconfigured handler (e.g. arithmetic slip producing a negative timeout)

@@ -67,11 +67,12 @@ public sealed record StepStatusResponse
     public int DeferCount { get; init; }
 
     /// <summary>
-    /// When this step first deferred. Omitted when the step has never deferred.
+    /// When this step deferred for the first time — the anchor its wait budget is measured from.
+    /// Omitted when the step has never deferred.
     /// </summary>
-    [JsonPropertyName("waitingSince")]
+    [JsonPropertyName("firstDeferredAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? WaitingSince { get; init; }
+    public DateTimeOffset? FirstDeferredAt { get; init; }
 
     /// <summary>
     /// The output state produced by this step, passed as input to the next step.
@@ -106,7 +107,7 @@ public sealed record StepStatusResponse
             Labels = step.Labels,
             RetryCount = step.RequeueCount,
             DeferCount = step.DeferCount,
-            WaitingSince = step.WaitingSince,
+            FirstDeferredAt = step.FirstDeferredAt,
             StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
             ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,

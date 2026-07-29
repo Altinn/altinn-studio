@@ -53,10 +53,25 @@ internal sealed record StepStatusResponse
     public required PersistentItemStatus Status { get; init; }
 
     /// <summary>
-    /// The number of times this step has been retried.
+    /// The number of times this step has been retried. Reset by a deferral, so it counts consecutive
+    /// errors between waits rather than errors across the step's lifetime.
     /// </summary>
     [JsonPropertyName("retryCount")]
     public required int RetryCount { get; init; }
+
+    /// <summary>
+    /// The number of times this step has deferred — parked in <see cref="PersistentItemStatus.Waiting"/>
+    /// because the outcome it awaits was not available yet.
+    /// </summary>
+    [JsonPropertyName("deferCount")]
+    public int DeferCount { get; init; }
+
+    /// <summary>
+    /// When this step first deferred, which anchors its wait budget. Absent when it never deferred.
+    /// </summary>
+    [JsonPropertyName("firstDeferredAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? FirstDeferredAt { get; init; }
 
     /// <summary>
     /// The output state produced by this step, passed as input to the next step.

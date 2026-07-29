@@ -404,6 +404,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // consumers, but flagged so a waiting UI can explain the longer wait honestly. The flag
         // flickers back off while a retry attempt is actively executing, which is fine: during a
         // long retry storm the workflow spends nearly all its time parked in Requeued.
+        //
+        // A Waiting head is also a long wait, but deliberately NOT flagged as Retrying: nothing
+        // failed, the step is polling for an external outcome that has not arrived. It reports as
+        // plain Processing until the frontend gets a polling-step treatment of its own (#18935),
+        // which is where that distinction becomes observable.
         if (activeHead is not null)
         {
             return new WorkflowTaskStatus(
@@ -766,17 +771,22 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return workflowsById.Values.ToList();
     }
 
+    // Waiting counts as active: a step that deferred while awaiting an external outcome is still
+    // mid-transition, holding no lease but owning the process. Reading it as settled would let the
+    // wait return success on an uncommitted transition and let the next action start on top of it.
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
-                or PersistentItemStatus.Requeued;
+                or PersistentItemStatus.Requeued
+                or PersistentItemStatus.Waiting;
 
     private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
-                or PersistentItemStatus.Requeued;
+                or PersistentItemStatus.Requeued
+                or PersistentItemStatus.Waiting;
 
     private static bool IsResumeRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status

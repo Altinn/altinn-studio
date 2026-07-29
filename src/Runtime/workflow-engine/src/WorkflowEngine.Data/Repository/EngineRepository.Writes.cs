@@ -1025,9 +1025,18 @@ internal sealed partial class EngineRepository
                 async ct =>
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    // A parked workflow is only re-fetched once its backoff elapses, and the in-memory
+                    // cancellation watcher only reaches workflows this pod is executing — so without
+                    // clearing the backoff, cancelling a Requeued/Waiting workflow would not take
+                    // effect until the wait ran out (up to MaxStepWaitBudget for a deferred step).
+                    // Enqueued is deliberately excluded: there backoff_until carries StartAt, and
+                    // clearing it would run a scheduled workflow early instead of cancelling it
+                    // promptly — the fetch gate picks it up either way once StartAt passes.
                     const string sql = """
                     UPDATE engine.workflows
-                    SET cancellation_requested_at = @requestedAt, updated_at = @now
+                    SET cancellation_requested_at = @requestedAt,
+                        updated_at = @now,
+                        backoff_until = CASE WHEN status IN (@requeued, @waiting) THEN NULL ELSE backoff_until END
                     WHERE id = @id
                       AND namespace = @ns
                       AND status != ALL(@terminalStatuses)
@@ -1040,6 +1049,8 @@ internal sealed partial class EngineRepository
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
                     cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int[]>("terminalStatuses", terminalStatuses));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("waiting", (int)PersistentItemStatus.Waiting));
                     rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
                 },
                 cancellationToken
@@ -1248,7 +1259,8 @@ internal sealed partial class EngineRepository
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
                         var stepDeferCounts = new int[allSteps.Count];
-                        var stepWaitingSince = new object[allSteps.Count];
+                        var stepFirstDeferredAt = new object[allSteps.Count];
+                        var stepLastDeferredAt = new object[allSteps.Count];
                         var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
@@ -1260,7 +1272,10 @@ internal sealed partial class EngineRepository
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
                             stepDeferCounts[i] = s.DeferCount;
-                            stepWaitingSince[i] = s.WaitingSince.HasValue ? s.WaitingSince.Value : DBNull.Value;
+                            stepFirstDeferredAt[i] = s.FirstDeferredAt.HasValue
+                                ? s.FirstDeferredAt.Value
+                                : DBNull.Value;
+                            stepLastDeferredAt[i] = s.LastDeferredAt.HasValue ? s.LastDeferredAt.Value : DBNull.Value;
                             stepErrorHistories[i] =
                                 s.ErrorHistory.Count > 0
                                     ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
@@ -1274,15 +1289,16 @@ internal sealed partial class EngineRepository
                         SET status               = v.status,
                             requeue_count        = v.requeue_count,
                             defer_count          = v.defer_count,
-                            waiting_since        = v.waiting_since,
+                            first_deferred_at    = v.first_deferred_at,
+                            last_deferred_at     = v.last_deferred_at,
                             error_history        = v.error_history,
                             state_out            = v.state_out,
                             engine_trace_context = v.engine_trace_context,
                             updated_at           = @now
                         FROM (
                             SELECT *
-                            FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @waiting_since, @error_histories, @engine_trace_contexts, @state_outs)
-                                AS t(id, status, requeue_count, defer_count, waiting_since, error_history, engine_trace_context, state_out)
+                            FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @error_histories, @engine_trace_contexts, @state_outs)
+                                AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, error_history, engine_trace_context, state_out)
                             ORDER BY t.id
                         ) AS v
                         WHERE s.id = v.id
@@ -1294,9 +1310,15 @@ internal sealed partial class EngineRepository
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("defer_counts", stepDeferCounts));
                         cmd.Parameters.Add(
-                            new NpgsqlParameter("waiting_since", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            new NpgsqlParameter("first_deferred_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
                             {
-                                Value = stepWaitingSince,
+                                Value = stepFirstDeferredAt,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("last_deferred_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = stepLastDeferredAt,
                             }
                         );
                         cmd.Parameters.Add(
@@ -1483,7 +1505,12 @@ internal sealed partial class EngineRepository
                     // Reset non-completed steps for all resumed workflows
                     const string resetStepsSql = """
                     UPDATE engine.steps
-                    SET status = @enqueued, requeue_count = 0, defer_count = 0, waiting_since = NULL, updated_at = @now
+                    SET status = @enqueued,
+                        requeue_count = 0,
+                        defer_count = 0,
+                        first_deferred_at = NULL,
+                        last_deferred_at = NULL,
+                        updated_at = @now
                     WHERE job_id = ANY(@ids)
                       AND status != @completed
                     """;
@@ -1519,9 +1546,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<bool> SkipBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default)
+    public async Task<bool> ClearBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default)
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.SkipBackoff");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.ClearBackoff");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
@@ -1563,7 +1590,7 @@ internal sealed partial class EngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.FailedToUpdateWorkflow("skip-backoff", workflowId, ex.Message, ex);
+            logger.FailedToUpdateWorkflow("clear-backoff", workflowId, ex.Message, ex);
             throw;
         }
     }

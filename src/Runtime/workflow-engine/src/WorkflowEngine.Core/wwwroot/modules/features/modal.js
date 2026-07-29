@@ -187,15 +187,15 @@ const buildDetailsContent = (data) => {
     if (data.retryCount) {
         statusParts += ` <span class="step-retry" style="margin-left:4px;margin-top:0">&#8635;${esc(String(data.retryCount))}</span>`;
     }
-    const showSkipBackoff =
+    const showNudge =
         data.backoffUntil &&
         (status === 'Requeued' || status === 'Waiting') &&
         new Date(/** @type {string} */ (data.backoffUntil)) - Date.now() > 5000;
     if (status === 'Failed') {
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">&#8635; Retry</a>`;
-    } else if (showSkipBackoff) {
+    } else if (showNudge) {
         const skipLabel = status === 'Waiting' ? '&#9654; Check now' : '&#9654; Retry now';
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">${skipLabel}</a>`;
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">${skipLabel}</a>`;
     }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);
@@ -500,14 +500,14 @@ window.retryWorkflow = async (e, workflowId, ns) => {
 };
 
 /** Skip backoff timer — called from status row skip button */
-window.skipBackoff = async (e, workflowId, ns) => {
+window.nudgeWorkflow = async (e, workflowId, ns) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
     if (btn.hasAttribute('disabled')) return;
     btn.setAttribute('disabled', '');
     btn.textContent = '...';
     try {
-        const res = await fetch('/dashboard/skip-backoff', {
+        const res = await fetch('/dashboard/nudge', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ workflowId, namespace: ns }),

@@ -447,6 +447,62 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsWaiting_ReturnsProcessingWithoutRetryingFlag()
+    {
+        // A Waiting head is a step that deferred while polling for an external outcome. The work is
+        // still in flight, so it must read as Processing (never idle) — but nothing failed, so it is
+        // deliberately not flagged Retrying.
+        Guid headId = Guid.NewGuid();
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Waiting,
+                            Labels = new Dictionary<string, string>(StringComparer.Ordinal)
+                            {
+                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
+                            },
+                            StepsCompleted = 4,
+                            StepsTotal = 9,
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.False(result.Retrying);
+        Assert.Null(result.Failure);
+        Assert.Equal(new WorkflowStepProgress(Completed: 4, Total: 9), result.Progress);
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task ResolveWorkflowTaskStatus_WhenHeadIsFailed_ReturnsFailedWithFailureDetail()
     {
         // A resume-required head (Failed/Canceled/DependencyFailed) surfaces as Failed with the

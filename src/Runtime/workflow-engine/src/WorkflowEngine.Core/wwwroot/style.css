@@ -1317,7 +1317,7 @@ body {
     word-break: break-word;
 }
 
-/* ── Retry / skip-backoff action badges (inline in status row) */
+/* ── Retry / nudge action badges (inline in status row) */
 .step-retry-badge {
     font-size: 11px;
     font-weight: 700;
@@ -1393,7 +1393,7 @@ body {
 }
 
 /* ── Skip backoff button (on step pipeline) ─────────────── */
-.skip-backoff-btn {
+.nudge-btn {
     background: none;
     color: var(--orange);
     border: 1px solid rgba(var(--orange-rgb), 0.3);
@@ -1408,19 +1408,19 @@ body {
     letter-spacing: 0.3px;
     margin-top: 4px;
 }
-.skip-backoff-btn:hover {
+.nudge-btn:hover {
     background: rgba(var(--orange-rgb), 0.1);
     border-color: var(--orange);
 }
-.skip-backoff-btn:disabled {
+.nudge-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
-.skip-backoff-btn.skip-success {
+.nudge-btn.skip-success {
     color: var(--green);
     border-color: var(--green);
 }
-.skip-backoff-btn.skip-failed {
+.nudge-btn.skip-failed {
     color: var(--red);
     border-color: var(--red);
 }

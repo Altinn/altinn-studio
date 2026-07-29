@@ -172,11 +172,14 @@ public static class OptionsBuilderExtensions
                 if (config.MaxStepCommandTimeout <= TimeSpan.Zero)
                     config.MaxStepCommandTimeout = Defaults.EngineSettings.MaxStepCommandTimeout;
 
-                if (config.DefaultStepWaitDuration <= TimeSpan.Zero)
-                    config.DefaultStepWaitDuration = Defaults.EngineSettings.DefaultStepWaitDuration;
+                if (config.DefaultStepWaitBudget <= TimeSpan.Zero)
+                    config.DefaultStepWaitBudget = Defaults.EngineSettings.DefaultStepWaitBudget;
 
-                if (config.MaxStepWaitDuration <= TimeSpan.Zero)
-                    config.MaxStepWaitDuration = Defaults.EngineSettings.MaxStepWaitDuration;
+                if (config.MaxStepWaitBudget <= TimeSpan.Zero)
+                    config.MaxStepWaitBudget = Defaults.EngineSettings.MaxStepWaitBudget;
+
+                if (config.MinStepDeferDelay <= TimeSpan.Zero)
+                    config.MinStepDeferDelay = Defaults.EngineSettings.MinStepDeferDelay;
 
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
@@ -266,13 +269,23 @@ public static class OptionsBuilderExtensions
             );
 
             builder.Validate(
-                config => config.DefaultStepWaitDuration > TimeSpan.Zero,
-                $"{ns}.{nameof(EngineSettings.DefaultStepWaitDuration)} must be greater than zero."
+                config => config.DefaultStepWaitBudget > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.DefaultStepWaitBudget)} must be greater than zero."
             );
 
             builder.Validate(
-                config => config.MaxStepWaitDuration >= config.DefaultStepWaitDuration,
-                $"{ns}.{nameof(EngineSettings.MaxStepWaitDuration)} must be greater than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitDuration)}."
+                config => config.MaxStepWaitBudget >= config.DefaultStepWaitBudget,
+                $"{ns}.{nameof(EngineSettings.MaxStepWaitBudget)} must be greater than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitBudget)}."
+            );
+
+            builder.Validate(
+                config => config.MinStepDeferDelay > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.MinStepDeferDelay)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MinStepDeferDelay <= config.DefaultStepWaitBudget,
+                $"{ns}.{nameof(EngineSettings.MinStepDeferDelay)} must be less than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitBudget)}."
             );
 
             builder.Validate(

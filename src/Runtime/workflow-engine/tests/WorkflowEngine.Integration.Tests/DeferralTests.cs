@@ -1,10 +1,9 @@
-using System.Collections.Concurrent;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using WorkflowEngine.Core.Extensions;
+using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestApp;
 using WorkflowEngine.TestKit;
 
 // CA1816: call GC.SuppressFinalize(object)
@@ -16,66 +15,18 @@ namespace WorkflowEngine.Integration.Tests;
 /// End-to-end tests for the deferral primitive: a command returning
 /// <see cref="ExecutionResult.Defer"/> parks its step in <c>Waiting</c>, is re-executed once the
 /// workflow's backoff elapses, records no error history, and is bounded by the step's wait budget.
-/// Uses a dedicated fixture that registers the in-process <see cref="DeferringCommand"/>.
+/// Drives the <see cref="DeferringCommand"/> registered by the shared test host.
 /// </summary>
-public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
-    : IClassFixture<DeferralTests.DeferralEngineFixture>,
-        IAsyncLifetime
+[Collection(EngineAppCollection.Name)]
+public sealed class DeferralTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
-    /// <summary>
-    /// Fixture that layers the test-only <see cref="DeferringCommand"/> on top of the standard test host.
-    /// </summary>
-    public sealed class DeferralEngineFixture : EngineAppFixture<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder) =>
-            builder.ConfigureServices(services => services.AddCommand<DeferringCommand>());
-    }
-
-    /// <summary>
-    /// Test command that defers until it has been invoked <see cref="DeferringCommandData.SucceedOnAttempt"/>
-    /// times, then succeeds. Invocations are tracked per <see cref="DeferringCommandData.Key"/>.
-    /// </summary>
-    public sealed class DeferringCommand : Command<DeferringCommandData>
-    {
-        internal static readonly ConcurrentDictionary<string, int> Invocations = new();
-
-        public override string CommandType => "test-defer";
-
-        protected override CommandValidationResult Validate(DeferringCommandData? commandData) =>
-            commandData is null || string.IsNullOrWhiteSpace(commandData.Key)
-                ? new CommandValidationResult.Invalid("test-defer requires a 'key' in command data")
-                : new CommandValidationResult.Valid();
-
-        protected override Task<ExecutionResult> Execute(
-            CommandExecutionContext context,
-            CancellationToken cancellationToken
-        )
-        {
-            var data = context.GetCommandData<DeferringCommandData>();
-            var attempt = Invocations.AddOrUpdate(data.Key, 1, (_, count) => count + 1);
-
-            return Task.FromResult(
-                attempt >= data.SucceedOnAttempt
-                    ? ExecutionResult.Success()
-                    : ExecutionResult.Defer(TimeSpan.FromMilliseconds(data.DeferDelayMs), "not ready yet")
-            );
-        }
-    }
-
-    public sealed record DeferringCommandData
-    {
-        public required string Key { get; init; }
-        public int SucceedOnAttempt { get; init; } = 1;
-        public int DeferDelayMs { get; init; } = 200;
-    }
-
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
 
     public async ValueTask InitializeAsync()
     {
         await fixture.Reset();
-        DeferringCommand.Invocations.Clear();
+        DeferringCommand.ResetInvocations();
     }
 
     public ValueTask DisposeAsync()
@@ -84,11 +35,11 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
         return ValueTask.CompletedTask;
     }
 
-    private StepRequest CreateDeferStep(
+    private static StepRequest CreateDeferStep(
         string key,
         int succeedOnAttempt,
         int deferDelayMs = 200,
-        TimeSpan? maxWaitDuration = null
+        TimeSpan? waitBudget = null
     ) =>
         new()
         {
@@ -101,7 +52,7 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
                     SucceedOnAttempt = succeedOnAttempt,
                     DeferDelayMs = deferDelayMs,
                 },
-                maxWaitDuration: maxWaitDuration
+                waitBudget: waitBudget
             ),
         };
 
@@ -123,10 +74,33 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
         var step = Assert.Single(workflow.Steps);
         Assert.Equal(PersistentItemStatus.Completed, step.Status);
         Assert.Equal(2, step.DeferCount);
-        Assert.NotNull(step.WaitingSince);
+        Assert.NotNull(step.FirstDeferredAt);
         Assert.Equal(0, step.RetryCount);
         Assert.Null(step.ErrorHistory);
-        Assert.Equal(3, DeferringCommand.Invocations["poll-success"]);
+        Assert.Equal(3, DeferringCommand.InvocationCount("poll-success"));
+    }
+
+    [Fact]
+    public async Task DeferringStep_OnResolution_RecordsWaitDurationOnce()
+    {
+        // The per-attempt service/total histograms say nothing about the wait, so the consumed budget
+        // is its own signal — recorded exactly once, when the step stops waiting.
+        using var collector = new TelemetryCollector();
+
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-wait-metric", [CreateDeferStep("poll-metric", succeedOnAttempt: 3)])
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+        await collector.WaitForMeasurement("engine.steps.wait.duration");
+
+        var measurement = Assert.Single(collector.GetMeasurements("engine.steps.wait.duration"));
+        Assert.True(
+            Convert.ToDouble(measurement.Value, CultureInfo.InvariantCulture) > 0,
+            "Expected a positive wait duration for a step that deferred twice."
+        );
     }
 
     [Fact]
@@ -150,30 +124,16 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
         var step = Assert.Single(workflow.Steps);
         Assert.Equal(PersistentItemStatus.Waiting, step.Status);
         Assert.Equal(1, step.DeferCount);
-        Assert.NotNull(step.WaitingSince);
+        Assert.NotNull(step.FirstDeferredAt);
         Assert.Null(step.ErrorHistory);
-
-        // Drain the parked workflow so the fixture's Reset (which waits for DB idle) is not
-        // blocked by the 60s backoff in the next test.
-        await NudgeWorkflow(workflowId);
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
-    }
-
-    private async Task NudgeWorkflow(Guid workflowId)
-    {
-        using var client = fixture.CreateEngineClient();
-        using var response = await client.PostAsJsonAsync(
-            "/dashboard/skip-backoff",
-            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
-            TestContext.Current.CancellationToken
-        );
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(workflow.BackoffUntil);
     }
 
     [Fact]
-    public async Task WaitingWorkflow_SkipBackoff_TriggersImmediateReExecution()
+    public async Task WaitingWorkflow_Nudge_TriggersImmediateReExecution()
     {
-        // Park the step with a delay far beyond the test timeout, then nudge it via skip-backoff.
+        // Park the step with a delay far beyond the test timeout, then nudge it: the push channel
+        // must turn a scheduled poll into an immediate re-check.
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
                 "wf-nudge",
@@ -185,7 +145,14 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
 
-        await NudgeWorkflow(workflowId);
+        using var nudgeResponse = await Nudge(workflowId);
+        Assert.Equal(HttpStatusCode.Accepted, nudgeResponse.StatusCode);
+        var nudged = await nudgeResponse.Content.ReadFromJsonAsync<NudgeWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(nudged);
+        Assert.Equal(workflowId, nudged.WorkflowId);
+        Assert.NotNull(nudged.NudgedAt);
 
         var workflow = await _client.WaitForWorkflowStatus(
             workflowId,
@@ -196,10 +163,57 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
     }
 
     [Fact]
+    public async Task WaitingWorkflow_DashboardNudge_TriggersImmediateReExecution()
+    {
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-dashboard-nudge",
+                [CreateDeferStep("poll-dashboard-nudge", succeedOnAttempt: 2, deferDelayMs: 600_000)]
+            )
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
+
+        using var client = fixture.CreateEngineClient();
+        using var response = await client.PostAsJsonAsync(
+            "/dashboard/nudge",
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task Nudge_CompletedWorkflow_Returns409()
+    {
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-nudge-done", [CreateDeferStep("poll-done", succeedOnAttempt: 1)])
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
+
+        using var response = await Nudge(workflowId);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Nudge_UnknownWorkflow_Returns404()
+    {
+        using var response = await Nudge(Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task DeferringStep_WaitBudgetExhausted_FailsWithWaitExpired()
     {
-        // Each deferral asks for 300ms but the budget is 1s from the first deferral — the engine
-        // fails the step once the next scheduled execution would overrun the deadline.
+        // Each deferral asks for 300ms against a 1s budget anchored at the first deferral. The engine
+        // keeps parking (clamping the last poll to the deadline) until the budget is spent, then fails.
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
                 "wf-expired",
@@ -208,7 +222,7 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
                         "poll-expired",
                         succeedOnAttempt: int.MaxValue,
                         deferDelayMs: 300,
-                        maxWaitDuration: TimeSpan.FromSeconds(1)
+                        waitBudget: TimeSpan.FromSeconds(1)
                     ),
                 ]
             )
@@ -226,21 +240,92 @@ public sealed class DeferralTests(DeferralTests.DeferralEngineFixture fixture)
         Assert.Equal(PersistentItemStatus.Failed, step.Status);
         Assert.NotNull(step.ErrorHistory);
         var entry = Assert.Single(step.ErrorHistory);
-        Assert.Contains("Wait budget", entry.Message);
+        Assert.Contains("Wait budget", entry.Message, StringComparison.Ordinal);
         Assert.False(entry.WasRetryable);
+
+        // The budget was actually spent rather than forfeited on the first overshoot.
+        Assert.True(step.DeferCount > 0, $"expected at least one deferral, got {step.DeferCount}");
+        Assert.NotNull(step.FirstDeferredAt);
     }
 
     [Fact]
-    public async Task Enqueue_MaxWaitDurationAboveCap_IsRejected()
+    public async Task DeferringStep_DelayLongerThanBudget_StillParksThenExpires()
+    {
+        // Regression for the clamp: a single deferral asking for 10s against a 1s budget must park for
+        // 1s and get a final check, not fail immediately with an unspent budget.
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-clamped",
+                [
+                    CreateDeferStep(
+                        "poll-clamped",
+                        succeedOnAttempt: int.MaxValue,
+                        deferDelayMs: 10_000,
+                        waitBudget: TimeSpan.FromSeconds(1)
+                    ),
+                ]
+            )
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+
+        var parked = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Waiting,
+            TimeSpan.FromSeconds(30)
+        );
+        Assert.Equal(1, Assert.Single(parked.Steps).DeferCount);
+
+        var failed = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Failed,
+            TimeSpan.FromSeconds(30)
+        );
+        Assert.Contains(
+            "Wait budget",
+            Assert.Single(Assert.Single(failed.Steps).ErrorHistory!).Message,
+            StringComparison.Ordinal
+        );
+
+        // Two executions: the initial one that parked, and the final check at the deadline.
+        Assert.Equal(2, DeferringCommand.InvocationCount("poll-clamped"));
+    }
+
+    [Fact]
+    public async Task Enqueue_WaitBudgetAboveCap_IsRejected()
     {
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
                 "wf-invalid",
-                [CreateDeferStep("poll-invalid", succeedOnAttempt: 1, maxWaitDuration: TimeSpan.FromDays(365))]
+                [CreateDeferStep("poll-invalid", succeedOnAttempt: 1, waitBudget: TimeSpan.FromDays(365))]
             )
         );
 
         using var response = await _client.EnqueueRaw(request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Enqueue_NonPositiveWaitBudget_IsRejected()
+    {
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-invalid-negative",
+                [CreateDeferStep("poll-invalid-negative", succeedOnAttempt: 1, waitBudget: TimeSpan.Zero)]
+            )
+        );
+
+        using var response = await _client.EnqueueRaw(request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private async Task<HttpResponseMessage> Nudge(Guid workflowId)
+    {
+        using var client = fixture.CreateEngineClient();
+        return await client.PostAsync(
+            new Uri($"/api/v1/{EngineApiClient.DefaultNamespace}/workflows/{workflowId}/nudge", UriKind.Relative),
+            content: null,
+            TestContext.Current.CancellationToken
+        );
     }
 }

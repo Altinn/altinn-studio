@@ -82,20 +82,37 @@ public sealed record EngineSettings
     public required TimeSpan MaxStepCommandTimeout { get; set; }
 
     /// <summary>
-    /// The default wait budget for steps that defer (<see cref="ExecutionStatus.Deferred"/>):
-    /// the maximum total wall-clock time a step may spend in <see cref="PersistentItemStatus.Waiting"/>
-    /// when its command does not specify <see cref="CommandDefinition.MaxWaitDuration"/>.
+    /// The default wait budget for steps that defer (<see cref="ExecutionStatus.Deferred"/>): the
+    /// maximum <em>cumulative</em> time a step may spend in <see cref="PersistentItemStatus.Waiting"/>
+    /// across all its deferrals, applied when its command does not specify
+    /// <see cref="CommandDefinition.WaitBudget"/>.
     /// </summary>
-    [JsonPropertyName("defaultStepWaitDuration")]
-    public TimeSpan DefaultStepWaitDuration { get; set; } = TimeSpan.FromDays(1);
+    /// <remarks>
+    /// This is a total allowance, not a poll interval: the command picks the delay before each
+    /// re-execution when it calls <see cref="ExecutionResult.Defer"/>, and this budget caps the sum.
+    /// A step deferring 5 minutes at a time under the 1-day default therefore polls ~288 times before
+    /// the budget runs out — it does not sit idle for a day between polls.
+    /// </remarks>
+    [JsonPropertyName("defaultStepWaitBudget")]
+    public TimeSpan DefaultStepWaitBudget { get; set; } = TimeSpan.FromDays(1);
 
     /// <summary>
-    /// The maximum per-step wait budget a client may request via a step's
-    /// <c>command.maxWaitDuration</c>. Enqueue requests exceeding this cap are rejected,
-    /// bounding how long a waiting step can keep its workflow (and any dependents) pending.
+    /// The largest wait budget a client may request via a step's <c>command.waitBudget</c>.
+    /// Enqueue requests exceeding this cap are rejected, bounding how long a waiting step can keep its
+    /// workflow (and any dependents) pending. This caps <see cref="DefaultStepWaitBudget"/>-style
+    /// allowances; it is not itself an allowance any step receives by default.
     /// </summary>
-    [JsonPropertyName("maxStepWaitDuration")]
-    public TimeSpan MaxStepWaitDuration { get; set; } = TimeSpan.FromDays(30);
+    [JsonPropertyName("maxStepWaitBudget")]
+    public TimeSpan MaxStepWaitBudget { get; set; } = TimeSpan.FromDays(30);
+
+    /// <summary>
+    /// The shortest delay a deferral can schedule. A command asking for less (a positive but
+    /// negligible delay, e.g. from a miscomputed <c>Retry-After</c>) is clamped up to this value, so a
+    /// deferral can never become a tight re-execution loop against the callback target. A non-positive
+    /// delay remains a command bug and fails the step.
+    /// </summary>
+    [JsonPropertyName("minStepDeferDelay")]
+    public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
     /// The default retry strategy for steps.

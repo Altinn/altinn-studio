@@ -331,7 +331,7 @@ window.applyCustomTimeRange = () => {
 };
 
 // Query status checkboxes
-const queryStatusIds = ['enqueued', 'processing', 'requeued', 'completed', 'failed', 'canceled'];
+const queryStatusIds = ['enqueued', 'processing', 'requeued', 'waiting', 'completed', 'failed', 'canceled'];
 window.toggleQueryStatus = () => {
     const checked = queryStatusIds.filter(
         (s) => /** @type {HTMLInputElement} */ (document.getElementById(`${s}-check`))?.checked,

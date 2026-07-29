@@ -13,11 +13,13 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Workflow Lifecycle](#workflow-lifecycle)
     - [Command System](#command-system)
     - [Retry \& Error Handling](#retry--error-handling)
+    - [Deferral (Durable Yield)](#deferral-durable-yield)
     - [Concurrency Model](#concurrency-model)
     - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
     - [Cancellation](#cancellation)
     - [Resume](#resume)
     - [Abandon](#abandon)
+    - [Nudge](#nudge)
     - [Dependency Graphs](#dependency-graphs)
     - [Telemetry \& Observability](#telemetry--observability)
     - [Dashboard](#dashboard)
@@ -235,6 +237,110 @@ When a workflow fails:
 3. Dependent workflows marked `DependencyFailed`
 4. All visible via API, dashboard, and telemetry
 
+## Deferral (Durable Yield)
+
+Some work is "start now, confirm eventually": an eFormidling shipment, a payment capture, a signing
+order. The outcome arrives on someone else's schedule, and the only honest thing a step can say is
+*"I ran fine; the answer isn't ready yet."* That is a **deferral** — not a failure, and not a retry.
+
+```csharp
+return ExecutionResult.Defer(TimeSpan.FromMinutes(5), "delivery not confirmed yet");
+```
+
+The engine parks the step in `Waiting` and schedules its next execution through the workflow's
+`backoff_until` — the same durable timer `StartAt` rides on. A parked workflow holds **no lease, no
+worker slot and no HTTP slot**; it is simply a row the fetch gate will not claim until its timer
+elapses. `Waiting` is non-terminal and counts as *active*: consumers must never read a parked
+workflow as settled.
+
+Deferrals are kept rigorously separate from errors:
+
+| | Retryable error | Deferral |
+| --- | --- | --- |
+| Status | `Requeued` | `Waiting` |
+| `ErrorHistory` | Appends an entry | Records nothing |
+| `RequeueCount` | Incremented | **Reset to 0** |
+| Metric | `engine.steps.execution.requeued` | `engine.steps.execution.deferred` |
+| Bounded by | `RetryStrategy` | The step's wait budget |
+
+Resetting `RequeueCount` is deliberate: retries bound *consecutive errors between* deferrals, not
+errors across the step's whole lifetime. A poll that fails transiently, recovers, and then polls for
+another six hours should not arrive at hour six with its retry budget already spent.
+
+### Two vocabularies, on purpose
+
+`Defer`/`Deferred` is what a **command returns**; `Waiting` is the **state the engine puts the step
+in**. The same split already exists for failures — a command returns `RetryableError`, the engine
+records `Requeued` — and it is worth keeping: the command describes its own outcome, the engine
+describes what it did about it. So counters count the event (`engine.steps.execution.deferred`) while
+the gauge measures the state (`engine.workflows.waiting`).
+
+### Three separate clocks
+
+Each bounds a different thing, and none of them substitutes for another:
+
+| Clock | Bounds | Anchored at | Default |
+| --- | --- | --- | --- |
+| `command.maxExecutionTime` | One execution attempt | Attempt start | 100s |
+| `RetryStrategy` | A run of consecutive *errors* | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries |
+| `command.waitBudget` | Cumulative time spent *waiting* | `Step.FirstDeferredAt` | 24h |
+
+Two persisted anchors, because they measure different spans and collapsing them breaks one of the two.
+`FirstDeferredAt` never moves once set, so the budget measures the whole wait. `LastDeferredAt` moves
+with each deferral, so an error run that begins after a long wait still gets its full retry allowance.
+Anchoring retries on `UpdatedAt` instead looks equivalent and is not: `UpdatedAt` advances on *every*
+write-back, including each failed attempt, which slides the retry deadline forward one backoff at a
+time and stops `MaxDuration` binding at all — a deferred step whose command starts failing would then
+retry forever, never reaching a terminal status and never raising a failure metric.
+
+**Total allowed duration.** There is no workflow-level lifetime cap; the clocks above are all
+per-step. A step's worst case after a deferral is `waitBudget + RetryStrategy.MaxDuration` (48h on
+defaults), and a workflow's is that summed over its steps — up to `MaxStepsPerWorkflow` of them.
+A parked workflow also blocks its dependents and holds its collection head for the whole time, is
+never purged by retention (it is `Incomplete`), protects its already-finished dependencies from being
+purged, and counts toward `BackpressureThreshold`. Size budgets accordingly, and note that `resume`
+clears both anchors — a resumed step starts its budget over.
+
+### The wait budget
+
+`command.waitBudget` (default `EngineSettings.DefaultStepWaitBudget` = 24h, rejected at enqueue above
+`MaxStepWaitBudget` = 30d) caps total waiting, measured from the step's **first** deferral
+(`Step.FirstDeferredAt`, persisted), so it survives restarts and re-fetches.
+
+It is a **cumulative allowance, not a poll interval.** The command chooses the delay before each
+re-check; the budget caps the sum of those delays. A step deferring 5 minutes at a time under the 24h
+default therefore polls ~288 times — it does not sit idle for a day between checks.
+
+The budget bounds waiting; it does not shorten the last poll. A deferral asking for longer than the
+budget has left is **clamped to land exactly on the deadline**, so the step always spends its whole
+budget and always gets one final execution before expiring. (Rejecting the overshooting deferral
+instead would forfeit the remainder of the budget, and would make `Defer(24h)` under a 24h budget fail
+without ever having waited.) A deferral *at or past* the deadline is what fails the step — with a
+distinct classification:
+
+```text
+engine.workflows.execution.failed{reason="wait_expired"}
+```
+
+Keep `wait_expired` out of the default ops alert: it means the awaited external outcome never arrived,
+not that the engine or the command broke. Route it to the team that owns the integration. A
+non-positive delay, by contrast, is a command bug and fails the step under the ordinary `execution`
+reason. A *positive but negligible* delay is the same class of mistake handled gently: it is clamped
+up to `MinStepDeferDelay` (1s), because there is no honest threshold below which "wait a moment" means
+"wait no time at all", and a spinning park would hammer the callback target for the whole budget.
+
+`DeferCount` and `FirstDeferredAt` are exposed on `StepStatusResponse`, and `DeferCount` is readable
+from `CommandExecutionContext.Step` so a command can back off its own poll cadence adaptively.
+`engine.steps.wait.duration` records the budget a step actually consumed, once per deferring step at
+the moment it resolves — the only signal that shows budgets being *approached* rather than blown, so
+compare its upper percentiles against the configured budget when sizing one.
+
+### Push as an optimization of pull
+
+The step's own cadence is always the source of truth. When an external signal *does* arrive early, use
+[Nudge](#nudge) to collapse the remaining wait — the step then re-executes and decides for itself
+whether the outcome is ready. A lost signal therefore costs latency, never correctness.
+
 ## Concurrency Model
 
 Three independent semaphore pools via `IConcurrencyLimiter`:
@@ -335,6 +441,39 @@ The canonical use is superseding a failed predecessor: mark the failed workflow 
 ```
 
 The transition is a compare-and-set from the three source states: 202 Accepted when this call wrote off the workflow, 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
+
+## Nudge
+
+A parked workflow — `Requeued` between retry attempts, or `Waiting` on a [deferral](#deferral-durable-yield) —
+can be told to stop waiting:
+
+```http
+POST /api/v1/{namespace}/workflows/{workflowId}/nudge
+```
+
+This clears `backoff_until` and signals the processor, so the workflow is claimed on the next fetch
+cycle instead of when its timer would have elapsed. The workflow is **re-executed, not skipped**: the
+step runs again and reaches its own conclusion. Nudging a poller that still has nothing to report
+simply produces another deferral.
+
+This is the engine's push channel. It exists so an external signal (a webhook, an event) can
+*accelerate* a poll, never to carry it: the step's own cadence remains the source of truth, so a lost
+nudge costs one poll interval of latency and nothing else. Never build a flow whose correctness
+depends on the nudge arriving.
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "nudgedAt": "2026-03-19T10:03:00+00:00"
+}
+```
+
+Returns `200 OK` with a null `nudgedAt` when the workflow was parked but already due (idempotent —
+the goal state already held), `409 Conflict` when it is not parked at all, and `404 Not Found` when it
+does not exist. The dashboard's *Retry now* / *Check now* buttons drive the same operation through
+`POST /dashboard/nudge`.
 
 ## Dependency Graphs
 
@@ -633,6 +772,25 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?c
     "cascadeResumed": []
 }
 ```
+
+### Nudge Workflow
+
+```http
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/nudge
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "nudgedAt": "2026-03-19T10:03:00+00:00"
+}
+```
+
+Clears the pending backoff of a parked (`Requeued` or `Waiting`) workflow so it runs on the next fetch
+cycle — see [Nudge](#nudge). Returns `200 OK` with a null `nudgedAt` when it was already due,
+`409 Conflict` when the workflow is not parked, and `404 Not Found` when it doesn't exist.
 
 ### List Collections
 

@@ -55,13 +55,19 @@ internal sealed class ProcessStepOptionsResolver
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
         ProcessStepRetryStrategy? retryStrategy =
             implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
+        TimeSpan? waitBudget = implementationOverride?.WaitBudget ?? commandDefault?.WaitBudget;
 
-        if (maxExecutionTime is null && retryStrategy is null)
+        if (maxExecutionTime is null && retryStrategy is null && waitBudget is null)
         {
             return null;
         }
 
-        var resolved = new ProcessStepOptions { MaxExecutionTime = maxExecutionTime, RetryStrategy = retryStrategy };
+        var resolved = new ProcessStepOptions
+        {
+            MaxExecutionTime = maxExecutionTime,
+            RetryStrategy = retryStrategy,
+            WaitBudget = waitBudget,
+        };
 
         // Validate the merged result: a misconfigured handler fails fast here (at enqueue) rather than
         // producing a degenerate timeout/retry loop in the engine. Startup validation catches the common

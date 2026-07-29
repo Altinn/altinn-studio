@@ -102,6 +102,96 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.False(updated);
     }
 
+    [Theory]
+    [InlineData(PersistentItemStatus.Waiting)]
+    [InlineData(PersistentItemStatus.Requeued)]
+    public async Task RequestCancellation_ParkedWorkflow_ClearsBackoffSoTheCancelIsPickedUp(PersistentItemStatus status)
+    {
+        // A parked workflow is only re-fetched once its backoff elapses, and the in-memory
+        // cancellation watcher only reaches workflows a pod is executing. Without clearing the
+        // backoff, the cancel would be accepted and then sit unapplied for the whole wait.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, status);
+
+        await context.Database.ExecuteSqlAsync(
+            $"UPDATE engine.workflows SET backoff_until = {DateTimeOffset.UtcNow.AddDays(7)} WHERE id = {workflow.DatabaseId}",
+            TestContext.Current.CancellationToken
+        );
+
+        var updated = await repo.RequestCancellation(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.True(updated);
+
+        var backoffUntil = await context
+            .Workflows.AsNoTracking()
+            .Where(wf => wf.Id == workflow.DatabaseId)
+            .Select(wf => wf.BackoffUntil)
+            .SingleAsync(TestContext.Current.CancellationToken);
+
+        Assert.Null(backoffUntil);
+    }
+
+    [Fact]
+    public async Task RequestCancellation_ScheduledWorkflow_PreservesBackoff()
+    {
+        // On an Enqueued row backoff_until carries StartAt; clearing it would run a scheduled
+        // workflow early instead of cancelling it promptly.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued);
+
+        var startAt = DateTimeOffset.UtcNow.AddDays(7);
+        await context.Database.ExecuteSqlAsync(
+            $"UPDATE engine.workflows SET backoff_until = {startAt}, start_at = {startAt} WHERE id = {workflow.DatabaseId}",
+            TestContext.Current.CancellationToken
+        );
+
+        var updated = await repo.RequestCancellation(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.True(updated);
+
+        var backoffUntil = await context
+            .Workflows.AsNoTracking()
+            .Where(wf => wf.Id == workflow.DatabaseId)
+            .Select(wf => wf.BackoffUntil)
+            .SingleAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotNull(backoffUntil);
+    }
+
+    [Fact]
+    public async Task CountRunnableWorkflows_ExcludesWorkflowsParkedBehindABackoff()
+    {
+        // The distinction the test harness relies on to decide the engine is quiescent: a parked
+        // workflow holds no lease and cannot wake before its timer, so it is not runnable.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var parked = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Waiting);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued);
+
+        await context.Database.ExecuteSqlAsync(
+            $"UPDATE engine.workflows SET backoff_until = {DateTimeOffset.UtcNow.AddDays(7)} WHERE id = {parked.DatabaseId}",
+            TestContext.Current.CancellationToken
+        );
+
+        var active = await repo.CountActiveWorkflows(TestContext.Current.CancellationToken);
+        var runnable = await repo.CountRunnableWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, active);
+        Assert.Equal(1, runnable);
+    }
+
     [Fact]
     public async Task ResumeWorkflow_WrongNamespace_ReturnsEmpty()
     {
@@ -121,13 +211,13 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task SkipBackoff_WrongNamespace_ReturnsFalse()
+    public async Task ClearBackoff_WrongNamespace_ReturnsFalse()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
         var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Requeued);
 
-        var updated = await repo.SkipBackoff(
+        var updated = await repo.ClearBackoff(
             workflow.DatabaseId,
             "wrong-namespace",
             TestContext.Current.CancellationToken
