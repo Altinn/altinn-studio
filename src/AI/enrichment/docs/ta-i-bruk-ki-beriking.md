@@ -141,6 +141,12 @@ vedleggsliste.
   non-streaming-requests etter **30 minutter** — hold `TimeoutSeconds` godt
   under det, og la `UseStreaming` stå på (default): med streaming flyter det
   tokens hele veien, så gateway-taket for non-streaming gjelder ikke.
+- **Steg-budsjett (kun apper på Altinn.App.Core v9+)**: på workflow-engine har
+  hele ai-steget et eget kjøretidsbudsjett. Biblioteket overstyrer motorens
+  10-minutters service-task-default via `AiEnrichment:Step`:
+  `MaxExecutionTime` (default `"01:00:00"`), `MaxRetries` (default 2 — en retry
+  kjører hele agenten på nytt, hold den lav) og `RetryInterval` (default
+  `"00:01:00"`). Apper på 8.x (klassisk synkron `process/next`) ignorerer dette.
 
 ## Steg 7 — Bygg agenten (`App/agents/<navn>/`)
 

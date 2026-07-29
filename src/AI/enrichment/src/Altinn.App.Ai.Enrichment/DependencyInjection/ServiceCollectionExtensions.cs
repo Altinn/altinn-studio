@@ -4,7 +4,11 @@ using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Orchestration;
 using Altinn.App.Ai.Enrichment.Rendering;
 using Altinn.App.Ai.Enrichment.ServiceTasks;
+#if NET10_0_OR_GREATER
+using Altinn.App.Core.Features.Process;
+#else
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+#endif
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

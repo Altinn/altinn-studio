@@ -1,14 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- net8.0 targets Altinn.App.Core 8.x (classic synchronous process/next);
+         net10.0 targets 9.x, adding workflow-engine step options (timeout/retry). -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Description>AI enrichment (KI Beriking) for Altinn apps: per-item LLM evaluation with deterministic tools, configured from the app's App/agents folder, exposed as the ai process service task.</Description>
     <PackageId>Altinn.App.Ai.Enrichment</PackageId>
-    <Version>0.5.0-preview.5</Version>
+    <Version>0.5.0-preview.6</Version>
     <Authors>Digdir AI-lab</Authors>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
@@ -19,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Core" Version="8.12.7" />
+    <PackageReference Include="Altinn.App.Core" Version="8.12.7" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Altinn.App.Core" Version="9.0.0-preview.3" Condition="'$(TargetFramework)' == 'net10.0'" />
     <PackageReference Include="YamlDotNet" Version="16.*" />
   </ItemGroup>
 
