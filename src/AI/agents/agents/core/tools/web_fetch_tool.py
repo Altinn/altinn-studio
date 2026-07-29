@@ -27,6 +27,7 @@ FETCH_TIMEOUT_SECONDS = 20.0
 _TAG_STRIP_RE = re.compile(r"<(script|style|nav|header|footer)[^>]*>.*?</\1>", re.DOTALL | re.IGNORECASE)
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 _WHITESPACE_RE = re.compile(r"\n{3,}")
+_TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.DOTALL | re.IGNORECASE)
 
 
 class WebFetchArgs(BaseModel):
@@ -88,11 +89,39 @@ class WebFetchTool(Tool):
 
         content_type = response.headers.get("content-type", "")
         text = response.text
+        title = _page_title(text) if "html" in content_type else None
         if "html" in content_type:
             text = _html_to_text(text)
         if len(text) > MAX_RESPONSE_CHARS:
             text = text[:MAX_RESPONSE_CHARS] + "\n…[truncated]"
-        return ToolResult(content=text, metadata={"url": args.url, "chars": len(text)})
+        return ToolResult(
+            content=text,
+            metadata={
+                "url": args.url,
+                "chars": len(text),
+                # Consulted-source record, collected by the loop and shown
+                # in the chat UI.  Ground truth: this page WAS fetched.
+                "source": {
+                    "title": title or _title_from_url(args.url),
+                    "url": args.url,
+                    "kind": "docs",
+                },
+            },
+        )
+
+
+def _page_title(html: str) -> str | None:
+    match = _TITLE_RE.search(html)
+    if not match:
+        return None
+    title = _WHITESPACE_RE.sub(" ", match.group(1)).strip()
+    return title or None
+
+
+def _title_from_url(url: str) -> str:
+    path = urlparse(url).path.rstrip("/")
+    last_segment = path.rsplit("/", 1)[-1] if path else ""
+    return last_segment or urlparse(url).hostname or url
 
 
 def _html_to_text(html: str) -> str:

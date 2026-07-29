@@ -1,5 +1,7 @@
 ---
 description: How Altinn data models work: JSON Schema conventions, C# class generation, binding names, and the datamodel sync workflow. Load before creating or changing anything under App/models/.
+title: Datamodeller
+docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/concepts/data-model/
 ---
 
 # ALTINN DATAMODEL STRUCTURE AND RULES

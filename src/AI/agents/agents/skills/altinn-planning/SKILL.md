@@ -1,5 +1,6 @@
 ---
 description: How to plan an Altinn app change: which files are involved per task type, ordering, and validation strategy. Load first on unfamiliar or multi-file tasks.
+title: Planlegging av app-endringer
 ---
 
 # Altinn App Development Instructions

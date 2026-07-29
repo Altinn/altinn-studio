@@ -70,6 +70,40 @@ class TestDiscoverSkills:
         skills = discover_skills(tmp_path)
         assert skills[0].description == "Base. Use when testing."
 
+    def test_title_and_docs_url_parsed_from_frontmatter(self, tmp_path):
+        skill_dir = tmp_path / "titled"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\n"
+            "description: Base.\n"
+            "title: Dynamiske uttrykk\n"
+            "docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/\n"
+            "---\nBody",
+            encoding="utf-8",
+        )
+
+        skills = discover_skills(tmp_path)
+        assert skills[0].title == "Dynamiske uttrykk"
+        assert skills[0].docs_url == (
+            "https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/"
+        )
+
+    def test_title_and_docs_url_default_to_empty(self, tmp_path):
+        _write_skill(tmp_path, "plain", "Desc.")
+
+        skills = discover_skills(tmp_path)
+        assert skills[0].title == ""
+        assert skills[0].docs_url == ""
+
+    def test_bundled_skills_all_have_display_titles(self):
+        # The source chip in the chat UI shows the title; a bundled skill
+        # without one falls back to its directory name, which means
+        # nothing to end users.
+        skills = discover_skills()
+        assert skills, "expected bundled skills to be discoverable"
+        untitled = [s.name for s in skills if not s.title]
+        assert untitled == [], f"bundled skills missing frontmatter title: {untitled}"
+
     def test_missing_root_returns_empty(self, tmp_path):
         assert discover_skills(tmp_path / "nonexistent") == []
 
@@ -181,3 +215,34 @@ class TestSkillTool:
 
         assert "alpha" in tool.description
         assert "beta" in tool.description
+
+    @pytest.mark.asyncio
+    async def test_source_record_uses_display_title_and_docs_url(self, tmp_path):
+        skill_dir = tmp_path / "titled"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\n"
+            "description: Base.\n"
+            "title: Dynamiske uttrykk\n"
+            "docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/\n"
+            "---\nBody",
+            encoding="utf-8",
+        )
+        tool = SkillTool(discover_skills(tmp_path))
+
+        result = await tool.run(SkillArgs(skill="titled"), _ctx())
+
+        assert result.metadata["source"] == {
+            "title": "Dynamiske uttrykk",
+            "kind": "skill",
+            "url": "https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/",
+        }
+
+    @pytest.mark.asyncio
+    async def test_source_record_falls_back_to_name_without_url(self, tmp_path):
+        _write_skill(tmp_path, "plain", "Desc.")
+        tool = SkillTool(discover_skills(tmp_path))
+
+        result = await tool.run(SkillArgs(skill="plain"), _ctx())
+
+        assert result.metadata["source"] == {"title": "plain", "kind": "skill"}

@@ -1,5 +1,7 @@
 ---
 description: Text resources (resource.nb.json etc.): key naming, locale files, and how layouts reference them. Load before adding or renaming text resources.
+title: Tekstressurser
+docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/texts/
 ---
 
 # ALTINN RESOURCES STRUCTURE AND RULES
