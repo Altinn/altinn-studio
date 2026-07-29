@@ -1101,20 +1101,24 @@ public class MaskinportenClientTests
     }
 
     [Fact]
-    public async Task RefreshWellKnownIssuer_LogsWarningOnlyWhenIssuerChanges()
+    public async Task RefreshWellKnownIssuer_LogsWarningOnlyWhenIssuerChangesUnderTheSameAuthority()
     {
         // Arrange
         await using var fixture = Fixture.Create();
+        const string authorityA = "https://authority-a.maskinporten.dev/";
+        const string authorityB = "https://authority-b.maskinporten.dev/";
         const string issuer1 = "https://issuer1.maskinporten.no/";
         const string issuer2 = "https://issuer2.maskinporten.no/";
+        const string issuer3 = "https://issuer3.maskinporten.no/";
         var currentIssuer = issuer1;
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
             (_, _) => Task.FromResult(WellKnownSuccessResponse(currentIssuer))
         );
         var logger = new RecordingLogger<MaskinportenClient>();
+        var currentSettings = Fixture.DefaultSettings with { Authority = authorityA };
         var optionsMonitor = new Mock<IOptionsMonitor<MaskinportenSettings>>();
-        optionsMonitor.Setup(x => x.Get(It.IsAny<string?>())).Returns(Fixture.DefaultSettings);
+        optionsMonitor.Setup(x => x.Get(It.IsAny<string?>())).Returns(() => currentSettings);
         var client = fixture.ClientWithOptions(
             MaskinportenClient.VariantDefault,
             optionsMonitor.Object,
@@ -1124,16 +1128,25 @@ public class MaskinportenClientTests
         // Act & assert - cold refresh (nothing to compare) and same-issuer refresh log no warning
         await client.RefreshWellKnownIssuer(CancellationToken.None);
         await client.RefreshWellKnownIssuer(CancellationToken.None);
+
+        // A hot-reloaded Authority resolving to a different issuer is an authority change, not an issuer
+        // change - warning about it would send an operator into the wrong investigation
+        currentSettings = currentSettings with
+        {
+            Authority = authorityB,
+        };
+        currentIssuer = issuer2;
+        await client.RefreshWellKnownIssuer(CancellationToken.None);
         Assert.DoesNotContain(logger.Snapshot(), entry => entry.Level >= LogLevel.Warning);
 
-        // An actual issuer change is a significant event - Warning
-        currentIssuer = issuer2;
+        // The issuer changing under an unchanged authority is the significant event - Warning
+        currentIssuer = issuer3;
         await client.RefreshWellKnownIssuer(CancellationToken.None);
         var warnings = logger.Snapshot().Where(entry => entry.Level == LogLevel.Warning).ToList();
         var warning = Assert.Single(warnings);
-        Assert.Contains(issuer1, warning.Message, StringComparison.Ordinal);
         Assert.Contains(issuer2, warning.Message, StringComparison.Ordinal);
-        Assert.Equal(3, fetchCount());
+        Assert.Contains(issuer3, warning.Message, StringComparison.Ordinal);
+        Assert.Equal(4, fetchCount());
     }
 
     [Fact]
@@ -1146,16 +1159,82 @@ public class MaskinportenClientTests
             fixture,
             (_, _) => Task.FromResult(WellKnownSuccessResponse("https://issuer.maskinporten.no/"))
         );
-        var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
+        var loggedEntries = 0;
+        var bothVariantsLogged = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>(onEntry: () =>
+        {
+            if (Interlocked.Increment(ref loggedEntries) == 2)
+                bothVariantsLogged.TrySetResult();
+        });
         using var service = RefreshService(fixture, logger);
 
-        // Act - the initial iteration runs synchronously (no HTTP happens for unconfigured variants)
+        // Act - ExecuteAsync is not guaranteed to run its first iteration before StartAsync returns,
+        // so gate on the per-variant skip entries before stopping (no HTTP happens for unconfigured variants)
         await service.StartAsync(CancellationToken.None);
+        await bothVariantsLogged.Task.WaitAsync(TimeSpan.FromSeconds(10));
         await service.StopAsync(CancellationToken.None);
 
-        // Assert - no fetches, no startup noise above Debug
+        // Assert - no fetches, no startup noise above Debug, and exactly one Debug skip entry per
+        // variant (which pins that the refresh path actually executed rather than the loop being dead)
+        var entries = logger.Snapshot();
         Assert.Equal(0, fetchCount());
+        Assert.Equal(2, entries.Count(entry => entry.Level == LogLevel.Debug));
+        Assert.DoesNotContain(entries, entry => entry.Level > LogLevel.Debug);
+    }
+
+    [Fact]
+    public async Task WellKnownRefreshService_ServiceResolutionFailureDoesNotFaultTheService()
+    {
+        // Arrange - a broken DI graph (client construction pulls IOptionsMonitor/IHttpClientFactory/
+        // HybridCache) must never fault the BackgroundService: the framework default
+        // BackgroundServiceExceptionBehavior.StopHost would stop the whole application.
+        var provider = new Mock<IServiceProvider>();
+        provider
+            .Setup(x => x.GetService(typeof(IMaskinportenClient)))
+            .Throws(new InvalidOperationException("broken DI graph"));
+        var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
+        using var service = new MaskinportenWellKnownRefreshService(
+            provider.Object,
+            logger,
+            new FakeTimeProvider(new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero))
+        );
+
+        // Act - awaiting ExecuteTask throws if the service faulted
+        await service.StartAsync(CancellationToken.None);
+        await service.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // Assert
+        Assert.False(service.ExecuteTask.IsFaulted);
         Assert.DoesNotContain(logger.Snapshot(), entry => entry.Level > LogLevel.Debug);
+    }
+
+    [Fact]
+    public async Task WellKnownRefreshService_ShutdownMidFetchEndsTheLoopCleanly()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var fetchEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            async (_, cancellationToken) =>
+            {
+                fetchEntered.TrySetResult();
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+                throw new UnreachableException();
+            }
+        );
+        using var service = RefreshService(fixture);
+
+        // Act - stop the host while the first variant's fetch is in flight
+        await service.StartAsync(CancellationToken.None);
+        await fetchEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await service.StopAsync(CancellationToken.None);
+        await service.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // Assert - the loop ended cleanly and stays ended: no further fetches even after the interval
+        Assert.False(service.ExecuteTask.IsFaulted);
+        fixture.FakeTime.Advance(MaskinportenWellKnownRefreshService.WellKnownRefreshInterval);
+        Assert.Equal(1, fetchCount());
     }
 
     [Fact]
@@ -1171,7 +1250,7 @@ public class MaskinportenClientTests
         Assert.Single(hostedServices.OfType<MaskinportenWellKnownRefreshService>());
     }
 
-    private sealed class RecordingLogger<T> : ILogger<T>
+    private sealed class RecordingLogger<T>(System.Action? onEntry = null) : ILogger<T>
     {
         private readonly List<(LogLevel Level, string Message)> _entries = [];
 
@@ -1196,6 +1275,7 @@ public class MaskinportenClientTests
         {
             lock (_entries)
                 _entries.Add((logLevel, formatter(state, exception)));
+            onEntry?.Invoke();
         }
     }
 

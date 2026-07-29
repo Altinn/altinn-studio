@@ -546,14 +546,18 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         await _wellKnownFetchLock.WaitAsync(cancellationToken);
         try
         {
+            // Read inside the lock (as the request path does) so the written (Authority, Issuer) pair is
+            // always the pair the fetch actually used — a concurrent hot-reload cannot tear them apart.
             string authority = Settings.Authority;
             var metadata = await FetchWellKnownMetadata(authority, cancellationToken);
 
             var previous = Volatile.Read(ref _issuer);
             Volatile.Write(ref _issuer, new ResolvedIssuer(authority, metadata.Issuer));
 
-            // An actual issuer change is a significant event — every consumer of the environment is affected.
-            if (previous is not null && previous.Issuer != metadata.Issuer)
+            // An actual issuer change under an unchanged authority is a significant event — every consumer
+            // of the environment is affected. A different issuer after an Authority reconfiguration is NOT
+            // that event, and warning about it would send an operator into the wrong investigation.
+            if (previous is not null && previous.Authority == authority && previous.Issuer != metadata.Issuer)
             {
                 _logger.LogWarning(
                     "Well-known issuer changed from {PreviousIssuer} to {NewIssuer}",
