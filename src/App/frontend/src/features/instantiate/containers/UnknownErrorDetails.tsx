@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 
 import { AccordionItem, Button, Flex } from '@app/form-component';
 import { CheckmarkCircleIcon } from '@navikt/aksel-icons';
-import { type AxiosError, isAxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 import classes from 'src/features/instantiate/containers/UnknownErrorDetails.module.css';
 import { Lang } from 'src/features/language/Lang';
+import { getAxiosErrorDetails } from 'src/utils/axiosErrorDetails';
 
 interface UnknownErrorDetailsProps {
   error: Error | AxiosError;
@@ -15,16 +16,11 @@ interface UnknownErrorDetailsProps {
 export function UnknownErrorDetails({ error, className }: UnknownErrorDetailsProps) {
   const [now] = useState(new Date());
   const [copied, setCopied] = useState(false);
-  const [axiosError] = useState(() => {
-    if (isAxiosError(error)) {
-      return {
-        responseStatus: error.response?.status,
-        responseData: error.response?.data,
-      };
-    }
-    return null;
-  });
+  const [axiosError] = useState(() => getAxiosErrorDetails(error));
   const [location] = useState(window?.location.href);
+
+  // Axios parses json responses, so the body is usually an object rather than a string
+  const responseBody = JSON.stringify(axiosError?.responseData, null, 2);
 
   async function handleCopyErrorClicked() {
     const errorInfo = {
@@ -87,12 +83,34 @@ export function UnknownErrorDetails({ error, className }: UnknownErrorDetailsPro
           value={now.toISOString()}
         />
 
+        {axiosError?.url && (
+          <DetailItem
+            name='Request url'
+            value={axiosError.url}
+          />
+        )}
+
+        {axiosError?.method && (
+          <DetailItem
+            name='Request method'
+            value={axiosError.method}
+          />
+        )}
+
         {axiosError && (
           <DetailItem
             name='Response status'
             value={axiosError.responseStatus ? axiosError.responseStatus.toString() : ''}
           />
         )}
+
+        {responseBody && (
+          <DetailItem
+            name='Response body'
+            value={responseBody}
+          />
+        )}
+
         {error.stack && (
           <DetailItem
             name='Stacktrace'
@@ -110,7 +128,7 @@ function DetailItem({ name, value }: { name: string; value: string }) {
       <div>
         <strong>{name}:</strong>
       </div>
-      <div>{value}</div>
+      <div className={classes.detailValue}>{value}</div>
     </div>
   );
 }
