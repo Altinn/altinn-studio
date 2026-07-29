@@ -59,7 +59,11 @@ public class TestInvalid
             var state = dataAccessor.GetLayoutEvaluatorState();
             Assert.NotNull(state);
 
-            await ExpressionEvaluator.EvaluateExpression(state, test.Expression, await test.GetContextOrNull(state));
+            await ExpressionEvaluator.EvaluateExpression(
+                state,
+                test.Expression!.Value,
+                await test.GetContextOrNull(state)
+            );
         };
         (await act.Should().ThrowAsync<Exception>()).WithMessage(testCase.ExpectsFailure + "*");
     }

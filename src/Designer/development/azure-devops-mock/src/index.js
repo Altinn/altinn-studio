@@ -51,7 +51,7 @@ app.get('/api/v1/scopes/access/all', accessScopesRoute);
 app.post('/_apis/build/builds/', buildsRoute);
 app.post('/notifications/api/v1/future/orders', notificationRoute);
 
-app.all('*', function (req, res) {
+app.all('/{*splat}', function (req, res) {
   console.log(req.method + ' ' + req.originalUrl);
   res.send('Ok, you are at the foxy mockzy');
 });

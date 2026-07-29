@@ -93,6 +93,10 @@ export const getProcessResumeUrl = (instanceId: string) => `${appPath}/instances
  * Builds the platform authentication URL that triggers a step-up to security level high (`idporten-loa-high`),
  * returning the user to the app (`goTo`) once the higher level has been obtained.
  */
+/**
+ * Builds the platform authentication URL that triggers a step-up to security level high (`idporten-loa-high`),
+ * returning the user to the app (`goTo`) once the higher level has been obtained.
+ */
 export const getUpgradeAuthLevelUrl = () =>
   `https://platform.${getHostname()}/authentication/api/v1/authentication?goTo=${encodeURIComponent(
     appPath,

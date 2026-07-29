@@ -189,6 +189,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
+        services.TryAddTransient<DataModelFieldCalculator>();
         services.TryAddTransient<IAppModel, DefaultAppModel>();
         services.AddTransient<IFormDataReader, FormDataReader>();
         services.TryAddTransient<DataListsFactory>();
@@ -197,6 +198,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IDataListsService, DataListsService>();
         services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
+        services.AddTransient<IDataWriteProcessor, DataModelFieldCalculatorProcessor>();
         services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
         services.AddTransient<IDataService, DataService>();
         services.AddSingleton<ModelSerializationService>();
@@ -256,6 +258,11 @@ public static class ServiceCollectionExtensions
         if (appSettings?.ExpressionValidation is true)
         {
             services.AddTransient<IValidator, ExpressionValidator>();
+        }
+
+        if (appSettings?.XsdValidation is true)
+        {
+            services.AddTransient<IValidator, XsdValidator>();
         }
     }
 

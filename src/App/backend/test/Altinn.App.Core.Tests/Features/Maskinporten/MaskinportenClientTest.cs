@@ -2,15 +2,22 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Moq.Protected;
 
@@ -88,6 +95,40 @@ public class MaskinportenClientTests
             return new Fixture(app);
         }
 
+        /// <summary>
+        /// A client wired to a logger that records every rendered Debug message into <paramref name="sink"/>.
+        /// </summary>
+        public MaskinportenClient ClientWithLogCapture(string variant, List<string> sink) =>
+            new(
+                variant,
+                App.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>(),
+                App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
+                App.Services.GetRequiredService<IHttpClientFactory>(),
+                App.Services.GetRequiredService<HybridCache>(),
+                new CapturingLogger(sink),
+                App.Services.GetRequiredService<TimeProvider>()
+            );
+
+        private sealed class CapturingLogger(List<string> sink) : ILogger<MaskinportenClient>
+        {
+            public IDisposable? BeginScope<TState>(TState state)
+                where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter
+            )
+            {
+                lock (sink)
+                    sink.Add(formatter(state, exception));
+            }
+        }
+
         public async ValueTask DisposeAsync() => await App.DisposeAsync();
     }
 
@@ -150,7 +191,9 @@ public class MaskinportenClientTests
         var audience = "https://test.maskinporten.no/";
 
         // Act
-        var jwt = fixture.Client(variant).GenerateJwtGrant(scopes, audience);
+        var jwt = fixture
+            .Client(variant)
+            .GenerateJwtGrant(new MaskinportenTokenRequest { Scopes = [scopes] }, audience);
         var parsed = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
 
         // Assert
@@ -158,6 +201,11 @@ public class MaskinportenClientTests
         Assert.Equal(audience, parsed.Audiences.Single());
         Assert.Equal(settings.ClientId, parsed.Issuer);
         Assert.Equal(scopes, parsed.Claims.First(x => x.Type == "scope").Value);
+
+        // The optional claims must not be emitted unless explicitly requested
+        Assert.DoesNotContain(parsed.Claims, x => x.Type == "consumer_org");
+        Assert.DoesNotContain(parsed.Claims, x => x.Type == "resource");
+        Assert.DoesNotContain(parsed.Claims, x => x.Type == "authorization_details");
     }
 
     [Theory]
@@ -170,7 +218,9 @@ public class MaskinportenClientTests
         // Act
         var act = () =>
         {
-            fixture.Client(variant).GenerateJwtGrant("scope", "https://test.maskinporten.no/");
+            fixture
+                .Client(variant)
+                .GenerateJwtGrant(new MaskinportenTokenRequest { Scopes = ["scope"] }, "https://test.maskinporten.no/");
         };
 
         // Assert
@@ -305,10 +355,11 @@ public class MaskinportenClientTests
             });
 
         // Act
-        var maskinportenResult1 = await client.GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, ["scope"]);
-        var maskinportenResult2 = await client.GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, ["scope"]);
-        var altinnResult1 = await client.GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, ["scope"]);
-        var altinnResult2 = await client.GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, ["scope"]);
+        var request = new MaskinportenTokenRequest { Scopes = ["scope"] };
+        var maskinportenResult1 = await client.GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, request);
+        var maskinportenResult2 = await client.GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, request);
+        var altinnResult1 = await client.GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, request);
+        var altinnResult2 = await client.GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, request);
 
         // Assert
         Assert.NotEqual(maskinportenResult1.Token.Value, altinnResult1.Token.Value);
@@ -449,12 +500,13 @@ public class MaskinportenClientTests
         // Arrange
         await using var fixture = Fixture.Create();
         var client = fixture.Client(MaskinportenClient.VariantDefault);
+        var request = new MaskinportenTokenRequest { Scopes = ["scope1", "scope2"] };
         var expectedMaskinportenKey = "maskinportenScope-default_scope1 scope2";
         var expectedAltinnKey = "maskinportenScope-altinn-default_scope1 scope2";
 
         // Act
-        var maskinportenResult = client.GetCacheKey(TokenAuthority.Maskinporten, "scope1 scope2");
-        var altinnResult = client.GetCacheKey(TokenAuthority.AltinnTokenExchange, "scope1 scope2");
+        var maskinportenResult = client.GetCacheKey(TokenAuthority.Maskinporten, request);
+        var altinnResult = client.GetCacheKey(TokenAuthority.AltinnTokenExchange, request);
 
         // Assert
         Assert.Equal(expectedMaskinportenKey, maskinportenResult);
@@ -749,5 +801,408 @@ public class MaskinportenClientTests
 
         // Assert - fallback should always have trailing slash for JWT audience claim
         Assert.Equal("https://maskinporten.dev/", result);
+    }
+
+    [Fact]
+    public async Task GenerateJwtGrant_IncludesConsumerOrgAndResourceClaims()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var request = new MaskinportenTokenRequest
+        {
+            Scopes = ["scope1"],
+            ConsumerOrg = OrganisationNumber.Parse("991825827"),
+            Resource = "https://api.example.com/v1",
+        };
+
+        // Act
+        var jwt = fixture.Client(MaskinportenClient.VariantDefault).GenerateJwtGrant(request, "https://aud/");
+        var payload = DecodeJwtPayload(jwt);
+
+        // Assert
+        Assert.Equal("991825827", payload.GetProperty("consumer_org").GetString());
+        Assert.Equal("https://api.example.com/v1", payload.GetProperty("resource").GetString());
+        Assert.False(payload.TryGetProperty("authorization_details", out _));
+    }
+
+    [Fact]
+    public async Task GenerateJwtGrant_IncludesSystemUserAuthorizationDetails()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var request = new MaskinportenTokenRequest
+        {
+            Scopes = ["scope1"],
+            SystemUser = new MaskinportenSystemUser
+            {
+                Organisation = OrganisationNumber.Parse("991825827"),
+                ExternalRef = "systembruker-1",
+            },
+        };
+
+        // Act
+        var jwt = fixture.Client(MaskinportenClient.VariantDefault).GenerateJwtGrant(request, "https://aud/");
+        var payload = DecodeJwtPayload(jwt);
+
+        // Assert - the exact shape is dictated by https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker
+        var details = payload.GetProperty("authorization_details");
+        Assert.Equal(JsonValueKind.Array, details.ValueKind);
+        var detail = Assert.Single(details.EnumerateArray().ToArray());
+        Assert.Equal("urn:altinn:systemuser", detail.GetProperty("type").GetString());
+        Assert.Equal("systembruker-1", detail.GetProperty("externalRef").GetString());
+
+        var organisation = detail.GetProperty("systemuser_org");
+        Assert.Equal("iso6523-actorid-upis", organisation.GetProperty("authority").GetString());
+        Assert.Equal("0192:991825827", organisation.GetProperty("ID").GetString());
+    }
+
+    [Fact]
+    public async Task GenerateJwtGrant_SystemUserDetails_AreReadableByTheInboundTokenParser()
+    {
+        // Arrange: `Authenticated` already parses the `authorization_details` Maskinporten returns on inbound
+        // system user tokens. That parser was written independently of this client, so round-tripping our
+        // outbound grant through it cross-checks the fields both sides share — the `urn:altinn:systemuser`
+        // discriminator and the `systemuser_org` authority/ID pair — instead of trusting one hand-written spelling.
+        await using var fixture = Fixture.Create();
+        var request = new MaskinportenTokenRequest
+        {
+            Scopes = ["scope1"],
+            SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+        };
+
+        // Act
+        var jwt = fixture.Client(MaskinportenClient.VariantDefault).GenerateJwtGrant(request, "https://aud/");
+        var details = DecodeJwtPayload(jwt).GetProperty("authorization_details");
+        var parsed = Authenticated.AuthorizationDetailsClaim.Parse(details);
+
+        // Assert
+        var systemUser = Assert.IsType<Authenticated.SystemUserAuthorizationDetailsClaim>(parsed);
+        Assert.Equal("iso6523-actorid-upis", systemUser.SystemUserOrg.Authority);
+        Assert.Equal("0192:991825827", systemUser.SystemUserOrg.Id);
+    }
+
+    [Fact]
+    public async Task GenerateJwtGrant_OmitsExternalRefWhenNotSupplied()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var request = new MaskinportenTokenRequest
+        {
+            Scopes = ["scope1"],
+            SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+        };
+
+        // Act
+        var jwt = fixture.Client(MaskinportenClient.VariantDefault).GenerateJwtGrant(request, "https://aud/");
+        var payload = DecodeJwtPayload(jwt);
+
+        // Assert
+        var detail = payload.GetProperty("authorization_details").EnumerateArray().Single();
+        Assert.False(detail.TryGetProperty("externalRef", out _));
+    }
+
+    public static TheoryData<string, MaskinportenTokenRequest> DistinctRequests =>
+        new()
+        {
+            {
+                "scopes only",
+                new MaskinportenTokenRequest { Scopes = ["a"] }
+            },
+            {
+                "other scopes",
+                new MaskinportenTokenRequest { Scopes = ["b"] }
+            },
+            {
+                "consumer org",
+                new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = OrganisationNumber.Parse("991825827") }
+            },
+            {
+                "other consumer org",
+                new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = OrganisationNumber.Parse("311169963") }
+            },
+            {
+                "resource",
+                new MaskinportenTokenRequest { Scopes = ["a"], Resource = "https://api.example.com" }
+            },
+            {
+                "other resource",
+                new MaskinportenTokenRequest { Scopes = ["a"], Resource = "https://other.example.com" }
+            },
+            {
+                "resource with separator characters",
+                new MaskinportenTokenRequest { Scopes = ["a"], Resource = "https://api.example.com/a%7Cb%23c" }
+            },
+            {
+                "system user",
+                new MaskinportenTokenRequest
+                {
+                    Scopes = ["a"],
+                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+                }
+            },
+            {
+                "other system user",
+                new MaskinportenTokenRequest
+                {
+                    Scopes = ["a"],
+                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
+                }
+            },
+            {
+                "system user with external ref",
+                new MaskinportenTokenRequest
+                {
+                    Scopes = ["a"],
+                    SystemUser = new MaskinportenSystemUser
+                    {
+                        Organisation = OrganisationNumber.Parse("991825827"),
+                        ExternalRef = "ref",
+                    },
+                }
+            },
+            {
+                // Maskinporten's charset rules keep separators out of `externalRef`, so a second legal ref is
+                // all we can probe here; `resource` above carries the adversarial separator case
+                "system user with other external ref",
+                new MaskinportenTokenRequest
+                {
+                    Scopes = ["a"],
+                    SystemUser = new MaskinportenSystemUser
+                    {
+                        Organisation = OrganisationNumber.Parse("991825827"),
+                        ExternalRef = "other-ref",
+                    },
+                }
+            },
+            {
+                "everything",
+                new MaskinportenTokenRequest
+                {
+                    Scopes = ["a"],
+                    ConsumerOrg = OrganisationNumber.Parse("991825827"),
+                    Resource = "https://api.example.com",
+                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
+                }
+            },
+        };
+
+    [Fact]
+    public async Task GetCacheKey_IsUniquePerRequest()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        var authorities = new[] { TokenAuthority.Maskinporten, TokenAuthority.AltinnTokenExchange };
+
+        // Act
+        var keys = (
+            from authority in authorities
+            from row in DistinctRequests
+            let request = (MaskinportenTokenRequest)row[1]
+            select (Label: $"{authority}/{row[0]}", Key: client.GetCacheKey(authority, request))
+        ).ToArray();
+
+        // Assert
+        var duplicates = keys.GroupBy(x => x.Key, StringComparer.Ordinal).Where(g => g.Count() > 1).ToArray();
+        Assert.Empty(duplicates.Select(g => $"{g.Key}: {string.Join(", ", g.Select(x => x.Label))}"));
+    }
+
+    [Fact]
+    public async Task GetAccessToken_CachesPerRequest_NotPerScope()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        var tokenRequestCount = 0;
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var response = TestAuthentication.GetMaskinportenToken(
+                    scope: "scope",
+                    expiry: TimeSpan.FromMinutes(2),
+                    fixture.FakeTime
+                );
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(response);
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.Is<HttpRequestMessage>(req => IsGrantRequest(req)),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(() =>
+                    {
+                        Interlocked.Increment(ref tokenRequestCount);
+                        return Task.FromResult(
+                            new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(response)),
+                            }
+                        );
+                    });
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - same scopes, different consumer orgs
+        await client.GetAccessToken(new MaskinportenTokenRequest { Scopes = ["scope"] });
+        await client.GetAccessToken(new MaskinportenTokenRequest { Scopes = ["scope"] });
+        await client.GetAccessToken(
+            new MaskinportenTokenRequest { Scopes = ["scope"], ConsumerOrg = OrganisationNumber.Parse("991825827") }
+        );
+        await client.GetAccessToken(
+            new MaskinportenTokenRequest { Scopes = ["scope"], ConsumerOrg = OrganisationNumber.Parse("311169963") }
+        );
+
+        // Assert - one grant request per distinct token identity
+        Assert.Equal(3, tokenRequestCount);
+    }
+
+    [Fact]
+    public async Task GetAltinnExchangedToken_ForwardsTheFullRequestToTheMaskinportenGrant()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        string? capturedAssertion = null;
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(maskinportenTokenResponse);
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.Is<HttpRequestMessage>(req => IsGrantRequest(req)),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(
+                        async (HttpRequestMessage req, CancellationToken ct) =>
+                        {
+                            var form = await TestHelpers.ParseFormUrlEncodedContent(
+                                (FormUrlEncodedContent)req.Content!
+                            );
+                            capturedAssertion = form["assertion"];
+                            return new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
+                            };
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await client.GetAltinnExchangedToken(
+            new MaskinportenTokenRequest
+            {
+                Scopes = ["scope"],
+                ConsumerOrg = OrganisationNumber.Parse("991825827"),
+                SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
+            }
+        );
+
+        // Assert - the exchange is fronted by a Maskinporten grant, which must carry the full request
+        Assert.NotNull(capturedAssertion);
+        var payload = DecodeJwtPayload(capturedAssertion);
+        Assert.Equal("991825827", payload.GetProperty("consumer_org").GetString());
+        var detail = payload.GetProperty("authorization_details").EnumerateArray().Single();
+        Assert.Equal("0192:311169963", detail.GetProperty("systemuser_org").GetProperty("ID").GetString());
+    }
+
+    [Fact]
+    public async Task GenerateJwtGrant_SignatureIsNeverLoggedInFull()
+    {
+        // Arrange: the grant assertion is a replayable credential for its lifetime, so the signature must be
+        // masked the same way `JwtToken` masks itself. Every grant carries a fresh `jti`, so this has to assert
+        // against the assertion that actually went over the wire — comparing against a separately generated one
+        // would pass no matter what we log.
+        await using var fixture = Fixture.Create();
+        var request = new MaskinportenTokenRequest { Scopes = ["scope"] };
+        var logged = new List<string>();
+        string? sentAssertion = null;
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(maskinportenTokenResponse);
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.Is<HttpRequestMessage>(req => IsGrantRequest(req)),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .Returns(
+                        async (HttpRequestMessage req, CancellationToken _) =>
+                        {
+                            var form = await TestHelpers.ParseFormUrlEncodedContent(
+                                (FormUrlEncodedContent)req.Content!
+                            );
+                            sentAssertion = form["assertion"];
+                            return new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
+                            };
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await fixture.ClientWithLogCapture(MaskinportenClient.VariantDefault, logged).GetAccessToken(request);
+
+        // Assert
+        Assert.NotNull(sentAssertion);
+        var parts = sentAssertion.Split('.');
+        Assert.Equal(3, parts.Length);
+        Assert.NotEmpty(parts[2]);
+
+        Assert.DoesNotContain(logged, x => x.Contains(parts[2], StringComparison.Ordinal));
+        Assert.Contains(logged, x => x.Contains($"{parts[0]}.{parts[1]}.<masked>", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetAccessToken_ThrowsOnNullRequest()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+
+        // Act & assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() => client.GetAccessToken((MaskinportenTokenRequest)null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            client.GetAltinnExchangedToken((MaskinportenTokenRequest)null!)
+        );
+    }
+
+    /// <summary>
+    /// Matches only the grant request to Maskinporten's token endpoint. The Altinn exchange is a GET today, so
+    /// matching on the verb alone would also work — but that would silently couple these tests to the verb.
+    /// </summary>
+    private static bool IsGrantRequest(HttpRequestMessage request) =>
+        request.Method == HttpMethod.Post
+        && request.RequestUri!.AbsolutePath.EndsWith("/token", StringComparison.Ordinal);
+
+    private static JsonElement DecodeJwtPayload(string jwt)
+    {
+        var payload = jwt.Split('.')[1];
+        return JsonDocument.Parse(Base64UrlEncoder.DecodeBytes(payload)).RootElement.Clone();
     }
 }

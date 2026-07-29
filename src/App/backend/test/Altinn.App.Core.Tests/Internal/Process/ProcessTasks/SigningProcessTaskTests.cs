@@ -97,6 +97,54 @@ public class SigningProcessTaskTests
     }
 
     [Fact]
+    public async Task End_RevokesDelegatedSigneeRights_WhenRuntimeDelegatedSigningConfigured()
+    {
+        // Arrange
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        var altinnTaskExtension = new AltinnTaskExtension { SignatureConfiguration = CreateSigningConfiguration() };
+
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+        _signingServiceMock
+            .Setup(x =>
+                x.RevokeSigneeRightsOnTaskEnd(
+                    It.IsAny<IInstanceDataMutator>(),
+                    altinnTaskExtension.SignatureConfiguration,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+
+        // Act
+        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+
+        // Assert
+        _signingServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task End_DoesNotRevokeSigneeRights_WhenRuntimeDelegatedSigningNotConfigured()
+    {
+        // Arrange
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        var altinnTaskExtension = new AltinnTaskExtension
+        {
+            SignatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" },
+        };
+
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+
+        // Act
+        // The strict ISigningService mock has no setup for RevokeSigneeRightsOnTaskEnd, so this throws if it's called.
+        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+
+        // Assert
+        _signingServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Abandon_ShouldDeleteExistingSigningData()
     {
         Instance instance = CreateInstance();

@@ -93,7 +93,7 @@ public class TestBackendExclusiveFunctions
                 {
                     await ExpressionEvaluator.EvaluateExpression(
                         state,
-                        test.Expression,
+                        test.Expression!.Value,
                         await test.GetContextOrNull(state)
                     );
                 };
@@ -107,7 +107,7 @@ public class TestBackendExclusiveFunctions
 
         var result = await ExpressionEvaluator.EvaluateExpression(
             state,
-            test.Expression,
+            test.Expression!.Value,
             await test.GetContextOrNull(state)!
         );
 
