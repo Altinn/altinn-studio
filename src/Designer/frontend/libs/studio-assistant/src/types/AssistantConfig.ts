@@ -77,12 +77,19 @@ export interface ErrorEvent extends WorkflowEventBase {
   data: { done?: boolean; success?: boolean; status?: string; message?: string };
 }
 
+/** The agent asks the user to allow changes in a read-only session. */
+export interface PermissionRequestEvent extends WorkflowEventBase {
+  type: 'permission_request';
+  data: { request_id: string; message: string };
+}
+
 export type WorkflowEvent =
   | AssistantMessageEvent
   | AssistantMessageChunkEvent
   | WorkflowStatusEvent
   | DoneEvent
-  | ErrorEvent;
+  | ErrorEvent
+  | PermissionRequestEvent;
 
 export interface WorkflowRequest {
   session_id: string;

@@ -38,6 +38,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow,
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
@@ -70,6 +71,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -105,6 +107,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -158,6 +161,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -207,6 +211,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -260,6 +265,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -304,6 +310,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow,
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
@@ -342,6 +349,113 @@ describe('useAltinityWorkflow', () => {
     );
   });
 
+  it('stores a permission request on the active thread status and clears it when the user responds', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const respondToPermission = jest.fn().mockResolvedValue(undefined);
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      respondToPermission,
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Legg til en ny side',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toEqual({
+      requestId: 'req-1',
+      message: 'write_file: App/ui/Side1.json',
+    });
+
+    await act(async () => {
+      await result.current.respondToPermission('req-1', true);
+    });
+
+    expect(respondToPermission).toHaveBeenCalledWith('thread-a', 'req-1', true);
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeUndefined();
+  });
+
+  it('ignores permission requests for threads without an active workflow', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']).toBeUndefined();
+  });
+
+  it('does not send a permission response for an unknown request id', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const respondToPermission = jest.fn();
+
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission,
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.respondToPermission('stale-request-id', true);
+    });
+
+    expect(respondToPermission).not.toHaveBeenCalled();
+  });
+
   it('deletes latest user message on abort when no assistant response has been received', async () => {
     const threads = createThreadState({
       selectedThreadId: 'thread-1',
@@ -361,6 +475,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow,
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
@@ -404,6 +519,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow,
+      respondToPermission: jest.fn(),
       registerSession: jest.fn().mockResolvedValue(undefined),
       onAgentMessage: jest.fn(),
     });

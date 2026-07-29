@@ -224,6 +224,20 @@ class TestFinalSummaryText:
         # Must not lie about success, but also doesn't need to be alarming.
         assert _final_summary_text(result) == "Ferdig."
 
+    def test_completed_strips_trailing_sources_line(self):
+        # Sources are attached structurally from the tool trace; a text
+        # SOURCES line is a leftover model habit and must not render raw.
+        result = LoopResult(
+            reason=TerminationReason.COMPLETED,
+            messages=[],
+            final_text=(
+                "Uttrykk lar deg styre synlighet dynamisk.\n\n"
+                "SOURCES: altinn_layout_props(component_type='Input') — live oppslag"
+            ),
+            turns=2,
+        )
+        assert _final_summary_text(result) == "Uttrykk lar deg styre synlighet dynamisk."
+
     def test_max_turns_explains_what_happened(self):
         result = LoopResult(reason=TerminationReason.MAX_TURNS, messages=[], turns=20)
         summary = _final_summary_text(result)
@@ -270,7 +284,11 @@ class TestApplyResultToState:
         assert state.tests_passed is True
         assert state.verify_notes == []
         assert state.changed_files == ["Side1/layout.json"]
-        assert state.assistant_response == {"text": "Added date field."}
+        assert state.assistant_response == {
+            "text": "Added date field.",
+            "sources": [],
+            "commit": None,
+        }
         assert state.next_action == "stop"
 
     def test_max_turns_marks_failed_with_explanation(self):
@@ -364,7 +382,88 @@ class TestHandle:
         # State was translated correctly.
         assert result.tests_passed is True
         assert result.changed_files == ["Side1/layout.json"]
-        assert result.assistant_response == {"text": "done"}
+        assert result.assistant_response == {"text": "done", "sources": [], "commit": None}
+
+    async def test_read_only_mode_gates_writes_and_skips_branch_ops(self, monkeypatch):
+        """allow_app_changes=False must flow into the loop ctx, mark the
+        final message with no_branch_operations, and never auto-commit."""
+        captured: dict[str, Any] = {}
+        seen: list = []
+        commits: list = []
+
+        async def fake_run_loop(**kwargs):
+            captured.update(kwargs)
+            return LoopResult(
+                reason=TerminationReason.COMPLETED,
+                messages=[],
+                final_text="Svar på spørsmålet.",
+                turns=1,
+            )
+
+        async def fake_auto_commit(*args, **kwargs):
+            commits.append(args)
+
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node._maybe_auto_commit", fake_auto_commit
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: seen.append(evt)
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
+        )
+
+        state = _state(allow_app_changes=False)
+        await handle(state)
+
+        assert captured["ctx"].allow_app_changes is False
+        assert "read-only mode" in captured["system_prompt"]
+        assert not commits
+        message_events = [e for e in seen if e.type == "assistant_message"]
+        assert message_events[0].data["no_branch_operations"] is True
+
+    async def test_conversation_history_is_threaded_into_loop(self, monkeypatch):
+        from agents.graph.state import ConversationMessage
+
+        captured: dict[str, Any] = {}
+
+        async def fake_run_loop(**kwargs):
+            captured.update(kwargs)
+            return LoopResult(
+                reason=TerminationReason.COMPLETED, messages=[], final_text="ok", turns=1
+            )
+
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
+        )
+
+        state = _state(
+            conversation_history=[
+                ConversationMessage(role="user", content="Lag en oppsummeringsside"),
+                ConversationMessage(role="assistant", content="Laget Summary-siden."),
+            ]
+        )
+        await handle(state)
+
+        history = captured["history"]
+        assert len(history) == 2
+        assert history[0].content == "Lag en oppsummeringsside"
+        assert history[1].role == "assistant"
 
     async def test_emits_done_and_final_assistant_message(self, monkeypatch):
         """The frontend needs both events to close out a workflow.  This

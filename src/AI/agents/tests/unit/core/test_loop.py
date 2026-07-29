@@ -15,6 +15,7 @@ import pytest
 from agents.core import (
     AssistantMessage,
     CompactionConfig,
+    LoopContext,
     TerminationReason,
     TextBlock,
     ToolRegistry,
@@ -30,6 +31,8 @@ from .conftest import (
     DeniedTool,
     EchoTool,
     FakeAdapter,
+    GatedTool,
+    SourcedTool,
     tool_use,
 )
 
@@ -37,6 +40,225 @@ from .conftest import (
 # ---------------------------------------------------------------------------
 # Termination
 # ---------------------------------------------------------------------------
+
+
+class TestHistory:
+    async def test_history_is_prepended_before_current_message(self, ctx):
+        adapter = FakeAdapter(
+            [AssistantMessage(content=[TextBlock(text="svar")], stop_reason="end_turn")]
+        )
+        history = [
+            UserMessage(content="Lag en oppsummeringsside"),
+            AssistantMessage(content=[TextBlock(text="Laget Summary-siden.")]),
+        ]
+
+        result = await run_loop(
+            user_message="Hva endret du?",
+            system_prompt="sys",
+            registry=ToolRegistry(),
+            adapter=adapter,
+            ctx=ctx,
+            history=history,
+        )
+
+        sent = adapter.calls[0]["messages"]
+        assert sent[0].content == "Lag en oppsummeringsside"
+        assert sent[1].role == "assistant"
+        assert sent[2].content == "Hva endret du?"
+        assert result.reason is TerminationReason.COMPLETED
+
+
+def _gated_registry() -> ToolRegistry:
+    registry = ToolRegistry()
+    registry.register(GatedTool())
+    return registry
+
+
+def _sourced_registry() -> ToolRegistry:
+    registry = ToolRegistry()
+    registry.register(SourcedTool())
+    registry.register(EchoTool())
+    return registry
+
+
+class TestSourceCollection:
+    async def test_successful_knowledge_tool_records_source(self, ctx):
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(
+                    content=[
+                        tool_use("sourced", text="expressions"),
+                        tool_use("echo", text="no source here"),
+                    ],
+                    stop_reason="tool_use",
+                ),
+                AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
+            ]
+        )
+
+        await run_loop(
+            user_message="hva er uttrykk?",
+            system_prompt="sys",
+            registry=_sourced_registry(),
+            adapter=adapter,
+            ctx=ctx,
+        )
+
+        assert ctx.extras["sources"] == [
+            {
+                "title": "expressions",
+                "url": "https://docs.altinn.studio/expressions",
+                "kind": "docs",
+            }
+        ]
+
+    async def test_repeated_lookups_are_deduplicated(self, ctx):
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(
+                    content=[tool_use("sourced", text="expressions")], stop_reason="tool_use"
+                ),
+                AssistantMessage(
+                    content=[tool_use("sourced", text="expressions")], stop_reason="tool_use"
+                ),
+                AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
+            ]
+        )
+
+        await run_loop(
+            user_message="hva er uttrykk?",
+            system_prompt="sys",
+            registry=_sourced_registry(),
+            adapter=adapter,
+            ctx=ctx,
+        )
+
+        assert len(ctx.extras["sources"]) == 1
+
+    async def test_failed_lookup_records_no_source(self, ctx):
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(
+                    content=[tool_use("sourced", text="fail")], stop_reason="tool_use"
+                ),
+                AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
+            ]
+        )
+
+        await run_loop(
+            user_message="hva er uttrykk?",
+            system_prompt="sys",
+            registry=_sourced_registry(),
+            adapter=adapter,
+            ctx=ctx,
+        )
+
+        assert ctx.extras.get("sources", []) == []
+
+
+class TestPermissionEscalation:
+    def _read_only_ctx(self, requester) -> LoopContext:
+        return LoopContext(
+            session_id="test-session",
+            repo_path="/tmp/test-repo",
+            allow_app_changes=False,
+            permission_requester=requester,
+        )
+
+    async def test_grant_upgrades_session_and_runs_tool(self):
+        asked: list[str] = []
+
+        async def grant(action: str) -> bool:
+            asked.append(action)
+            return True
+
+        ctx = self._read_only_ctx(grant)
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(
+                    content=[tool_use("gated", text="hello")], stop_reason="tool_use"
+                ),
+                AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
+            ]
+        )
+        result = await run_loop(
+            user_message="do it",
+            system_prompt="sys",
+            registry=_gated_registry(),
+            adapter=adapter,
+            ctx=ctx,
+        )
+
+        assert asked and "gated" in asked[0]
+        assert ctx.allow_app_changes is True
+        tool_results = [
+            b for b in adapter.calls[1]["messages"][-1].content
+            if isinstance(b, ToolResultBlock)
+        ]
+        assert tool_results[0].is_error is False
+        assert "wrote: hello" in tool_results[0].content
+        assert result.reason is TerminationReason.COMPLETED
+
+    async def test_decline_denies_and_blocks_further_asks(self):
+        asks: list[str] = []
+
+        async def decline(action: str) -> bool:
+            asks.append(action)
+            return False
+
+        ctx = self._read_only_ctx(decline)
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(
+                    content=[tool_use("gated", text="a")], stop_reason="tool_use"
+                ),
+                AssistantMessage(
+                    content=[tool_use("gated", text="b")], stop_reason="tool_use"
+                ),
+                AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
+            ]
+        )
+        await run_loop(
+            user_message="do it",
+            system_prompt="sys",
+            registry=_gated_registry(),
+            adapter=adapter,
+            ctx=ctx,
+        )
+
+        # Asked exactly once; the second attempt is refused without re-asking.
+        assert len(asks) == 1
+        assert ctx.allow_app_changes is False
+        second_turn_results = [
+            b for b in adapter.calls[2]["messages"][-1].content
+            if isinstance(b, ToolResultBlock)
+        ]
+        assert second_turn_results[0].is_error is True
+        assert "already declined" in second_turn_results[0].content
+
+    async def test_no_requester_means_plain_denial(self):
+        ctx = self._read_only_ctx(None)
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(
+                    content=[tool_use("gated", text="x")], stop_reason="tool_use"
+                ),
+                AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
+            ]
+        )
+        await run_loop(
+            user_message="do it",
+            system_prompt="sys",
+            registry=_gated_registry(),
+            adapter=adapter,
+            ctx=ctx,
+        )
+        results = [
+            b for b in adapter.calls[1]["messages"][-1].content
+            if isinstance(b, ToolResultBlock)
+        ]
+        assert results[0].is_error is True
+        assert "read-only session" in results[0].content
 
 
 class TestTermination:

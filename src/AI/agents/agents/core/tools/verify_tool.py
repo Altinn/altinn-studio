@@ -131,6 +131,8 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
         return _validate_layout(file_path, full_path)
     if _is_text_resource(file_path):
         return _validate_resource(ctx, file_path, full_path)
+    if _is_layout_settings(file_path):
+        return _validate_layout_settings(file_path, full_path)
     if file_path.endswith(".json"):
         return _basic_json_check(file_path, full_path)
     # Non-JSON file (.cs, .xml, .razor, …): no automated validator wired
@@ -150,6 +152,11 @@ def _is_layout_file(file_path: str) -> bool:
     if name == "Settings.json" or name == "layout-sets.json":
         return False
     return True
+
+
+def _is_layout_settings(file_path: str) -> bool:
+    """Settings.json / layout-sets.json next to a layouts dir."""
+    return Path(file_path).name in ("Settings.json", "layout-sets.json") and "ui" in file_path
 
 
 def _is_text_resource(file_path: str) -> bool:
@@ -347,6 +354,35 @@ def _infer_resource_language(file_path: str) -> str:
     if len(parts) == 2 and parts[0] == "resource":
         return parts[1]
     return "nb"
+
+
+def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
+    """JSON-parse check for Settings.json / layout-sets.json — wrapped in
+    a span that carries the full file content.
+
+    No schema validation is wired in for these files, but the span
+    matters for observability: `pages.order` is otherwise invisible in
+    traces, and downstream tooling reads exactly this
+    `input.file_content` shape.
+    """
+    try:
+        json_content = full_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return False, [f"{file_path}: cannot read — {exc}"]
+
+    with trace_span(
+        "layout_settings_validation",
+        metadata={"span_type": "TOOL", "file_path": file_path},
+    ) as span:
+        span.update(input={"file_content": json_content})
+        try:
+            json.loads(json_content)
+        except json.JSONDecodeError as exc:
+            span.update(output={"result": {"status": "invalid_json"}})
+            return False, [f"{file_path}: invalid JSON — {exc}"]
+        span.update(output={"result": {"status": "json_parsed"}})
+
+    return True, [f"{file_path}: JSON parses (no schema validator for this path)"]
 
 
 def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]:

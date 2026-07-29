@@ -154,6 +154,30 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 # ---------------------------------------------------------------------------
 
 
+_FINAL_ANSWER_READ_ONLY = """\
+## When you are done (read-only mode)
+
+This session started WITHOUT write permission.  Read tools all work: scan
+and read the repo, load skills, look up component schemas, fetch docs.
+
+- **The user asked a question**: investigate with the read tools, then answer
+  in a final assistant message.  Keep it conversational, short paragraphs,
+  minimal markdown.  You may link a docs page inline as `[tittel](url)`, but
+  ONLY with a URL that appears verbatim in content you fetched this session
+  (a `web_fetch` result or a skill's page index) — never write a docs URL
+  from memory; guessed URLs 404.  Do NOT append a `SOURCES:` line — the chat
+  UI attaches the sources you consulted automatically, with working links.
+- **The request requires changing the app**: proceed as if you could write.
+  Your FIRST write-tool call pauses and asks the user for permission
+  interactively — if they grant it, the session becomes a normal write
+  session (verify, commit, summarize as usual).  If they decline or don't
+  answer, the tool result says so: do NOT retry write tools after that —
+  summarize what you would have changed (files + one-line rationale each)
+  and finish.
+- Match the user's language.  If the goal was written in Norwegian, answer in
+  Norwegian."""
+
+
 _FINAL_ANSWER = """\
 ## When you are done
 
@@ -168,7 +192,7 @@ Specifically:
 Send a final assistant message with no tool calls.  Format depends on what you did:
 
 - **You made changes**: name the commit hash (if you committed), list the files you touched with a one-line rationale each.  Use Conventional Commit style for the commit message: `feat|fix|chore: short summary`.
-- **You answered a question**: keep it conversational, short paragraphs, minimal markdown.  Cite sources at the end as `SOURCES: <section titles or doc URLs>`.
+- **You answered a question**: keep it conversational, short paragraphs, minimal markdown.  You may link a docs page inline as `[tittel](url)`, but ONLY with a URL that appears verbatim in content you fetched this session (a `web_fetch` result or a skill's page index) — never write a docs URL from memory; guessed URLs 404.  Do NOT append a `SOURCES:` line — the chat UI attaches the sources you consulted automatically, with working links.
 - **You stopped without finishing**: explain exactly what blocked you and what you'd need to continue.  Don't pretend partial progress is complete.
 
 ### Formatting rules for the final message
@@ -254,7 +278,7 @@ def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -
     if ctx.form_spec_summary:
         sections.append("## Form spec\n" + ctx.form_spec_summary.strip())
 
-    sections.append(_FINAL_ANSWER)
+    sections.append(_FINAL_ANSWER if ctx.allow_app_changes else _FINAL_ANSWER_READ_ONLY)
 
     return "\n\n".join(sections)
 
