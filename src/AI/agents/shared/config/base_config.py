@@ -44,7 +44,9 @@ class BaseConfig:
     AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
     AZURE_ANTHROPIC_ENDPOINT = os.getenv("AZURE_ANTHROPIC_ENDPOINT", "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/")
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
-    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps")
+    # Default small-model deployment: intent safety gate + goal suggestions.
+    # (gpt-4o-mini-2M-tps is being retired.)
+    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
 
     # Fallback to OpenAI if Azure not configured
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -61,10 +63,11 @@ class BaseConfig:
     # The agentic loop reads LLM_MODEL_ACTOR via core.llm_adapter.build_adapter.
     # Everything else goes through services.llm.LLMClient by role:
     #   - planner       → intake + spec workflows + semantic query
-    #   - tool_planner  → assistant chat-mode tool planning
     #   - reviewer      → post-workflow LLM-as-judge evaluators
     #                     (intent / implementation / hallucination)
-    #   - assistant     → assistant chat-mode Q&A
+    # The tool_planner and assistant roles are vestigial — the separate
+    # chat pipeline they served was folded into the agentic loop
+    # (read-only mode); kept only so stale env files don't break startup.
     # Temperatures are env-overridable. Models default to Claude on Azure
     # Anthropic; flip to any Azure OpenAI / Foundry deployment by name.
 
@@ -110,9 +113,6 @@ class BaseConfig:
     LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA = os.getenv("LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA", "")
     LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION = os.getenv("LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION", "")
     LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT = os.getenv("LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT", "")
-    LANGFUSE_SCORE_CONFIG_INTENT_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_INTENT_MATCH", "")
-    LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION = os.getenv("LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION", "")
-    LANGFUSE_SCORE_CONFIG_IMPLEMENTATION_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_IMPLEMENTATION_MATCH", "")
 
 
 def get_config() -> BaseConfig:
