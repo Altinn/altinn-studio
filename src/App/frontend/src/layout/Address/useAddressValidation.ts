@@ -1,15 +1,14 @@
-import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import type { ComponentValidation } from 'src/features/validation';
+import type { ComponentValidationContext } from 'src/layout';
+import type { IDataModelBindings } from 'src/layout/layout';
 
-export function useAddressValidation(baseComponentId: string): ComponentValidation[] {
-  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Address');
-  const zipCode = FormStore.data.useDebouncedPick(dataModelBindings?.zipCode);
-  const houseNumber = FormStore.data.useDebouncedPick(dataModelBindings?.houseNumber);
-  if (!dataModelBindings) {
-    return [];
-  }
+export function validateAddress(ctx: ComponentValidationContext<'Address'>): ComponentValidation[] {
+  const bindings = ctx.component.dataModelBindings as IDataModelBindings<'Address'> | undefined;
+  const zipCode = readDataFromState(ctx.formState, bindings?.zipCode);
+  const houseNumber = readDataFromState(ctx.formState, bindings?.houseNumber);
+
   const validations: ComponentValidation[] = [];
 
   const zipCodeAsString = typeof zipCode === 'string' || typeof zipCode === 'number' ? String(zipCode) : undefined;

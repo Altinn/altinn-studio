@@ -1,7 +1,6 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Logic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,12 +15,19 @@ void RegisterCustomAppServices(
     IWebHostEnvironment env
 )
 {
-    // Pre-commit lever: fails/delays the Task_1 -> Task_2 transition while committed=Task_1.
+    // Pre-commit lever: fails/delays the forward Task_1 transition while committed=Task_1.
     services.AddTransient<IOnTaskEndingHandler, TaskEndingHandler>();
 
-    // NB: the post-commit lever (EventsClient) is registered AFTER AddAltinnAppServices in
-    // ConfigureServices below, because AddAltinnAppServices registers the default IEventsClient and
-    // the last registration wins.
+    // Post-commit lever: the "scenario" service task (Task_Service / Task_ServiceLayout) the
+    // Gateway_PostCommit gateway routes through when path == "postCommit". ExecuteServiceTask runs
+    // it as a critical post-commit step, so its delays/failures are frontend-observable
+    // (committed = the service task).
+    services.AddTransient<IServiceTask, ScenarioServiceTask>();
+
+    // Background driver for the parkThenRelease lever: releases a parked service task after a few
+    // seconds via an ordinary authorized process/next, imitating an external callback.
+    services.AddSingleton<ParkedTaskReleaser>();
+    services.AddHttpClient();
 }
 
 // ###########################################################################
@@ -54,11 +60,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
-
-    // Post-commit lever: override the default IEventsClient so MovedToAltinnEvent (which runs
-    // post-commit, when committed=Task_2) can delay/fail the transition in a frontend-observable way.
-    // Must come AFTER AddAltinnAppServices, which registers the default EventsClient (last wins).
-    services.AddTransient<IEventsClient, EventsClient>();
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>

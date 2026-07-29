@@ -91,3 +91,74 @@ make fmt
 make lint
 make test
 ```
+
+## Running a fully local build (contributors)
+
+By default `studioctl env up` pulls pre-built release images from GHCR and
+`studioctl run` serves the released app frontend bundled into the app image. When you
+are changing the runtime/platform services or the app frontend themselves, you can build
+and serve everything from your local checkout instead.
+
+### Build the environment images from local source
+
+Set `STUDIOCTL_INTERNAL_DEV=true` and run `env up` from **inside your altinn-studio
+checkout**:
+
+```sh
+cd altinn-studio          # anywhere inside the monorepo working tree
+STUDIOCTL_INTERNAL_DEV=true studioctl env up
+```
+
+In this mode studioctl builds the `localtest`, `pdf3`, and `workflow-engine` images from
+the Dockerfiles in your working tree instead of pulling release images. It confirms this
+with a `Building and starting localtest environment (dev mode)...` message, and the first
+run is slower because the images are built locally.
+
+Requirements and behaviour:
+
+- The current directory must be within a Studio repo checkout. studioctl detects the repo
+  root and expects `src/Runtime/localtest/Dockerfile` to exist.
+- If `STUDIOCTL_INTERNAL_DEV` is set but no Studio repo is detected (or the Dockerfile is
+  missing), studioctl prints a warning and falls back to release images.
+- Truthy values are `1` and `true` (case-insensitive); anything else is treated as unset.
+- This is the same switch CI uses to build the engine/platform services from the PR source,
+  so a local dev-mode run exercises the same app⇄services contract as CI.
+
+To go back to release images, simply run `studioctl env up` again without the variable
+(after `studioctl env down`).
+
+### Serve the app against the frontend dev server
+
+To run your app against a locally served **app frontend** (`src/App/frontend`) instead of
+the released bundle, start the frontend dev server and pass `--dev-frontend`:
+
+```sh
+# 1. Start the app frontend dev server (listens on host port 8080)
+cd src/App/frontend
+yarn                       # only when dependencies changed
+yarn start
+
+# 2. In another terminal, run your app pointed at that dev server
+cd <your-app-repo>
+studioctl run --dev-frontend
+```
+
+`--dev-frontend` sets `AppSettings__AppFrontendAssetBaseUrl` to
+`http://app-frontend.local.altinn.cloud:8000`, which the localtest ingress host-bridges to
+the dev server on host port `8080`. The `app-frontend.local.altinn.cloud` hostname must
+resolve on your machine — ensure the studioctl-managed hosts entries are present with:
+
+```sh
+studioctl env hosts add      # env up does not modify the hosts file for you
+```
+
+The same flag works on `studioctl app run --dev-frontend` and on
+`studioctl app env --dev-frontend --json`, the latter being useful to feed the environment
+into an IDE run configuration.
+
+> Related: `studioctl env up --dev-workflow-engine` routes the workflow-engine component to
+> a host process instead of a container, for the equivalent loop on that service.
+
+The two switches are independent and compose: run `STUDIOCTL_INTERNAL_DEV=true studioctl
+env up` for locally built services and `studioctl run --dev-frontend` for a locally served
+frontend, together or separately.

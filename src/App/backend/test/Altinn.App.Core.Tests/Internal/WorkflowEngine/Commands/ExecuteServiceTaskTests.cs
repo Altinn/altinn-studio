@@ -83,6 +83,26 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
+    public async Task Execute_ForwardsWorkflowIdToServiceTaskContext()
+    {
+        // Arrange
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask.Setup(x => x.Execute(It.IsAny<ServiceTaskContext>())).ReturnsAsync(ServiceTaskResult.Success());
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        // Act
+        await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        serviceTask.Verify(
+            x => x.Execute(It.Is<ServiceTaskContext>(c => c.WorkflowId == context.Payload.WorkflowId)),
+            Times.Once
+        );
+    }
+
+    [Fact]
     public async Task Execute_WhenSuccessWithoutAutoAdvance_ReturnsFalseAutoAdvance()
     {
         // Arrange

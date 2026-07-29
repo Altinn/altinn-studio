@@ -62,8 +62,14 @@ export const PartySelection = () => {
     navigate('/');
   };
 
+  const numberFilterString = filterString.replace(/\s+/g, '');
+  const hasNumberFilter = numberFilterString.length > 0 && numberFilterString.match(/^\d+$/);
   const filteredParties = partiesAllowedToInstantiate.filter(
-    (party) => party.name.toUpperCase().includes(filterString.toUpperCase()) && !(party.isDeleted && !showDeleted),
+    (party) =>
+      (party.name.toUpperCase().includes(filterString.toUpperCase()) ||
+        (hasNumberFilter &&
+          (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)))) &&
+      !(party.isDeleted && !showDeleted),
   );
 
   const hasMoreParties = filteredParties.length > numberOfPartiesShown;

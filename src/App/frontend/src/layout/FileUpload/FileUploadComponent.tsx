@@ -8,7 +8,8 @@ import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Label } from 'src/components/label/Label';
-import { useAddRejectedAttachments, useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
@@ -50,9 +51,9 @@ export function FileUploadComponent({
 
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useIsMobileOrTablet();
-  const attachments = useAttachmentsFor(baseComponentId);
-  const addRejectedAttachments = useAddRejectedAttachments();
-  const uploadAttachments = useAttachmentsUploader();
+  const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
+  const addRejectedAttachments = AttachmentUpload.useAddRejectedAttachments();
+  const uploadAttachments = AttachmentUpload.useAttachmentsUploader();
   const navigation = useNavigation();
   const { langAsString } = useLanguage();
 

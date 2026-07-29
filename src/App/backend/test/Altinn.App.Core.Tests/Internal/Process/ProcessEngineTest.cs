@@ -334,9 +334,19 @@ public sealed class ProcessEngineTest
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
                 "StartTask",
-                "SaveProcessStateToStorage",
-                "MovedToAltinnEvent"
+                "SaveProcessStateToStorage"
             );
+
+        // The non-critical MovedToAltinnEvent runs in its own invisible side-effects sibling
+        // workflow, enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
+        commandKeys.Should().NotContain("MovedToAltinnEvent");
+        commandKeys.Should().Contain("EnqueueSideEffectsWorkflow");
+        capturedRequest.Workflows.Should().HaveCount(1);
+        var sideEffectsWorkflow = ExtractSideEffectsWorkflow(capturedRequest.Workflows[0]);
+        sideEffectsWorkflow.OperationId.Should().Be("Process next side-effects: Task_1 -> Task_2 · MovedToAltinnEvent");
+        sideEffectsWorkflow.IsHead.Should().BeFalse();
+        sideEffectsWorkflow.DependsOnHeads.Should().BeFalse();
+        ExtractCommandKeys(sideEffectsWorkflow).Should().Equal("MovedToAltinnEvent");
 
         // Verify OperationId contains transition info
         capturedRequest.Workflows[0].OperationId.Should().Be("Process next: Task_1 -> Task_2");
@@ -522,9 +532,16 @@ public sealed class ProcessEngineTest
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
                 "StartTask",
-                "SaveProcessStateToStorage",
-                "MovedToAltinnEvent"
+                "SaveProcessStateToStorage"
             );
+
+        // The non-critical MovedToAltinnEvent runs in the invisible side-effects workflow,
+        // enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
+        commandKeys.Should().NotContain("MovedToAltinnEvent");
+        capturedRequest.Workflows.Should().HaveCount(1);
+        var abandonSideEffectsWorkflow = ExtractSideEffectsWorkflow(capturedRequest.Workflows[0]);
+        abandonSideEffectsWorkflow.IsHead.Should().BeFalse();
+        ExtractCommandKeys(abandonSideEffectsWorkflow).Should().Equal("MovedToAltinnEvent");
     }
 
     [Fact]
@@ -688,10 +705,17 @@ public sealed class ProcessEngineTest
                 "OnProcessEndingHook",
                 // Persist to Storage
                 "SaveProcessStateToStorage",
-                // Post-commit
-                "EndProcessLegacyHook",
-                "CompletedAltinnEvent"
+                // Critical post-commit (stays in Main)
+                "EndProcessLegacyHook"
             );
+
+        // The non-critical CompletedAltinnEvent runs in the invisible side-effects workflow,
+        // enqueued at the commit boundary by the EnqueueSideEffectsWorkflow step.
+        commandKeys.Should().NotContain("CompletedAltinnEvent");
+        capturedRequest.Workflows.Should().HaveCount(1);
+        var endSideEffectsWorkflow = ExtractSideEffectsWorkflow(capturedRequest.Workflows[0]);
+        endSideEffectsWorkflow.IsHead.Should().BeFalse();
+        ExtractCommandKeys(endSideEffectsWorkflow).Should().Equal("CompletedAltinnEvent");
 
         // Verify OperationId contains transition info for process end
         capturedRequest.Workflows[0].OperationId.Should().Be("Process next: Task_2 -> EndEvent_1");
@@ -2973,11 +2997,43 @@ public sealed class ProcessEngineTest
             StepsTotal = 1,
         };
 
+    /// <summary>
+    /// Unwraps the side-effects workflow embedded in the Main workflow's EnqueueSideEffectsWorkflow
+    /// step payload (the request that step submits to the engine at the commit boundary).
+    /// </summary>
+    private static WorkflowRequest ExtractSideEffectsWorkflow(WorkflowRequest mainWorkflow)
+    {
+        StepRequest enqueueStep = mainWorkflow.Steps.Single(step =>
+            step.Command.Type == "app"
+            && step.Command.Data is { } data
+            && System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey
+                == EnqueueSideEffectsWorkflow.Key
+        );
+        AppCommandData commandData = System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(
+            enqueueStep.Command.Data!.Value
+        )!;
+        EnqueueSideEffectsWorkflowPayload payload =
+            CommandPayloadSerializer.Deserialize<EnqueueSideEffectsWorkflowPayload>(commandData.Payload)!;
+        return payload.EnqueueRequest.Workflows.Single();
+    }
+
+    private static List<string> ExtractCommandKeys(WorkflowRequest workflow) =>
+        workflow
+            .Steps.Select(step =>
+                step.Command.Type == "app" && step.Command.Data is { } data
+                    ? System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey
+                    : null
+            )
+            .Where(key => key != null)
+            .Cast<string>()
+            .ToList();
+
     private static WorkflowStatusResponse CreateWorkflowStatusResponse(
         Guid workflowId,
         string operationId,
         PersistentItemStatus overallStatus,
-        string? collectionKey = null
+        string? collectionKey = null,
+        DateTimeOffset? createdAt = null
     ) =>
         new()
         {
@@ -2986,9 +3042,17 @@ public sealed class ProcessEngineTest
             IdempotencyKey = "test-idempotency-key",
             Namespace = "org/app",
             CollectionKey = collectionKey,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = createdAt ?? DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             OverallStatus = overallStatus,
+            // Mirrors the engine: the side-effects workflow is enqueued with (and now reports)
+            // IsHead = false, which is what identifies it to the app's side-chain filter.
+            IsHead = operationId.StartsWith(
+                ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
+                StringComparison.Ordinal
+            )
+                ? false
+                : null,
             Steps = [],
         };
 

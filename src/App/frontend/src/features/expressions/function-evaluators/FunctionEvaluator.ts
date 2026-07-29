@@ -6,15 +6,15 @@ export abstract class FunctionEvaluator<
   Arguments extends ValidValue[] = ValidValue[],
   ReturnValue extends ValidValue = ValidValue,
 > {
-  readonly #context: EvaluateExpressionParams<never[]>;
+  readonly #context: EvaluateExpressionParams;
   readonly #argumentList: Arguments;
 
-  protected constructor(context: EvaluateExpressionParams<never[]>, argumentList: Arguments) {
+  protected constructor(context: EvaluateExpressionParams, argumentList: Arguments) {
     this.#context = context;
     this.#argumentList = argumentList;
   }
 
-  protected get context(): EvaluateExpressionParams<never[]> {
+  protected get context(): EvaluateExpressionParams {
     return this.#context;
   }
 

@@ -11,7 +11,6 @@ import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { FormStore } from 'src/features/form/FormContext';
 import {
   getRepeatingBinding,
@@ -19,6 +18,7 @@ import {
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
+import { fetchExternalApi } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -26,14 +26,19 @@ import {
   StatelessRouter,
 } from 'src/test/renderWithProviders';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
-import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-jest.mock('src/features/externalApi/useExternalApi');
+jest.mock('src/queries/queries', () => {
+  const actual = jest.requireActual<typeof import('src/queries/queries')>('src/queries/queries');
+  return {
+    ...actual,
+    fetchExternalApi: jest.fn(),
+  };
+});
 
 interface Props {
   context: SharedTestFunctionContext | undefined;
@@ -126,6 +131,7 @@ describe('Expressions shared function tests', () => {
       .spyOn(window, 'logErrorOnce')
       .mockImplementation(() => {})
       .mockName('window.logErrorOnce');
+    jest.mocked(fetchExternalApi).mockImplementation(async () => undefined);
   });
 
   afterEach(() => {
@@ -183,13 +189,20 @@ function setupMocks(test: FunctionTest): void {
     stateless: { defaultDataType: 'default', pages: { order: Object.keys(layouts ?? []) } },
   };
 
-  jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
+  jest.mocked(fetchExternalApi).mockImplementation(async ({ externalApiId }) => externalApis?.data[externalApiId]);
 }
 
-function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {
-  const applicationMetadata = getApplicationMetadataMock(
-    stateless ? { onEntry: { show: 'stateless' }, externalApiIds: ['testId'] } : {},
-  );
+function createApplicationMetadata({
+  stateless,
+  instanceDataElements,
+  dataModels,
+  externalApis,
+}: FunctionTest): ApplicationMetadata {
+  const externalApiIds = Object.keys(externalApis?.data ?? {});
+  const applicationMetadata = getApplicationMetadataMock({
+    ...(stateless ? { onEntry: { show: 'stateless' } } : {}),
+    ...(externalApiIds.length > 0 ? { externalApiIds } : {}),
+  });
   if (instanceDataElements) {
     for (const element of instanceDataElements) {
       if (!applicationMetadata.dataTypes!.find((dt) => dt.id === element.dataType)) {

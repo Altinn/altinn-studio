@@ -16,19 +16,36 @@ internal static class WebHostBuilderExtensions
         string jsonProvidedPath = context.Configuration.GetValue<string>(configurationKey) ?? defaultFileLocation;
         string jsonAbsolutePath = Path.GetFullPath(jsonProvidedPath);
 
-        if (File.Exists(jsonAbsolutePath))
-        {
-            string jsonDir = Path.GetDirectoryName(jsonAbsolutePath) ?? string.Empty;
-            string jsonFile = Path.GetFileName(jsonAbsolutePath);
-
-            configurationBuilder.AddJsonFile(
-                provider: new PhysicalFileProvider(jsonDir),
-                path: jsonFile,
-                optional: true,
-                reloadOnChange: true
-            );
-        }
+        string jsonDir = Path.GetDirectoryName(jsonAbsolutePath) ?? string.Empty;
+        string providerRoot = GetExistingProviderRoot(jsonDir);
+        string jsonFile = Path.GetRelativePath(providerRoot, jsonAbsolutePath);
+        configurationBuilder.AddJsonFile(
+            provider: CreateAppSecretsFileProvider(providerRoot),
+            path: jsonFile,
+            optional: true,
+            reloadOnChange: true
+        );
 
         return configurationBuilder;
     }
+
+    internal static string GetExistingProviderRoot(string path)
+    {
+        string? currentPath = path;
+        while (!string.IsNullOrWhiteSpace(currentPath) && !Directory.Exists(currentPath))
+        {
+            currentPath = Path.GetDirectoryName(currentPath);
+        }
+
+        return currentPath ?? Path.GetPathRoot(path) ?? Directory.GetCurrentDirectory();
+    }
+
+    private static PhysicalFileProvider CreateAppSecretsFileProvider(string providerRoot) =>
+        new(providerRoot)
+        {
+            // This path is normally a Kubernetes Secret/projected volume. Kubernetes updates it by swapping
+            // the ..data symlink target, so polling is required to detect credential changes reliably.
+            UsePollingFileWatcher = true,
+            UseActivePolling = true,
+        };
 }

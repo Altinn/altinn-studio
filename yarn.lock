@@ -153,7 +153,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:6.0.3"
     classnames: "npm:2.5.1"
     date-fns: "npm:4.4.0"
-    dompurify: "npm:3.4.11"
+    dompurify: "npm:3.4.12"
     eslint: "npm:10.5.0"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
@@ -11893,7 +11893,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.11, dompurify@npm:^3.2.6, dompurify@npm:^3.3.2":
+"dompurify@npm:3.4.12":
+  version: 3.4.12
+  resolution: "dompurify@npm:3.4.12"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/f826b68920887eb75115a162facb42380d1c3fac441548217b30068c9fadeed14f63fa1f7a1d2ab6f63613e5a0f897aa245c9224d4abf7939cd8ae58c04646af
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.2.6, dompurify@npm:^3.3.2":
   version: 3.4.11
   resolution: "dompurify@npm:3.4.11"
   dependencies:

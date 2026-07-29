@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// <summary>
 /// Defines backoff types for retry strategies.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<BackoffType>))]
 internal enum BackoffType
 {
     /// <summary>

@@ -21,6 +21,7 @@
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />
     <!-- Keeps transitive Humanizer satellites aligned with JsonPointer.Net's Humanizer.Core dependency. -->
     <PackageVersion Include="Humanizer" Version="3.0.1" />
+    <PackageVersion Include="JmesPath.Net" Version="1.1.0" />
     <PackageVersion Include="JsonPatch.Net" Version="4.0.1" />
     <PackageVersion Include="JWTCookieAuthentication" Version="3.0.1" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />

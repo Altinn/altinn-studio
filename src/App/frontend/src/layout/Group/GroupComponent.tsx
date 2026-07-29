@@ -10,6 +10,7 @@ import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
+import { getLayoutDepth } from 'src/utils/layout/hierarchy';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
@@ -41,10 +42,10 @@ export function GroupComponent({
   const isHidden = useIsHidden(baseComponentId);
 
   const indexedId = useIndexedId(baseComponentId);
-  const depth = FormStore.raw.useSelector((state) => state.nodes.nodeData?.[indexedId]?.depth);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const depth = getLayoutDepth(baseComponentId, layoutLookups);
 
-  if (isHidden || typeof depth !== 'number') {
+  if (isHidden) {
     return null;
   }
 

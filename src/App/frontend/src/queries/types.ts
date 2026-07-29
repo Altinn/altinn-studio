@@ -2,7 +2,7 @@ import type * as queries from 'src/queries/queries';
 
 type IgnoredQueriesAndMutations = keyof Pick<
   typeof queries,
-  'fetchExternalApi' | 'doProcessNext' | 'doUpdateAttachmentTags'
+  'fetchExternalApi' | 'doProcessNext' | 'doProcessResume' | 'doUpdateAttachmentTags'
 >;
 
 type KeysStartingWith<T, U extends string> = {

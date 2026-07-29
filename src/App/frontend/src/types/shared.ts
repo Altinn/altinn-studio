@@ -198,8 +198,9 @@ export interface IProcess {
   /**
    * Live workflow-engine annotation resolved on every process/instance read. It sits next to the
    * (unchanged) committed `currentTask`: `idle` means render normally, `processing` means a
-   * transition is in flight, and `failed` means the transition failed terminally and awaits an
-   * ops-driven resume. Optional so older backends that don't emit it are treated as `idle`.
+   * transition is in flight, and `failed` means the transition failed terminally and awaits a
+   * resume - user-driven (process/resume) when the current service task owns the failure,
+   * ops-driven otherwise. Optional so older backends that don't emit it are treated as `idle`.
    */
   workflow?: IProcessWorkflow;
 }
@@ -251,7 +252,10 @@ interface IProcessWorkflowProcessing {
   startedAt?: string;
 }
 
-/** A transition failed terminally and awaits an ops-driven resume. */
+/**
+ * A transition failed terminally and awaits a resume - user-driven (process/resume) when the
+ * current service task owns the failure, ops-driven otherwise.
+ */
 interface IProcessWorkflowFailed {
   status: 'failed';
   /** BPMN element id the failed transition targets. Omitted when unresolved. */

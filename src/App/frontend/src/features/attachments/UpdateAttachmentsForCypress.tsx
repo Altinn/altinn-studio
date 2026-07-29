@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 
-import { useAllAttachments } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 
 export function UpdateAttachmentsForCypress() {
-  const attachments = useAllAttachments();
+  const attachments = AttachmentReadModel.useAllAttachments();
 
   useEffect(() => {
     if (window.Cypress) {

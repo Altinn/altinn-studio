@@ -1,21 +1,7 @@
-import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
-
 export interface ISimpleInstance {
   id: string;
   lastChanged: string;
   lastChangedBy: string;
-}
-
-export interface IHiddenLayoutsExternal {
-  [layoutKey: string]: ExprValToActualOrExpr<ExprVal.Boolean> | undefined;
-}
-
-export interface IExpandedWidthLayouts {
-  [layoutKey: string]: boolean | undefined;
-}
-
-export interface IPreventNavigationLayouts {
-  [layoutKey: string]: boolean | undefined;
 }
 
 export enum ProcessTaskType {

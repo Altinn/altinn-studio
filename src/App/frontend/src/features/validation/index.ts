@@ -66,8 +66,6 @@ export type ValidationCategory = (typeof ValidationMask)[ValidationCategoryKey] 
  */
 export type NodeVisibility = 'visible' | 'showAll' | number;
 
-export type WaitForValidation = (forceSave?: boolean) => Promise<void>;
-
 export type ValidationSliceState = {
   state: ValidationState;
   otherDataElementBackendValidations: DataModelValidations;

@@ -101,7 +101,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
-            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"));
+            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"), ("is_head", workflow.IsHeadTagValue()));
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -182,7 +182,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             workflow.EngineActivity?.Errored();
-            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"));
+            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"), ("is_head", workflow.IsHeadTagValue()));
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
         {

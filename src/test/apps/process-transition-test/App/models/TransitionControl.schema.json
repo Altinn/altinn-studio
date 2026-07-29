@@ -20,7 +20,7 @@
   "properties": {
     "path": {
       "type": "string",
-      "title": "Feilscenario"
+      "title": "Scenario"
     },
     "delayMs": {
       "type": "integer",
@@ -33,6 +33,14 @@
     "endState": {
       "type": "string",
       "title": "Sluttilstand"
+    },
+    "advance": {
+      "type": "string",
+      "title": "Videreføring etter suksess"
+    },
+    "serviceView": {
+      "type": "string",
+      "title": "Visning under behandling"
     }
   }
 }

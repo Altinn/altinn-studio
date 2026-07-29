@@ -6,25 +6,25 @@ import deepEqual from 'fast-deep-equal';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
-import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
+import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 type Row = Record<string, unknown>;
 
 interface Props {
+  item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  parent: RuntimeNodeParent;
   options: IOptionInternal[];
 }
 
 /**
  * This effect is responsible for setting the label/display value in the data model.
  */
-export function EffectStoreLabelInGroup({ options }: Props) {
-  const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
-  const parent = GeneratorInternal.useParent();
+export function EffectStoreLabelInGroup({ item, parent, options }: Props) {
   const isHidden = useIsHidden(parent.baseId);
   const { langAsString } = useLanguage();
   const setLeafValue = FormStore.data.useSetLeafValue();

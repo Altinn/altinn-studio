@@ -8,7 +8,7 @@ import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
+import { AttachmentUpdate } from 'src/features/attachments/hooks/attachmentUpdate';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
@@ -20,6 +20,10 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
+
+function focusOnMount(node: HTMLDivElement | null) {
+  node?.focus();
+}
 
 export interface EditWindowProps {
   baseComponentId: string;
@@ -45,7 +49,7 @@ export function EditWindowComponent({
   const [showMissingTagError, setShowMissingTagError] = useResettingErrorState(chosenTags);
   const chosenTagsLabels = chosenTags.map((tag) => langAsString(options?.find((o) => o.value === tag)?.label ?? ''));
   const nodeId = useIndexedId(baseComponentId);
-  const updateAttachment = useAttachmentsUpdater();
+  const updateAttachment = AttachmentUpdate.useAttachmentsUpdater();
 
   const formatSelectedValue = (tags: string[]): string | SuggestionItem | undefined => {
     const tag = tags[0];
@@ -86,8 +90,16 @@ export function EditWindowComponent({
   const isLoading = attachment.updating || !attachment.uploaded || isFetching || options?.length === 0;
   const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
 
+  const announceUploaded = isAttachmentUploaded(attachment)
+    ? langAsString('form_filler.file_uploader_attachment_uploaded_sr', [attachment.data?.filename])
+    : undefined;
+
   return (
     <div
+      ref={focusOnMount}
+      tabIndex={-1}
+      role='group'
+      aria-label={announceUploaded}
       id={`attachment-edit-window-${uniqueId}`}
       className={classes.editContainer}
     >
