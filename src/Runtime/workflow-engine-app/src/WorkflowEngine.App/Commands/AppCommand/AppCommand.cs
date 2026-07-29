@@ -162,9 +162,8 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
             }
 
-            // State is captured before classifying the outcome, so a deferral carries its state forward
-            // exactly as a completion does. That is what makes the app's next re-check resume from the
-            // state this one produced rather than replaying from the previous step's.
+            // Captured before classifying the outcome, so a deferral carries state forward exactly as a
+            // completion does — the app's next re-check resumes from what this one produced.
             if (callbackResponse?.State is not null)
                 context.Step.StateOut = callbackResponse.State;
 
@@ -240,8 +239,7 @@ internal static partial class AppCommandDescriptorLogs
         Guid instanceGuid
     );
 
-    // The app's reason is deliberately not logged here: it is free text the app controls, and it already
-    // reaches the engine log through the deferral itself.
+    // The app's reason is not logged here — it is free text, and it reaches the engine log via the deferral.
     [LoggerMessage(
         LogLevel.Information,
         "AppCommand '{CommandKey}' deferred (workflowId: {WorkflowId}); re-checking in {Delay}"

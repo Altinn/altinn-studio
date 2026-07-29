@@ -48,10 +48,8 @@ public sealed class ScenarioServiceTask : IServiceTask
     public string Type => "scenario";
 
     /// <summary>
-    /// A deliberately tiny wait budget. In production this is measured in hours or days; here it has to
-    /// expire inside a test run, so the <c>waitExpired</c> end state can demonstrate what a step that
-    /// waits forever actually does. Nothing else on this task is affected — the budget is only spent by
-    /// deferrals, so the non-deferring scenarios never touch it.
+    /// A deliberately tiny wait budget so the <c>waitExpired</c> scenario can expire inside a test run
+    /// (production budgets are hours or days). Only deferrals spend it, so other scenarios are unaffected.
     /// </summary>
     internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
 
@@ -81,11 +79,9 @@ public sealed class ScenarioServiceTask : IServiceTask
         int deferrals = levers.deferrals ?? 0;
         var deferDelay = TimeSpan.FromMilliseconds(levers.deferDelayMs ?? 2000);
 
-        // Don't start work this attempt cannot finish. The engine abandons an attempt at
-        // ExecutionDeadline and records it as a retryable failure, so burning the remaining budget on a
-        // delay that will be cut off mid-flight buys nothing — deferring hands the next attempt a full
-        // budget instead. Inert with the generous default timeout (10 minutes vs. a 30s delay at most);
-        // it exists because this is the pattern a real service task calling a slow system should follow.
+        // Don't start work this attempt cannot finish: the engine abandons it at ExecutionDeadline and
+        // records a retryable failure, whereas deferring hands the next attempt a full budget. Inert
+        // under the default 10-minute timeout — it demonstrates the pattern a real slow-system call wants.
         if (delayMs > 0 && context.ExecutionDeadline is { } executionDeadline)
         {
             var remaining = executionDeadline - DateTimeOffset.UtcNow;
@@ -103,10 +99,8 @@ public sealed class ScenarioServiceTask : IServiceTask
             await Task.Delay(delayMs, context.CancellationToken);
         }
 
-        // Deferral is decided before the failure machinery, and reads context.DeferCount rather than the
-        // AttemptTracker: the engine already counts deferrals durably, and mixing them into the attempt
-        // counter would conflate "checked, not ready" with "failed, retrying" — the exact distinction
-        // this lever exists to demonstrate.
+        // Reads context.DeferCount rather than the AttemptTracker: the engine counts deferrals durably,
+        // and mixing them into the attempt counter would conflate "not ready" with "failed, retrying".
         if (levers.endState == "waitExpired")
         {
             // Never settles. The engine keeps re-running this task until ScenarioWaitBudget is spent,

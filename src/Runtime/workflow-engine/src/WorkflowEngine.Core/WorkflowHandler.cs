@@ -353,11 +353,9 @@ internal sealed class WorkflowHandler(
         logger.StepFailed(currentStep);
         var retryStrategy = GetRetryStrategy(currentStep);
 
-        // Errors after a deferral anchor on the last deferral rather than the step's original
-        // activation — otherwise a long wait would silently consume the entire retry MaxDuration
-        // before the first genuine error even occurs. It must be LastDeferredAt and not UpdatedAt:
-        // UpdatedAt advances on every write-back (including each failed attempt), which would slide
-        // the deadline forward by one backoff per attempt and stop MaxDuration binding at all.
+        // Errors after a deferral anchor on the last deferral, so a long wait does not consume the
+        // retry allowance. Must be LastDeferredAt, not UpdatedAt: UpdatedAt advances on every
+        // write-back, sliding the deadline forward per attempt until MaxDuration stops binding.
         var initialStartTime = currentStep.LastDeferredAt ?? previousStep?.UpdatedAt ?? currentStep.CreatedAt;
 
         if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, initialStartTime, timeProvider))
@@ -398,10 +396,8 @@ internal sealed class WorkflowHandler(
 
     /// <summary>
     /// Parks a deferred step in <see cref="PersistentItemStatus.Waiting"/> and schedules its next
-    /// execution via the workflow's <c>BackoffUntil</c>, or fails the step once its wait budget is
-    /// spent. A deferral is a successful execution: it records no error history and resets the retry
-    /// counter, so <see cref="RetryStrategy"/> bounds consecutive failures between deferrals rather
-    /// than failures across the step's lifetime.
+    /// execution via the workflow's <c>BackoffUntil</c>, or fails it once the wait budget is spent.
+    /// A deferral is a successful execution: no error history, and the retry counter is reset.
     /// </summary>
     private void ApplyDeferDecision(Workflow workflow, Step currentStep, ExecutionResult result)
     {
@@ -452,19 +448,9 @@ internal sealed class WorkflowHandler(
             return;
         }
 
-        // Two clamps, both deliberate:
-        //
-        // Floor — a positive but negligible delay (a miscomputed Retry-After, a unit mix-up) would
-        // otherwise re-execute the step as fast as the fetch loop cycles, hammering the callback
-        // target for the whole budget. A non-positive delay is a command bug and failed above; this
-        // is the same class of mistake, handled gently because there is no honest threshold below
-        // which "wait a moment" means "wait no time at all".
-        //
-        // Ceiling — the budget bounds total waiting but must not shorten the final poll, so a
-        // deferral asking for more than the remaining budget lands exactly on the deadline. The step
-        // therefore spends its whole budget and always gets one last check before expiring.
-        // Rejecting it instead would forfeit the remainder of the budget, and would make
-        // Defer(budget) fail without ever having waited at all.
+        // Floor: a positive but negligible delay would re-execute as fast as the fetch loop cycles.
+        // Ceiling: a deferral overshooting the budget lands on the deadline rather than being
+        // rejected, so the step spends its whole budget and always gets one final check.
         var requestedDelay = delay > _settings.MinStepDeferDelay ? delay : _settings.MinStepDeferDelay;
         var scheduledDelay = requestedDelay < remainingBudget ? requestedDelay : remainingBudget;
 
@@ -573,9 +559,8 @@ internal sealed class WorkflowHandler(
     }
 
     /// <summary>
-    /// Records how much of its wait budget a deferring step actually consumed, once the step resolves.
-    /// Recorded only on the transition out of waiting — while the step is still parked the number would
-    /// be a partial sum, and the per-attempt service/total durations say nothing about the wait at all.
+    /// Records how much of its wait budget a deferring step consumed. Only on the transition out of
+    /// waiting: while the step is still parked the number would be a partial sum.
     /// </summary>
     private void RecordStepWaitDuration(Step step)
     {

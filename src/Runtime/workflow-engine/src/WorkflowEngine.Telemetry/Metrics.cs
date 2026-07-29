@@ -280,11 +280,9 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Histogram of how much wait budget a deferring step consumed, measured from its first deferral to
-    /// the moment it resolved. Recorded once per deferring step, at the transition out of
-    /// <c>Waiting</c> — whether it completed, expired (<c>wait_expired</c>), or failed some other way.
-    /// This is the only signal that shows budgets being approached rather than merely blown: compare the
-    /// upper percentiles against the configured <c>command.waitBudget</c> to size it from evidence.
+    /// Histogram of wait budget consumed by a deferring step, from its first deferral to the moment it
+    /// resolved (completed, expired, or failed). The only signal that shows budgets being approached
+    /// rather than blown — compare upper percentiles against the configured <c>command.waitBudget</c>.
     /// </summary>
     public static readonly Histogram<double> StepWaitDuration = Meter.CreateHistogram<double>(
         "engine.steps.wait.duration",

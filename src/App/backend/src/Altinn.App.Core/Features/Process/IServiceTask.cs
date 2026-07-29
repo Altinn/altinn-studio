@@ -27,9 +27,8 @@ public sealed record ServiceTaskContext
     /// </summary>
     /// <remarks>
     /// Changes are saved after Execute returns a successful result — including a deferral
-    /// (<see cref="ServiceTaskResult.Defer"/>), so a task that polls across several attempts can record
-    /// what it learned and read it back on the next one. Keep in mind that data elements from previous
-    /// tasks are locked.
+    /// (<see cref="ServiceTaskResult.Defer"/>), so a polling task can record what it learned and read it
+    /// back on its next attempt. Keep in mind that data elements from previous tasks are locked.
     /// </remarks>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }
 
@@ -52,10 +51,9 @@ public sealed record ServiceTaskContext
     /// first run.
     /// </summary>
     /// <remarks>
-    /// Counts consecutive failures <em>since the last deferral</em>, not attempts across the task's
-    /// whole life — deferring resets it, deliberately, so a task that polls for hours through one
-    /// transient blip does not arrive at the end with its retry allowance spent. A task that has waited
-    /// six hours and never genuinely failed therefore reads <c>0</c> here and a high
+    /// Counts consecutive failures <em>since the last deferral</em>, not attempts across the task's whole
+    /// life — deferring resets it, so a long wait does not arrive with its retry allowance spent. A task
+    /// that has polled for hours without genuinely failing reads <c>0</c> here and a high
     /// <see cref="DeferCount"/>.
     /// </remarks>
     public int RetryCount { get; init; }
@@ -65,10 +63,9 @@ public sealed record ServiceTaskContext
     /// failure — derived from <see cref="ProcessStepOptions.MaxExecutionTime"/>, or the engine default.
     /// </summary>
     /// <remarks>
-    /// <see cref="CancellationToken"/> enforces this, but only tells the task it has already been cut
-    /// off. The deadline lets it decide beforehand: a task about to call a system that usually takes 30
-    /// seconds, with 10 left, does better to <see cref="ServiceTaskResult.Defer"/> — the next attempt
-    /// gets the full budget again — than to start work it cannot finish and be recorded as a failure.
+    /// <see cref="CancellationToken"/> enforces this but only reports being cut off. The deadline lets
+    /// the task decide beforehand: with 10 seconds left and a 30-second call to make,
+    /// <see cref="ServiceTaskResult.Defer"/> earns a fresh full budget instead of a recorded failure.
     /// Distinct from <see cref="WaitDeadline"/>, which bounds the whole wait rather than one attempt.
     /// </remarks>
     public DateTimeOffset? ExecutionDeadline { get; init; }
@@ -86,10 +83,9 @@ public sealed record ServiceTaskContext
     /// (<see cref="ProcessStepOptions.WaitBudget"/>, or the engine default) is still ahead.
     /// </summary>
     /// <remarks>
-    /// A deadline rather than a remaining duration, because a duration handed across the callback
-    /// boundary has already started aging by the time the task reads it. Compare against the current time
-    /// to decide whether one more re-check is worth attempting, or to fail with a message of your own
-    /// instead of letting the budget expire anonymously.
+    /// A deadline rather than a remaining duration, which would already have aged by the time the task
+    /// reads it. Compare against the current time to decide whether one more re-check is worth
+    /// attempting, or to fail with a message of your own rather than letting the budget expire.
     /// </remarks>
     public DateTimeOffset? WaitDeadline { get; init; }
 }
@@ -140,36 +136,30 @@ public abstract record ServiceTaskResult
     }
 
     /// <summary>
-    /// Creates a deferral: the task ran without error, but the outcome it is waiting for has not arrived
-    /// yet. The engine parks the process on this task — releasing its worker, holding no lease — and runs
-    /// the task again after <paramref name="delay"/>. Use this for work that is "start now, confirm
-    /// later": a dispatched shipment, a payment capture, a signing order, any outcome that arrives on
-    /// someone else's schedule.
+    /// Creates a deferral: the task ran without error, but the outcome it awaits has not arrived yet.
+    /// The engine parks the process on this task — releasing its worker, holding no lease — and runs the
+    /// task again after <paramref name="delay"/>. Use it for "start now, confirm later" work: a
+    /// dispatched shipment, a payment capture, a signing order.
     /// </summary>
     /// <param name="delay">
-    /// How long to wait before this task runs again. This re-check only — pick whatever cadence the
-    /// awaited system deserves, and let <see cref="ProcessStepOptions.WaitBudget"/> cap the total.
+    /// How long to wait before this task runs again — this re-check only;
+    /// <see cref="ProcessStepOptions.WaitBudget"/> caps the total.
     /// </param>
     /// <param name="reason">
     /// Optional description of what is being waited for. Recorded in the engine log, not shown to users.
     /// </param>
     /// <remarks>
     /// <para>
-    /// A deferral is <strong>not</strong> a failure: it records no error, and it resets the retry counter
-    /// so a transient error earlier in the wait does not eat the retry allowance of a later one.
+    /// A deferral is not a failure: it records no error and resets the retry counter. Data changes are
+    /// saved on every attempt that makes them, exactly as for a successful result, and the next attempt
+    /// sees them — so the instance is where a polling task keeps what it learned. Those writes must be
+    /// idempotent, which <see cref="IServiceTask"/> already requires.
     /// </para>
     /// <para>
-    /// <strong>Data changes are saved on every attempt that makes them</strong>, exactly as for a
-    /// successful result, and the next attempt sees them — so the instance is where a polling task keeps
-    /// what it learned ("dispatched, reference X", "seen status Y"). Because the task runs repeatedly,
-    /// those writes must be idempotent, which <see cref="IServiceTask"/> already requires.
-    /// </para>
-    /// <para>
-    /// Waiting is bounded. When <see cref="ProcessStepOptions.WaitBudget"/> (or the engine default) runs
-    /// out, the step fails — reported distinctly from an execution failure, because the awaited outcome
-    /// never arriving is not the same event as the app or engine breaking. Read
+    /// Waiting is bounded by <see cref="ProcessStepOptions.WaitBudget"/> (or the engine default); expiry
+    /// fails the step under its own classification, distinct from an execution failure. Read
     /// <see cref="ServiceTaskContext.DeferCount"/> and <see cref="ServiceTaskContext.WaitDeadline"/> to
-    /// pace the wait, or to give up early on your own terms.
+    /// pace the wait or give up early on your own terms.
     /// </para>
     /// </remarks>
     public static ServiceTaskDeferredResult Defer(TimeSpan delay, string? reason = null)

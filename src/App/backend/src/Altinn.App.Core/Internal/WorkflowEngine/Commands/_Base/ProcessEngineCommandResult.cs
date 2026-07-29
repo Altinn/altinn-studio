@@ -19,8 +19,7 @@ internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineComman
 
 /// <summary>
 /// The command ran without error, but the outcome it awaits is not available yet. The controller saves
-/// data changes and re-signs state exactly as for a success — a deferral is a successful execution — but
-/// must not auto-advance the process: the transition is not finished, it is waiting.
+/// data and re-signs state as it would for a success, but must not auto-advance the process.
 /// </summary>
 internal sealed class DeferredProcessEngineCommandResult : ProcessEngineCommandResult
 {

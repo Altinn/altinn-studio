@@ -36,12 +36,10 @@ public sealed record ProcessStepOptions
     /// signing order) before the engine gives up and fails it. Null falls back to the engine default.
     /// </summary>
     /// <remarks>
-    /// This is not a poll interval: a deferring handler chooses how long to wait before each re-check, and
-    /// this budget caps the sum of those waits, measured from the first deferral. Size it from how long the
-    /// awaited outcome can legitimately take — a recipient who has not downloaded a message by Monday
-    /// morning is normal, a shipment unconfirmed after a fortnight is not. A parked step keeps its workflow
-    /// (and anything depending on it) pending for the whole budget, so this is also the worst case for how
-    /// long the process transition stays unresolved.
+    /// Not a poll interval: the handler chooses how long to wait before each re-check, and this caps the
+    /// sum of those waits, measured from the first deferral. Size it from how long the awaited outcome can
+    /// legitimately take. A parked step keeps its workflow (and anything depending on it) pending for the
+    /// whole budget, so this is also the worst case for how long the transition stays unresolved.
     /// </remarks>
     public TimeSpan? WaitBudget { get; init; }
 

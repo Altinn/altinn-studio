@@ -48,8 +48,7 @@ alert for a non-error condition.
 
 - A1: Durable yield — `ExecutionResult.Deferred` + non-terminal `Waiting` status, scheduled through
   the existing `backoff_until` fetch gate, with a per-step wait budget and a `wait_expired` failure
-  classification. Push (e.g. an Events webhook) becomes an optional accelerator via the existing
-  skip-backoff nudge.
+  classification. Push (e.g. an Events webhook) becomes an optional accelerator via a `nudge` endpoint.
 - A2: Park-and-callback — suspend the step indefinitely and resume it only via a new authenticated
   engine resume endpoint invoked when an external event arrives.
 - A3: Status quo — keep the Altinn Events self-reminder loop (425-as-scheduling-protocol) and harden
@@ -93,47 +92,38 @@ alert for a non-error condition.
 
 - eFormidling in v9 becomes: send step (idempotent per #18888) → await-delivery poll step (IP status
   mapped to Success / Defer / Critical / Retryable) → confirm-and-advance step.
-- The app-facing surface ships with the primitive rather than after it: `ServiceTaskResult.Defer` plus
-  the `ProcessStepOptions.WaitBudget` that bounds it. Splitting them would have released a public,
-  binary-compatible-forever knob configuring a wait no app could request — and would have cost two
-  public API events instead of one. The phase boundary is therefore capability vs consumer: the
-  primitive, the return shape and the `process-transition-test` fixture proving them land together;
-  migrating eFormidling, payment capture and signing onto them is the next phase.
-- Deferral is **stateful across attempts**: a deferring step's data changes are saved on every attempt
-  that makes them, and its own `StateOut` is fed back as the next attempt's `StateIn`. The alternative
-  — a `state` parameter on `Defer` — was rejected as a third state channel alongside Storage and the
-  signed blob, with precedence rules app authors would have to learn. Note this required a genuine fix,
-  not just a decision: `ResolveStateIn` previously read only *earlier* steps, so a deferring step's
-  state was persisted and then silently discarded, which an `IInstanceDataMutator` promising "changes
-  are saved" makes actively misleading.
+- The app-facing surface ships with the primitive, not after it: `ServiceTaskResult.Defer` plus the
+  `ProcessStepOptions.WaitBudget` that bounds it. Shipping the budget alone would release a public,
+  binary-compatible-forever knob configuring a wait no app could request. The phase boundary is
+  capability vs consumer — primitive, return shape and fixture together; migrating eFormidling,
+  payment capture and signing is the next phase.
+- Deferral is stateful across attempts: data changes are saved on every attempt that makes them, and a
+  step's own `StateOut` becomes its next attempt's `StateIn`. A `state` parameter on `Defer` was
+  rejected as a third state channel alongside Storage and the signed blob.
 - The app-side Altinn Events **receive** stack is retired in v9 (`EformidlingStartup`,
   `EformidlingStatusCheckEventHandler2`'s process-advance, `EventsReceiverController`,
   `EventHandlerResolver`, `IEventsSubscription`, `IEventSecretCodeProvider` + KeyVault provider).
   The **publish** side (`IEventsClient`) stays — third parties subscribe to app events. #19605 is
-  superseded rather than implemented; any future reintroduction of an events receiver should be
-  designed per its generate/validate + stable-endpoint notes.
+  superseded rather than implemented.
 
 ## Implementation notes
 
-Two details are load-bearing enough to record, since both are easy to "simplify" back into bugs:
+Four details are load-bearing, and all four are easy to "simplify" back into bugs.
 
-- **The wait budget is clamped, not enforced as a rejection.** A deferral asking for longer than the
-  budget has left schedules to the deadline instead of failing on the spot. The alternative (reject the
-  overshooting deferral) forfeits the unspent remainder of the budget and — with a delay equal to the
-  budget, e.g. the advertised `Defer(24h)` under the 24h default — fails the step without it ever
-  having waited. Expiry is therefore triggered by a deferral *at or past* the deadline, which also
-  guarantees every step gets one final execution with the full budget behind it.
-- **The retry deadline anchors on `Step.LastDeferredAt`, a second persisted timestamp.** Errors after a
-  deferral must not inherit a retry deadline measured from the step's original activation (a long wait
-  would consume it before the first genuine error), so the anchor moves with each deferral. It cannot be
-  `UpdatedAt`, which is the obvious-looking way to get "the last deferral's write-back": that column
-  advances on *every* write-back, so each failed attempt slides the deadline forward by one backoff and
-  `MaxDuration` stops binding entirely. With the shipped default strategy (no `MaxRetries`) that means a
-  deferred step whose command starts failing retries forever — non-terminal, un-alerted, and holding its
-  dependents indefinitely. Hence two anchors: `FirstDeferredAt` for the budget, `LastDeferredAt` for
-  retries.
+- **The wait budget clamps rather than rejects.** A deferral overshooting the remaining budget schedules
+  to the deadline. Rejecting it would forfeit the unspent remainder and make `Defer(24h)` under a 24h
+  budget fail without ever having waited. Expiry is therefore triggered by a deferral *at or past* the
+  deadline, so every step gets one final execution.
+- **Two anchors, not one.** `FirstDeferredAt` bounds the budget; `LastDeferredAt` anchors the retry
+  deadline for errors after a deferral. The retry anchor cannot be `UpdatedAt` — the obvious-looking way
+  to reach "the last deferral's write-back" — because that column advances on *every* write-back, so each
+  failed attempt slides the deadline forward and `MaxDuration` stops binding. Under the shipped default
+  (no `MaxRetries`) a deferred step whose command starts failing would retry forever.
+- **`StateIn` prefers a step's own `StateOut`.** Without it a deferring step's state is persisted and
+  then discarded on every re-execution, while its data writes sit in Storage — actively misleading given
+  `IInstanceDataMutator` promises "changes are saved". Narrow by construction: only success-shaped
+  outcomes write `StateOut`, so deferral is the only path that produces state and then re-executes.
 - **Cancelling a parked workflow clears its backoff.** The in-memory cancellation watcher only reaches
-  workflows a pod is executing, and a parked workflow is not re-fetched until its timer elapses — so
-  without clearing `backoff_until` a cancel would be accepted and then sit unapplied for up to
-  `MaxStepWaitDuration`. `Enqueued` is deliberately excluded: there `backoff_until` carries `StartAt`,
-  and clearing it would run a scheduled workflow early rather than cancel it promptly.
+  workflows a pod is executing, so without clearing `backoff_until` a cancel would sit unapplied for up
+  to `MaxStepWaitBudget`. `Enqueued` is excluded: there `backoff_until` carries `StartAt`, and clearing
+  it would run a scheduled workflow early rather than cancel it.

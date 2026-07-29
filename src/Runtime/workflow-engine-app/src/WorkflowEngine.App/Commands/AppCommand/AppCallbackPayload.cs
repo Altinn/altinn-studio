@@ -40,8 +40,7 @@ internal sealed record AppCallbackPayload
     public DateTimeOffset? ExecutionDeadline { get; init; }
 
     /// <summary>
-    /// How many times this step has already deferred. <c>0</c> on a first execution, so a command can
-    /// tell an opening attempt from a re-check and adapt its poll cadence or its logging.
+    /// How many times this step has already deferred. <c>0</c> on a first execution.
     /// </summary>
     [JsonPropertyName("deferCount")]
     public int DeferCount { get; init; }
@@ -51,9 +50,7 @@ internal sealed record AppCallbackPayload
     /// deferral (nothing is being waited on yet, so the full budget is still ahead).
     /// </summary>
     /// <remarks>
-    /// Sent as a deadline rather than a remaining duration deliberately: a remaining duration starts
-    /// aging the moment it is serialized, and the callback then spends unknown time in flight and in the
-    /// app's own processing. A deadline stays true however long the round trip takes.
+    /// A deadline rather than a remaining duration, which would start aging the moment it is serialized.
     /// </remarks>
     [JsonPropertyName("waitDeadline")]
     public DateTimeOffset? WaitDeadline { get; init; }

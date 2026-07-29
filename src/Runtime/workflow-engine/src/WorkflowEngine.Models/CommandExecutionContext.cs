@@ -46,10 +46,9 @@ public sealed record CommandExecutionContext
     /// default) at the moment execution started.
     /// </summary>
     /// <remarks>
-    /// The cancellation token enforces this, but only tells a command that it has already been cut off.
-    /// The deadline lets it decide <em>beforehand</em>: a command about to call a system that typically
-    /// takes 30 seconds, with 10 left, is better off deferring — a fresh attempt gets the full budget
-    /// again — than starting work it cannot finish. Distinct from <see cref="WaitDeadline"/>, which
+    /// The cancellation token enforces this but only reports being cut off. The deadline lets a command
+    /// decide beforehand — with 10 seconds left and a 30-second call to make, deferring for a fresh
+    /// attempt beats starting work it cannot finish. Distinct from <see cref="WaitDeadline"/>, which
     /// bounds the whole wait rather than one attempt.
     /// </remarks>
     public DateTimeOffset? ExecutionDeadline { get; init; }
@@ -60,9 +59,8 @@ public sealed record CommandExecutionContext
     /// deliberately, rather than being failed by the engine when the budget expires.
     /// </summary>
     /// <remarks>
-    /// A deadline rather than a remaining duration: a duration starts aging the instant it is computed,
-    /// and a command that hands it across a network boundary (as the app callback does) cannot tell how
-    /// much of it has already been spent. Pair with <see cref="Step.DeferCount"/> on <see cref="Step"/>.
+    /// A deadline rather than a remaining duration, which would start aging the instant it is computed.
+    /// Pair with <see cref="Step.DeferCount"/>.
     /// </remarks>
     public DateTimeOffset? WaitDeadline { get; init; }
 

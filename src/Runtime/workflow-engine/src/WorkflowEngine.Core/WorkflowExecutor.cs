@@ -61,9 +61,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
             );
         }
 
-        // Read once and share: the deadline the command is told about must be the same instant the
-        // cancellation source is counting down to, or the command would pace itself against a clock
-        // that disagrees with the one that will cut it off.
+        // Shared with the cancellation source below: the deadline a command paces itself against must
+        // be the instant that will actually cut it off.
         var executionDeadline = _timeProvider.GetUtcNow().Add(timeout);
 
         using CancellationTokenSource cts = CreateExecutionTokenSource(timeout, cancellationToken);
@@ -175,15 +174,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
     /// recent output of an earlier step (or the workflow's initial state for the first step).
     /// </summary>
     /// <remarks>
-    /// A step seeing its own <see cref="Step.StateOut"/> is what makes deferral <em>stateful across
-    /// polls</em>: a command that yields with "not ready yet" hands back state, and its next execution
-    /// resumes from that state rather than from whatever the previous step left behind. Without this the
-    /// state would be written, persisted, and then silently discarded on every re-execution.
-    /// <para>
-    /// Only a success-shaped outcome writes <c>StateOut</c>, so this preference is narrower than it
-    /// looks: a step that failed retryably has none, and a completed step never runs again. Deferral is
-    /// currently the only path that produces state and then re-executes.
-    /// </para>
+    /// Preferring its own output is what makes deferral stateful across polls: a command that yields
+    /// resumes from the state it produced, not from whatever the previous step left behind. Narrower
+    /// than it looks — only a success-shaped outcome writes <c>StateOut</c>, so deferral is the only
+    /// path that produces state and then re-executes.
     /// </remarks>
     private static string? ResolveStateIn(Workflow workflow, Step step)
     {

@@ -11,9 +11,8 @@ internal sealed record AppCallbackResponse
     public string? State { get; init; }
 
     /// <summary>
-    /// Present when the command ran without error but the outcome it awaits is not available yet.
-    /// Its presence — not any field on it — is what classifies the callback as a deferral rather than a
-    /// completion, so the app expresses "not ready" without having to signal it through a status code.
+    /// Present when the command ran without error but the outcome it awaits is not available yet. Its
+    /// presence is what classifies the callback as a deferral rather than a completion.
     /// </summary>
     [JsonPropertyName("defer")]
     public AppCallbackDeferral? Defer { get; init; }
@@ -25,8 +24,7 @@ internal sealed record AppCallbackResponse
 internal sealed record AppCallbackDeferral
 {
     /// <summary>
-    /// How long to wait before executing the command again. This deferral only — the app chooses the
-    /// cadence per re-check, and the step's wait budget caps the total.
+    /// How long to wait before executing the command again. This deferral only; the wait budget caps the total.
     /// </summary>
     [JsonPropertyName("delay")]
     public TimeSpan Delay { get; init; }

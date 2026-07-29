@@ -31,15 +31,12 @@ public sealed record CommandDefinition
     public TimeSpan? MaxExecutionTime { get; init; }
 
     /// <summary>
-    /// The step's total wait allowance: the maximum <em>cumulative</em> wall-clock time it may spend in
-    /// <see cref="PersistentItemStatus.Waiting"/> across all deferrals (<see cref="ExecutionResult.Defer"/>)
-    /// before the engine fails it. This is <em>not</em> the delay between polls — the command chooses that
-    /// per deferral via <see cref="ExecutionResult.Defer"/>; this is the ceiling on the sum of them,
-    /// measured from the step's first deferral (<see cref="Step.FirstDeferredAt"/>).
-    /// A deferral asking for longer than the budget has left is clamped to the deadline rather than
-    /// rejected, so the step always gets one final execution once the budget runs out. When <c>null</c>,
-    /// <see cref="EngineSettings.DefaultStepWaitBudget"/> applies; values above
-    /// <see cref="EngineSettings.MaxStepWaitBudget"/> are rejected at enqueue.
+    /// The step's total wait allowance: the maximum <em>cumulative</em> time it may spend in
+    /// <see cref="PersistentItemStatus.Waiting"/> across all deferrals, measured from its first one
+    /// (<see cref="Step.FirstDeferredAt"/>). Not the delay between polls — the command chooses that per
+    /// <see cref="ExecutionResult.Defer"/>; this caps the sum. When <c>null</c>,
+    /// <see cref="EngineSettings.DefaultStepWaitBudget"/> applies; above
+    /// <see cref="EngineSettings.MaxStepWaitBudget"/> the enqueue is rejected.
     /// </summary>
     [JsonPropertyName("waitBudget")]
     public TimeSpan? WaitBudget { get; init; }

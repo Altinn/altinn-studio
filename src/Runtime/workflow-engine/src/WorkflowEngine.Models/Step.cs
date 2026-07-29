@@ -48,10 +48,9 @@ public sealed record Step : PersistentItem
 
     /// <summary>
     /// When this step deferred most recently. Anchors the <see cref="RetryStrategy"/> deadline for
-    /// errors that occur after a deferral, so a long wait does not consume the retry allowance before
-    /// the first genuine error. Distinct from <see cref="PersistentItem.UpdatedAt"/>, which advances on
-    /// every write-back (including errors) and would slide the deadline forward indefinitely.
-    /// Cleared on resume.
+    /// errors after a deferral, so a long wait does not consume the retry allowance. Must not be
+    /// conflated with <see cref="PersistentItem.UpdatedAt"/>, which advances on every write-back and
+    /// would slide that deadline forward indefinitely. Cleared on resume.
     /// </summary>
     public DateTimeOffset? LastDeferredAt { get; set; }
 

@@ -213,11 +213,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                 return Ok(new AppCallbackResponse { State = updatedState });
 
             case DeferredProcessEngineCommandResult deferred:
-                // A deferral is a successful execution, so data changes are saved and state is re-signed
-                // exactly as above — that is what lets a polling command record what it learned and read
-                // it back on its next attempt. What must NOT happen is auto-advance: the transition has
-                // not finished, so the process stays on this task until the awaited outcome arrives (or
-                // the step's wait budget runs out).
+                // A deferral is a successful execution: data is saved and state re-signed exactly as
+                // above, so the next attempt resumes from it. What must NOT happen is auto-advance — the
+                // transition has not finished, it is waiting.
                 DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
 
                 await instanceDataUnitOfWork.UpdateInstanceData(deferredChanges);

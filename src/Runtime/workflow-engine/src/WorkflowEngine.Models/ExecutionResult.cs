@@ -66,9 +66,8 @@ public record struct ExecutionResult(
     /// step's wait budget (<see cref="CommandDefinition.WaitBudget"/> or the engine default).
     /// </summary>
     /// <param name="delay">
-    /// How long to wait before this step is executed again. Each deferral chooses its own delay, so a
-    /// command can poll at whatever cadence it likes; the sum is what the wait budget caps. Clamped up
-    /// to <see cref="EngineSettings.MinStepDeferDelay"/> and down to the remaining budget.
+    /// How long to wait before executing this step again. Clamped up to
+    /// <see cref="EngineSettings.MinStepDeferDelay"/> and down to the remaining wait budget.
     /// </param>
     /// <param name="message">Optional description of what the command is waiting for, surfaced in logs.</param>
     public static ExecutionResult Defer(TimeSpan delay, string? message = null) =>

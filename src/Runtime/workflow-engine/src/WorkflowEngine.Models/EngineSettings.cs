@@ -88,10 +88,8 @@ public sealed record EngineSettings
     /// <see cref="CommandDefinition.WaitBudget"/>.
     /// </summary>
     /// <remarks>
-    /// This is a total allowance, not a poll interval: the command picks the delay before each
-    /// re-execution when it calls <see cref="ExecutionResult.Defer"/>, and this budget caps the sum.
-    /// A step deferring 5 minutes at a time under the 1-day default therefore polls ~288 times before
-    /// the budget runs out — it does not sit idle for a day between polls.
+    /// A total allowance, not a poll interval: a step deferring 5 minutes at a time under the 1-day
+    /// default polls ~288 times before the budget runs out; it does not sit idle for a day between polls.
     /// </remarks>
     [JsonPropertyName("defaultStepWaitBudget")]
     public TimeSpan DefaultStepWaitBudget { get; set; } = TimeSpan.FromDays(1);
@@ -106,10 +104,8 @@ public sealed record EngineSettings
     public TimeSpan MaxStepWaitBudget { get; set; } = TimeSpan.FromDays(30);
 
     /// <summary>
-    /// The shortest delay a deferral can schedule. A command asking for less (a positive but
-    /// negligible delay, e.g. from a miscomputed <c>Retry-After</c>) is clamped up to this value, so a
-    /// deferral can never become a tight re-execution loop against the callback target. A non-positive
-    /// delay remains a command bug and fails the step.
+    /// The shortest delay a deferral can schedule. A command asking for less is clamped up to it, so a
+    /// deferral cannot become a tight re-execution loop. A non-positive delay still fails the step.
     /// </summary>
     [JsonPropertyName("minStepDeferDelay")]
     public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
