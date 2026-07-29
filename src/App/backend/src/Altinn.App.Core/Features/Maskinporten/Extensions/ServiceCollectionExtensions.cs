@@ -32,9 +32,9 @@ internal static class ServiceCollectionExtensions
             (sp, key) => ActivatorUtilities.CreateInstance<MaskinportenClient>(sp, MaskinportenClient.VariantInternal)
         );
 
-        // Warms the well-known metadata (issuer) at startup. TryAddEnumerable makes double registration
-        // safe, and a container without a host simply never runs it.
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MaskinportenWellKnownWarmupService>());
+        // Resolves the well-known metadata (issuer) at startup and refreshes it periodically.
+        // TryAddEnumerable makes double registration safe, and a container without a host never runs it.
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MaskinportenWellKnownRefreshService>());
 
         return services;
     }

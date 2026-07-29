@@ -103,7 +103,8 @@ public class MaskinportenClientTests
         public MaskinportenClient ClientWithOptions(
             string variant,
             IOptionsMonitor<MaskinportenSettings> options,
-            TimeProvider? timeProvider = null
+            TimeProvider? timeProvider = null,
+            ILogger<MaskinportenClient>? logger = null
         ) =>
             new(
                 variant,
@@ -111,7 +112,7 @@ public class MaskinportenClientTests
                 App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
                 App.Services.GetRequiredService<IHttpClientFactory>(),
                 App.Services.GetRequiredService<HybridCache>(),
-                App.Services.GetRequiredService<ILogger<MaskinportenClient>>(),
+                logger ?? App.Services.GetRequiredService<ILogger<MaskinportenClient>>(),
                 timeProvider ?? App.Services.GetRequiredService<TimeProvider>()
             );
 
@@ -942,58 +943,223 @@ public class MaskinportenClientTests
         Assert.Equal(1, fetchCount());
     }
 
+    private MaskinportenWellKnownRefreshService RefreshService(
+        Fixture fixture,
+        ILogger<MaskinportenWellKnownRefreshService>? logger = null
+    ) =>
+        new(
+            fixture.App.Services,
+            logger ?? fixture.App.Services.GetRequiredService<ILogger<MaskinportenWellKnownRefreshService>>(),
+            fixture.FakeTime
+        );
+
     [Fact]
-    public async Task WellKnownWarmupService_PopulatesIssuerForBothVariants()
+    public async Task WellKnownRefreshService_PopulatesIssuerForBothVariants()
     {
         // Arrange
         await using var fixture = Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
+        var fetches = 0;
+        var firstRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
-            (_, _) => Task.FromResult(WellKnownSuccessResponse(expectedIssuer))
+            (_, _) =>
+            {
+                if (Interlocked.Increment(ref fetches) == 2)
+                    firstRound.TrySetResult();
+                return Task.FromResult(WellKnownSuccessResponse(expectedIssuer));
+            }
         );
-        using var service = new MaskinportenWellKnownWarmupService(
-            fixture.App.Services,
-            fixture.App.Services.GetRequiredService<ILogger<MaskinportenWellKnownWarmupService>>()
-        );
+        using var service = RefreshService(fixture);
 
-        // Act
+        // Act - the service refreshes the variants sequentially, so once the internal variant's fetch has
+        // started (firstRound), the default variant is fully resolved; the internal client call below
+        // synchronizes on its own fetch lock and is served by the in-lock re-check without fetching.
         await service.StartAsync(CancellationToken.None);
-        await service.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(10));
-        var fetchesDuringWarmup = fetchCount();
+        await firstRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var defaultResult = await fixture.Client(MaskinportenClient.VariantDefault).GetAudienceFromWellKnown();
         var internalResult = await fixture.Client(MaskinportenClient.VariantInternal).GetAudienceFromWellKnown();
+        await service.StopAsync(CancellationToken.None);
 
-        // Assert - one fetch per variant during warm-up, and real callers are served from cache
-        Assert.Equal(2, fetchesDuringWarmup);
+        // Assert - one fetch per variant during the initial iteration, and real callers are served from cache
         Assert.Equal(expectedIssuer, defaultResult);
         Assert.Equal(expectedIssuer, internalResult);
         Assert.Equal(2, fetchCount());
     }
 
     [Fact]
-    public async Task WellKnownWarmupService_UnconfiguredSettings_SkipsSilently()
+    public async Task WellKnownRefreshService_PeriodicTickRefreshesIssuer()
     {
-        // Arrange - Maskinporten is not configured, so Settings access throws OptionsValidationException
+        // Arrange
+        await using var fixture = Fixture.Create();
+        const string issuer1 = "https://issuer1.maskinporten.no/";
+        const string issuer2 = "https://issuer2.maskinporten.no/";
+        var currentIssuer = issuer1;
+        var fetches = 0;
+        var firstRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (_, _) =>
+            {
+                var n = Interlocked.Increment(ref fetches);
+                if (n == 2)
+                    firstRound.TrySetResult();
+                if (n == 4)
+                    secondRound.TrySetResult();
+                return Task.FromResult(WellKnownSuccessResponse(currentIssuer));
+            }
+        );
+        using var service = RefreshService(fixture);
+
+        // Act
+        await service.StartAsync(CancellationToken.None);
+        await firstRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        var beforeTick = await fixture.Client(MaskinportenClient.VariantDefault).GetAudienceFromWellKnown();
+
+        // The upstream issuer changes under an unchanged Authority; only the periodic refresh can notice
+        currentIssuer = issuer2;
+        fixture.FakeTime.Advance(MaskinportenWellKnownRefreshService.WellKnownRefreshInterval);
+        await secondRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        var defaultResult = await fixture.Client(MaskinportenClient.VariantDefault).GetAudienceFromWellKnown();
+        var internalResult = await fixture.Client(MaskinportenClient.VariantInternal).GetAudienceFromWellKnown();
+        await service.StopAsync(CancellationToken.None);
+
+        // Assert - two rounds of two variants; the client calls were all served from cache
+        Assert.Equal(issuer1, beforeTick);
+        Assert.Equal(issuer2, defaultResult);
+        Assert.Equal(issuer2, internalResult);
+        Assert.Equal(4, fetchCount());
+    }
+
+    [Fact]
+    public async Task WellKnownRefreshService_FailedRefreshKeepsLastKnownGoodIssuer()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        const string expectedIssuer = "https://issuer.maskinporten.no/";
+        var shouldFail = false;
+        var fetches = 0;
+        var firstRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (_, _) =>
+            {
+                var n = Interlocked.Increment(ref fetches);
+                if (n == 2)
+                    firstRound.TrySetResult();
+                if (n == 4)
+                    secondRound.TrySetResult();
+                return Task.FromResult(
+                    shouldFail ? WellKnownErrorResponse() : WellKnownSuccessResponse(expectedIssuer)
+                );
+            }
+        );
+        var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
+        using var service = RefreshService(fixture, logger);
+
+        // Act - resolve, then the next tick's refresh fails
+        await service.StartAsync(CancellationToken.None);
+        await firstRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        shouldFail = true;
+        fixture.FakeTime.Advance(MaskinportenWellKnownRefreshService.WellKnownRefreshInterval);
+        await secondRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        var result = await fixture.Client(MaskinportenClient.VariantDefault).GetAudienceFromWellKnown();
+        await service.StopAsync(CancellationToken.None);
+
+        // Assert - last-known-good is kept, the client call did not fetch, and the service stays quiet
+        Assert.Equal(expectedIssuer, result);
+        Assert.Equal(4, fetchCount());
+        Assert.DoesNotContain(logger.Snapshot(), entry => entry.Level > LogLevel.Debug);
+    }
+
+    [Fact]
+    public async Task RefreshWellKnownIssuer_FailureDoesNotStampRetryWindow()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        const string expectedIssuer = "https://issuer.maskinporten.no/";
+        var shouldFail = true;
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (_, _) => Task.FromResult(shouldFail ? WellKnownErrorResponse() : WellKnownSuccessResponse(expectedIssuer))
+        );
+
+        // Act - a failed background refresh propagates to the caller (the hosted service)...
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.RefreshWellKnownIssuer(CancellationToken.None));
+
+        // ...and must not stamp the fail-fast window: the next real request performs its own
+        // blocking fetch instead of being fast-failed onto the fallback.
+        shouldFail = false;
+        var result = await client.GetAudienceFromWellKnown();
+
+        // Assert
+        Assert.Equal(expectedIssuer, result);
+        Assert.Equal(2, fetchCount());
+    }
+
+    [Fact]
+    public async Task RefreshWellKnownIssuer_LogsWarningOnlyWhenIssuerChanges()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        const string issuer1 = "https://issuer1.maskinporten.no/";
+        const string issuer2 = "https://issuer2.maskinporten.no/";
+        var currentIssuer = issuer1;
+        var fetchCount = SetupWellKnownEndpoint(
+            fixture,
+            (_, _) => Task.FromResult(WellKnownSuccessResponse(currentIssuer))
+        );
+        var logger = new RecordingLogger<MaskinportenClient>();
+        var optionsMonitor = new Mock<IOptionsMonitor<MaskinportenSettings>>();
+        optionsMonitor.Setup(x => x.Get(It.IsAny<string?>())).Returns(Fixture.DefaultSettings);
+        var client = fixture.ClientWithOptions(
+            MaskinportenClient.VariantDefault,
+            optionsMonitor.Object,
+            logger: logger
+        );
+
+        // Act & assert - cold refresh (nothing to compare) and same-issuer refresh log no warning
+        await client.RefreshWellKnownIssuer(CancellationToken.None);
+        await client.RefreshWellKnownIssuer(CancellationToken.None);
+        Assert.DoesNotContain(logger.Snapshot(), entry => entry.Level >= LogLevel.Warning);
+
+        // An actual issuer change is a significant event - Warning
+        currentIssuer = issuer2;
+        await client.RefreshWellKnownIssuer(CancellationToken.None);
+        var warnings = logger.Snapshot().Where(entry => entry.Level == LogLevel.Warning).ToList();
+        var warning = Assert.Single(warnings);
+        Assert.Contains(issuer1, warning.Message, StringComparison.Ordinal);
+        Assert.Contains(issuer2, warning.Message, StringComparison.Ordinal);
+        Assert.Equal(3, fetchCount());
+    }
+
+    [Fact]
+    public async Task WellKnownRefreshService_UnconfiguredSettings_SkipsSilently()
+    {
+        // Arrange - Maskinporten is not configured, so the settings read inside the refresh throws
+        // OptionsValidationException, which the service must swallow at Debug level
         await using var fixture = Fixture.Create(configureMaskinporten: false);
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
             (_, _) => Task.FromResult(WellKnownSuccessResponse("https://issuer.maskinporten.no/"))
         );
-        var logger = new RecordingLogger<MaskinportenWellKnownWarmupService>();
-        using var service = new MaskinportenWellKnownWarmupService(fixture.App.Services, logger);
+        var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
+        using var service = RefreshService(fixture, logger);
 
-        // Act
+        // Act - the initial iteration runs synchronously (no HTTP happens for unconfigured variants)
         await service.StartAsync(CancellationToken.None);
-        await service.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(10));
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - no fetches, no startup noise above Debug
         Assert.Equal(0, fetchCount());
-        Assert.DoesNotContain(logger.Entries, entry => entry.Level > LogLevel.Debug);
+        Assert.DoesNotContain(logger.Snapshot(), entry => entry.Level > LogLevel.Debug);
     }
 
     [Fact]
-    public async Task WellKnownWarmupService_IsRegisteredAsHostedService()
+    public async Task WellKnownRefreshService_IsRegisteredAsHostedService()
     {
         // Arrange
         await using var fixture = Fixture.Create();
@@ -1002,12 +1168,18 @@ public class MaskinportenClientTests
         var hostedServices = fixture.App.Services.GetServices<IHostedService>();
 
         // Assert - registered exactly once (TryAddEnumerable makes double registration safe)
-        Assert.Single(hostedServices.OfType<MaskinportenWellKnownWarmupService>());
+        Assert.Single(hostedServices.OfType<MaskinportenWellKnownRefreshService>());
     }
 
     private sealed class RecordingLogger<T> : ILogger<T>
     {
-        public List<(LogLevel Level, string Message)> Entries { get; } = [];
+        private readonly List<(LogLevel Level, string Message)> _entries = [];
+
+        public IReadOnlyList<(LogLevel Level, string Message)> Snapshot()
+        {
+            lock (_entries)
+                return [.. _entries];
+        }
 
         public IDisposable? BeginScope<TState>(TState state)
             where TState : notnull => null;
@@ -1022,8 +1194,8 @@ public class MaskinportenClientTests
             Func<TState, Exception?, string> formatter
         )
         {
-            lock (Entries)
-                Entries.Add((logLevel, formatter(state, exception)));
+            lock (_entries)
+                _entries.Add((logLevel, formatter(state, exception)));
         }
     }
 
