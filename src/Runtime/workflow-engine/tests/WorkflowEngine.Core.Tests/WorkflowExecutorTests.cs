@@ -254,7 +254,7 @@ public class WorkflowExecutorTests
     public async Task Execute_StepWithoutOwnStateOut_ReceivesPreviousStepState()
     {
         // The complement: with no state of its own, a step still inherits the pipeline's, so the
-        // preference above cannot change behaviour for steps that have never deferred.
+        // preference above cannot change behavior for steps that have never deferred.
         var capture = new StateCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services =>
         {
