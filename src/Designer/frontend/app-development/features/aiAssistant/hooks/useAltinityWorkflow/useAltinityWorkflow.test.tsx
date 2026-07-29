@@ -199,6 +199,59 @@ describe('useAltinityWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-b']).toBeUndefined();
   });
 
+  it('upgrades a placeholder trail step in place by tool_use_id even when later steps exist', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    const userMessage: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    await act(async () => {
+      await result.current.onSubmitMessage(userMessage);
+    });
+
+    // Batched tool calls: two placeholders stream in, THEN the first one's
+    // landed message arrives. The upgrade must find the row by id even
+    // though it is no longer the last step.
+    const sendStatus = (message: string, toolUseId: string) =>
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message, tool_use_id: toolUseId },
+      });
+
+    await act(async () => {
+      sendStatus('Henter kunnskap', 'tool-skill-1');
+      sendStatus('Skanner repo', 'tool-scan-1');
+      sendStatus('Henter kunnskap om altinn-planning', 'tool-skill-1');
+    });
+
+    const steps = result.current.workflowStatusByThread['thread-a']?.steps ?? [];
+    const messages = steps.map((step) => step.message);
+    expect(messages).toContain('Henter kunnskap om altinn-planning');
+    expect(messages).toContain('Skanner repo');
+    expect(messages).not.toContain('Henter kunnskap');
+  });
+
   it('drops workflow events that have no session_id', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 

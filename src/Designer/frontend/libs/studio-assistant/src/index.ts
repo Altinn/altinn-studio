@@ -11,5 +11,5 @@ export type {
 export type { MessagesProps } from './components/MessageColumn/Messages/Messages';
 export type { AssistantMessage } from './types/ChatThread';
 export type { User } from './types/User';
-export type { WorkflowStatus } from './types/WorkflowStatus';
+export type { WorkflowStatus, TrailStep } from './types/WorkflowStatus';
 export type { ConnectionStatus } from './types/ConnectionStatus';

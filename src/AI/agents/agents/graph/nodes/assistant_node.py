@@ -1,13 +1,25 @@
-"""Assistant node for handling read-only Q&A queries about Altinn applications."""
+"""Assistant node for handling read-only Q&A queries about Altinn applications.
+
+Documentation grounding works skill-style: the curated llms.txt index
+(agents/skills/altinn-docs/llms.txt) is given to a small LLM call that
+picks the most relevant pages for the question; those pages are fetched
+directly from docs.altinn.studio and injected into the response prompt.
+No MCP server involved.
+"""
 
 from __future__ import annotations
 
-from shared.utils.langfuse_utils import trace_span
+import asyncio
 import re
 import json
+from pathlib import Path
 from typing import Dict, Any, List, Optional
+
+import httpx
+
+from shared.utils.langfuse_utils import trace_span
+from agents.core.tools.web_fetch_tool import ALLOWED_HOSTS, MAX_RESPONSE_CHARS, _html_to_text
 from agents.graph.state import AgentState
-from agents.services.mcp import get_mcp_client
 from agents.services.repo import discover_repository_context
 from agents.services.llm import LLMClient
 from agents.services.events import AgentEvent, sink
@@ -16,6 +28,10 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+_LLMS_TXT_PATH = Path(__file__).parents[2] / "skills" / "altinn-docs" / "llms.txt"
+_MAX_DOC_PAGES_PER_QUERY = 3
+_PER_PAGE_CONTENT_CAP = 20_000  # chars of fetched page fed to the response prompt
+
 
 async def handle(state: AgentState) -> AgentState:
     """
@@ -23,8 +39,8 @@ async def handle(state: AgentState) -> AgentState:
     
     This node provides read-only assistance by:
     1. Scanning repository for context
-    2. Selecting relevant MCP tools
-    3. Calling tools to gather documentation
+    2. Selecting relevant docs pages from the curated llms.txt index
+    3. Fetching those pages from docs.altinn.studio
     4. Generating a helpful response using LLM
     
     Args:
@@ -66,53 +82,22 @@ async def handle(state: AgentState) -> AgentState:
             _check_cancelled()
             repo_summary = await _scan_repository(state)
 
-            # Step 2: Connect to MCP and get available tools
-            log.info("🔧 Connecting to MCP tools...")
+            # Step 2: Pick relevant documentation pages from the curated index
+            log.info("🎯 Selecting documentation pages...")
             _check_cancelled()
-            tool_names = await _get_available_tools()
-
-            # Wait for MCP docs if still indexing (user sees status message)
-            mcp = get_mcp_client()
-            if mcp.is_ready and not mcp.is_docs_ready:
-                log.info(f"⏳ MCP docs still indexing — waiting before proceeding (session {state.session_id})")
-                sink.send(AgentEvent(
-                    type="status",
-                    session_id=state.session_id,
-                    data={
-                        "message": "Venter på at dokumentasjonsindeksen skal bli klar...",
-                        "status": "docs_indexing",
-                    },
-                ))
-                docs_ready = await mcp.wait_for_docs_ready()
-                if docs_ready:
-                    log.info(f"✅ MCP docs ready — proceeding with session {state.session_id}")
-                else:
-                    log.warning(f"⚠️ MCP docs not available — proceeding anyway (session {state.session_id})")
-                    sink.send(AgentEvent(
-                        type="status",
-                        session_id=state.session_id,
-                        data={
-                            "message": "MCP-serveren mistet tilkoblingen. Svaret kan være ufullstendig — prøv igjen om det ikke ser riktig ut.",
-                            "status": "mcp_degraded",
-                        },
-                    ))
-
-            # Step 3: Plan tool execution (LLM-based, always includes planning_tool)
-            log.info("🎯 Planning tool execution...")
-            _check_cancelled()
-            tool_plan = await _select_relevant_tools(
+            selected_pages = await _select_docs_pages(
                 state.user_goal,
-                tool_names,
-                repo_summary,
-                state.conversation_history
+                state.conversation_history,
             )
 
-            # Step 4: Execute tool plan
-            tool_results = {}
-            if tool_plan:
+            # Step 3: Fetch the selected pages directly from docs.altinn.studio
+            tool_results: Dict[str, Any] = {}
+            if selected_pages:
                 _check_cancelled()
-                log.info(f"📊 Executing {len(tool_plan)} tools according to plan...")
-                tool_results = await _execute_tools(tool_plan)
+                log.info(f"📖 Fetching {len(selected_pages)} documentation page(s)...")
+                pages = await _fetch_docs_pages(selected_pages)
+                if pages:
+                    tool_results["altinn_docs"] = {"pages": pages}
 
             # Step 5: Generate response
             log.info("🤖 Generating response...")
@@ -206,225 +191,112 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
         return repo_summary
 
 
-async def _get_available_tools() -> List[str]:
-    """Connect to MCP and get available tools."""
-    with trace_span("mcp_connection", metadata={"span_type": "TOOL"}) as span:
-        mcp_client = get_mcp_client()
-        await mcp_client.connect()
-        
-        available_tools = mcp_client._available_tools or []
-        tool_names = [
-            tool.get("name") if isinstance(tool, dict) else tool
-            for tool in available_tools
-        ]
-        
-        span.update(output={"tool_count": len(tool_names), "tools": tool_names})
-        log.info(f"🔧 Connected to MCP: {len(tool_names)} tools available")
-        
-        return tool_names
+def _load_docs_index() -> str:
+    """The curated llms.txt index shipped with the altinn-docs skill."""
+    try:
+        return _LLMS_TXT_PATH.read_text(encoding="utf-8")
+    except OSError as exc:
+        log.warning("Docs index unavailable (%s) — answering without docs", exc)
+        return ""
+
+
+_PAGE_SELECTION_SYSTEM_PROMPT = """\
+You select documentation pages for a question about Altinn Studio app development.
+
+You get an index of available pages (title, URL, one-line description) and the user's question.
+Return ONLY a JSON array of the pages most likely to answer the question — at most {max_pages}, fewer if fewer are relevant, `[]` if none are.
+
+Format: [{{"title": "...", "url": "..."}}]
+Rules:
+- URLs must be copied EXACTLY from the index.
+- Prefer one precise page over several vague ones.
+- No commentary, no markdown fences — just the JSON array."""
 
 
 
-async def _select_relevant_tools(
+async def _select_docs_pages(
     query: str,
-    tool_names: List[str],
-    repo_summary: Dict[str, Any],
-    conversation_history: Optional[List[Any]] = None
-) -> List[Dict[str, Any]]:
-    """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
-    with trace_span("tool_selection", metadata={"span_type": "AGENT"}) as span:
-        span.update(input={
-            "query": query,
-            "available_tools": tool_names,
-            "has_conversation_history": bool(conversation_history)
-        })
+    conversation_history: Optional[List[Any]] = None,
+) -> List[Dict[str, str]]:
+    """Pick up to N documentation pages for the question via the curated index."""
+    with trace_span("docs_page_selection", metadata={"span_type": "AGENT"}) as span:
+        span.update(input={"query": query})
 
-        from agents.services.llm import LLMClient, extract_semantic_query
-        import json
-        
-        # STEP 1: Generate semantic query fresh for this turn
-        semantic_query = await extract_semantic_query(query, context="chat")
-        
-        # STEP 2: Use tool planner to select tools
+        index = _load_docs_index()
+        if not index:
+            span.update(output={"selected": [], "reason": "no index"})
+            return []
+
         client = LLMClient(role="tool_planner")
-
-        system_prompt, lf_prompt_tool = get_prompt_with_langfuse("assistant_tool_orchestration")
-        
-        repo_context = f"""Repository: {repo_summary.get('layouts', []).__len__()} layouts, {repo_summary.get('locales', []).__len__()} locales"""
-        
-        user_prompt = render_template(
-            "assistant_tool_selection_user",
-            history_context="",
-            query=query,
-            semantic_query=semantic_query,
-            repo_context=repo_context,
-            tool_names=', '.join(tool_names)
+        system_prompt = _PAGE_SELECTION_SYSTEM_PROMPT.format(
+            max_pages=_MAX_DOC_PAGES_PER_QUERY
         )
-        
-        span.update(input={
-            "system_prompt": system_prompt,
-            "user_prompt": user_prompt[:500] + "...",
-            "semantic_query": semantic_query
-        })
-        
+        user_prompt = f"DOCUMENTATION INDEX:\n{index}\n\nQUESTION:\n{query}"
+
         try:
-            response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt_tool, conversation_history=conversation_history)
-
-            # Parse JSON response
+            response = client.call_sync(
+                system_prompt,
+                user_prompt,
+                conversation_history=conversation_history,
+            )
             response_clean = response.strip()
-            if response_clean.startswith("```json"):
-                response_clean = response_clean[7:]
             if response_clean.startswith("```"):
-                response_clean = response_clean[3:]
-            if response_clean.endswith("```"):
-                response_clean = response_clean[:-3]
-            
-            tool_plan = json.loads(response_clean.strip())
-            
-            # Ensure altinn_planning is first, using semantic_query (English keywords) for better doc search
-            altinn_planning_exists = False
-            for tool_spec in tool_plan:
-                if tool_spec.get("tool") == "altinn_planning":
-                    tool_spec["query"] = semantic_query or query
-                    altinn_planning_exists = True
-                    break
+                response_clean = re.sub(r"^```(?:json)?\s*|\s*```$", "", response_clean)
+            selected = json.loads(response_clean)
+        except Exception as exc:  # noqa: BLE001 — selection is best-effort
+            log.warning("Docs page selection failed: %s — answering without docs", exc)
+            span.update(output={"selected": [], "error": str(exc)})
+            return []
 
-            if not altinn_planning_exists:
-                tool_plan.insert(0, {
-                    "tool": "altinn_planning",
-                    "query": semantic_query or query,
-                    "objective": "Search official Altinn documentation"
-                })
-            
-            span.update(output={
-                "selected_tools": [t["tool"] for t in tool_plan],
-                "tool_plan": tool_plan,
-                "selection_strategy": "llm_based",
-                "semantic_query_used": semantic_query
-            })
-            
-            log.info(f"🎯 LLM selected {len(tool_plan)} tools: {', '.join([t['tool'] for t in tool_plan])}")
-            return tool_plan
-            
-        except Exception as e:
-            log.warning(f"Tool planning failed: {e}, falling back to altinn_planning")
-            fallback = [{"tool": "altinn_planning", "query": semantic_query or query, "objective": "Search official documentation"}]
-            span.update(output={
-                "selected_tools": ["planning_tool"],
-                "selection_strategy": "fallback",
-                "error": str(e)
-            })
-            return fallback
-
-
-async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Execute selected MCP tools according to the plan."""
-    with trace_span("tool_execution", metadata={"span_type": "TOOL"}) as span:
-        span.update(input={"tool_plan": tool_plan})
-        
-        mcp_client = get_mcp_client()
-        tool_results = {}
-        
-        for tool_spec in tool_plan:
-            tool_name = tool_spec.get("tool")
-            query = tool_spec.get("query", "")
-            objective = tool_spec.get("objective", "")
-            
-            # Skip validation tools - they require specific file content, not queries
-            if tool_name and ("validate" in tool_name.lower() or tool_name in {"altinn_layout_validate", "altinn_resource_validate", "altinn_policy_validate"}):
-                log.warning(f"Skipping {tool_name} - validation tools not available in chat mode")
+        pages: List[Dict[str, str]] = []
+        for entry in selected if isinstance(selected, list) else []:
+            if not isinstance(entry, dict):
                 continue
-            
-            # Prepare arguments based on tool type
-            if tool_name in {"altinn_datamodel_docs", "altinn_prefill_docs", "altinn_expression_docs", "altinn_policy_docs"}:
-                # Documentation tools - no parameters
-                arguments = {}
-            elif tool_name == "altinn_layout_props":
-                # Layout properties tool requires component_type
-                arguments = {
-                    "component_type": tool_spec.get("component_type", "")
-                }
-                if not arguments["component_type"]:
-                    log.warning(f"Skipping {tool_name} - missing component_type")
-                    continue
-            elif tool_name == "altinn_planning":
-                # Planning tool requires query parameter for semantic doc search
-                arguments = {"query": tool_spec.get("query", query) or query}
-            elif tool_name == "altinn_layout_list":
-                # Layout list tool - no parameters
-                arguments = {}
-            else:
-                # Other tools may take query parameter
-                arguments = {"query": query or ""}
-            
-            with trace_span(f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
-                tool_span.update(input={
-                    "tool": tool_name,
-                    "arguments": arguments,
-                    "objective": objective
-                })
-                
-                try:
-                    result = await mcp_client.call_tool(tool_name, arguments)
+            url = str(entry.get("url", ""))
+            title = str(entry.get("title", "")) or url
+            # Only accept URLs that appear verbatim in the index — the
+            # selector must pick, not invent.
+            if url and url in index:
+                pages.append({"title": title, "url": url})
+            if len(pages) >= _MAX_DOC_PAGES_PER_QUERY:
+                break
 
-                    # Handle CallToolResult objects
-                    extracted = None
-                    if hasattr(result, 'structured_content') and result.structured_content:
-                        extracted = result.structured_content
-                        tool_results[tool_name] = extracted
-                    elif hasattr(result, 'content'):
-                        content = result.content
-                        if isinstance(content, list) and len(content) > 0:
-                            first_item = content[0]
-                            if hasattr(first_item, 'text'):
-                                extracted = {"text": first_item.text}
-                            else:
-                                extracted = first_item
-                        elif isinstance(content, str):
-                            extracted = {"text": content}
-                        else:
-                            extracted = content
-                        tool_results[tool_name] = extracted
-                    else:
-                        extracted = result
-                        tool_results[tool_name] = result
+        span.update(output={"selected": pages})
+        log.info(f"🎯 Selected {len(pages)} docs page(s): {[p['title'] for p in pages]}")
+        return pages
 
-                    result_size = len(str(extracted)) if extracted else 0
-                    
-                    # Extract text content for markdown display
-                    full_text = None
-                    if isinstance(extracted, dict) and "text" in extracted:
-                        full_text = extracted["text"]
-                    elif isinstance(extracted, str):
-                        full_text = extracted
-                    else:
-                        full_text = str(extracted)
-                    
-                    tool_span.update(output={
-                        "success": True,
-                        "result_size": result_size,
-                        "response_markdown": full_text  # Full response as markdown (no truncation)
-                    })
-                    log.info(f"✅ {tool_name}: {result_size} chars")
-                    
-                except Exception as e:
-                    log.error(f"❌ Failed to call {tool_name}: {e}")
-                    tool_results[tool_name] = {"error": str(e)}
-                    tool_span.update(metadata={"error": True, "error_message": str(e)})
-                    tool_span.update(output={"success": False, "error": str(e)})
-        
-        success_count = sum(
-            1 for r in tool_results.values()
-            if not (isinstance(r, dict) and "error" in r)
-        )
-        
-        span.update(output={
-            "tools_called": list(tool_results.keys()),
-            "success_count": success_count,
-            "total_count": len(tool_results)
-        })
-        
-        return tool_results
+
+async def _fetch_docs_pages(pages: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    """Fetch the selected pages concurrently, reduce to readable text."""
+    with trace_span("docs_fetch", metadata={"span_type": "TOOL"}) as span:
+        span.update(input={"urls": [p["url"] for p in pages]})
+
+        async def _fetch_one(page: Dict[str, str]) -> Optional[Dict[str, str]]:
+            url = page["url"]
+            host = httpx.URL(url).host or ""
+            if host not in ALLOWED_HOSTS:
+                log.warning("Skipping non-allowlisted docs host: %s", host)
+                return None
+            try:
+                async with httpx.AsyncClient(follow_redirects=True, timeout=20.0) as client:
+                    response = await client.get(url)
+                    response.raise_for_status()
+            except httpx.HTTPError as exc:
+                log.warning("Docs fetch failed for %s: %s", url, exc)
+                return None
+            text = response.text
+            if "html" in response.headers.get("content-type", ""):
+                text = _html_to_text(text)
+            return {
+                "title": page["title"],
+                "url": url,
+                "content": text[:_PER_PAGE_CONTENT_CAP],
+            }
+
+        fetched = await asyncio.gather(*(_fetch_one(p) for p in pages))
+        result = [p for p in fetched if p is not None]
+        span.update(output={"fetched": [p["url"] for p in result]})
+        return result
 
 
 def _extract_cited_sources_from_response(response: str, all_sources: List[Dict[str, Any]]) -> tuple:
@@ -560,87 +432,24 @@ def _clean_documentation_preview(text: str) -> str:
 
 
 def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Turn fetched documentation pages into frontend source entries.
+
+    Shape matches what the chat UI renders: `{title, url, previewText,
+    tool}`.  Only real docs pages become sources — repo context and
+    other internal signals are not user-facing citations.
     """
-    Extract source citations from tool results for frontend display.
-    
-    Parses structured documentation responses (especially from planning_tool)
-    to extract individual doc sections with URLs.
-    
-    Returns list of sources with:
-    - title: Document title from heading
-    - url: Direct link to documentation
-    - preview: Short preview of content
-    - relevance: Relevance score (if available)
-    - matched_terms: Search terms that matched
-    """
-    sources = []
-    
-    for tool_name, result in tool_results.items():
-        if isinstance(result, dict) and "error" in result:
-            continue
-        
-        # Extract text content
-        text_content = None
-        if isinstance(result, dict):
-            if "text" in result:
-                text_content = result["text"]
-                if tool_name == "planning_tool":
-                    log.info(f"Planning tool result type: dict with 'text' key, length: {len(text_content)}")
-            elif "content" in result:
-                text_content = str(result["content"]) if not isinstance(result["content"], str) else result["content"]
-            else:
-                text_content = str(result)
-        elif hasattr(result, 'text'):
-            text_content = result.text
-            if tool_name == "planning_tool":
-                log.info(f"Planning tool result type: object with .text, length: {len(text_content)}")
-        else:
-            text_content = str(result)
-        
-        if not text_content:
-            continue
-        
-        # Special handling for altinn_planning - extract from "## Documentation Search" section
-        if tool_name == "altinn_planning":
-            # altinn_planning returns: ## Documentation Search: 'query'\n### 1. Title\n**URL:** ...\n**Relevance:** ...\n**Matched Terms:** ...\n**Excerpt:** ...
-            search_section_match = re.search(r'##\s+Documentation Search.*?\n(.+)', text_content, re.DOTALL)
-
-            if search_section_match:
-                search_section = search_section_match.group(1)
-
-                # Each result starts with ### N. Title
-                section_pattern = re.compile(r'###\s+\d+\.\s+(.+?)\n\*\*URL:\*\*\s+(.+?)\n\*\*Relevance:\*\*\s+([\d.]+)\n(?:\*\*Matched Terms:\*\*\s+(.+?)\n)?(?:\*\*Excerpt:\*\*\s+(.+?)(?:\n|$))?', re.DOTALL)
-
-                sections_found = 0
-                for match in section_pattern.finditer(search_section):
-                    sections_found += 1
-                    title_raw = match.group(1).strip()
-                    url = match.group(2).strip()
-                    relevance = match.group(3).strip()
-                    matched_terms = (match.group(4) or "").strip()
-                    excerpt = (match.group(5) or "").strip()
-
-                    title = title_raw.split('–')[0].split(' - ')[0].strip()
-                    preview = excerpt[:200] if excerpt else _clean_documentation_preview(text_content)
-
-                    sources.append({
-                        "title": title,
-                        "url": url,
-                        "previewText": preview,
-                        "relevance": float(relevance),
-                        "matchedTerms": matched_terms,
-                        "tool": tool_name,
-                    })
-
-                if sections_found > 0:
-                    log.info(f"📖 Extracted {sections_found} sections from altinn_planning")
-                else:
-                    log.warning("⚠️ No numbered sections found in Documentation Search section")
-            else:
-                log.warning(f"⚠️ No '## Documentation Search' section in altinn_planning result (length: {len(text_content)})")
-        
-        # All other tools (docs, layout, etc.) are internal context — not user-facing sources
-    
+    sources: List[Dict[str, Any]] = []
+    docs = tool_results.get("altinn_docs") or {}
+    for page in docs.get("pages", []):
+        content = page.get("content", "")
+        sources.append(
+            {
+                "title": page.get("title") or page.get("url"),
+                "url": page.get("url"),
+                "previewText": _clean_documentation_preview(content)[:200],
+                "tool": "altinn_docs",
+            }
+        )
     return sources
 
 
@@ -680,47 +489,20 @@ REPOSITORY CONTEXT:
 - Available Locales: {', '.join(locales_list) if locales_list else 'none'}
 """
         
-        # Build context from tool results - include full documentation
-        # Also extract available section titles for citation
+        # Build context from fetched documentation pages.  Section titles
+        # double as citation handles the model can reference in SOURCES.
         available_sections = []
         tool_context = ""
-        if tool_results:
+        docs = tool_results.get("altinn_docs") or {}
+        pages = docs.get("pages", [])
+        if pages:
             tool_context = "\n\n═══════════════════════════════════════════════════════════════\n"
             tool_context += "RELEVANT DOCUMENTATION\n"
             tool_context += "═══════════════════════════════════════════════════════════════\n"
-            for tool_name, result in tool_results.items():
-                if isinstance(result, dict):
-                    if "error" in result:
-                        continue
-                    if "text" in result:
-                        text_content = result['text']
-                        tool_context += f"\n[{tool_name}]:\n{text_content}\n\n"
-                        
-                        # Extract section titles for citation hints
-                        if tool_name == "altinn_planning":
-                            section_pattern = r'###\s+\d+\.\s+(.+?)\n'
-                            for match in re.finditer(section_pattern, text_content, re.MULTILINE):
-                                raw_title = match.group(1).strip()
-                                clean_title = raw_title.split('–')[0].split(' - ')[0].strip()
-                                available_sections.append(clean_title)
-                        elif tool_name == "altinn_expression_docs":
-                            available_sections.append("Dynamic expressions")
-                        elif tool_name == "altinn_datamodel_docs":
-                            available_sections.append("Data Model")
-                        elif tool_name == "altinn_prefill_docs":
-                            available_sections.append("Prefill")
-                        elif tool_name == "altinn_policy_docs":
-                            available_sections.append("Authorization policies")
-                                
-                    elif "content" in result:
-                        content_str = str(result['content']) if not isinstance(result['content'], str) else result['content']
-                        tool_context += f"\n[{tool_name}]:\n{content_str}\n\n"
-                    else:
-                        tool_context += f"\n[{tool_name}]:\n{str(result)}\n\n"
-                elif hasattr(result, 'text'):
-                    tool_context += f"\n[{tool_name}]:\n{result.text}\n\n"
-                else:
-                    tool_context += f"\n[{tool_name}]:\n{str(result)}\n\n"
+            for page in pages:
+                title = page.get("title") or page.get("url")
+                tool_context += f"\n[{title}]({page.get('url')}):\n{page.get('content', '')}\n\n"
+                available_sections.append(title)
         
         # Add list of available sections for citation
         citation_note = ""
