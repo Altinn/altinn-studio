@@ -36,10 +36,10 @@ const appFrontend = new AppFrontend();
  *   - advance    after a successful settle: "auto" (auto-advance to Task_2) or "park" (succeed
  *                WITHOUT advancing - the process stays on the service task until an out-of-band
  *                process/next releases it; the frontend renders its implicit waiting step, #18935).
- *                Note park and a deferral look identical in the browser and are entirely different
- *                underneath: a parked task has SUCCEEDED (workflow Completed, moves only when
- *                something else drives it), a deferring one is STILL RUNNING (workflow Waiting,
- *                resumes itself). A lost external signal strands the first, merely delays the second.
+ *                Park and a deferral both leave the user on the service task but are opposites
+ *                underneath, and the UI follows: a parked task has SUCCEEDED (workflow idle -> the
+ *                service-task waiting view), a deferring one is STILL RUNNING (workflow processing ->
+ *                the ordinary advancing view). A lost signal strands the first, merely delays the second.
  *   - serviceView "default" (Task_Service, built-in waiting/failure views) or "layout"
  *                (Task_ServiceLayout, the app's own layout renders while parked).
  *
@@ -392,10 +392,11 @@ describe('Live workflow status (real engine)', () => {
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    // Crucially the user sees an in-flight transition, NOT a settled one: a deferring step is still
-    // working, so the frontend must show the same reassurance it shows for any slow transition and
-    // must not offer recovery affordances.
-    cy.contains('Vi behandler forespørselen din', { timeout: 30000 }).should('be.visible');
+    // The user sees an in-flight transition, not a settled one: a deferring step is still working, so
+    // the frontend shows the ordinary advancing view — not the parked service-task view — and offers
+    // no recovery affordances.
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
+    cy.contains('Vi behandler forespørselen din').should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
 
@@ -405,22 +406,24 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
-  it('deferral vs park: a deferring task reports processing, a parked one reports idle', () => {
-    // The two are indistinguishable in the browser and completely different underneath, so pin the
-    // distinction where it is observable: the server's workflow status. A deferring step is
-    // Waiting - non-terminal, engine-owned, resumes itself. A parked step has SUCCEEDED and only
-    // moves when something else drives it. Reading the first as settled would be a correctness bug.
+  it('deferral vs park: a deferring task reports processing and renders the advancing view', () => {
+    // Park and defer both leave the user on the service task and are opposites underneath: a parked
+    // step has SUCCEEDED (workflow idle, moves only when something drives it), a deferring one is
+    // STILL RUNNING (workflow processing, resumes itself). The difference shows in both places, so
+    // pin both — the server status and the view that status selects.
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', deferrals: 3, deferDelayMs: 5000 });
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' });
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
+    cy.contains('Vi behandler forespørselen din').should('not.exist');
 
-    // And it recovers to a normal Task_2 rather than staying stuck in the waiting state.
+    // And it recovers to a normal Task_2 rather than staying stuck.
     cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
   });
 
-  it('deferral: a reload during the wait lands back on the waiting view, not an error page', () => {
+  it('deferral: a reload during the wait lands back on the advancing view, not an error page', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', deferrals: 3, deferDelayMs: 5000 });
 
@@ -429,7 +432,7 @@ describe('Live workflow status (real engine)', () => {
     // The wait is server truth held in the engine, not session state, so a reloaded session sees
     // the same in-flight transition and keeps following it to completion.
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' }).then(() => cy.reload());
-    cy.contains('Vi behandler forespørselen din', { timeout: 30000 }).should('be.visible');
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
     cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
@@ -446,7 +449,7 @@ describe('Live workflow status (real engine)', () => {
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    cy.contains('Vi behandler forespørselen din', { timeout: 30000 }).should('be.visible');
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
 
     // Budget expiry takes the full 30s, plus the final check and the engine's write-back.
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 90000 }).should('be.visible');

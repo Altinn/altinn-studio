@@ -41,13 +41,14 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
   `Task_ServiceLayout` page renders instead of the built-in view; auto-navigation still applies.
 - **Durable yield (deferral):** `postCommit` + `deferrals: 3` → submit Task_1. The service task
   answers "not ready yet" three times; the workflow sits in the engine's non-terminal `Waiting`
-  status between checks, holding no worker and no lease, and the frontend shows the same
-  «behandler» view it shows for any in-flight transition. It then settles and advances on its own.
-  Compare with `advance: park` above — they look identical in the browser and are entirely
-  different underneath: a parked task has **succeeded** (its workflow is `Completed`, and only an
-  out-of-band `process/next` moves it), whereas a deferring task is **still running** and the
-  engine resumes it on its own timer. A lost external signal strands the first and merely delays
-  the second.
+  status between checks, holding no worker and no lease, then settles and advances on its own.
+  Compare with `advance: park` above: both leave you on the service task, and they are opposites
+  underneath. A parked task has **succeeded** — its workflow is settled, and only an out-of-band
+  `process/next` moves it — whereas a deferring task is **still running** and the engine resumes it
+  on its own timer. The UI follows that difference: parked shows the service-task waiting view
+  («Vi behandler forespørselen din»), deferring shows the ordinary advancing view («Vi jobber med
+  skjemaet ditt»), because the app reports a waiting workflow as `processing`. A lost external
+  signal strands the first and merely delays the second.
 - **Accelerating a wait:** the same, plus a nudge —
   `POST {engine}/api/v1/ttd%2Fprocess-transition-test/workflows/{workflowId}/nudge` (or the
   dashboard's «check now» button) clears the pending wait so the next check happens immediately
