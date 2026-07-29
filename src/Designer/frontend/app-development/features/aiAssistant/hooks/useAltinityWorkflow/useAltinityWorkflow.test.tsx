@@ -431,6 +431,57 @@ describe('useAltinityWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-a']).toBeUndefined();
   });
 
+  it('clears the prompt once when the user responds twice to the same request', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const respondToPermission = jest.fn().mockResolvedValue(undefined);
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      respondToPermission,
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Legg til en ny side',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      });
+    });
+
+    // Both calls see the request in the same render (e.g. a double-click);
+    // the second clear must find it already gone and leave state untouched.
+    await act(async () => {
+      await Promise.all([
+        result.current.respondToPermission('req-1', true),
+        result.current.respondToPermission('req-1', true),
+      ]);
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeUndefined();
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
+  });
+
   it('keeps the permission prompt when sending the response fails', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
     const respondToPermission = jest.fn().mockRejectedValue(new Error('Hub disconnected'));

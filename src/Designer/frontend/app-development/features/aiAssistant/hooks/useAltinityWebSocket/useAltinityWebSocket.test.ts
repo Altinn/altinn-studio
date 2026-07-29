@@ -33,7 +33,12 @@ describe('useAltinityWebSocket', () => {
 
       await result.current.respondToPermission('session-1', 'request-1', true);
 
-      expect(mockInvoke).toHaveBeenCalledWith('RespondToPermission', 'session-1', 'request-1', true);
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'RespondToPermission',
+        'session-1',
+        'request-1',
+        true,
+      );
     });
 
     it('rethrows when the hub invocation fails', async () => {
@@ -41,9 +46,9 @@ describe('useAltinityWebSocket', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderUseAltinityWebSocket();
 
-      await expect(result.current.respondToPermission('session-1', 'request-1', false)).rejects.toThrow(
-        'Hub disconnected',
-      );
+      await expect(
+        result.current.respondToPermission('session-1', 'request-1', false),
+      ).rejects.toThrow('Hub disconnected');
 
       consoleError.mockRestore();
     });
@@ -52,9 +57,9 @@ describe('useAltinityWebSocket', () => {
       mockConnections = [];
       const { result } = renderUseAltinityWebSocket();
 
-      await expect(result.current.respondToPermission('session-1', 'request-1', true)).rejects.toThrow(
-        'No active SignalR connection to Altinity hub',
-      );
+      await expect(
+        result.current.respondToPermission('session-1', 'request-1', true),
+      ).rejects.toThrow('No active SignalR connection to Altinity hub');
       expect(mockInvoke).not.toHaveBeenCalled();
     });
   });

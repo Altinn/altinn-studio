@@ -36,9 +36,9 @@ describe('messageUtils', () => {
 
   describe('formatRejectedEventMessage', () => {
     it('formats rejection reason and suggestions', () => {
-      expect(
-        formatRejectedEventMessage({ message: 'Nope', suggestions: ['Try A', 'Try B'] }),
-      ).toBe(`${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\nForslag:\nTry A\nTry B`);
+      expect(formatRejectedEventMessage({ message: 'Nope', suggestions: ['Try A', 'Try B'] })).toBe(
+        `${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\nForslag:\nTry A\nTry B`,
+      );
     });
 
     it('omits the suggestions block when there are none', () => {
