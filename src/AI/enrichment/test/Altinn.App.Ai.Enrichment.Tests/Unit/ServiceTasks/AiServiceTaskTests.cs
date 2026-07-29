@@ -8,7 +8,11 @@ using Altinn.App.Ai.Enrichment.ServiceTasks;
 using Altinn.App.Ai.Enrichment.Tests.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+#if NET10_0_OR_GREATER
+using Altinn.App.Core.Features.Process;
+#else
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+#endif
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -40,15 +44,46 @@ public class AiServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_MissingAgentFolder_FailsAbortProcessNext()
+    public async Task Execute_MissingAgentFolder_FailsWithoutAdvancing()
     {
         var mutator = CreateMutator("finnes-ikke", stored: []);
 
         var result = await CreateSut().Execute(new ServiceTaskContext { InstanceDataMutator = mutator });
 
+#if NET10_0_OR_GREATER
+        // A missing agent folder is a config error: permanent, so the engine
+        // does not burn retries on it. The message names the missing path.
+        result.Should().BeOfType<ServiceTaskFailedResult>()
+            .Which.ErrorMessage.Should().Contain("finnes-ikke");
+#else
         result.Should().BeOfType<ServiceTaskFailedResult>()
             .Which.ErrorHandling.Strategy.Should().Be(ServiceTaskErrorStrategy.AbortProcessNext);
+#endif
     }
+
+#if NET10_0_OR_GREATER
+    [Fact]
+    public void StepOptions_Defaults_GiveOneHourBudgetWithBoundedConstantRetries()
+    {
+        var stepOptions = CreateSut().StepOptions;
+
+        stepOptions.Should().NotBeNull();
+        stepOptions!.MaxExecutionTime.Should().Be(TimeSpan.FromHours(1));
+        stepOptions.RetryStrategy.Should().NotBeNull();
+        stepOptions.RetryStrategy!.MaxRetries.Should().Be(2);
+        stepOptions.RetryStrategy.BaseInterval.Should().Be(TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public void StepOptions_ZeroRetries_MapsToNoRetryStrategy()
+    {
+        var options = new AiEnrichmentOptions { Step = new AiEnrichmentStepOptions { MaxRetries = 0 } };
+
+        var stepOptions = CreateSut(options).StepOptions;
+
+        stepOptions!.RetryStrategy!.MaxRetries.Should().Be(0);
+    }
+#endif
 
     [Fact]
     public async Task Execute_TaskOptions_MapTaskIdToAgentAndOutputTypes()

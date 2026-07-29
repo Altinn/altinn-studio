@@ -4,7 +4,11 @@ using Altinn.App.Ai.Enrichment.Agents;
 using Altinn.App.Ai.Enrichment.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+#if NET10_0_OR_GREATER
+using Altinn.App.Core.Features.Process;
+#else
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+#endif
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -36,6 +40,28 @@ public sealed class AiServiceTask(
     private static readonly JsonSerializerOptions ApplicationJsonOptions = JsonSerializerOptions.Default;
 
     public string Type => TaskType;
+
+#if NET10_0_OR_GREATER
+    /// <summary>
+    /// Per-step execution budget for the workflow engine, from
+    /// <see cref="AiEnrichmentOptions.Step"/>. Overrides the engine's 10-minute
+    /// service-task default, which is too tight for long agent runs.
+    /// </summary>
+    public ProcessStepOptions? StepOptions
+    {
+        get
+        {
+            var step = options.Value.Step;
+            return new ProcessStepOptions
+            {
+                MaxExecutionTime = step.MaxExecutionTime,
+                RetryStrategy = step.MaxRetries == 0
+                    ? ProcessStepRetryStrategy.None()
+                    : ProcessStepRetryStrategy.Constant(step.RetryInterval, step.MaxRetries),
+            };
+        }
+    }
+#endif
 
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
@@ -82,8 +108,22 @@ public sealed class AiServiceTask(
         }
         catch (Exception ex)
         {
+#if NET10_0_OR_GREATER
+            // Config/contract errors won't heal on their own — fail permanently so the
+            // engine does not re-run the whole (expensive) agent. Anything else may be
+            // transient and gets the bounded retry strategy from StepOptions.
+            if (ex is InvalidOperationException or FileNotFoundException or DirectoryNotFoundException)
+            {
+                logger.LogError(ex, "ai task {TaskId} failed permanently (configuration/contract error)", taskId);
+                return ServiceTaskResult.FailedPermanent(ex.Message);
+            }
+
+            logger.LogError(ex, "ai task {TaskId} failed; the workflow engine may retry the step", taskId);
+            return ServiceTaskResult.FailedRetryable(ex.Message);
+#else
             logger.LogError(ex, "ai task {TaskId} failed; process halts on this task for retry", taskId);
             return ServiceTaskResult.FailedAbortProcessNext();
+#endif
         }
     }
 
