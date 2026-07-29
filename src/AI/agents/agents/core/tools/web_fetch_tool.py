@@ -27,6 +27,7 @@ FETCH_TIMEOUT_SECONDS = 20.0
 _TAG_STRIP_RE = re.compile(r"<(script|style|nav|header|footer)[^>]*>.*?</\1>", re.DOTALL | re.IGNORECASE)
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 _WHITESPACE_RE = re.compile(r"\n{3,}")
+_ANY_WHITESPACE_RE = re.compile(r"\s+")
 _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.DOTALL | re.IGNORECASE)
 
 
@@ -114,7 +115,7 @@ def _page_title(html: str) -> str | None:
     match = _TITLE_RE.search(html)
     if not match:
         return None
-    title = _WHITESPACE_RE.sub(" ", match.group(1)).strip()
+    title = _ANY_WHITESPACE_RE.sub(" ", match.group(1)).strip()
     return title or None
 
 

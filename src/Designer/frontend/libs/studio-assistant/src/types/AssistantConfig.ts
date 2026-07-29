@@ -74,7 +74,14 @@ export interface DoneEvent extends WorkflowEventBase {
 
 export interface ErrorEvent extends WorkflowEventBase {
   type: 'error';
-  data: { done?: boolean; success?: boolean; status?: string; message?: string };
+  data: {
+    done?: boolean;
+    success?: boolean;
+    status?: string;
+    message?: string;
+    /** Alternative goal phrasings the backend suggests when a goal is rejected. */
+    suggestions?: string[];
+  };
 }
 
 /** The agent asks the user to allow changes in a read-only session. */

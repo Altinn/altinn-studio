@@ -47,7 +47,7 @@ you see only their filenames.
 Return JSON with:
 ```json
 {
-  "action": "add|update|modify|create|remove|question|unknown",
+  "action": "add|update|modify|create|remove|question|blocked|unknown",
   "component": "field|layout|button|validation|resource|datamodel|unknown",
   "target": "specific target description",
   "details": {"binding": "model.path", "type": "text|numeric|boolean", "layout": "layoutName"},

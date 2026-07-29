@@ -166,9 +166,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     async (requestId: string, granted: boolean): Promise<void> => {
       const threadId = findThreadIdByPermissionRequestId(workflowStatusByThread, requestId);
       if (!threadId) return;
-      clearPermissionRequest(threadId);
       try {
         await sendPermissionResponse(threadId, requestId, granted);
+        clearPermissionRequest(threadId);
       } catch (error) {
         console.error('Permission response failed:', error);
       }

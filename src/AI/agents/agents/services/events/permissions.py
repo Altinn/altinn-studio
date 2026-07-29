@@ -77,6 +77,10 @@ class PermissionBroker:
             )
         except asyncio.TimeoutError:
             log.info("🔐 Permission request timed out for session %s", session_id)
+            # Resolve the shared future so every waiter in the batch sees
+            # the same declined outcome and a late answer can't flip it.
+            if not pending.future.done():
+                pending.future.set_result(False)
             return False
         finally:
             async with self._lock:
@@ -89,8 +93,10 @@ class PermissionBroker:
         pending = self._pending.get(session_id)
         if pending is None or pending.request_id != request_id:
             return False
-        if not pending.future.done():
-            pending.future.set_result(granted)
+        if pending.future.done():
+            # Already timed out (= declined) — reject the late answer.
+            return False
+        pending.future.set_result(granted)
         log.info(
             "🔐 Permission %s for session %s",
             "granted" if granted else "declined",

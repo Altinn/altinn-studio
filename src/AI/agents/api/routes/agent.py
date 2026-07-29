@@ -179,9 +179,9 @@ async def respond_to_permission(session_id: str, req: PermissionResponseReq, req
     Emitted as a `permission_request` event when a read-only session's
     model attempts a write; the loop is blocked awaiting this answer.
     """
-    caller = request.headers.get("X-Developer")
+    caller = _require_developer(request)
     owner = sink.get_session_developer(session_id)
-    if owner and caller and caller != owner:
+    if caller != owner:
         raise HTTPException(status_code=403, detail="Not the session owner")
 
     resolved = permission_broker.resolve(session_id, req.request_id, req.granted)
@@ -199,9 +199,9 @@ async def cancel_session(session_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Session not found")
 
     # Enforce ownership: only the developer who started the session may cancel it
-    caller = request.headers.get("X-Developer")
+    caller = _require_developer(request)
     owner = sink.get_session_developer(session_id)
-    if owner and caller and caller != owner:
+    if caller != owner:
         raise HTTPException(status_code=403, detail="Not the session owner")
 
     current_status = status.get("status")

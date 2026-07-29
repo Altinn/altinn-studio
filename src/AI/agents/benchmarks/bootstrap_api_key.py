@@ -45,6 +45,10 @@ def _sql(query: str) -> str:
     return _docker_exec(DB_CONTAINER, *DB_ARGS, query).strip()
 
 
+def _sql_literal(value: str) -> str:
+    return value.replace("'", "''")
+
+
 def _hash_salt() -> str:
     # appsettings.json is JSONC (comments allowed) — regex-extract the one
     # value we need instead of parsing the whole document.
@@ -72,7 +76,7 @@ def main() -> None:
     args = parser.parse_args()
 
     account_id = _sql(
-        f"SELECT id FROM designer.user_accounts WHERE username = '{args.username}';"
+        f"SELECT id FROM designer.user_accounts WHERE username = '{_sql_literal(args.username)}';"
     )
     if not account_id:
         sys.exit(
@@ -85,12 +89,13 @@ def main() -> None:
 
     _sql(
         "UPDATE designer.api_keys SET revoked = true "
-        f"WHERE user_account_id = '{account_id}' AND name = '{args.name}' AND revoked = false;"
+        f"WHERE user_account_id = '{_sql_literal(account_id)}' "
+        f"AND name = '{_sql_literal(args.name)}' AND revoked = false;"
     )
     _sql(
         "INSERT INTO designer.api_keys "
         "(key_hash, user_account_id, name, token_type, expires_at, revoked, created_at) "
-        f"VALUES ('{key_hash}', '{account_id}', '{args.name}', 0, "
+        f"VALUES ('{key_hash}', '{_sql_literal(account_id)}', '{_sql_literal(args.name)}', 0, "
         f"now() + interval '{KEY_LIFETIME_DAYS} days', false, now());"
     )
 

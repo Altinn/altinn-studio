@@ -64,7 +64,7 @@ class BaseConfig:
     # Everything else goes through services.llm.LLMClient by role:
     #   - planner       → intake + spec workflows + semantic query
     #   - reviewer      → post-workflow LLM-as-judge evaluators
-    #                     (intent / implementation / hallucination)
+    #                     (intent_match / no_hallucination / faithful_summary)
     # The tool_planner and assistant roles are vestigial — the separate
     # chat pipeline they served was folded into the agentic loop
     # (read-only mode); kept only so stale env files don't break startup.
