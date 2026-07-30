@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { execSync, spawn } from 'node:child_process';
 import type { Plugin } from 'vite';
 
@@ -36,9 +35,9 @@ const isCodegenInput = (file: string) => {
 
 /**
  * Keeps the generated TypeScript files (*.generated.ts) up to date while the dev server runs.
- * On startup it runs the codegen (src/codegen/run.ts) to completion, then re-runs it whenever
- * a component config or the codegen itself changes, using the dev server's own file watcher.
- * Replaces the old webpack CodegenWatchPlugin.
+ * On startup it runs the codegen (src/codegen/run.ts) to completion - the app cannot render
+ * without the generated files, so a failure here aborts startup rather than leaving you with
+ * a server serving stale output.
  */
 export function codegenWatchPlugin(): Plugin {
   return {
@@ -46,8 +45,9 @@ export function codegenWatchPlugin(): Plugin {
     apply: 'serve',
     async configureServer(server) {
       const codegenCommand = getCodegenCommand();
+      const logger = server.config.logger;
 
-      console.log('Running codegen before starting the dev server...');
+      logger.info('Running codegen before starting the dev server...', { timestamp: true });
       await runCodegen(codegenCommand);
 
       // Re-run on changes, but never concurrently: a change arriving during a run queues
@@ -63,7 +63,7 @@ export function codegenWatchPlugin(): Plugin {
         try {
           await runCodegen(codegenCommand);
         } catch (error) {
-          console.error('Codegen failed:', error);
+          logger.error('Codegen failed', { timestamp: true, error });
         } finally {
           running = false;
           if (rerunQueued) {
@@ -75,7 +75,7 @@ export function codegenWatchPlugin(): Plugin {
 
       const onFileEvent = (file: string) => {
         if (isCodegenInput(file)) {
-          console.log(`Codegen input changed (${file}), re-running codegen...`);
+          logger.info(`Codegen input changed (${file}), re-running codegen...`, { timestamp: true });
           void rerun();
         }
       };

@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       target: 'es2020',
-      sourcemap: isDevBuild ? ('inline' as const) : false,
+      sourcemap: isDevBuild ? 'inline' : false,
       minify: !isDevBuild,
       // Library mode is what gives us the required output: a single self-executing (IIFE)
       // classic script + a single CSS file, with fixed file names and all assets inlined.
@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => {
       // often from a different origin, so the output cannot be an ES module.
       lib: {
         entry: path.resolve(import.meta.dirname, 'src/index.tsx'),
-        formats: ['iife' as const],
+        formats: ['iife'],
         name: 'altinnAppFrontend',
         fileName: () => 'altinn-app-frontend.js',
         cssFileName: 'altinn-app-frontend',
@@ -88,8 +88,11 @@ export default defineConfig(({ mode }) => {
       // (assets are inlined there).
       origin: 'http://localhost:8080',
       // The app page is served from another origin (*.local.altinn.cloud:8000), which Vite's
-      // default CORS allow-list (localhost only) would reject.
-      cors: true,
+      // default CORS allow-list (localhost only) would reject. Scoped to the same hosts as
+      // `allowedHosts`
+      cors: {
+        origin: [/^https?:\/\/([^./]+\.)*local\.altinn\.cloud(:\d+)?$/, /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/],
+      },
       // Requests arrive proxied through LocalTest at app-frontend.local.altinn.cloud:8000
       allowedHosts: ['.local.altinn.cloud', 'localhost', '127.0.0.1'],
       // The HMR websocket connects directly to the dev server, bypassing the LocalTest proxy
