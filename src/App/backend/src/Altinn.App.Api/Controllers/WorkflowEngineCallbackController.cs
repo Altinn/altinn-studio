@@ -223,9 +223,11 @@ public class WorkflowEngineCallbackController : ControllerBase
 
                 string deferredState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
 
+                // The resolved command's own key rather than the route string it matched: same value,
+                // but provably from the registered set, so nothing route-derived reaches the log.
                 _logger.LogInformation(
                     "Callback handler deferred. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Delay: {Delay}",
-                    commandKey,
+                    command.GetKey(),
                     instanceId,
                     currentTaskId,
                     deferred.Delay
