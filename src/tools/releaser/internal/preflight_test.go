@@ -12,6 +12,8 @@ import (
 	"altinn.studio/releaser/internal"
 )
 
+const canonicalTestRepositoryName = "Altinn/altinn-studio"
+
 func TestRunPrepareWithDeps_FailsOnDirtyWorkingTree(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, `# Changelog
 
@@ -91,10 +93,80 @@ func TestRunBackportWithDeps_FailsOnDirtyWorkingTree(t *testing.T) {
 	err := internal.RunBackportWithDeps(t.Context(), internal.BackportRequest{
 		Component: "studioctl",
 		Commit:    commitSHA,
-		Branch:    "v1.0",
+		Line:      "v1.0",
 	}, git, gh, internal.NopLogger{})
 	if !errors.Is(err, internal.ErrWorkingTreeDirty) {
 		t.Fatalf("RunBackportWithDeps() error = %v, want %v", err, internal.ErrWorkingTreeDirty)
+	}
+}
+
+func TestRunBackportWithDeps_DiscoversCanonicalAndPushRemotes(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Existing unreleased
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	runGitCmd(t, repo, "remote", "rename", "origin", "contributor-fork")
+	upstream := addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "remote", "rename", "upstream", "canonical-altinn")
+	const releaseBranch = "release/studioctl/v1.0"
+	createRemoteBranch(t, upstream, releaseBranch)
+
+	writeRepoFile(t, repo, "src/cli/CHANGELOG.md", `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Existing unreleased
+- Backport candidate
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	runGitCmd(t, repo, "add", "src/cli/CHANGELOG.md")
+	runGitCmd(t, repo, "commit", "-m", "add backport candidate")
+	commitSHA := revParseHead(t, repo)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{
+		canonicalRepositoryURL:  upstream,
+		canonicalRepositoryName: canonicalTestRepositoryName,
+		pushRepositoryName:      "martinothamar-agent/altinn-studio",
+	}
+	err := internal.RunBackportWithDeps(t.Context(), internal.BackportRequest{
+		Component: "studioctl",
+		Commit:    commitSHA,
+		Line:      "v1.0",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunBackportWithDeps() error = %v", err)
+	}
+
+	if remoteBranchExists(t, repo, "contributor-fork", releaseBranch) {
+		t.Fatalf("release branch %s should not be required in the fork", releaseBranch)
+	}
+	if gh.prBase != releaseBranch {
+		t.Fatalf("PR base = %q, want %s", gh.prBase, releaseBranch)
+	}
+	if gh.prRepository != canonicalTestRepositoryName {
+		t.Fatalf("PR repository = %q, want canonical repository", gh.prRepository)
+	}
+	if !strings.HasPrefix(gh.prHead, "martinothamar-agent:backport/studioctl-v1.0-") {
+		t.Fatalf("PR head = %q, want contributor fork backport branch", gh.prHead)
 	}
 }
 
@@ -266,6 +338,755 @@ func TestRunPrepareWithDeps_PRBodyIncludesCompareLink(t *testing.T) {
 	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.0.0...studioctl/v1.0.1"
 	if !strings.Contains(gh.prBody, want) {
 		t.Fatalf("PR body missing compare link %q\nbody:\n%s", want, gh.prBody)
+	}
+}
+
+func TestRunPrepareWithDeps_InferredPrereleaseVersion(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next prerelease entry
+
+## [1.2.0-rc.3] - 2025-01-03
+
+### Added
+
+- Previous prerelease
+
+## [1.1.0] - 2025-01-01
+
+### Added
+
+- Previous stable
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if gh.prBase != "main" {
+		t.Fatalf("PR base = %q, want main", gh.prBase)
+	}
+	if gh.prTitle != "chore: release studioctl v1.2.0-rc.4" {
+		t.Fatalf("PR title = %q, want inferred prerelease", gh.prTitle)
+	}
+	assertChangelogContains(t, repo, "## [1.2.0-rc.4] - ")
+}
+
+func TestRunPrepareWithDeps_InferredPrereleaseUsesDiscoveredCanonicalRemote(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Fork entry
+
+## [1.2.0-rc.2] - 2025-01-02
+
+### Added
+
+- Fork prerelease
+`)
+	runGitCmd(t, repo, "remote", "rename", "origin", "my-fork")
+	upstream := addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "remote", "rename", "upstream", "release-source")
+	updateRemoteChangelog(t, upstream, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Canonical entry
+
+## [1.2.0-rc.3] - 2025-01-03
+
+### Added
+
+- Canonical prerelease
+`)
+	t.Chdir(repo)
+
+	var output bytes.Buffer
+	logger := internal.NewConsoleLogger(internal.WithWriters(&output, &output))
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{canonicalRepositoryURL: upstream}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		DryRun:    true,
+	}, git, gh, logger)
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if !strings.Contains(output.String(), "Would promote changelog to: [v1.2.0-rc.4]") {
+		t.Fatalf("dry-run did not infer from canonical upstream:\n%s", output.String())
+	}
+	if strings.Contains(output.String(), "Fork entry") {
+		t.Fatalf("dry-run used stale fork changelog:\n%s", output.String())
+	}
+}
+
+func TestRunPrepareWithDeps_RejectsAmbiguousPushRemote(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next entry
+
+## [1.2.0-preview.1] - 2025-01-02
+
+### Added
+
+- Previous prerelease
+`)
+	addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "config", "--unset", "branch.main.remote")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		DryRun:    true,
+	}, git, &fakeGH{}, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected ambiguous push remote error, got nil")
+	}
+	if !strings.Contains(err.Error(), "git push remote is ambiguous") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want ambiguous push remote", err)
+	}
+}
+
+func TestRunPrepareWithDeps_RejectsCanonicalPathOnDifferentHost(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next entry
+
+## [1.2.0-preview.1] - 2025-01-02
+
+### Added
+
+- Previous prerelease
+`)
+	runGitCmd(
+		t,
+		repo,
+		"remote",
+		"add",
+		"untrusted-source",
+		"https://attacker.example/Altinn/altinn-studio.git",
+	)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{
+		canonicalRepositoryURL:  "https://github.com/Altinn/altinn-studio",
+		canonicalRepositoryName: canonicalTestRepositoryName,
+		pushRepositoryName:      "martinothamar-agent/altinn-studio",
+	}
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected missing canonical remote error, got nil")
+	}
+	if !strings.Contains(err.Error(), "canonical GitHub repository has no matching git remote") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want canonical remote mismatch", err)
+	}
+}
+
+func TestWorkflow_UsesDiscoveredCanonicalRepository(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+## [1.2.0-preview.2] - 2025-01-02
+
+### Added
+
+- Prerelease entry
+`)
+	runGitCmd(t, repo, "remote", "rename", "origin", "contributor-fork")
+	canonicalURL := addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "remote", "rename", "upstream", "release-source")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{
+		canonicalRepositoryURL:  canonicalURL,
+		canonicalRepositoryName: canonicalTestRepositoryName,
+		pushRepositoryName:      "martinothamar-agent/altinn-studio",
+	}
+	workflow, err := internal.NewWorkflow(
+		t.Context(),
+		internal.WorkflowConfig{
+			Component:     "studioctl",
+			Version:       "v1.2.0-preview.2",
+			ChangelogPath: "src/cli/CHANGELOG.md",
+			OutputDir:     filepath.Join(repo, "build", "release"),
+			RepoRoot:      repo,
+			DryRun:        false,
+			Draft:         true,
+		},
+		git,
+		gh,
+		&fakeBuilder{},
+		internal.NopLogger{},
+	)
+	if err != nil {
+		t.Fatalf("NewWorkflow() error = %v", err)
+	}
+	if err := workflow.Run(t.Context()); err != nil {
+		t.Fatalf("Workflow.Run() error = %v", err)
+	}
+	if gh.releaseRepository != canonicalTestRepositoryName {
+		t.Fatalf(
+			"release repository = %q, want canonical repository",
+			gh.releaseRepository,
+		)
+	}
+}
+
+func TestRunPrepareWithDeps_InferredStabilizationVersion(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Stabilization fix
+
+## [1.2.0-beta.2] - 2025-01-03
+
+### Fixed
+
+- Beta two
+
+## [1.2.0-beta.1] - 2025-01-02
+
+### Added
+
+- Beta one
+
+## [1.1.0] - 2025-01-01
+
+### Added
+
+- Previous stable
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if gh.prBase != "release/studioctl/v1.2" {
+		t.Fatalf("PR base = %q, want release/studioctl/v1.2", gh.prBase)
+	}
+	if gh.prTitle != "chore: release studioctl v1.2.0" {
+		t.Fatalf("PR title = %q, want inferred stable", gh.prTitle)
+	}
+	assertChangelogContains(t, repo, "## [1.2.0] - ")
+	assertChangelogContains(t, repo, "- Beta one")
+	assertChangelogContains(t, repo, "- Beta two")
+	assertChangelogContains(t, repo, "- Stabilization fix")
+}
+
+func TestRunPrepareWithDeps_StabilizationUsesDiscoveredRepositoryTopology(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Stabilization fix
+
+## [1.2.0-preview.2] - 2025-01-03
+
+### Added
+
+- Preview two
+`)
+	runGitCmd(t, repo, "remote", "rename", "origin", "contributor-fork")
+	upstream := addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "remote", "rename", "upstream", "canonical-altinn")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{
+		canonicalRepositoryURL:  upstream,
+		canonicalRepositoryName: canonicalTestRepositoryName,
+		pushRepositoryName:      "martinothamar-agent/altinn-studio",
+	}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps(stabilization) error = %v", err)
+	}
+
+	const releaseBranch = "release/studioctl/v1.2"
+	if !remoteBranchExists(t, repo, "canonical-altinn", releaseBranch) {
+		t.Fatalf("canonical remote missing %s", releaseBranch)
+	}
+	if remoteBranchExists(t, repo, "contributor-fork", releaseBranch) {
+		t.Fatalf("release branch %s should not be created only in the fork", releaseBranch)
+	}
+	if gh.prBase != releaseBranch {
+		t.Fatalf("PR base = %q, want %s", gh.prBase, releaseBranch)
+	}
+	if gh.prRepository != canonicalTestRepositoryName {
+		t.Fatalf("PR repository = %q, want canonical repository", gh.prRepository)
+	}
+	if !strings.HasPrefix(gh.prHead, "martinothamar-agent:release-prep/studioctl-v1.2.0") {
+		t.Fatalf("PR head = %q, want contributor fork prep branch", gh.prHead)
+	}
+
+	err = internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps(prerelease) expected stabilized-line error, got nil")
+	}
+	if !strings.Contains(err.Error(), "prerelease line is already stabilizing or stable") {
+		t.Fatalf("RunPrepareWithDeps(prerelease) error = %v, want stabilized-line error", err)
+	}
+
+	err = internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Version:   "v1.2.0-preview.3",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps(explicit prerelease) expected stabilized-line error, got nil")
+	}
+	if !strings.Contains(err.Error(), "prerelease line is already stabilizing or stable") {
+		t.Fatalf(
+			"RunPrepareWithDeps(explicit prerelease) error = %v, want stabilized-line error",
+			err,
+		)
+	}
+}
+
+func TestRunPrepareWithDeps_StabilizationRejectsCanonicalRemoteWithForkPushURL(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Stabilization fix
+
+## [1.2.0-preview.2] - 2025-01-03
+
+### Added
+
+- Preview two
+	`)
+	canonicalURL := addUpstreamRemote(t, repo)
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	const credential = "super-secret-token"
+	runGitCmd(
+		t,
+		repo,
+		"remote",
+		"set-url",
+		"--push",
+		"upstream",
+		"https://release-user:"+credential+"@fork.example/martinothamar-agent/altinn-studio.git",
+	)
+	t.Chdir(repo)
+
+	gh := &fakeGH{canonicalRepositoryURL: canonicalURL}
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected canonical push URL error, got nil")
+	}
+	if !strings.Contains(err.Error(), "canonical remote pushes to a different repository") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want canonical push mismatch", err)
+	}
+	if strings.Contains(err.Error(), credential) {
+		t.Fatalf("RunPrepareWithDeps() leaked push URL credential: %v", err)
+	}
+
+	const releaseBranch = "release/studioctl/v1.2"
+	if remoteBranchExists(t, repo, "origin", releaseBranch) {
+		t.Fatalf("release branch %s must not be created in contributor fork", releaseBranch)
+	}
+	if remoteBranchExists(t, repo, "upstream", releaseBranch) {
+		t.Fatalf("release branch %s must not be created after topology error", releaseBranch)
+	}
+}
+
+func TestRunPrepareWithDeps_StabilizationUsesPrecreatedCanonicalBranch(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Stabilization fix
+
+## [1.2.0-preview.2] - 2025-01-03
+
+### Added
+
+- Preview two
+`)
+	upstream := addUpstreamRemote(t, repo)
+	const releaseBranch = "release/studioctl/v1.2"
+	createRemoteBranch(t, upstream, releaseBranch)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{canonicalRepositoryURL: upstream}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+	if gh.prBase != releaseBranch {
+		t.Fatalf("PR base = %q, want %s", gh.prBase, releaseBranch)
+	}
+	assertChangelogContains(t, repo, "## [1.2.0] - ")
+}
+
+func TestRunPrepareWithDeps_InferredStabilizationAllowsUnnumberedPrerelease(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Stabilization fix
+
+## [1.2.0-alpha] - 2025-01-02
+
+### Added
+
+- Alpha release
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if gh.prTitle != "chore: release studioctl v1.2.0" {
+		t.Fatalf("PR title = %q, want inferred stable from alpha", gh.prTitle)
+	}
+	assertChangelogContains(t, repo, "## [1.2.0] - ")
+	assertChangelogContains(t, repo, "- Alpha release")
+	assertChangelogContains(t, repo, "- Stabilization fix")
+}
+
+func TestRunPrepareWithDeps_LineOnlyAllowedForPatchKind(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next entry
+
+## [1.2.0-rc.1] - 2025-01-02
+
+### Added
+
+- Release candidate
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+		Line:      "v1.2",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "conflicting release line input") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want line conflict", err)
+	}
+}
+
+func TestRunPrepareWithDeps_InferredPatchVersion(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Pending patch
+
+## [1.0.1] - 2025-01-02
+
+### Fixed
+
+- Previous patch
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	createReleaseBranch(t, repo, "release/studioctl/v1.0")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "patch",
+		Line:      "v1.0",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if gh.prBase != "release/studioctl/v1.0" {
+		t.Fatalf("PR base = %q, want release/studioctl/v1.0", gh.prBase)
+	}
+	if gh.prTitle != "chore: release studioctl v1.0.2" {
+		t.Fatalf("PR title = %q, want inferred patch", gh.prTitle)
+	}
+	assertChangelogContains(t, repo, "## [1.0.2] - ")
+}
+
+func TestRunPrepareWithDeps_InferredPatchUsesCanonicalUpstreamBranch(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Pending patch
+
+## [1.0.1] - 2025-01-02
+
+### Fixed
+
+- Previous patch
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	upstream := addUpstreamRemote(t, repo)
+	const releaseBranch = "release/studioctl/v1.0"
+	createRemoteBranch(t, upstream, releaseBranch)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{canonicalRepositoryURL: upstream}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "patch",
+		Line:      "v1.0",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if remoteBranchExists(t, repo, "origin", releaseBranch) {
+		t.Fatalf("release branch %s should not be required in the fork", releaseBranch)
+	}
+	if gh.prBase != releaseBranch {
+		t.Fatalf("PR base = %q, want %s", gh.prBase, releaseBranch)
+	}
+	if gh.prTitle != "chore: release studioctl v1.0.2" {
+		t.Fatalf("PR title = %q, want inferred canonical patch", gh.prTitle)
+	}
+	assertChangelogContains(t, repo, "## [1.0.2] - ")
+}
+
+func TestRunPrepareWithDeps_InferredPatchLineFromCurrentBranch(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Pending patch
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	createReleaseBranch(t, repo, "release/studioctl/v1.0")
+	runGitCmd(t, repo, "checkout", "release/studioctl/v1.0")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "patch",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if gh.prTitle != "chore: release studioctl v1.0.1" {
+		t.Fatalf("PR title = %q, want inferred patch from current branch", gh.prTitle)
+	}
+}
+
+func TestRunPrepareWithDeps_InferredPatchRejectsBareCurrentLineBranch(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Pending patch
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	runGitCmd(t, repo, "checkout", "-b", "v1.0")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "patch",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "release line is required") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want release line required", err)
+	}
+}
+
+func TestRunPrepareWithDeps_InferredPrereleaseRequiresActivePrerelease(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next entry
+
+## [1.1.0] - 2025-01-01
+
+### Added
+
+- Stable
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "no active prerelease release line found") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want no active prerelease line", err)
+	}
+}
+
+func TestRunPrepareWithDeps_InferredPrereleaseRequiresNumericSuffix(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next entry
+
+## [1.1.0-alpha] - 2025-01-01
+
+### Added
+
+- Alpha release
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "active prerelease version must end with numeric prerelease identifier") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want numeric prerelease suffix error", err)
 	}
 }
 
@@ -480,6 +1301,27 @@ func TestGitCLI_RunWrite_AutoResolvesRepoRootFromNestedDir(t *testing.T) {
 	}
 }
 
+func TestGitCLI_TagExistsChecksRequestedRemote(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+`)
+	upstream := addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "remote", "rename", "upstream", "tag-source")
+	const tag = "studioctl/v0.1.0-preview.1"
+	createRemoteTag(t, upstream, tag)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	exists, err := git.TagExists(t.Context(), "tag-source", tag)
+	if err != nil {
+		t.Fatalf("TagExists() error = %v", err)
+	}
+	if !exists {
+		t.Fatalf("TagExists() = false, want requested remote tag %s", tag)
+	}
+}
+
 type promptCall struct {
 	action string
 	detail []string
@@ -505,6 +1347,18 @@ func (p *scriptedPrompter) Confirm(action string, details []string) (bool, error
 
 func containsDetail(details []string, want string) bool {
 	return slices.Contains(details, want)
+}
+
+func assertChangelogContains(t *testing.T, repo, want string) {
+	t.Helper()
+
+	content, err := os.ReadFile(filepath.Join(repo, "src", "cli", "CHANGELOG.md"))
+	if err != nil {
+		t.Fatalf("read changelog: %v", err)
+	}
+	if !strings.Contains(string(content), want) {
+		t.Fatalf("changelog missing %q:\n%s", want, string(content))
+	}
 }
 
 func changelogWithPreviousRelease() string {

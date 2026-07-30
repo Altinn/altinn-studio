@@ -3,8 +3,10 @@ package internal
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os/exec"
 	"strings"
 )
@@ -23,14 +25,18 @@ type GitHubRunner interface {
 	CreatePR(ctx context.Context, opts PullRequestOptions) (string, error)
 	// SetWorkdir sets the working directory for gh commands.
 	SetWorkdir(dir string)
+	// Repository resolves a remote repository and its canonical parent.
+	Repository(ctx context.Context, remoteURL string) (Repository, *Repository, error)
 }
 
 // PullRequestOptions configures a GitHub pull request.
 type PullRequestOptions struct {
-	Title string
-	Body  string
-	Label string
-	Base  string
+	Title      string
+	Body       string
+	Label      string
+	Base       string
+	Head       string
+	Repository string
 }
 
 // Options configures a GitHub release.
@@ -39,6 +45,7 @@ type Options struct {
 	Title           string   // Required: release title
 	NotesFile       string   // Path to release notes file
 	Target          string   // Target branch for tag creation (if tag doesn't exist)
+	Repository      string   // GitHub repository in OWNER/REPO form
 	Assets          []string // Paths to assets to upload
 	Draft           bool     // Create as draft
 	Prerelease      bool     // Mark as prerelease
@@ -50,6 +57,21 @@ type GitHubCLI struct {
 	log     Logger
 	workdir string
 	dryRun  bool
+}
+
+type repositoryView struct {
+	Parent        *repositoryParentView `json:"parent"`
+	NameWithOwner string                `json:"nameWithOwner"`
+	URL           string                `json:"url"`
+}
+
+type repositoryParentView struct {
+	Name  string              `json:"name"`
+	Owner repositoryOwnerView `json:"owner"`
+}
+
+type repositoryOwnerView struct {
+	Login string `json:"login"`
 }
 
 // GitHubCLIOption configures GitHubCLI.
@@ -83,6 +105,9 @@ func NewGitHubCLI(opts ...GitHubCLIOption) *GitHubCLI {
 func (g *GitHubCLI) CreateRelease(ctx context.Context, opts Options) error {
 	args := []string{"release", "create", opts.Tag}
 
+	if opts.Repository != "" {
+		args = append(args, "--repo", opts.Repository)
+	}
 	if opts.Title != "" {
 		args = append(args, "--title", opts.Title)
 	}
@@ -116,6 +141,9 @@ func (g *GitHubCLI) CreateRelease(ctx context.Context, opts Options) error {
 func (g *GitHubCLI) CreatePR(ctx context.Context, opts PullRequestOptions) (string, error) {
 	args := []string{"pr", "create"}
 
+	if opts.Repository != "" {
+		args = append(args, "--repo", opts.Repository)
+	}
 	if opts.Title != "" {
 		args = append(args, "--title", opts.Title)
 	}
@@ -127,6 +155,9 @@ func (g *GitHubCLI) CreatePR(ctx context.Context, opts PullRequestOptions) (stri
 	}
 	if opts.Base != "" {
 		args = append(args, "--base", opts.Base)
+	}
+	if opts.Head != "" {
+		args = append(args, "--head", opts.Head)
 	}
 
 	output, err := g.runWriteOutput(ctx, args...)
@@ -143,13 +174,73 @@ func (g *GitHubCLI) CreatePR(ctx context.Context, opts PullRequestOptions) (stri
 		return prURL, nil
 	}
 
-	fallbackURL, fallbackErr := g.runRead(ctx, "pr", "view", "--json", "url", "--jq", ".url")
+	viewArgs := []string{"pr", "view"}
+	if opts.Repository != "" {
+		viewArgs = append(viewArgs, "--repo", opts.Repository)
+	}
+	viewArgs = append(viewArgs, "--json", "url", "--jq", ".url")
+	fallbackURL, fallbackErr := g.runRead(ctx, viewArgs...)
 	if fallbackErr == nil {
 		prURL = strings.TrimSpace(fallbackURL)
 	} else {
 		g.log.Error("Could not determine PR URL from gh output: %v", fallbackErr)
 	}
 	return prURL, nil
+}
+
+// Repository resolves a remote repository and its GitHub parent, when it is a fork.
+func (g *GitHubCLI) Repository(
+	ctx context.Context,
+	remoteURL string,
+) (Repository, *Repository, error) {
+	selector := repositorySelectorFromURL(remoteURL)
+	if selector == "" {
+		// Local and file-based remotes are useful for dry runs and end-to-end tests.
+		// They have no GitHub fork metadata, so the configured remote is both source
+		// and push repository.
+		return Repository{NameWithOwner: "", URL: remoteURL}, nil, nil
+	}
+
+	output, err := g.runRead(ctx, "repo", "view", selector, "--json", "nameWithOwner,url,parent")
+	if err != nil {
+		return Repository{}, nil, err
+	}
+
+	var view repositoryView
+	if jsonErr := json.Unmarshal([]byte(output), &view); jsonErr != nil {
+		return Repository{}, nil, fmt.Errorf("parse gh repo view response: %w", jsonErr)
+	}
+
+	repository := Repository{
+		NameWithOwner: view.NameWithOwner,
+		URL:           view.URL,
+	}
+	if view.Parent == nil {
+		return repository, nil, nil
+	}
+
+	parentName := view.Parent.Owner.Login + "/" + view.Parent.Name
+	parentURL, err := repositoryURLWithName(view.URL, parentName)
+	if err != nil {
+		return Repository{}, nil, err
+	}
+	parent := &Repository{
+		NameWithOwner: parentName,
+		URL:           parentURL,
+	}
+	return repository, parent, nil
+}
+
+func repositoryURLWithName(repositoryURL, nameWithOwner string) (string, error) {
+	parsed, err := url.Parse(repositoryURL)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return "", fmt.Errorf("%w: %q", errRepositoryURLInvalid, repositoryURL)
+	}
+	parsed.Path = "/" + strings.Trim(nameWithOwner, "/")
+	parsed.RawPath = ""
+	parsed.RawQuery = ""
+	parsed.Fragment = ""
+	return parsed.String(), nil
 }
 
 // SetWorkdir sets the working directory for gh commands.

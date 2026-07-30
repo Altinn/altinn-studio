@@ -5,12 +5,19 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"altinn.studio/releaser/internal/changelog"
 	"altinn.studio/releaser/internal/perm"
 	semver "altinn.studio/releaser/internal/version"
+)
+
+const (
+	prepareKindPatch         = "patch"
+	prepareKindPrerelease    = "prerelease"
+	prepareKindStabilization = "stabilization"
 )
 
 type releasePrepConfig struct {
@@ -24,6 +31,7 @@ type releasePrepConfig struct {
 	prBody              string
 	promoted            string
 	promotedSection     string
+	topology            RepositoryTopology
 	createReleaseBranch bool
 }
 
@@ -32,6 +40,8 @@ type PrepareRequest struct {
 	Prompter      ConfirmationPrompter
 	Component     string
 	Version       string
+	Kind          string
+	Line          string
 	ChangelogPath string
 	Open          bool
 	DryRun        bool
@@ -52,14 +62,8 @@ func RunPrepareWithDeps(ctx context.Context, req PrepareRequest, git *GitCLI, gh
 	if log == nil {
 		log = NopLogger{}
 	}
-	if ctx == nil {
-		return errContextRequired
-	}
-	if req.Component == "" {
-		return errComponentRequired
-	}
-	if req.Version == "" {
-		return errReleaseVersionRequired
+	if err := validatePrepareRequest(ctx, req); err != nil {
+		return err
 	}
 
 	comp, err := GetComponent(req.Component)
@@ -78,13 +82,34 @@ func RunPrepareWithDeps(ctx context.Context, req PrepareRequest, git *GitCLI, gh
 		return err
 	}
 	log.Detail("Repo root", repoRoot)
+	topology, err := discoverRepositoryTopology(ctx, git, gh)
+	if err != nil {
+		return err
+	}
+	log.Detail("Canonical repository", displayRepository(topology.BaseRepository))
+	log.Detail("Source remote", topology.SourceRemote)
+	log.Detail("Push remote", topology.PushRemote)
 
 	clPath := req.ChangelogPath
 	if clPath == "" {
 		clPath = comp.ChangelogPath
 	}
 
-	cfg, err := prepareReleasePrepConfig(ctx, git, comp, req.Version, clPath)
+	version, err := resolvePrepareRequestVersion(
+		ctx,
+		git,
+		comp,
+		req,
+		topology.SourceRemote,
+		clPath,
+		current,
+	)
+	if err != nil {
+		return err
+	}
+	log.Detail("Release version", version)
+
+	cfg, err := prepareReleasePrepConfig(ctx, git, comp, topology, version, clPath)
 	if err != nil {
 		return err
 	}
@@ -102,9 +127,9 @@ func RunPrepareWithDeps(ctx context.Context, req PrepareRequest, git *GitCLI, gh
 	if err := ensureWorkingTreeClean(ctx, git, log); err != nil {
 		return err
 	}
-	remoteBase := "origin/" + cfg.baseBranch
+	remoteBase := cfg.topology.SourceRemote + "/" + cfg.baseBranch
 	if cfg.createReleaseBranch {
-		remoteBase = "origin/" + mainBranch
+		remoteBase = cfg.topology.SourceRemote + "/" + mainBranch
 	}
 	if err := confirmNonMainBranch(req.Prompter, current, "prepare",
 		"Will create and switch to new working branches from latest "+remoteBase+".",
@@ -116,10 +141,27 @@ func RunPrepareWithDeps(ctx context.Context, req PrepareRequest, git *GitCLI, gh
 	return executeReleasePrepare(ctx, git, gh, log, repoRoot, clPath, cfg, req.Prompter, req.Open)
 }
 
+func validatePrepareRequest(ctx context.Context, req PrepareRequest) error {
+	if ctx == nil {
+		return errContextRequired
+	}
+	if req.Component == "" {
+		return errComponentRequired
+	}
+	if req.Version == "" && req.Kind == "" {
+		return errReleaseVersionRequired
+	}
+	if req.Version != "" && req.Kind != "" {
+		return errReleaseVersionConflict
+	}
+	return nil
+}
+
 func prepareReleasePrepConfig(
 	ctx context.Context,
 	git *GitCLI,
 	comp *Component,
+	topology RepositoryTopology,
 	version, clPath string,
 ) (*releasePrepConfig, error) {
 	verStr := version
@@ -134,7 +176,12 @@ func prepareReleasePrepConfig(
 
 	tag := NewTag(comp, ver)
 
-	baseBranch, createReleaseBranch, err := determineBranchStrategy(ctx, git, tag)
+	baseBranch, createReleaseBranch, err := determineBranchStrategy(
+		ctx,
+		git,
+		topology.SourceRemote,
+		tag,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +191,7 @@ func prepareReleasePrepConfig(
 		// First stable release lines are cut from main before promotion.
 		sourceBranch = mainBranch
 	}
-	content, err := readRemoteFile(ctx, git, sourceBranch, clPath)
+	content, err := readRemoteFile(ctx, git, topology.SourceRemote, sourceBranch, clPath)
 	if err != nil {
 		return nil, fmt.Errorf("read changelog: %w", err)
 	}
@@ -185,7 +232,181 @@ func prepareReleasePrepConfig(
 		prBody:              prBody,
 		promoted:            promoted,
 		promotedSection:     promotedSection,
+		topology:            topology,
 	}, nil
+}
+
+func resolvePrepareRequestVersion(
+	ctx context.Context,
+	git *GitCLI,
+	comp *Component,
+	req PrepareRequest,
+	sourceRemote, clPath, currentBranch string,
+) (string, error) {
+	if req.Version != "" {
+		if req.Line != "" {
+			return "", errReleaseLineConflict
+		}
+		return normalizeVersionPrefix(req.Version), nil
+	}
+
+	kind := strings.ToLower(strings.TrimSpace(req.Kind))
+	if kind != prepareKindPatch && req.Line != "" {
+		return "", errReleaseLineConflict
+	}
+	switch kind {
+	case prepareKindPrerelease:
+		return resolveNextPrereleaseVersion(ctx, git, sourceRemote, clPath)
+	case prepareKindStabilization:
+		return resolveStabilizationVersion(ctx, git, sourceRemote, clPath)
+	case prepareKindPatch:
+		return resolveNextPatchVersion(
+			ctx,
+			git,
+			comp,
+			sourceRemote,
+			req.Line,
+			currentBranch,
+			clPath,
+		)
+	default:
+		return "", fmt.Errorf("%w: %s", errReleaseKindInvalid, req.Kind)
+	}
+}
+
+func normalizeVersionPrefix(version string) string {
+	version = strings.TrimSpace(version)
+	if strings.HasPrefix(version, "v") {
+		return version
+	}
+	return "v" + version
+}
+
+func resolveNextPrereleaseVersion(
+	ctx context.Context,
+	git *GitCLI,
+	sourceRemote, clPath string,
+) (string, error) {
+	cl, err := readRemoteChangelog(ctx, git, sourceRemote, mainBranch, clPath)
+	if err != nil {
+		return "", err
+	}
+	prerelease, err := activePrereleaseVersion(cl)
+	if err != nil {
+		return "", err
+	}
+	channel, sequence, err := splitNumberedPrerelease(prerelease)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(
+		"v%d.%d.%d-%s.%d",
+		prerelease.Major,
+		prerelease.Minor,
+		prerelease.Patch,
+		channel,
+		sequence+1,
+	), nil
+}
+
+func resolveStabilizationVersion(
+	ctx context.Context,
+	git *GitCLI,
+	sourceRemote, clPath string,
+) (string, error) {
+	cl, err := readRemoteChangelog(ctx, git, sourceRemote, mainBranch, clPath)
+	if err != nil {
+		return "", err
+	}
+	prerelease, err := activePrereleaseVersion(cl)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("v%d.%d.%d", prerelease.Major, prerelease.Minor, prerelease.Patch), nil
+}
+
+func resolveNextPatchVersion(
+	ctx context.Context,
+	git *GitCLI,
+	comp *Component,
+	sourceRemote, line, currentBranch, clPath string,
+) (string, error) {
+	major, minor, err := resolvePatchLine(comp, line, currentBranch)
+	if err != nil {
+		return "", err
+	}
+	releaseBranch := comp.ReleaseBranch(major, minor)
+	content, err := readRemoteFile(ctx, git, sourceRemote, releaseBranch, clPath)
+	if err != nil {
+		return "", fmt.Errorf("read changelog from %s: %w", releaseBranch, err)
+	}
+	return nextPatchVersionHint(content, major, minor)
+}
+
+func readRemoteChangelog(
+	ctx context.Context,
+	git *GitCLI,
+	sourceRemote, branch, clPath string,
+) (*changelog.Changelog, error) {
+	content, err := readRemoteFile(ctx, git, sourceRemote, branch, clPath)
+	if err != nil {
+		return nil, fmt.Errorf("read changelog from %s: %w", branch, err)
+	}
+	cl, err := changelog.Parse(content)
+	if err != nil {
+		return nil, fmt.Errorf("parse changelog from %s: %w", branch, err)
+	}
+	return cl, nil
+}
+
+func activePrereleaseVersion(cl *changelog.Changelog) (*semver.Version, error) {
+	if cl == nil {
+		return nil, errChangelogNil
+	}
+	if len(cl.Versions) == 0 || cl.Versions[0] == nil || cl.Versions[0].Version == nil {
+		return nil, errNoActivePrereleaseLine
+	}
+	version := cl.Versions[0].Version
+	if !version.IsPrerelease {
+		return nil, fmt.Errorf("%w: latest release is %s", errNoActivePrereleaseLine, version.String())
+	}
+	return version, nil
+}
+
+func splitNumberedPrerelease(version *semver.Version) (string, int, error) {
+	identifiers := strings.Split(version.Prerelease, ".")
+	if len(identifiers) < 2 {
+		return "", 0, fmt.Errorf("%w: %s", errPrereleaseSeqInvalid, version.String())
+	}
+
+	last := identifiers[len(identifiers)-1]
+	sequence, err := strconv.Atoi(last)
+	if err != nil {
+		return "", 0, fmt.Errorf("%w: %s", errPrereleaseSeqInvalid, version.String())
+	}
+
+	channel := strings.Join(identifiers[:len(identifiers)-1], ".")
+	if channel == "" {
+		return "", 0, fmt.Errorf("%w: %s", errPrereleaseSeqInvalid, version.String())
+	}
+	return channel, sequence, nil
+}
+
+func resolvePatchLine(comp *Component, line, currentBranch string) (int, int, error) {
+	line = strings.TrimSpace(line)
+	if line != "" {
+		return parseReleaseLine(line)
+	}
+
+	currentBranch = strings.TrimSpace(currentBranch)
+	if currentBranch == "" || currentBranch == mainBranch {
+		return 0, 0, errReleaseLineRequired
+	}
+	selector, err := parseBaseBranchSelector(comp.Name, currentBranch)
+	if err != nil || selector.isMain {
+		return 0, 0, errReleaseLineRequired
+	}
+	return selector.major, selector.minor, nil
 }
 
 func displayPreviousVersion(previousVersion string) string {
@@ -195,20 +416,37 @@ func displayPreviousVersion(previousVersion string) string {
 	return previousVersion
 }
 
-func readRemoteFile(ctx context.Context, git *GitCLI, branch, path string) (string, error) {
-	if _, err := git.Run(ctx, "fetch", "origin", branch); err != nil {
-		return "", fmt.Errorf("fetch origin/%s: %w", branch, err)
+func readRemoteFile(ctx context.Context, git *GitCLI, sourceRemote, branch, path string) (string, error) {
+	if _, err := git.Run(ctx, "fetch", sourceRemote, branch); err != nil {
+		return "", fmt.Errorf("fetch %s/%s: %w", sourceRemote, branch, err)
 	}
-	return git.Run(ctx, "show", "origin/"+branch+":"+path)
+	return git.Run(ctx, "show", sourceRemote+"/"+branch+":"+path)
 }
 
-func determineBranchStrategy(ctx context.Context, git *GitCLI, tag *Tag) (string, bool, error) {
+func determineBranchStrategy(
+	ctx context.Context,
+	git *GitCLI,
+	sourceRemote string,
+	tag *Tag,
+) (string, bool, error) {
 	releaseBranch := tag.ReleaseBranch()
 	switch {
 	case tag.Version.IsPrerelease:
+		exists, err := git.RemoteBranchExists(ctx, sourceRemote, releaseBranch)
+		if err != nil {
+			return "", false, fmt.Errorf("check release branch: %w", err)
+		}
+		if exists {
+			return "", false, fmt.Errorf(
+				"%w: %s has %s",
+				errPrereleaseLineClosed,
+				tag.Version.String(),
+				releaseBranch,
+			)
+		}
 		return mainBranch, false, nil
 	case tag.Version.IsPatchRelease():
-		exists, err := git.RemoteBranchExists(ctx, releaseBranch)
+		exists, err := git.RemoteBranchExists(ctx, sourceRemote, releaseBranch)
 		if err != nil {
 			return "", false, err
 		}
@@ -217,12 +455,12 @@ func determineBranchStrategy(ctx context.Context, git *GitCLI, tag *Tag) (string
 		}
 		return releaseBranch, false, nil
 	default:
-		exists, err := git.RemoteBranchExists(ctx, releaseBranch)
+		exists, err := git.RemoteBranchExists(ctx, sourceRemote, releaseBranch)
 		if err != nil {
 			return "", false, err
 		}
 		if exists {
-			return "", false, fmt.Errorf("%w: %s", errReleaseBranchExists, releaseBranch)
+			return releaseBranch, false, nil
 		}
 		return releaseBranch, true, nil
 	}
@@ -367,13 +605,13 @@ func executeReleasePrepare(
 	}
 
 	if err := confirmMutatingAction(prompter, "push prep branch",
-		"Push: "+cfg.branchName+" -> origin/"+cfg.branchName,
+		"Push: "+cfg.branchName+" -> "+cfg.topology.PushRemote+"/"+cfg.branchName,
 	); err != nil {
 		return err
 	}
 
 	log.Step("Pushing prep branch")
-	if err := git.RunWrite(ctx, "push", "-u", "origin", cfg.branchName); err != nil {
+	if err := git.RunWrite(ctx, "push", "-u", cfg.topology.PushRemote, cfg.branchName); err != nil {
 		return fmt.Errorf("git push: %w", err)
 	}
 
@@ -416,10 +654,12 @@ func handlePreparePRResult(ctx context.Context, log Logger, openPR bool, prURL s
 func createPreparePR(ctx context.Context, gh GitHubRunner, cfg *releasePrepConfig) (string, error) {
 	// Keep PR creation as a separate step so execution flow stays simple and lint-compliant.
 	prURL, err := gh.CreatePR(ctx, PullRequestOptions{
-		Title: cfg.prTitle,
-		Body:  cfg.prBody,
-		Label: cfg.component.ReleaseLabel(),
-		Base:  cfg.baseBranch,
+		Title:      cfg.prTitle,
+		Body:       cfg.prBody,
+		Label:      cfg.component.ReleaseLabel(),
+		Base:       cfg.baseBranch,
+		Head:       cfg.topology.pullRequestHead(cfg.branchName),
+		Repository: cfg.topology.BaseRepository.NameWithOwner,
 	})
 	if err != nil {
 		return "", fmt.Errorf("create PR: %w", err)
@@ -435,28 +675,47 @@ func setupBaseBranch(
 	prompter ConfirmationPrompter,
 ) (string, error) {
 	if !cfg.createReleaseBranch {
-		if err := git.RunWrite(ctx, "fetch", "origin", cfg.baseBranch); err != nil {
+		if err := git.RunWrite(ctx, "fetch", cfg.topology.SourceRemote, cfg.baseBranch); err != nil {
 			return "", fmt.Errorf("fetch base branch: %w", err)
 		}
-		return "origin/" + cfg.baseBranch, nil
+		return cfg.topology.SourceRemote + "/" + cfg.baseBranch, nil
 	}
 
-	if err := git.RunWrite(ctx, "fetch", "origin", mainBranch); err != nil {
+	canonicalPushRemote, err := cfg.topology.canonicalPushRemote()
+	if err != nil {
+		return "", err
+	}
+	if err := git.RunWrite(ctx, "fetch", cfg.topology.SourceRemote, mainBranch); err != nil {
 		return "", fmt.Errorf("fetch main branch: %w", err)
 	}
 	if err := confirmMutatingAction(prompter, "create and push release branch",
-		"Source branch: "+mainBranch,
+		"Source branch: "+cfg.topology.SourceRemote+"/"+mainBranch,
 		"New branch: "+cfg.releaseBranch,
-		"Push: "+cfg.releaseBranch+" -> origin/"+cfg.releaseBranch,
+		"Push: "+cfg.releaseBranch+" -> "+canonicalPushRemote+"/"+cfg.releaseBranch,
 	); err != nil {
 		return "", err
 	}
-	log.Info("Creating release branch %s from origin/%s...", cfg.releaseBranch, mainBranch)
-	if err := git.RunWrite(ctx, "checkout", "-b", cfg.releaseBranch, "origin/"+mainBranch); err != nil {
+	log.Info(
+		"Creating release branch %s from %s/%s...",
+		cfg.releaseBranch,
+		cfg.topology.SourceRemote,
+		mainBranch,
+	)
+	if err := git.RunWrite(
+		ctx,
+		"checkout",
+		"-b",
+		cfg.releaseBranch,
+		cfg.topology.SourceRemote+"/"+mainBranch,
+	); err != nil {
 		return "", fmt.Errorf("create release branch: %w", err)
 	}
-	if err := git.RunWrite(ctx, "push", "-u", "origin", cfg.releaseBranch); err != nil {
-		return "", fmt.Errorf("push release branch: %w", err)
+	if err := git.RunWrite(ctx, "push", "-u", canonicalPushRemote, cfg.releaseBranch); err != nil {
+		return "", fmt.Errorf(
+			"push release branch to canonical remote %s: %w",
+			canonicalPushRemote,
+			err,
+		)
 	}
 	return cfg.releaseBranch, nil
 }

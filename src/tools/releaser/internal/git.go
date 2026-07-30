@@ -17,28 +17,36 @@ var (
 	ErrWorkingTreeDirty = errors.New("working tree has uncommitted changes")
 )
 
+// GitRemote describes one configured Git remote.
+type GitRemote struct {
+	Name     string
+	FetchURL string
+	PushURL  string
+	PushURLs int
+}
+
 // GitRunner defines the interface for git operations.
 type GitRunner interface {
 	// TagExists checks if a tag exists in the repository.
-	TagExists(ctx context.Context, tag string) (bool, error)
+	TagExists(ctx context.Context, remote, tag string) (bool, error)
 	// CurrentBranch returns the current branch name.
 	CurrentBranch(ctx context.Context) (string, error)
-	// RemoteBranchExists checks if a branch exists on the remote.
-	RemoteBranchExists(ctx context.Context, branch string) (bool, error)
+	// RemoteBranchExists checks if a branch exists on the authoritative source remote.
+	RemoteBranchExists(ctx context.Context, remote, branch string) (bool, error)
 	// Checkout switches to the specified ref.
 	Checkout(ctx context.Context, ref string) error
 	// Pull pulls the latest changes from the remote.
 	Pull(ctx context.Context, remote, branch string) error
-	// CreateBranch creates a new branch from the current HEAD.
-	CreateBranch(ctx context.Context, name string) error
-	// PushWithUpstream pushes and sets upstream tracking.
-	PushWithUpstream(ctx context.Context, remote, branch string) error
 	// RepoRoot returns the git repository root directory.
 	RepoRoot(ctx context.Context) (string, error)
 	// HeadCommit returns the current HEAD commit SHA.
 	HeadCommit(ctx context.Context) (string, error)
 	// WorkingTreeClean checks if working tree has no uncommitted changes.
 	WorkingTreeClean(ctx context.Context) (bool, error)
+	// Remotes returns configured Git remotes and their URLs.
+	Remotes(ctx context.Context) ([]GitRemote, error)
+	// PushRemote resolves Git's configured push destination.
+	PushRemote(ctx context.Context, remotes []GitRemote) (GitRemote, error)
 }
 
 // GitCLI implements GitRunner by shelling out to the git CLI.
@@ -83,17 +91,16 @@ func NewGitCLI(opts ...GitCLIOption) *GitCLI {
 	return g
 }
 
-// TagExists checks if a tag exists in the repository.
-func (g *GitCLI) TagExists(ctx context.Context, tag string) (bool, error) {
-	code, err := g.runExitCode(ctx, "show-ref", "--tags", tag)
-	if err != nil {
-		return false, err
-	}
-	if code == 0 {
-		return true, nil
-	}
-
-	remoteCode, err := g.runExitCode(ctx, "ls-remote", "--exit-code", "--tags", "origin", "refs/tags/"+tag)
+// TagExists checks if a tag exists in the requested remote repository.
+func (g *GitCLI) TagExists(ctx context.Context, remote, tag string) (bool, error) {
+	remoteCode, err := g.runExitCode(
+		ctx,
+		"ls-remote",
+		"--exit-code",
+		"--tags",
+		remote,
+		"refs/tags/"+tag,
+	)
 	if err != nil {
 		return false, err
 	}
@@ -105,13 +112,114 @@ func (g *GitCLI) CurrentBranch(ctx context.Context) (string, error) {
 	return g.run(ctx, "rev-parse", "--abbrev-ref", "HEAD")
 }
 
-// RemoteBranchExists checks if a branch exists on the remote.
-func (g *GitCLI) RemoteBranchExists(ctx context.Context, branch string) (bool, error) {
-	code, err := g.runExitCode(ctx, "ls-remote", "--exit-code", "--heads", "origin", branch)
+// RemoteBranchExists checks if a branch exists in the requested remote repository.
+func (g *GitCLI) RemoteBranchExists(ctx context.Context, remote, branch string) (bool, error) {
+	code, err := g.runExitCode(ctx, "ls-remote", "--exit-code", "--heads", remote, branch)
 	if err != nil {
 		return false, err
 	}
 	return code == 0, nil // exit 2 = not found
+}
+
+// Remotes returns the repository's configured fetch and push URLs.
+func (g *GitCLI) Remotes(ctx context.Context) ([]GitRemote, error) {
+	output, err := g.Run(ctx, "remote")
+	if err != nil {
+		return nil, err
+	}
+	names := strings.Fields(output)
+	if len(names) == 0 {
+		return nil, errNoGitRemotes
+	}
+
+	remotes := make([]GitRemote, 0, len(names))
+	for _, name := range names {
+		fetchURL, fetchErr := g.Run(ctx, "remote", "get-url", name)
+		if fetchErr != nil {
+			return nil, fmt.Errorf("get fetch URL for remote %s: %w", name, fetchErr)
+		}
+		pushURLs, pushErr := g.Run(ctx, "remote", "get-url", "--push", "--all", name)
+		if pushErr != nil {
+			return nil, fmt.Errorf("get push URL for remote %s: %w", name, pushErr)
+		}
+		pushURLList := make([]string, 0, 1)
+		for pushURL := range strings.SplitSeq(pushURLs, "\n") {
+			if pushURL = strings.TrimSpace(pushURL); pushURL != "" {
+				pushURLList = append(pushURLList, pushURL)
+			}
+		}
+		pushURL := ""
+		if len(pushURLList) > 0 {
+			pushURL = pushURLList[0]
+		}
+		remotes = append(remotes, GitRemote{
+			Name:     name,
+			FetchURL: fetchURL,
+			PushURL:  pushURL,
+			PushURLs: len(pushURLList),
+		})
+	}
+	return remotes, nil
+}
+
+// PushRemote resolves Git's configured push destination for the current work.
+func (g *GitCLI) PushRemote(ctx context.Context, remotes []GitRemote) (GitRemote, error) {
+	currentBranch, err := g.CurrentBranch(ctx)
+	if err != nil {
+		return GitRemote{}, fmt.Errorf("get current branch: %w", err)
+	}
+
+	configKeys := make([]string, 0, 5)
+	if currentBranch != "" && currentBranch != "HEAD" {
+		configKeys = append(configKeys, "branch."+currentBranch+".pushRemote")
+	}
+	configKeys = append(configKeys, "remote.pushDefault")
+	if currentBranch != "" && currentBranch != "HEAD" {
+		configKeys = append(configKeys, "branch."+currentBranch+".remote")
+	}
+	if currentBranch != mainBranch {
+		configKeys = append(configKeys, "branch."+mainBranch+".pushRemote", "branch."+mainBranch+".remote")
+	}
+
+	for _, key := range configKeys {
+		name, exists, configErr := g.optionalConfig(ctx, key)
+		if configErr != nil {
+			return GitRemote{}, configErr
+		}
+		if !exists || name == "." {
+			continue
+		}
+		remote, found := findGitRemote(remotes, name)
+		if !found {
+			return GitRemote{}, fmt.Errorf("%w: %s from %s", errPushRemoteMissing, name, key)
+		}
+		return validatePushRemote(remote)
+	}
+
+	if len(remotes) == 1 {
+		return validatePushRemote(remotes[0])
+	}
+	return GitRemote{}, fmt.Errorf(
+		"%w: configure remote.pushDefault or branch.%s.pushRemote",
+		errPushRemoteAmbiguous,
+		currentBranch,
+	)
+}
+
+func validatePushRemote(remote GitRemote) (GitRemote, error) {
+	if remote.PushURLs != 1 {
+		return GitRemote{}, fmt.Errorf("%w: %s", errPushRemoteMultipleURLs, remote.Name)
+	}
+	return remote, nil
+}
+
+func findGitRemote(remotes []GitRemote, name string) (GitRemote, bool) {
+	for _, remote := range remotes {
+		if remote.Name == name {
+			return remote, true
+		}
+	}
+	return GitRemote{Name: "", FetchURL: "", PushURL: "", PushURLs: 0}, false
 }
 
 // Checkout switches to the specified ref.
@@ -122,16 +230,6 @@ func (g *GitCLI) Checkout(ctx context.Context, ref string) error {
 // Pull pulls the latest changes from the remote.
 func (g *GitCLI) Pull(ctx context.Context, remote, branch string) error {
 	return g.runWrite(ctx, "pull", remote, branch)
-}
-
-// CreateBranch creates a new branch from the current HEAD.
-func (g *GitCLI) CreateBranch(ctx context.Context, name string) error {
-	return g.runWrite(ctx, "checkout", "-b", name)
-}
-
-// PushWithUpstream pushes and sets upstream tracking.
-func (g *GitCLI) PushWithUpstream(ctx context.Context, remote, branch string) error {
-	return g.runWrite(ctx, "push", "-u", remote, branch)
 }
 
 // Run executes a git command and returns stdout.
@@ -238,6 +336,38 @@ func (g *GitCLI) runExitCode(ctx context.Context, args ...string) (int, error) {
 		return exitErr.ExitCode(), nil
 	}
 	return -1, fmt.Errorf("%w: %s: %w", ErrGitCommandFailed, strings.Join(args, " "), err)
+}
+
+func (g *GitCLI) optionalConfig(ctx context.Context, key string) (string, bool, error) {
+	if err := g.ensureWorkdir(ctx); err != nil {
+		return "", false, err
+	}
+
+	args := []string{"config", "--get", key}
+	g.log.Command("git", args)
+
+	//nolint:gosec // G204: executable and config subcommand are fixed; key is internally constructed.
+	cmd := exec.CommandContext(ctx, "git", args...)
+	if g.workdir != "" {
+		cmd.Dir = g.workdir
+	}
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+			return "", false, nil
+		}
+		return "", false, fmt.Errorf(
+			"%w: %s: %s",
+			ErrGitCommandFailed,
+			strings.Join(args, " "),
+			stderr.String(),
+		)
+	}
+	return strings.TrimSpace(stdout.String()), true, nil
 }
 
 func (g *GitCLI) ensureWorkdir(ctx context.Context) error {

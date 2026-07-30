@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"altinn.studio/releaser/internal"
@@ -131,6 +132,62 @@ func TestWorkflow_Run_PreviewMustBeOnMain(t *testing.T) {
 	}
 	if !errors.Is(err, internal.ErrNotOnMain) {
 		t.Fatalf("error = %v, want %v", err, internal.ErrNotOnMain)
+	}
+}
+
+func TestWorkflow_Run_PrereleaseStopsWhenLineClosesBeforePublication(t *testing.T) {
+	t.Parallel()
+
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3-preview.2] - 2025-01-01
+
+### Added
+
+- Test entry
+`)
+	builder := &fakeBuilder{}
+	gh := &fakeGH{}
+	git := &fakeGit{
+		currentBranch:               "main",
+		remoteBranchExistsResponses: []bool{false, true},
+		workingTreeClean:            true,
+	}
+	cfg := internal.WorkflowConfig{
+		Component:     "studioctl",
+		Version:       "v1.2.3-preview.2",
+		ChangelogPath: changelogPath,
+		DryRun:        false,
+		OutputDir:     t.TempDir(),
+		RepoRoot:      os.TempDir(),
+	}
+
+	workflow, err := internal.NewWorkflow(
+		t.Context(),
+		cfg,
+		git,
+		gh,
+		builder,
+		internal.NopLogger{},
+	)
+	if err != nil {
+		t.Fatalf("NewWorkflow() error: %v", err)
+	}
+	err = workflow.Run(t.Context())
+
+	if err == nil {
+		t.Fatal("expected closed prerelease line error, got nil")
+	}
+	if !strings.Contains(err.Error(), "prerelease line is already stabilizing or stable") {
+		t.Fatalf("error = %v, want closed prerelease line error", err)
+	}
+	if !builder.called {
+		t.Fatal("expected build to complete before the final prerelease policy check")
+	}
+	if gh.called {
+		t.Fatal("expected no GitHub release creation after prerelease line closed")
 	}
 }
 
@@ -524,18 +581,20 @@ func TestNewWorkflow_OutputDirSafety_RejectsSymlinkEscape(t *testing.T) {
 }
 
 type fakeGit struct {
-	currentBranch      string
-	headCommit         string
-	lastCheckout       string
-	lastPull           string
-	checkoutCount      int
-	pullCount          int
-	tagExists          bool
-	remoteBranchExists bool
-	workingTreeClean   bool
+	currentBranch               string
+	headCommit                  string
+	lastCheckout                string
+	lastPull                    string
+	remoteBranchExistsResponses []bool
+	checkoutCount               int
+	pullCount                   int
+	remoteBranchExistsCallCount int
+	tagExists                   bool
+	remoteBranchExists          bool
+	workingTreeClean            bool
 }
 
-func (g *fakeGit) TagExists(_ context.Context, _ string) (bool, error) {
+func (g *fakeGit) TagExists(_ context.Context, _, _ string) (bool, error) {
 	return g.tagExists, nil
 }
 
@@ -546,7 +605,12 @@ func (g *fakeGit) CurrentBranch(_ context.Context) (string, error) {
 	return g.currentBranch, nil
 }
 
-func (g *fakeGit) RemoteBranchExists(_ context.Context, _ string) (bool, error) {
+func (g *fakeGit) RemoteBranchExists(_ context.Context, _, _ string) (bool, error) {
+	if g.remoteBranchExistsCallCount < len(g.remoteBranchExistsResponses) {
+		response := g.remoteBranchExistsResponses[g.remoteBranchExistsCallCount]
+		g.remoteBranchExistsCallCount++
+		return response, nil
+	}
 	return g.remoteBranchExists, nil
 }
 
@@ -559,14 +623,6 @@ func (g *fakeGit) Checkout(_ context.Context, ref string) error {
 func (g *fakeGit) Pull(_ context.Context, remote, branch string) error {
 	g.lastPull = remote + "/" + branch
 	g.pullCount++
-	return nil
-}
-
-func (g *fakeGit) CreateBranch(_ context.Context, _ string) error {
-	return nil
-}
-
-func (g *fakeGit) PushWithUpstream(_ context.Context, _, _ string) error {
 	return nil
 }
 
@@ -588,25 +644,48 @@ func (g *fakeGit) WorkingTreeClean(_ context.Context) (bool, error) {
 	return true, nil
 }
 
+func (g *fakeGit) Remotes(_ context.Context) ([]internal.GitRemote, error) {
+	return []internal.GitRemote{{
+		Name:     "test-remote",
+		FetchURL: "https://github.com/Altinn/altinn-studio.git",
+		PushURL:  "https://github.com/Altinn/altinn-studio.git",
+		PushURLs: 1,
+	}}, nil
+}
+
+func (g *fakeGit) PushRemote(
+	_ context.Context,
+	remotes []internal.GitRemote,
+) (internal.GitRemote, error) {
+	return remotes[0], nil
+}
+
 type fakeGH struct {
-	tag             string
-	target          string
-	prBase          string
-	prTitle         string
-	prBody          string
-	prLabel         string
-	assets          []string
-	assetCount      int
-	prerelease      bool
-	hasReleaseNotes bool
-	called          bool
-	prCreated       bool
+	tag                     string
+	target                  string
+	prBase                  string
+	prTitle                 string
+	prBody                  string
+	prLabel                 string
+	prHead                  string
+	prRepository            string
+	releaseRepository       string
+	canonicalRepositoryURL  string
+	canonicalRepositoryName string
+	pushRepositoryName      string
+	assets                  []string
+	assetCount              int
+	prerelease              bool
+	hasReleaseNotes         bool
+	called                  bool
+	prCreated               bool
 }
 
 func (g *fakeGH) CreateRelease(_ context.Context, opts internal.Options) error {
 	g.called = true
 	g.tag = opts.Tag
 	g.target = opts.Target
+	g.releaseRepository = opts.Repository
 	g.prerelease = opts.Prerelease
 	g.assetCount = len(opts.Assets)
 	g.assets = append([]string(nil), opts.Assets...)
@@ -625,10 +704,30 @@ func (g *fakeGH) CreatePR(_ context.Context, opts internal.PullRequestOptions) (
 	g.prTitle = opts.Title
 	g.prBody = opts.Body
 	g.prLabel = opts.Label
+	g.prHead = opts.Head
+	g.prRepository = opts.Repository
 	return "https://example.test/pr/1", nil
 }
 
 func (g *fakeGH) SetWorkdir(_ string) {}
+
+func (g *fakeGH) Repository(
+	_ context.Context,
+	remoteURL string,
+) (internal.Repository, *internal.Repository, error) {
+	repository := internal.Repository{
+		NameWithOwner: g.pushRepositoryName,
+		URL:           remoteURL,
+	}
+	if g.canonicalRepositoryURL == "" || g.canonicalRepositoryURL == remoteURL {
+		return repository, nil, nil
+	}
+	parent := &internal.Repository{
+		NameWithOwner: g.canonicalRepositoryName,
+		URL:           g.canonicalRepositoryURL,
+	}
+	return repository, parent, nil
+}
 
 type fakeBuilder struct {
 	called bool
