@@ -37,11 +37,13 @@ const appFrontend = new AppFrontend();
  *                WITHOUT advancing - the process stays on the service task until an out-of-band
  *                process/next releases it; the frontend renders its implicit waiting step, #18935).
  *                Park and a deferral both leave the user on the service task but are opposites
- *                underneath, and the UI follows: a parked task has SUCCEEDED (workflow idle -> the
- *                service-task waiting view), a deferring one is STILL RUNNING (workflow processing ->
- *                the ordinary advancing view). A lost signal strands the first, merely delays the second.
+ *                underneath. On the default view the UI follows: a parked task has SUCCEEDED
+ *                (workflow idle -> the service-task waiting view), a deferring one is STILL RUNNING
+ *                (workflow processing -> the ordinary advancing view). On a layouted task the two
+ *                are deliberately identical: the app's page owns the waiting presentation for both.
+ *                A lost signal strands the first, merely delays the second.
  *   - serviceView "default" (Task_Service, built-in waiting/failure views) or "layout"
- *                (Task_ServiceLayout, the app's own layout renders while parked).
+ *                (Task_ServiceLayout, the app's own layout renders while parked OR deferring).
  *
  * The two hooks:
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
@@ -497,6 +499,29 @@ describe('Live workflow status (real engine)', () => {
     // layout-keyed) and carries the user onto Task_2 when the parked task is released.
     cy.moveProcessNext();
     cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+  });
+
+  it('deferral with a custom layout: the app page renders during the wait, exactly as it does for park', () => {
+    // Park (async callback arrives out-of-band, e.g. Fiks Arkiv) and defer (the task polls,
+    // e.g. eFormidling) are opposites in the engine but deliberately identical UX on a layouted
+    // service task: the app's page owns the "here is what we are waiting for" presentation for
+    // both. The distinction stays observable in workflow.status and on default-view tasks.
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', serviceView: 'layout', deferrals: 3, deferDelayMs: 5000 });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The app's page renders while the workflow is still processing (deferring), where the
+    // default view would show the advancing spinner. (Reload-during-wait is covered by the
+    // default-view deferral spec, and reload-onto-the-layout by the park spec above.)
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 30000 }).should('be.visible');
+    cy.contains('Vi jobber med skjemaet ditt').should('not.exist');
+    cy.contains('Vi behandler forespørselen din').should('not.exist');
+
+    // Unlike park, the deferring task resolves itself: no out-of-band release needed.
+    cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
   });
 

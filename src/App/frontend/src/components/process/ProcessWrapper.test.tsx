@@ -123,6 +123,97 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
+  it('processing parked ON a layouted service task renders the layout - park and defer are identical UX', async () => {
+    // A deferring service task reports processing while the process genuinely sits on the
+    // committed task (targetTask === currentTask). When the task supplies its own layout, the
+    // app's page renders exactly as it does for a parked (idle) task: park (async callback,
+    // e.g. Fiks Arkiv) and defer (polling, e.g. eFormidling) are opposites in the engine but
+    // deliberately identical as a user experience.
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.workflow = {
+      status: 'processing',
+      targetTask: instance.process.currentTask!.elementId,
+    };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    expect(await screen.findByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByText(/vi jobber med skjemaet ditt/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+  });
+
+  it('processing FROM a layouted service task toward another task keeps the spinner', async () => {
+    // Once the deferring task resolves and auto-advances, the dependent transition targets the
+    // next task: the process is in flight AWAY from the service task, so its layout no longer
+    // owns the presentation and the advancing view takes over until the transition settles.
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.workflow = { status: 'processing', targetTask: 'Task_Somewhere_Else' };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+  });
+
+  it('processing parked ON a service task WITHOUT a layout keeps the advancing view', async () => {
+    // The layout is the app's opt-in to owning this state. Without one, a deferring task shows
+    // the ordinary advancing view (pinned by the e2e suite) - NOT the parked waiting view, which
+    // is reserved for a task that has succeeded and idles awaiting an external release.
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask = {
+      ...instance.process.currentTask!,
+      elementId: 'Task_Service',
+      elementType: 'ServiceTask',
+      altinnTaskType: 'scenario',
+    };
+    instance.process.processTasks = [{ elementId: 'Task_Service', altinnTaskType: 'scenario' }];
+    instance.process.workflow = { status: 'processing', targetTask: 'Task_Service' };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      waitUntilLoaded: false,
+      taskId: 'Task_Service',
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    expect(await screen.findByText(/vi jobber med skjemaet ditt/i)).toBeInTheDocument();
+    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+  });
+
   it('processing never renders the wire-model step progress - engine step counts are not user-facing', async () => {
     await renderProcessWrapper(
       { status: 'processing', targetTask: 'Task_2', progress: { completed: 7, total: 12 } },

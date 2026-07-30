@@ -9,6 +9,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import classes from 'src/components/process/ProcessWrapper.module.css';
 import {
   useIsWorkflowFailedOnCurrentServiceTask,
+  useIsWorkflowProcessingOnCurrentServiceTask,
   WorkflowFailed,
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
@@ -130,6 +131,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isRunningProcessNext = useIsRunningProcessNext();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
+  const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
   const { data: process } = useProcessQuery();
 
@@ -175,7 +177,19 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // PDF mode must bypass this replacement: the PDF service task renders the page *during* the
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
-  if (!isPdfMode && workflow?.status === 'processing') {
+  //
+  // A processing workflow parked ON the committed current service task also bypasses it when that
+  // task supplies its own layout and the URL is on it: the task is a deferring step polling for an
+  // external outcome (e.g. eFormidling delivery confirmation), the process genuinely sits on the
+  // task, and the app's page is the "here is what we are waiting for" UI - exactly as it renders
+  // for a parked task awaiting an async callback (e.g. Fiks Arkiv). Park and defer are opposites
+  // in the engine but deliberately identical UX on layouted service tasks. The replacement stays
+  // for transitions heading toward other tasks, for default-view service tasks (the advancing
+  // view, as pinned by the e2e suite), and for stale URLs until navigation converges.
+  const deferringOnLayoutedServiceTask =
+    processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
+
+  if (!isPdfMode && workflow?.status === 'processing' && !deferringOnLayoutedServiceTask) {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowProcessing />
