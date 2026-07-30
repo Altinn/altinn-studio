@@ -22,11 +22,7 @@ export default defineConfig(({ mode }) => {
       'process.env.NODE_ENV': JSON.stringify(isDevBuild ? 'development' : 'production'),
     },
     plugins: [
-      // JSX and Fast Refresh
       react(),
-      // React Compiler (automatic memoization). plugin-react 6 no longer runs babel itself,
-      // so the compiler is applied through a separate babel plugin with a preconfigured
-      // filter that only transforms React-looking files.
       babel({ presets: [reactCompilerPreset()] }),
       // Serves /altinn-app-frontend.js as a loader script that dynamically imports the real
       // app code, plus an empty /altinn-app-frontend.css so the backend HTML doesn't 404.
@@ -52,14 +48,14 @@ export default defineConfig(({ mode }) => {
     },
     css: {
       modules: {
-        // Same as the old css-loader `exportLocalsConvention: 'camel-case'`: class names are
-        // available both as written and camelized on the default export.
+        // Many stylesheets use kebab-case class names (.page-list-item) that the components
+        // read as camelCase (classes.pageListItem). This exposes both spellings; without it
+        // those lookups silently become undefined (CSS modules are typed as Record<string, string>,
+        // so TypeScript would not catch it).
         localsConvention: 'camelCase',
       },
       devSourcemap: true,
     },
-    // The schemas are handled explicitly instead (serveSchemasPlugin in dev, copy-schemas in build)
-    publicDir: false,
     optimizeDeps: {
       // There is no index.html to scan for entry points (the HTML is backend-generated)
       entries: ['src/index.tsx'],
