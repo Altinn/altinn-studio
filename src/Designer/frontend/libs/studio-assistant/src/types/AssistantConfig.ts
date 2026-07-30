@@ -74,7 +74,20 @@ export interface DoneEvent extends WorkflowEventBase {
 
 export interface ErrorEvent extends WorkflowEventBase {
   type: 'error';
-  data: { done?: boolean; success?: boolean; status?: string; message?: string };
+  data: {
+    done?: boolean;
+    success?: boolean;
+    status?: string;
+    message?: string;
+    /** Alternative goal phrasings the backend suggests when a goal is rejected. */
+    suggestions?: string[];
+  };
+}
+
+/** The agent asks the user to allow changes in a read-only session. */
+export interface PermissionRequestEvent extends WorkflowEventBase {
+  type: 'permission_request';
+  data: { request_id: string; message: string };
 }
 
 export type WorkflowEvent =
@@ -82,7 +95,8 @@ export type WorkflowEvent =
   | AssistantMessageChunkEvent
   | WorkflowStatusEvent
   | DoneEvent
-  | ErrorEvent;
+  | ErrorEvent
+  | PermissionRequestEvent;
 
 export interface WorkflowRequest {
   session_id: string;

@@ -205,15 +205,20 @@ async def run_loop(
     compaction: CompactionConfig | None = None,
     is_cancelled: Callable[[], bool] | None = None,
     on_event: EventCallback | None = None,
+    history: list[Message] | None = None,
 ) -> LoopResult:
     """Drive a conversation to termination.
 
     `is_cancelled` is polled at the top of every turn so external
     cancellation (e.g. the existing session cancel flag) takes effect
     without forcing the adapter to abort an in-flight call.
+
+    `history` carries prior conversation turns (alternating user/assistant
+    messages from earlier runs in the same session) so follow-up requests
+    have context.  It is prepended verbatim before `user_message`.
     """
     compaction = compaction or CompactionConfig()
-    messages: list[Message] = [UserMessage(content=user_message)]
+    messages: list[Message] = [*(history or []), UserMessage(content=user_message)]
     total_usage = {"input_tokens": 0, "output_tokens": 0}
     # Sliding window of per-turn tool signatures, used to detect when
     # the model is calling the same tool with the same input over and
@@ -599,6 +604,39 @@ async def _execute_tool(
         log.exception("permission check raised for %s", tool_use.name)
         return _error_block(tool_use.id, f"Permission check failed: {exc}", on_event)
 
+    if not permission.allowed and permission.escalatable and ctx.permission_requester:
+        # The user can lift this denial interactively (read-only session).
+        # Ask once — concurrent tool calls in the same batch share the
+        # broker's single in-flight request, and a previous decline is
+        # remembered so the model isn't allowed to nag.
+        if ctx.extras.get("permission_declined_by_user"):
+            return _error_block(
+                tool_use.id,
+                f"Tool {tool_use.name!r} denied: the user already declined to enable "
+                "changes this session. Do not retry write tools — summarize what you "
+                "would have changed and finish.",
+                on_event,
+            )
+        try:
+            granted = await ctx.permission_requester(
+                f"{tool_use.name}: {_describe_tool_use(tool_use)}"
+            )
+        except Exception:
+            log.exception("permission escalation failed for %s", tool_use.name)
+            granted = False
+        if granted:
+            ctx.allow_app_changes = True
+            permission = await prepared.tool.check_permission(prepared.args, ctx)
+        else:
+            ctx.extras["permission_declined_by_user"] = True
+            return _error_block(
+                tool_use.id,
+                f"Tool {tool_use.name!r} denied: the user declined to enable changes "
+                "for this session (or didn't respond). Do not retry write tools — "
+                "summarize what you would have changed and finish.",
+                on_event,
+            )
+
     if not permission.allowed:
         return _error_block(
             tool_use.id,
@@ -612,6 +650,9 @@ async def _execute_tool(
         log.exception("tool %s raised", tool_use.name)
         return _error_block(tool_use.id, f"Tool execution error: {exc}", on_event)
 
+    if not result.is_error:
+        _collect_source(ctx, result)
+
     content = cap_tool_result(result.content, max_result_chars)
     block = ToolResultBlock(
         tool_use_id=tool_use.id,
@@ -624,6 +665,39 @@ async def _execute_tool(
         {"id": tool_use.id, "name": tool_use.name, "is_error": result.is_error, "chars": len(content)},
     )
     return block
+
+
+def _collect_source(ctx: LoopContext, result: ToolResult) -> None:
+    """Record a consulted knowledge source declared by the tool.
+
+    Knowledge tools (web_fetch, skill, schema lookups) put a
+    `{"title", "url"?, "kind"}` dict under `metadata["source"]`.  The
+    collected list is ground truth — an entry exists iff the tool
+    actually ran successfully — and is attached to the final assistant
+    message so the UI can show sources without trusting the model to
+    self-report them.
+    """
+    source = result.metadata.get("source")
+    if not isinstance(source, dict) or not source.get("title"):
+        return
+    sources: list[dict] = ctx.extras.setdefault("sources", [])
+    key = (source.get("title"), source.get("url"))
+    if any((s.get("title"), s.get("url")) == key for s in sources):
+        return
+    sources.append(source)
+
+
+def _describe_tool_use(tool_use: ToolUseBlock) -> str:
+    """Compact human-readable description of what a tool call would do,
+    for the user-facing permission prompt."""
+    args = tool_use.input or {}
+    path = args.get("path")
+    if path:
+        return str(path)
+    message = args.get("message")
+    if message:
+        return str(message)[:120]
+    return "endringer i appen"
 
 
 def _error_block(tool_use_id: str, message: str, on_event: EventCallback | None) -> ToolResultBlock:

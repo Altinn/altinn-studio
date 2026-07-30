@@ -105,6 +105,11 @@ class CommitSessionBranchTool(WriteToolMixin):
                 is_error=True,
             )
 
+        # Surface the hash on the context: it goes into the workflow's
+        # trace output as evidence for the faithful_summary evaluator
+        # (a summary naming a commit must be checkable).
+        ctx.extras["commit"] = commit_hash
+
         # Push best-effort.  A failed push doesn't unwind the commit (it
         # exists locally and can be re-pushed); we surface the failure to
         # the model so it can decide whether to retry or give up.

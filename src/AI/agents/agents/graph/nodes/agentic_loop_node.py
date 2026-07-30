@@ -20,14 +20,16 @@ The node:
         downstream code (run_once's success/failure emit, evaluators)
         keeps working unchanged.
 
-This node only ever runs in workflow mode — chat mode still goes
-through `assistant_node` direct from the API route.  Unifying the two
-paths is a future task.
+This node serves BOTH modes: `state.allow_app_changes` gates the write
+tools (read-only "chat" runs can still scan/read the repo, load skills,
+and fetch docs), and prior session turns are prepended as conversation
+history so follow-ups keep their context across modes.
 """
 
 from __future__ import annotations
 
 import os
+import re
 import time
 from typing import Any
 
@@ -37,6 +39,7 @@ from agents.core import (
     DiscardFileChangesTool,
     EditFileTool,
     EventCallback,
+    AssistantMessage,
     LayoutPropsTool,
     LoopContext,
     LoopResult,
@@ -45,8 +48,10 @@ from agents.core import (
     SessionContext,
     SkillTool,
     TerminationReason,
+    TextBlock,
     Tool,
     ToolRegistry,
+    UserMessage,
     VerifyChangesTool,
     WebFetchTool,
     WriteFileTool,
@@ -57,7 +62,7 @@ from agents.core import (
     run_loop,
 )
 from agents.graph.state import AgentState
-from agents.services.events import AgentEvent, sink
+from agents.services.events import AgentEvent, permission_broker, sink
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -185,6 +190,34 @@ def _phase_for_tool(name: str) -> str:
 _DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "40"))
 
 
+# Bound the history prepended to the loop: enough for the model to keep
+# the thread, small enough not to crowd out the actual task.  Long
+# individual messages (pasted logs, full summaries) are truncated.
+_HISTORY_MAX_MESSAGES = 12
+_HISTORY_MAX_CHARS_PER_MESSAGE = 6000
+
+
+def _history_messages(state: AgentState) -> list:
+    """Prior session turns as loop messages, oldest first.
+
+    The shared per-session history contains both chat and workflow turns,
+    so a follow-up like "what did you just change?" has the earlier
+    exchanges available regardless of which mode produced them.
+    """
+    messages: list = []
+    for entry in state.conversation_history[-_HISTORY_MAX_MESSAGES:]:
+        content = (entry.content or "").strip()
+        if not content:
+            continue
+        if len(content) > _HISTORY_MAX_CHARS_PER_MESSAGE:
+            content = content[:_HISTORY_MAX_CHARS_PER_MESSAGE] + "\n…[truncated]"
+        if entry.role == "assistant":
+            messages.append(AssistantMessage(content=[TextBlock(text=content)]))
+        else:
+            messages.append(UserMessage(content=content))
+    return messages
+
+
 async def handle(state: AgentState) -> AgentState:
     """Drive one workflow run via the agentic loop."""
     log.info("🤖 Agentic loop node executing")
@@ -197,7 +230,7 @@ async def handle(state: AgentState) -> AgentState:
         session_id=state.session_id,
         repo_path=state.repo_path,
         user_goal=state.user_goal,
-        allow_app_changes=True,  # node only runs in workflow mode
+        allow_app_changes=state.allow_app_changes,
         form_spec_summary=state.form_spec.to_summary() if state.form_spec else None,
         developer=state.developer,
         org=state.org,
@@ -218,10 +251,17 @@ async def handle(state: AgentState) -> AgentState:
     ctx = LoopContext(
         session_id=state.session_id,
         repo_path=state.repo_path,
-        allow_app_changes=True,
+        allow_app_changes=state.allow_app_changes,
         developer=state.developer,
         org=state.org,
         designer_api_key=state.designer_api_key,
+        # In read-only sessions a write attempt asks the user for
+        # permission (inline prompt in the chat) instead of a flat denial.
+        permission_requester=(
+            None
+            if state.allow_app_changes
+            else lambda action: permission_broker.request(state.session_id, action)
+        ),
     )
 
     adapter = build_adapter("actor")
@@ -238,11 +278,13 @@ async def handle(state: AgentState) -> AgentState:
         max_turns=_DEFAULT_MAX_TURNS,
         is_cancelled=lambda: sink.is_cancelled(state.session_id),
         on_event=on_event,
+        history=_history_messages(state),
     )
 
     _apply_result_to_state(state, result, ctx)
-    await _maybe_auto_commit(state, result, ctx)
-    _emit_workflow_completion(state, result)
+    if state.allow_app_changes:
+        await _maybe_auto_commit(state, result, ctx)
+    _emit_workflow_completion(state, result, ctx)
     return state
 
 
@@ -523,7 +565,7 @@ def _make_event_bridge(session_id: str) -> EventCallback:
     return on_event
 
 
-def _emit_workflow_completion(state: AgentState, result: LoopResult) -> None:
+def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopContext) -> None:
     """Emit the events the Designer frontend uses to close out a session.
 
     The frontend expects two events at the end of a workflow: a final
@@ -535,15 +577,24 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult) -> None:
     triggers its post-workflow logic (e.g. checkout the session branch).
     """
     summary = _final_summary_text(result)
+    message_data = {
+        "author": "assistant",
+        "content": summary,
+        "filesChanged": state.changed_files,
+        # Knowledge sources the loop actually consulted (docs pages,
+        # skills, schema lookups) — collected from tool executions, not
+        # self-reported by the model.
+        "sources": ctx.extras.get("sources", []),
+    }
+    if not state.allow_app_changes:
+        # Read-only run: the frontend must not reset the repo or check out
+        # a session branch — nothing was (or could have been) committed.
+        message_data["no_branch_operations"] = True
     sink.send(
         AgentEvent(
             type="assistant_message",
             session_id=state.session_id,
-            data={
-                "author": "assistant",
-                "content": summary,
-                "filesChanged": state.changed_files,
-            },
+            data=message_data,
         )
     )
     # Also store in conversation history so follow-up turns have context;
@@ -565,6 +616,19 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult) -> None:
     )
 
 
+_SOURCES_LINE_RE = re.compile(r"\n+SOURCES:[^\n]*\s*$", re.IGNORECASE)
+
+
+def _strip_sources_line(text: str) -> str:
+    """Drop a trailing `SOURCES: ...` line if the model appended one.
+
+    Sources are attached structurally from the tool trace; a text
+    SOURCES line is a leftover habit from the old prompt convention and
+    would render as raw text in the chat.
+    """
+    return _SOURCES_LINE_RE.sub("", text)
+
+
 def _final_summary_text(result: LoopResult) -> str:
     """User-facing summary chosen by termination reason.
 
@@ -575,7 +639,7 @@ def _final_summary_text(result: LoopResult) -> str:
     misleadingly implied success.
     """
     if result.reason is TerminationReason.COMPLETED:
-        return (result.final_text or "Ferdig.").strip()
+        return _strip_sources_line(result.final_text or "Ferdig.").strip()
     if result.reason is TerminationReason.MAX_TURNS:
         return (
             f"Jeg fikk ikke fullført oppgaven innenfor {result.turns} steg.  "
@@ -618,11 +682,25 @@ def _apply_result_to_state(
     """
     state.next_action = "stop"
 
+    # A mid-run permission grant upgrades the session to write mode —
+    # reflect it so auto-commit and the completion events (branch
+    # checkout on the frontend) treat the run as a change run.
+    state.allow_app_changes = ctx.allow_app_changes
+
     changed = ctx.extras.get("changed_files") or set()
     state.changed_files = sorted(changed)
 
     if result.final_text:
-        state.assistant_response = {"text": result.final_text}
+        state.assistant_response = {
+            "text": result.final_text,
+            # Consulted knowledge sources — surfaced in the trace output so
+            # the Langfuse no_hallucination evaluator can compare the answer
+            # against what was actually read.
+            "sources": ctx.extras.get("sources", []),
+            # Actual commit hash (None if nothing was committed) — evidence
+            # for the faithful_summary evaluator when the summary names one.
+            "commit": ctx.extras.get("commit"),
+        }
 
     if result.reason is TerminationReason.COMPLETED:
         state.tests_passed = True
