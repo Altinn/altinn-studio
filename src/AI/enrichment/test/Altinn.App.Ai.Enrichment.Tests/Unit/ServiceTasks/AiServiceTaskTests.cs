@@ -10,6 +10,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 #if NET10_0_OR_GREATER
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Instances;
 #else
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 #endif
@@ -62,6 +63,60 @@ public class AiServiceTaskTests
     }
 
 #if NET10_0_OR_GREATER
+    [Fact]
+    public async Task Execute_ReplayWithOutputsFromSameWorkflow_SkipsAgentRun()
+    {
+        var workflowId = Guid.NewGuid();
+        var stored = new List<(string DataType, string ContentType, string? Filename, byte[] Bytes)>();
+        var mutator = CreateMutator("demo-json", stored);
+        var instanceClient = Substitute.For<IInstanceClient>();
+        instanceClient
+            .GetInstance(Arg.Any<Instance>(), Arg.Any<StorageAuthenticationMethod?>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new Instance
+            {
+                Data =
+                [
+                    new DataElement
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        DataType = "ai-enrichment-json",
+                        Metadata =
+                        [
+                            new KeyValueEntry
+                            {
+                                Key = AiServiceTask.WorkflowIdMetadataKey,
+                                Value = workflowId.ToString(),
+                            },
+                        ],
+                    },
+                ],
+            }));
+
+        var result = await CreateSut(instanceClient: instanceClient)
+            .Execute(new ServiceTaskContext { InstanceDataMutator = mutator, WorkflowId = workflowId });
+
+        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        stored.Should().BeEmpty("a replay must not run the agent or store duplicate outputs");
+    }
+
+    [Fact]
+    public async Task Execute_WithWorkflowId_TagsOutputsWithWorkflowMarker()
+    {
+        var workflowId = Guid.NewGuid();
+        var stored = new List<(string DataType, string ContentType, string? Filename, byte[] Bytes)>();
+        var storedMetadata = new List<List<KeyValueEntry>?>();
+        var mutator = CreateMutator("demo-json", stored, storedMetadata: storedMetadata);
+
+        var result = await CreateSut()
+            .Execute(new ServiceTaskContext { InstanceDataMutator = mutator, WorkflowId = workflowId });
+
+        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        storedMetadata.Should().NotBeEmpty();
+        storedMetadata.Should().AllSatisfy(metadata =>
+            metadata.Should().ContainSingle(entry =>
+                entry.Key == AiServiceTask.WorkflowIdMetadataKey && entry.Value == workflowId.ToString()));
+    }
+
     [Fact]
     public void StepOptions_Defaults_GiveOneHourBudgetWithBoundedConstantRetries()
     {
@@ -153,7 +208,12 @@ public class AiServiceTaskTests
 
     // --- helpers ---------------------------------------------------------------------
 
-    private static AiServiceTask CreateSut(AiEnrichmentOptions? options = null)
+    private static AiServiceTask CreateSut(
+        AiEnrichmentOptions? options = null
+#if NET10_0_OR_GREATER
+        , IInstanceClient? instanceClient = null
+#endif
+    )
     {
         var factory = new AgentRuntimeFactory(
             new StubChatService(),
@@ -161,17 +221,34 @@ public class AiServiceTaskTests
             new MarkdownRulesLoader(),
             NullLoggerFactory.Instance);
 
+#if NET10_0_OR_GREATER
+        if (instanceClient is null)
+        {
+            instanceClient = Substitute.For<IInstanceClient>();
+            instanceClient
+                .GetInstance(Arg.Any<Instance>(), Arg.Any<StorageAuthenticationMethod?>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(new Instance { Data = [] }));
+        }
+#endif
+
         return new AiServiceTask(
             factory,
             Options.Create(options ?? new AiEnrichmentOptions()),
             Options.Create(new AppSettings { AppBasePath = TestPaths.TestDataRoot }),
+#if NET10_0_OR_GREATER
+            instanceClient,
+#endif
             NullLogger<AiServiceTask>.Instance);
     }
 
     private static IInstanceDataMutator CreateMutator(
         string taskId,
         List<(string DataType, string ContentType, string? Filename, byte[] Bytes)> stored,
-        string? extraFormDataType = null)
+        string? extraFormDataType = null
+#if NET10_0_OR_GREATER
+        , List<List<KeyValueEntry>?>? storedMetadata = null
+#endif
+    )
     {
         var instance = new Instance
         {
@@ -198,6 +275,21 @@ public class AiServiceTaskTests
         mutator.Instance.Returns(instance);
         mutator.DataTypes.Returns(dataTypes);
         mutator.GetFormData(Arg.Any<DataElementIdentifier>()).Returns(_ => Task.FromResult(SampleFormData()));
+#if NET10_0_OR_GREATER
+        mutator.AddBinaryDataElement(
+                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<ReadOnlyMemory<byte>>(),
+                Arg.Any<string?>(), Arg.Any<List<KeyValueEntry>?>())
+            .Returns(callInfo =>
+            {
+                stored.Add((
+                    callInfo.ArgAt<string>(0),
+                    callInfo.ArgAt<string>(1),
+                    callInfo.ArgAt<string?>(2),
+                    callInfo.ArgAt<ReadOnlyMemory<byte>>(3).ToArray()));
+                storedMetadata?.Add(callInfo.ArgAt<List<KeyValueEntry>?>(5));
+                return null!;
+            });
+#else
         mutator.AddBinaryDataElement(
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<ReadOnlyMemory<byte>>())
             .Returns(callInfo =>
@@ -209,6 +301,7 @@ public class AiServiceTaskTests
                     callInfo.ArgAt<ReadOnlyMemory<byte>>(3).ToArray()));
                 return null!;
             });
+#endif
         return mutator;
     }
 
