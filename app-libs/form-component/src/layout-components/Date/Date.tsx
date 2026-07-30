@@ -43,7 +43,6 @@ export function Date({
 
   return (
     <span
-      id={labelId}
       className={cn(
         classes.label,
         classes.dateComponent,
@@ -53,7 +52,7 @@ export function Date({
       <span className={classes.labelWrapper}>
         <span className={classes.labelRow}>
           <DsLabel asChild>
-            <span>{lang(title)}</span>
+            <span id={labelId}>{lang(title)}</span>
           </DsLabel>
           {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
         </span>
