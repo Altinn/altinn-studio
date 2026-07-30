@@ -6,6 +6,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 #if NET10_0_OR_GREATER
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Instances;
 #else
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 #endif
@@ -29,9 +30,23 @@ public sealed class AiServiceTask(
     AgentRuntimeFactory agentRuntimeFactory,
     IOptions<AiEnrichmentOptions> options,
     IOptions<AppSettings> appSettings,
+#if NET10_0_OR_GREATER
+    IInstanceClient instanceClient,
+#endif
     ILogger<AiServiceTask> logger) : IServiceTask
 {
     public const string TaskType = "ai";
+
+#if NET10_0_OR_GREATER
+    /// <summary>
+    /// Metadata key on output data elements naming the workflow that produced
+    /// them. Used to detect replays: the engine delivers callbacks at least
+    /// once, so a step whose success response was lost is re-run under the
+    /// same workflow id — the marker lets us skip the (expensive,
+    /// non-deterministic) agent re-run instead of storing duplicate outputs.
+    /// </summary>
+    internal const string WorkflowIdMetadataKey = "aiEnrichmentWorkflowId";
+#endif
 
     // Default serialization on purpose: null fields stay present as null, matching
     // plain JsonSerializer.Serialize(model) — the shape agent rules and mapper
@@ -72,6 +87,25 @@ public sealed class AiServiceTask(
         try
         {
             var taskOptions = options.Value.ForTask(taskId);
+
+#if NET10_0_OR_GREATER
+            // At-least-once replay guard: if the engine lost this step's success
+            // response, it re-runs the step under the same workflow id. The
+            // previous attempt's outputs are already saved to storage (the
+            // callback saves before responding), so re-running the agent would
+            // both duplicate them and burn a full LLM run for a non-deterministic
+            // result. Detect via the workflow-id marker and report success again.
+            if (context.WorkflowId is { } workflowId
+                && await HasOutputsFromWorkflow(mutator.Instance, taskOptions, workflowId, context.CancellationToken))
+            {
+                logger.LogWarning(
+                    "ai task {TaskId}: outputs from workflow {WorkflowId} already stored on the instance; "
+                        + "skipping agent re-run (replay of an attempt whose success response was lost)",
+                    taskId, workflowId);
+                return ServiceTaskResult.Success();
+            }
+#endif
+
             var agentFolderPath = ResolveAgentFolderPath(taskId, taskOptions);
             var runtime = agentRuntimeFactory.GetOrCreate(agentFolderPath);
 
@@ -93,12 +127,13 @@ public sealed class AiServiceTask(
             {
                 if (value is not string json)
                     continue;
-                mutator.AddBinaryDataElement(
-                    taskOptions.JsonOutputDataType, "application/json", $"{key}.json", Encoding.UTF8.GetBytes(json));
+                AddOutputElement(
+                    context, taskOptions.JsonOutputDataType, "application/json", $"{key}.json",
+                    Encoding.UTF8.GetBytes(json));
             }
 
             foreach (var file in result.Files)
-                mutator.AddBinaryDataElement(taskOptions.PdfOutputDataType, file.ContentType, file.Name, file.Data);
+                AddOutputElement(context, taskOptions.PdfOutputDataType, file.ContentType, file.Name, file.Data);
 
             return ServiceTaskResult.Success();
         }
@@ -126,6 +161,49 @@ public sealed class AiServiceTask(
 #endif
         }
     }
+
+    /// <summary>
+    /// Stores an output element, tagged (on app-lib v9+) with the producing
+    /// workflow id so replays of the same step can be detected.
+    /// </summary>
+    private static void AddOutputElement(
+        ServiceTaskContext context,
+        string dataTypeId,
+        string contentType,
+        string filename,
+        ReadOnlyMemory<byte> bytes)
+    {
+#if NET10_0_OR_GREATER
+        List<KeyValueEntry>? metadata = context.WorkflowId is { } workflowId
+            ? [new KeyValueEntry { Key = WorkflowIdMetadataKey, Value = workflowId.ToString() }]
+            : null;
+        context.InstanceDataMutator.AddBinaryDataElement(dataTypeId, contentType, filename, bytes, metadata: metadata);
+#else
+        context.InstanceDataMutator.AddBinaryDataElement(dataTypeId, contentType, filename, bytes);
+#endif
+    }
+
+#if NET10_0_OR_GREATER
+    /// <summary>
+    /// Checks whether an earlier attempt of the same workflow already stored
+    /// outputs on the instance. The callback's restored state predates those
+    /// saves, so the instance must be refetched from storage for the check.
+    /// </summary>
+    private async Task<bool> HasOutputsFromWorkflow(
+        Instance instance,
+        AiEnrichmentTaskOptions taskOptions,
+        Guid workflowId,
+        CancellationToken cancellationToken)
+    {
+        var fresh = await instanceClient.GetInstance(
+            instance, StorageAuthenticationMethod.ServiceOwner(), cancellationToken);
+        var marker = workflowId.ToString();
+        return fresh.Data.Any(element =>
+            (string.Equals(element.DataType, taskOptions.JsonOutputDataType, StringComparison.Ordinal)
+                || string.Equals(element.DataType, taskOptions.PdfOutputDataType, StringComparison.Ordinal))
+            && element.Metadata?.Any(entry => entry.Key == WorkflowIdMetadataKey && entry.Value == marker) == true);
+    }
+#endif
 
     private string ResolveAgentFolderPath(string taskId, AiEnrichmentTaskOptions taskOptions)
     {

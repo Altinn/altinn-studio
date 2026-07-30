@@ -121,6 +121,14 @@ Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart
     (ingen retry-brenning) og øvrige feil til `FailedRetryable`.
     KI-gatewayens eget tak: 30 min per non-streaming-request (streaming:
     ubegrenset) — hold `TimeoutSeconds` under dette.
+  - **Replay-vern (ferdig 2026-07-30, preview.7, kun net10/v9)**: motoren leverer
+    callbacks at-least-once; mistes suksess-svaret re-kjøres steget under samme
+    workflow-id. Outputs tagges nå med `aiEnrichmentWorkflowId` i element-metadata,
+    og `AiServiceTask` sjekker (mot ferskhentet instans — state-blobbet er per
+    definisjon foreldet) om outputs for workflow-id-en alt finnes: i så fall hoppes
+    agent-kjøringen over og suksess rapporteres på nytt. Hindrer dupliserte
+    dataelementer og bortkastede LLM-kjøringer. Rest-problemet (409 idempotency-
+    konflikt på auto-advance-enqueue ved replay) ligger hos app-lib/motor-teamet.
 - **Fase 5 — senere/valgfritt**: Designer-støtte i process-editor; upstreaming til
   app-lib-dotnet / publisering som NuGet-pakke.
 

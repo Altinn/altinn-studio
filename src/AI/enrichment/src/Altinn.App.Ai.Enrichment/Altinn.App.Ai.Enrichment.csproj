@@ -10,7 +10,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Description>AI enrichment (KI Beriking) for Altinn apps: per-item LLM evaluation with deterministic tools, configured from the app's App/agents folder, exposed as the ai process service task.</Description>
     <PackageId>Altinn.App.Ai.Enrichment</PackageId>
-    <Version>0.5.0-preview.6</Version>
+    <Version>0.5.0-preview.7</Version>
     <Authors>Digdir AI-lab</Authors>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
