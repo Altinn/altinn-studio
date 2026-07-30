@@ -18,7 +18,7 @@ internal static class Defaults
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
         MaxStepCommandTimeout = TimeSpan.FromHours(2),
         DefaultStepWaitBudget = TimeSpan.FromDays(1),
-        MaxStepWaitBudget = TimeSpan.FromDays(30),
+        MaxStepWaitBudget = TimeSpan.FromDays(14),
         MinStepDeferDelay = TimeSpan.FromSeconds(1),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),

@@ -100,8 +100,17 @@ public sealed record EngineSettings
     /// workflow (and any dependents) pending. This caps <see cref="DefaultStepWaitBudget"/>-style
     /// allowances; it is not itself an allowance any step receives by default.
     /// </summary>
+    /// <remarks>
+    /// Deliberately small — a step that has not resolved in two weeks should fail loudly rather than
+    /// keep its instance pinned. Raising it also erodes a cross-component invariant: AppCommand
+    /// callback tokens are minted once at enqueue and never refresh, valid until their signing
+    /// app-code expires. Under the operator's rotation policy (<c>appcodesync</c>: 186d acceptance,
+    /// 72d rotation) a token has ≥114d of validity left at enqueue, and the worst-case workflow
+    /// lifetime — a full wait, a resume at the retention edge (60d), and a second full wait, each
+    /// resume replaying the original token — must stay below that floor.
+    /// </remarks>
     [JsonPropertyName("maxStepWaitBudget")]
-    public TimeSpan MaxStepWaitBudget { get; set; } = TimeSpan.FromDays(30);
+    public TimeSpan MaxStepWaitBudget { get; set; } = TimeSpan.FromDays(14);
 
     /// <summary>
     /// The shortest delay a deferral can schedule. A command asking for less is clamped up to it, so a

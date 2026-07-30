@@ -310,8 +310,12 @@ clears both anchors — a resumed step starts its budget over.
 ### The wait budget
 
 `command.waitBudget` (default `EngineSettings.DefaultStepWaitBudget` = 24h, rejected at enqueue above
-`MaxStepWaitBudget` = 30d) caps total waiting, measured from the step's **first** deferral
-(`Step.FirstDeferredAt`, persisted), so it survives restarts and re-fetches.
+`MaxStepWaitBudget` = 14d) caps total waiting, measured from the step's **first** deferral
+(`Step.FirstDeferredAt`, persisted), so it survives restarts and re-fetches. The cap is deliberately
+small: real polls resolve in minutes to hours, an instance pinned for two weeks should fail loudly
+rather than wait on — and the cap is one side of the callback-token lifetime invariant documented on
+`EngineSettings.MaxStepWaitBudget` (tokens minted at enqueue never refresh, so worst-case workflow
+lifetime must stay below the signing code's remaining validity).
 
 It is a **cumulative allowance, not a poll interval.** The command chooses the delay before each
 re-check; the budget caps the sum of those delays. A step deferring 5 minutes at a time under the 24h
