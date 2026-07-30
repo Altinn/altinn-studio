@@ -9,10 +9,12 @@ import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeati
 import {
   RepGroupContext,
   useRepeatingGroupComponentId,
+  useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
 import { getBaseComponentId, splitDashedKey } from 'src/utils/splitDashedKey';
 import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
+import type { BaseRow } from 'src/utils/layout/types';
 
 type FocusableHTMLElement =
   | HTMLButtonElement
@@ -24,9 +26,20 @@ type FocusableHTMLElement =
 export type RefSetter = (rowIndex: number, key: string, div: HTMLElement | null) => void;
 export type FocusTrigger = (rowIndex: number) => void;
 
+// Key used when registering the whole table row as a focus target. This gives read-only tables after deleting a row
+// something to focus.
+const ROW_CONTAINER_KEY = 'row';
+// Keys used to register the row's edit button and its edit container as focus targets.
+const EDIT_BUTTON_KEY = 'editButton';
+const EDIT_CONTAINER_KEY = 'editContainer';
+
 interface Context {
   refSetter: RefSetter;
   triggerFocus: FocusTrigger;
+  focusEditContainer: (rowIndex: number) => void;
+  focusEditButton: (rowIndex: number) => void;
+  registerAddButton: (node: HTMLElement | null) => void;
+  focusAddButton: () => void;
 }
 
 const { Provider, useCtx } = createContext<Context>({
@@ -35,6 +48,10 @@ const { Provider, useCtx } = createContext<Context>({
   default: {
     refSetter: () => undefined,
     triggerFocus: () => undefined,
+    focusEditContainer: () => undefined,
+    focusEditButton: () => undefined,
+    registerAddButton: () => undefined,
+    focusAddButton: () => undefined,
   },
 });
 
@@ -43,6 +60,9 @@ export const useRepeatingGroupsFocusContext = () => useCtx();
 export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
   const elementRefs = useMemo(() => new Map<string, HTMLElement | null>(), []);
   const waitingForFocus = useRef<number | null>(null);
+  const waitingForEditContainer = useRef<number | null>(null);
+  const waitingForEditButton = useRef<number | null>(null);
+  const addButtonRef = useRef<HTMLElement | null>(null);
 
   useNavigateToRepeatingGroupPageAndFocusRow();
 
@@ -53,10 +73,17 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    for (const [key, element] of elementRefs.entries()) {
-      if (!key.startsWith(`${rowIndex}-`)) {
-        continue;
-      }
+    // Prefer specific row content (editable cells, edit container) and fall back to the row
+    // container last, so we only focus an action button when there is nothing else to focus.
+    const prefix = `${rowIndex}-`;
+    const rowContainerKey = `${rowIndex}-${ROW_CONTAINER_KEY}`;
+    const matching = Array.from(elementRefs.entries()).filter(([key]) => key.startsWith(prefix));
+    const ordered = [
+      ...matching.filter(([key]) => key !== rowContainerKey),
+      ...matching.filter(([key]) => key === rowContainerKey),
+    ];
+
+    for (const [, element] of ordered) {
       const firstFocusableChild = element && findFirstFocusableElement(element);
       if (firstFocusableChild) {
         firstFocusableChild.focus();
@@ -75,12 +102,101 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
         waitingForFocus.current = null;
         triggerFocus(rowIndex);
       }
+      if (key === EDIT_CONTAINER_KEY && waitingForEditContainer.current === rowIndex) {
+        waitingForEditContainer.current = null;
+        focusEditContainer(rowIndex);
+      }
+      if (key === EDIT_BUTTON_KEY && waitingForEditButton.current === rowIndex) {
+        waitingForEditButton.current = null;
+        focusEditButton(rowIndex);
+      }
     } else {
       elementRefs.delete(`${rowIndex}-${key}`);
     }
   };
 
-  return <Provider value={{ refSetter, triggerFocus }}>{children}</Provider>;
+  // Move focus to the first focusable element inside the edit container of a row. Used when
+  // navigating between multiPage pages and when opening the next row for editing
+  const focusEditContainer = (rowIndex: number) => {
+    const element = elementRefs.get(`${rowIndex}-${EDIT_CONTAINER_KEY}`);
+    const firstFocusableChild = element && findFirstFocusableElement(element);
+    if (firstFocusableChild) {
+      waitingForEditContainer.current = null;
+      firstFocusableChild.focus();
+      return;
+    }
+    waitingForEditContainer.current = rowIndex;
+  };
+
+  // Move focus to a row's edit button
+  const focusEditButton = (rowIndex: number) => {
+    const element = elementRefs.get(`${rowIndex}-${EDIT_BUTTON_KEY}`);
+    if (element) {
+      waitingForEditButton.current = null;
+      element.focus();
+      return;
+    }
+    waitingForEditButton.current = rowIndex;
+  };
+
+  const registerAddButton = (node: HTMLElement | null) => {
+    addButtonRef.current = node;
+  };
+
+  const focusAddButton = () => {
+    addButtonRef.current?.focus();
+  };
+
+  return (
+    <Provider
+      value={{ refSetter, triggerFocus, focusEditContainer, focusEditButton, registerAddButton, focusAddButton }}
+    >
+      {children}
+    </Provider>
+  );
+}
+
+export function getRowToFocusAfterDeletion(visibleRows: BaseRow[], deletedUuid: string): number | null {
+  const sorted = [...visibleRows].sort((a, b) => a.index - b.index);
+  const position = sorted.findIndex((row) => row.uuid === deletedUuid);
+  if (position === -1) {
+    return null;
+  }
+
+  const previousRow = sorted[position - 1];
+  if (previousRow) {
+    return previousRow.index;
+  }
+
+  const nextRow = sorted[position + 1];
+  if (nextRow) {
+    // The next row shifts down by one index once the (first) row is removed.
+    return nextRow.index - 1;
+  }
+
+  return null;
+}
+
+export function useDeleteRowAndFocus() {
+  const deleteRow = RepGroupContext.useDeleteRow();
+  const { triggerFocus, focusAddButton } = useRepeatingGroupsFocusContext();
+  const { visibleRows } = useRepeatingGroupRowState();
+
+  return async (row: BaseRow): Promise<boolean> => {
+    const focusTarget = getRowToFocusAfterDeletion(visibleRows, row.uuid);
+    const successful = await deleteRow(row);
+    if (successful) {
+      // Wait for the row to be removed and the remaining rows to re-render before moving focus
+      requestAnimationFrame(() => {
+        if (focusTarget === null) {
+          focusAddButton();
+        } else {
+          triggerFocus(focusTarget);
+        }
+      });
+    }
+    return successful;
+  };
 }
 
 function isFocusable(element: HTMLElement): element is FocusableHTMLElement {

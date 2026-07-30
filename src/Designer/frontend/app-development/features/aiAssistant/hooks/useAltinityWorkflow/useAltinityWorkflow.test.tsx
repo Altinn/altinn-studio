@@ -7,7 +7,7 @@ import type {
   WorkflowEvent,
   WorkflowRequest,
 } from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
+import { ErrorMessages, MessageAuthor } from '@studio/assistant';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import { useAltinityWorkflow } from './useAltinityWorkflow';
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
@@ -38,6 +38,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow,
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
@@ -70,6 +71,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -105,6 +107,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -158,6 +161,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -199,6 +203,60 @@ describe('useAltinityWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-b']).toBeUndefined();
   });
 
+  it('upgrades a placeholder trail step in place by tool_use_id even when later steps exist', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    const userMessage: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    await act(async () => {
+      await result.current.onSubmitMessage(userMessage);
+    });
+
+    // Batched tool calls: two placeholders stream in, THEN the first one's
+    // landed message arrives. The upgrade must find the row by id even
+    // though it is no longer the last step.
+    const sendStatus = (message: string, toolUseId: string) =>
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message, tool_use_id: toolUseId },
+      });
+
+    await act(async () => {
+      sendStatus('Henter kunnskap', 'tool-skill-1');
+      sendStatus('Skanner repo', 'tool-scan-1');
+      sendStatus('Henter kunnskap om altinn-planning', 'tool-skill-1');
+    });
+
+    const steps = result.current.workflowStatusByThread['thread-a']?.steps ?? [];
+    const messages = steps.map((step) => step.message);
+    expect(messages).toContain('Henter kunnskap om altinn-planning');
+    expect(messages).toContain('Skanner repo');
+    expect(messages).not.toContain('Henter kunnskap');
+  });
+
   it('drops workflow events that have no session_id', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
@@ -207,6 +265,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn((callback) => {
         capturedOnAgentMessage = callback;
@@ -251,6 +310,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow,
       cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
@@ -289,6 +349,321 @@ describe('useAltinityWorkflow', () => {
     );
   });
 
+  it('stores a permission request on the active thread status and clears it when the user responds', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const respondToPermission = jest.fn().mockResolvedValue(undefined);
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      respondToPermission,
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Legg til en ny side',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toEqual({
+      requestId: 'req-1',
+      message: 'write_file: App/ui/Side1.json',
+    });
+
+    await act(async () => {
+      await result.current.respondToPermission('req-1', true);
+    });
+
+    expect(respondToPermission).toHaveBeenCalledWith('thread-a', 'req-1', true);
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeUndefined();
+  });
+
+  it('ignores permission requests for threads without an active workflow', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']).toBeUndefined();
+  });
+
+  it('clears the prompt once when the user responds twice to the same request', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const respondToPermission = jest.fn().mockResolvedValue(undefined);
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      respondToPermission,
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Legg til en ny side',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      });
+    });
+
+    // Both calls see the request in the same render (e.g. a double-click);
+    // the second clear must find it already gone and leave state untouched.
+    await act(async () => {
+      await Promise.all([
+        result.current.respondToPermission('req-1', true),
+        result.current.respondToPermission('req-1', true),
+      ]);
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeUndefined();
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
+  });
+
+  it('keeps the permission prompt when sending the response fails', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const respondToPermission = jest.fn().mockRejectedValue(new Error('Hub disconnected'));
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      cancelWorkflow: jest.fn(),
+      respondToPermission,
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Legg til en ny side',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      });
+    });
+
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    await act(async () => {
+      await result.current.respondToPermission('req-1', true);
+    });
+    consoleError.mockRestore();
+
+    expect(respondToPermission).toHaveBeenCalledWith('thread-a', 'req-1', true);
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toEqual({
+      requestId: 'req-1',
+      message: 'write_file: App/ui/Side1.json',
+    });
+  });
+
+  it('shows the rejection reason and suggestions when the workflow is rejected', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'error',
+        session_id: 'thread-a',
+        data: { status: 'rejected', message: 'Målet ble avvist', suggestions: ['Prøv A'] },
+      });
+    });
+
+    expect(threads.createMessage).toHaveBeenCalledWith(
+      'thread-a',
+      expect.objectContaining({
+        role: MessageAuthor.Assistant,
+        content: `${ErrorMessages.REQUEST_REJECTED}\n\nMålet ble avvist\n\nForslag:\nPrøv A`,
+      }),
+    );
+  });
+
+  it('shows the generic failure text for errors that are not rejections', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'error',
+        session_id: 'thread-a',
+        data: { status: 'failed', message: 'boom' },
+      });
+    });
+
+    expect(threads.createMessage).toHaveBeenCalledWith(
+      'thread-a',
+      expect.objectContaining({
+        role: MessageAuthor.Assistant,
+        content:
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+      }),
+    );
+  });
+
+  it('does not create a message for cancelled workflows', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'error',
+        session_id: 'thread-a',
+        data: { status: 'cancelled' },
+      });
+    });
+
+    expect(threads.createMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not send a permission response for an unknown request id', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const respondToPermission = jest.fn();
+
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission,
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.respondToPermission('stale-request-id', true);
+    });
+
+    expect(respondToPermission).not.toHaveBeenCalled();
+  });
+
   it('deletes latest user message on abort when no assistant response has been received', async () => {
     const threads = createThreadState({
       selectedThreadId: 'thread-1',
@@ -308,6 +683,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow,
+      respondToPermission: jest.fn(),
       registerSession: jest.fn(),
       onAgentMessage: jest.fn(),
     });
@@ -351,6 +727,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow,
+      respondToPermission: jest.fn(),
       registerSession: jest.fn().mockResolvedValue(undefined),
       onAgentMessage: jest.fn(),
     });

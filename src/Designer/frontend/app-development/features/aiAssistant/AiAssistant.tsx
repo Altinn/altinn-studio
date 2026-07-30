@@ -26,6 +26,7 @@ function AiAssistant(): ReactElement {
     selectedThreadId,
     onSubmitMessage,
     cancelCurrentWorkflow,
+    respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread,
@@ -89,6 +90,12 @@ function AiAssistant(): ReactElement {
       heading: t('ai_assistant.critical_file_alert_heading'),
       description: t('ai_assistant.critical_file_alert_description'),
     },
+    permissionPrompt: {
+      heading: t('ai_assistant.permission_prompt_heading'),
+      allow: t('ai_assistant.permission_prompt_allow'),
+      deny: t('ai_assistant.permission_prompt_deny'),
+    },
+    sourcesLabel: t('ai_assistant.sources_label'),
   };
 
   if (!userHasAccessToAssistant) {
@@ -117,6 +124,7 @@ function AiAssistant(): ReactElement {
         onCreateThread={() => selectThread(null)}
         onDeleteThread={deleteThread}
         onMessageFeedback={sendChatFeedback}
+        onPermissionResponse={respondToPermission}
         connectionStatus={connectionStatus}
         workflowStatusByThread={workflowStatusByThread}
         previewContent={<Preview />}

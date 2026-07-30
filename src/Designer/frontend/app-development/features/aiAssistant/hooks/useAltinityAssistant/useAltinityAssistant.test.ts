@@ -26,6 +26,7 @@ describe('useAltinityAssistant', () => {
       workflowStatusByThread: {},
       onSubmitMessage: jest.fn(),
       cancelCurrentWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
       cancelledMessageContent: null,
       clearCancelledMessageContent: jest.fn(),
       messages: [],

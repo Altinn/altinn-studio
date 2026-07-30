@@ -1,6 +1,6 @@
 ---
 role: spec_agent
-version: '1.1'
+version: '1.2'
 name: spec_extraction
 ---
 
@@ -16,7 +16,8 @@ Extract a structured JSON specification from the attached form document(s).
 4. **FIELD TYPES**: `text`, `textarea`, `number`, `date`, `checkbox`, `radio`, `dropdown`, `header`, `paragraph`
 5. **IDs** — Lowercase hyphenated from label: "Søkerens navn" → `sokerens-navn`
 6. **DATA BINDINGS** — camelCase: "Søkerens navn" → `sokerensNavn`
-7. **BE COMPACT** — Omit `description` unless the form has explicit help text. Omit `options` for non-choice fields. Omit `required` if false.
+7. **OPTIONS** — For `radio`, `checkbox`, `dropdown` fields, each entry MUST be an object `{"label": "<text in original language>", "value": "<code-safe id>"}`. The `label` is what the user sees; the `value` is what gets stored in the data model (lowercase hyphenated, no spaces). Never return plain strings here.
+8. **BE COMPACT** — Omit `description` unless the form has explicit help text. Omit `options` for non-choice fields. Omit `required` if false.
 
 ## Output Format
 
@@ -24,6 +25,6 @@ Return ONLY valid JSON. No markdown fences, no commentary.
 
 Example structure (do NOT wrap in code fences):
 
-{"title":"Form title","language":"nb","total_pages":3,"pages":[{"page_name":"side1","title":"Section title","section_id":"A","fields":[{"id":"field-id","label":"Label","field_type":"text","data_model_binding":"binding"}]}]}
+{"title":"Form title","language":"nb","total_pages":3,"pages":[{"page_name":"side1","title":"Section title","section_id":"A","fields":[{"id":"field-id","label":"Label","field_type":"text","data_model_binding":"binding"},{"id":"sokertype","label":"Type søknad","field_type":"radio","data_model_binding":"sokertype","options":[{"label":"Ny bevilling","value":"ny-bevilling"},{"label":"Fornyelse","value":"fornyelse"}]}]}]}
 
 Keep the JSON as compact as possible — no unnecessary whitespace or optional null fields.

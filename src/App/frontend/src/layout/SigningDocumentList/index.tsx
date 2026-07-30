@@ -13,7 +13,12 @@ export class SigningDocumentList extends SigningDocumentListDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SigningDocumentList'>>(
     function SigningDocumentListComponentRender(props, _): JSX.Element | null {
       const { textResourceBindings } = useItemWhenType(props.baseComponentId, 'SigningDocumentList');
-      return <SigningDocumentListComponent textResourceBindings={textResourceBindings} />;
+      return (
+        <SigningDocumentListComponent
+          baseComponentId={props.baseComponentId}
+          textResourceBindings={textResourceBindings}
+        />
+      );
     },
   );
 
@@ -30,6 +35,7 @@ export class SigningDocumentList extends SigningDocumentListDef {
         content={SummaryContains.SomeUserContent}
       >
         <SigningDocumentListComponent
+          baseComponentId={targetBaseComponentId}
           textResourceBindings={{
             ...textResourceBindings,
             title:

@@ -1,0 +1,8 @@
+.message {
+  margin-bottom: var(--ds-size-3);
+}
+
+.buttonContainer {
+  display: flex;
+  gap: var(--ds-size-2);
+}

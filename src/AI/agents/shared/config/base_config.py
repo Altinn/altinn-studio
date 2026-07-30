@@ -38,54 +38,62 @@ class BaseConfig:
         "http://studio.localhost" # Studio frontend
     ]
 
-    # External integrations
-    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://host.docker.internal:8070/sse")
-    MCP_SERVER_EXPECTED_VERSION = os.getenv("MCP_SERVER_EXPECTED_VERSION")  # Optional: if set, checks for exact version match
 
     # LLM configuration - Azure OpenAI preferred
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
     AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
     AZURE_ANTHROPIC_ENDPOINT = os.getenv("AZURE_ANTHROPIC_ENDPOINT", "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/")
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
-    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps")
+    # Default small-model deployment: intent safety gate + goal suggestions.
+    # (gpt-4o-mini-2M-tps is being retired.)
+    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
 
     # Fallback to OpenAI if Azure not configured
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    # OpenAI-compatible base URL override. When set, OpenAIAdapter uses the
+    # plain AsyncOpenAI client (not AsyncAzureOpenAI) against this URL with
+    # AZURE_API_KEY/OPENAI_API_KEY as the bearer token. Use this for Azure
+    # AI Foundry's OpenAI-compatible endpoint (e.g. Kimi-K2.6 deployment):
+    # https://<resource>.services.ai.azure.com/openai/v1/
+    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+    LLM_MODEL = os.getenv("LLM_MODEL", "claude-haiku-4-5")
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 
-    # Multi-model configuration for different agent roles
-    # Planner: Complex reasoning, multi-step planning
-    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5")
-    LLM_VERSION_PLANNER = os.getenv("LLM_VERSION_PLANNER", "2025-08-07")
-    LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # Use model default
+    # Per-role model configuration.
+    # The agentic loop reads LLM_MODEL_ACTOR via core.llm_adapter.build_adapter.
+    # Everything else goes through services.llm.LLMClient by role:
+    #   - planner       → intake + spec workflows + semantic query
+    #   - reviewer      → post-workflow LLM-as-judge evaluators
+    #                     (intent_match / no_hallucination / faithful_summary)
+    # The tool_planner and assistant roles are vestigial — the separate
+    # chat pipeline they served was folded into the agentic loop
+    # (read-only mode); kept only so stale env files don't break startup.
+    # Temperatures are env-overridable. Models default to Claude on Azure
+    # Anthropic; flip to any Azure OpenAI / Foundry deployment by name.
 
-    # Tool Planner: Tool selection and query generation
-    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "gpt-4o-2M-tps")
-    LLM_VERSION_TOOL_PLANNER = os.getenv("LLM_VERSION_TOOL_PLANNER", "2025-09-15")
+    # Planner: intake + spec pipelines (still classic LLMClient calls).
+    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "claude-opus-4-8")
+    LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default
+
+    # Tool Planner: assistant chat-mode tool selection.
+    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "claude-sonnet-5")
     LLM_TEMPERATURE_TOOL_PLANNER = os.getenv("LLM_TEMPERATURE_TOOL_PLANNER")
+    # Toggle to use OpenAI Chat Completions / Responses API instead of the
+    # default chat surface — only applies when the tool-planner model is an
+    # OpenAI / Azure OpenAI deployment that supports those APIs.
     LLM_TOOL_PLANNER_USE_COMPLETIONS = os.getenv("LLM_TOOL_PLANNER_USE_COMPLETIONS", "false").lower() == "true"
     LLM_TOOL_PLANNER_USE_RESPONSES = os.getenv("LLM_TOOL_PLANNER_USE_RESPONSES", "false").lower() == "true"
 
-    # Actor: Precise code generation (Claude recommended)
-    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.2")
-    LLM_VERSION_ACTOR = os.getenv("LLM_VERSION_ACTOR", "2025-04-14")
-    LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))
+    # Actor: drives the agentic loop (the model running tool_use turns).
+    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "claude-sonnet-5")
 
-    # Reviewer: Code review and validation
-    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-4o-2M-tps")
-    LLM_VERSION_REVIEWER = os.getenv("LLM_VERSION_REVIEWER", "2024-11-20")
+    # Reviewer: post-workflow LLM-as-judge evaluators.
+    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "claude-sonnet-5")
     LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.0"))
 
-    # Verifier: Deterministic checks
-    LLM_MODEL_VERIFIER = os.getenv("LLM_MODEL_VERIFIER", "gpt-4o-mini-2M-tps")
-    LLM_VERSION_VERIFIER = os.getenv("LLM_VERSION_VERIFIER", "2024-07-18")
-    LLM_TEMPERATURE_VERIFIER = float(os.getenv("LLM_TEMPERATURE_VERIFIER", "0.0"))
-
-    # Assistant: Q&A chat
-    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "o3")
-    LLM_VERSION_ASSISTANT = os.getenv("LLM_VERSION_ASSISTANT")
-    LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # Some models don't support custom temperature
+    # Assistant: chat-mode Q&A reply.
+    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "claude-sonnet-5")
+    LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # None → model default
 
     # Attachment storage
     _DEFAULT_ATTACHMENTS_PATH = Path(tempfile.gettempdir()) / "altinity_agent_attachments"
@@ -105,10 +113,6 @@ class BaseConfig:
     LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA = os.getenv("LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA", "")
     LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION = os.getenv("LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION", "")
     LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT = os.getenv("LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT", "")
-    LANGFUSE_SCORE_CONFIG_INTENT_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_INTENT_MATCH", "")
-    LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION = os.getenv("LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION", "")
-    LANGFUSE_SCORE_CONFIG_IMPLEMENTATION_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_IMPLEMENTATION_MATCH", "")
-    LANGFUSE_SCORE_CONFIG_NO_IRRELEVANT_RESPONSES = os.getenv("LANGFUSE_SCORE_CONFIG_NO_IRRELEVANT_RESPONSES", "")
 
 
 def get_config() -> BaseConfig:

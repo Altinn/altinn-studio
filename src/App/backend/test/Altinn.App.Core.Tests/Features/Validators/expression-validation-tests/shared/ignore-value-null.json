@@ -1,0 +1,74 @@
+{
+  "name": "Should ignore validation when value is null",
+  "expects": [],
+  "validationConfig": {
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
+    "validations": {
+      "personer.navn": [
+        {
+          "message": "Always invalid rule",
+          "severity": "error",
+          "condition": true
+        }
+      ]
+    }
+  },
+  "formData": {
+    "personer": [
+      {
+        "altinnRowId": "person0",
+        "navn": null,
+        "utenNavn": false
+      },
+      {
+        "altinnRowId": "person1",
+        "navn": null,
+        "utenNavn": true
+      },
+      {
+        "altinnRowId": "person2",
+        "navn": null,
+        "utenNavn": false
+      }
+    ]
+  },
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "personer",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "personer"
+            },
+            "children": [
+              "person-navn",
+              "uten-navn"
+            ]
+          },
+          {
+            "id": "person-navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "personer.navn"
+            },
+            "hidden": ["equals", ["component", "uten-navn"], true]
+          },
+          {
+            "id": "uten-navn",
+            "type": "Checkboxes",
+            "dataModelBindings": {
+              "simpleBinding": "personer.utenNavn"
+            },
+            "options": [
+              { "label": "Ja", "value": true },
+              { "label": "Nei", "value": false }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

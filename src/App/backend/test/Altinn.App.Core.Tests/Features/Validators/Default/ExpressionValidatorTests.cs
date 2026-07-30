@@ -1,11 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
@@ -31,7 +29,6 @@ public class ExpressionValidatorTests
     private readonly IOptions<FrontEndSettings> _frontendSettings = Microsoft.Extensions.Options.Options.Create(
         new FrontEndSettings()
     );
-    private readonly Mock<ILayoutEvaluatorStateInitializer> _layoutInitializer = new(MockBehavior.Strict);
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
@@ -52,7 +49,6 @@ public class ExpressionValidatorTests
         _validator = new ExpressionValidator(
             _logger.Object,
             _appResources.Object,
-            _layoutInitializer.Object,
             _appMetadata.Object,
             serviceProviderMock.Object
         );
@@ -113,12 +109,6 @@ public class ExpressionValidatorTests
         var evaluatorState = dataAccessor.GetLayoutEvaluatorState();
         Assert.NotNull(evaluatorState);
 
-        _layoutInitializer
-            .Setup(init =>
-                init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
-            )
-            .ReturnsAsync(evaluatorState);
-
         _appResources
             .Setup(ar => ar.GetTexts("org", "app", "nb"))
             .ReturnsAsync(
@@ -130,9 +120,7 @@ public class ExpressionValidatorTests
         var validationIssues = await _validator.ValidateFormData(
             dataElement,
             dataAccessor,
-            JsonSerializer.Serialize(testCase.ValidationConfig),
-            "Task_1",
-            null
+            JsonSerializer.Serialize(testCase.ValidationConfig)
         );
 
         var result = validationIssues.Select(i => new

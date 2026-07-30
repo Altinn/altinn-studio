@@ -44,4 +44,14 @@ internal interface ISigningService
         AltinnSignatureConfiguration signatureConfiguration,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    /// Revokes any delegated signee access rights for the current task without touching signing data,
+    /// so that the rights don't outlive the task that granted them.
+    /// </summary>
+    Task RevokeSigneeRightsOnTaskEnd(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        CancellationToken ct = default
+    );
 }
