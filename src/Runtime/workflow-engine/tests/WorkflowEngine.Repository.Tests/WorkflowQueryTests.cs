@@ -211,6 +211,55 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ResumeWorkflow_DeferredThenFailedStep_ClearsDeferAnchorsButKeepsStateOut()
+    {
+        // A step's StateOut is deliberately NOT cleared on resume: only a deferring step can produce
+        // state and later fail (a Completed step never re-executes), and a resumed poller should
+        // replay from what it last recorded rather than from the previous step's output. The defer
+        // anchors ARE cleared — a resumed step starts its wait budget over. Clearing state_out
+        // "for consistency" would silently change resumed-step semantics.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed);
+
+        var stepId = Assert.Single(workflow.Steps).DatabaseId;
+        var deferredAt = DateTimeOffset.UtcNow.AddHours(-2);
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.steps
+            SET status = {(int)PersistentItemStatus.Failed},
+                requeue_count = 2,
+                defer_count = 3,
+                first_deferred_at = {deferredAt},
+                last_deferred_at = {deferredAt},
+                state_out = 'signed-state-from-last-deferral'
+            WHERE id = {stepId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        var resumed = await repo.ResumeWorkflow(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            DateTimeOffset.UtcNow,
+            cascade: false,
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal([workflow.DatabaseId], resumed);
+
+        var step = await context
+            .Steps.AsNoTracking()
+            .SingleAsync(s => s.Id == stepId, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
+        Assert.Equal(0, step.RequeueCount);
+        Assert.Equal(0, step.DeferCount);
+        Assert.Null(step.FirstDeferredAt);
+        Assert.Null(step.LastDeferredAt);
+        Assert.Equal("signed-state-from-last-deferral", step.StateOut);
+    }
+
+    [Fact]
     public async Task ClearBackoff_WrongNamespace_ReturnsFalse()
     {
         await using var context = fixture.CreateDbContext();

@@ -305,7 +305,9 @@ defaults), and a workflow's is that summed over its steps — up to `MaxStepsPer
 A parked workflow also blocks its dependents and holds its collection head for the whole time, is
 never purged by retention (it is `Incomplete`), protects its already-finished dependencies from being
 purged, and counts toward `BackpressureThreshold`. Size budgets accordingly, and note that `resume`
-clears both anchors — a resumed step starts its budget over.
+clears both anchors — a resumed step starts its budget over. Its `StateOut` is deliberately kept:
+only a deferring step can produce state and later fail (a completed step never re-executes), and a
+resumed poller should replay from what it last recorded rather than from the previous step's output.
 
 ### The wait budget
 
