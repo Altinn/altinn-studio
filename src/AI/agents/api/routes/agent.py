@@ -41,7 +41,9 @@ class StartReq(BaseModel):
     goal: str
     repo_url: str  # Git repository URL to clone
     branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
-    allow_app_changes: bool = True  # If False, run in chat-only mode (no modifications)
+    # Fail closed: write access is opt-in. A caller that omits the flag
+    # gets a read-only (chat mode) session, never silent write access.
+    allow_app_changes: bool = False
     org: str
     attachments: List[AttachmentUpload] = Field(default_factory=list)
 

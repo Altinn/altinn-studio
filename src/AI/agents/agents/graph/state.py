@@ -132,8 +132,9 @@ class AgentState(BaseModel):
     org: str
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
     # Hard permission gate: when False the loop runs read-only (write tools
-    # denied) — the "chat mode" of the unified path.
-    allow_app_changes: bool = True
+    # denied) — the "chat mode" of the unified path. Fail closed: write
+    # access is opt-in, so a constructor that omits the flag gets read-only.
+    allow_app_changes: bool = False
     attachments: List[AgentAttachment] = Field(default_factory=list)
     conversation_history: List[ConversationMessage] = Field(default_factory=list)  # Previous Q&A pairs
     form_spec: Optional[FormSpec] = None  # Structured spec extracted from attachments by spec agent

@@ -114,7 +114,25 @@ class GoalRejected(Exception):
 
 
 async def _validate_intent(state: AgentState):
-    """Parse intent and reject unsafe or unclear goals."""
+    """Parse intent and reject unsafe or unclear goals.
+
+    Deliberately runs ONLY for write-mode sessions (`allow_app_changes`),
+    skipping both the keyword blocklist and the LLM classifier for
+    read-only runs. This is a conscious trade-off, not an oversight:
+
+    - Read-only enforcement is structural, not goal-based: write tools
+      require an explicit user approval via the permission broker,
+      file access is repo-contained, and web_fetch is allowlisted to
+      Digdir-controlled hosts. There is no channel this gate would close.
+    - The screening exists to protect the WRITE path, and its false
+      positives are unacceptable for Q&A: legitimate developer questions
+      ("how do I configure an API key?") trip the credential keywords
+      before the LLM can classify them as questions.
+
+    Note the parser sees only attachment FILENAMES — PDF content is never
+    screened here in either mode; injection via attachment content is
+    mitigated in the prompts, not in this gate.
+    """
     parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
 
     if not parsed.safe:
