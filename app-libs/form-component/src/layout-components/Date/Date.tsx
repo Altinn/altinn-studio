@@ -52,23 +52,21 @@ export function Date({
     >
       <span className={classes.labelWrapper}>
         <span className={classes.labelRow}>
-          <DsLabel asChild weight='medium' data-size='md'>
+          <DsLabel asChild>
             <span>{lang(title)}</span>
           </DsLabel>
           {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
         </span>
         {description && <Description componentId={componentId} description={lang(description)} />}
       </span>
-      <span className={classes.value}>
-        <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
-          <DisplayDate
-            value={value}
-            iconUrl={icon}
-            iconAltText={langAsString(title)}
-            labelId={labelId}
-          />
-        </ComponentStructure>
-      </span>
+      <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
+        <DisplayDate
+          value={value}
+          iconUrl={icon}
+          iconAltText={langAsString(title)}
+          labelId={labelId}
+        />
+      </ComponentStructure>
     </span>
   );
 }
