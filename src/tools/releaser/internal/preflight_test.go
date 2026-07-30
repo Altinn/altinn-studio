@@ -790,6 +790,137 @@ func TestRunPrepareWithDeps_StabilizationUsesPrecreatedCanonicalBranch(t *testin
 	assertChangelogContains(t, repo, "## [1.2.0] - ")
 }
 
+func TestRunPrepareWithDeps_StabilizationRejectsBranchAppearingWithDivergentCandidate(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Main stabilization fix
+
+## [1.2.0-preview.2] - 2025-01-03
+
+### Added
+
+- Main preview
+`)
+	upstream := addUpstreamRemote(t, repo)
+	const releaseBranch = "release/studioctl/v1.2"
+	branchChecks := 0
+	gitLog := &commandHookLogger{
+		onCommand: func(command string, args []string) {
+			if command != "git" || len(args) == 0 ||
+				args[0] != "ls-remote" || args[len(args)-1] != releaseBranch {
+				return
+			}
+			branchChecks++
+			if branchChecks != 2 {
+				return
+			}
+			createRemoteBranch(t, upstream, releaseBranch)
+			updateRemoteBranchChangelog(t, upstream, releaseBranch, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Divergent stabilization fix
+
+## [1.3.0-preview.1] - 2025-01-04
+
+### Added
+
+- Divergent preview
+`)
+		},
+	}
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(gitLog))
+	gh := &fakeGH{canonicalRepositoryURL: upstream}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+		DryRun:    true,
+	}, git, gh, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected divergent stabilization error, got nil")
+	}
+	if !strings.Contains(err.Error(), "stabilization candidate differs") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want divergent stabilization error", err)
+	}
+	if branchChecks != 2 {
+		t.Fatalf("release branch checks = %d, want branch created during second check", branchChecks)
+	}
+}
+
+func TestRunPrepareWithDeps_StabilizationPinsValidatedCanonicalCommit(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Validated stabilization fix
+
+## [1.2.0-preview.2] - 2025-01-03
+
+### Added
+
+- Validated preview
+`)
+	upstream := addUpstreamRemote(t, repo)
+	const releaseBranch = "release/studioctl/v1.2"
+	createRemoteBranch(t, upstream, releaseBranch)
+	validatedCommit := remoteBranchHead(t, repo, "upstream", releaseBranch)
+	runGitCmd(t, repo, "checkout", "-b", "feature/releaser-test")
+	t.Chdir(repo)
+
+	prompter := &callbackPrompter{
+		onFirstConfirm: func() {
+			updateRemoteBranchChangelog(t, upstream, releaseBranch, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Concurrent stabilization fix
+
+## [1.2.0-preview.3] - 2025-01-04
+
+### Added
+
+- Concurrent preview
+`)
+		},
+	}
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{canonicalRepositoryURL: upstream}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "stabilization",
+		Prompter:  prompter,
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+	if !prompter.called {
+		t.Fatal("expected canonical branch update between validation and checkout")
+	}
+
+	concurrentCommit := remoteBranchHead(t, repo, "upstream", releaseBranch)
+	if concurrentCommit == validatedCommit {
+		t.Fatal("canonical release branch did not advance during prepare")
+	}
+	prepBase := revParseRef(t, repo, "HEAD^")
+	if prepBase != validatedCommit {
+		t.Fatalf("prep base = %s, want validated commit %s", prepBase, validatedCommit)
+	}
+}
+
 func TestRunPrepareWithDeps_InferredStabilizationAllowsUnnumberedPrerelease(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, `# Changelog
 
@@ -1322,6 +1453,48 @@ func TestGitCLI_TagExistsChecksRequestedRemote(t *testing.T) {
 	}
 }
 
+func TestGitCLI_RemoteRefChecksFailClosed(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+`)
+	addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "remote", "rename", "upstream", "canonical")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	checks := map[string]func(remote string) (bool, error){
+		"tag": func(remote string) (bool, error) {
+			return git.TagExists(t.Context(), remote, "studioctl/v9.9.9")
+		},
+		"branch": func(remote string) (bool, error) {
+			return git.RemoteBranchExists(t.Context(), remote, "release/studioctl/v9.9")
+		},
+	}
+
+	for name, check := range checks {
+		t.Run(name+" missing ref", func(t *testing.T) {
+			exists, err := check("canonical")
+			if err != nil {
+				t.Fatalf("check missing ref error = %v", err)
+			}
+			if exists {
+				t.Fatal("check missing ref = true, want false")
+			}
+		})
+
+		t.Run(name+" remote failure", func(t *testing.T) {
+			exists, err := check("missing-remote")
+			if !errors.Is(err, internal.ErrGitCommandFailed) {
+				t.Fatalf("check failed remote error = %v, want ErrGitCommandFailed", err)
+			}
+			if exists {
+				t.Fatal("check failed remote = true, want false")
+			}
+		})
+	}
+}
+
 type promptCall struct {
 	action string
 	detail []string
@@ -1343,6 +1516,29 @@ func (p *scriptedPrompter) Confirm(action string, details []string) (bool, error
 	answer := p.answers[0]
 	p.answers = p.answers[1:]
 	return answer, nil
+}
+
+type callbackPrompter struct {
+	onFirstConfirm func()
+	called         bool
+}
+
+func (p *callbackPrompter) Confirm(_ string, _ []string) (bool, error) {
+	if !p.called {
+		p.called = true
+		p.onFirstConfirm()
+	}
+	return true, nil
+}
+
+type commandHookLogger struct {
+	internal.NopLogger
+
+	onCommand func(command string, args []string)
+}
+
+func (l *commandHookLogger) Command(command string, args []string) {
+	l.onCommand(command, args)
 }
 
 func containsDetail(details []string, want string) bool {

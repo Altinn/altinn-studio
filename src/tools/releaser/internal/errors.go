@@ -25,6 +25,7 @@ var (
 	errNoActivePrereleaseLine = errors.New("no active prerelease release line found")
 	errPrereleaseSeqInvalid   = errors.New("active prerelease version must end with numeric prerelease identifier")
 	errPrereleaseLineClosed   = errors.New("prerelease line is already stabilizing or stable")
+	errStabilizationMismatch  = errors.New("stabilization candidate differs between main and release branch")
 	errValidationBaseRequired = errors.New("base commit is required")
 	errValidationHeadRequired = errors.New("head commit is required")
 	errChangelogVersionExists = errors.New("version already exists in changelog")

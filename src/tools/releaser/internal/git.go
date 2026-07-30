@@ -93,7 +93,7 @@ func NewGitCLI(opts ...GitCLIOption) *GitCLI {
 
 // TagExists checks if a tag exists in the requested remote repository.
 func (g *GitCLI) TagExists(ctx context.Context, remote, tag string) (bool, error) {
-	remoteCode, err := g.runExitCode(
+	exitCode, err := g.runExitCode(
 		ctx,
 		"ls-remote",
 		"--exit-code",
@@ -104,7 +104,7 @@ func (g *GitCLI) TagExists(ctx context.Context, remote, tag string) (bool, error
 	if err != nil {
 		return false, err
 	}
-	return remoteCode == 0, nil
+	return remoteRefExists(exitCode, remote)
 }
 
 // CurrentBranch returns the current branch name.
@@ -118,7 +118,23 @@ func (g *GitCLI) RemoteBranchExists(ctx context.Context, remote, branch string) 
 	if err != nil {
 		return false, err
 	}
-	return code == 0, nil // exit 2 = not found
+	return remoteRefExists(code, remote)
+}
+
+func remoteRefExists(exitCode int, remote string) (bool, error) {
+	switch exitCode {
+	case 0:
+		return true, nil
+	case 2:
+		return false, nil
+	default:
+		return false, fmt.Errorf(
+			"%w: git ls-remote for %s exited with code %d",
+			ErrGitCommandFailed,
+			remote,
+			exitCode,
+		)
+	}
 }
 
 // Remotes returns the repository's configured fetch and push URLs.
@@ -286,11 +302,7 @@ func (g *GitCLI) run(ctx context.Context, args ...string) (string, error) {
 
 	g.log.Command("git", args)
 
-	//nolint:gosec // G204: executable is fixed to git; args are the intended wrapper input.
-	cmd := exec.CommandContext(ctx, "git", args...)
-	if g.workdir != "" {
-		cmd.Dir = g.workdir
-	}
+	cmd := g.command(ctx, args...)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -320,11 +332,7 @@ func (g *GitCLI) runExitCode(ctx context.Context, args ...string) (int, error) {
 
 	g.log.Command("git", args)
 
-	//nolint:gosec // G204: executable is fixed to git; args are the intended wrapper input.
-	cmd := exec.CommandContext(ctx, "git", args...)
-	if g.workdir != "" {
-		cmd.Dir = g.workdir
-	}
+	cmd := g.command(ctx, args...)
 
 	err := cmd.Run()
 	if err == nil {
@@ -346,11 +354,7 @@ func (g *GitCLI) optionalConfig(ctx context.Context, key string) (string, bool, 
 	args := []string{"config", "--get", key}
 	g.log.Command("git", args)
 
-	//nolint:gosec // G204: executable and config subcommand are fixed; key is internally constructed.
-	cmd := exec.CommandContext(ctx, "git", args...)
-	if g.workdir != "" {
-		cmd.Dir = g.workdir
-	}
+	cmd := g.command(ctx, args...)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -368,6 +372,15 @@ func (g *GitCLI) optionalConfig(ctx context.Context, key string) (string, bool, 
 		)
 	}
 	return strings.TrimSpace(stdout.String()), true, nil
+}
+
+func (g *GitCLI) command(ctx context.Context, args ...string) *exec.Cmd {
+	//nolint:gosec // G204: executable is fixed to git; args are the intended wrapper input.
+	cmd := exec.CommandContext(ctx, "git", args...)
+	if g.workdir != "" {
+		cmd.Dir = g.workdir
+	}
+	return cmd
 }
 
 func (g *GitCLI) ensureWorkdir(ctx context.Context) error {

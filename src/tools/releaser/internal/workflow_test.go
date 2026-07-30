@@ -487,6 +487,30 @@ func TestNewWorkflow_InvalidVersion(t *testing.T) {
 	}
 }
 
+func TestNewWorkflow_AcceptsVersionWithoutPrefix(t *testing.T) {
+	t.Parallel()
+
+	repoRoot := t.TempDir()
+	cfg := internal.WorkflowConfig{
+		Component: "studioctl",
+		Version:   "1.2.3",
+		OutputDir: filepath.Join(repoRoot, "build", "release"),
+		RepoRoot:  repoRoot,
+	}
+
+	_, err := internal.NewWorkflow(
+		t.Context(),
+		cfg,
+		&fakeGit{workingTreeClean: true},
+		&fakeGH{},
+		nil,
+		internal.NopLogger{},
+	)
+	if err != nil {
+		t.Fatalf("NewWorkflow() error = %v, want bare version accepted", err)
+	}
+}
+
 func TestNewWorkflow_OutputDirSafety(t *testing.T) {
 	t.Parallel()
 

@@ -322,14 +322,21 @@ func addUpstreamRemote(t *testing.T, repoDir string) string {
 func updateRemoteChangelog(t *testing.T, remoteDir, changelog string) {
 	t.Helper()
 
+	updateRemoteBranchChangelog(t, remoteDir, "main", changelog)
+}
+
+func updateRemoteBranchChangelog(t *testing.T, remoteDir, branch, changelog string) {
+	t.Helper()
+
 	cloneDir := filepath.Join(t.TempDir(), "checkout")
 	runGitCmd(t, filepath.Dir(cloneDir), "clone", remoteDir, cloneDir)
 	runGitCmd(t, cloneDir, "config", "user.email", "test@example.com")
 	runGitCmd(t, cloneDir, "config", "user.name", "Test User")
+	runGitCmd(t, cloneDir, "checkout", branch)
 	writeRepoFile(t, cloneDir, "src/cli/CHANGELOG.md", changelog)
 	runGitCmd(t, cloneDir, "add", "src/cli/CHANGELOG.md")
 	runGitCmd(t, cloneDir, "commit", "-m", "update canonical changelog")
-	runGitCmd(t, cloneDir, "push", "origin", "main")
+	runGitCmd(t, cloneDir, "push", "origin", branch)
 }
 
 func createRemoteBranch(t *testing.T, remoteDir, branch string) {
@@ -367,6 +374,41 @@ func remoteBranchExists(t *testing.T, repoDir, remote, branch string) bool {
 		t.Fatalf("git ls-remote %s %s: %v\n%s", remote, branch, err, string(output))
 	}
 	return strings.TrimSpace(string(output)) != ""
+}
+
+func remoteBranchHead(t *testing.T, repoDir, remote, branch string) string {
+	t.Helper()
+
+	cmd := exec.CommandContext(
+		context.Background(),
+		"git",
+		"ls-remote",
+		"--heads",
+		remote,
+		"refs/heads/"+branch,
+	)
+	cmd.Dir = repoDir
+	output, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("git ls-remote %s %s: %v", remote, branch, err)
+	}
+	fields := strings.Fields(string(output))
+	if len(fields) != 2 {
+		t.Fatalf("git ls-remote %s %s output = %q", remote, branch, string(output))
+	}
+	return fields[0]
+}
+
+func revParseRef(t *testing.T, repoDir, ref string) string {
+	t.Helper()
+
+	cmd := exec.CommandContext(context.Background(), "git", "rev-parse", ref)
+	cmd.Dir = repoDir
+	output, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("git rev-parse %s: %v", ref, err)
+	}
+	return strings.TrimSpace(string(output))
 }
 
 func createReleaseBranch(t *testing.T, repoDir, releaseBranch string) {

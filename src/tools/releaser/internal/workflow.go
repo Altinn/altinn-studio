@@ -72,6 +72,7 @@ func NewWorkflow(
 		return nil, fmt.Errorf("get component: %w", err)
 	}
 
+	config.Version = normalizeVersionPrefix(config.Version)
 	if _, parseErr := version.Parse(config.Version); parseErr != nil {
 		return nil, fmt.Errorf("parse version: %w", parseErr)
 	}
