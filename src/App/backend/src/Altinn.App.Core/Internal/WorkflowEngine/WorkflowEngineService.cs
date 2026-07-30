@@ -159,10 +159,13 @@ internal abstract record CurrentTaskWorkflowState
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    private const int WorkflowPollingTimeoutMs = 100_000;
     private const int InitialWorkflowPollingDelayMs = 100;
     private const int MaxWorkflowPollingDelayMs = 2_000;
     private const int AcceptanceProbeAttempts = 3;
+
+    // Mutable so tests can shrink the windows; production always runs the defaults.
+    internal int WorkflowPollingTimeoutMs = 100_000;
+    internal int WorkflowParkedReleaseGraceMs = 5_000;
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
@@ -604,6 +607,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return WorkflowCollectionLookupResult.NotFound;
     }
 
+    /// <summary>
+    /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
+    /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
+    /// active workflow in it is <c>Waiting</c> because a service task deferred — is released as a
+    /// committed success once <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that
+    /// is neither settled nor parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported
+    /// as a <see cref="WorkflowFailureKind.Timeout"/>.
+    /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
         string collectionKey,
@@ -652,6 +663,49 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         WorkflowFailure? workflowFailure = BuildWorkflowFailure(currentChain);
                         bool processStateChanged = HasCommittedProcessState(currentChain);
                         return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
+                    }
+                }
+                else if (
+                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsWaitingCollectionHeadStatus)
+                    && stopwatch.ElapsedMilliseconds >= WorkflowParkedReleaseGraceMs
+                )
+                {
+                    // The chain is parked: a service task deferred, so the transition is polling for an
+                    // external outcome and may stay parked for its whole wait budget. Holding this
+                    // request would just ride into the timeout below, misreporting a designed wait as a
+                    // failure. Deferral is post-commit by construction (only ExecuteServiceTask defers,
+                    // and it runs after SaveProcessStateToStorage), so the instance already carries the
+                    // committed target task — releasing with the ordinary success shape is truthful,
+                    // and the read-path workflow annotation renders the waiting UI from here. The grace
+                    // window keeps quick polls (a task deferring for a couple of seconds) completing
+                    // synchronously instead of flickering through the waiting view.
+                    IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
+                        await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+                        sinceWorkflowId
+                    );
+
+                    List<WorkflowStatusResponse> activeWorkflows = currentChain.Where(IsActiveWorkflowStatus).ToList();
+                    bool anchoredChainParked =
+                        (
+                            sinceWorkflowId is null
+                            || currentChain.Any(workflow => workflow.DatabaseId == sinceWorkflowId)
+                        )
+                        && activeWorkflows.Count > 0
+                        && activeWorkflows.TrueForAll(workflow =>
+                            workflow.OverallStatus == PersistentItemStatus.Waiting
+                        );
+
+                    // The committed-state guard is defensive: should a pre-commit step ever learn to
+                    // defer, fall through to the ordinary wait (and its timeout) rather than returning a
+                    // process state that does not exist yet.
+                    if (anchoredChainParked && HasCommittedProcessState(currentChain))
+                    {
+                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                        return new ProcessNextWorkflowResult(
+                            freshInstance,
+                            WorkflowFailure: null,
+                            ProcessStateChanged: true
+                        );
                     }
                 }
             }
@@ -787,6 +841,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued
                 or PersistentItemStatus.Waiting;
+
+    private static bool IsWaitingCollectionHeadStatus(CollectionHeadStatus workflow) =>
+        workflow.Status is PersistentItemStatus.Waiting;
 
     private static bool IsResumeRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status

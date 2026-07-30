@@ -224,6 +224,8 @@ subscribers never learn of the transition — so this class must be monitored ex
 
 `WorkflowEngineService` does more than fire-and-forget. After enqueueing it polls the workflow **collection** (keyed by the instance guid — every transition of an instance shares one collection) until the active heads settle, then refetches the instance and builds a `ProcessNextWorkflowResult`:
 
+- **A parked chain releases early.** When every active workflow in the anchored chain is `Waiting` — a service task deferred, so the transition is polling an external outcome and may stay parked for its whole wait budget — the wait releases with the ordinary success shape after a short grace window (~5s, which keeps quick polls completing synchronously) instead of holding the request into the timeout. This is truthful because deferral is post-commit by construction (only `ExecuteServiceTask` defers, and it runs after `SaveProcessStateToStorage`), so the instance already carries the committed target task; the read-path `workflow` annotation and the frontend waiting UI take over from there. A committed-state guard makes a hypothetical pre-commit deferral fall through to the ordinary timeout rather than return an unpersisted process state. The 100s timeout (504/`Timeout`) is therefore reserved for chains that are genuinely slow or stuck (`Processing`/`Requeued`).
+
 - `ScopeToCurrentChain` narrows the collection to the workflow just submitted and everything created after it, so lingering terminal heads from earlier transitions don't leak into the current wait. It also strips side-effects workflows (matched by the engine-persisted `isHead == false` head-visibility directive; the `Process next side-effects:` OperationId prefix is a naming convention only) from every path: they must not extend the wait — they are enqueued mid-Main, so they are strictly newer than the anchor and would otherwise leak into the chain — and their failures must never be classified as transition failures.
 - `BuildWorkflowFailure` classifies the outcome into a `WorkflowFailure` (`StepFailed`, `DependencyFailed`, `EngineFault`, `Timeout`, or a superseding-abandon case). `ExtractCallbackErrorDetail` unwraps the ProblemDetails `detail` from an engine error message so the human-readable reason is available server-side (logged by the controller); the raw message is never serialized to clients — failed action responses ship a stable generic `detail` plus a `workflowFailure` stripped of its recorded error.
 - `HasCommittedProcessState` reports whether `SaveProcessStateToStorage` completed, so the caller knows if the transition was persisted even when a later step failed.
@@ -234,7 +236,7 @@ subscribers never learn of the transition — so this class must be monitored ex
 
 Reject/resume/abandon:
 
-- `ResumeAndWaitForWorkflow` resumes a failed workflow (cascade) and waits for it to settle.
+- `ResumeAndWaitForWorkflow` resumes a failed workflow (cascade) and waits for it to settle — sharing the wait above, so a resumed workflow that immediately defers again also releases early with the waiting UI.
 - `AbandonWorkflow` writes off a terminally failed workflow (`Failed → Abandoned`) so a subsequently enqueued workflow can depend on it; returns `false` if the engine's compare-and-set was rejected (e.g. a concurrent resume revived it).
 - `EnqueueDependentProcessNext` enqueues a workflow that `dependsOn` another (used by the reject flow to supersede a failed transition, and by auto-advance).
 
