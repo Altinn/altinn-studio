@@ -106,7 +106,7 @@ import logging as _logging
 _log = _logging.getLogger(__name__)
 
 MINIMUM_INTENT_CONFIDENCE = 0.1
-_FALLBACK_DECLINE_MESSAGE = "I can only help with Altinn app development."
+_FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 
 
 class GoalRejected(Exception):
@@ -135,7 +135,10 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
             state.session_id, scope_result.reason,
         )
         if state.allow_app_changes:
-            raise GoalRejected(f"{decline_text}|")
+            # GoalRejected messages are "reason|suggestions" — strip pipes
+            # from the LLM-written decline so it can't spill into fake
+            # suggestion chips.
+            raise GoalRejected(decline_text.replace("|", "/"))
         _emit_chat_decline(state, event_sink, decline_text)
         return decline_text
 

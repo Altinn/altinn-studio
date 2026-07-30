@@ -75,6 +75,22 @@ class TestCheckScopeAsync:
 
         assert result.in_scope is True
 
+    async def test_fails_open_when_in_scope_is_not_a_boolean(self):
+        client = MagicMock()
+        client.call_async = AsyncMock(
+            return_value='{"in_scope": "false", "decline_message": "Nei.", "reason": "travel"}'
+        )
+        with (
+            patch("agents.services.llm.scope_checker.get_llm_client", return_value=client),
+            patch(
+                "agents.services.llm.scope_checker.get_prompt_with_langfuse",
+                return_value=("system", None),
+            ),
+        ):
+            result = await check_scope_async("planlegg japanreisen min")
+
+        assert result.in_scope is True
+
     async def test_fails_open_on_unparseable_output(self):
         client = MagicMock()
         client.call_async = AsyncMock(return_value="Sorry, I cannot classify that.")
@@ -106,6 +122,24 @@ class TestGateGoal:
         ):
             with pytest.raises(GoalRejected, match="Altinn-apputvikling"):
                 await _gate_goal(state, event_sink=MagicMock())
+
+    async def test_write_mode_strips_pipes_from_the_decline_text(self):
+        state = _state(allow_app_changes=True)
+        piped = ScopeCheckResult(
+            in_scope=False,
+            decline_message="Jeg kan bare hjelpe med Altinn | ikke reiseplanlegging.",
+            reason="travel planning",
+        )
+        with patch(
+            "agents.graph.runner.check_scope_async",
+            new=AsyncMock(return_value=piped),
+        ):
+            with pytest.raises(GoalRejected) as excinfo:
+                await _gate_goal(state, event_sink=MagicMock())
+
+        # The "reason|suggestions" protocol splits on "|" — the decline text
+        # must not contain one, or it spills into fake suggestion chips.
+        assert "|" not in str(excinfo.value)
 
     async def test_read_only_declines_as_a_normal_chat_turn(self):
         state = _state(allow_app_changes=False)

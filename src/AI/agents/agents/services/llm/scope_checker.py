@@ -28,7 +28,7 @@ async def check_scope_async(query: str) -> ScopeCheckResult:
     """Classify whether a chat question is about Altinn Studio/apps.
 
     Fails open (in_scope=True) if the classifier call itself fails, so a
-    broken/timed-out classifier blocks legitimate users rather than every user.
+    broken/timed-out classifier never blocks legitimate users.
     """
     system_prompt, lf_prompt = get_prompt_with_langfuse("scope_check")
     user_prompt = f"Classify this question: {query}"
@@ -52,8 +52,13 @@ async def check_scope_async(query: str) -> ScopeCheckResult:
         data = json.loads(cleaned)
         if not isinstance(data, dict):
             raise ValueError("Parsed JSON is not an object")
+        in_scope = data.get("in_scope", True)
+        if not isinstance(in_scope, bool):
+            # Truthiness would misread string booleans ("false" is truthy);
+            # a verdict that isn't an actual boolean is a parse failure.
+            raise ValueError(f"in_scope is not a boolean: {in_scope!r}")
         return ScopeCheckResult(
-            in_scope=bool(data.get("in_scope", True)),
+            in_scope=in_scope,
             decline_message=data.get("decline_message"),
             reason=data.get("reason"),
         )
