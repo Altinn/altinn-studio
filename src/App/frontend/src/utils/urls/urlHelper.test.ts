@@ -52,8 +52,9 @@ describe('Shared urlHelper.ts', () => {
 
   test('returnUrlTProfile() returning correct environments', () => {
     expect(returnUrlToProfile(hostTT)).toBe('https://af.tt02.altinn.no/profile');
-    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/profile');
-    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/profile');
+    // localtest has no profile page, so it gets the front page like returnUrlToArchive does
+    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToProfile(hostStudio)).toBe(undefined);
     expect(returnUrlToProfile(hostStudioDev)).toBe(undefined);
     expect(returnUrlToProfile(hostUnknown)).toBe(undefined);
@@ -123,7 +124,9 @@ describe('Shared urlHelper.ts', () => {
       };
     }
 
-    test('the configured URLs are used, not ones derived from window.location.host', () => {
+    // Configures yt01 URLs while asking for a tt02 host: host derivation would answer
+    // af.tt02.altinn.no, so every assertion below fails if the config is not what is read.
+    test('the configured URLs are used, not ones derived from the host', () => {
       configureArbeidsflate({
         arbeidsflateInboxUrl: 'https://af.yt01.altinn.cloud/',
         arbeidsflateDialogUrl: 'https://af.yt01.altinn.cloud/inbox/{dialogId}',
@@ -140,8 +143,14 @@ describe('Shared urlHelper.ts', () => {
       expect(returnUrlToArchive(hostTT, 12345)).toBe(
         'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2F',
       );
+
+      // getMessageBoxUrl() reads the host off window.location rather than taking it as an argument
+      jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+      expect(getMessageBoxUrl()).toBe('https://af.yt01.altinn.cloud/');
     });
 
+    // Guards the reason these are whole URL templates rather than a base URL: the arbeidsflate can
+    // restructure its routes and we change configuration, not the frontend bundle.
     test('a changed route structure needs no frontend change', () => {
       configureArbeidsflate({
         arbeidsflateInboxUrl: 'https://ny.altinn.no/meldingsboks',
@@ -165,7 +174,7 @@ describe('Shared urlHelper.ts', () => {
         arbeidsflateProfileUrl: 'https://af.yt01.altinn.cloud/profile',
       });
 
-      expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/profile');
+      expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
       expect(returnUrlToArchive(hostPodman, 12345, dialogId)).toBe('http://local.altinn.cloud:8000/');
     });
 

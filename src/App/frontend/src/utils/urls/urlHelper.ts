@@ -23,11 +23,13 @@ function fillUrlTemplate(
   );
 }
 
-function arbeidsflateEnvironment(host: string): 'local' | 'app' | 'none' {
-  if (isLocalEnvironment(host)) {
-    return 'local';
-  }
-  return extractAltinnHost(host) ? 'app' : 'none';
+/**
+ * A host we do not recognize never gets an arbeidsflate link, even if the configuration happens to
+ * hold one. In practice the configuration only reaches apps deployed on these hosts, so this is a
+ * guard rather than a decision — but it is the guard the tests for Studio and unknown hosts rely on.
+ */
+function isRecognizedAltinnHost(host: string): boolean {
+  return extractAltinnHost(host) !== undefined;
 }
 
 export const returnBaseUrlToAltinn = (host: string): string | undefined => {
@@ -39,16 +41,15 @@ export const returnBaseUrlToAltinn = (host: string): string | undefined => {
 };
 
 function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
-  const environment = arbeidsflateEnvironment(host);
-  if (environment === 'none') {
-    return undefined;
-  }
-  if (environment === 'local') {
+  if (isLocalEnvironment(host)) {
     return `http://${host}/`;
+  }
+  if (!isRecognizedAltinnHost(host)) {
+    return undefined;
   }
 
   const settings = GlobalData.platformFrontendSettings;
-  const inboxUrl = fillUrlTemplate(settings.arbeidsflateInboxUrl);
+  const inboxUrl = settings.arbeidsflateInboxUrl;
   if (!inboxUrl) {
     return undefined;
   }
@@ -81,16 +82,15 @@ export const returnUrlToArchive = (host: string, partyId?: number, dialogId?: st
   buildArbeidsflateRedirectUrl(host, partyId, dialogId);
 
 export const returnUrlToProfile = (host: string, _partyId?: number | undefined): string | undefined => {
-  const environment = arbeidsflateEnvironment(host);
-  if (environment === 'none') {
+  if (isLocalEnvironment(host)) {
+    // localtest serves no profile page, so its front page is the closest equivalent
+    return `http://${host}/`;
+  }
+  if (!isRecognizedAltinnHost(host)) {
     return undefined;
   }
 
-  if (environment === 'local') {
-    return `http://${host}/profile`;
-  }
-
-  return fillUrlTemplate(GlobalData.platformFrontendSettings.arbeidsflateProfileUrl);
+  return GlobalData.platformFrontendSettings.arbeidsflateProfileUrl;
 };
 
 export const returnUrlToAllForms = (host: string): string | undefined => {
