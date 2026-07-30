@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type {
   UserMessage,
   AssistantMessage,
   Message,
   WorkflowEvent,
   WorkflowStatus,
+  TrailStep,
   ConnectionStatus,
   AssistantMessageData,
   AgentResponse,
@@ -25,7 +26,7 @@ import {
   shouldSkipBranchOps,
 } from '../../utils/messageUtils';
 
-const INITIAL_WORKFLOW_MESSAGE = 'Jobber med saken...';
+const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
@@ -54,6 +55,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
+  // Monotonic clock anchor per workflow thread. Each trail step records
+  // its offset from this value so timestamps don't drift if the wall clock
+  // changes mid-flight.
+  const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
 
   const {
     selectedThreadId,
@@ -68,13 +73,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     setWorkflowStatusByThread((prev) => ({ ...prev, [threadId]: status }));
   }, []);
 
-  const setWorkflowStatusMessage = useCallback((threadId: string, statusMessage: string) => {
-    setWorkflowStatusByThread((prev) => {
-      const prevWorkflowStatus = prev[threadId];
-      return { ...prev, [threadId]: { ...prevWorkflowStatus, message: statusMessage } };
-    });
-  }, []);
-
   const markWorkflowCompleted = useCallback(
     (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
       setWorkflowStatus(threadId, {
@@ -87,6 +85,52 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       });
     },
     [setWorkflowStatus],
+  );
+
+  const applyStatusMessage = useCallback(
+    (threadId: string, statusMessage: string, toolUseId?: string) => {
+      setWorkflowStatusByThread((prev) => {
+        const prevStatus = prev[threadId];
+        if (!prevStatus?.isActive) return prev;
+        const steps = prevStatus.steps ?? [];
+        const lastStep = steps.at(-1);
+
+        const matchIndex = toolUseId ? findStepIndexByToolUseId(steps, toolUseId) : -1;
+        if (matchIndex >= 0) {
+          const updated: TrailStep = { ...steps[matchIndex], message: statusMessage };
+          return {
+            ...prev,
+            [threadId]: {
+              ...prevStatus,
+              message: statusMessage,
+              steps: [...steps.slice(0, matchIndex), updated, ...steps.slice(matchIndex + 1)],
+            },
+          };
+        }
+
+        // Dedupe identical text bursts; refresh legacy `message` only.
+        if (lastStep?.message === statusMessage) {
+          return { ...prev, [threadId]: { ...prevStatus, message: statusMessage } };
+        }
+
+        const startedAtMs = workflowStartedAtMsByThreadRef.current[threadId] ?? performance.now();
+        const newStep: TrailStep = {
+          id: `${steps.length}-${Math.round(performance.now())}`,
+          message: statusMessage,
+          offsetMs: performance.now() - startedAtMs,
+          toolUseId,
+        };
+        return {
+          ...prev,
+          [threadId]: {
+            ...prevStatus,
+            message: statusMessage,
+            steps: [...steps, newStep],
+          },
+        };
+      });
+    },
+    [],
   );
 
   const resetRepoForSession = useCallback(
@@ -152,10 +196,18 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         if (isTerminal) {
           setWorkflowStatus(threadId, { isActive: false });
         } else {
-          setWorkflowStatusMessage(threadId, event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+          applyStatusMessage(
+            threadId,
+            event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+            event.data?.tool_use_id,
+          );
         }
       } else if (event.type === 'workflow_status') {
-        setWorkflowStatusMessage(threadId, event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+        applyStatusMessage(
+          threadId,
+          event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+          event.data?.tool_use_id,
+        );
       } else if (event.type === 'error') {
         setWorkflowStatus(threadId, { isActive: false });
         if (event.data?.status === 'cancelled') return;
@@ -167,7 +219,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [setWorkflowStatusMessage, handleAssistantMessage, createMessage, setWorkflowStatus],
+    [applyStatusMessage, handleAssistantMessage, createMessage, setWorkflowStatus],
   );
 
   useEffect(() => {
@@ -185,11 +237,18 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     ): Promise<AgentResponse> => {
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
+      workflowStartedAtMsByThreadRef.current[threadId] = performance.now();
+      const initialStep: TrailStep = {
+        id: 'initial',
+        message: INITIAL_WORKFLOW_MESSAGE,
+        offsetMs: 0,
+      };
       setWorkflowStatus(threadId, {
         isActive: true,
         sessionId: threadId,
         currentStep: 'Initializing',
         message: INITIAL_WORKFLOW_MESSAGE,
+        steps: [initialStep],
       });
       try {
         const result = await startWorkflow({
@@ -318,6 +377,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     messages,
   };
 };
+
+function findStepIndexByToolUseId(steps: TrailStep[], toolUseId: string): number {
+  for (let index = steps.length - 1; index >= 0; index--) {
+    if (steps[index].toolUseId === toolUseId) return index;
+  }
+  return -1;
+}
 
 function buildSessionBranchName(sessionId: string): string {
   const uniqueIdWithoutPrefix = sessionId.startsWith('session_')

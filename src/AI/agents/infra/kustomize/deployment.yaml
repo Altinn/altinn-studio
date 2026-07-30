@@ -38,8 +38,6 @@ spec:
               value: "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/"
             - name: GITEA_BASE_URL
               value: "http://altinn-repositories-public"
-            - name: MCP_SERVER_URL
-              value: "http://altinn-mcp-server/mcp/sse"
             - name: AZURE_API_KEY
               valueFrom:
                 secretKeyRef:

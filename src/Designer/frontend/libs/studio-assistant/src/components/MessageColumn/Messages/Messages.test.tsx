@@ -31,7 +31,7 @@ describe('Messages', () => {
     expect(assistantMessage).toBeInTheDocument();
   });
 
-  it('renders the loading bubble with the workflow message when the workflow is active', () => {
+  it('renders the activity trail with the workflow message when the workflow is active', () => {
     const workflowMessage = 'Working on it';
     renderMessages({
       messages: [],
@@ -41,7 +41,23 @@ describe('Messages', () => {
     expect(screen.getByText(workflowMessage)).toBeInTheDocument();
   });
 
-  it('does not render the loading bubble when the workflow is inactive', () => {
+  it('renders every step of the trail when steps are provided', () => {
+    renderMessages({
+      messages: [],
+      workflowStatus: {
+        isActive: true,
+        steps: [
+          { id: 'a', message: 'Tenker på oppgaven', offsetMs: 0 },
+          { id: 'b', message: 'Leser FormSpec', offsetMs: 2400 },
+        ],
+      },
+    });
+
+    expect(screen.getByText('Tenker på oppgaven')).toBeInTheDocument();
+    expect(screen.getByText('Leser FormSpec')).toBeInTheDocument();
+  });
+
+  it('does not render the activity trail when the workflow is inactive', () => {
     const workflowMessage = 'Should not appear';
     renderMessages({
       messages: [],

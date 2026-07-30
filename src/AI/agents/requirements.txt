@@ -33,3 +33,7 @@ json-repair>=0.58.7
 
 # YAML parsing for prompt frontmatter
 PyYAML>=6.0
+
+# Altinn domain library (agents/altinn — extracted from the retired MCP server)
+jsonschema>=4.0
+defusedxml>=0.7

@@ -5,7 +5,7 @@ import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
 import type { Message } from '../../../types/ChatThread';
 import type { AssistantTexts } from '../../../types/AssistantTexts';
-import type { WorkflowStatus } from '../../../types/WorkflowStatus';
+import type { WorkflowStatus, TrailStep } from '../../../types/WorkflowStatus';
 import type { UserFeedback } from '../../../types/UserFeedback';
 import { UserMessage } from './UserMessage';
 import { AssistantMessage } from './AssistantMessage';
@@ -29,7 +29,7 @@ export function Messages({
   onMessageFeedback,
 }: MessagesProps): ReactElement {
   const showLoadingBubble = workflowStatus?.isActive === true;
-  const loadingBubbleText = workflowStatus?.message ?? '';
+  const trailSteps = resolveTrailSteps(workflowStatus);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,11 +54,27 @@ export function Messages({
       )}
       {showLoadingBubble && (
         <AssistantLoadingBubble
-          content={loadingBubbleText}
+          steps={trailSteps}
           assistantName={texts.heading}
           assistantAvatarUrl={assistantAvatarUrl}
         />
       )}
     </div>
   );
+}
+
+/**
+ * Callers that only set `message` (no `steps[]`) still get a single step
+ * rendered so the trail bubble doesn't appear empty — keeps the component
+ * robust against partial state.
+ */
+function resolveTrailSteps(workflowStatus: WorkflowStatus | undefined): TrailStep[] {
+  if (!workflowStatus) return [];
+  if (workflowStatus.steps && workflowStatus.steps.length > 0) {
+    return workflowStatus.steps;
+  }
+  if (workflowStatus.message) {
+    return [{ id: 'legacy', message: workflowStatus.message, offsetMs: 0 }];
+  }
+  return [];
 }
