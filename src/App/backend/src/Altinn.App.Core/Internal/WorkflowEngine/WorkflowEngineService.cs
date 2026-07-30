@@ -165,7 +165,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
     internal int WorkflowPollingTimeoutMs = 100_000;
-    internal int WorkflowParkedReleaseGraceMs = 5_000;
+    internal int WorkflowParkedReleaseGraceMs = 2_000;
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
