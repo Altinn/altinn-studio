@@ -111,11 +111,9 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
-        // An instance poll fired while the transition was processing can resolve AFTER this
-        // handler and overwrite the fresh cache with a pre-transition snapshot (e.g. the
-        // failed-service-task state a reject just superseded), sending the settled-task
-        // navigation backwards. Cancel in-flight fetches so the response instance is the
-        // newest write.
+        // An instance fetch that raced the mutation can resolve after this handler and overwrite
+        // the fresh cache with a pre-transition snapshot. Cancel in-flight fetches so the
+        // response instance is the newest write.
         if (instanceOwnerPartyId && instanceGuid) {
           await queryClient.cancelQueries({
             queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),

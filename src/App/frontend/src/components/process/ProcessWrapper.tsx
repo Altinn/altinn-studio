@@ -106,10 +106,8 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
       // screen a successful transition would have shown.
       //
       // Deliberately does NOT consume wasBusyRef: this branch can fire against a stale snapshot
-      // (an instance poll that raced a just-settled reject and resurrected the superseded failed
-      // state). Consuming the flag here would swallow the forward navigation when the truthful
-      // state lands right after, stranding the URL on the failed task; leaving it set lets the
-      // settled branch below converge as soon as the workflow reads settled again.
+      // (a read that raced a just-settled reject). Leaving the flag set lets the settled branch
+      // below converge forward as soon as the workflow reads settled again.
       const settledTask = getTargetTaskFromProcess(process);
       if (settledTask && settledTask !== taskId) {
         navigateToTask(settledTask);
@@ -183,14 +181,12 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
   //
-  // A processing workflow parked ON the committed current service task also bypasses it when that
-  // task supplies its own layout and the URL is on it: the task is a deferring step polling for an
-  // external outcome (e.g. eFormidling delivery confirmation), the process genuinely sits on the
-  // task, and the app's page is the "here is what we are waiting for" UI - exactly as it renders
-  // for a parked task awaiting an async callback (e.g. Fiks Arkiv). Park and defer are opposites
-  // in the engine but deliberately identical UX on layouted service tasks. The replacement stays
-  // for transitions heading toward other tasks, for default-view service tasks (the advancing
-  // view, as pinned by the e2e suite), and for stale URLs until navigation converges.
+  // A deferring service task also bypasses it when the task supplies its own layout and the URL is
+  // on it: the process genuinely sits on the committed task, and the app's page owns the waiting
+  // presentation - exactly as it does for a parked (idle) task. Park and defer are opposites in
+  // the engine but deliberately identical UX on layouted service tasks (see the durable-yield ADR).
+  // The replacement stays for transitions toward other tasks, default-view service tasks, and
+  // stale URLs until navigation converges.
   const deferringOnLayoutedServiceTask =
     processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
 

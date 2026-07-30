@@ -47,11 +47,9 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
   `process/next` moves it — whereas a deferring task is **still running** and the engine resumes it
   on its own timer. On the default view the UI follows that difference: parked shows the
   service-task waiting view («Vi behandler forespørselen din»), deferring shows the ordinary
-  advancing view («Vi jobber med skjemaet ditt»), because the app reports a waiting workflow as
-  `processing`. With `serviceView: layout` the two are deliberately identical: the app's own page
-  owns the waiting presentation for both (the eFormidling-polls vs Fiks-Arkiv-callbacks split is an
-  integration detail the user should not see). A lost external signal strands the first and merely
-  delays the second.
+  advancing view («Vi jobber med skjemaet ditt»). With `serviceView: layout` the two are
+  deliberately identical: the app's own page owns the waiting presentation for both. A lost
+  external signal strands the first and merely delays the second.
 - **Accelerating a wait:** the same, plus a nudge —
   `POST {engine}/api/v1/ttd%2Fprocess-transition-test/workflows/{workflowId}/nudge` (or the
   dashboard's «check now» button) clears the pending wait so the next check happens immediately

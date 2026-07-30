@@ -670,15 +670,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     && stopwatch.ElapsedMilliseconds >= WorkflowParkedReleaseGraceMs
                 )
                 {
-                    // The chain is parked: a service task deferred, so the transition is polling for an
-                    // external outcome and may stay parked for its whole wait budget. Holding this
-                    // request would just ride into the timeout below, misreporting a designed wait as a
-                    // failure. Deferral is post-commit by construction (only ExecuteServiceTask defers,
-                    // and it runs after SaveProcessStateToStorage), so the instance already carries the
-                    // committed target task — releasing with the ordinary success shape is truthful,
-                    // and the read-path workflow annotation renders the waiting UI from here. The grace
-                    // window keeps quick polls (a task deferring for a couple of seconds) completing
-                    // synchronously instead of flickering through the waiting view.
+                    // The chain is parked on a deferring service task and may stay so for its whole
+                    // wait budget; holding the request would misreport a designed wait as a timeout.
+                    // Deferral is post-commit by construction (only ExecuteServiceTask defers, after
+                    // SaveProcessStateToStorage), so the instance already carries the committed
+                    // target task and the ordinary success shape applies — the read-path workflow
+                    // annotation renders the waiting UI from here. The grace window lets quick polls
+                    // complete synchronously.
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
                         await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
                         sinceWorkflowId

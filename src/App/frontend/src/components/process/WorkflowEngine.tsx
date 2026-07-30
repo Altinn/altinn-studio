@@ -216,11 +216,9 @@ export function useIsWorkflowFailedOnCurrentServiceTask() {
 }
 
 /**
- * Determines whether the processing workflow is parked ON the current committed service task —
- * a deferring step polling for its outcome (e.g. eFormidling delivery confirmation) — rather
- * than a transition heading somewhere else. A layouted service task renders its own page for
- * this state, exactly as it does when parked awaiting an external callback (e.g. Fiks Arkiv):
- * park and defer are opposites in the engine but identical as a user experience.
+ * Determines whether the processing workflow is parked ON the current committed service task (a
+ * deferring step polling for its outcome) rather than a transition heading somewhere else. Lets a
+ * layouted service task render its own page for this state, exactly as it does when parked.
  */
 export function useIsWorkflowProcessingOnCurrentServiceTask() {
   const { data: process } = useProcessQuery();

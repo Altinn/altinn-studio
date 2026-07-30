@@ -32,14 +32,12 @@ export const instanceQueryKeys = {
 };
 
 /**
- * Refuses to let a stale instance response regress the cache. An instance read that raced a
- * process mutation can be delivered AFTER the mutation's own result was written (its content was
- * decided server-side before the transition committed), resurrecting the pre-transition process
- * state — observed as a reject's result being overwritten by the superseded failed state, sending
- * navigation backwards and stranding the session. `process.currentTask.flow` is a monotone
- * counter and `ended` is terminal, so a write that regresses either is stale by definition and
- * keeps the existing data instead. Applied as `structuralSharing`, which guards every write to
- * the entry: fetch results, polls, and setQueryData alike.
+ * Refuses to let a stale instance response regress the cache. A read that raced a process
+ * mutation can be delivered after the mutation's result was written, resurrecting the
+ * pre-transition process state. `process.currentTask.flow` is a monotone counter and `ended` is
+ * terminal, so a write that regresses either is stale by definition and keeps the existing data.
+ * Applied as `structuralSharing`, which guards every write to the entry: fetch results, polls,
+ * and setQueryData alike.
  */
 export function preferFreshestInstanceData(oldData: unknown, newData: unknown): unknown {
   const oldInstance = oldData as IInstance | undefined;

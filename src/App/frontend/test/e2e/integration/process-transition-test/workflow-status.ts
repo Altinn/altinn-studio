@@ -503,10 +503,9 @@ describe('Live workflow status (real engine)', () => {
   });
 
   it('deferral with a custom layout: the app page renders during the wait, exactly as it does for park', () => {
-    // Park (async callback arrives out-of-band, e.g. Fiks Arkiv) and defer (the task polls,
-    // e.g. eFormidling) are opposites in the engine but deliberately identical UX on a layouted
-    // service task: the app's page owns the "here is what we are waiting for" presentation for
-    // both. The distinction stays observable in workflow.status and on default-view tasks.
+    // Park and defer are opposites in the engine but deliberately identical UX on a layouted
+    // service task: the app's page owns the waiting presentation for both. The distinction stays
+    // observable in workflow.status and on default-view tasks.
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', serviceView: 'layout', deferrals: 3, deferDelayMs: 5000 });
 

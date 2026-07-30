@@ -124,11 +124,9 @@ describe('ProcessWrapper workflow state machine', () => {
   });
 
   it('processing parked ON a layouted service task renders the layout - park and defer are identical UX', async () => {
-    // A deferring service task reports processing while the process genuinely sits on the
-    // committed task (targetTask === currentTask). When the task supplies its own layout, the
-    // app's page renders exactly as it does for a parked (idle) task: park (async callback,
-    // e.g. Fiks Arkiv) and defer (polling, e.g. eFormidling) are opposites in the engine but
-    // deliberately identical as a user experience.
+    // A deferring service task reports processing while the process sits on the committed task
+    // (targetTask === currentTask). With a custom layout, the app's page renders exactly as it
+    // does for a parked (idle) task: park and defer are deliberately identical UX on layouted tasks.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask!.elementType = 'ServiceTask';
     instance.process.workflow = {

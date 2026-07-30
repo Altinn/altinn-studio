@@ -949,17 +949,14 @@ internal sealed partial class EngineRepository
         // re-enter here as Enqueued.
         //
         // A pending cancellation bypasses the backoff gate: the handler cancels a flagged workflow
-        // before executing anything, so claiming it early only applies the cancel promptly. Without
-        // the bypass, a cancel that loses the race against a deferral/retry write-back (accepted
-        // while the row still read Processing, so RequestCancellation's backoff-clearing CASE did
-        // not fire) would sit unapplied behind the freshly written backoff — up to the wait budget
-        // for a deferred step. The row holds no lease out there, so no watcher or sweep would ever
-        // pick it up sooner.
+        // before executing anything. Without the bypass, a cancel accepted while the row still read
+        // Processing (so RequestCancellation's backoff-clearing CASE did not fire) would sit behind
+        // the subsequently written backoff — no lease means no watcher or sweep reaches it — for up
+        // to the wait budget of a deferred step.
         //
         // The dependency gate is deliberately NOT bypassed: wrapping the NOT EXISTS in an OR turns
-        // the planner's per-row anti-join into a hashed subplan that scans every dependency edge on
-        // each fetch cycle. A cancelled workflow parked on an unsettled dependency therefore still
-        // waits for that dependency — a bounded, pre-existing trade for keeping the hot path cheap.
+        // the planner's per-row anti-join into a hashed subplan over every dependency edge per fetch
+        // cycle. A cancelled dependent therefore still waits for its dependency to settle.
         var ids = await context
             .Database.SqlQuery<Guid>(
                 $"""
@@ -1043,13 +1040,10 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     // Clearing the backoff moves a parked (Requeued/Waiting) workflow to the front
-                    // of the fetch order (backoff_until NULLS FIRST), so the cancel is applied on
-                    // the next cycle. Promptness does not depend on winning this race, though: the
-                    // fetch gate independently claims any row with a pending cancellation, so a
-                    // cancel that lands while the row still reads Processing — before a deferral or
-                    // retry write-back parks it — is picked up just the same. Enqueued is excluded
-                    // from the CASE only because there backoff_until carries StartAt and nulling it
-                    // is unnecessary — the cancellation bypass claims the row regardless.
+                    // of the fetch order (backoff_until NULLS FIRST). Promptness does not depend on
+                    // it: the fetch gate claims any row with a pending cancellation regardless of
+                    // backoff, which also covers a cancel that lands before a write-back parks the
+                    // row. Enqueued is excluded only because its backoff_until carries StartAt.
                     const string sql = """
                     UPDATE engine.workflows
                     SET cancellation_requested_at = @requestedAt,

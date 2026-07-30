@@ -7,17 +7,11 @@ namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
 /// The fetch gate's cancellation bypass: a pending cancellation makes an
-/// Enqueued/Requeued/Waiting workflow claimable regardless of its backoff timer, because the
-/// handler cancels a flagged workflow before executing anything. The dependency gate is not
-/// bypassed — see the fetch SQL for the plan-shaped reason.
-/// <para>
-/// The race this closes: <c>RequestCancellation</c> clears <c>backoff_until</c> only when the row
-/// is already parked at cancel time. A cancel accepted while the row still reads
-/// <c>Processing</c> — after a command returned <c>Defer</c> but before the update buffer flushed —
-/// used to strand behind the freshly written backoff (up to the wait budget for a deferred step):
-/// no lease, so no cancellation watcher or stale sweep, and a fetch gate blind to it until the
-/// timer elapsed.
-/// </para>
+/// Enqueued/Requeued/Waiting workflow claimable regardless of its backoff timer.
+/// <c>RequestCancellation</c> clears <c>backoff_until</c> only when the row is already parked, so
+/// without the bypass a cancel that raced a deferral/retry write-back (accepted while the row
+/// still read Processing) would strand behind the backoff until the timer elapsed. The dependency
+/// gate is not bypassed — see the fetch SQL for the plan-shaped reason.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class CancellationDeferralRaceTests(PostgresFixture fixture) : IAsyncLifetime
@@ -134,12 +128,9 @@ public sealed class CancellationDeferralRaceTests(PostgresFixture fixture) : IAs
     [Fact]
     public async Task FetchAndLock_PendingCancellationWithUnsettledDependency_StaysParkedOnTheGate()
     {
-        // The cancellation bypass covers the backoff gate only. Extending it to the dependency
-        // gate would wrap the NOT EXISTS in an OR, degrading the fetch plan from a per-row
-        // anti-join to a hashed subplan over every dependency edge — so a cancelled workflow
-        // parked on an unsettled dependency deliberately keeps waiting for that dependency, and
-        // the cancel is applied when the dependency settles. This test documents the trade; if
-        // the gate ever learns to claim these rows cheaply, flip the assertions.
+        // The cancellation bypass covers the backoff gate only (see the fetch SQL for why the
+        // dependency gate stays): a cancelled dependent keeps waiting and is cancelled when its
+        // dependency settles. If the gate ever learns to claim these rows cheaply, flip this test.
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
         var ns = Guid.NewGuid().ToString("N");

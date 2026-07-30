@@ -213,11 +213,9 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task ResumeWorkflow_DeferredThenFailedStep_ClearsDeferAnchorsButKeepsStateOut()
     {
-        // A step's StateOut is deliberately NOT cleared on resume: only a deferring step can produce
-        // state and later fail (a Completed step never re-executes), and a resumed poller should
-        // replay from what it last recorded rather than from the previous step's output. The defer
-        // anchors ARE cleared — a resumed step starts its wait budget over. Clearing state_out
-        // "for consistency" would silently change resumed-step semantics.
+        // StateOut is deliberately NOT cleared on resume: only a deferring step can produce state
+        // and later fail (a Completed step never re-executes), and a resumed poller replays from
+        // what it last recorded. The defer anchors ARE cleared — a fresh wait budget.
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
         var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed);

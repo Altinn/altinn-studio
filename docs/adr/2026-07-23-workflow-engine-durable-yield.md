@@ -100,17 +100,14 @@ alert for a non-error condition.
 - Deferral is stateful across attempts: data changes are saved on every attempt that makes them, and a
   step's own `StateOut` becomes its next attempt's `StateIn`. A `state` parameter on `Defer` was
   rejected as a third state channel alongside Storage and the signed blob.
-- Park and defer are deliberately **identical UX on a layouted service task**, and deliberately
-  distinct everywhere else. Both leave the process sitting on the committed service task — a parked
-  task has succeeded and idles awaiting an external release (async callback, e.g. Fiks Arkiv), a
-  deferring one is still running and polls its own way forward (e.g. eFormidling delivery
-  confirmation) — and when the app supplies a layout for that task, the layout owns the "here is
-  what we are waiting for" presentation in both cases. Without a layout the split stays visible:
-  park renders the built-in service-task waiting view, defer the ordinary advancing view, and
-  `workflow.status` (`idle` vs `processing`) reports the truth in both. The synchronous
-  `process/next` wait supports this by releasing early (success shape, short grace) once the
-  anchored chain parks in `Waiting` — safe because deferral is post-commit by construction, so the
-  instance already carries the committed target task.
+- Park and defer are deliberately **identical UX on a layouted service task** — both leave the
+  process on the committed task (park awaits an external release, e.g. Fiks Arkiv's callback;
+  defer polls, e.g. eFormidling), and an app-supplied layout owns the waiting presentation for
+  both. Without a layout the split stays visible: park renders the built-in service-task waiting
+  view, defer the ordinary advancing view, and `workflow.status` (`idle` vs `processing`) reports
+  the truth in both. The synchronous `process/next` wait releases early (success shape, short
+  grace) once the anchored chain parks in `Waiting` — safe because deferral is post-commit by
+  construction, so the instance already carries the committed target task.
 - The app-side Altinn Events **receive** stack is retired in v9 (`EformidlingStartup`,
   `EformidlingStatusCheckEventHandler2`'s process-advance, `EventsReceiverController`,
   `EventHandlerResolver`, `IEventsSubscription`, `IEventSecretCodeProvider` + KeyVault provider).
