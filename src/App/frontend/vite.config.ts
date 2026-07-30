@@ -9,8 +9,6 @@ import { defineConfig } from 'vite';
 import { codegenWatchPlugin } from './scripts/vite/codegenWatchPlugin';
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { devEntryPlugin } from './scripts/vite/devEntryPlugin';
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { devServerHeadersPlugin } from './scripts/vite/devServerHeadersPlugin';
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig(({ mode }) => {
@@ -30,10 +28,6 @@ export default defineConfig(({ mode }) => {
       // so the compiler is applied through a separate babel plugin with a preconfigured
       // filter that only transforms React-looking files.
       babel({ presets: [reactCompilerPreset()] }),
-      // Adds `Access-Control-Allow-Origin: *` (the app page loads our assets cross-origin)
-      // and `X-Altinn-Frontend-Branch` (LocalTest detects the dev server by it) to every
-      // dev-server response.
-      devServerHeadersPlugin(),
       // Serves /altinn-app-frontend.js as a loader script that dynamically imports the real
       // app code, plus an empty /altinn-app-frontend.css so the backend HTML doesn't 404.
       // The /schemas URLs need no plugin: the dev server serves project-root files statically,
@@ -97,8 +91,9 @@ export default defineConfig(({ mode }) => {
       // resolve them against the backend origin and 404. Production builds are unaffected
       // (assets are inlined there).
       origin: 'http://localhost:8080',
-      // devServerHeadersPlugin sets Access-Control-Allow-Origin itself — avoid duplicate headers
-      cors: false,
+      // The app page is served from another origin (*.local.altinn.cloud:8000), which Vite's
+      // default CORS allow-list (localhost only) would reject.
+      cors: true,
       // Requests arrive proxied through LocalTest at app-frontend.local.altinn.cloud:8000
       allowedHosts: ['.local.altinn.cloud', 'localhost', '127.0.0.1'],
       // The HMR websocket connects directly to the dev server, bypassing the LocalTest proxy
