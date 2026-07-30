@@ -947,6 +947,19 @@ internal sealed partial class EngineRepository
         // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poisoned finalization
         // and stale reclaim run as separate sweeps in DbMaintenanceService — reclaimed rows
         // re-enter here as Enqueued.
+        //
+        // A pending cancellation bypasses the backoff gate: the handler cancels a flagged workflow
+        // before executing anything, so claiming it early only applies the cancel promptly. Without
+        // the bypass, a cancel that loses the race against a deferral/retry write-back (accepted
+        // while the row still read Processing, so RequestCancellation's backoff-clearing CASE did
+        // not fire) would sit unapplied behind the freshly written backoff — up to the wait budget
+        // for a deferred step. The row holds no lease out there, so no watcher or sweep would ever
+        // pick it up sooner.
+        //
+        // The dependency gate is deliberately NOT bypassed: wrapping the NOT EXISTS in an OR turns
+        // the planner's per-row anti-join into a hashed subplan that scans every dependency edge on
+        // each fetch cycle. A cancelled workflow parked on an unsettled dependency therefore still
+        // waits for that dependency — a bounded, pre-existing trade for keeping the hot path cheap.
         var ids = await context
             .Database.SqlQuery<Guid>(
                 $"""
@@ -954,7 +967,11 @@ internal sealed partial class EngineRepository
                     SELECT w.id
                     FROM engine.workflows w
                     WHERE w.status IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued}, {PersistentItemStatus.Waiting})
-                      AND (w.backoff_until IS NULL OR w.backoff_until <= {now})
+                      AND (
+                        w.backoff_until IS NULL
+                        OR w.backoff_until <= {now}
+                        OR w.cancellation_requested_at IS NOT NULL
+                      )
                       AND NOT EXISTS (
                           SELECT 1 FROM engine.workflow_dependency wd
                           JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
@@ -1025,13 +1042,14 @@ internal sealed partial class EngineRepository
                 async ct =>
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    // A parked workflow is only re-fetched once its backoff elapses, and the in-memory
-                    // cancellation watcher only reaches workflows this pod is executing — so without
-                    // clearing the backoff, cancelling a Requeued/Waiting workflow would not take
-                    // effect until the wait ran out (up to MaxStepWaitBudget for a deferred step).
-                    // Enqueued is deliberately excluded: there backoff_until carries StartAt, and
-                    // clearing it would run a scheduled workflow early instead of cancelling it
-                    // promptly — the fetch gate picks it up either way once StartAt passes.
+                    // Clearing the backoff moves a parked (Requeued/Waiting) workflow to the front
+                    // of the fetch order (backoff_until NULLS FIRST), so the cancel is applied on
+                    // the next cycle. Promptness does not depend on winning this race, though: the
+                    // fetch gate independently claims any row with a pending cancellation, so a
+                    // cancel that lands while the row still reads Processing — before a deferral or
+                    // retry write-back parks it — is picked up just the same. Enqueued is excluded
+                    // from the CASE only because there backoff_until carries StartAt and nulling it
+                    // is unnecessary — the cancellation bypass claims the row regardless.
                     const string sql = """
                     UPDATE engine.workflows
                     SET cancellation_requested_at = @requestedAt,

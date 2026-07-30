@@ -34,13 +34,16 @@ internal static class EngineRepositoryQueryExtensions
         /// Incomplete workflows the fetch gate could claim right now — nothing parked behind a future
         /// <c>StartAt</c> or <c>BackoffUntil</c>. This is the set that can hold (or imminently take)
         /// a database transaction; a workflow waiting out a timer holds no lease and no transaction,
-        /// and cannot become runnable on its own until the timer elapses.
+        /// and cannot become runnable on its own until the timer elapses. A pending cancellation
+        /// makes a parked workflow runnable regardless of its timer, mirroring the fetch gate's
+        /// cancellation bypass.
         /// </summary>
         public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
             dbContext
                 .Workflows.Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf =>
                     wf.Status == PersistentItemStatus.Processing
+                    || wf.CancellationRequestedAt != null
                     || (
                         (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                         && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
