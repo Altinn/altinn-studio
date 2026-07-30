@@ -36,7 +36,7 @@ export function formatResponseBody(responseData: unknown): string | undefined {
   }
 
   if (typeof responseData === 'string') {
-    return responseData.trim();
+    return responseData.trim() || undefined;
   }
 
   try {
