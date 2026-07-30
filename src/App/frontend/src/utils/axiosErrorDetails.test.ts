@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosResponse } from 'axios';
 
-import { getAxiosErrorDetails } from 'src/utils/axiosErrorDetails';
+import { formatResponseBody, getAxiosErrorDetails } from 'src/utils/axiosErrorDetails';
 
 describe('getAxiosErrorDetails', () => {
   it('should return null for errors that are not from axios', () => {
@@ -36,5 +36,23 @@ describe('getAxiosErrorDetails', () => {
       responseStatus: undefined,
       responseData: undefined,
     });
+  });
+});
+
+describe('formatResponseBody', () => {
+  it('should format responseBody property', () => {
+    expect(formatResponseBody({ title: 'Boom' })).toBe('{\n  "title": "Boom"\n}');
+  });
+
+  it('should return text bodies as-is, without json escaping', () => {
+    expect(formatResponseBody('<html>\n<body>502 Bad Gateway</body>\n</html>')).toBe(
+      '<html>\n<body>502 Bad Gateway</body>\n</html>',
+    );
+  });
+
+  it('should return undefined when there is nothing to show', () => {
+    expect(formatResponseBody(undefined)).toBeUndefined();
+    expect(formatResponseBody(null)).toBeUndefined();
+    expect(formatResponseBody('')).toBeUndefined();
   });
 });

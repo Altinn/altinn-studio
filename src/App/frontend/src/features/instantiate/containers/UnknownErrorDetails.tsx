@@ -6,7 +6,7 @@ import type { AxiosError } from 'axios';
 
 import classes from 'src/features/instantiate/containers/UnknownErrorDetails.module.css';
 import { Lang } from 'src/features/language/Lang';
-import { getAxiosErrorDetails } from 'src/utils/axiosErrorDetails';
+import { formatResponseBody, getAxiosErrorDetails } from 'src/utils/axiosErrorDetails';
 
 interface UnknownErrorDetailsProps {
   error: Error | AxiosError;
@@ -19,8 +19,7 @@ export function UnknownErrorDetails({ error, className }: UnknownErrorDetailsPro
   const [axiosError] = useState(() => getAxiosErrorDetails(error));
   const [location] = useState(window?.location.href);
 
-  // Axios parses json responses, so the body is usually an object rather than a string
-  const responseBody = JSON.stringify(axiosError?.responseData, null, 2);
+  const responseBody = formatResponseBody(axiosError?.responseData);
 
   async function handleCopyErrorClicked() {
     const errorInfo = {
