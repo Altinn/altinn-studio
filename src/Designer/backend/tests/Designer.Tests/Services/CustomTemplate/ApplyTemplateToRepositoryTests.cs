@@ -61,6 +61,33 @@ public class ApplyTemplateToRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task GetCustomTemplateById_WithUtf8Bom_ReturnsTemplate()
+    {
+        // Arrange
+        string templateOwner = "als";
+        string templateId = "bom-template";
+        var template = new CustomTemplateModel
+        {
+            Id = templateId,
+            Owner = templateOwner,
+            Name = "BOM template",
+            Description = "A template saved with a UTF-8 BOM.",
+        };
+        MockTemplateJsonFile(templateOwner, templateId, template, includeUtf8Bom: true);
+
+        var sut = CreateService();
+
+        // Act
+        CustomTemplateModel result = await sut.GetCustomTemplateById(templateOwner, templateId);
+
+        // Assert
+        Assert.Equal(template.Id, result.Id);
+        Assert.Equal(template.Owner, result.Owner);
+        Assert.Equal(template.Name, result.Name);
+        Assert.Equal(template.Description, result.Description);
+    }
+
+    [Fact]
     public async Task ApplyTemplateToRepository_WithFilesAndRemovePaths_CopiesAndDeletes()
     {
         // Arrange
@@ -567,10 +594,20 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             .ReturnsAsync(commitSha);
     }
 
-    private void MockTemplateJsonFile(string owner, string templateId, CustomTemplateModel template)
+    private void MockTemplateJsonFile(
+        string owner,
+        string templateId,
+        CustomTemplateModel template,
+        bool includeUtf8Bom = false
+    )
     {
         string templateJson = JsonSerializer.Serialize(template, CustomTemplateService.JsonOptions);
-        string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(templateJson));
+        byte[] templateBytes = Encoding.UTF8.GetBytes(templateJson);
+        if (includeUtf8Bom)
+        {
+            templateBytes = [.. Encoding.UTF8.GetPreamble(), .. templateBytes];
+        }
+        string base64Content = Convert.ToBase64String(templateBytes);
 
         _giteaClientMock
             .Setup(x => x.GetLatestCommitOnBranch(owner, $"{owner}-content", null, default))
