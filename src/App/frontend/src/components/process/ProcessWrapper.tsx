@@ -104,7 +104,12 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
       // converge onto the committed task unconditionally - the submitting session never navigated
       // (useProcessNext swallows the failure), and a reconnecting session should land on the same
       // screen a successful transition would have shown.
-      wasBusyRef.current = false;
+      //
+      // Deliberately does NOT consume wasBusyRef: this branch can fire against a stale snapshot
+      // (an instance poll that raced a just-settled reject and resurrected the superseded failed
+      // state). Consuming the flag here would swallow the forward navigation when the truthful
+      // state lands right after, stranding the URL on the failed task; leaving it set lets the
+      // settled branch below converge as soon as the workflow reads settled again.
       const settledTask = getTargetTaskFromProcess(process);
       if (settledTask && settledTask !== taskId) {
         navigateToTask(settledTask);

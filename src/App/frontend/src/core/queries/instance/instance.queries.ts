@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, replaceEqualDeep, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { parseInstanceId } from 'src/core/queries/instance';
@@ -31,6 +31,32 @@ export const instanceQueryKeys = {
   active: (partyId: string) => [...instanceQueryKeys.all(), 'active', partyId] as const,
 };
 
+/**
+ * Refuses to let a stale instance response regress the cache. An instance read that raced a
+ * process mutation can be delivered AFTER the mutation's own result was written (its content was
+ * decided server-side before the transition committed), resurrecting the pre-transition process
+ * state — observed as a reject's result being overwritten by the superseded failed state, sending
+ * navigation backwards and stranding the session. `process.currentTask.flow` is a monotone
+ * counter and `ended` is terminal, so a write that regresses either is stale by definition and
+ * keeps the existing data instead. Applied as `structuralSharing`, which guards every write to
+ * the entry: fetch results, polls, and setQueryData alike.
+ */
+export function preferFreshestInstanceData(oldData: unknown, newData: unknown): unknown {
+  const oldInstance = oldData as IInstance | undefined;
+  const newInstance = newData as IInstance | undefined;
+
+  const oldFlow = oldInstance?.process?.currentTask?.flow;
+  const newFlow = newInstance?.process?.currentTask?.flow;
+  const regressesFlow = oldFlow !== undefined && newFlow !== undefined && newFlow < oldFlow;
+  const regressesEnded = !!oldInstance?.process?.ended && !!newInstance && !newInstance.process?.ended;
+
+  if (oldInstance && (regressesFlow || regressesEnded)) {
+    return oldInstance;
+  }
+
+  return replaceEqualDeep(oldData, newData);
+}
+
 export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi }: InstanceQueryParams) {
   return queryOptions({
     queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
@@ -41,6 +67,7 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instance
     // or invalidateQueries. Prevents the route loader from refetching on every URL change
     // and prevents transient cache-vs-URL mismatches in ProcessWrapper.
     staleTime: Infinity,
+    structuralSharing: preferFreshestInstanceData,
   });
 }
 
