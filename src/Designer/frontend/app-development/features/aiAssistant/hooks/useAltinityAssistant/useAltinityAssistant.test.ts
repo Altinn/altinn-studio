@@ -53,6 +53,7 @@ const createThreadState = (): AltinityThreadState => ({
   deleteThread: jest.fn(),
   deleteMessage: jest.fn(),
   createMessage: jest.fn(),
+  refreshMessages: jest.fn(),
 });
 
 const renderUseAltinityAssistant = () => renderHook(() => useAltinityAssistant());

@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
@@ -21,11 +24,14 @@ export interface AltinityThreadState {
     threadId: string,
     message: UserMessage | AssistantMessage,
   ) => Promise<ChatMessage>;
+  refreshMessages: (threadId: string) => void;
 }
 
 // TODO: rename to useAssistantThreads.
 export const useAltinityThreads = (): AltinityThreadState => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { data: chatThreads } = useChatThreadsQuery();
   const { mutateAsync: createChatThread } = useCreateChatThreadMutation();
@@ -81,6 +87,15 @@ export const useAltinityThreads = (): AltinityThreadState => {
     [deleteChatMessage],
   );
 
+  // Pulls a server-persisted message into the cache — the render path for
+  // assistant messages the backend already stored (persistedMessageId set).
+  const refreshMessages = useCallback(
+    (threadId: string): void => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ChatMessages, org, app, threadId] });
+    },
+    [queryClient, org, app],
+  );
+
   return {
     chatThreads: chatThreads ?? [],
     chatMessages: chatMessages ?? [],
@@ -90,5 +105,6 @@ export const useAltinityThreads = (): AltinityThreadState => {
     deleteThread,
     deleteMessage,
     createMessage,
+    refreshMessages,
   };
 };

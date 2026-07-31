@@ -80,6 +80,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     createThread,
     deleteMessage,
     createMessage,
+    refreshMessages,
     chatMessages,
   } = threads;
 
@@ -103,9 +104,17 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   const applyStatusMessage = useCallback(
     (threadId: string, statusMessage: string, toolUseId?: string) => {
+      workflowStartedAtMsByThreadRef.current[threadId] ??= performance.now();
       setWorkflowStatusByThread((prev) => {
-        const prevStatus = prev[threadId];
-        if (!prevStatus?.isActive) return prev;
+        const existing = prev[threadId];
+        // A status event for a thread with no active workflow means a run is
+        // in flight that THIS tab didn't start — another tab submitted it, or
+        // this tab remounted mid-run. Adopt it (with a fresh trail from this
+        // point on) so every tab shows the live activity, not just the
+        // initiator.
+        const prevStatus: WorkflowStatus = existing?.isActive
+          ? existing
+          : { isActive: true, sessionId: threadId };
         const steps = prevStatus.steps ?? [];
         const lastStep = steps.at(-1);
 
@@ -209,27 +218,42 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
 
-      const finalAssistantMessage: AssistantMessage = {
-        role: MessageAuthor.Assistant,
-        content: messageContent,
-        createdAt: messageTimestamp.toISOString(),
-        filesChanged: assistantMessage.filesChanged || [],
-        sources: assistantMessage.sources || [],
-      };
-      const persisted = await createMessage(threadId, finalAssistantMessage);
+      if (assistantMessage.persistedMessageId) {
+        // The Designer backend already persisted this message (exactly once,
+        // no matter how many tabs receive the broadcast) — pull the stored
+        // row into the cache instead of persisting a client-side copy.
+        refreshMessages(threadId);
+        if (assistantMessage.traceId) {
+          setTraceIdsByMessageId((prev) => ({
+            ...prev,
+            [assistantMessage.persistedMessageId]: assistantMessage.traceId,
+          }));
+        }
+      } else {
+        // Unenriched event (server-side persist failed or skipped) — persist
+        // client-side as before, so the answer is never lost.
+        const finalAssistantMessage: AssistantMessage = {
+          role: MessageAuthor.Assistant,
+          content: messageContent,
+          createdAt: messageTimestamp.toISOString(),
+          filesChanged: assistantMessage.filesChanged || [],
+          sources: assistantMessage.sources || [],
+        };
+        const persisted = await createMessage(threadId, finalAssistantMessage);
 
-      if (assistantMessage.traceId && persisted?.id) {
-        setTraceIdsByMessageId((prev) => ({
-          ...prev,
-          [persisted.id]: assistantMessage.traceId,
-        }));
+        if (assistantMessage.traceId && persisted?.id) {
+          setTraceIdsByMessageId((prev) => ({
+            ...prev,
+            [persisted.id]: assistantMessage.traceId,
+          }));
+        }
       }
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, createMessage],
+    [resetRepoForSession, markWorkflowCompleted, createMessage, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(

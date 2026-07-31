@@ -39,7 +39,7 @@ public class AltinityProxyHubTests
 
         Assert.Contains("Invalid threadId format", exception.Message);
         _webSocketServiceMock.Verify(
-            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>()),
+            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<AltinnRepoEditingContext>()),
             Times.Never
         );
     }
@@ -86,7 +86,7 @@ public class AltinityProxyHubTests
 
         Assert.Contains("Access denied", exception.Message);
         _webSocketServiceMock.Verify(
-            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>()),
+            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<AltinnRepoEditingContext>()),
             Times.Never
         );
     }
@@ -109,7 +109,16 @@ public class AltinityProxyHubTests
 
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
-        _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(TestDeveloper, threadId.ToString()), Times.Once);
+        _webSocketServiceMock.Verify(
+            ws =>
+                ws.RegisterSessionAsync(
+                    threadId.ToString(),
+                    It.Is<AltinnRepoEditingContext>(c =>
+                        c.Org == TestOrg && c.Repo == TestApp && c.Developer == TestDeveloper
+                    )
+                ),
+            Times.Once
+        );
     }
 
     private AltinityProxyHub CreateHub()

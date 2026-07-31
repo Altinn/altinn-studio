@@ -131,7 +131,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             }
         );
 
-        await _webSocketService.RegisterSessionAsync(developer, threadId);
+        await _webSocketService.RegisterSessionAsync(threadId, context);
 
         _logger.LogInformation(
             "Registered session {SessionId} for developer {Developer} on connection {ConnectionId}",
@@ -177,8 +177,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         );
 
         // Re-register session on the agents WS before starting
+        string org = ExtractRequiredString(request, "org");
+        string app = ExtractRequiredString(request, "app");
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         await _webSocketService.EnsureConnectedAsync(developer);
-        await _webSocketService.RegisterSessionAsync(developer, sessionId);
+        await _webSocketService.RegisterSessionAsync(sessionId, editingContext);
 
         string apiKey = await CreateAltinityApiKeyAsync(developer, sessionId);
 
@@ -260,18 +263,23 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private static string ExtractSessionIdFromRequest(JsonElement request)
     {
-        if (!request.TryGetProperty("session_id", out var sessionIdElement))
+        return ExtractRequiredString(request, "session_id");
+    }
+
+    private static string ExtractRequiredString(JsonElement request, string propertyName)
+    {
+        if (!request.TryGetProperty(propertyName, out var element))
         {
-            throw new HubException("Missing session_id in request");
+            throw new HubException($"Missing {propertyName} in request");
         }
 
-        string? sessionId = sessionIdElement.GetString();
-        if (string.IsNullOrWhiteSpace(sessionId))
+        string? value = element.GetString();
+        if (string.IsNullOrWhiteSpace(value))
         {
-            throw new HubException("session_id cannot be empty");
+            throw new HubException($"{propertyName} cannot be empty");
         }
 
-        return sessionId;
+        return value;
     }
 
     private async Task ValidateOrgMembershipAsync(JsonElement request, string developer)

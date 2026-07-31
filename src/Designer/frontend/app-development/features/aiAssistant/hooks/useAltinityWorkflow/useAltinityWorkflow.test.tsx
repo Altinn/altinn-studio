@@ -63,6 +63,78 @@ describe('useAltinityWorkflow', () => {
     expect(threads.createMessage).not.toHaveBeenCalled();
   });
 
+  it('adopts an in-flight workflow when status events arrive for a run this tab did not start', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    // No onSubmitMessage in this tab — the run was started elsewhere (another
+    // tab, or before a remount). The live events must still show up.
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo', tool_use_id: 'tool-1' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
+    expect(result.current.workflowStatusByThread['thread-a']?.message).toBe('Skanner repo');
+    expect(result.current.workflowStatusByThread['thread-a']?.steps).toHaveLength(1);
+  });
+
+  it('renders a server-persisted message without persisting a client-side copy', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: {
+          content: 'Svar',
+          mode: 'chat',
+          traceId: 'trace-1',
+          persistedMessageId: 'server-message-id',
+        },
+      });
+    });
+
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    expect(threads.createMessage).not.toHaveBeenCalled();
+  });
+
   it('persists a duplicated assistant_message event only once', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
@@ -791,6 +863,7 @@ const createThreadState = (overrides: Partial<AltinityThreadState> = {}): Altini
   deleteThread: jest.fn(),
   deleteMessage: jest.fn(),
   createMessage: jest.fn(),
+  refreshMessages: jest.fn(),
   ...overrides,
 });
 

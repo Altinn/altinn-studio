@@ -1,4 +1,7 @@
+import { createElement } from 'react';
 import { act, renderHook } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { MessageAuthor } from '@studio/assistant';
 import type { AssistantMessage, UserMessage } from '@studio/assistant';
 import { useAltinityThreads } from './useAltinityThreads';
@@ -9,6 +12,7 @@ import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQu
 import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
 import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
+jest.mock('app-shared/hooks/useStudioEnvironmentParams');
 jest.mock('app-shared/hooks/queries/useChatThreadsQuery');
 jest.mock('app-shared/hooks/mutations/useCreateChatThreadMutation');
 jest.mock('app-shared/hooks/mutations/useDeleteChatThreadMutation');
@@ -16,6 +20,9 @@ jest.mock('app-shared/hooks/queries/useChatMessagesQuery');
 jest.mock('app-shared/hooks/mutations/useCreateChatMessageMutation');
 jest.mock('app-shared/hooks/mutations/useDeleteChatMessageMutation');
 
+const mockUseStudioEnvironmentParams = useStudioEnvironmentParams as jest.MockedFunction<
+  typeof useStudioEnvironmentParams
+>;
 const mockUseChatThreadsQuery = useChatThreadsQuery as jest.MockedFunction<
   typeof useChatThreadsQuery
 >;
@@ -39,6 +46,7 @@ const threadId = 'session-1';
 
 describe('useAltinityThreads', () => {
   beforeEach(() => {
+    mockUseStudioEnvironmentParams.mockReturnValue({ org: 'testOrg', app: 'testApp' });
     mockUseChatThreadsQuery.mockReturnValue({ data: [] } as any);
     mockUseCreateChatThreadMutation.mockReturnValue({
       mutateAsync: jest.fn().mockResolvedValue({ id: 'new-thread-id' }),
@@ -53,6 +61,20 @@ describe('useAltinityThreads', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('invalidates the thread messages query on refreshMessages', () => {
+    const queryClient = new QueryClient();
+    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderUseAltinityThreads(queryClient);
+
+    act(() => {
+      result.current.refreshMessages(threadId);
+    });
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['ChatMessages', 'testOrg', 'testApp', threadId],
+    });
   });
 
   it('updates current session when selecting a thread', () => {
@@ -180,4 +202,8 @@ describe('useAltinityThreads', () => {
   });
 });
 
-const renderUseAltinityThreads = () => renderHook(() => useAltinityThreads());
+const renderUseAltinityThreads = (queryClient: QueryClient = new QueryClient()) =>
+  renderHook(() => useAltinityThreads(), {
+    wrapper: ({ children }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children),
+  });
