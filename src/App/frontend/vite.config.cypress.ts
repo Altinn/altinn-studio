@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite';
 
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import { sinonChaiCjsPlugin } from './scripts/vite/sinonChaiCjsPlugin';
+
 /**
  * Minimal Vite config used by cypress-vite to bundle the Cypress spec/support files.
  * Kept separate from the app config on purpose: the specs need no React plugin and no
@@ -8,6 +11,7 @@ import { defineConfig } from 'vite';
  */
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
+  plugins: [sinonChaiCjsPlugin()],
   resolve: {
     tsconfigPaths: true,
   },
