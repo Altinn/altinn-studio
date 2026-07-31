@@ -107,6 +107,8 @@ describe('Frontend urlHelper.ts', () => {
     });
 
     describe('authentication urls come from the runtime config map', () => {
+      // Configures yt01 URLs while the window host says altinn.no: host derivation would answer
+      // platform.altinn.no, so every assertion below fails if the config is not what is read.
       it('uses the configured urls, not ones derived from window.location.host', () => {
         resetWindow();
         window.altinnAppGlobalData.platformFrontendSettings = {
@@ -124,6 +126,8 @@ describe('Frontend urlHelper.ts', () => {
         );
       });
 
+      // Guards the reason these are whole URL templates rather than a base URL: the platform can
+      // restructure its authentication routes and we change configuration, not the frontend bundle.
       it('a changed route structure needs no frontend change', () => {
         resetWindow();
         window.altinnAppGlobalData.platformFrontendSettings = {
