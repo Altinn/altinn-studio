@@ -61,13 +61,6 @@ export function PDFGeneratorPreview({
     setBlobUrl(URL.createObjectURL(blob));
   }
 
-  function handleClose() {
-    abortRef.current?.abort();
-    setIsOpen(false);
-    setBlobUrl(null);
-    setErrorText(null);
-  }
-
   return (
     <>
       <Button
@@ -83,7 +76,10 @@ export function PDFGeneratorPreview({
       </Button>
       <Dialog
         ref={modalRef}
-        onClose={handleClose}
+        onClose={() => {
+          abortRef.current?.abort();
+          setIsOpen(false);
+        }}
         closedby='any'
         className={classes.modal}
       >
