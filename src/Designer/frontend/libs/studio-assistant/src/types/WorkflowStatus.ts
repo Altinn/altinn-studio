@@ -18,6 +18,17 @@ export interface TrailStep {
   toolUseId?: string;
 }
 
+/**
+ * An in-flight request for the user's consent to make changes in a
+ * read-only session. The agent pauses until the user answers (or the
+ * request times out server-side, which counts as declined).
+ */
+export interface PermissionRequest {
+  requestId: string;
+  /** Human-readable description of the action awaiting consent. */
+  message: string;
+}
+
 export interface WorkflowStatus {
   isActive: boolean;
   sessionId?: string;
@@ -26,4 +37,5 @@ export interface WorkflowStatus {
   steps?: TrailStep[];
   lastCompletedAt?: Date;
   filesChanged?: string[];
+  permissionRequest?: PermissionRequest;
 }

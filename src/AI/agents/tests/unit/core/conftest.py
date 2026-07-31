@@ -91,6 +91,45 @@ class DeniedTool(Tool):
         raise AssertionError("DeniedTool.run must not be called")
 
 
+class SourcedTool(Tool):
+    """Declares a consulted-source record in metadata — exercises the
+    loop's source collection.  `text == "fail"` returns an error result
+    that still carries a source, to prove errors are not collected."""
+
+    name = "sourced"
+    description = "Look something up and declare it as a source."
+    input_schema = EchoArgs
+    is_concurrency_safe = True
+
+    async def run(self, args: EchoArgs, ctx: LoopContext) -> ToolResult:
+        source = {
+            "title": args.text,
+            "url": f"https://docs.altinn.studio/{args.text}",
+            "kind": "docs",
+        }
+        if args.text == "fail":
+            return ToolResult(content="lookup failed", is_error=True, metadata={"source": source})
+        return ToolResult(content=f"looked up {args.text}", metadata={"source": source})
+
+
+class GatedTool(Tool):
+    """Write-style tool gated on allow_app_changes with an escalatable
+    denial — exercises the interactive permission path."""
+
+    name = "gated"
+    description = "Runs only with write permission."
+    input_schema = EchoArgs
+    is_concurrency_safe = True
+
+    async def check_permission(self, args: EchoArgs, ctx: LoopContext) -> PermissionResult:
+        if not ctx.allow_app_changes:
+            return PermissionResult.deny("read-only session", escalatable=True)
+        return PermissionResult.allow()
+
+    async def run(self, args: EchoArgs, ctx: LoopContext) -> ToolResult:
+        return ToolResult(content=f"wrote: {args.text}")
+
+
 # ---------------------------------------------------------------------------
 # Fake LLM adapter
 # ---------------------------------------------------------------------------

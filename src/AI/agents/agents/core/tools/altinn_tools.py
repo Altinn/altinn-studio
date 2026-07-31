@@ -55,6 +55,13 @@ class LayoutPropsTool(Tool):
         return ToolResult(
             content=json.dumps(result, ensure_ascii=False),
             is_error=bool(is_error),
+            metadata={
+                "source": {
+                    "title": f"Layout-skjema ({args.component_type})",
+                    "url": LAYOUT_SCHEMA_URL,
+                    "kind": "schema",
+                }
+            },
         )
 
 

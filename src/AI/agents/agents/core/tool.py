@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from pydantic import BaseModel
 
@@ -38,6 +38,12 @@ class LoopContext:
     developer: str = ""
     org: str = ""
     designer_api_key: str | None = None
+    # When set, an escalatable permission denial asks the USER for
+    # permission instead of flatly denying: the callable receives a
+    # human-readable description of the requested action and resolves to
+    # True (granted) or False (declined/timeout).  Wired by the loop node
+    # in read-only sessions; None means denials are final.
+    permission_requester: Callable[[str], Awaitable[bool]] | None = None
     extras: dict[str, Any] = field(default_factory=dict)
 
 
@@ -47,18 +53,23 @@ class PermissionResult:
 
     On deny, the reason becomes the tool_result content surfaced to the
     model so it can adapt (e.g. switch to a read-only alternative).
+
+    `escalatable` marks denials the USER can lift interactively (the
+    read-only session gate) — the loop may then ask the user and retry.
+    Non-escalatable denials are final.
     """
 
     allowed: bool
     reason: str = ""
+    escalatable: bool = False
 
     @classmethod
     def allow(cls) -> "PermissionResult":
         return cls(allowed=True)
 
     @classmethod
-    def deny(cls, reason: str) -> "PermissionResult":
-        return cls(allowed=False, reason=reason)
+    def deny(cls, reason: str, escalatable: bool = False) -> "PermissionResult":
+        return cls(allowed=False, reason=reason, escalatable=escalatable)
 
 
 @dataclass

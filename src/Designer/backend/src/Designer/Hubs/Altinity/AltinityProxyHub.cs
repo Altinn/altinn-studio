@@ -388,6 +388,39 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     }
 
     /// <summary>
+    /// Delivers the user's answer to an in-flight permission request from the agent.
+    /// The agent pauses a read-only session when the model attempts a write and
+    /// waits for this response before continuing.
+    /// </summary>
+    public async Task<object> RespondToPermission(string sessionId, string requestId, bool granted)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        ValidateConnectionOwnsSession(sessionId);
+
+        _logger.LogInformation(
+            "RespondToPermission called for session {SessionId} by {Developer}: granted={Granted}",
+            sessionId,
+            developer,
+            granted
+        );
+
+        var httpRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"{_altinitySettings.AgentUrl}/api/agent/permission/{sessionId}"
+        )
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new { request_id = requestId, granted }),
+                System.Text.Encoding.UTF8,
+                "application/json"
+            ),
+        };
+        httpRequest.Headers.Add("X-Developer", developer);
+
+        return await SendRequestToAltinityAsync(httpRequest);
+    }
+
+    /// <summary>
     /// Cancels a running workflow for the given session
     /// </summary>
     public async Task<object> CancelWorkflow(string sessionId)

@@ -74,7 +74,9 @@ class TestPermission:
         validated = tool.input_schema.model_validate(args)
         permission = await tool.check_permission(validated, _write_ctx(allow_app_changes=False))
         assert not permission.allowed
-        assert "chat mode" in permission.reason
+        assert "read-only" in permission.reason
+        # The user can lift this denial interactively (permission prompt).
+        assert permission.escalatable is True
 
 
 # ---------------------------------------------------------------------------

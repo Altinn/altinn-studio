@@ -1,6 +1,7 @@
 import { Messages, type MessagesProps } from './Messages';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { Message } from '../../../types/ChatThread';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import { mockTexts } from '../../../mocks/mockTexts';
@@ -65,6 +66,38 @@ describe('Messages', () => {
     });
 
     expect(screen.queryByText(workflowMessage)).not.toBeInTheDocument();
+  });
+
+  it('renders the permission prompt and forwards the user response with the request id', async () => {
+    const user = userEvent.setup();
+    const onPermissionResponse = jest.fn();
+    renderMessages({
+      messages: [],
+      workflowStatus: {
+        isActive: true,
+        permissionRequest: { requestId: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      },
+      onPermissionResponse,
+    });
+
+    expect(screen.getByText('write_file: App/ui/Side1.json')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: mockTexts.permissionPrompt.allow }));
+
+    expect(onPermissionResponse).toHaveBeenCalledWith('req-1', true);
+  });
+
+  it('does not render the permission prompt when the workflow is inactive', () => {
+    renderMessages({
+      messages: [],
+      workflowStatus: {
+        isActive: false,
+        permissionRequest: { requestId: 'req-1', message: 'write_file: App/ui/Side1.json' },
+      },
+      onPermissionResponse: jest.fn(),
+    });
+
+    expect(screen.queryByText('write_file: App/ui/Side1.json')).not.toBeInTheDocument();
   });
 });
 

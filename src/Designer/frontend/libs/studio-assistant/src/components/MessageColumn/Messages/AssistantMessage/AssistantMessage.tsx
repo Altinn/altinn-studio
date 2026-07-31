@@ -40,7 +40,7 @@ export function AssistantMessage({
           dangerouslySetInnerHTML={{ __html: formatAssistantMessageContent(message.content) }}
         />
       </div>
-      {sources.length > 0 && <SourceList sources={sources} />}
+      {sources.length > 0 && <SourceList sources={sources} label={texts.sourcesLabel} />}
       {filesChanged.length > 0 && <FilesChangedList filePaths={filesChanged} />}
       {criticalFiles.length > 0 && (
         <CriticalFileAlert criticalFiles={criticalFiles} texts={texts.criticalFileAlert} />

@@ -49,6 +49,14 @@ class Skill:
     name: str
     description: str
     path: Path  # the SKILL.md file
+    # Human-readable display title for the chat UI's source chip —
+    # the directory name (`altinn-expressions`) means nothing to end
+    # users.  Falls back to the name when absent.
+    title: str = ""
+    # Canonical official-docs page for the topic, shown as the chip's
+    # link.  Must be a URL verified to resolve — this is the antidote
+    # to the model inventing docs URLs from memory.
+    docs_url: str = ""
 
     def load_body(self) -> str:
         """Read the skill body (markdown after the frontmatter).
@@ -134,7 +142,15 @@ def discover_skills(skills_dir: Path | None = None) -> list[Skill]:
         when_to_use = fields.get("when_to_use", "")
         if when_to_use:
             description = f"{description} {when_to_use}"
-        skills.append(Skill(name=entry.name, description=description, path=skill_file))
+        skills.append(
+            Skill(
+                name=entry.name,
+                description=description,
+                path=skill_file,
+                title=fields.get("title", ""),
+                docs_url=fields.get("docs_url", ""),
+            )
+        )
     return skills
 
 

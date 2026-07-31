@@ -1,5 +1,7 @@
 ---
 description: Altinn authorization policy (policy.xml): rule structure, roles, actions, subjects, and common pitfalls. Load before reading or editing App/config/authorization/.
+title: Tilgangsstyring (policy)
+docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/authorization/
 ---
 
 # ALTINN POLICY STRUCTURE AND RULES
