@@ -67,7 +67,7 @@ public class DataModelWrapper
             return currentModel;
         }
 
-        var (key, groupIndex) = ParseKeyPart(keys[index]);
+        var (key, groupIndex, _) = ParseKeyPart(keys[index]);
         var prop = Array.Find(currentModel.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
         var childModel = prop?.GetValue(currentModel);
         if (childModel is null)
@@ -111,13 +111,23 @@ public class DataModelWrapper
     }
 
     /// <summary>
-    /// Get all valid indexed keys for the field, depending on the number of rows in repeating groups
+    /// Get all valid indexed keys for the field, depending on the number of rows in repeating groups.
+    /// A collection in the middle of the path is always expanded over its rows. For a collection at
+    /// the end of the path, "group" refers to the collection itself, "group[]" enumerates every row,
+    /// and "group[n]" refers to a single row.
     /// </summary>
     /// <example>
     /// GetResolvedKeys("data.bedrifter.styre.medlemmer") =>
     /// [
     ///     "data.bedrifter[0].styre.medlemmer",
     ///     "data.bedrifter[1].styre.medlemmer"
+    ///     ...
+    /// ]
+    /// GetResolvedKeys("data.bedrifter[].styre.medlemmer[]") =>
+    /// [
+    ///     "data.bedrifter[0].styre.medlemmer[0]",
+    ///     "data.bedrifter[0].styre.medlemmer[1]",
+    ///     "data.bedrifter[1].styre.medlemmer[0]",
     ///     ...
     /// ]
     /// </example>
@@ -129,7 +139,8 @@ public class DataModelWrapper
         }
 
         var fieldParts = field.Split('.');
-        return GetResolvedKeysRecursive(fieldParts, _dataModel);
+        return GetResolvedKeysRecursive(fieldParts, _dataModel, _dataModel.GetType(), currentIndex: 0, currentKey: "")
+            .ToArray();
     }
 
     private static string JoinFieldKeyParts(string? currentKey, string? key)
@@ -146,63 +157,101 @@ public class DataModelWrapper
         return currentKey + "." + key;
     }
 
-    private static string[] GetResolvedKeysRecursive(
+    private static IEnumerable<string> GetResolvedKeysRecursive(
         string[] keyParts,
-        object currentModel,
-        int currentIndex = 0,
-        string currentKey = ""
+        object? currentModel,
+        Type currentType,
+        int currentIndex,
+        string currentKey
     )
     {
-        if (currentModel is null)
-        {
-            return [];
-        }
-
         if (currentIndex == keyParts.Length)
         {
             return [currentKey];
         }
 
-        var (key, groupIndex) = ParseKeyPart(keyParts[currentIndex]);
-        var prop = Array.Find(currentModel.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
-        var childModel = prop?.GetValue(currentModel);
-        if (childModel is null)
+        var (key, groupIndex, emptyIndex) = ParseKeyPart(keyParts[currentIndex]);
+        var lookupType = currentModel?.GetType() ?? currentType;
+        var prop = Array.Find(lookupType.GetProperties(), p => IsPropertyWithJsonName(p, key));
+        if (prop is null)
         {
             return [];
         }
 
-        if (childModel is not string && childModel is System.Collections.IEnumerable childModelList)
+        var childType = prop.PropertyType;
+        bool isLastPart = currentIndex == keyParts.Length - 1;
+
+        // Collection (but not string)
+        if (childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)))
         {
-            // childModel is a list
-            if (groupIndex is null)
+            // A bare collection as the last part of the path (e.g. "group") refers to the
+            // collection itself, not its rows, so we return the key without enumerating (just
+            // like a non-collection leaf). Use "group[]" to enumerate every row, or "group[0]"
+            // to refer to a single row.
+            if (isLastPart && groupIndex is null && !emptyIndex)
             {
-                // Index not specified, recurse on all elements
-                int i = 0;
-                var resolvedKeys = new List<string>();
-                foreach (var child in childModelList)
-                {
-                    var newResolvedKeys = GetResolvedKeysRecursive(
-                        keyParts,
-                        child,
-                        currentIndex + 1,
-                        JoinFieldKeyParts(currentKey, key + "[" + i + "]")
-                    );
-                    resolvedKeys.AddRange(newResolvedKeys);
-                    i++;
-                }
-                return resolvedKeys.ToArray();
+                return [JoinFieldKeyParts(currentKey, key)];
             }
-            // Index specified, recurse on that element
-            return GetResolvedKeysRecursive(
-                keyParts,
-                childModel,
-                currentIndex + 1,
-                JoinFieldKeyParts(currentKey, key + "[" + groupIndex + "]")
-            );
+
+            // Indexing into, or descending through, the collection requires the instance.
+            var childModel = currentModel is not null ? prop.GetValue(currentModel) : null;
+            if (childModel is not System.Collections.IEnumerable childModelList)
+            {
+                // Null collection: there are no rows to descend into, so nothing resolves.
+                return [];
+            }
+
+            if (groupIndex is not null)
+            {
+                var elementAt = GetElementAt(childModelList, groupIndex.Value);
+                if (elementAt is null)
+                    return [];
+                return GetResolvedKeysRecursive(
+                    keyParts,
+                    elementAt,
+                    elementAt.GetType(),
+                    currentIndex + 1,
+                    JoinFieldKeyParts(currentKey, $"{key}[{groupIndex.Value}]")
+                );
+            }
+
+            // Enumerate every row: either an unindexed collection in the middle of the path
+            // (descending towards the rest of the path), or "group[]" at the end.
+            var resolvedKeys = new List<string>();
+            int i = 0;
+            foreach (var child in childModelList)
+            {
+                if (child is not null) // null rows can't be set/resolved, skip them
+                {
+                    resolvedKeys.AddRange(
+                        GetResolvedKeysRecursive(
+                            keyParts,
+                            child,
+                            child.GetType(),
+                            currentIndex + 1,
+                            JoinFieldKeyParts(currentKey, $"{key}[{i}]")
+                        )
+                    );
+                }
+                i++;
+            }
+            return resolvedKeys;
         }
 
-        // Otherwise, just recurse
-        return GetResolvedKeysRecursive(keyParts, childModel, currentIndex + 1, JoinFieldKeyParts(currentKey, key));
+        // Non-collection: resolve the key (even if the value is null) ...
+        if (isLastPart)
+        {
+            return [JoinFieldKeyParts(currentKey, key)];
+        }
+        // ... otherwise traverse, falling back to the declared type when the value is null
+        var childValue = currentModel is not null ? prop.GetValue(currentModel) : null;
+        return GetResolvedKeysRecursive(
+            keyParts,
+            childValue,
+            childType,
+            currentIndex + 1,
+            JoinFieldKeyParts(currentKey, key)
+        );
     }
 
     private static object? GetElementAt(System.Collections.IEnumerable enumerable, int index)
@@ -225,18 +274,24 @@ public class DataModelWrapper
         TimeSpan.FromMilliseconds(2)
     );
 
-    private static (string key, int? index) ParseKeyPart(string keyPart)
+    private static (string key, int? index, bool emptyIndex) ParseKeyPart(string keyPart)
     {
         if (keyPart.Length == 0)
         {
             throw new DataModelException("Tried to parse empty part of dataModel key");
         }
-        if (keyPart.Last() != ']')
+        if (keyPart[^1] != ']')
         {
-            return (keyPart, null);
+            return (keyPart, null, false);
+        }
+        // "group[]" refers to every row of the collection (as opposed to "group", which refers
+        // to the collection itself, or "group[n]", which refers to a single row).
+        if (keyPart.EndsWith("[]", StringComparison.Ordinal))
+        {
+            return (keyPart[..^2], null, true);
         }
         var match = _keyPartRegex.Match(keyPart);
-        return (match.Groups[1].Value, int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));
+        return (match.Groups[1].Value, int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture), false);
     }
 
     private static void AddIndexesRecursive(
@@ -250,7 +305,7 @@ public class DataModelWrapper
         {
             return;
         }
-        var (key, groupIndex) = ParseKeyPart(keys[0]);
+        var (key, groupIndex, _) = ParseKeyPart(keys[0]);
         var prop = Array.Find(currentModelType.GetProperties(), p => IsPropertyWithJsonName(p, key));
         if (prop is null)
         {
@@ -358,7 +413,7 @@ public class DataModelWrapper
     {
         var fieldSplit = field.Split('.');
         var keys = fieldSplit[0..^1];
-        var (lastKey, lastGroupIndex) = ParseKeyPart(fieldSplit[^1]);
+        var (lastKey, lastGroupIndex, _) = ParseKeyPart(fieldSplit[^1]);
 
         var containingObject = GetModelDataRecursive(keys, 0, _dataModel, default);
         if (containingObject is null)

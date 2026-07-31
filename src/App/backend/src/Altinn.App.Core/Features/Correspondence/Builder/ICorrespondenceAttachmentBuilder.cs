@@ -38,15 +38,10 @@ public interface ICorrespondenceAttachmentBuilderData
     /// Ownership of the stream is transferred to the client: the client will dispose the stream
     /// after the upload completes.
     /// </summary>
+    /// <remarks>Wrap an in-memory payload yourself — <c>WithData(new MemoryStream(bytes))</c>. Prefer
+    /// streaming large attachments straight from their source rather than materialising them first.</remarks>
     /// <param name="data">The data stream</param>
     ICorrespondenceAttachmentBuilder WithData(Stream data);
-
-    /// <summary>
-    /// Sets the byte array of the data content of the attachment.
-    /// </summary>
-    /// <param name="data">The data</param>
-    [Obsolete("This method is inefficient for large attachments. Consider using WithData(Stream) instead.")]
-    ICorrespondenceAttachmentBuilder WithData(ReadOnlyMemory<byte> data);
 }
 
 /// <summary>
@@ -62,13 +57,6 @@ public interface ICorrespondenceAttachmentBuilder
     /// </summary>
     /// <param name="isEncrypted"><c>true</c> for encrypted, <c>false</c> otherwise</param>
     ICorrespondenceAttachmentBuilder WithIsEncrypted(bool isEncrypted);
-
-    /// <summary>
-    /// Sets the storage location of the attachment data.
-    /// </summary>
-    /// <remarks>In this context, it is extremely likely that the storage location is <see cref="CorrespondenceDataLocationType.ExistingCorrespondenceAttachment"/></remarks>
-    /// <param name="dataLocationType">The data storage location</param>
-    ICorrespondenceAttachmentBuilder WithDataLocationType(CorrespondenceDataLocationType dataLocationType);
 
     /// <summary>
     /// Builds the correspondence attachment.

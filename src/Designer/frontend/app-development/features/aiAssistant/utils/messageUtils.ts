@@ -20,6 +20,16 @@ export function formatRejectionMessage(result: AgentResponse): string {
   return `${ErrorMessages.REQUEST_REJECTED}\n\n${result.message}\n\n${suggestions}`;
 }
 
+export function formatRejectedEventMessage(data: {
+  message?: string;
+  suggestions?: string[];
+}): string {
+  const parts: string[] = [ErrorMessages.REQUEST_REJECTED];
+  if (data.message) parts.push(data.message);
+  if (data.suggestions?.length) parts.push('Forslag:\n' + data.suggestions.join('\n'));
+  return parts.join('\n\n');
+}
+
 export function formatErrorMessage(error: unknown): string {
   const errorMessage = error instanceof Error ? error.message : ErrorMessages.UNKNOWN_ERROR;
   return `${ErrorMessages.REQUEST_FAILED}\n\n${errorMessage}`;

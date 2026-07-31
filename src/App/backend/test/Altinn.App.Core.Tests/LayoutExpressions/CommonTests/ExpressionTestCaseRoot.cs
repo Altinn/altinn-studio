@@ -41,7 +41,7 @@ public class ExpressionTestCaseRoot
     public string? Name { get; set; }
 
     [JsonPropertyName("expression")]
-    public Expression Expression { get; set; }
+    public Expression? Expression { get; set; }
 
     [JsonPropertyName("context")]
     public ComponentContextForTestSpec? Context { get; set; }

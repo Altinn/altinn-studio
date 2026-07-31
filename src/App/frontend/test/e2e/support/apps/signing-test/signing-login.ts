@@ -25,7 +25,7 @@ export function signingTestLogin(user: User) {
     if (!instanceSuffix && Cypress.env('type') !== 'localtest') {
       const org = Tenor.orgs.overflodigSlemTigerAS;
       cy.findByText('Hvem vil du sende inn for?').should('be.visible');
-      cy.findByRole('textbox', { name: 'Søk etter aktør' }).type(org.name);
+      cy.findByRole('textbox', { name: 'Søk etter aktør' }).type(org.orgNr);
       cy.findByRole('button', { name: new RegExp(`org.nr. ${org.orgNr}`) }).click();
     }
 

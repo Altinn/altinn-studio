@@ -84,6 +84,11 @@ beforeEach(() => {
       loginUrl: 'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goto={goTo}',
       upgradeAuthenticationLevelUrl:
         'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high',
+      arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
+      arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
+      arbeidsflateProfileUrl: 'https://af.tt02.altinn.no/profile',
+      accessManagementChangeAndRedirectUrl:
+        'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}',
     },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),

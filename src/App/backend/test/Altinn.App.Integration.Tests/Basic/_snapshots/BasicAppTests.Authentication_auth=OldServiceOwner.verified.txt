@@ -25,10 +25,10 @@
         faxNumber: 92110000,
         eMailAddress: localtest@digdir.no,
         internetAddress: http://digdir.no,
-        mailingAddress: Lørenfaret 1C,
+        mailingAddress: Lørenfaret 1C 0580 Oslo,
         mailingPostalCode: 0580,
         mailingPostalCity: Oslo,
-        businessAddress: Lørenfaret 1C,
+        businessAddress: Lørenfaret 1C 0580 Oslo,
         businessPostalCode: 0580,
         businessPostalCity: Oslo
       },

@@ -1,5 +1,7 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 
+import { ConfirmPopover } from '@app/form-component/app-components';
 import { Spinner } from '@app/form-component/app-components/Spinner/Spinner';
 import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -16,11 +18,17 @@ export type TableCellValue =
   | { [key: string]: TableCellValue };
 
 export interface Column<T> {
-  header: string | null;
+  header: React.ReactNode;
   ariaLabel?: string;
   accessors: string[];
   renderCell?: (values: TableCellValue[], rowData: T, rowIndex: number) => React.ReactNode;
   enableInlineEditing?: boolean;
+}
+
+export interface TableActionButtonConfirm {
+  message: ReactNode;
+  confirmText: ReactNode;
+  cancelText: ReactNode;
 }
 
 export interface TableActionButton<T = unknown> {
@@ -29,12 +37,15 @@ export interface TableActionButton<T = unknown> {
   icon: React.ReactNode;
   color?: 'first' | 'second' | 'success' | 'danger';
   variant?: 'tertiary' | 'primary' | 'secondary';
+  confirm?: TableActionButtonConfirm;
 }
 
 export interface AppTableProps<T> {
   data: T[];
   columns: Column<T>[];
   caption?: React.ReactNode;
+  ariaLabel?: string;
+  tableTestId?: string;
   actionButtons?: TableActionButton<T>[];
   actionButtonHeader?: string;
   mobile?: boolean;
@@ -91,6 +102,8 @@ export function AppTable<T>({
   data,
   columns,
   actionButtons,
+  ariaLabel,
+  tableTestId,
   mobile,
   actionButtonHeader,
   size,
@@ -109,6 +122,8 @@ export function AppTable<T>({
       className={cn(classes.table, tableClassName, { [classes.mobileTable]: mobile })}
       zebra={zebra}
       stickyHeader={stickyHeader}
+      aria-label={ariaLabel}
+      data-testid={tableTestId}
     >
       {caption}
       <Table.Head>
@@ -194,18 +209,38 @@ export function AppTable<T>({
               {actionButtons && actionButtons.length > 0 && (
                 <Table.Cell>
                   <div className={classes.buttonContainer}>
-                    {actionButtons.map((button, idx) => (
-                      <Button
-                        key={idx}
-                        onClick={() => button.onClick(rowIndex, rowData)}
-                        data-size='sm'
-                        variant={button.variant ? button.variant : defaultButtonVariant}
-                        color={button.color ? button.color : 'second'}
-                      >
-                        {button.buttonText}
-                        {button.icon}
-                      </Button>
-                    ))}
+                    {actionButtons.map((button, idx) => {
+                      const { confirm } = button;
+                      const handleAction = () => button.onClick(rowIndex, rowData);
+                      const buttonElement = (
+                        <Button
+                          key={idx}
+                          onClick={confirm ? undefined : handleAction}
+                          data-size='sm'
+                          variant={button.variant ?? defaultButtonVariant}
+                          color={button.color ?? 'second'}
+                        >
+                          {button.buttonText}
+                          {button.icon}
+                        </Button>
+                      );
+
+                      if (!confirm) {
+                        return buttonElement;
+                      }
+
+                      return (
+                        <ConfirmPopover
+                          key={idx}
+                          message={confirm.message}
+                          confirmText={confirm.confirmText}
+                          cancelText={confirm.cancelText}
+                          onConfirm={handleAction}
+                        >
+                          {buttonElement}
+                        </ConfirmPopover>
+                      );
+                    })}
                   </div>
                 </Table.Cell>
               )}

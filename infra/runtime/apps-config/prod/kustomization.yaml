@@ -25,6 +25,10 @@ patches:
         PlatformFrontendSettings__LogoutUrl: https://platform.altinn.no/authentication/api/v1/logout
         PlatformFrontendSettings__LoginUrl: https://platform.altinn.no/authentication/api/v1/authentication?goto={goTo}
         PlatformFrontendSettings__UpgradeAuthenticationLevelUrl: https://platform.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high
+        PlatformFrontendSettings__ArbeidsflateInboxUrl: https://af.altinn.no/
+        PlatformFrontendSettings__ArbeidsflateDialogUrl: https://af.altinn.no/inbox/{dialogId}
+        PlatformFrontendSettings__ArbeidsflateProfileUrl: https://af.altinn.no/profile
+        PlatformFrontendSettings__AccessManagementChangeAndRedirectUrl: https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}
         AppSettings__OpenIdWellKnownEndpoint: https://platform.altinn.no/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Production
         AppSettings__EFormidlingSender: "991825827"
@@ -54,7 +58,11 @@ patches:
             "PlatformFrontendSettings": {
               "LogoutUrl": "https://platform.altinn.no/authentication/api/v1/logout",
               "LoginUrl": "https://platform.altinn.no/authentication/api/v1/authentication?goto={goTo}",
-              "UpgradeAuthenticationLevelUrl": "https://platform.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high"
+              "UpgradeAuthenticationLevelUrl": "https://platform.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high",
+              "ArbeidsflateInboxUrl": "https://af.altinn.no/",
+              "ArbeidsflateDialogUrl": "https://af.altinn.no/inbox/{dialogId}",
+              "ArbeidsflateProfileUrl": "https://af.altinn.no/profile",
+              "AccessManagementChangeAndRedirectUrl": "https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.altinn.no/authentication/api/v1/openid/",

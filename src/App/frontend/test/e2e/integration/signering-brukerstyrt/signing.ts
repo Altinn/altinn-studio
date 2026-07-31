@@ -2,12 +2,12 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Tenor } from 'test/e2e/support/users';
 import { reverseName } from 'test/e2e/support/utils';
 
+import { maskSsn } from 'src/utils/maskSsn';
+
 const appFrontend = new AppFrontend();
 
 describe('Signing', () => {
   it('should allow signing by a specified signee and on behalf of a company', () => {
-    cy.preventPartySelection();
-
     // Step 1: Log in as the initial user
     cy.startAppInstance(appFrontend.apps.signeringBrukerstyrt, {
       cyUser: null,
@@ -16,6 +16,10 @@ describe('Signing', () => {
     });
 
     // Step 2: Fill in the form and specify other valid users as signees
+    cy.findByRole('heading', { name: 'Hvem vil du sende inn for?' }).should('be.visible');
+    cy.findByRole('button', {
+      name: `${Tenor.users.humanAndrefiolin.name.toUpperCase()} personnr. ${maskSsn(Tenor.users.humanAndrefiolin.ssn)}`,
+    }).click();
 
     // Om selskapet
     cy.url().then(() => {
@@ -88,9 +92,9 @@ describe('Signing', () => {
       cy.findByRole('button', { name: /til signering/i }).click();
 
       // Signing step
-      cy.findByRole('table', {
-        name: /personer som skal signere personer som skal signere beskrivelse/i,
-      }).within(() => {
+      cy.findByRole('heading', { name: /personer som skal signere/i });
+      cy.findByText(/personer som skal signere beskrivelse/i);
+      cy.findByRole('table', { name: /personer som skal signere/i }).within(() => {
         cy.findByRole('row', {
           name: new RegExp(
             `${Tenor.orgs.sivilisertAvansertIsbjoernSA.name} (venter på signering|varsling mislyktes)`,
@@ -122,9 +126,9 @@ describe('Signing', () => {
       cy.findByRole('checkbox', { name: /jeg bekrefter at informasjonen og dokumentene er korrekte/i }).click();
       cy.findByRole('button', { name: 'Signer' }).click();
 
-      cy.findByRole('table', {
-        name: /personer som skal signere personer som skal signere beskrivelse/i,
-      }).within(() => {
+      cy.findByRole('heading', { name: /personer som skal signere/i });
+      cy.findByText(/personer som skal signere beskrivelse/i);
+      cy.findByRole('table', { name: /personer som skal signere/i }).within(() => {
         cy.findByRole('row', {
           name: new RegExp(
             `(${Tenor.users.humanAndrefiolin.name}|${reverseName(Tenor.users.humanAndrefiolin.name)})`,

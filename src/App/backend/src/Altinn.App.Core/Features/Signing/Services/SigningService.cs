@@ -222,52 +222,107 @@ internal sealed class SigningService(
         CancellationToken ct = default
     )
     {
-        string taskId = instanceDataMutator.Instance.Process.CurrentTask.ElementId;
+        string taskId = GetTaskId(instanceDataMutator);
 
         using var activity = telemetry?.StartAbortRuntimeDelegatedSigningActivity(taskId);
+
+        // Revoke must run before cleanup, since it reads signee state that cleanup removes.
+        await RevokeDelegatedSigneeRights(instanceDataMutator, signatureConfiguration, taskId, ct);
 
         // cleanup
         RemoveSigneeState(instanceDataMutator, signatureConfiguration.SigneeStatesDataTypeId);
         RemoveAllSignatures(instanceDataMutator, signatureConfiguration.SignatureDataType);
+    }
 
-        List<SigneeContext> signeeContexts = await GetSigneeContexts(
-            instanceDataMutator,
-            signatureConfiguration,
-            ct: ct
-        );
-        List<SigneeContext> signeeContextsWithDelegation =
-        [
-            .. signeeContexts.Where(x => x.SigneeState.IsAccessDelegated),
-        ];
+    /// <inheritdoc />
+    public async Task RevokeSigneeRightsOnTaskEnd(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        CancellationToken ct = default
+    )
+    {
+        string taskId = GetTaskId(instanceDataMutator);
 
-        if (signeeContextsWithDelegation.IsNullOrEmpty())
+        using var activity = telemetry?.StartRevokeSigneeRightsOnTaskEndActivity(taskId);
+
+        await RevokeDelegatedSigneeRights(instanceDataMutator, signatureConfiguration, taskId, ct);
+    }
+
+    /// <summary>
+    /// Gets the id of the task currently being processed.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="IInstanceDataAccessor.TaskId"/> is used instead of <c>Instance.Process.CurrentTask</c>,
+    /// because the latter may already have been moved to the next task (or cleared if the process ended)
+    /// by the time task end/abandon handlers run.
+    /// </remarks>
+    private static string GetTaskId(IInstanceDataAccessor instanceDataAccessor) =>
+        instanceDataAccessor.TaskId
+        ?? instanceDataAccessor.Instance.Process.CurrentTask?.ElementId
+        ?? throw new SigningException("Unable to determine the task ID for signee rights revocation.");
+
+    private async Task RevokeDelegatedSigneeRights(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        string taskId,
+        CancellationToken ct
+    )
+    {
+        try
         {
-            _logger.LogInformation("Didn't find any signee contexts with delegated access rights. Nothing to revoke.");
-            return;
-        }
-
-        string instanceIdCombo = instanceDataMutator.Instance.Id;
-        InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
-        Party instanceOwnerParty =
-            await GetInstanceOwnerParty(instanceOwner)
-            ?? throw new SigningException("Failed to lookup instance owner party. Unable to revoke signing rights.");
-
-        Guid instanceOwnerPartyUuid =
-            instanceOwnerParty.PartyUuid
-            ?? throw new SigningException(
-                "PartyUuid was missing on instance owner party. Unable to revoke signing rights."
+            List<SigneeContext> signeeContexts = await GetSigneeContexts(
+                instanceDataMutator,
+                signatureConfiguration,
+                ct: ct
             );
+            List<SigneeContext> signeeContextsWithDelegation =
+            [
+                .. signeeContexts.Where(x => x.SigneeState.IsAccessDelegated),
+            ];
 
-        AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
+            if (signeeContextsWithDelegation.IsNullOrEmpty())
+            {
+                _logger.LogInformation(
+                    "Didn't find any signee contexts with delegated access rights. Nothing to revoke."
+                );
+                return;
+            }
 
-        await signingDelegationService.RevokeSigneeRights(
-            taskId,
-            instanceIdCombo,
-            instanceOwnerPartyUuid,
-            appIdentifier,
-            signeeContextsWithDelegation,
-            ct
-        );
+            string instanceIdCombo = instanceDataMutator.Instance.Id;
+            InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
+            Party instanceOwnerParty =
+                await GetInstanceOwnerParty(instanceOwner)
+                ?? throw new SigningException(
+                    "Failed to lookup instance owner party. Unable to revoke signing rights."
+                );
+
+            Guid instanceOwnerPartyUuid =
+                instanceOwnerParty.PartyUuid
+                ?? throw new SigningException(
+                    "PartyUuid was missing on instance owner party. Unable to revoke signing rights."
+                );
+
+            AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
+
+            await signingDelegationService.RevokeSigneeRights(
+                taskId,
+                instanceIdCombo,
+                instanceOwnerPartyUuid,
+                appIdentifier,
+                signeeContextsWithDelegation,
+                ct
+            );
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Revocation failure shouldn't block the process from progressing past task end/abandon.
+            // Any remaining delegated rights can be cleaned up by a later run or out-of-band.
+            _logger.LogError(ex, "Failed to revoke delegated signee rights for task {TaskId}.", taskId);
+        }
     }
 
     private async Task<Party?> GetInstanceOwnerParty(InstanceOwner instanceOwner)

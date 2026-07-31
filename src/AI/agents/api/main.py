@@ -62,10 +62,6 @@ async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown logic."""
     # --- Startup ---
     from agents.services.events import sink
-    from agents.services.mcp import start_mcp_connection_loop
-
-    # Start background MCP connection (non-blocking — agent starts even if MCP is down)
-    mcp_task = start_mcp_connection_loop()
 
     # Initialize Langfuse if enabled
     if config.LANGFUSE_ENABLED:
@@ -87,12 +83,6 @@ async def lifespan(app: FastAPI):
 
     # --- Shutdown ---
     logger.info("Shutting down Altinity Agent API...")
-    if mcp_task is not None and not mcp_task.done():
-        mcp_task.cancel()
-        try:
-            await mcp_task
-        except asyncio.CancelledError:
-            pass
 
 
 # Create FastAPI app
@@ -127,31 +117,8 @@ async def favicon():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint including MCP connection and docs status."""
-    from agents.services.mcp import get_mcp_client
-
-    mcp = get_mcp_client()
-    if mcp.is_ready:
-        mcp_status = "connected"
-    else:
-        mcp_status = "connecting"
-
-    if mcp.is_docs_ready:
-        docs_status = "ready"
-    elif mcp.is_docs_indexing:
-        docs_status = "indexing"
-    else:
-        docs_status = "unknown"
-
-    return {
-        "status": "ok",
-        "mcp": {
-            "status": mcp_status,
-            "server_url": mcp.server_url,
-            "last_error": mcp.last_error,
-            "docs_status": docs_status,
-        },
-    }
+    """Health check endpoint."""
+    return {"status": "ok"}
 
 
 if __name__ == "__main__":

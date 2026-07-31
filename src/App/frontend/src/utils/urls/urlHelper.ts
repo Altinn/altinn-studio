@@ -23,24 +23,13 @@ function extractAltinnHost(host: string): string | undefined {
   return match?.[1];
 }
 
-function isProductionEnvironment(altinnHost: string): boolean {
-  return altinnHost === 'altinn.no';
-}
-
-function buildArbeidsflateUrl(altinnHost: string): string {
-  if (isProductionEnvironment(altinnHost)) {
-    return 'https://af.altinn.no/';
-  }
-
-  return `https://af.${altinnHost}/`;
-}
-
-function buildAccessManagementBaseUrl(altinnHost: string): string {
-  return `https://am.ui.${altinnHost}/`;
-}
-
-function redirectAndChangeParty(goTo: string, partyId: number): string {
-  return `accessmanagement/api/v1/reportee/changeandredirect?partyId=${partyId}&goTo=${encodeURIComponent(goTo)}`;
+/**
+ * A host we do not recognize never gets an arbeidsflate link, even if the configuration happens to
+ * hold one. In practice the configuration only reaches apps deployed on these hosts, so this is a
+ * guard rather than a decision — but it is the guard the tests for Studio and unknown hosts rely on.
+ */
+function isRecognizedAltinnHost(host: string): boolean {
+  return extractAltinnHost(host) !== undefined;
 }
 
 export const returnBaseUrlToAltinn = (host: string): string | undefined => {
@@ -55,22 +44,23 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
   if (isLocalEnvironment(host)) {
     return `http://${host}/`;
   }
-
-  const altinnHost = extractAltinnHost(host);
-  if (!altinnHost) {
+  if (!isRecognizedAltinnHost(host)) {
     return undefined;
   }
 
-  const arbeidsflateUrl = buildArbeidsflateUrl(altinnHost);
-  const targetUrl = dialogId ? `${arbeidsflateUrl.replace(/\/$/, '')}/inbox/${dialogId}` : arbeidsflateUrl;
+  const settings = GlobalData.platformFrontendSettings;
+  const inboxUrl = settings.arbeidsflateInboxUrl;
+  if (!inboxUrl) {
+    return undefined;
+  }
 
+  const targetUrl = (dialogId && fillUrlTemplate(settings.arbeidsflateDialogUrl, { dialogId })) || inboxUrl;
   if (partyId === undefined) {
     return targetUrl;
   }
 
   // Use access management changeandredirect endpoint to switch party and redirect to A3 arbeidsflate
-  const amBaseUrl = buildAccessManagementBaseUrl(altinnHost);
-  return `${amBaseUrl}${redirectAndChangeParty(targetUrl, partyId)}`;
+  return fillUrlTemplate(settings.accessManagementChangeAndRedirectUrl, { partyId, goTo: targetUrl }) ?? targetUrl;
 }
 
 export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
@@ -93,16 +83,14 @@ export const returnUrlToArchive = (host: string, partyId?: number, dialogId?: st
 
 export const returnUrlToProfile = (host: string, _partyId?: number | undefined): string | undefined => {
   if (isLocalEnvironment(host)) {
-    return `http://${host}/profile`;
+    // localtest serves no profile page, so its front page is the closest equivalent
+    return `http://${host}/`;
   }
-
-  const altinnHost = extractAltinnHost(host);
-  if (!altinnHost) {
+  if (!isRecognizedAltinnHost(host)) {
     return undefined;
   }
 
-  const arbeidsflateUrl = buildArbeidsflateUrl(altinnHost);
-  return `${arbeidsflateUrl.replace(/\/$/, '')}/profile`;
+  return GlobalData.platformFrontendSettings.arbeidsflateProfileUrl;
 };
 
 export const returnUrlToAllForms = (host: string): string | undefined => {
@@ -122,7 +110,7 @@ export function logoutUrlAltinn(host: string): string | undefined {
     return `http://${host}/`;
   }
 
-  if (!extractAltinnHost(host)) {
+  if (!isRecognizedAltinnHost(host)) {
     return;
   }
   return GlobalData.platformFrontendSettings.logoutUrl;

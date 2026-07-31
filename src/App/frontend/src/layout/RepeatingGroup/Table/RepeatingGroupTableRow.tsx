@@ -20,7 +20,10 @@ import {
   RepGroupContext,
   useRepeatingGroupComponentId,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
+import {
+  useDeleteRowAndFocus,
+  useRepeatingGroupsFocusContext,
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
@@ -91,7 +94,7 @@ export function RepeatingGroupTableRow({
   const { refSetter } = useRepeatingGroupsFocusContext();
 
   const baseComponentId = useRepeatingGroupComponentId();
-  const deleteRow = RepGroupContext.useDeleteRow();
+  const deleteRow = useDeleteRowAndFocus();
   const toggleEditing = RepGroupContext.useToggleEditing();
   const indexedId = useIndexedId(baseComponentId);
   const langTools = useLanguage();
@@ -125,6 +128,7 @@ export function RepeatingGroupTableRow({
 
   return (
     <Table.Row
+      ref={(node) => refSetter(index, 'row', node)}
       className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
       data-row-num={index}
       data-row-uuid={uuid}
@@ -225,6 +229,7 @@ export function RepeatingGroupTableRow({
                         editButtonText={editButtonText}
                         rowHasErrors={rowHasErrors}
                         compactButtons={compactButtons}
+                        buttonRef={(node) => refSetter(index, 'editButton', node)}
                       />
                     )}
                     {editForRow?.deleteButton !== false && displayDeleteColumn && (
@@ -270,6 +275,7 @@ export function RepeatingGroupTableRow({
                     editButtonText={editButtonText}
                     rowHasErrors={rowHasErrors}
                     compactButtons={compactButtons}
+                    buttonRef={(node) => refSetter(index, 'editButton', node)}
                   />
                 </div>
               </Table.Cell>
@@ -313,6 +319,7 @@ export function RepeatingGroupTableRow({
                 editButtonText={editButtonText}
                 rowHasErrors={rowHasErrors}
                 compactButtons={compactButtons}
+                buttonRef={(node) => refSetter(index, 'editButton', node)}
               />
             )}
             {editForRow?.deleteButton !== false && (
@@ -366,6 +373,7 @@ function EditElement({
   rowHasErrors,
   uuid,
   compactButtons,
+  buttonRef,
 }: {
   ariaExpanded: boolean;
   indexedId: string;
@@ -375,11 +383,13 @@ function EditElement({
   editButtonText: string;
   rowHasErrors: boolean;
   compactButtons: boolean;
+  buttonRef?: (node: HTMLButtonElement | null) => void;
 }) {
   const ariaLabel = useAriaLabel(editButtonText);
   const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
   return (
     <Button
+      ref={buttonRef}
       aria-expanded={ariaExpanded}
       aria-controls={ariaExpanded ? `group-edit-container-${indexedId}-${uuid}` : undefined}
       variant='tertiary'
