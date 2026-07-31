@@ -423,6 +423,14 @@ Cypress.Commands.add('testWcag', () => {
   cy.checkA11y(undefined, axeOptions, violationsCallback, skipFailures);
 });
 
+// cypress-axe finds axe-core with `require.resolve`, which throws "require is not defined" in a
+// browser bundle, and its fallback path does not account for axe-core being hoisted to the repo
+// root. The path is resolved in the Node process instead and exposed as `axeCorePath` (see
+// cypress.config.js), so every cy.injectAxe() call gets a working absolute path.
+Cypress.Commands.overwrite('injectAxe', (originalFn, injectOptions) =>
+  originalFn({ axeCorePath: Cypress.expose('axeCorePath'), ...injectOptions }),
+);
+
 Cypress.Commands.add('reloadAndWait', () => {
   cy.waitUntilSaved();
   cy.reload();

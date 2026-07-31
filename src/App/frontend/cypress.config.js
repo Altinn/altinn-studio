@@ -97,6 +97,14 @@ Valid environments are:
     specPattern: ['test/e2e/integration/', 'test/e2e/manual/'],
     supportFile: 'test/e2e/support/index.ts',
   },
+  // cypress-axe locates axe-core with `require.resolve`, which throws "require is not defined" in a
+  // browser bundle (webpack provided a bare `require` inside bundled modules, Rolldown does not),
+  // and its fallback path assumes axe-core sits in this project's node_modules - in this monorepo
+  // Yarn hoists it to the repo root. Resolve it here in the Node process instead and hand it to
+  // `cy.injectAxe` (see the command override in test/e2e/support/custom.ts).
+  expose: {
+    axeCorePath: require.resolve('axe-core/axe.min.js'),
+  },
   fixturesFolder: 'test/e2e/fixtures',
   downloadsFolder: 'test/downloads',
   screenshotOnRunFailure: true,
