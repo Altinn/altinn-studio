@@ -63,6 +63,42 @@ describe('useAltinityWorkflow', () => {
     expect(threads.createMessage).not.toHaveBeenCalled();
   });
 
+  it('persists a duplicated assistant_message event only once', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAltinityWorkflow(threads);
+
+    // The same event delivered twice — a stale second connection or HMR
+    // leftovers replay the exact payload, traceId included.
+    const duplicatedEvent: AssistantMessageEvent = {
+      type: 'assistant_message',
+      session_id: 'thread-a',
+      data: { content: 'Svar', traceId: 'trace-1', mode: 'chat' },
+    };
+
+    await act(async () => {
+      capturedOnAgentMessage!(duplicatedEvent);
+      capturedOnAgentMessage!(duplicatedEvent);
+    });
+
+    expect(threads.createMessage).toHaveBeenCalledTimes(1);
+  });
+
   it('persists assistant message using thread ID, not backend session ID', async () => {
     const threads = createThreadState({ selectedThreadId: 'database-thread-id' });
 

@@ -28,6 +28,19 @@ describe('WSConnector', () => {
     expect(result).toBeInstanceOf(WSConnector);
   });
 
+  it('should return the same instance for the same webSocket urls', () => {
+    const webSocketUrls: Array<string> = ['ws://jest-test-same-urls.com'];
+    const first = WSConnector.getInstance(webSocketUrls, ['MessageClientOne']);
+    const second = WSConnector.getInstance(webSocketUrls, ['MessageClientOne']);
+    expect(second).toBe(first);
+  });
+
+  it('should return separate instances for different webSocket urls', () => {
+    const first = WSConnector.getInstance(['ws://jest-test-hub-a.com'], ['MessageClientOne']);
+    const second = WSConnector.getInstance(['ws://jest-test-hub-b.com'], ['MessageClientTwo']);
+    expect(second).not.toBe(first);
+  });
+
   it('should be able to create an instance using new keyword', () => {
     const webSocketUrls: Array<string> = [
       'ws://jest-test-mocked-url.com',

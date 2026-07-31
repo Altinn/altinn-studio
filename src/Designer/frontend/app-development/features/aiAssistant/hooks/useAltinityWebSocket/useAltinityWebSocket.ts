@@ -30,22 +30,28 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);
 
   useEffect(() => {
-    const wsInstance = new WSConnector(
+    // One shared connection per browser tab (WSConnector.getInstance is keyed
+    // by hub URL). Creating a connection per mount leaked the previous one on
+    // every remount and, with a live handler still attached (e.g. during HMR),
+    // delivered every agent event twice — duplicate assistant bubbles.
+    const wsInstance = WSConnector.getInstance(
       [altinityWebSocketHub()],
       [AltinityClientsName.ReceiveAgentMessage],
     );
     wsInstanceRef.current = wsInstance;
 
     const connection = getAltinitySignalRConnection(wsInstance);
-    if (connection) {
-      registerAgentMessageHandler(connection, messageCallbackRef);
-      setConnectionStatus('connected');
-    }
+    if (!connection) return undefined;
+
+    ensureAgentMessageDispatcher(connection);
+    const subscriber = (message: WorkflowEvent) => messageCallbackRef.current?.(message);
+    agentMessageSubscribers.add(subscriber);
+    setConnectionStatus('connected');
 
     return () => {
-      if (connection) {
-        cleanupConnectionHandlers(connection);
-      }
+      // Remove only this mount's subscriber — the connection and its single
+      // dispatcher stay alive for the next mount (and for other subscribers).
+      agentMessageSubscribers.delete(subscriber);
       setConnectionStatus('disconnected');
     };
   }, []);
@@ -130,14 +136,17 @@ function getAltinitySignalRConnection(wsInstance: any): any | null {
   return connections[ALTINITY_CONNECTION_INDEX];
 }
 
-function cleanupConnectionHandlers(connection: any): void {
-  connection.off(AltinityClientsName.ReceiveAgentMessage);
-}
+// Module-level fan-out: the shared connection gets exactly ONE SignalR handler
+// (registered once per connection), which dispatches to the current mounts'
+// subscribers. Mount/unmount only touches the subscriber set — it never calls
+// connection.off, which would silently drop every other mount's handler.
+const agentMessageSubscribers = new Set<(message: WorkflowEvent) => void>();
+const dispatchedConnections = new WeakSet<object>();
 
-function registerAgentMessageHandler(
-  connection: any,
-  messageCallbackRef: React.MutableRefObject<((message: WorkflowEvent) => void) | null>,
-): void {
+function ensureAgentMessageDispatcher(connection: any): void {
+  if (dispatchedConnections.has(connection)) return;
+  dispatchedConnections.add(connection);
+
   connection.on(AltinityClientsName.ReceiveAgentMessage, (message: WorkflowEvent) => {
     if (
       message.type === 'workflow_status' &&
@@ -146,9 +155,7 @@ function registerAgentMessageHandler(
       return;
     }
 
-    if (messageCallbackRef.current) {
-      messageCallbackRef.current(message);
-    }
+    agentMessageSubscribers.forEach((subscriber) => subscriber(message));
   });
 }
 

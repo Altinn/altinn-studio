@@ -3,7 +3,7 @@ import { WSConnectorMissingWebSocketUrlsException } from 'app-shared/websockets/
 
 export class WSConnector {
   private connections: Array<HubConnection> = [];
-  private static instance: WSConnector;
+  private static instances: Map<string, WSConnector> = new Map();
   private clientsName: Array<string> = [];
 
   constructor(
@@ -15,12 +15,18 @@ export class WSConnector {
     this.clientsName = clientsName;
   }
 
-  // Singleton pattern to ensure only one instance of the WSConnector is created
+  // Singleton per hub set: independent features (sync hub, Altinity hub)
+  // each get one shared connection for their URLs without clobbering each
+  // other. A single global instance would hand the second feature the first
+  // feature's connection.
   public static getInstance(webSocketUrls: Array<string>, clientsName: Array<string>): WSConnector {
-    if (!WSConnector.instance) {
-      WSConnector.instance = new WSConnector(webSocketUrls, clientsName);
+    const instanceKey = [...webSocketUrls].sort().join(';');
+    let instance = WSConnector.instances.get(instanceKey);
+    if (!instance) {
+      instance = new WSConnector(webSocketUrls, clientsName);
+      WSConnector.instances.set(instanceKey, instance);
     }
-    return WSConnector.instance;
+    return instance;
   }
 
   public onMessageReceived<T>(callback: (message: T) => void): void {

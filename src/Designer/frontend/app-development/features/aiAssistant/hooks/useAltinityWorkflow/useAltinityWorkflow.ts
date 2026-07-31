@@ -68,6 +68,11 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   // its offset from this value so timestamps don't drift if the wall clock
   // changes mid-flight.
   const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
+  // Idempotency guard: a delivered-twice assistant_message (stale connection,
+  // HMR) must render and persist exactly once. Keyed on traceId, which is
+  // unique per workflow run; events without one pass through untouched so a
+  // legitimately repeated identical answer is never dropped.
+  const handledAssistantTraceIdsRef = useRef<Set<string>>(new Set());
 
   const {
     selectedThreadId,
@@ -194,6 +199,12 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       if (!threadId) return;
 
       const assistantMessage = event.data;
+      if (assistantMessage.traceId) {
+        const traceKey = `${threadId}:${assistantMessage.traceId}`;
+        if (handledAssistantTraceIdsRef.current.has(traceKey)) return;
+        handledAssistantTraceIdsRef.current.add(traceKey);
+      }
+
       const messageContent = getAssistantMessageContent(assistantMessage);
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
