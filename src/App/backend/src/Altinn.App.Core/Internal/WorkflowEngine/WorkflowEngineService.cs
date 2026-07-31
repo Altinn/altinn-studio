@@ -97,7 +97,8 @@ internal sealed record WorkflowTaskStatus(
     WorkflowFailure? Failure,
     bool Retrying = false,
     WorkflowStepProgress? Progress = null,
-    DateTimeOffset? StartedAt = null
+    DateTimeOffset? StartedAt = null,
+    string? WaitingReason = null
 )
 {
     /// <summary>
@@ -111,6 +112,7 @@ internal sealed record WorkflowTaskStatus(
             Status = Status,
             TargetTask = TargetTask,
             Retrying = Retrying ? true : null,
+            WaitingReason = WaitingReason,
             Progress = Progress is { } progress
                 ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
                 : null,
@@ -409,9 +411,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // long retry storm the workflow spends nearly all its time parked in Requeued.
         //
         // A Waiting head is also a long wait, but deliberately NOT flagged as Retrying: nothing
-        // failed, the step is polling for an external outcome that has not arrived. It reports as
-        // plain Processing until the frontend gets a polling-step treatment of its own (#18935),
-        // which is where that distinction becomes observable.
+        // failed, the step is polling for an external outcome that has not arrived. Its hint is
+        // waitingReason instead - the deferring task's own words for what it is waiting for, which
+        // the engine populates on the head only while it is parked.
         if (activeHead is not null)
         {
             return new WorkflowTaskStatus(
@@ -422,7 +424,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 Progress: activeHead is { StepsCompleted: int completed, StepsTotal: int total and > 0 }
                     ? new WorkflowStepProgress(completed, total)
                     : null,
-                StartedAt: activeHead.CreatedAt
+                StartedAt: activeHead.CreatedAt,
+                WaitingReason: activeHead.WaitingReason
             );
         }
 

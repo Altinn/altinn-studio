@@ -38,6 +38,15 @@ public sealed record AppCallbackPayload
     public required Guid WorkflowId { get; init; }
 
     /// <summary>
+    /// The engine's identity for the step being executed. Stable across every attempt of the step —
+    /// retries and deferral re-executions alike — which makes it a ready-made idempotency key for
+    /// outbound calls the command must not repeat. Deliberately not <c>required</c>: an engine that
+    /// predates the field leaves it <see cref="Guid.Empty"/> rather than failing the callback.
+    /// </summary>
+    [JsonPropertyName("stepId")]
+    public Guid StepId { get; init; }
+
+    /// <summary>
     /// Opaque state blob passed through from the previous command — or, for a step being re-executed
     /// after a deferral, the state that step itself produced on its previous attempt.
     /// </summary>
@@ -63,6 +72,13 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("deferCount")]
     public int DeferCount { get; init; }
+
+    /// <summary>
+    /// When this step deferred for the first time — the instant its wait began — or <c>null</c> before
+    /// its first deferral.
+    /// </summary>
+    [JsonPropertyName("firstDeferredAt")]
+    public DateTimeOffset? FirstDeferredAt { get; init; }
 
     /// <summary>
     /// The instant this step's wait budget runs out, or <c>null</c> before its first deferral.

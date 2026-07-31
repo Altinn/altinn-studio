@@ -2036,8 +2036,12 @@ namespace Altinn.App.Core.Features.Process
         public int DeferCount { get; init; }
         public System.DateTimeOffset? ExecutionDeadline { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public bool IsFinalCheck { get; }
+        public System.TimeSpan? RemainingWait { get; }
         public int RetryCount { get; init; }
+        public System.Guid? StepId { get; init; }
         public System.DateTimeOffset? WaitDeadline { get; init; }
+        public System.DateTimeOffset? WaitStartedAt { get; init; }
         public System.Guid? WorkflowId { get; init; }
     }
     public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
@@ -3701,6 +3705,9 @@ namespace Altinn.App.Core.Internal.Process.Elements
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("targetTask")]
         public string? TargetTask { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("waitingReason")]
+        public string? WaitingReason { get; init; }
     }
     [System.Xml.Serialization.XmlRoot("definitions", Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
     [System.Xml.Serialization.XmlType(Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
@@ -4149,6 +4156,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public int DeferCount { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("executionDeadline")]
         public System.DateTimeOffset? ExecutionDeadline { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("firstDeferredAt")]
+        public System.DateTimeOffset? FirstDeferredAt { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("lockToken")]
         public required string LockToken { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
@@ -4157,6 +4166,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public int RetryCount { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public string? State { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("stepId")]
+        public System.Guid StepId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("waitDeadline")]
         public System.DateTimeOffset? WaitDeadline { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("workflowId")]

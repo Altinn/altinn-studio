@@ -1273,6 +1273,7 @@ internal sealed partial class EngineRepository
                         var stepDeferCounts = new int[allSteps.Count];
                         var stepFirstDeferredAt = new object[allSteps.Count];
                         var stepLastDeferredAt = new object[allSteps.Count];
+                        var stepLastDeferReasons = new object[allSteps.Count];
                         var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
@@ -1288,6 +1289,7 @@ internal sealed partial class EngineRepository
                                 ? s.FirstDeferredAt.Value
                                 : DBNull.Value;
                             stepLastDeferredAt[i] = s.LastDeferredAt.HasValue ? s.LastDeferredAt.Value : DBNull.Value;
+                            stepLastDeferReasons[i] = (object?)s.LastDeferReason ?? DBNull.Value;
                             stepErrorHistories[i] =
                                 s.ErrorHistory.Count > 0
                                     ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
@@ -1303,14 +1305,15 @@ internal sealed partial class EngineRepository
                             defer_count          = v.defer_count,
                             first_deferred_at    = v.first_deferred_at,
                             last_deferred_at     = v.last_deferred_at,
+                            last_defer_reason    = v.last_defer_reason,
                             error_history        = v.error_history,
                             state_out            = v.state_out,
                             engine_trace_context = v.engine_trace_context,
                             updated_at           = @now
                         FROM (
                             SELECT *
-                            FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @error_histories, @engine_trace_contexts, @state_outs)
-                                AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, error_history, engine_trace_context, state_out)
+                            FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @last_defer_reasons, @error_histories, @engine_trace_contexts, @state_outs)
+                                AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, last_defer_reason, error_history, engine_trace_context, state_out)
                             ORDER BY t.id
                         ) AS v
                         WHERE s.id = v.id
@@ -1331,6 +1334,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("last_deferred_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
                             {
                                 Value = stepLastDeferredAt,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("last_defer_reasons", NpgsqlDbType.Array | NpgsqlDbType.Text)
+                            {
+                                Value = stepLastDeferReasons,
                             }
                         );
                         cmd.Parameters.Add(
@@ -1522,6 +1531,7 @@ internal sealed partial class EngineRepository
                         defer_count = 0,
                         first_deferred_at = NULL,
                         last_deferred_at = NULL,
+                        last_defer_reason = NULL,
                         updated_at = @now
                     WHERE job_id = ANY(@ids)
                       AND status != @completed

@@ -119,10 +119,12 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             LockToken = workflowContext.LockToken,
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
+            StepId = context.Step.DatabaseId,
             State = context.StateIn,
             RetryCount = context.Step.RequeueCount,
             ExecutionDeadline = context.ExecutionDeadline,
             DeferCount = context.Step.DeferCount,
+            FirstDeferredAt = context.Step.FirstDeferredAt,
             WaitDeadline = context.WaitDeadline,
         };
 

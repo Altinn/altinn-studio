@@ -125,8 +125,35 @@ public sealed class DeferralTests(EngineAppFixture<Program> fixture) : IAsyncLif
         Assert.Equal(PersistentItemStatus.Waiting, step.Status);
         Assert.Equal(1, step.DeferCount);
         Assert.NotNull(step.FirstDeferredAt);
+        Assert.Equal("not ready yet", step.LastDeferReason);
         Assert.Null(step.ErrorHistory);
         Assert.NotNull(workflow.BackoffUntil);
+    }
+
+    [Fact]
+    public async Task WaitingHead_CollectionDetail_CarriesWaitingReason()
+    {
+        // The collection heads view is the one engine call consumers make on their read path, so the
+        // waiting step's reason must ride on it — a Waiting head without the reason would force a
+        // second per-workflow lookup on every read.
+        var collectionKey = $"col-waiting-reason-{Guid.NewGuid():N}";
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-waiting-reason",
+                [CreateDeferStep("poll-collection-reason", succeedOnAttempt: 2, deferDelayMs: 60_000)]
+            )
+        );
+        var enqueueResponse = await _client.Enqueue(request, collectionKey: collectionKey);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
+
+        var collection = await _client.GetCollection(collectionKey);
+
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+        Assert.Equal(PersistentItemStatus.Waiting, head.Status);
+        Assert.Equal("not ready yet", head.WaitingReason);
     }
 
     [Fact]

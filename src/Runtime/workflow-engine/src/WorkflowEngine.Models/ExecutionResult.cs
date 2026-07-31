@@ -69,7 +69,11 @@ public record struct ExecutionResult(
     /// How long to wait before executing this step again. Clamped up to
     /// <see cref="EngineSettings.MinStepDeferDelay"/> and down to the remaining wait budget.
     /// </param>
-    /// <param name="message">Optional description of what the command is waiting for, surfaced in logs.</param>
+    /// <param name="message">
+    /// Optional description of what the command is waiting for. Persisted as the step's
+    /// <see cref="Step.LastDeferReason"/> and surfaced on status reads, so consumers can show why a
+    /// waiting step is waiting — phrase it for a reader, not a log parser.
+    /// </param>
     public static ExecutionResult Defer(TimeSpan delay, string? message = null) =>
         new(ExecutionStatus.Deferred, message, DeferDelay: delay);
 };

@@ -230,6 +230,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
                 defer_count = 3,
                 first_deferred_at = {deferredAt},
                 last_deferred_at = {deferredAt},
+                last_defer_reason = 'awaiting delivery receipt',
                 state_out = 'signed-state-from-last-deferral'
             WHERE id = {stepId}
             """,
@@ -254,6 +255,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(0, step.DeferCount);
         Assert.Null(step.FirstDeferredAt);
         Assert.Null(step.LastDeferredAt);
+        Assert.Null(step.LastDeferReason);
         Assert.Equal("signed-state-from-last-deferral", step.StateOut);
     }
 

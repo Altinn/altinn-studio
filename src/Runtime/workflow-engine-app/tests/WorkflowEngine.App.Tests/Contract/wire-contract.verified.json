@@ -108,6 +108,11 @@
         "Nullable": true
       },
       {
+        "Name": "firstDeferredAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "lockToken",
         "Kind": "string",
         "Nullable": false
@@ -126,6 +131,11 @@
         "Name": "state",
         "Kind": "string",
         "Nullable": true
+      },
+      {
+        "Name": "stepId",
+        "Kind": "guid",
+        "Nullable": false
       },
       {
         "Name": "waitDeadline",
@@ -260,6 +270,11 @@
       {
         "Name": "stepsTotal",
         "Kind": "int",
+        "Nullable": true
+      },
+      {
+        "Name": "waitingReason",
+        "Kind": "string",
         "Nullable": true
       }
     ]
@@ -475,6 +490,11 @@
       {
         "Name": "labels",
         "Kind": "map<string,string>",
+        "Nullable": true
+      },
+      {
+        "Name": "lastDeferReason",
+        "Kind": "string",
         "Nullable": true
       },
       {

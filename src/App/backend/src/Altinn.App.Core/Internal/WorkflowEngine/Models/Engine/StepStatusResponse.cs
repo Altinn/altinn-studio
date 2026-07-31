@@ -74,6 +74,14 @@ internal sealed record StepStatusResponse
     public DateTimeOffset? FirstDeferredAt { get; init; }
 
     /// <summary>
+    /// The reason given by this step's most recent deferral — the command's own words for why it is
+    /// waiting. Absent when the step has never deferred or gave no reason.
+    /// </summary>
+    [JsonPropertyName("lastDeferReason")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? LastDeferReason { get; init; }
+
+    /// <summary>
     /// The output state produced by this step, passed as input to the next step.
     /// </summary>
     [JsonPropertyName("stateOut")]

@@ -46,6 +46,19 @@ public sealed record ServiceTaskContext
     public Guid? WorkflowId { get; init; }
 
     /// <summary>
+    /// The engine's identity for the step executing this task. Stable across every attempt of the step
+    /// — retries and deferral re-checks alike — which makes it a ready-made idempotency key for an
+    /// outbound call the task must not repeat (dispatch a shipment once, then poll). A new visit to the
+    /// task runs under a new step id. <c>null</c> when the engine predates this field.
+    /// </summary>
+    /// <remarks>
+    /// An idempotency key alone does not decide whether a <em>superseding</em> workflow (after a reject,
+    /// or a written-off failure) may repeat the call — that is a business rule, guarded by durable
+    /// evidence the task records in instance data via <see cref="InstanceDataMutator"/>.
+    /// </remarks>
+    public Guid? StepId { get; init; }
+
+    /// <summary>
     /// How many times this task has been retried after a retryable failure
     /// (<see cref="ServiceTaskResult.FailedRetryable"/>, or an unhandled exception). <c>0</c> on the
     /// first run.
@@ -75,7 +88,19 @@ public sealed record ServiceTaskContext
     /// for its outcome. <c>0</c> on the first run, so a task can tell an opening attempt from a re-check
     /// and, for instance, poll eagerly at first and then back off.
     /// </summary>
+    /// <remarks>
+    /// A pacing signal, never an idempotency guard: a first attempt that performed its side effect and
+    /// crashed before answering re-runs with <c>0</c> here. Guard a must-not-repeat call with durable
+    /// evidence recorded in instance data, plus <see cref="StepId"/> as the outbound idempotency key.
+    /// </remarks>
     public int DeferCount { get; init; }
+
+    /// <summary>
+    /// When this task first deferred — the instant its wait began — or <c>null</c> before the first
+    /// deferral. Brackets the wait together with <see cref="WaitDeadline"/>, so a polling task can pace
+    /// itself progressively (check often early, sparsely late) without bookkeeping of its own.
+    /// </summary>
+    public DateTimeOffset? WaitStartedAt { get; init; }
 
     /// <summary>
     /// The instant at which this task's wait allowance runs out and the engine will fail the step, or
@@ -88,6 +113,25 @@ public sealed record ServiceTaskContext
     /// attempting, or to fail with a message of your own rather than letting the budget expire.
     /// </remarks>
     public DateTimeOffset? WaitDeadline { get; init; }
+
+    /// <summary>
+    /// How much of the wait allowance is left before <see cref="WaitDeadline"/>, floored at zero — or
+    /// <c>null</c> before the first deferral, when the whole allowance is still ahead.
+    /// </summary>
+    public TimeSpan? RemainingWait =>
+        WaitDeadline is { } deadline
+            ? deadline - DateTimeOffset.UtcNow is { Ticks: > 0 } remaining
+                ? remaining
+                : TimeSpan.Zero
+            : null;
+
+    /// <summary>
+    /// <c>true</c> when the wait allowance is spent: this run is the task's final check, and a further
+    /// <see cref="ServiceTaskResult.Defer"/> will fail the step as expired. Use it to end the wait on
+    /// your own terms — <see cref="ServiceTaskResult.FailedPermanent"/> with a message that names what
+    /// never arrived reads better than a generic expiry.
+    /// </summary>
+    public bool IsFinalCheck => WaitDeadline is { } deadline && DateTimeOffset.UtcNow >= deadline;
 }
 
 /// <summary>
@@ -146,7 +190,9 @@ public abstract record ServiceTaskResult
     /// <see cref="ProcessStepOptions.WaitBudget"/> caps the total.
     /// </param>
     /// <param name="reason">
-    /// Optional description of what is being waited for. Recorded in the engine log, not shown to users.
+    /// Optional description of what is being waited for. Persisted on the step and surfaced on status
+    /// reads — the ops dashboard, and the <c>workflow.waitingReason</c> annotation on the app's process
+    /// reads, where a frontend may display it — so phrase it for a reader, not a log parser.
     /// </param>
     /// <remarks>
     /// <para>
@@ -160,6 +206,20 @@ public abstract record ServiceTaskResult
     /// fails the step under its own classification, distinct from an execution failure. Read
     /// <see cref="ServiceTaskContext.DeferCount"/> and <see cref="ServiceTaskContext.WaitDeadline"/> to
     /// pace the wait or give up early on your own terms.
+    /// </para>
+    /// <para>
+    /// The send-then-poll pattern — dispatch once, then defer until the outcome arrives — hinges on the
+    /// send guard being durable: record the dispatch receipt on the instance <em>in the same attempt
+    /// that sends</em> and branch on that evidence. An instance data value
+    /// (<c>IInstanceClient.UpdateDataValue</c> — written immediately, no data-type configuration) is
+    /// usually the right home; reserve a data element for evidence that is itself a document. Never
+    /// branch on engine bookkeeping
+    /// (<see cref="ServiceTaskContext.DeferCount"/>, <see cref="ServiceTaskContext.WaitStartedAt"/>,
+    /// <see cref="ServiceTaskContext.RetryCount"/>, …): the engine records an attempt only after it
+    /// answers, so an attempt that sends and crashes re-runs with all of those unchanged. Use
+    /// <see cref="ServiceTaskContext.StepId"/> as the outbound idempotency key: it covers the residual
+    /// crash window between the send and the receipt write, being the one value the crashed attempt and
+    /// its retry share by construction.
     /// </para>
     /// </remarks>
     public static ServiceTaskDeferredResult Defer(TimeSpan delay, string? reason = null)

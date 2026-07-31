@@ -677,11 +677,12 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public async Task ResolveWorkflowTaskStatus_WhenHeadIsWaiting_ReturnsProcessingWithoutRetryingFlag()
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsWaiting_ReturnsProcessingWithWaitingReason()
     {
         // A Waiting head is a step that deferred while polling for an external outcome. The work is
         // still in flight, so it must read as Processing (never idle) — but nothing failed, so it is
-        // deliberately not flagged Retrying.
+        // deliberately not flagged Retrying. Its hint is waitingReason: the deferring task's own
+        // words, passed through from the collection head to the annotation.
         Guid headId = Guid.NewGuid();
         Guid instanceGuid = Guid.NewGuid();
         string collectionKey = instanceGuid.ToString();
@@ -708,6 +709,7 @@ public class WorkflowEngineServiceTests
                             },
                             StepsCompleted = 4,
                             StepsTotal = 9,
+                            WaitingReason = "shipment sent, awaiting delivery receipt",
                         },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
@@ -728,6 +730,8 @@ public class WorkflowEngineServiceTests
         Assert.False(result.Retrying);
         Assert.Null(result.Failure);
         Assert.Equal(new WorkflowStepProgress(Completed: 4, Total: 9), result.Progress);
+        Assert.Equal("shipment sent, awaiting delivery receipt", result.WaitingReason);
+        Assert.Equal("shipment sent, awaiting delivery receipt", result.ToAppProcessWorkflowStatus().WaitingReason);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
         client.VerifyNoOtherCalls();
     }

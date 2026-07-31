@@ -18,7 +18,9 @@ public class ExecuteServiceTaskTests
         int deferCount = 0,
         DateTimeOffset? waitDeadline = null,
         int retryCount = 0,
-        DateTimeOffset? executionDeadline = null
+        DateTimeOffset? executionDeadline = null,
+        Guid stepId = default,
+        DateTimeOffset? firstDeferredAt = null
     )
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
@@ -41,8 +43,10 @@ public class ExecuteServiceTaskTests
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                StepId = stepId,
                 DeferCount = deferCount,
                 WaitDeadline = waitDeadline,
+                FirstDeferredAt = firstDeferredAt,
                 RetryCount = retryCount,
                 ExecutionDeadline = executionDeadline,
             },
@@ -231,6 +235,60 @@ public class ExecuteServiceTaskTests
         Assert.NotNull(observed);
         Assert.Equal(4, observed.DeferCount);
         Assert.Equal(waitDeadline, observed.WaitDeadline);
+    }
+
+    [Fact]
+    public async Task Execute_ForwardsStepIdAndWaitStartedAtToServiceTaskContext()
+    {
+        // Arrange — StepId is the outbound idempotency key for send-then-poll tasks; WaitStartedAt
+        // lets them pace progressively without bookkeeping of their own.
+        var stepId = Guid.NewGuid();
+        var firstDeferredAt = new DateTimeOffset(2026, 1, 1, 11, 0, 0, TimeSpan.Zero);
+        ServiceTaskContext? observed = null;
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .Callback<ServiceTaskContext>(ctx => observed = ctx)
+            .ReturnsAsync(ServiceTaskResult.Success());
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(
+            CreateInstance(),
+            "myServiceTask",
+            stepId: stepId,
+            firstDeferredAt: firstDeferredAt
+        );
+
+        // Act
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+
+        // Assert
+        Assert.NotNull(observed);
+        Assert.Equal(stepId, observed.StepId);
+        Assert.Equal(firstDeferredAt, observed.WaitStartedAt);
+    }
+
+    [Fact]
+    public async Task Execute_EngineWithoutStepId_ReportsNullNotEmptyGuid()
+    {
+        // Arrange — an engine that predates the field leaves Guid.Empty in the payload; the task must
+        // see "absent", not a constant that would collide as an idempotency key across all steps.
+        ServiceTaskContext? observed = null;
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask
+            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
+            .Callback<ServiceTaskContext>(ctx => observed = ctx)
+            .ReturnsAsync(ServiceTaskResult.Success());
+        var command = CreateCommand(serviceTask.Object);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        // Act
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+
+        // Assert
+        Assert.NotNull(observed);
+        Assert.Null(observed.StepId);
     }
 
     [Fact]

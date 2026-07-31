@@ -22,6 +22,14 @@ internal sealed record AppCallbackPayload
     [JsonPropertyName("workflowId")]
     public required Guid WorkflowId { get; init; }
 
+    /// <summary>
+    /// The engine's identity for the step being executed. Stable across every attempt of the step —
+    /// retries and deferral re-executions alike — which makes it a ready-made idempotency key for
+    /// outbound calls the command must not repeat. A superseding workflow mints a new one.
+    /// </summary>
+    [JsonPropertyName("stepId")]
+    public required Guid StepId { get; init; }
+
     [JsonPropertyName("state")]
     public string? State { get; init; }
 
@@ -44,6 +52,14 @@ internal sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("deferCount")]
     public int DeferCount { get; init; }
+
+    /// <summary>
+    /// When this step deferred for the first time — the instant its wait began — or <c>null</c> before
+    /// its first deferral. With <see cref="WaitDeadline"/> this brackets the wait, so a polling command
+    /// can pace itself progressively (check often early, sparsely late) without its own bookkeeping.
+    /// </summary>
+    [JsonPropertyName("firstDeferredAt")]
+    public DateTimeOffset? FirstDeferredAt { get; init; }
 
     /// <summary>
     /// The absolute instant at which the step's wait budget runs out, or <c>null</c> before its first

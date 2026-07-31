@@ -36,6 +36,9 @@ internal sealed class StepEntity
 
     public DateTimeOffset? LastDeferredAt { get; set; }
 
+    [MaxLength(500)]
+    public string? LastDeferReason { get; set; }
+
     [Column(TypeName = "jsonb")]
     public string CommandJson { get; set; } = "{}";
 
@@ -70,6 +73,7 @@ internal sealed class StepEntity
             DeferCount = step.DeferCount,
             FirstDeferredAt = step.FirstDeferredAt,
             LastDeferredAt = step.LastDeferredAt,
+            LastDeferReason = step.LastDeferReason,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
@@ -102,6 +106,7 @@ internal sealed class StepEntity
             DeferCount = DeferCount,
             FirstDeferredAt = FirstDeferredAt,
             LastDeferredAt = LastDeferredAt,
+            LastDeferReason = LastDeferReason,
             Command = command,
             RetryStrategy = retryStrategy,
             Labels = Labels,

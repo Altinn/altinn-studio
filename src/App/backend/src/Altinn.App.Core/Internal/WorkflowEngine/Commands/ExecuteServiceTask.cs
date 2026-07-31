@@ -48,9 +48,12 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 InstanceDataMutator = instanceDataMutator,
                 CancellationToken = context.CancellationToken,
                 WorkflowId = context.Payload.WorkflowId,
+                // Guid.Empty means the engine predates the field — surface "absent", not a bogus key.
+                StepId = context.Payload.StepId == Guid.Empty ? null : context.Payload.StepId,
                 RetryCount = context.Payload.RetryCount,
                 ExecutionDeadline = context.Payload.ExecutionDeadline,
                 DeferCount = context.Payload.DeferCount,
+                WaitStartedAt = context.Payload.FirstDeferredAt,
                 WaitDeadline = context.Payload.WaitDeadline,
             };
 

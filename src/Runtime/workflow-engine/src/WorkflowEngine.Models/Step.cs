@@ -54,6 +54,14 @@ public sealed record Step : PersistentItem
     /// </summary>
     public DateTimeOffset? LastDeferredAt { get; set; }
 
+    /// <summary>
+    /// The reason given by this step's most recent deferral — the command's own words for why it is
+    /// waiting. Surfaced on status reads so consumers can show what a <see cref="PersistentItemStatus.Waiting"/>
+    /// step is waiting for. Overwritten on every deferral (a stale reason is worse than none) and
+    /// cleared on resume alongside the defer anchors.
+    /// </summary>
+    public string? LastDeferReason { get; set; }
+
 #pragma warning disable CA1002, CA2227 // Mutable domain entity — List<T> with setter is intentional
     /// <summary>
     /// Errors recorded across this step's execution attempts, in chronological order.

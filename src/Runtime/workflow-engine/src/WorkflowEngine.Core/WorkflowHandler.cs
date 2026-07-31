@@ -423,6 +423,12 @@ internal sealed class WorkflowHandler(
             return;
         }
 
+        // Overwritten on every deferral — including the one that expires the wait below — so status
+        // reads always show the step's latest own words for what it is (or was) waiting for.
+        currentStep.LastDeferReason = result.Message is { Length: > 500 } longReason
+            ? longReason[..500]
+            : result.Message;
+
         var waitBudget = currentStep.ResolveWaitBudget(_settings);
         var waitDeadline = (currentStep.FirstDeferredAt ?? now).Add(waitBudget);
         var remainingBudget = waitDeadline - now;

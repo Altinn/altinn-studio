@@ -253,6 +253,12 @@ worker slot and no HTTP slot**; it is simply a row the fetch gate will not claim
 elapses. `Waiting` is non-terminal and counts as *active*: consumers must never read a parked
 workflow as settled.
 
+The reason string is persisted as the step's `lastDeferReason` (overwritten on every deferral,
+cleared on resume) and surfaced wherever the wait is visible: the step on workflow status reads,
+and `waitingReason` on a `Waiting` collection head — populated only while the head is parked, so a
+consumer never sees a stale reason. Phrase it for a reader: it is the one place a waiting step gets
+to say, in its own words, what it is waiting for.
+
 Deferrals are kept rigorously separate from errors:
 
 | | Retryable error | Deferral |

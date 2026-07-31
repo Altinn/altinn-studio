@@ -50,6 +50,9 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
   advancing view («Vi jobber med skjemaet ditt»). With `serviceView: layout` the two are
   deliberately identical: the app's own page owns the waiting presentation for both. A lost
   external signal strands the first and merely delays the second.
+- **Why is it waiting?** while a deferral is parked, the task's own reason (this app passes one on
+  every `Defer`) travels all the way out: `lastDeferReason` on the engine step, `waitingReason` on
+  the collection head and on the app's `workflow` process-read annotation, and the dashboard card.
 - **Accelerating a wait:** the same, plus a nudge —
   `POST {engine}/api/v1/ttd%2Fprocess-transition-test/workflows/{workflowId}/nudge` (or the
   dashboard's «check now» button) clears the pending wait so the next check happens immediately

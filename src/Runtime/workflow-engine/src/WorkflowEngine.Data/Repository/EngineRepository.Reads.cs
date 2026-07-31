@@ -90,6 +90,14 @@ internal sealed partial class EngineRepository
                             StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
                             StepsTotal = w.Steps.Count,
                             CreatedAt = w.CreatedAt,
+                            WaitingReason =
+                                w.Status == PersistentItemStatus.Waiting
+                                    ? w
+                                        .Steps.Where(s => s.Status == PersistentItemStatus.Waiting)
+                                        .OrderBy(s => s.ProcessingOrder)
+                                        .Select(s => s.LastDeferReason)
+                                        .FirstOrDefault()
+                                    : null,
                         })
                         .ToListAsync(cancellationToken)
                     : [];
