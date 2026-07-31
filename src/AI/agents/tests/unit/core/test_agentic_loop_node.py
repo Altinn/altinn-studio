@@ -24,6 +24,7 @@ from agents.core import (
 from agents.graph.nodes.agentic_loop_node import (
     _apply_result_to_state,
     _build_registry,
+    _emit_workflow_completion,
     _final_summary_text,
     _make_event_bridge,
     handle,
@@ -330,6 +331,49 @@ class TestApplyResultToState:
         ctx = self._ctx_with(changed_files={"z.json", "a.json", "m.json"})
         _apply_result_to_state(state, result, ctx)
         assert state.changed_files == ["a.json", "m.json", "z.json"]
+
+
+# ---------------------------------------------------------------------------
+# Workflow completion event
+# ---------------------------------------------------------------------------
+
+
+class _SinkStub:
+    def __init__(self):
+        self.events = []
+
+    def send(self, event):
+        self.events.append(event)
+
+    def add_to_conversation_history(self, *args, **kwargs):
+        pass
+
+
+class TestEmitWorkflowCompletion:
+    def _emit(self, monkeypatch, trace_id):
+        stub = _SinkStub()
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink", stub)
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.get_current_trace_id",
+            lambda: trace_id,
+        )
+        result = LoopResult(
+            reason=TerminationReason.COMPLETED,
+            messages=[],
+            final_text="Ferdig.",
+            turns=1,
+        )
+        ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
+        _emit_workflow_completion(_state(), result, ctx)
+        return next(e for e in stub.events if e.type == "assistant_message")
+
+    def test_assistant_message_carries_trace_id(self, monkeypatch):
+        message = self._emit(monkeypatch, trace_id="trace-123")
+        assert message.data["traceId"] == "trace-123"
+
+    def test_assistant_message_omits_trace_id_when_tracing_is_off(self, monkeypatch):
+        message = self._emit(monkeypatch, trace_id=None)
+        assert "traceId" not in message.data
 
 
 # ---------------------------------------------------------------------------

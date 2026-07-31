@@ -155,6 +155,70 @@ public class AltinityWebSocketServiceTests
     }
 
     [Fact]
+    public async Task TryPersistAssistantMessage_FallsBackToMessageField()
+    {
+        _chatServiceMock
+            .Setup(s =>
+                s.CreateMessageAsync(
+                    s_threadId,
+                    It.Is<CreateChatMessageRequest>(r => r.Content == "Svar i message-feltet"),
+                    s_editingContext,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(CreateMessageEntity());
+        AltinityWebSocketService service = CreateService();
+        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
+        JsonNode message = new JsonObject
+        {
+            ["type"] = "assistant_message",
+            ["session_id"] = s_threadId.ToString(),
+            ["data"] = new JsonObject { ["message"] = "Svar i message-feltet" },
+        };
+
+        await service.TryPersistAssistantMessageAsync(message);
+
+        Assert.NotNull(message["data"]!["persistedMessageId"]);
+    }
+
+    [Fact]
+    public async Task RemoveSessionContextsForDeveloper_EvictsOnlyThatDevelopersSessions()
+    {
+        var otherContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "other-app", "otherUser");
+        var otherThreadId = Guid.NewGuid();
+        _chatServiceMock
+            .Setup(s =>
+                s.CreateMessageAsync(
+                    It.IsAny<Guid>(),
+                    It.IsAny<CreateChatMessageRequest>(),
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(CreateMessageEntity());
+        AltinityWebSocketService service = CreateService();
+        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
+        service.TrackSessionContext(otherThreadId.ToString(), otherContext);
+
+        service.RemoveSessionContextsForDeveloper(s_editingContext.Developer);
+
+        // Evicted session: no context → persistence is left to the client.
+        JsonNode evicted = CreateAssistantMessage();
+        await service.TryPersistAssistantMessageAsync(evicted);
+        Assert.Null(evicted["data"]!["persistedMessageId"]);
+
+        // The other developer's session is untouched.
+        JsonNode kept = new JsonObject
+        {
+            ["type"] = "assistant_message",
+            ["session_id"] = otherThreadId.ToString(),
+            ["data"] = new JsonObject { ["content"] = "Svar" },
+        };
+        await service.TryPersistAssistantMessageAsync(kept);
+        Assert.NotNull(kept["data"]!["persistedMessageId"]);
+    }
+
+    [Fact]
     public async Task TryPersistAssistantMessage_SkipsMessagesWithoutContent()
     {
         AltinityWebSocketService service = CreateService();

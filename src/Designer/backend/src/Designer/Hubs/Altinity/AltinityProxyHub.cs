@@ -176,10 +176,27 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             sessionId
         );
 
-        // Re-register session on the agents WS before starting
+        // Re-register session on the agents WS before starting. The editing context is
+        // rebuilt from the start request, so re-verify thread ownership against it —
+        // otherwise a request with a different org/app than the one registered would
+        // silently desync the session's persistence context.
         string org = ExtractRequiredString(request, "org");
         string app = ExtractRequiredString(request, "app");
+        org.ValidPathSegment(nameof(org));
+        app.ValidPathSegment(nameof(app));
+
+        if (!Guid.TryParse(sessionId, out Guid threadId))
+        {
+            throw new HubException("Invalid session_id format");
+        }
+
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(threadId, editingContext);
+        if (!isOwner)
+        {
+            throw new HubException("Access denied: Developer does not own current thread.");
+        }
+
         await _webSocketService.EnsureConnectedAsync(developer);
         await _webSocketService.RegisterSessionAsync(sessionId, editingContext);
 

@@ -7,6 +7,13 @@ from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
 
+# Event types that only narrate an in-flight run. Once a session is cancelled
+# these must not reach clients: the terminal "cancelled" error event has
+# already been sent, and a trailing status/permission event would resurrect
+# the workflow activity indicator in the frontend with nothing left to turn
+# it off. Result-bearing events (assistant_message, error, done) still flow.
+PROGRESS_EVENT_TYPES = frozenset({"status", "assistant_message_chunk", "permission_request"})
+
 
 class _SessionBuffer:
     """Thread-safe event buffer for a single session with async notification."""
@@ -122,6 +129,11 @@ class EventSink:
 
         # Update session status cache
         with self._state_lock:
+            if event.type in PROGRESS_EVENT_TYPES and event.session_id in self._cancelled:
+                log.info(
+                    f"🛑 Dropping {event.type} for cancelled session {event.session_id}"
+                )
+                return
             if event.type == "assistant_message":
                 self._session_status.setdefault(event.session_id, {"status": "running"})
                 self._session_status[event.session_id]["last_message"] = event.data

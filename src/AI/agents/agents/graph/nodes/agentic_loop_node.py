@@ -63,6 +63,7 @@ from agents.core import (
 )
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
+from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -590,6 +591,12 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
         # Read-only run: the frontend must not reset the repo or check out
         # a session branch — nothing was (or could have been) committed.
         message_data["no_branch_operations"] = True
+    # The Langfuse trace id doubles as the run's identity on the event: the
+    # frontend uses it to dedupe redelivered events and to submit feedback
+    # on the answer (PUT chat/feedback/{traceId}).
+    trace_id = get_current_trace_id()
+    if trace_id:
+        message_data["traceId"] = trace_id
     sink.send(
         AgentEvent(
             type="assistant_message",

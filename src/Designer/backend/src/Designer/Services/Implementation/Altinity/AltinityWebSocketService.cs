@@ -28,6 +28,12 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 /// The connection outlives individual SignalR connections so that in-flight workflows
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
+/// <para>
+/// Assumes a single Designer replica: the agents service streams every event for a
+/// developer to each of that developer's connections, so a second replica would open its
+/// own connection, receive the same events, and persist duplicate assistant messages.
+/// Server-side persistence needs an idempotency key before the deployment scales out.
+/// </para>
 /// </summary>
 public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 {
@@ -140,6 +146,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     {
         if (_connections.TryRemove(developer, out var connection))
         {
+            RemoveSessionContextsForDeveloper(developer);
             await CloseWebSocketAsync(connection);
         }
     }
@@ -172,7 +179,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
                             "Agents WebSocket closed by remote for developer {Developer}",
                             developer
                         );
-                        _connections.TryRemove(developer, out _);
+                        RemoveConnection(developer, connection);
                         return;
                     }
 
@@ -228,7 +235,38 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Agents WebSocket listener error for developer {Developer}", developer);
-            _connections.TryRemove(developer, out _);
+            RemoveConnection(developer, connection);
+        }
+    }
+
+    /// <summary>
+    /// Removes the developer's connection entry only if it still refers to
+    /// <paramref name="connection"/>. A reconnect may already have replaced the entry,
+    /// and blindly removing by key would orphan the replacement while its listener keeps
+    /// running — every agent event would then be delivered (and persisted) twice.
+    /// </summary>
+    private void RemoveConnection(string developer, DeveloperConnection connection)
+    {
+        if (_connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection)))
+        {
+            RemoveSessionContextsForDeveloper(developer);
+        }
+    }
+
+    /// <summary>
+    /// Drops the session→editing-context entries for a developer whose agents connection
+    /// closed. Events for those sessions can no longer arrive, and without eviction the
+    /// map would grow for the lifetime of the process. Re-registration on the next
+    /// connection restores the entries.
+    /// </summary>
+    internal void RemoveSessionContextsForDeveloper(string developer)
+    {
+        foreach (var entry in _sessionContexts)
+        {
+            if (entry.Value.Developer == developer)
+            {
+                _sessionContexts.TryRemove(entry);
+            }
         }
     }
 
@@ -271,7 +309,13 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
             }
 
             JsonNode? data = message["data"];
-            string? content = data?["content"]?.GetValue<string>() ?? data?["response"]?.GetValue<string>();
+
+            // Same field fallbacks as the frontend's getAssistantMessageContent, so the
+            // server-persisted row matches what a client-side persist would have stored.
+            string? content =
+                data?["content"]?.GetValue<string>()
+                ?? data?["response"]?.GetValue<string>()
+                ?? data?["message"]?.GetValue<string>();
             if (string.IsNullOrWhiteSpace(content))
             {
                 return;

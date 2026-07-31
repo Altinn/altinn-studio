@@ -18,7 +18,9 @@ export class WSConnector {
   // Singleton per hub set: independent features (sync hub, Altinity hub)
   // each get one shared connection for their URLs without clobbering each
   // other. A single global instance would hand the second feature the first
-  // feature's connection.
+  // feature's connection. Note that only the URLs key the instance: the first
+  // caller's clientsName wins, so features sharing a hub URL must also share
+  // the same client names (or register handlers directly on the connection).
   public static getInstance(webSocketUrls: Array<string>, clientsName: Array<string>): WSConnector {
     const instanceKey = [...webSocketUrls].sort().join(';');
     let instance = WSConnector.instances.get(instanceKey);

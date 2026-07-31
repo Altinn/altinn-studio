@@ -98,6 +98,45 @@ describe('useAltinityWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-a']?.steps).toHaveLength(1);
   });
 
+  it('does not re-adopt a workflow from status events trailing a terminal event', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    // A cancelled run's terminal event, followed by a status event the agent
+    // had already emitted before it noticed the cancellation. The straggler
+    // must not resurrect the workflow — no completion would ever follow it.
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'error',
+        session_id: 'thread-a',
+        data: { status: 'cancelled', done: true },
+      });
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Straggler etter kansellering' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
+  });
+
   it('renders a server-persisted message without persisting a client-side copy', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
