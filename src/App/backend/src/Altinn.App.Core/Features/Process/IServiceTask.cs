@@ -43,21 +43,57 @@ public sealed record ServiceTaskContext
     /// tasks with external side effects can use it to tell a retried attempt apart from a genuinely
     /// new pass through the task.
     /// </summary>
-    public Guid? WorkflowId { get; init; }
+    public required Guid WorkflowId { get; init; }
 
     /// <summary>
     /// The engine's identity for the step executing this task. Stable across every attempt of the step
     /// — retries and deferral re-checks alike — which makes it a ready-made idempotency key for an
     /// outbound call the task must not repeat (dispatch a shipment once, then poll). A new visit to the
-    /// task runs under a new step id. <c>null</c> when the engine predates this field.
+    /// task runs under a new step id.
     /// </summary>
     /// <remarks>
     /// An idempotency key alone does not decide whether a <em>superseding</em> workflow (after a reject,
     /// or a written-off failure) may repeat the call — that is a business rule, guarded by durable
     /// evidence the task records in instance data via <see cref="InstanceDataMutator"/>.
     /// </remarks>
-    public Guid? StepId { get; init; }
+    public required Guid StepId { get; init; }
 
+    /// <summary>
+    /// The clock bounding <em>this attempt</em> (<see cref="ProcessStepOptions.MaxExecutionTime"/>):
+    /// how many consecutive errors preceded it, and when it is cut off.
+    /// </summary>
+    public ServiceTaskAttempt Attempt { get; init; } = new();
+
+    /// <summary>
+    /// The clock bounding <em>the whole wait</em> (<see cref="ProcessStepOptions.WaitBudget"/>):
+    /// which check this is, when the wait began and ends, and how much allowance is left.
+    /// </summary>
+    /// <remarks>
+    /// Everything here is a pacing signal, never an idempotency guard: the engine records an attempt
+    /// only after it answers, so an attempt that performed a side effect and crashed re-runs with all
+    /// of these unchanged. Evidence of a side effect lives in <see cref="Checkpoints"/>.
+    /// </remarks>
+    public ServiceTaskWait Wait { get; init; } = new();
+
+    /// <summary>
+    /// Durable checkpoints — the send guard for send-then-poll tasks. Written immediately, read
+    /// through to Storage; see <see cref="ServiceTaskCheckpoints"/>.
+    /// </summary>
+    /// <remarks>
+    /// The runtime wires the Storage-backed store; a context constructed outside the runtime (an
+    /// app's unit test) defaults to working in-memory checkpoint semantics without any setup.
+    /// </remarks>
+    public ServiceTaskCheckpoints Checkpoints { get; init; } =
+        new(new InMemoryServiceTaskCheckpointStore(), CancellationToken.None);
+}
+
+/// <summary>
+/// The per-attempt clock of a <see cref="ServiceTaskContext"/>: one execution, bounded by
+/// <see cref="ProcessStepOptions.MaxExecutionTime"/>. Distinct from <see cref="ServiceTaskWait"/>,
+/// which bounds the whole wait across attempts.
+/// </summary>
+public sealed record ServiceTaskAttempt
+{
     /// <summary>
     /// How many times this task has been retried after a retryable failure
     /// (<see cref="ServiceTaskResult.FailedRetryable"/>, or an unhandled exception). <c>0</c> on the
@@ -67,7 +103,7 @@ public sealed record ServiceTaskContext
     /// Counts consecutive failures <em>since the last deferral</em>, not attempts across the task's whole
     /// life — deferring resets it, so a long wait does not arrive with its retry allowance spent. A task
     /// that has polled for hours without genuinely failing reads <c>0</c> here and a high
-    /// <see cref="DeferCount"/>.
+    /// <see cref="ServiceTaskWait.DeferCount"/>.
     /// </remarks>
     public int RetryCount { get; init; }
 
@@ -76,31 +112,35 @@ public sealed record ServiceTaskContext
     /// failure — derived from <see cref="ProcessStepOptions.MaxExecutionTime"/>, or the engine default.
     /// </summary>
     /// <remarks>
-    /// <see cref="CancellationToken"/> enforces this but only reports being cut off. The deadline lets
-    /// the task decide beforehand: with 10 seconds left and a 30-second call to make,
+    /// <see cref="ServiceTaskContext.CancellationToken"/> enforces this but only reports being cut off.
+    /// The deadline lets the task decide beforehand: with 10 seconds left and a 30-second call to make,
     /// <see cref="ServiceTaskResult.Defer"/> earns a fresh full budget instead of a recorded failure.
-    /// Distinct from <see cref="WaitDeadline"/>, which bounds the whole wait rather than one attempt.
+    /// Distinct from <see cref="ServiceTaskWait.Deadline"/>, which bounds the whole wait rather than
+    /// one attempt.
     /// </remarks>
-    public DateTimeOffset? ExecutionDeadline { get; init; }
+    public DateTimeOffset? Deadline { get; init; }
+}
 
+/// <summary>
+/// The whole-wait clock of a <see cref="ServiceTaskContext"/>: every check a deferring task makes,
+/// bounded by <see cref="ProcessStepOptions.WaitBudget"/>. Distinct from
+/// <see cref="ServiceTaskAttempt"/>, which bounds one execution.
+/// </summary>
+public sealed record ServiceTaskWait
+{
     /// <summary>
     /// How many times this task has already deferred (<see cref="ServiceTaskResult.Defer"/>) while waiting
     /// for its outcome. <c>0</c> on the first run, so a task can tell an opening attempt from a re-check
     /// and, for instance, poll eagerly at first and then back off.
     /// </summary>
-    /// <remarks>
-    /// A pacing signal, never an idempotency guard: a first attempt that performed its side effect and
-    /// crashed before answering re-runs with <c>0</c> here. Guard a must-not-repeat call with durable
-    /// evidence recorded in instance data, plus <see cref="StepId"/> as the outbound idempotency key.
-    /// </remarks>
     public int DeferCount { get; init; }
 
     /// <summary>
     /// When this task first deferred — the instant its wait began — or <c>null</c> before the first
-    /// deferral. Brackets the wait together with <see cref="WaitDeadline"/>, so a polling task can pace
+    /// deferral. Brackets the wait together with <see cref="Deadline"/>, so a polling task can pace
     /// itself progressively (check often early, sparsely late) without bookkeeping of its own.
     /// </summary>
-    public DateTimeOffset? WaitStartedAt { get; init; }
+    public DateTimeOffset? StartedAt { get; init; }
 
     /// <summary>
     /// The instant at which this task's wait allowance runs out and the engine will fail the step, or
@@ -109,17 +149,16 @@ public sealed record ServiceTaskContext
     /// </summary>
     /// <remarks>
     /// A deadline rather than a remaining duration, which would already have aged by the time the task
-    /// reads it. Compare against the current time to decide whether one more re-check is worth
-    /// attempting, or to fail with a message of your own rather than letting the budget expire.
+    /// reads it.
     /// </remarks>
-    public DateTimeOffset? WaitDeadline { get; init; }
+    public DateTimeOffset? Deadline { get; init; }
 
     /// <summary>
-    /// How much of the wait allowance is left before <see cref="WaitDeadline"/>, floored at zero — or
+    /// How much of the wait allowance is left before <see cref="Deadline"/>, floored at zero — or
     /// <c>null</c> before the first deferral, when the whole allowance is still ahead.
     /// </summary>
-    public TimeSpan? RemainingWait =>
-        WaitDeadline is { } deadline
+    public TimeSpan? Remaining =>
+        Deadline is { } deadline
             ? deadline - DateTimeOffset.UtcNow is { Ticks: > 0 } remaining
                 ? remaining
                 : TimeSpan.Zero
@@ -131,51 +170,60 @@ public sealed record ServiceTaskContext
     /// your own terms — <see cref="ServiceTaskResult.FailedPermanent"/> with a message that names what
     /// never arrived reads better than a generic expiry.
     /// </summary>
-    public bool IsFinalCheck => WaitDeadline is { } deadline && DateTimeOffset.UtcNow >= deadline;
+    public bool IsFinalCheck => Deadline is { } deadline && DateTimeOffset.UtcNow >= deadline;
+}
+
+/// <summary>
+/// Durable checkpoints for a service task — the send guard for send-then-poll work, stored as
+/// instance data values keyed <c>serviceTask:{Type}:{key}</c>.
+/// </summary>
+/// <remarks>
+/// Checkpoints are instance metadata: visible to anyone who can read the instance, retained for
+/// the instance's lifetime (a useful audit trail), and sized for identifiers and markers — never
+/// secrets or documents. To scope a value to one pass through the task, put the pass identity in
+/// the value (e.g. <c>$"{context.WorkflowId}:{receiptId}"</c>) and compare on re-entry — a repeated
+/// visit to the task (BPMN round trip) reads the earlier pass's checkpoint and must decide
+/// deliberately whether to skip, fail, or redo.
+/// </remarks>
+public sealed class ServiceTaskCheckpoints
+{
+    private readonly IServiceTaskCheckpointStore _store;
+    private readonly CancellationToken _cancellationToken;
+
+    internal ServiceTaskCheckpoints(IServiceTaskCheckpointStore store, CancellationToken cancellationToken)
+    {
+        _store = store;
+        _cancellationToken = cancellationToken;
+    }
 
     /// <summary>
-    /// Records a durable checkpoint — the send guard for send-then-poll tasks. Written immediately, as
-    /// an instance data value keyed <c>serviceTask:{Type}:{key}</c>: deliberately <em>not</em> part of
-    /// the save-on-success unit of work, because its job is to survive an attempt that fails after a
-    /// side effect. Record the receipt in the same attempt that sends, and branch on
-    /// <see cref="GetCheckpoint"/> — never on engine bookkeeping like <see cref="DeferCount"/>.
+    /// Records a checkpoint. Written to Storage immediately — deliberately <em>not</em> part of the
+    /// save-on-success unit of work, because its job is to survive an attempt that fails after a side
+    /// effect. Record the receipt in the same attempt that sends, and branch on <see cref="Get"/> —
+    /// never on engine bookkeeping like <see cref="ServiceTaskWait.DeferCount"/>.
     /// </summary>
-    /// <remarks>
-    /// Checkpoints are instance metadata: visible to anyone who can read the instance, retained for
-    /// the instance's lifetime (a useful audit trail), and sized for identifiers and markers — never
-    /// secrets or documents. To scope a value to one pass through the task, put the pass identity in
-    /// the value (e.g. <c>$"{WorkflowId}:{receiptId}"</c>) and compare on re-entry — a repeated visit
-    /// to the task (BPMN round trip) reads the earlier pass's checkpoint and must decide deliberately
-    /// whether to skip, fail, or redo.
-    /// </remarks>
     /// <param name="key">Checkpoint name, unique within this task type.</param>
     /// <param name="value">The evidence to record; overwrites any previous value for the key.</param>
-    public Task SetCheckpoint(string key, string value)
+    public Task Set(string key, string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(value);
-        return CheckpointStore.Set(key, value, CancellationToken);
+        return _store.Set(key, value, _cancellationToken);
     }
 
     /// <summary>
-    /// Reads a checkpoint recorded by <see cref="SetCheckpoint"/>, or <c>null</c> when none exists.
-    /// Reads through to Storage (fetched once per attempt) rather than this attempt's execution
-    /// snapshot, so a checkpoint written by a crashed attempt is visible to its retry. A failed read
-    /// throws instead of returning <c>null</c> — <c>null</c> strictly means "never recorded", so a
-    /// send guard can trust it.
+    /// Reads a checkpoint recorded by <see cref="Set"/>, or <c>null</c> when none exists. Reads
+    /// through to Storage (fetched once per attempt) rather than this attempt's execution snapshot,
+    /// so a checkpoint written by a crashed attempt is visible to its retry. A failed read throws
+    /// instead of returning <c>null</c> — <c>null</c> strictly means "never recorded", so a send
+    /// guard can trust it.
     /// </summary>
     /// <param name="key">Checkpoint name, unique within this task type.</param>
-    public Task<string?> GetCheckpoint(string key)
+    public Task<string?> Get(string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        return CheckpointStore.Get(key, CancellationToken);
+        return _store.Get(key, _cancellationToken);
     }
-
-    /// <summary>
-    /// The runtime wires the Storage-backed store; the in-memory default gives app code constructing
-    /// a context in unit tests working checkpoint semantics without any setup.
-    /// </summary>
-    internal IServiceTaskCheckpointStore CheckpointStore { get; init; } = new InMemoryServiceTaskCheckpointStore();
 }
 
 /// <summary>
@@ -248,16 +296,17 @@ public abstract record ServiceTaskResult
     /// <para>
     /// Waiting is bounded by <see cref="ProcessStepOptions.WaitBudget"/> (or the engine default); expiry
     /// fails the step under its own classification, distinct from an execution failure. Read
-    /// <see cref="ServiceTaskContext.DeferCount"/> and <see cref="ServiceTaskContext.WaitDeadline"/> to
-    /// pace the wait or give up early on your own terms.
+    /// <see cref="ServiceTaskContext.Wait"/> (<see cref="ServiceTaskWait.DeferCount"/>,
+    /// <see cref="ServiceTaskWait.Remaining"/>, <see cref="ServiceTaskWait.IsFinalCheck"/>) to pace the
+    /// wait or give up early on your own terms.
     /// </para>
     /// <para>
     /// The send-then-poll pattern — dispatch once, then defer until the outcome arrives — hinges on the
     /// send guard being durable: record the dispatch receipt with
-    /// <see cref="ServiceTaskContext.SetCheckpoint"/> <em>in the same attempt that sends</em> and
-    /// branch on <see cref="ServiceTaskContext.GetCheckpoint"/>. Never branch on engine bookkeeping
-    /// (<see cref="ServiceTaskContext.DeferCount"/>, <see cref="ServiceTaskContext.WaitStartedAt"/>,
-    /// <see cref="ServiceTaskContext.RetryCount"/>, …): the engine records an attempt only after it
+    /// <c>context.Checkpoints.Set</c> <em>in the same attempt that sends</em> and branch on
+    /// <c>context.Checkpoints.Get</c> (see <see cref="ServiceTaskCheckpoints"/>). Never branch on
+    /// anything under <see cref="ServiceTaskContext.Attempt"/> or <see cref="ServiceTaskContext.Wait"/>:
+    /// the engine records an attempt only after it
     /// answers, so an attempt that sends and crashes re-runs with all of those unchanged. Use
     /// <see cref="ServiceTaskContext.StepId"/> as the outbound idempotency key: it covers the residual
     /// crash window between the send and the checkpoint write, being the one value the crashed attempt

@@ -56,14 +56,22 @@ internal sealed class ExecuteServiceTask(
                 InstanceDataMutator = instanceDataMutator,
                 CancellationToken = context.CancellationToken,
                 WorkflowId = context.Payload.WorkflowId,
-                // Guid.Empty means the engine predates the field — surface "absent", not a bogus key.
-                StepId = context.Payload.StepId == Guid.Empty ? null : context.Payload.StepId,
-                RetryCount = context.Payload.RetryCount,
-                ExecutionDeadline = context.Payload.ExecutionDeadline,
-                DeferCount = context.Payload.DeferCount,
-                WaitStartedAt = context.Payload.FirstDeferredAt,
-                WaitDeadline = context.Payload.WaitDeadline,
-                CheckpointStore = new StorageServiceTaskCheckpointStore(instanceClient, instance, serviceTask.Type),
+                StepId = context.Payload.StepId,
+                Attempt = new ServiceTaskAttempt
+                {
+                    RetryCount = context.Payload.RetryCount,
+                    Deadline = context.Payload.ExecutionDeadline,
+                },
+                Wait = new ServiceTaskWait
+                {
+                    DeferCount = context.Payload.DeferCount,
+                    StartedAt = context.Payload.FirstDeferredAt,
+                    Deadline = context.Payload.WaitDeadline,
+                },
+                Checkpoints = new ServiceTaskCheckpoints(
+                    new StorageServiceTaskCheckpointStore(instanceClient, instance, serviceTask.Type),
+                    context.CancellationToken
+                ),
             };
 
             ServiceTaskResult result = await serviceTask.Execute(serviceTaskContext);

@@ -37,10 +37,10 @@ public class EFormidlingServiceTaskTests
     }
 
     private static Task SetShipmentOwner(ServiceTaskContext context, string shipmentOwnerWorkflowId) =>
-        context.SetCheckpoint(EformidlingConstants.ShipmentOwnerCheckpointKey, shipmentOwnerWorkflowId);
+        context.Checkpoints.Set(EformidlingConstants.ShipmentOwnerCheckpointKey, shipmentOwnerWorkflowId);
 
     private static Task<string?> GetShipmentOwner(ServiceTaskContext context) =>
-        context.GetCheckpoint(EformidlingConstants.ShipmentOwnerCheckpointKey);
+        context.Checkpoints.Get(EformidlingConstants.ShipmentOwnerCheckpointKey);
 
     [Fact]
     public async Task Execute_Should_BeEnabled_When_NoBpmnConfig()
@@ -50,7 +50,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
+        };
 
         var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => _serviceTask.Execute(parameters));
         Assert.Contains("No eFormidling configuration found in BPMN for task", exception.Message);
@@ -75,7 +80,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
+        };
 
         // Act & Assert
         await Assert.ThrowsAsync<ProcessException>(() => serviceTask.Execute(parameters));
@@ -100,7 +110,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
+        };
 
         // Act
         var result = await serviceTask.Execute(parameters);
@@ -122,6 +137,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
@@ -174,6 +190,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
 
         // Act
@@ -198,7 +215,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
+        };
 
         // Act
         await _serviceTask.Execute(parameters);
@@ -243,6 +265,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
 
         // Act
@@ -258,22 +281,6 @@ public class EFormidlingServiceTaskTests
     // ===== IDEMPOTENCY / SHIPMENT OWNERSHIP TESTS =====
 
     [Fact]
-    public async Task Execute_Should_Throw_When_WorkflowIdMissing()
-    {
-        Instance instance = GetInstance();
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
-
-        var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
-        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
-
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
-
-        var exception = await Assert.ThrowsAsync<ProcessException>(() => _serviceTask.Execute(parameters));
-        Assert.Contains("workflow id", exception.Message);
-    }
-
-    [Fact]
     public async Task Execute_Should_FailPermanently_When_ShipmentOwnedByAnotherWorkflow()
     {
         Instance instance = GetInstance();
@@ -284,6 +291,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
         await SetShipmentOwner(parameters, Guid.NewGuid().ToString());
 
@@ -314,6 +322,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
         await SetShipmentOwner(parameters, _workflowId.ToString());
 
@@ -340,6 +349,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
@@ -362,6 +372,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
@@ -389,6 +400,7 @@ public class EFormidlingServiceTaskTests
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
+            StepId = Guid.NewGuid(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };

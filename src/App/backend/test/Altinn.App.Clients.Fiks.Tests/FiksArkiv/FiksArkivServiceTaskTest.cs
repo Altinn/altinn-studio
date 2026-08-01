@@ -33,7 +33,12 @@ public class FiksArkivServiceTaskTest
         });
 
         // Act
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceDataMutatorMock.Object };
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceDataMutatorMock.Object,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+        };
         await fixture.FiksArkivServiceTask.Execute(parameters);
 
         // Assert
@@ -59,7 +64,12 @@ public class FiksArkivServiceTaskTest
         });
 
         // Act
-        var parameters = new ServiceTaskContext { InstanceDataMutator = instanceDataMutatorMock.Object };
+        var parameters = new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceDataMutatorMock.Object,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+        };
         var result = await fixture.FiksArkivServiceTask.Execute(parameters);
 
         // Assert

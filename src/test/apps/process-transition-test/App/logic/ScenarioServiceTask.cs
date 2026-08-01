@@ -82,7 +82,7 @@ public sealed class ScenarioServiceTask : IServiceTask
         // Don't start work this attempt cannot finish: the engine abandons it at ExecutionDeadline and
         // records a retryable failure, whereas deferring hands the next attempt a full budget. Inert
         // under the default 10-minute timeout — it demonstrates the pattern a real slow-system call wants.
-        if (delayMs > 0 && context.ExecutionDeadline is { } executionDeadline)
+        if (delayMs > 0 && context.Attempt.Deadline is { } executionDeadline)
         {
             var remaining = executionDeadline - DateTimeOffset.UtcNow;
             if (remaining < TimeSpan.FromMilliseconds(delayMs))
@@ -99,7 +99,7 @@ public sealed class ScenarioServiceTask : IServiceTask
             await Task.Delay(delayMs, context.CancellationToken);
         }
 
-        // Reads context.DeferCount rather than the AttemptTracker: the engine counts deferrals durably,
+        // Reads context.Wait.DeferCount rather than the AttemptTracker: the engine counts deferrals durably,
         // and mixing them into the attempt counter would conflate "not ready" with "failed, retrying".
         if (levers.endState == "waitExpired")
         {
@@ -107,15 +107,15 @@ public sealed class ScenarioServiceTask : IServiceTask
             // then fails the step with wait_expired — a failure nobody's code caused.
             return ServiceTaskResult.Defer(
                 deferDelay,
-                $"waitExpired scenario: outcome will never arrive (check {context.DeferCount + 1})"
+                $"waitExpired scenario: outcome will never arrive (check {context.Wait.DeferCount + 1})"
             );
         }
 
-        if (context.DeferCount < deferrals)
+        if (context.Wait.DeferCount < deferrals)
         {
             return ServiceTaskResult.Defer(
                 deferDelay,
-                $"TransitionControl forced a deferral ({context.DeferCount + 1} of {deferrals})"
+                $"TransitionControl forced a deferral ({context.Wait.DeferCount + 1} of {deferrals})"
             );
         }
 

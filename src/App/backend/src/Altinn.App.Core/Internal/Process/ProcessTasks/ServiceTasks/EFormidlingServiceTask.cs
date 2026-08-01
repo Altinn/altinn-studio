@@ -68,24 +68,17 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
             );
         }
 
-        if (context.WorkflowId is not { } workflowId)
-        {
-            throw new ProcessException(
-                "The eFormidling service task requires the executing workflow id to guarantee idempotent shipments."
-            );
-        }
-
         // The message id sent to eFormidling is the instance guid, so only one shipment can ever be
         // sent per instance (see docs/adr/2026-07-24-eformidling-shipment-id.md). The workflow id of
         // the pass that sent it is recorded as a checkpoint: a matching (or absent) owner means this
         // execution is the first attempt or a retry of the same transition and may send/resume; a
         // different owner means an earlier pass through this task already sent the shipment, and
         // silently skipping (stale shipment) or re-sending (duplicate id) are both wrong - a human
-        // has to decide. GetCheckpoint reads through to Storage, so even a retry of the attempt that
+        // has to decide. The checkpoint read goes through to Storage, so even a retry of the attempt that
         // wrote the owner sees it; only a crash between the send and the checkpoint write slips past
         // the gate, and that case converges through the send's duplicate-create self-healing.
-        string? shipmentOwner = await context.GetCheckpoint(EformidlingConstants.ShipmentOwnerCheckpointKey);
-        if (shipmentOwner is not null && shipmentOwner != workflowId.ToString())
+        string? shipmentOwner = await context.Checkpoints.Get(EformidlingConstants.ShipmentOwnerCheckpointKey);
+        if (shipmentOwner is not null && shipmentOwner != context.WorkflowId.ToString())
         {
             return ServiceTaskResult.FailedPermanent(
                 $"An eFormidling shipment for this instance was already sent by an earlier pass through the "
@@ -113,7 +106,7 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
 
         // Record ownership after the send: if this write fails the step retries, and the retry
         // resumes/no-ops the already-sent message before writing the owner again.
-        await context.SetCheckpoint(EformidlingConstants.ShipmentOwnerCheckpointKey, workflowId.ToString());
+        await context.Checkpoints.Set(EformidlingConstants.ShipmentOwnerCheckpointKey, context.WorkflowId.ToString());
 
         return ServiceTaskResult.Success();
     }

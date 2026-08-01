@@ -7,15 +7,21 @@ namespace Altinn.App.Core.Tests.Features.Process;
 public class ServiceTaskContextTests
 {
     private static ServiceTaskContext CreateContext(DateTimeOffset? waitDeadline) =>
-        new() { InstanceDataMutator = Mock.Of<IInstanceDataMutator>(), WaitDeadline = waitDeadline };
+        new()
+        {
+            InstanceDataMutator = Mock.Of<IInstanceDataMutator>(),
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            Wait = new ServiceTaskWait { Deadline = waitDeadline },
+        };
 
     [Fact]
     public void BeforeFirstDeferral_NoDeadline_ReportsNoRemainingWaitAndNotFinal()
     {
         var context = CreateContext(waitDeadline: null);
 
-        Assert.Null(context.RemainingWait);
-        Assert.False(context.IsFinalCheck);
+        Assert.Null(context.Wait.Remaining);
+        Assert.False(context.Wait.IsFinalCheck);
     }
 
     [Fact]
@@ -23,9 +29,9 @@ public class ServiceTaskContextTests
     {
         var context = CreateContext(DateTimeOffset.UtcNow.AddHours(1));
 
-        Assert.NotNull(context.RemainingWait);
-        Assert.InRange(context.RemainingWait.Value, TimeSpan.FromMinutes(59), TimeSpan.FromHours(1));
-        Assert.False(context.IsFinalCheck);
+        Assert.NotNull(context.Wait.Remaining);
+        Assert.InRange(context.Wait.Remaining.Value, TimeSpan.FromMinutes(59), TimeSpan.FromHours(1));
+        Assert.False(context.Wait.IsFinalCheck);
     }
 
     [Fact]
@@ -35,8 +41,8 @@ public class ServiceTaskContextTests
         // past it must read "spent", never a negative remainder.
         var context = CreateContext(DateTimeOffset.UtcNow.AddMinutes(-5));
 
-        Assert.Equal(TimeSpan.Zero, context.RemainingWait);
-        Assert.True(context.IsFinalCheck);
+        Assert.Equal(TimeSpan.Zero, context.Wait.Remaining);
+        Assert.True(context.Wait.IsFinalCheck);
     }
 
     [Fact]
@@ -46,10 +52,10 @@ public class ServiceTaskContextTests
         // no setup: values round-trip within the context, nothing is persisted.
         var context = CreateContext(waitDeadline: null);
 
-        Assert.Null(await context.GetCheckpoint("receipt"));
+        Assert.Null(await context.Checkpoints.Get("receipt"));
 
-        await context.SetCheckpoint("receipt", "r-42");
+        await context.Checkpoints.Set("receipt", "r-42");
 
-        Assert.Equal("r-42", await context.GetCheckpoint("receipt"));
+        Assert.Equal("r-42", await context.Checkpoints.Get("receipt"));
     }
 }

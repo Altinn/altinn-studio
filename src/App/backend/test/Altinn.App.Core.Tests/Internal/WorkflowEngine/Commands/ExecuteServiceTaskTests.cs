@@ -212,8 +212,8 @@ public class ExecuteServiceTaskTests
 
         // Assert
         Assert.NotNull(observed);
-        Assert.Equal(2, observed.RetryCount);
-        Assert.Equal(executionDeadline, observed.ExecutionDeadline);
+        Assert.Equal(2, observed.Attempt.RetryCount);
+        Assert.Equal(executionDeadline, observed.Attempt.Deadline);
     }
 
     [Fact]
@@ -237,8 +237,8 @@ public class ExecuteServiceTaskTests
 
         // Assert
         Assert.NotNull(observed);
-        Assert.Equal(4, observed.DeferCount);
-        Assert.Equal(waitDeadline, observed.WaitDeadline);
+        Assert.Equal(4, observed.Wait.DeferCount);
+        Assert.Equal(waitDeadline, observed.Wait.Deadline);
     }
 
     [Fact]
@@ -269,7 +269,7 @@ public class ExecuteServiceTaskTests
         // Assert
         Assert.NotNull(observed);
         Assert.Equal(stepId, observed.StepId);
-        Assert.Equal(firstDeferredAt, observed.WaitStartedAt);
+        Assert.Equal(firstDeferredAt, observed.Wait.StartedAt);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public class ExecuteServiceTaskTests
             .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
             .Returns<ServiceTaskContext>(async ctx =>
             {
-                await ctx.SetCheckpoint("receipt", "r-1");
+                await ctx.Checkpoints.Set("receipt", "r-1");
                 return ServiceTaskResult.Success();
             });
         var command = CreateCommand(instanceClient.Object, serviceTask.Object);
@@ -319,29 +319,6 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_EngineWithoutStepId_ReportsNullNotEmptyGuid()
-    {
-        // Arrange — an engine that predates the field leaves Guid.Empty in the payload; the task must
-        // see "absent", not a constant that would collide as an idempotency key across all steps.
-        ServiceTaskContext? observed = null;
-        var serviceTask = new Mock<IServiceTask>();
-        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
-        serviceTask
-            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
-            .Callback<ServiceTaskContext>(ctx => observed = ctx)
-            .ReturnsAsync(ServiceTaskResult.Success());
-        var command = CreateCommand(serviceTask.Object);
-        var context = CreateContext(CreateInstance(), "myServiceTask");
-
-        // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
-
-        // Assert
-        Assert.NotNull(observed);
-        Assert.Null(observed.StepId);
-    }
-
-    [Fact]
     public async Task Execute_FirstRun_ReportsNoDeferralsAndNoDeadline()
     {
         ServiceTaskContext? observed = null;
@@ -357,9 +334,9 @@ public class ExecuteServiceTaskTests
         await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
 
         Assert.NotNull(observed);
-        Assert.Equal(0, observed.DeferCount);
-        Assert.Null(observed.WaitDeadline);
-        Assert.Equal(0, observed.RetryCount);
+        Assert.Equal(0, observed.Wait.DeferCount);
+        Assert.Null(observed.Wait.Deadline);
+        Assert.Equal(0, observed.Attempt.RetryCount);
     }
 
     [Fact]

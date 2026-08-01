@@ -65,7 +65,7 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
   arrived, which is why `wait_expired` is kept out of the default ops alert.
 - **State across checks:** a deferring task's data changes are saved on every attempt that makes
   them, and the next attempt sees them — the instance is where a polling task remembers what it
-  learned. `context.DeferCount` and `context.WaitDeadline` tell it which check it is on and how
+  learned. `context.Wait.DeferCount` and `context.Wait.Deadline` tell it which check it is on and how
   much budget is left.
 - **Recoverable failure:** `postCommit` + `endState: failureThenSuccess` → the failure view with
   «Prøv igjen» (POST `process/resume`) and «Gå tilbake» (reject → Task_1).

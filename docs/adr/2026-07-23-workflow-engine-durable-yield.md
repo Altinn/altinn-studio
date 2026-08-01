@@ -100,7 +100,7 @@ alert for a non-error condition.
   unchanged. A multi-step split (send → await → confirm) was rejected: it isolates the send only
   against the poll phase (its own retries still need the idempotency key), while forking the
   first-party integration off the API third parties get.
-- The guard gets a first-class home: `ServiceTaskContext.SetCheckpoint`/`GetCheckpoint`, stored as
+- The guard gets a first-class home: `context.Checkpoints.Set`/`Get`, stored as
   instance data values keyed `serviceTask:{Type}:{key}`. Writes are immediate — deliberately outside
   the save-on-success unit of work, so evidence survives an attempt that fails after a side effect —
   and reads go through to Storage, so a crashed attempt's checkpoint is visible to its retry.

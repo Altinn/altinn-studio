@@ -5,8 +5,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Backing store for <see cref="ServiceTaskContext.SetCheckpoint"/> and
-/// <see cref="ServiceTaskContext.GetCheckpoint"/>. The runtime wires the Storage-backed
+/// Backing store for <see cref="ServiceTaskCheckpoints"/>. The runtime wires the Storage-backed
 /// implementation; the in-memory default on <see cref="ServiceTaskContext"/> gives app code that
 /// constructs a context in unit tests working checkpoint semantics without any setup.
 /// </summary>

@@ -2029,22 +2029,27 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
+    public sealed class ServiceTaskAttempt : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAttempt>
+    {
+        public ServiceTaskAttempt() { }
+        public System.DateTimeOffset? Deadline { get; init; }
+        public int RetryCount { get; init; }
+    }
+    public sealed class ServiceTaskCheckpoints
+    {
+        public System.Threading.Tasks.Task<string?> Get(string key) { }
+        public System.Threading.Tasks.Task Set(string key, string value) { }
+    }
     public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
+        public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
-        public int DeferCount { get; init; }
-        public System.DateTimeOffset? ExecutionDeadline { get; init; }
+        public Altinn.App.Core.Features.Process.ServiceTaskCheckpoints Checkpoints { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
-        public bool IsFinalCheck { get; }
-        public System.TimeSpan? RemainingWait { get; }
-        public int RetryCount { get; init; }
-        public System.Guid? StepId { get; init; }
-        public System.DateTimeOffset? WaitDeadline { get; init; }
-        public System.DateTimeOffset? WaitStartedAt { get; init; }
-        public System.Guid? WorkflowId { get; init; }
-        public System.Threading.Tasks.Task<string?> GetCheckpoint(string key) { }
-        public System.Threading.Tasks.Task SetCheckpoint(string key, string value) { }
+        public required System.Guid StepId { get; init; }
+        public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
     {
@@ -2070,6 +2075,15 @@ namespace Altinn.App.Core.Features.Process
         public ServiceTaskSuccessResult() { }
         public string? Action { get; init; }
         public bool AutoAdvanceProcess { get; init; }
+    }
+    public sealed class ServiceTaskWait : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskWait>
+    {
+        public ServiceTaskWait() { }
+        public System.DateTimeOffset? Deadline { get; init; }
+        public int DeferCount { get; init; }
+        public bool IsFinalCheck { get; }
+        public System.TimeSpan? Remaining { get; }
+        public System.DateTimeOffset? StartedAt { get; init; }
     }
     public sealed class SuccessfulHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHookResult>
     {

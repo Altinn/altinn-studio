@@ -599,6 +599,8 @@ public class SubformPdfServiceTaskTests
         return new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
             CancellationToken = cancellationToken,
         };
     }
