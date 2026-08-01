@@ -93,13 +93,24 @@ alert for a non-error condition.
 - eFormidling in v9 migrates onto the primitive as a **single service task on the public
   `IServiceTask` surface** — the same API any app integration uses, not a private step sequence in
   the app's command factory. The one execution phases itself on durable evidence: no shipment
-  receipt in instance data → send (idempotent per #18888, with the callback's step id as the
-  outbound idempotency key) and defer; receipt present → poll IP status (mapped to
+  receipt checkpointed → send (idempotent per #18888, with the callback's step id as the outbound
+  idempotency key) and defer; receipt present → poll IP status (mapped to
   Success / Defer / Critical / Retryable) and confirm. The send guard is the recorded receipt,
   never `DeferCount` — an attempt can send, crash before answering, and re-run with the count
   unchanged. A multi-step split (send → await → confirm) was rejected: it isolates the send only
   against the poll phase (its own retries still need the idempotency key), while forking the
   first-party integration off the API third parties get.
+- The guard gets a first-class home: `ServiceTaskContext.SetCheckpoint`/`GetCheckpoint`, stored as
+  instance data values keyed `serviceTask:{Type}:{key}`. Writes are immediate — deliberately outside
+  the save-on-success unit of work, so evidence survives an attempt that fails after a side effect —
+  and reads go through to Storage, so a crashed attempt's checkpoint is visible to its retry.
+  Checkpoints live on the **instance**, not in the engine, because their lifecycle is the instance's:
+  they must survive BPMN round trips (each pass is a new workflow) and the engine's terminal-workflow
+  retention, and must die with the instance (deletion, GDPR). Storing them engine-side was considered
+  and rejected — it would make the engine's database a second source of business truth and end its
+  rebuildable-machinery operational posture. Round-trip semantics stay a deliberate task decision:
+  keys are instance-scoped, and a task that needs pass identity puts the workflow id in the value
+  (the eFormidling ownership claim is the reference).
 - A deferral's reason travels to every surface that shows a wait: persisted on the step
   (`lastDeferReason`), projected onto a `Waiting` collection head (`waitingReason`), and annotated
   on the app's process reads (`workflow.waitingReason`) — so waiting UIs and ops read the task's

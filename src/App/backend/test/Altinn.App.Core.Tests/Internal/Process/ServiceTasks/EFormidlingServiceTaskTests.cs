@@ -23,7 +23,6 @@ public class EFormidlingServiceTaskTests
     private readonly Mock<IEFormidlingService> _eFormidlingServiceMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new();
-    private readonly Mock<IInstanceClient> _instanceClientMock = new();
     private readonly EFormidlingServiceTask _serviceTask;
 
     public EFormidlingServiceTaskTests()
@@ -33,18 +32,15 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            _instanceClientMock.Object,
             _eFormidlingServiceMock.Object
         );
     }
 
-    private static void SetShipmentOwner(Instance instance, string shipmentOwnerWorkflowId)
-    {
-        instance.DataValues = new Dictionary<string, string>
-        {
-            [EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey] = shipmentOwnerWorkflowId,
-        };
-    }
+    private static Task SetShipmentOwner(ServiceTaskContext context, string shipmentOwnerWorkflowId) =>
+        context.SetCheckpoint(EformidlingConstants.ShipmentOwnerCheckpointKey, shipmentOwnerWorkflowId);
+
+    private static Task<string?> GetShipmentOwner(ServiceTaskContext context) =>
+        context.GetCheckpoint(EformidlingConstants.ShipmentOwnerCheckpointKey);
 
     [Fact]
     public async Task Execute_Should_BeEnabled_When_NoBpmnConfig()
@@ -70,7 +66,6 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            _instanceClientMock.Object,
             null
         );
 
@@ -96,7 +91,6 @@ public class EFormidlingServiceTaskTests
             _loggerMock.Object,
             _processReaderMock.Object,
             _hostEnvironmentMock.Object,
-            _instanceClientMock.Object,
             null
         );
 
@@ -286,12 +280,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetShipmentOwner(instance, Guid.NewGuid().ToString());
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
         };
+        await SetShipmentOwner(parameters, Guid.NewGuid().ToString());
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -316,12 +310,12 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        SetShipmentOwner(instance, _workflowId.ToString());
         var parameters = new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
         };
+        await SetShipmentOwner(parameters, _workflowId.ToString());
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -354,17 +348,7 @@ public class EFormidlingServiceTaskTests
         var result = await _serviceTask.Execute(parameters);
 
         Assert.IsType<ServiceTaskSuccessResult>(result);
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    instance,
-                    EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
-                    _workflowId.ToString(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
+        Assert.Equal(_workflowId.ToString(), await GetShipmentOwner(parameters));
     }
 
     [Fact]
@@ -391,17 +375,7 @@ public class EFormidlingServiceTaskTests
 
         await Assert.ThrowsAsync<Exception>(() => _serviceTask.Execute(parameters));
 
-        _instanceClientMock.Verify(
-            x =>
-                x.UpdateDataValue(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
+        Assert.Null(await GetShipmentOwner(parameters));
     }
 
     [Fact]

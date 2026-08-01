@@ -38,4 +38,18 @@ public class ServiceTaskContextTests
         Assert.Equal(TimeSpan.Zero, context.RemainingWait);
         Assert.True(context.IsFinalCheck);
     }
+
+    [Fact]
+    public async Task Checkpoints_OutsideTheRuntime_RoundTripInMemory()
+    {
+        // A context constructed directly (an app's unit test) gets working checkpoint semantics with
+        // no setup: values round-trip within the context, nothing is persisted.
+        var context = CreateContext(waitDeadline: null);
+
+        Assert.Null(await context.GetCheckpoint("receipt"));
+
+        await context.SetCheckpoint("receipt", "r-42");
+
+        Assert.Equal("r-42", await context.GetCheckpoint("receipt"));
+    }
 }

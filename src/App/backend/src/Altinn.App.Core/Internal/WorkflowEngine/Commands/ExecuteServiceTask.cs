@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -12,8 +13,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// </summary>
 internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType) : CommandRequestPayload;
 
-internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementationFactory, Telemetry? telemetry = null)
-    : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
+internal sealed class ExecuteServiceTask(
+    AppImplementationFactory appImplementationFactory,
+    IInstanceClient instanceClient,
+    Telemetry? telemetry = null
+) : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
 {
     public static string Key => "ExecuteServiceTask";
 
@@ -43,6 +47,10 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
 
         try
         {
+            // Resolve before building the context: the checkpoint key prefix uses the task's declared
+            // Type (canonical casing), not the BPMN attribute the payload carries (matched ignoring case).
+            IServiceTask serviceTask = GetServiceTask(serviceTaskType);
+
             ServiceTaskContext serviceTaskContext = new()
             {
                 InstanceDataMutator = instanceDataMutator,
@@ -55,9 +63,9 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 DeferCount = context.Payload.DeferCount,
                 WaitStartedAt = context.Payload.FirstDeferredAt,
                 WaitDeadline = context.Payload.WaitDeadline,
+                CheckpointStore = new StorageServiceTaskCheckpointStore(instanceClient, instance, serviceTask.Type),
             };
 
-            IServiceTask serviceTask = GetServiceTask(serviceTaskType);
             ServiceTaskResult result = await serviceTask.Execute(serviceTaskContext);
 
             if (result is ServiceTaskFailedResult failedResult)

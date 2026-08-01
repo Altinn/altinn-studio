@@ -119,7 +119,7 @@ namespace Altinn.App.Core.EFormidling
     public static class EformidlingConstants
     {
         public const string CheckInstanceStatusEventType = "app.eformidling.reminder.checkinstancestatus";
-        public const string ShipmentOwnerWorkflowIdDataValueKey = "eFormidlingShipmentWorkflowId";
+        public const string ShipmentOwnerCheckpointKey = "shipmentWorkflowId";
     }
     public class EformidlingStartup : Microsoft.Extensions.Hosting.IHostedService
     {
@@ -2043,6 +2043,8 @@ namespace Altinn.App.Core.Features.Process
         public System.DateTimeOffset? WaitDeadline { get; init; }
         public System.DateTimeOffset? WaitStartedAt { get; init; }
         public System.Guid? WorkflowId { get; init; }
+        public System.Threading.Tasks.Task<string?> GetCheckpoint(string key) { }
+        public System.Threading.Tasks.Task SetCheckpoint(string key, string value) { }
     }
     public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
     {

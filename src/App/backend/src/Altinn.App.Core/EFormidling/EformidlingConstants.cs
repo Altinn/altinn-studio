@@ -12,10 +12,11 @@ public static class EformidlingConstants
     public const string CheckInstanceStatusEventType = "app.eformidling.reminder.checkinstancestatus";
 
     /// <summary>
-    /// Instance data value holding the id of the workflow that sent the instance's eFormidling
-    /// shipment. eFormidling message ids are bound to the instance id, so only one shipment can
-    /// ever be sent per instance; this value lets a retried attempt be told apart from a new pass
-    /// through the process (which must fail rather than silently skip or re-send).
+    /// Service-task checkpoint holding the id of the workflow that sent the instance's eFormidling
+    /// shipment (stored as the instance data value <c>serviceTask:eFormidling:shipmentWorkflowId</c>).
+    /// eFormidling message ids are bound to the instance id, so only one shipment can ever be sent
+    /// per instance; this value lets a retried attempt be told apart from a new pass through the
+    /// process (which must fail rather than silently skip or re-send).
     /// </summary>
-    public const string ShipmentOwnerWorkflowIdDataValueKey = "eFormidlingShipmentWorkflowId";
+    public const string ShipmentOwnerCheckpointKey = "shipmentWorkflowId";
 }

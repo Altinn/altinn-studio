@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Add durable yield for service tasks: `ServiceTaskResult.Defer(delay, reason)` parks the process on the task — no error recorded, worker released — and re-runs it after `delay`, bounded by `ProcessStepOptions.WaitBudget`. `ServiceTaskContext` carries what a polling task needs to pace itself (`DeferCount`, `WaitStartedAt`, `WaitDeadline`, and the derived `RemainingWait`/`IsFinalCheck`) plus `StepId`, a stable per-step idempotency key for outbound calls a send-then-poll task must not repeat. The deferral's `reason` surfaces on engine status reads and as `workflow.waitingReason` on the app's process reads.
+- Add service-task checkpoints — the durable send guard for send-then-poll tasks: `ServiceTaskContext.SetCheckpoint(key, value)` writes an instance data value (keyed `serviceTask:{Type}:{key}`) to Storage immediately, outside the save-on-success unit of work, and `GetCheckpoint(key)` reads through to Storage so a crashed attempt's evidence is visible to its retry. A context constructed outside the runtime (unit tests) gets in-memory checkpoint semantics with no setup.
 
 - Support several custom recipients on a correspondence notification. `WithRecipientOverride` now accumulates and can be chained; `WithRecipientOverrides` adds several at once.
 - Add `CorrespondenceRequest.IdempotentKey` and `WithIdempotentKey(Guid)`, so a request that may be retried cannot create the correspondence twice. Reuse the same key on retry; a duplicate fails with `CorrespondenceRequestException` carrying `409 Conflict`, which the caller can treat as "already sent". The key cannot be empty or combined with multiple recipients, both of which `CorrespondenceRequest.Validate` rejects up front.
@@ -19,6 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Breaking: the eFormidling shipment-ownership claim moved onto the checkpoint API: the instance data value is now `serviceTask:eFormidling:shipmentWorkflowId` (was `eFormidlingShipmentWorkflowId`), and `EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey` is renamed `ShipmentOwnerCheckpointKey` (holding only the unprefixed key). A preview instance whose shipment was sent under the old key re-runs the send, which self-heals on the duplicate message id.
 - Breaking: `CorrespondenceNotification.CustomRecipient` is now `CustomRecipients`, a list. Repeated `WithRecipientOverride` calls keep every recipient instead of only the last.
 - Breaking: `WithResourceId` returns `ICorrespondenceRequestBuilderSendersReference`; the now-empty `ICorrespondenceRequestBuilderSender` step is gone.
 - Breaking: `ICorrespondenceNotificationBuilder` gains three methods — additive for callers, breaking for external implementors.
