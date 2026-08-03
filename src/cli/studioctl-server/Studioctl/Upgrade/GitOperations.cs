@@ -26,7 +26,9 @@ internal static class GitOperations
             Commands.Stage(repo, "*");
 
             var stagedCount = repo.Diff.Compare<TreeChanges>(repo.Head.Tip?.Tree, DiffTargets.Index).Count();
-            output.WriteLine($"Staged the {stagedCount} updated file(s) - run 'git status' for overview and 'git diff --cached' to review them");
+            output.WriteLine(
+                $"Staged the {stagedCount} updated file(s) - run 'git status' for overview and 'git diff --cached' to review them"
+            );
         }
         catch (LibGit2SharpException ex)
         {
