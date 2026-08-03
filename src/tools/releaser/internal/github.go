@@ -3,10 +3,8 @@ package internal
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"os/exec"
 	"strings"
 )
@@ -25,7 +23,7 @@ type GitHubRunner interface {
 	CreatePR(ctx context.Context, opts PullRequestOptions) (string, error)
 	// SetWorkdir sets the working directory for gh commands.
 	SetWorkdir(dir string)
-	// Repository resolves a remote repository and its canonical parent.
+	// Repository resolves a remote against the built-in canonical identity.
 	Repository(ctx context.Context, remoteURL string) (Repository, *Repository, error)
 }
 
@@ -52,26 +50,11 @@ type Options struct {
 	FailOnNoCommits bool     // Fail if no new commits since last release
 }
 
-// GitHubCLI implements GitHubRunner by shelling out to the gh CLI.
+// GitHubCLI implements GitHubRunner, using the gh CLI for mutations.
 type GitHubCLI struct {
 	log     Logger
 	workdir string
 	dryRun  bool
-}
-
-type repositoryView struct {
-	Parent        *repositoryParentView `json:"parent"`
-	NameWithOwner string                `json:"nameWithOwner"`
-	URL           string                `json:"url"`
-}
-
-type repositoryParentView struct {
-	Name  string              `json:"name"`
-	Owner repositoryOwnerView `json:"owner"`
-}
-
-type repositoryOwnerView struct {
-	Login string `json:"login"`
 }
 
 // GitHubCLIOption configures GitHubCLI.
@@ -188,59 +171,40 @@ func (g *GitHubCLI) CreatePR(ctx context.Context, opts PullRequestOptions) (stri
 	return prURL, nil
 }
 
-// Repository resolves a remote repository and its GitHub parent, when it is a fork.
-func (g *GitHubCLI) Repository(
-	ctx context.Context,
+// Repository resolves a remote URL against this releaser's canonical repository.
+func (*GitHubCLI) Repository(
+	_ context.Context,
 	remoteURL string,
 ) (Repository, *Repository, error) {
-	selector := repositorySelectorFromURL(remoteURL)
-	if selector == "" {
+	host, _, hosted := splitHostedRepositoryURL(remoteURL)
+	if !hosted {
 		// Local and file-based remotes are useful for dry runs and end-to-end tests.
-		// They have no GitHub fork metadata, so the configured remote is both source
-		// and push repository.
+		// They have no hosted identity, so the configured remote is both source and
+		// push repository.
 		return Repository{NameWithOwner: "", URL: remoteURL}, nil, nil
 	}
-
-	output, err := g.runRead(ctx, "repo", "view", selector, "--json", "nameWithOwner,url,parent")
-	if err != nil {
-		return Repository{}, nil, err
+	if !isGitHubRepositoryHost(remoteURL, host) {
+		return Repository{}, nil, fmt.Errorf("%w: %s", errRepositoryHostMismatch, host)
 	}
 
-	var view repositoryView
-	if jsonErr := json.Unmarshal([]byte(output), &view); jsonErr != nil {
-		return Repository{}, nil, fmt.Errorf("parse gh repo view response: %w", jsonErr)
+	selector := repositorySelectorFromURL(remoteURL)
+	owner, name, found := strings.Cut(selector, "/")
+	if !found || owner == "" || name == "" || strings.Contains(name, "/") {
+		return Repository{}, nil, fmt.Errorf("%w: %s", errRepositoryURLInvalid, remoteURL)
 	}
-
 	repository := Repository{
-		NameWithOwner: view.NameWithOwner,
-		URL:           view.URL,
+		NameWithOwner: selector,
+		URL:           remoteURL,
 	}
-	if view.Parent == nil {
+	if strings.EqualFold(repository.NameWithOwner, canonicalRepositoryName) {
 		return repository, nil, nil
 	}
 
-	parentName := view.Parent.Owner.Login + "/" + view.Parent.Name
-	parentURL, err := repositoryURLWithName(view.URL, parentName)
-	if err != nil {
-		return Repository{}, nil, err
-	}
 	parent := &Repository{
-		NameWithOwner: parentName,
-		URL:           parentURL,
+		NameWithOwner: canonicalRepositoryName,
+		URL:           canonicalRepositoryURL,
 	}
 	return repository, parent, nil
-}
-
-func repositoryURLWithName(repositoryURL, nameWithOwner string) (string, error) {
-	parsed, err := url.Parse(repositoryURL)
-	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-		return "", fmt.Errorf("%w: %q", errRepositoryURLInvalid, repositoryURL)
-	}
-	parsed.Path = "/" + strings.Trim(nameWithOwner, "/")
-	parsed.RawPath = ""
-	parsed.RawQuery = ""
-	parsed.Fragment = ""
-	return parsed.String(), nil
 }
 
 // SetWorkdir sets the working directory for gh commands.

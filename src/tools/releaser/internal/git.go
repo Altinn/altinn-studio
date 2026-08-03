@@ -185,7 +185,7 @@ func (g *GitCLI) PushRemote(ctx context.Context, remotes []GitRemote) (GitRemote
 		return GitRemote{}, fmt.Errorf("get current branch: %w", err)
 	}
 
-	configKeys := make([]string, 0, 5)
+	configKeys := make([]string, 0, 3)
 	if currentBranch != "" && currentBranch != "HEAD" {
 		configKeys = append(configKeys, "branch."+currentBranch+".pushRemote")
 	}
@@ -193,10 +193,6 @@ func (g *GitCLI) PushRemote(ctx context.Context, remotes []GitRemote) (GitRemote
 	if currentBranch != "" && currentBranch != "HEAD" {
 		configKeys = append(configKeys, "branch."+currentBranch+".remote")
 	}
-	if currentBranch != mainBranch {
-		configKeys = append(configKeys, "branch."+mainBranch+".pushRemote", "branch."+mainBranch+".remote")
-	}
-
 	for _, key := range configKeys {
 		name, exists, configErr := g.optionalConfig(ctx, key)
 		if configErr != nil {

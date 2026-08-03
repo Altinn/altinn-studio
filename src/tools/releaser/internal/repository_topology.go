@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+const (
+	canonicalRepositoryName = "Altinn/altinn-studio"
+	canonicalRepositoryURL  = "https://github.com/" + canonicalRepositoryName
+)
+
 // Repository identifies a GitHub repository independently of a local Git remote name.
 type Repository struct {
 	NameWithOwner string
@@ -87,10 +92,23 @@ func discoverRepositoryTopology(
 
 func matchRepositoryRemote(remotes []GitRemote, repository Repository) (GitRemote, error) {
 	repositoryKey := normalizeRepositoryLocation(repository.URL)
+	var firstMatch GitRemote
+	found := false
 	for _, remote := range remotes {
-		if repositoryKey != "" && normalizeRepositoryLocation(remote.FetchURL) == repositoryKey {
+		if repositoryKey == "" || normalizeRepositoryLocation(remote.FetchURL) != repositoryKey {
+			continue
+		}
+		if !found {
+			firstMatch = remote
+			found = true
+		}
+		if remote.PushURLs == 1 &&
+			normalizeRepositoryLocation(remote.PushURL) == repositoryKey {
 			return remote, nil
 		}
+	}
+	if found {
+		return firstMatch, nil
 	}
 
 	return GitRemote{}, fmt.Errorf(
@@ -130,22 +148,38 @@ func normalizeRepositoryLocation(rawURL string) string {
 }
 
 func repositorySelectorFromURL(rawURL string) string {
-	var host, repoPath string
-	if scpHost, scpPath, ok := splitSCPRepositoryURL(rawURL); ok {
-		host, repoPath = scpHost, scpPath
-	} else {
-		parsed, err := url.Parse(strings.TrimSpace(rawURL))
-		if err != nil || parsed.Hostname() == "" {
-			return ""
-		}
-		host, repoPath = parsed.Hostname(), parsed.Path
+	host, repoPath, ok := splitHostedRepositoryURL(rawURL)
+	if !ok {
+		return ""
 	}
 
 	repositoryName := normalizeRepositoryPath(repoPath)
-	if strings.EqualFold(host, "github.com") {
+	if isGitHubRepositoryHost(rawURL, host) {
 		return repositoryName
 	}
 	return strings.ToLower(host) + "/" + repositoryName
+}
+
+func isGitHubRepositoryHost(rawURL, host string) bool {
+	if strings.EqualFold(host, "github.com") {
+		return true
+	}
+	if !strings.EqualFold(host, "ssh.github.com") {
+		return false
+	}
+	parsed, err := url.Parse(strings.TrimSpace(rawURL))
+	return err == nil && strings.EqualFold(parsed.Scheme, "ssh")
+}
+
+func splitHostedRepositoryURL(rawURL string) (host, repoPath string, ok bool) {
+	if scpHost, scpPath, scpOK := splitSCPRepositoryURL(rawURL); scpOK {
+		return scpHost, scpPath, true
+	}
+	parsed, err := url.Parse(strings.TrimSpace(rawURL))
+	if err != nil || parsed.Hostname() == "" {
+		return "", "", false
+	}
+	return parsed.Hostname(), parsed.Path, true
 }
 
 func splitSCPRepositoryURL(rawURL string) (host, repoPath string, ok bool) {

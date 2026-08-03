@@ -15,6 +15,7 @@ var (
 	errPushRemoteMultipleURLs = errors.New("git push remote has multiple push URLs")
 	errCanonicalRemoteMissing = errors.New("canonical GitHub repository has no matching git remote")
 	errCanonicalPushMismatch  = errors.New("canonical remote pushes to a different repository")
+	errRepositoryHostMismatch = errors.New("push repository is not hosted on github.com")
 	errRepositoryURLInvalid   = errors.New("invalid GitHub repository URL")
 	errChangelogNil           = errors.New("changelog is required")
 	errReleaseVersionRequired = errors.New("version or release kind is required")

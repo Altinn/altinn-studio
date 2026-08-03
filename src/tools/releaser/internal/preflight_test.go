@@ -473,6 +473,29 @@ func TestRunPrepareWithDeps_RejectsAmbiguousPushRemote(t *testing.T) {
 	}
 }
 
+func TestGitCLI_PushRemoteDoesNotInheritMainRemoteForUntrackedBranch(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+`)
+	addUpstreamRemote(t, repo)
+	runGitCmd(t, repo, "config", "branch.main.remote", "upstream")
+	runGitCmd(t, repo, "checkout", "-b", "topic-without-upstream")
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	remotes, err := git.Remotes(t.Context())
+	if err != nil {
+		t.Fatalf("Remotes() error = %v", err)
+	}
+	_, err = git.PushRemote(t.Context(), remotes)
+	if err == nil {
+		t.Fatal("PushRemote() expected ambiguous remote error, got nil")
+	}
+	if !strings.Contains(err.Error(), "git push remote is ambiguous") {
+		t.Fatalf("PushRemote() error = %v, want ambiguous push remote", err)
+	}
+}
+
 func TestRunPrepareWithDeps_RejectsCanonicalPathOnDifferentHost(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, `# Changelog
 
@@ -876,6 +899,7 @@ func TestRunPrepareWithDeps_StabilizationPinsValidatedCanonicalCommit(t *testing
 	createRemoteBranch(t, upstream, releaseBranch)
 	validatedCommit := remoteBranchHead(t, repo, "upstream", releaseBranch)
 	runGitCmd(t, repo, "checkout", "-b", "feature/releaser-test")
+	runGitCmd(t, repo, "config", "branch.feature/releaser-test.pushRemote", "origin")
 	t.Chdir(repo)
 
 	prompter := &callbackPrompter{
