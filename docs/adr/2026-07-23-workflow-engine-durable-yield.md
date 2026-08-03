@@ -1,6 +1,6 @@
 # Durable yield: a first-class "waiting" outcome for workflow-engine steps
 
-- Status: Proposed
+- Status: Approved
 - Deciders: Team Apps
 - Date: 23.07.2026
 
@@ -46,9 +46,8 @@ alert for a non-error condition.
 
 ## Alternatives considered
 
-- A1: Durable yield — `ExecutionResult.Deferred` + non-terminal `Waiting` status, scheduled through
-  the existing `backoff_until` fetch gate, with a per-step wait budget and a `wait_expired` failure
-  classification. Push (e.g. an Events webhook) becomes an optional accelerator via a `nudge` endpoint.
+- A1: Durable yield — the deferred-outcome / `Waiting`-status / wait-budget / nudge design described
+  under Result.
 - A2: Park-and-callback — suspend the step indefinitely and resume it only via a new authenticated
   engine resume endpoint invoked when an external event arrives.
 - A3: Status quo — keep the Altinn Events self-reminder loop (425-as-scheduling-protocol) and harden
@@ -117,9 +116,8 @@ alert for a non-error condition.
   own words instead of a generic spinner.
 - The app-facing surface ships with the primitive, not after it: `ServiceTaskResult.Defer` plus the
   `ProcessStepOptions.WaitBudget` that bounds it. Shipping the budget alone would release a public,
-  binary-compatible-forever knob configuring a wait no app could request. The phase boundary is
-  capability vs consumer — primitive, return shape and fixture together; migrating eFormidling,
-  payment capture and signing is the next phase.
+  binary-compatible-forever knob configuring a wait no app could request. The primitive and its app
+  surface ship together; migrating eFormidling, payment capture and signing is the next phase.
 - Deferral is stateful across attempts: data changes are saved on every attempt that makes them, and a
   step's own `StateOut` becomes its next attempt's `StateIn`. A `state` parameter on `Defer` was
   rejected as a third state channel alongside Storage and the signed blob.
