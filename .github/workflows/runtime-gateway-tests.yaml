@@ -61,7 +61,13 @@ jobs:
         run: make test
 
       - name: Run fixture
+        id: fixture
         run: make start-minimal
+
+      - name: Collect fixture diagnostics
+        if: ${{ failure() && steps.fixture.outcome == 'failure' }}
+        continue-on-error: true
+        run: make -C ../devenv diagnostics
 
       - name: Run e2e tests
         run: make test-e2e
