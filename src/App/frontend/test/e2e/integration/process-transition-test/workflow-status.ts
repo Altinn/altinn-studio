@@ -449,6 +449,10 @@ describe('Live workflow status (real engine)', () => {
     // renders the recoverable service-task view rather than the static error page.
     fillLevers({ path: 'postCommit', endState: 'waitExpired', deferDelayMs: 2000 });
 
+    let submittedAt = 0;
+    cy.then(() => {
+      submittedAt = Date.now();
+    });
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
     cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
@@ -458,7 +462,15 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
     cy.findByRole('button', { name: 'Gå tilbake' }).should('be.visible');
 
-    waitForProcessState({ workflowStatus: 'failed', currentTask: 'Task_Service' });
+    // The failure must be the step's own (kind stepFailed on the coarse app annotation; the
+    // engine-side wait_expired classification is pinned by the engine's integration tests), and it
+    // must not arrive before the fixture's 30s budget has run out — a regression that fails the
+    // wait immediately as an ordinary execution failure would land here early.
+    waitForProcessState({ workflowStatus: 'failed', currentTask: 'Task_Service' }).then((instanceRoot) => {
+      expect(Date.now() - submittedAt).to.be.gte(30000);
+      const processUrl = `${instanceRoot.replace('/instance/', '/instances/')}/process`;
+      cy.request({ url: processUrl, log: false }).its('body.workflow.failure.kind').should('eq', 'stepFailed');
+    });
   });
 
   it('parked (post-commit): parkThenRelease drives itself onwards - no manual trigger', () => {
