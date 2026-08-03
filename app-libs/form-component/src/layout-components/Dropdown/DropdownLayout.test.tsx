@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react';
 
 import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
-import { findByRole, fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 
 import { Dropdown } from './DropdownLayout';
 
