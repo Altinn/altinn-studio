@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -7,6 +9,7 @@ using Moq;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience.Models;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;
 
@@ -896,5 +899,78 @@ public class WorkflowHandlerTests
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
         Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[1].Status);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Steps[2].Status);
+    }
+
+    [Fact]
+    public async Task Handle_CancellationBypassClaim_RecordsNoNegativeDurations()
+    {
+        // A cancel racing a deferral write-back is claimed by the fetch gate's cancellation bypass
+        // while backoff_until still points at the next scheduled poll — potentially far in the
+        // future. The duration anchor must clamp to now, or queue/total time record negative values.
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(MockExecutor(ExecutionResult.Success()).Object, timeProvider: time);
+        var workflow = new Workflow
+        {
+            OperationId = "cancel-bypass-durations",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Context = JsonSerializer.SerializeToElement(new { }),
+            Status = PersistentItemStatus.Processing,
+            Steps = [CreateStep()],
+            CancellationRequestedAt = _t0,
+            BackoffUntil = _t0.AddMinutes(10),
+        };
+
+        using var durations = new WorkflowDurationCollector("cancel-bypass-durations");
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Canceled, workflow.Status);
+        Assert.NotEmpty(durations.Measurements);
+        Assert.All(
+            durations.Measurements,
+            m => Assert.True(m.Value >= 0, $"{m.Instrument} recorded a negative duration: {m.Value}")
+        );
+    }
+
+    /// <summary>
+    /// Captures the workflow queue/total duration histograms for one workflow, filtered by its
+    /// operation-id tag so concurrently running tests never bleed into the assertions.
+    /// </summary>
+    private sealed class WorkflowDurationCollector : IDisposable
+    {
+        private readonly MeterListener _listener;
+
+        public ConcurrentBag<(string Instrument, double Value)> Measurements { get; } = [];
+
+        public WorkflowDurationCollector(string operationId)
+        {
+            _listener = new MeterListener();
+            _listener.InstrumentPublished = (instrument, listener) =>
+            {
+                if (
+                    instrument.Meter.Name == Metrics.Meter.Name
+                    && instrument.Name is "engine.workflows.time.queue" or "engine.workflows.time.total"
+                )
+                {
+                    listener.EnableMeasurementEvents(instrument);
+                }
+            };
+            _listener.SetMeasurementEventCallback<double>(
+                (instrument, measurement, tags, _) =>
+                {
+                    foreach (var tag in tags)
+                    {
+                        if (tag.Key == "workflow.operation.id" && Equals(tag.Value, operationId))
+                        {
+                            Measurements.Add((instrument.Name, measurement));
+                            return;
+                        }
+                    }
+                }
+            );
+            _listener.Start();
+        }
+
+        public void Dispose() => _listener.Dispose();
     }
 }

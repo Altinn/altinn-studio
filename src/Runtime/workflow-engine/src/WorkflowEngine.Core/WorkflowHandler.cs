@@ -520,8 +520,15 @@ internal sealed class WorkflowHandler(
     /// When this attempt became runnable: the backoff deadline it waited out, or its creation.
     /// Must be read before the handler advances <see cref="Workflow.BackoffUntil"/> to schedule the
     /// <em>next</em> attempt — otherwise the queue/total durations measured against it go negative.
+    /// Clamped to now: the cancellation bypass claims a parked row before its timer elapses, so the
+    /// backoff deadline can still be in the future on a legitimate attempt.
     /// </summary>
-    private static DateTimeOffset AttemptAnchor(Workflow workflow) => workflow.BackoffUntil ?? workflow.CreatedAt;
+    private DateTimeOffset AttemptAnchor(Workflow workflow)
+    {
+        DateTimeOffset anchor = workflow.BackoffUntil ?? workflow.CreatedAt;
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        return anchor > now ? now : anchor;
+    }
 
     private void RecordWorkflowQueueTime(Workflow workflow, DateTimeOffset attemptAnchor)
     {
