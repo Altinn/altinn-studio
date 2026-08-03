@@ -61,6 +61,7 @@ public class AltinityWebSocketServiceTests
                         && r.FilesChanged!.Count == 1
                         && r.Sources!.Count == 1
                         && r.Sources[0].Title == "Dynamiske uttrykk"
+                        && r.TraceId == "abc123"
                     ),
                     s_editingContext,
                     It.IsAny<CancellationToken>()

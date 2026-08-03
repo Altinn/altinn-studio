@@ -217,15 +217,31 @@ public class AltinityProxyHubTests
             .ReturnsAsync(true);
     }
 
+    private readonly StubHttpMessageHandler _agentHttpHandler = new();
+
+    [Fact]
+    public async Task CancelWorkflow_SendsDeveloperIdentityToAgentsService()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+
+        await hub.CancelWorkflow(threadId.ToString());
+
+        HttpRequestMessage cancelRequest = Assert.Single(_agentHttpHandler.Requests);
+        Assert.EndsWith($"/api/agent/cancel/{threadId}", cancelRequest.RequestUri!.ToString());
+        // The agents service rejects cancellation without the caller's identity.
+        Assert.Equal(TestDeveloper, Assert.Single(cancelRequest.Headers.GetValues("X-Developer")));
+    }
+
     private AltinityProxyHub CreateHub()
     {
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
         httpContextAccessor.Setup(a => a.HttpContext).Returns(GetHttpContextForDeveloper(TestDeveloper));
 
         var httpClientFactory = new Mock<IHttpClientFactory>();
-        httpClientFactory
-            .Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(new HttpClient(new StubHttpMessageHandler()));
+        httpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient(_agentHttpHandler));
 
         var hub = new AltinityProxyHub(
             httpContextAccessor.Object,
@@ -249,11 +265,14 @@ public class AltinityProxyHubTests
 
     private sealed class StubHttpMessageHandler : HttpMessageHandler
     {
+        public List<HttpRequestMessage> Requests { get; } = new();
+
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
         )
         {
+            Requests.Add(request);
             return Task.FromResult(
                 new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"accepted": true}""") }
             );

@@ -56,7 +56,7 @@ describe('useAltinityThreads', () => {
     mockUseCreateChatMessageMutation.mockReturnValue({
       mutateAsync: jest.fn().mockResolvedValue({ id: 'persisted-id' }),
     } as any);
-    mockUseDeleteChatMessageMutation.mockReturnValue({ mutate: jest.fn() } as any);
+    mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: jest.fn() } as any);
   });
 
   afterEach(() => {
@@ -103,8 +103,8 @@ describe('useAltinityThreads', () => {
   });
 
   it('forwards messageId to deleteMessage mutation', () => {
-    const deleteMessageMutate = jest.fn();
-    mockUseDeleteChatMessageMutation.mockReturnValue({ mutate: deleteMessageMutate } as any);
+    const deleteMessageMutate = jest.fn().mockResolvedValue(undefined);
+    mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: deleteMessageMutate } as any);
 
     const { result } = renderUseAltinityThreads();
 

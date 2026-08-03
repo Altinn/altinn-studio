@@ -324,6 +324,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
             List<string>? filesChanged = data!["filesChanged"]?.Deserialize<List<string>>();
             List<ChatSourceEntity>? sources = data["sources"]
                 ?.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions);
+            string? traceId = data["traceId"]?.GetValue<string>();
 
             var request = new CreateChatMessageRequest(
                 Role.Assistant,
@@ -331,7 +332,8 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
                 AllowAppChanges: null,
                 AttachmentFileNames: null,
                 filesChanged,
-                sources
+                sources,
+                traceId
             );
 
             using var scope = _scopeFactory.CreateScope();

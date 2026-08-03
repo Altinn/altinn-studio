@@ -113,6 +113,7 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
             AttachmentFileNames = request.AttachmentFileNames,
             FilesChanged = request.FilesChanged,
             Sources = request.Sources,
+            TraceId = request.TraceId,
         };
 
         return await repository.CreateMessageAsync(message, cancellationToken);

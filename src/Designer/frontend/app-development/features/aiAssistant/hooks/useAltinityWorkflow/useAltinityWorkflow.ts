@@ -32,10 +32,7 @@ const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
-// How long after a terminal event (completion, error, cancel) a status event
-// is treated as a straggler from the finished run rather than as a new run to
-// adopt. The agents service stops emitting progress events for cancelled
-// sessions, so this only has to absorb events already in flight.
+// Status events this soon after a terminal event are stragglers from the finished run.
 const ADOPTION_GRACE_AFTER_TERMINAL_MS = 10_000;
 
 export interface UseAltinityWorkflowResult {
@@ -69,20 +66,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
-  // Monotonic clock anchor per workflow thread. Each trail step records
-  // its offset from this value so timestamps don't drift if the wall clock
-  // changes mid-flight.
+  // Trail-clock anchor per thread; each step records its offset from this.
   const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
-  // Idempotency guard: a delivered-twice assistant_message (stale connection,
-  // HMR) must render and persist exactly once. Keyed on traceId, which is
-  // unique per workflow run; events without one pass through untouched so a
-  // legitimately repeated identical answer is never dropped.
+  // Dedupes redelivered assistant_message events by traceId.
   const handledAssistantTraceIdsRef = useRef<Set<string>>(new Set());
-  // When each thread's run last ended (completed, failed or cancelled). Status
-  // events inside the grace window after that moment are stragglers from the
-  // finished run — adopting them would show an active workflow that nothing
-  // will ever mark as done again.
+  // When each thread's run last ended.
   const terminatedAtMsByThreadRef = useRef<Record<string, number>>({});
+  // Threads whose messages are already fetched for the current run.
+  const runMessagesRefreshedThreadsRef = useRef<Set<string>>(new Set());
 
   const {
     selectedThreadId,
@@ -100,6 +91,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   const markThreadTerminated = useCallback((threadId: string) => {
     terminatedAtMsByThreadRef.current[threadId] = performance.now();
+    runMessagesRefreshedThreadsRef.current.delete(threadId);
+    // The next run must anchor its own trail clock.
+    delete workflowStartedAtMsByThreadRef.current[threadId];
   }, []);
 
   const isRecentlyTerminated = useCallback((threadId: string): boolean => {
@@ -125,18 +119,30 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [setWorkflowStatus, markThreadTerminated],
   );
 
+  // Fetches the initiating tab's user message when adopting a run this tab didn't start.
+  const refreshMessagesForAdoptedRun = useCallback(
+    (threadId: string) => {
+      if (isRecentlyTerminated(threadId)) return;
+      if (runMessagesRefreshedThreadsRef.current.has(threadId)) return;
+      runMessagesRefreshedThreadsRef.current.add(threadId);
+      refreshMessages(threadId);
+    },
+    [isRecentlyTerminated, refreshMessages],
+  );
+
   const applyStatusMessage = useCallback(
-    (threadId: string, statusMessage: string, toolUseId?: string) => {
-      workflowStartedAtMsByThreadRef.current[threadId] ??= performance.now();
+    (threadId: string, statusMessage: string, toolUseId?: string, elapsedMs?: number) => {
+      // elapsed_ms (time since run start, set by the agents service) is
+      // authoritative for the trail clock.
+      if (elapsedMs !== undefined) {
+        workflowStartedAtMsByThreadRef.current[threadId] = performance.now() - elapsedMs;
+      } else {
+        workflowStartedAtMsByThreadRef.current[threadId] ??= performance.now();
+      }
       setWorkflowStatusByThread((prev) => {
         const existing = prev[threadId];
-        // A status event for a thread with no active workflow means a run is
-        // in flight that THIS tab didn't start — another tab submitted it, or
-        // this tab remounted mid-run. Adopt it (with a fresh trail from this
-        // point on) so every tab shows the live activity, not just the
-        // initiator. Exception: right after a terminal event the status is a
-        // straggler from the finished run, not a new one — adopting it would
-        // strand the spinner since no completion will follow.
+        // No active workflow here means another tab started the run — adopt
+        // it, unless the status is a straggler from a run that just ended.
         if (!existing?.isActive && isRecentlyTerminated(threadId)) return prev;
         const prevStatus: WorkflowStatus = existing?.isActive
           ? existing
@@ -207,13 +213,15 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const threadId = findThreadIdByPermissionRequestId(workflowStatusByThread, requestId);
       if (!threadId) return;
       try {
+        // The hub rejects commands for sessions not registered on this connection.
+        await registerSession(org, app, threadId);
         await sendPermissionResponse(threadId, requestId, granted);
         clearPermissionRequest(threadId);
       } catch (error) {
         console.error('Permission response failed:', error);
       }
     },
-    [workflowStatusByThread, clearPermissionRequest, sendPermissionResponse],
+    [workflowStatusByThread, clearPermissionRequest, sendPermissionResponse, registerSession, org, app],
   );
 
   const resetRepoForSession = useCallback(
@@ -245,9 +253,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
 
       if (assistantMessage.persistedMessageId) {
-        // The Designer backend already persisted this message (exactly once,
-        // no matter how many tabs receive the broadcast) — pull the stored
-        // row into the cache instead of persisting a client-side copy.
+        // Already persisted server-side — refetch instead of writing a client copy.
         refreshMessages(threadId);
         if (assistantMessage.traceId) {
           setTraceIdsByMessageId((prev) => ({
@@ -256,14 +262,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           }));
         }
       } else {
-        // Unenriched event (server-side persist failed or skipped) — persist
-        // client-side as before, so the answer is never lost.
+        // Server-side persist failed or was skipped — persist client-side instead.
         const finalAssistantMessage: AssistantMessage = {
           role: MessageAuthor.Assistant,
           content: messageContent,
           createdAt: messageTimestamp.toISOString(),
           filesChanged: assistantMessage.filesChanged || [],
           sources: assistantMessage.sources || [],
+          traceId: assistantMessage.traceId,
         };
         const persisted = await createMessage(threadId, finalAssistantMessage);
 
@@ -301,30 +307,41 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           markThreadTerminated(threadId);
           setWorkflowStatus(threadId, { isActive: false });
         } else {
+          refreshMessagesForAdoptedRun(threadId);
           applyStatusMessage(
             threadId,
             event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
             event.data?.tool_use_id,
+            event.data?.elapsed_ms,
           );
         }
       } else if (event.type === 'workflow_status') {
+        refreshMessagesForAdoptedRun(threadId);
         applyStatusMessage(
           threadId,
           event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
           event.data?.tool_use_id,
+          event.data?.elapsed_ms,
         );
       } else if (event.type === 'permission_request') {
-        applyPermissionRequest(threadId, {
-          requestId: event.data.request_id,
-          message: event.data.message,
-        });
+        if (event.data.resolved) {
+          // Answered in another tab or timed out.
+          clearPermissionRequest(threadId);
+        } else {
+          applyPermissionRequest(threadId, {
+            requestId: event.data.request_id,
+            message: event.data.message ?? '',
+          });
+        }
       } else if (event.type === 'error') {
         markThreadTerminated(threadId);
         setWorkflowStatus(threadId, { isActive: false });
-        if (event.data?.status === 'cancelled') return;
-        // A rejection carries the actual reason (and often suggestions) —
-        // show it instead of the generic failure text so the user knows
-        // what to change.
+        if (event.data?.status === 'cancelled') {
+          // Drop the message the cancelling tab deleted.
+          refreshMessages(threadId);
+          return;
+        }
+        // Rejections carry the actual reason — show it instead of the generic text.
         const content =
           event.data?.status === 'rejected'
             ? formatRejectedEventMessage(event.data)
@@ -340,10 +357,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [
       applyStatusMessage,
       applyPermissionRequest,
+      clearPermissionRequest,
       handleAssistantMessage,
       createMessage,
       setWorkflowStatus,
       markThreadTerminated,
+      refreshMessagesForAdoptedRun,
+      refreshMessages,
     ],
   );
 
@@ -362,9 +382,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     ): Promise<AgentResponse> => {
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
-      // A fresh run: the previous run's terminal marker must not swallow the
-      // new run's status events.
       delete terminatedAtMsByThreadRef.current[threadId];
+      // No adoption refetch needed — this tab wrote the user message itself.
+      runMessagesRefreshedThreadsRef.current.add(threadId);
       workflowStartedAtMsByThreadRef.current[threadId] = performance.now();
       const initialStep: TrailStep = {
         id: 'initial',
@@ -476,17 +496,28 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     const latestPersistedMessage = chatMessages.at(-1);
     const noAssistantResponseReceived = latestPersistedMessage?.role === MessageAuthor.User;
     if (noAssistantResponseReceived) {
-      deleteMessage(threadId, latestPersistedMessage.id);
-      setCancelledMessageContent(latestPersistedMessage.content);
+      try {
+        // Delete before the cancel round-trip — the refetch it triggers in
+        // every tab must not resurrect this message.
+        await deleteMessage(threadId, latestPersistedMessage.id);
+        setCancelledMessageContent(latestPersistedMessage.content);
+      } catch (error) {
+        console.error('Failed to delete the cancelled message:', error);
+      }
     }
 
     try {
+      // The hub rejects commands for sessions not registered on this connection.
+      await registerSession(org, app, threadId);
       await cancelWorkflow(threadId);
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
   }, [
     cancelWorkflow,
+    registerSession,
+    org,
+    app,
     selectedThreadId,
     deleteMessage,
     chatMessages,

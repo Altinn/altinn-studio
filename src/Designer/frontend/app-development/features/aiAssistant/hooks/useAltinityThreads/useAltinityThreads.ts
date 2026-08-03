@@ -19,7 +19,7 @@ export interface AltinityThreadState {
   selectThread: (threadId: string | null) => void;
   createThread: (title: string) => Promise<string>;
   deleteThread: (threadId: string) => void;
-  deleteMessage: (threadId: string, messageId: string) => void;
+  deleteMessage: (threadId: string, messageId: string) => Promise<void>;
   createMessage: (
     threadId: string,
     message: UserMessage | AssistantMessage,
@@ -39,7 +39,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
 
   const { data: chatMessages } = useChatMessagesQuery(selectedThreadId);
   const { mutateAsync: createChatMessage } = useCreateChatMessageMutation();
-  const { mutate: deleteChatMessage } = useDeleteChatMessageMutation();
+  const { mutateAsync: deleteChatMessage } = useDeleteChatMessageMutation();
 
   const createThread = useCallback(
     async (title: string): Promise<string> => {
@@ -74,6 +74,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
           attachmentFileNames: isUser ? message.attachments?.map((a) => a.name) : undefined,
           filesChanged: isUser ? undefined : message.filesChanged,
           sources: isUser ? undefined : message.sources,
+          traceId: isUser ? undefined : message.traceId,
         },
       });
     },
@@ -81,8 +82,8 @@ export const useAltinityThreads = (): AltinityThreadState => {
   );
 
   const deleteMessage = useCallback(
-    (threadId: string, messageId: string): void => {
-      deleteChatMessage({ threadId, messageId });
+    async (threadId: string, messageId: string): Promise<void> => {
+      await deleteChatMessage({ threadId, messageId });
     },
     [deleteChatMessage],
   );

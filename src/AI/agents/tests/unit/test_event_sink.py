@@ -68,3 +68,31 @@ class TestCancelledSessionSuppression:
         sink.send(AgentEvent(type="status", session_id=other_session, data={"message": "Jobber"}))
 
         assert _delivered_types(sink) == ["error", "status"]
+
+
+class TestStatusElapsedStamping:
+    def test_status_events_carry_elapsed_ms_for_started_sessions(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("status", message="Skanner repo"))
+
+        [event] = sink.get_developer_events_since(DEVELOPER, 0)
+        assert event.data["elapsed_ms"] >= 0
+
+    def test_status_events_without_started_session_are_not_stamped(self):
+        sink = _sink_with_session()
+
+        sink.send(_event("status", message="Skanner repo"))
+
+        [event] = sink.get_developer_events_since(DEVELOPER, 0)
+        assert "elapsed_ms" not in event.data
+
+    def test_existing_elapsed_ms_is_not_overwritten(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("status", message="Skanner repo", elapsed_ms=1234))
+
+        [event] = sink.get_developer_events_since(DEVELOPER, 0)
+        assert event.data["elapsed_ms"] == 1234

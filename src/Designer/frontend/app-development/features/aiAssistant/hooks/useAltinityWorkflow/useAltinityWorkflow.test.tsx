@@ -91,11 +91,156 @@ describe('useAltinityWorkflow', () => {
         session_id: 'thread-a',
         data: { message: 'Skanner repo', tool_use_id: 'tool-1' },
       });
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Leser layout-filer', tool_use_id: 'tool-2' },
+      });
     });
 
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
-    expect(result.current.workflowStatusByThread['thread-a']?.message).toBe('Skanner repo');
-    expect(result.current.workflowStatusByThread['thread-a']?.steps).toHaveLength(1);
+    expect(result.current.workflowStatusByThread['thread-a']?.message).toBe('Leser layout-filer');
+    expect(result.current.workflowStatusByThread['thread-a']?.steps).toHaveLength(2);
+    // The adopting tab must fetch the initiator's user message right away
+    // (not first at completion) — and only once per run.
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    expect(threads.refreshMessages).toHaveBeenCalledTimes(1);
+  });
+
+  it('anchors adopted trail timers at the actual run start via elapsed_ms', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    const elapsedMsAtFirstReceivedEvent = 6000;
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo', elapsed_ms: elapsedMsAtFirstReceivedEvent },
+      });
+    });
+
+    const steps = result.current.workflowStatusByThread['thread-a']?.steps;
+    expect(steps?.[0].offsetMs).toBeGreaterThanOrEqual(elapsedMsAtFirstReceivedEvent);
+  });
+
+  it('re-anchors the trail clock for a new run on the same thread', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    // Controlled clock: the second run must start after the post-terminal
+    // adoption grace window, like a real follow-up request does.
+    let fakeNowMs = 500_000;
+    const nowSpy = jest.spyOn(performance, 'now').mockImplementation(() => fakeNowMs);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    // First run, adopted three minutes in, then completed.
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo', elapsed_ms: 180_000 },
+      });
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar', traceId: 'trace-run-1', persistedMessageId: 'msg-1' },
+      });
+    });
+
+    // A minute later another tab starts a second run on the same thread —
+    // its timers must NOT continue from the first run's start.
+    fakeNowMs += 60_000;
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo igjen', elapsed_ms: 1_000 },
+      });
+    });
+
+    const steps = result.current.workflowStatusByThread['thread-a']?.steps;
+    expect(steps?.[0].offsetMs).toBe(1_000);
+    nowSpy.mockRestore();
+  });
+
+  it('dismisses the permission prompt when it is resolved in another tab', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    // This tab adopted the run and shows the prompt, but the user answers
+    // it in ANOTHER tab — the broker then broadcasts the resolution.
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Endrer fil' },
+      });
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', message: 'edit_file: Side1.json' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeDefined();
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'permission_request',
+        session_id: 'thread-a',
+        data: { request_id: 'req-1', resolved: true, granted: true },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeUndefined();
   });
 
   it('does not re-adopt a workflow from status events trailing a terminal event', async () => {
@@ -784,6 +929,9 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.createMessage).not.toHaveBeenCalled();
+    // The cancelling tab deleted the aborted user message — every tab must
+    // refetch the thread so the deleted message disappears everywhere.
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
   });
 
   it('does not send a permission response for an unknown request id', async () => {
@@ -846,6 +994,40 @@ describe('useAltinityWorkflow', () => {
 
     expect(threads.deleteMessage).toHaveBeenCalledWith('thread-1', 'message-1');
     expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
+  });
+
+  it('registers the session on this connection before cancelling', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-1' });
+    const callOrder: string[] = [];
+    const registerSession = jest.fn(async () => {
+      callOrder.push('registerSession');
+    });
+    const cancelWorkflow = jest.fn(async () => {
+      callOrder.push('cancelWorkflow');
+    });
+
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow,
+      respondToPermission: jest.fn(),
+      registerSession,
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    // A tab that adopted the run (or reloaded mid-run) has no session on its
+    // hub connection — cancel must (re)register first or the hub rejects it.
+    expect(registerSession).toHaveBeenCalledWith('testOrg', 'testApp', 'thread-1');
+    expect(callOrder).toEqual(['registerSession', 'cancelWorkflow']);
   });
 
   it('does not delete message on abort when assistant has already responded', async () => {

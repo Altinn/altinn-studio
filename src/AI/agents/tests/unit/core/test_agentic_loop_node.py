@@ -382,6 +382,31 @@ class TestEmitWorkflowCompletion:
 
 
 class TestHandle:
+    async def test_cancelled_result_emits_no_completion_message(self, monkeypatch):
+        """The cancel endpoint already sent the terminal 'cancelled' event —
+        a cancelled run must not also deliver (and persist) an answer."""
+        seen: list = []
+
+        async def fake_run_loop(**kwargs):
+            return LoopResult(reason=TerminationReason.CANCELLED, messages=[], turns=1)
+
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: seen.append(evt)
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: True
+        )
+
+        await handle(_state())
+
+        assert [e.type for e in seen if e.type in ("assistant_message", "done")] == []
+
     async def test_invokes_run_loop_with_expected_inputs(self, monkeypatch):
         captured: dict[str, Any] = {}
 

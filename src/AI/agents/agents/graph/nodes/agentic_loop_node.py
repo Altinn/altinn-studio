@@ -285,6 +285,11 @@ async def handle(state: AgentState) -> AgentState:
     _apply_result_to_state(state, result, ctx)
     if state.allow_app_changes:
         await _maybe_auto_commit(state, result, ctx)
+    if result.reason is TerminationReason.CANCELLED:
+        # The cancel endpoint already sent the terminal "cancelled" error
+        # event. Emitting a completion here would deliver (and persist) an
+        # assistant answer for a run the user explicitly aborted.
+        return state
     _emit_workflow_completion(state, result, ctx)
     return state
 

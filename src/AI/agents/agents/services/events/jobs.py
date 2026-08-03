@@ -3,6 +3,7 @@ from .events import AgentEvent
 import asyncio
 import logging
 import threading
+import time
 from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
@@ -92,6 +93,10 @@ class EventSink:
         self._session_status: Dict[str, Dict[str, Any]] = {}
         self._conversation_history: Dict[str, List[Dict[str, Any]]] = {}
         self._cancelled: set = set()
+        # Monotonic run-start timestamps, used to stamp elapsed_ms on status
+        # events so every tab (including ones that adopt an in-flight run
+        # mid-way) can show trail timers relative to the actual run start.
+        self._session_started_monotonic: Dict[str, float] = {}
         self._session_to_developer: Dict[str, str] = {}  # Maps session_id -> developer
 
     # --- lifecycle ------------------------------------------------------------
@@ -134,6 +139,10 @@ class EventSink:
                     f"🛑 Dropping {event.type} for cancelled session {event.session_id}"
                 )
                 return
+            if event.type == "status":
+                started = self._session_started_monotonic.get(event.session_id)
+                if started is not None:
+                    event.data.setdefault("elapsed_ms", int((time.monotonic() - started) * 1000))
             if event.type == "assistant_message":
                 self._session_status.setdefault(event.session_id, {"status": "running"})
                 self._session_status[event.session_id]["last_message"] = event.data
@@ -219,6 +228,7 @@ class EventSink:
         """Mark a session as started/running."""
         with self._state_lock:
             self._cancelled.discard(session_id)
+            self._session_started_monotonic[session_id] = time.monotonic()
             self._session_status[session_id] = {
                 "status": "running",
                 "started_at": datetime.now(timezone.utc).isoformat(),

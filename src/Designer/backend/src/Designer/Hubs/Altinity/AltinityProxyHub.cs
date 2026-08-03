@@ -456,7 +456,14 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         _logger.LogInformation("CancelWorkflow called for session {SessionId} by {Developer}", sessionId, developer);
 
         var httpClient = _httpClientFactory.CreateClient();
-        var response = await httpClient.PostAsync($"{_altinitySettings.AgentUrl}/api/agent/cancel/{sessionId}", null);
+        // The agents service rejects cancellation without the caller's identity
+        // (403/400) — it verifies the caller owns the session.
+        var httpRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"{_altinitySettings.AgentUrl}/api/agent/cancel/{sessionId}"
+        );
+        httpRequest.Headers.Add("X-Developer", developer);
+        var response = await httpClient.SendAsync(httpRequest);
         var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
