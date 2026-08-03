@@ -158,14 +158,6 @@ export function Dropdown({
             popoverId={`${componentId}-popover`}
           />
         )}
-        {renderedInTable && (
-          // Setting aria-label on the input component does not work in DS Combobox.
-          // Workaround until this issue is resolved in DS: https://github.com/digdir/designsystemet/issues/3893
-          <DSLabel htmlFor={componentId} className={classes.visuallyHidden}>
-            {lang(title)}
-            {description && lang(description)}
-          </DSLabel>
-        )}
         <Suggestion
           multiple={false}
           filter={(args) => optionFilter(args, selectedLabels)}
@@ -192,19 +184,15 @@ export function Dropdown({
 
               const input = e.target;
 
-              // Wait for the combobox to be fully defined
               await customElements.whenDefined('u-combobox');
 
               setTimeout(() => {
-                // Ensure we are still the active element
                 if (document.activeElement !== input) {
                   return;
                 }
 
-                // Tell the next execution of onFocus to ignore the event we are about to fire
                 isPatchingFocus.current = true;
 
-                // Wake up the component
                 input.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
               }, 150);
             }}
