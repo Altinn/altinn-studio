@@ -402,8 +402,9 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/navigationButtonsComponent',
     icon: FingerButtonIcon,
   },
-  [ComponentType.OrganisationLookup]: {
-    name: ComponentType.OrganisationLookup,
+  // The v9 editor uses the renamed contract; ux-editor-v4 retains OrganisationLookup.
+  [ComponentType.OrganizationLookup]: {
+    name: ComponentType.OrganizationLookup,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     icon: ShortTextIcon,
@@ -557,7 +558,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.RadioButtons],
   formItemConfigs[ComponentType.Dropdown],
   formItemConfigs[ComponentType.MultipleSelect],
-  formItemConfigs[ComponentType.OrganisationLookup],
+  formItemConfigs[ComponentType.OrganizationLookup],
   formItemConfigs[ComponentType.PersonLookup],
   formItemConfigs[ComponentType.Likert],
   formItemConfigs[ComponentType.Datepicker],
@@ -615,7 +616,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Input,
     ComponentType.TextArea,
     ComponentType.Datepicker,
-    ComponentType.OrganisationLookup,
+    ComponentType.OrganizationLookup,
     ComponentType.PersonLookup,
   ],
   text: [

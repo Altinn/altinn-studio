@@ -30,7 +30,7 @@ import MapSchema from './schemas/json/component/Map.schema.v1.json';
 import MultipleSelectSchema from './schemas/json/component/MultipleSelect.schema.v1.json';
 import NavigationBarSchema from './schemas/json/component/NavigationBar.schema.v1.json';
 import NavigationButtonsSchema from './schemas/json/component/NavigationButtons.schema.v1.json';
-import OrganisationLookupSchema from './schemas/json/component/OrganisationLookup.schema.v1.json';
+import OrganizationLookupSchema from './schemas/json/component/OrganizationLookup.schema.v1.json';
 import PanelSchema from './schemas/json/component/Panel.schema.v1.json';
 import ParagraphSchema from './schemas/json/component/Paragraph.schema.v1.json';
 import PaymentDetailsSchema from './schemas/json/component/PaymentDetails.schema.v1.json';
@@ -79,7 +79,8 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.MultipleSelect]: MultipleSelectSchema,
   [ComponentType.NavigationBar]: NavigationBarSchema,
   [ComponentType.NavigationButtons]: NavigationButtonsSchema,
-  [ComponentType.OrganisationLookup]: OrganisationLookupSchema,
+  // OrganizationLookup is the v9 schema name; the v4 editor keeps its legacy schema separately.
+  [ComponentType.OrganizationLookup]: OrganizationLookupSchema,
   [ComponentType.Panel]: PanelSchema,
   [ComponentType.Paragraph]: ParagraphSchema,
   [ComponentType.Payment]: PaymentSchema,
