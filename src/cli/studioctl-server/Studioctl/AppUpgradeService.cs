@@ -58,7 +58,10 @@ internal sealed class AppUpgradeService : IDisposable
                     cancellationToken
                 );
 
-                GitOperations.StageAllChanges(projectFolder, output);
+                if (!V8Tov9Upgrade.IsError(exitCode))
+                {
+                    GitOperations.StageAllChanges(projectFolder, output);
+                }
 
                 return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString());
             }
