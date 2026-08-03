@@ -1,11 +1,18 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
@@ -14,10 +21,18 @@ public class ExecuteServiceTaskTests
 {
     private static readonly DateTimeOffset FixtureExecutionReferenceTime = new(2025, 3, 14, 9, 26, 53, TimeSpan.Zero);
 
-    private static ProcessEngineCommandContext CreateContext(Instance instance, string serviceTaskType)
+    private static ProcessEngineCommandContext CreateContext(
+        Instance instance,
+        string serviceTaskType,
+        IInstanceDataMutator? mutator = null
+    )
     {
-        var mutatorMock = new Mock<IInstanceDataMutator>();
-        mutatorMock.Setup(x => x.Instance).Returns(instance);
+        if (mutator is null)
+        {
+            var mutatorMock = new Mock<IInstanceDataMutator>();
+            mutatorMock.Setup(x => x.Instance).Returns(instance);
+            mutator = mutatorMock.Object;
+        }
 
         var payload = new ExecuteServiceTaskPayload(serviceTaskType);
         string serializedPayload = CommandPayloadSerializer.Serialize(payload)!;
@@ -26,7 +41,7 @@ public class ExecuteServiceTaskTests
         {
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
-            InstanceDataMutator = mutatorMock.Object,
+            InstanceDataMutator = mutator,
             CancellationToken = CancellationToken.None,
             IdempotencyKey = "test-step-id",
             ExecutionReferenceTime = FixtureExecutionReferenceTime,
@@ -35,7 +50,6 @@ public class ExecuteServiceTaskTests
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
                 Payload = serializedPayload,
-                LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
                 ExecutionReferenceTime = FixtureExecutionReferenceTime,
@@ -63,11 +77,16 @@ public class ExecuteServiceTaskTests
     {
         return new Instance
         {
-            Id = "1337/abc-123",
+            Id = $"1337/{Guid.NewGuid()}",
             Org = "ttd",
             AppId = "ttd/test-app",
             InstanceOwner = new InstanceOwner { PartyId = "1337" },
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Process = new ProcessState
+            {
+                Status = ProcessStatus.Processing,
+                CurrentTask = new ProcessElementInfo { ElementId = taskId },
+            },
+            Data = [],
         };
     }
 
@@ -139,8 +158,10 @@ public class ExecuteServiceTaskTests
             .Callback<ServiceTaskContext>(context => receivedContext = context)
             .ReturnsAsync(ServiceTaskResult.SuccessWithoutAutoAdvance());
         var command = CreateCommand(serviceTask.Object);
+        Instance instance = CreateInstance();
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
         var context = WithExecutionMetadata(
-            CreateContext(CreateInstance(), "myServiceTask"),
+            CreateContext(instance, "myServiceTask", unitOfWork),
             idempotencyKey,
             executionReferenceTime
         );
@@ -151,6 +172,7 @@ public class ExecuteServiceTaskTests
         Assert.NotNull(receivedContext);
         Assert.Equal(idempotencyKey, receivedContext.IdempotencyKey);
         Assert.Equal(executionReferenceTime, receivedContext.ExecutionReferenceTime);
+        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
     }
 
     [Fact]
@@ -163,7 +185,9 @@ public class ExecuteServiceTaskTests
             .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
             .ReturnsAsync(ServiceTaskResult.SuccessWithoutAutoAdvance());
         var command = CreateCommand(serviceTask.Object);
-        var context = CreateContext(CreateInstance(), "myServiceTask");
+        Instance instance = CreateInstance();
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
+        var context = CreateContext(instance, "myServiceTask", unitOfWork);
 
         // Act
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
@@ -171,7 +195,16 @@ public class ExecuteServiceTaskTests
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
+        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
     }
+
+    [Fact]
+    public Task Execute_WhenServiceTaskReturnsCustomResult_ClearsProcessingAndDoesNotAutoAdvance() =>
+        AssertNonAutoResultPauses(new CustomServiceTaskResult());
+
+    [Fact]
+    public Task Execute_WhenServiceTaskReturnsNull_ClearsProcessingAndDoesNotAutoAdvance() =>
+        AssertNonAutoResultPauses(null);
 
     [Fact]
     public async Task Execute_WhenServiceTaskReturnsFailedResult_ReturnsFailedResult()
@@ -264,7 +297,7 @@ public class ExecuteServiceTaskTests
             context =>
             {
                 context.InstanceDataMutator.RemoveDataElement(dataElementIdentifier);
-                return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+                return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("next"));
             }
         );
         var command = CreateCommand(serviceTask);
@@ -274,7 +307,105 @@ public class ExecuteServiceTaskTests
 
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+    }
+
+    private static async Task AssertNonAutoResultPauses(ServiceTaskResult? serviceTaskResult)
+    {
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
+        serviceTask.Setup(x => x.Execute(It.IsAny<ServiceTaskContext>())).Returns(Task.FromResult(serviceTaskResult!));
+        Instance instance = CreateInstance("ServiceTask_1");
+        StorageInstanceMutationRequest? capturedMutation = null;
+        var mutationClient = new Mock<IInstanceMutationClient>(MockBehavior.Strict);
+        mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    1337,
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    int _,
+                    Guid _,
+                    StorageInstanceMutationRequest mutation,
+                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
+                    StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? _,
+                    CancellationToken _
+                ) =>
+                {
+                    capturedMutation = mutation;
+                    return new InstanceMutationWithStorageMetadata(
+                        new Instance
+                        {
+                            Id = instance.Id,
+                            AppId = instance.AppId,
+                            Org = instance.Org,
+                            InstanceOwner = instance.InstanceOwner,
+                            Process = new ProcessState
+                            {
+                                Status = ProcessStatus.Idle,
+                                CurrentTask = instance.Process?.CurrentTask,
+                            },
+                            Data = [],
+                        },
+                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
+                    );
+                }
+            );
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance, mutationClient.Object);
+        var command = CreateCommand(serviceTask.Object);
+
+        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
+            CreateContext(instance, "myServiceTask", unitOfWork)
+        );
+
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.AutoAdvanceAction);
+        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
+        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+            unitOfWork.GetDataElementChanges(false),
+            Guid.NewGuid().ToString(),
+            CancellationToken.None
+        );
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.NotNull(capturedMutation);
+        Assert.Equal(ProcessStatus.Processing, capturedMutation.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Idle, capturedMutation.ProcessState?.State?.Status);
+        Assert.Equal("ServiceTask_1", capturedMutation.ProcessState?.State?.CurrentTask?.ElementId);
+        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
+        mutationClient.VerifyAll();
+    }
+
+    private static InstanceDataUnitOfWork CreateUnitOfWork(
+        Instance instance,
+        IInstanceMutationClient? mutationClient = null
+    )
+    {
+        var dataClient = new Mock<IDataClientWithStorageMetadata>();
+        mutationClient ??= dataClient.As<IInstanceMutationClient>().Object;
+        return new InstanceDataUnitOfWork(
+            instance,
+            new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
+            dataClient.Object,
+            mutationClient,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            new ApplicationMetadata("ttd/test-app") { DataTypes = [] },
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            taskId: instance.Process?.CurrentTask?.ElementId,
+            language: null
+        );
     }
 
     private sealed class DelegateServiceTask(string type, Func<ServiceTaskContext, Task<ServiceTaskResult>> execute)
@@ -284,4 +415,6 @@ public class ExecuteServiceTaskTests
 
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => execute(context);
     }
+
+    private sealed record CustomServiceTaskResult : ServiceTaskResult;
 }

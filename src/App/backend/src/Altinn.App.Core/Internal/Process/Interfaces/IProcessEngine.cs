@@ -24,7 +24,6 @@ internal interface IProcessEngine
         Instance instance,
         StorageVersionMetadata versions,
         ProcessStateChange processStateChange,
-        string lockToken,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
@@ -50,7 +49,6 @@ internal interface IProcessEngine
     Task EnqueueProcessNext(
         Instance instance,
         Actor actor,
-        string lockToken,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -37,6 +38,14 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
     {
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = context.InstanceDataMutator.Instance;
+        ProcessState? processState = instance.Process;
+        if (processState is null)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                "Executing a service task requires an active process state.",
+                nameof(InvalidOperationException)
+            );
+        }
         string serviceTaskType = payload.ServiceTaskType;
 
         using Activity? activity = telemetry?.StartProcessExecuteServiceTaskActivity(instance, serviceTaskType);
@@ -53,7 +62,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
             };
 
             IServiceTask serviceTask = GetServiceTask(serviceTaskType);
-            ServiceTaskResult result = await serviceTask.Execute(serviceTaskContext);
+            ServiceTaskResult? result = await serviceTask.Execute(serviceTaskContext);
 
             if (result is ServiceTaskFailedResult failedResult)
             {
@@ -72,6 +81,20 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                     AutoAdvanceAction = successResult.Action,
                 };
             }
+
+            if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+            {
+                return FailedProcessEngineCommandResult.Permanent(
+                    "Pausing a service task requires callback state restored into an InstanceDataUnitOfWork.",
+                    nameof(InvalidOperationException)
+                );
+            }
+
+            // ServiceTaskResult is app-extensible and legacy implementations can also return null.
+            // Every non-failure result other than the explicit auto-advance branch pauses at the
+            // durable service task and therefore releases processing ownership.
+            unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+            processState.Status = ProcessStatus.Idle;
 
             return new SuccessfulProcessEngineCommandResult();
         }

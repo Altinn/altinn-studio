@@ -88,11 +88,6 @@
         "Nullable": false
       },
       {
-        "Name": "lockToken",
-        "Kind": "string",
-        "Nullable": false
-      },
-      {
         "Name": "payload",
         "Kind": "string",
         "Nullable": true
@@ -160,11 +155,6 @@
       {
         "Name": "instanceOwnerPartyId",
         "Kind": "int",
-        "Nullable": false
-      },
-      {
-        "Name": "lockToken",
-        "Kind": "string",
         "Nullable": false
       },
       {

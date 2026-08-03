@@ -36,6 +36,12 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
+    /// Whether this command set schedules a service-task command after CommitProcessState.
+    /// The factory copies this exact sequence fact into the commit payload.
+    /// </summary>
+    public bool ServiceTaskFollowsCommit { get; private set; }
+
+    /// <summary>
     /// Creates command group for task start events.
     /// </summary>
     public static WorkflowCommandSet GetTaskStartSteps(TaskStartContext context)
@@ -57,10 +63,7 @@ internal sealed class WorkflowCommandSet
 
         if (context.ServiceTaskType is not null)
         {
-            group.AddCriticalPostCommitCommand(
-                ExecuteServiceTask.Key,
-                new ExecuteServiceTaskPayload(context.ServiceTaskType)
-            );
+            group.AddServiceTaskAfterCommit(context.ServiceTaskType);
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -104,22 +107,7 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     public static WorkflowCommandSet GetProcessEndSteps(ProcessEndContext context)
     {
-        // EndProcessLegacyHook runs post-commit because IProcessEnd.End reads instance.Process.EndEvent,
-        // which is only set when the process state is persisted. This matches the old ProcessEngine behavior
-        // where RunAppDefinedProcessEndHandlers ran after HandleEventsAndUpdateStorage.
-        var group = new WorkflowCommandSet()
-            .AddCommand(OnProcessEndingHook.Key)
-            .AddCriticalPostCommitCommand(EndProcessLegacyHook.Key);
-
-        if (context.HasAutoDeleteDataTypes)
-        {
-            group.AddCriticalPostCommitCommand(DeleteDataElementsIfConfigured.Key);
-        }
-
-        if (context.AutoDeleteInstanceOnProcessEnd)
-        {
-            group.AddCriticalPostCommitCommand(DeleteInstanceIfConfigured.Key);
-        }
+        var group = new WorkflowCommandSet().AddCommand(OnProcessEndingHook.Key).AddCommand(EndProcessLegacyHook.Key);
 
         if (context.RegisterEvents)
         {
@@ -155,6 +143,12 @@ internal sealed class WorkflowCommandSet
     {
         _sideEffectCommands.Add(CreateCommand(commandKey, payload));
         return this;
+    }
+
+    private void AddServiceTaskAfterCommit(string serviceTaskType)
+    {
+        ServiceTaskFollowsCommit = true;
+        AddCriticalPostCommitCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType));
     }
 
     private static StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null)

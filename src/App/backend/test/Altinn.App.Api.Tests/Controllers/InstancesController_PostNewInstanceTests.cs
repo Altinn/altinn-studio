@@ -18,6 +18,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -142,7 +143,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         // Verify the file data element was created - filename validation passed
         var dataElement = Assert.Single(createResponseParsed.Data, d => d.DataType == "specificFileType");
         Assert.Equal("image/png", dataElement.ContentType);
-
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
@@ -300,7 +300,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string org = "tdd";
         string app = "permissive-app";
         int instanceOwnerPartyId = token.PartyId;
-
         OverrideServicesForThisTest = services =>
         {
             services.AddTelemetrySink(
@@ -425,6 +424,116 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
         Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
         storedInstance.Status?.IsHardDeleted.Should().BeTrue();
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstance_Simplified_EnqueueConflictRetainsInstanceAndRequiresInspection()
+    {
+        string org = "tdd";
+        string app = "permissive-app";
+        int instanceOwnerPartyId = 501337;
+        using HttpClient client = GetRootedClient(
+            org,
+            app,
+            configureServices: services =>
+            {
+                services.RemoveAll<IWorkflowEngineClient>();
+                services.AddSingleton<IWorkflowEngineClient>(
+                    new RejectingWorkflowEngineClient(HttpStatusCode.Conflict)
+                );
+            }
+        );
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using var content = new StringContent(
+            $$"""
+            {
+              "instanceOwner": {
+                "partyId": "{{instanceOwnerPartyId}}"
+              }
+            }
+            """,
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(createResponseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status409Conflict);
+        root.GetProperty("title").GetString().Should().Be("Instance initialization failed.");
+        root.GetProperty("initializationState").GetString().Should().Be("workflowNotAccepted");
+        root.GetProperty("instanceDeleted").GetBoolean().Should().BeFalse();
+        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
+        root.GetProperty("workflowSubmissionFailureKind").GetString().Should().Be("notAccepted");
+        root.GetProperty("workflowSubmissionStatusCode").GetInt32().Should().Be(StatusCodes.Status409Conflict);
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+
+        string instanceId = root.GetProperty("instanceId").GetString()!;
+        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
+        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstance_Simplified_AcquireConflictRetainsInstanceWithoutResumeAction()
+    {
+        string org = "tdd";
+        string app = "permissive-app";
+        int instanceOwnerPartyId = 501337;
+        using HttpClient client = GetRootedClient(
+            org,
+            app,
+            configureServices: services =>
+            {
+                services.RemoveAll<IWorkflowEngineClient>();
+                services.AddSingleton<IWorkflowEngineClient>(
+                    new AcceptedFailingWorkflowEngineClient(acquireConflict: true)
+                );
+            }
+        );
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using var content = new StringContent(
+            $$"""
+            {
+              "instanceOwner": {
+                "partyId": "{{instanceOwnerPartyId}}"
+              }
+            }
+            """,
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(createResponseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status409Conflict);
+        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
+        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
+        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+
+        string instanceId = root.GetProperty("instanceId").GetString()!;
+        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
+        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
@@ -1264,7 +1373,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             Instance instance,
             StorageVersionMetadata versions,
             ProcessStateChange processStateChange,
-            string lockToken,
             bool isInstantiation = false,
             Dictionary<string, string>? prefill = null,
             InstantiationNotification? notification = null,
@@ -1282,7 +1390,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         public Task EnqueueProcessNext(
             Instance instance,
             Actor actor,
-            string lockToken,
             Guid dependsOnWorkflowId,
             string collectionKey,
             string state,
@@ -1332,7 +1439,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             throw new NotSupportedException();
     }
 
-    private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
+    private sealed class AcceptedFailingWorkflowEngineClient(bool acquireConflict = false) : IWorkflowEngineClient
     {
         private readonly Guid _workflowId = Guid.NewGuid();
         private string? _collectionKey;
@@ -1402,7 +1509,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                         new StepStatusResponse
                         {
                             DatabaseId = Guid.NewGuid(),
-                            OperationId = "StartTask",
+                            OperationId = acquireConflict ? AcquireProcessingStatus.Key : "StartTask",
                             ProcessingOrder = 0,
                             Command = new StepStatusResponse.CommandDetails { Type = "app" },
                             Status = PersistentItemStatus.Failed,
@@ -1411,9 +1518,15 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                             [
                                 new ErrorEntry(
                                     DateTimeOffset.UtcNow,
-                                    "Simulated workflow callback failure.",
-                                    StatusCodes.Status500InternalServerError,
-                                    WasRetryable: true
+                                    acquireConflict
+                                        ? "AppCommand failed with client error Conflict: "
+                                            + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
+                                            + "\"detail\":\"Refresh and retry.\"}"
+                                        : "Simulated workflow callback failure.",
+                                    acquireConflict
+                                        ? StatusCodes.Status409Conflict
+                                        : StatusCodes.Status500InternalServerError,
+                                    WasRetryable: !acquireConflict
                                 ),
                             ],
                         },
@@ -1435,7 +1548,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         ) => throw new NotSupportedException();
 
         public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
+            acquireConflict ? Task.FromResult(true) : throw new NotSupportedException();
     }
 }
 

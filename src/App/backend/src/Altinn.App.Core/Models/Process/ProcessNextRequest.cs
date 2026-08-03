@@ -16,6 +16,8 @@ public sealed record ProcessNextRequest
 
     internal StorageVersionMetadata InstanceVersions { get; init; } = StorageVersionMetadata.Empty;
 
+    internal ProcessNextMode Mode { get; init; }
+
     /// <summary>
     /// The user that is performing the action
     /// </summary>
@@ -35,4 +37,10 @@ public sealed record ProcessNextRequest
     /// The language the user sent with process/next (not required)
     /// </summary>
     public required string? Language { get; init; }
+}
+
+internal enum ProcessNextMode
+{
+    Standard,
+    CompleteProcess,
 }

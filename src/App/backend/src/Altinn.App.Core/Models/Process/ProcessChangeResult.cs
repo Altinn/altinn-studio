@@ -74,6 +74,16 @@ public class ProcessChangeResult
     internal StorageVersionMetadata MutatedInstanceVersions { get; init; } = StorageVersionMetadata.Empty;
 
     /// <summary>
+    /// The exact non-idle process status that blocked this user-facing request, if applicable.
+    /// </summary>
+    internal string? BlockingProcessStatus { get; init; }
+
+    /// <summary>
+    /// Indicates that CompleteProcess's legacy task-type authorization failed and must retain its bare 403 response.
+    /// </summary>
+    internal bool CompleteProcessAuthorizationFailed { get; init; }
+
+    /// <summary>
     /// Initializes a new <see cref="ProcessChangeResult"/> instance with a mutated instance.
     /// </summary>
     internal ProcessChangeResult(Instance mutatedInstance, StorageVersionMetadata mutatedInstanceVersions)
@@ -222,6 +232,13 @@ public enum WorkflowFailureKind
     /// Polling timed out before the workflow dependency graph reached a terminal state.
     /// </summary>
     Timeout,
+
+    /// <summary>
+    /// The first workflow step could not acquire process ownership because the captured
+    /// instance version or process status was no longer current. The workflow was written off
+    /// without side effects, so the caller should refresh the instance and retry the action.
+    /// </summary>
+    AcquireConflict,
 }
 
 /// <summary>

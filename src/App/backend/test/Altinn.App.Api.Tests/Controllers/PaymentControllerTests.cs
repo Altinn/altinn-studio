@@ -17,6 +17,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -477,7 +478,7 @@ public class PaymentControllerTests
     }
 
     [Fact]
-    public async Task GetPaymentInformation_PersistFailsAfterProcessAdvanced_FallsBackToReadOnly()
+    public async Task GetPaymentInformation_LegacyConflictAndTaskMoved_FallsBackToReadOnly()
     {
         SetupAltinnTaskExtensionMock(
             "currentTask",
@@ -501,6 +502,10 @@ public class PaymentControllerTests
             Status = PaymentStatus.Paid,
             OrderDetails = _orderDetails,
         };
+        using var storageResponse = new HttpResponseMessage(HttpStatusCode.Conflict)
+        {
+            Content = new StringContent("Storage rejected payment write — task changed"),
+        };
 
         _services
             .Mock<IPaymentService>()
@@ -516,7 +521,7 @@ public class PaymentControllerTests
                 // Simulate a webhook callback advancing the process during our request.
                 _instance.Process.CurrentTask.ElementId = "Task_next";
             })
-            .ThrowsAsync(new InvalidOperationException("Storage rejected payment write — task changed"));
+            .ThrowsAsync(new PlatformHttpException(storageResponse, "409 - Conflict"));
 
         _services
             .Mock<IPaymentService>()
@@ -539,11 +544,35 @@ public class PaymentControllerTests
         var info = Assert.IsType<PaymentInformation>(ok.Value);
         Assert.Equal(PaymentStatus.Paid, info.Status);
 
+        Assert.Equal(2, InstanceGetRequestCount());
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckAndStorePaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckPaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        "currentTask",
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
         _services.VerifyMocks();
     }
 
     [Fact]
-    public async Task GetPaymentInformation_PersistFailsButTaskUnchanged_PropagatesException()
+    public async Task GetPaymentInformation_GenericFailureAndTaskMoved_PropagatesWithoutRefetchOrReadOnlyFallback()
     {
         SetupAltinnTaskExtensionMock(
             "currentTask",
@@ -559,6 +588,7 @@ public class PaymentControllerTests
         );
 
         _services.Services.RemoveAll<IPaymentService>();
+        var processorException = new InvalidOperationException("unrelated processor failure");
         _services
             .Mock<IPaymentService>()
             .Setup(s =>
@@ -568,15 +598,113 @@ public class PaymentControllerTests
                     It.IsAny<string?>()
                 )
             )
-            .ThrowsAsync(new InvalidOperationException("unrelated failure"));
+            .Callback(() => _instance.Process.CurrentTask.ElementId = "Task_next")
+            .ThrowsAsync(processorException);
 
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        InvalidOperationException actual = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid)
         );
 
+        Assert.Same(processorException, actual);
+        Assert.Equal(1, InstanceGetRequestCount());
+        Assert.All(_services.Storage.RequestsResponses, request => Assert.Equal(HttpMethod.Get, request.RequestMethod));
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckAndStorePaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckPaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Never
+            );
+        _services.VerifyMocks();
+    }
+
+    [Fact]
+    public async Task GetPaymentInformation_LegacyConflictAndRefreshedProcessing_ReturnsSharedProblem()
+    {
+        SetupAltinnTaskExtensionMock(
+            "currentTask",
+            new AltinnTaskExtension
+            {
+                PaymentConfiguration = new()
+                {
+                    PaymentDataType = "paymentDataType",
+                    PaymentReceiptPdfDataType = "paymentPdfDataType",
+                },
+            },
+            Times.Once()
+        );
+
+        _services.Services.RemoveAll<IPaymentService>();
+        using var storageResponse = new HttpResponseMessage(HttpStatusCode.Conflict)
+        {
+            Content = new StringContent("\"The instance is currently processing.\"", Encoding.UTF8, "application/json"),
+        };
+        _services
+            .Mock<IPaymentService>()
+            .Setup(service =>
+                service.CheckAndStorePaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ValidAltinnPaymentConfiguration>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Callback(() => _instance.Process.Status = ProcessStatus.Processing)
+            .ThrowsAsync(new PlatformHttpException(storageResponse, "409 - Conflict"));
+
+        await using var sp = _services.BuildServiceProvider();
+        var controller = sp.GetRequiredService<PaymentController>();
+
+        IActionResult result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+
+        var conflict = Assert.IsType<JsonResult>(result);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+        Assert.Equal("application/problem+json", conflict.ContentType);
+        var problem = Assert.IsType<ProblemDetails>(conflict.Value);
+        Assert.Equal("instance-processing", problem.Type);
+        Assert.Equal(ProcessStatus.Processing, problem.Extensions["processStatus"]);
+        Assert.Equal(2, InstanceGetRequestCount());
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckAndStorePaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckPaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Never
+            );
         _services.VerifyMocks();
     }
 
@@ -587,7 +715,8 @@ public class PaymentControllerTests
         // data element, so the persisting write fails with 409/Conflict — yet this request still reads the
         // payment task as current (the locked state becomes visible before the current-task change does).
         // The endpoint must degrade to a read-only result, not surface a 500. The current task is left
-        // unchanged here on purpose, so it is the 409 alone — not a moved task — that triggers the fallback.
+        // unchanged here on purpose, so the refreshed locked state — not a moved task or response text —
+        // proves the benign race.
         SetupAltinnTaskExtensionMock(
             "currentTask",
             new AltinnTaskExtension
@@ -605,9 +734,7 @@ public class PaymentControllerTests
 
         using var lockedResponse = new HttpResponseMessage(HttpStatusCode.Conflict)
         {
-            Content = new StringContent(
-                "data element 00000000-0000-0000-0000-000000000abc is locked and cannot be updated"
-            ),
+            Content = new StringContent("untyped legacy conflict"),
         };
         _services
             .Mock<IPaymentService>()
@@ -618,12 +745,19 @@ public class PaymentControllerTests
                     It.IsAny<string?>()
                 )
             )
-            .ThrowsAsync(
-                new PlatformHttpException(
-                    lockedResponse,
-                    "409 - Conflict - data element is locked and cannot be updated"
-                )
-            );
+            .Callback(() =>
+            {
+                _instance.Data =
+                [
+                    new DataElement
+                    {
+                        Id = "00000000-0000-0000-0000-000000000abc",
+                        DataType = "paymentDataType",
+                        Locked = true,
+                    },
+                ];
+            })
+            .ThrowsAsync(new PlatformHttpException(lockedResponse, "409 - Conflict"));
 
         var fallbackResult = new PaymentInformation
         {
@@ -652,6 +786,110 @@ public class PaymentControllerTests
         var info = Assert.IsType<PaymentInformation>(ok.Value);
         Assert.Equal(PaymentStatus.Paid, info.Status);
 
+        Assert.Equal(2, InstanceGetRequestCount());
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckAndStorePaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckPaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        "currentTask",
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
+        _services.VerifyMocks();
+    }
+
+    [Fact]
+    public async Task GetPaymentInformation_LegacyConflictWithIdleCurrentTaskAndUnlockedData_RethrowsConflict()
+    {
+        SetupAltinnTaskExtensionMock(
+            "currentTask",
+            new AltinnTaskExtension
+            {
+                PaymentConfiguration = new()
+                {
+                    PaymentDataType = "paymentDataType",
+                    PaymentReceiptPdfDataType = "paymentPdfDataType",
+                },
+            },
+            Times.Once()
+        );
+
+        _services.Services.RemoveAll<IPaymentService>();
+        using var storageResponse = new HttpResponseMessage(HttpStatusCode.Conflict)
+        {
+            Content = new StringContent("blob_version_not_found"),
+        };
+        var storageException = new PlatformHttpException(storageResponse, "409 - Conflict");
+        _services
+            .Mock<IPaymentService>()
+            .Setup(service =>
+                service.CheckAndStorePaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ValidAltinnPaymentConfiguration>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Callback(() =>
+            {
+                _instance.Data =
+                [
+                    new DataElement
+                    {
+                        Id = "00000000-0000-0000-0000-000000000abc",
+                        DataType = "paymentDataType",
+                        Locked = false,
+                    },
+                ];
+            })
+            .ThrowsAsync(storageException);
+
+        await using var sp = _services.BuildServiceProvider();
+        var controller = sp.GetRequiredService<PaymentController>();
+
+        PlatformHttpException actual = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid)
+        );
+
+        Assert.Same(storageException, actual);
+        Assert.Equal(2, InstanceGetRequestCount());
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckAndStorePaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Once
+            );
+        _services
+            .Mock<IPaymentService>()
+            .Verify(
+                service =>
+                    service.CheckPaymentStatus(
+                        It.IsAny<Instance>(),
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string?>()
+                    ),
+                Times.Never
+            );
         _services.VerifyMocks();
     }
 
@@ -727,5 +965,14 @@ public class PaymentControllerTests
             .Setup(odc => odc.CalculateOrderDetails(It.Is<Instance>(i => i.Id == instanceId), It.IsAny<string?>()))
             .ReturnsAsync(orderDetails)
             .Verifiable(times);
+    }
+
+    private int InstanceGetRequestCount()
+    {
+        string instancePath = $"/instances/{PartyId}/{_instanceGuid}";
+        return _services.Storage.RequestsResponses.Count(request =>
+            request.RequestMethod == HttpMethod.Get
+            && request.RequestUrl?.AbsolutePath.EndsWith(instancePath, StringComparison.Ordinal) is true
+        );
     }
 }

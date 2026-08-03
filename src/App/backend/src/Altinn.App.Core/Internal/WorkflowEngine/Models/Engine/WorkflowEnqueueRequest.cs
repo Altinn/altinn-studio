@@ -18,7 +18,8 @@ internal sealed record WorkflowEnqueueRequest
 
     /// <summary>
     /// Opaque context passed to command handlers at execution time.
-    /// Contains <see cref="AppWorkflowContext"/> with actor, lock token, and instance identification.
+    /// Contains <see cref="AppWorkflowContext"/> with actor, org/app and instance identification,
+    /// and the callback authentication token.
     /// The engine never inspects this.
     /// </summary>
     [JsonPropertyName("context")]

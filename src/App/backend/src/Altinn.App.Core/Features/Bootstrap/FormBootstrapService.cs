@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -602,13 +603,13 @@ public sealed class FormBootstrapService
 
     private static async Task PersistProcessDataReadChanges(InstanceDataUnitOfWork dataAccessor, bool isPdf)
     {
-        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
-        if (changes.AllChanges.Count == 0)
+        if (isPdf || !ProcessStatusHelper.IsIdle(dataAccessor.Instance))
         {
             return;
         }
 
-        if (isPdf)
+        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
+        if (changes.AllChanges.Count == 0)
         {
             return;
         }
@@ -625,6 +626,10 @@ public sealed class FormBootstrapService
         try
         {
             await dataAccessor.SaveChanges(filteredChanges);
+        }
+        catch (StorageProcessStatusConflictException)
+        {
+            // Workflow acquire won after this GET captured an idle instance. Keep the response read-only.
         }
         catch (PlatformHttpException e) when (e.Response.StatusCode is System.Net.HttpStatusCode.Forbidden)
         {

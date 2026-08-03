@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
@@ -73,8 +74,10 @@ internal sealed class FormDataReader : IFormDataReader
             );
         }
 
+        bool canModifyFormData = ProcessStatusHelper.IsIdle(instance);
+
         byte[]? beforeProcessDataRead = null;
-        if (persistFormData is not null)
+        if (persistFormData is not null && canModifyFormData)
         {
             // Keep a copy to determine if ProcessDataRead changed the model.
             beforeProcessDataRead = JsonSerializer.SerializeToUtf8Bytes(appModel);
@@ -84,7 +87,7 @@ internal sealed class FormDataReader : IFormDataReader
 
         await RunDataProcessors(instance, resolvedDataId, appModel, language);
 
-        if (includeRowId)
+        if (includeRowId && canModifyFormData)
         {
             ObjectUtils.InitializeAltinnRowId(appModel);
         }

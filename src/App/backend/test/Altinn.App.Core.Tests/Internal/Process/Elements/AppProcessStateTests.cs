@@ -13,6 +13,7 @@ public class AppProcessStateTests
     {
         ProcessState input = new ProcessState()
         {
+            Status = ProcessStatus.Processing,
             Started = DateTime.Now,
             StartEvent = "StartEvent",
             Ended = DateTime.Now,
@@ -31,6 +32,7 @@ public class AppProcessStateTests
         };
         AppProcessState expected = new AppProcessState()
         {
+            Status = input.Status,
             Started = input.Started,
             StartEvent = input.StartEvent,
             Ended = input.Ended,
@@ -55,6 +57,7 @@ public class AppProcessStateTests
             },
         };
         AppProcessState actual = new(input);
+        actual.Status.Should().Be(ProcessStatus.Processing);
         actual.Should().BeEquivalentTo(expected);
     }
 

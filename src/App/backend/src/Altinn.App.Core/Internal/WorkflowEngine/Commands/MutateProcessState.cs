@@ -45,6 +45,7 @@ internal sealed class MutateProcessState : WorkflowEngineCommandBase<ProcessStat
         }
 
         Instance instance = context.InstanceDataMutator.Instance;
+        processStateChange.NewProcessState.Status = instance.Process?.Status;
         instance.Process = processStateChange.NewProcessState;
 
         return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());

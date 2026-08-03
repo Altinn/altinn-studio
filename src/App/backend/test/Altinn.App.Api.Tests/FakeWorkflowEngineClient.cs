@@ -457,7 +457,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     CommandKey = appCommandData.CommandKey,
                     Actor = workflow.Context.Actor,
                     Payload = appCommandData.Payload,
-                    LockToken = workflow.Context.LockToken,
                     State = currentState,
                     WorkflowId = workflow.DatabaseId,
                     ExecutionReferenceTime = workflow.StartAt ?? step.CreatedAt,

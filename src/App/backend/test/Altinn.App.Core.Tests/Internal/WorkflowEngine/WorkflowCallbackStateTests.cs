@@ -64,6 +64,56 @@ public class WorkflowCallbackStateTests
     }
 
     [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    [InlineData(ProcessStatus.Idle)]
+    public async Task CaptureRestoreRecapture_PreservesProcessStatus(string status)
+    {
+        Guid instanceGuid = Guid.NewGuid();
+        var instance = new Instance
+        {
+            Id = $"1337/{instanceGuid}",
+            Org = "ttd",
+            AppId = "ttd/test-app",
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Process = new ProcessState
+            {
+                Status = status,
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", AltinnTaskType = "data" },
+            },
+            Data = [],
+        };
+        var versions = new StorageVersionMetadata(InstanceVersion: 21, ProcessStateVersion: 14);
+        WorkflowStateSigner stateSigner = CreateStateSigner();
+        var appMetadata = new Mock<IAppMetadata>();
+        appMetadata
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
+        var service = new WorkflowCallbackStateService(
+            CreateUnitOfWorkInitializer(appMetadata.Object),
+            new ModelSerializationService(null!),
+            appMetadata.Object,
+            Mock.Of<IAppModel>(),
+            stateSigner
+        );
+        string captured = await service.CaptureState(CreateUnitOfWork(instance, versions));
+        InstanceDataUnitOfWork restored = await service.RestoreState(
+            new InstanceIdentifier(1337, instanceGuid),
+            captured,
+            "nb"
+        );
+        string recaptured = await service.CaptureState(restored);
+        WorkflowCallbackState? roundTrip = JsonSerializer.Deserialize<WorkflowCallbackState>(
+            stateSigner.Verify(recaptured)
+        );
+
+        Assert.Equal(status, restored.Instance.Process?.Status);
+        Assert.NotNull(roundTrip);
+        Assert.Equal(status, roundTrip.Instance.Process?.Status);
+        Assert.Equal(21, roundTrip.InstanceVersion);
+        Assert.Equal(14, roundTrip.ProcessStateVersion);
+    }
+
+    [Theory]
     [InlineData(null, 7, "instanceVersion: missing")]
     [InlineData(11, null, "processStateVersion: missing")]
     public async Task CaptureState_WhenStorageVersionIsMissing_RejectsBeforeSigning(

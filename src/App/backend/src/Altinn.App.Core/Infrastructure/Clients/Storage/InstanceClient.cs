@@ -8,7 +8,6 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
@@ -30,8 +29,6 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
     private readonly IAuthenticationTokenResolver _tokenResolver;
     private readonly HttpClient _client;
     private readonly Telemetry? _telemetry;
-    private readonly IInstanceLocker _instanceLocker;
-
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
@@ -41,20 +38,17 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
     /// <param name="logger">the logger</param>
     /// <param name="tokenResolver">Get user token from httpContext</param>
     /// <param name="httpClient">A HttpClient that can be used to perform HTTP requests against the platform.</param>
-    /// <param name="instanceLocker">Instance locker for lock token management.</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public InstanceClient(
         IOptions<PlatformSettings> platformSettings,
         ILogger<InstanceClient> logger,
         IAuthenticationTokenResolver tokenResolver,
         HttpClient httpClient,
-        IInstanceLocker instanceLocker,
         Telemetry? telemetry = null
     )
     {
         _logger = logger;
         _tokenResolver = tokenResolver;
-        _instanceLocker = instanceLocker;
         httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -206,7 +200,6 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             token,
             apiUrl,
             httpContent,
-            lockToken: _instanceLocker.CurrentLockToken,
             // This app runs its own task-generated data cleanup at task start, so Storage must not
             // also prune elements generated from the entered task (which would race our own writes).
             skipTaskDataCleanup: true,
@@ -301,13 +294,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
         StringContent content = new(JsonConvert.SerializeObject(instanceTemplate), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PostAsync(
-            token,
-            apiUrl,
-            content,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: ct
-        );
+        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: ct);
 
         if (response.IsSuccessStatusCode)
         {
@@ -338,7 +325,6 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             token,
             apiUrl,
             new StringContent(string.Empty),
-            lockToken: _instanceLocker.CurrentLockToken,
             cancellationToken: ct
         );
 
@@ -369,7 +355,6 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             token,
             apiUrl,
             new StringContent(string.Empty),
-            lockToken: _instanceLocker.CurrentLockToken,
             cancellationToken: ct
         );
 
@@ -404,7 +389,6 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             token,
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json"),
-            lockToken: _instanceLocker.CurrentLockToken,
             cancellationToken: ct
         );
 
@@ -529,12 +513,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         using var activity = _telemetry?.StartDeleteInstanceActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}?hard={hard}";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
-        HttpResponseMessage response = await _client.DeleteAsync(
-            token,
-            apiUrl,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: ct
-        );
+        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: ct);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
@@ -565,11 +544,6 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         using HttpRequestMessage request = new(method, apiUrl) { Content = content };
         request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         StoragePreconditionHeaders.Add(request.Headers, preconditions);
-
-        if (!string.IsNullOrEmpty(_instanceLocker.CurrentLockToken))
-        {
-            request.Headers.Add(General.LockTokenHeaderName, _instanceLocker.CurrentLockToken);
-        }
 
         return await _client.SendAsync(request, ct);
     }

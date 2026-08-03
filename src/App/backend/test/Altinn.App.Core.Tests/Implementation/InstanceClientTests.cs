@@ -6,7 +6,6 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
@@ -42,7 +41,6 @@ public sealed class InstanceClientTests : IDisposable
             _logger.Object,
             _authenticationTokenResolver.Object,
             httpClient,
-            Mock.Of<IInstanceLocker>(),
             _telemetry.Object
         );
     }
@@ -674,7 +672,6 @@ public sealed class InstanceClientTests : IDisposable
             _logger.Object,
             _authenticationTokenResolver.Object,
             httpClient,
-            Mock.Of<IInstanceLocker>(),
             _telemetry.Object
         );
 
@@ -823,7 +820,8 @@ public sealed class InstanceClientTests : IDisposable
                 .SetupSequence<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(p =>
-                        p.RequestUri!.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])
+                        (p.RequestUri!.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1]))
+                        && !p.Headers.Contains("Altinn-Storage-Lock-Token")
                     ),
                     ItExpr.IsAny<CancellationToken>()
                 )
@@ -836,7 +834,10 @@ public sealed class InstanceClientTests : IDisposable
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri!.ToString().Contains(urlPart[0])),
+                    ItExpr.Is<HttpRequestMessage>(p =>
+                        p.RequestUri!.ToString().Contains(urlPart[0])
+                        && !p.Headers.Contains("Altinn-Storage-Lock-Token")
+                    ),
                     ItExpr.IsAny<CancellationToken>()
                 )
                 .ReturnsAsync(httpResponseMessages[0])

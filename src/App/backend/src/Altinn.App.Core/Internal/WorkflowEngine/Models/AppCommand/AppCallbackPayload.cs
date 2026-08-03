@@ -20,12 +20,6 @@ public sealed record AppCallbackPayload
     public required Actor Actor { get; init; }
 
     /// <summary>
-    /// The lock token for the current workflow execution.
-    /// </summary>
-    [JsonPropertyName("lockToken")]
-    public required string LockToken { get; init; }
-
-    /// <summary>
     /// Optional command-specific payload.
     /// </summary>
     [JsonPropertyName("payload")]

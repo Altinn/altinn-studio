@@ -12,6 +12,19 @@ namespace Altinn.Platform.Storage.Interface.Models;
 public class InstanceMutationRequest
 {
     /// <summary>
+    /// Expected current process status. An absent value defaults to <see cref="ProcessStatus.Idle"/>.
+    /// </summary>
+    [JsonProperty(PropertyName = "expectedProcessStatus")]
+    public string ExpectedProcessStatus { get; set; }
+
+    /// <summary>
+    /// Optional process status to persist atomically with the mutation.
+    /// An absent value keeps the current status.
+    /// </summary>
+    [JsonProperty(PropertyName = "newProcessStatus")]
+    public string NewProcessStatus { get; set; }
+
+    /// <summary>
     /// Data elements to create. Each item that uploads content references a multipart file part by name.
     /// </summary>
     [JsonProperty(PropertyName = "createDataElements")]

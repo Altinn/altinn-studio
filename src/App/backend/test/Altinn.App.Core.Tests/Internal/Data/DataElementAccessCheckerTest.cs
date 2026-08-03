@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -135,6 +136,7 @@ public class DataElementAccessCheckerTest
         var instance = fixture.Data.DefaultInstance;
         var dataType = fixture.Data.DataTypeA;
         instance.Status = new InstanceStatus { IsArchived = true, Archived = DateTime.Now };
+        instance.Process = new ProcessState { Status = ProcessStatus.Processing };
 
         // Act
         var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(instance, dataType);
@@ -160,6 +162,29 @@ public class DataElementAccessCheckerTest
     }
 
     [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    [InlineData("future-status")]
+    public async Task Mutators_BlockNonIdleProcessStatusWithOneProblemContract(string processStatus)
+    {
+        var fixture = Fixture.Create();
+        var instance = fixture.Data.DefaultInstance;
+        var dataType = fixture.Data.DataTypeA;
+        instance.Process = new ProcessState { Status = processStatus };
+
+        var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(instance, dataType);
+        var updateResult = await fixture.DataElementAccessChecker.GetUpdateProblem(instance, dataType);
+        var deleteResult = await fixture.DataElementAccessChecker.GetDeleteProblem(instance, dataType, Guid.Empty);
+
+        foreach (var problem in new[] { createResult, updateResult, deleteResult })
+        {
+            Assert.NotNull(problem);
+            Assert.Equal(StatusCodes.Status409Conflict, problem.Status);
+            Assert.Equal(ProcessStatusHelper.MutationBlockedProblemType, problem.Type);
+            Assert.Equal(processStatus, problem.Extensions["processStatus"]);
+        }
+    }
+
+    [Theory]
     [InlineData("invalidOrg", false, ExpectedTestOutcome.Failure)]
     [InlineData("invalidOrg", true, ExpectedTestOutcome.Failure)]
     [InlineData("validOrg", false, ExpectedTestOutcome.Success)]
@@ -178,6 +203,10 @@ public class DataElementAccessCheckerTest
         var authArg = sendAuthArg ? authentication : null;
 
         dataType.AllowedContributors = ["org:validOrg"];
+        if (expectedOutcome == ExpectedTestOutcome.Failure)
+        {
+            instance.Process = new ProcessState { Status = ProcessStatus.Processing };
+        }
         fixture.Mocks.AuthenticationContextMock.Setup(x => x.Current).Returns(authentication);
 
         // Act

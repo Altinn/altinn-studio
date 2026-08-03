@@ -7,6 +7,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Result;
@@ -128,6 +129,12 @@ public partial class DataTagsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [ProducesResponseType(typeof(TagsList), StatusCodes.Status201Created)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType,
+        MediaTypeNames.Application.Json
+    )]
     public async Task<ActionResult<TagsList>> Add(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -149,7 +156,7 @@ public partial class DataTagsController : ControllerBase
         var accessCheck = await GetDataElementAndCheckAccess(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         if (!accessCheck.Success)
         {
-            return StatusCode(accessCheck.Error.Status ?? 500, accessCheck.Error);
+            return GetAccessErrorResult(accessCheck.Error);
         }
 
         var (instance, dataElement, _) = accessCheck.Ok;
@@ -191,6 +198,12 @@ public partial class DataTagsController : ControllerBase
     [HttpDelete("{tag}")]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType,
+        MediaTypeNames.Application.Json
+    )]
     public async Task<ActionResult> Delete(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -203,7 +216,7 @@ public partial class DataTagsController : ControllerBase
         var accessCheck = await GetDataElementAndCheckAccess(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         if (!accessCheck.Success)
         {
-            return StatusCode(accessCheck.Error.Status ?? 500, accessCheck.Error);
+            return GetAccessErrorResult(accessCheck.Error);
         }
 
         var (instance, dataElement, _) = accessCheck.Ok;
@@ -232,7 +245,12 @@ public partial class DataTagsController : ControllerBase
     [ProducesResponseType(typeof(SetTagsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType,
+        MediaTypeNames.Application.Json
+    )]
     public async Task<ActionResult<SetTagsResponse>> SetTags(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -258,7 +276,7 @@ public partial class DataTagsController : ControllerBase
         var accessCheck = await GetDataElementAndCheckAccess(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         if (!accessCheck.Success)
         {
-            return StatusCode(accessCheck.Error.Status ?? 500, accessCheck.Error);
+            return GetAccessErrorResult(accessCheck.Error);
         }
 
         var (instance, dataElement, versions) = accessCheck.Ok;
@@ -368,6 +386,11 @@ public partial class DataTagsController : ControllerBase
 
         return (instance, dataElement, fetchedInstance.Metadata);
     }
+
+    private ActionResult GetAccessErrorResult(ProblemDetails problem) =>
+        problem.Type == ProcessStatusHelper.MutationBlockedProblemType
+            ? ProcessStatusProblemResult.Create(problem)
+            : StatusCode(problem.Status ?? 500, problem);
 
     [GeneratedRegex("^[\\p{L}\\-_]+$")]
     private static partial Regex LettersRegex();

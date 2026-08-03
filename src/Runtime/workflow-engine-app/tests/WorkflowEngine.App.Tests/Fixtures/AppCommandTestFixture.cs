@@ -100,7 +100,6 @@ internal sealed record AppCommandTestFixture(
         new()
         {
             Actor = new Actor { OrgId = "test-user-123" },
-            LockToken = "test-lock-key",
             Org = "ttd",
             App = "test-app",
             InstanceOwnerPartyId = 12345,

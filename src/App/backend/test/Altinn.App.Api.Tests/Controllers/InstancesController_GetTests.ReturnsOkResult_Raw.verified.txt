@@ -27,6 +27,7 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
+      status: idle,
       started: DateTimeOffset_1,
       startEvent: StartEvent_1,
       currentTask: {
@@ -117,6 +118,7 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
+      status: idle,
       started: DateTimeOffset_1,
       startEvent: StartEvent_1,
       currentTask: {

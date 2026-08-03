@@ -2376,6 +2376,10 @@
       "ProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -2971,6 +2975,10 @@
       "AppProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
           "started": {
             "type": "string",
             "format": "date-time",

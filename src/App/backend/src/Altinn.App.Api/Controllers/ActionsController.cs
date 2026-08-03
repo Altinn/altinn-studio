@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -72,6 +73,11 @@ public class ActionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [ProducesResponseType(typeof(UserActionResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(UserActionResponse), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(typeof(UserActionResponse), StatusCodes.Status401Unauthorized)]
@@ -140,6 +146,7 @@ public class ActionsController : ControllerBase
         {
             return Forbid();
         }
+
         var taskId = instance.Process?.CurrentTask?.ElementId;
         var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
@@ -158,6 +165,7 @@ public class ActionsController : ControllerBase
             actionRequest.OnBehalfOf,
             cancellationToken: ct
         );
+
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler is null)
         {
@@ -172,6 +180,11 @@ public class ActionsController : ControllerBase
                     },
                 }
             );
+        }
+
+        if (ProcessStatusHelper.GetMutationProblem(instance) is { } processStatusProblem)
+        {
+            return ProcessStatusProblemResult.Create(processStatusProblem);
         }
 
         UserActionResult result = await actionHandler.HandleAction(userActionContext);

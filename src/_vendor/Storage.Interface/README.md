@@ -1,9 +1,13 @@
 # Temporary Storage.Interface source
 
-This project temporarily lets the app backend and LocalTest compile against the approved
-content-Etag interface before a corresponding `Altinn.Platform.Storage.Interface` package is
-released. It preserves the package's assembly simple name, namespaces, and type names, but is
-deliberately not packable.
+This project temporarily lets the app backend compile against the approved content-Etag
+interface before a corresponding `Altinn.Platform.Storage.Interface` package is released. It
+preserves the package's assembly simple name, namespaces, and type names, but is deliberately
+not packable.
+
+LocalTest does not consume this project. It still references
+`Altinn.Platform.Storage.Interface` package version `4.2.1`; LocalTest parity is deferred until
+the corresponding interface package is released.
 
 The source tracks the `altinn-storage` `feat/blob-version-id` line at Phase 1 change
 `rvmxkqqswxvzqqurwlywyrnlxtuxuvuv`, revision
@@ -12,17 +16,20 @@ this README and the minimal project scaffolding: MinVer, SonarCloud/SourceLink, 
 symbol packaging, and the unnecessary `Microsoft.NETFramework.ReferenceAssemblies` dependency
 are omitted, and `IsPackable` is `false`.
 
-Delete this entire directory after the interface package containing `DataElement.ContentEtag`
-and without `InstanceMutationResponse.DataElementContentEtags` is released. Then:
+The process-status members in `ProcessState` and `InstanceMutationRequest`, together with
+`ProcessStatus`, track the approved `altinn-storage` aggregate-contract change
+`lvylpkkzxxtyqktluvxsqxrzykmxmzrw`, revision
+`7387c7afdce132158f932fd2c7232a60a4b66120`.
+
+Delete this entire directory after the interface package containing `DataElement.ContentEtag`,
+without `InstanceMutationResponse.DataElementContentEtags`, and containing the process-status
+contract is released. Then:
 
 1. Replace the project references in `src/App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj`
    and `src/App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj` with unversioned
    `Altinn.Platform.Storage.Interface` package references, and restore its released version in
    `src/App/backend/Directory.Packages.props`.
-2. Replace the project reference in `src/Runtime/localtest/src/LocalTest.csproj` with an
-   `Altinn.Platform.Storage.Interface` package reference pinned to that released version.
-3. Remove this project from `src/App/backend/solutions/All.slnx`,
-   `src/App/backend/solutions/Src.slnx`, `src/App/backend/AppLibDotnet.slnx`, and
-   `src/Runtime/localtest/LocalTest.sln`.
-4. Remove the `BlockAppPackagePackWhileStorageInterfaceIsVendored` target from
+2. Remove this project from `src/App/backend/solutions/All.slnx`,
+   `src/App/backend/solutions/Src.slnx`, and `src/App/backend/AppLibDotnet.slnx`.
+3. Remove the `BlockAppPackagePackWhileStorageInterfaceIsVendored` target from
    `src/App/backend/src/Directory.Build.targets`.

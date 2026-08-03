@@ -54,14 +54,4 @@ internal sealed record ProcessEndContext
     /// Whether to register events with the events component.
     /// </summary>
     public bool RegisterEvents { get; init; }
-
-    /// <summary>
-    /// Whether any data types have AutoDeleteOnProcessEnd enabled.
-    /// </summary>
-    public bool HasAutoDeleteDataTypes { get; init; }
-
-    /// <summary>
-    /// Whether the application is configured to auto-delete the instance on process end.
-    /// </summary>
-    public bool AutoDeleteInstanceOnProcessEnd { get; init; }
 }

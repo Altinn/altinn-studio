@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Tests.Controllers.TestResources;
@@ -809,6 +810,168 @@ public class FormBootstrapServiceTests
         );
     }
 
+    [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    [InlineData("future-status")]
+    public async Task GetInstanceFormBootstrap_WhenNonIdle_ReturnsReadHookChangesWithoutPersisting(string status)
+    {
+        var instance = CreateTestInstance("Task_1");
+        instance.Process.Status = status;
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("changed", Assert.IsType<DummyModel>(result.DataModels["model"].InitialData).Name);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenIdle_PersistsReadHookChanges()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceMutationWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("changed", Assert.IsType<DummyModel>(result.DataModels["model"].InitialData).Name);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenAcquireWinsReadHookPersistenceRace_IgnoresTypedStatusConflict()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+        StorageProcessStatusConflictException conflict = await CreateProcessStatusConflictException();
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(conflict);
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("changed", Assert.IsType<DummyModel>(result.DataModels["model"].InitialData).Name);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenReadHookPersistenceHasUntypedConflict_Propagates()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+        var conflict = new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.Conflict), "Conflict");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(conflict);
+
+        var service = CreateService();
+
+        PlatformHttpException actual = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb")
+        );
+
+        Assert.Same(conflict, actual);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
     [Fact]
     public async Task GetInstanceFormBootstrap_IgnoresForbiddenWhenPersistingProcessDataReadChanges()
     {
@@ -874,6 +1037,53 @@ public class FormBootstrapServiceTests
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
+        );
+    }
+
+    private void SetupMutatingReadHook()
+    {
+        _formDataReader
+            .Setup(x =>
+                x.ProcessLoadedFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<object>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Func<object, CancellationToken, Task>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    Instance _,
+                    DataElement _,
+                    object appModel,
+                    bool _,
+                    string? _,
+                    Func<object, CancellationToken, Task>? _,
+                    CancellationToken _
+                ) =>
+                {
+                    ((DummyModel)appModel).Name = "changed";
+                    return appModel;
+                }
+            );
+    }
+
+    private static async Task<StorageProcessStatusConflictException> CreateProcessStatusConflictException()
+    {
+        var response = new HttpResponseMessage(HttpStatusCode.Conflict)
+        {
+            Content = new StringContent(
+                """{"type":"process_status_conflict"}""",
+                Encoding.UTF8,
+                "application/problem+json"
+            ),
+        };
+
+        return Assert.IsType<StorageProcessStatusConflictException>(
+            await StorageProcessStatusConflictException.TryCreate(response, CancellationToken.None)
         );
     }
 

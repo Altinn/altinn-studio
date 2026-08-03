@@ -2,8 +2,8 @@ using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -146,12 +146,6 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
-        // Set the lock token from the workflow engine payload so all Storage clients include it. Done after the
-        // state blob has been validated against the route instance, so the token is only applied once we know
-        // the callback targets the expected instance.
-        var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
-        instanceLocker.UseExternalLockToken(payload.LockToken);
-
         ProcessEngineCommandResult result = await command.Execute(
             new ProcessEngineCommandContext
             {
@@ -216,6 +210,25 @@ public class WorkflowEngineCallbackController : ControllerBase
                         currentTaskId
                     );
                 }
+                catch (Exception ex)
+                    when (commandKey == AcquireProcessingStatus.Key
+                        && ex is StorageProcessStatusConflictException or InstanceDataStaleException
+                    )
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
+                    return NonRetryableProblem(
+                        "WorkflowAcquireConflict",
+                        "The instance changed before the process transition could start. Refresh the instance and try again.",
+                        StatusCodes.Status409Conflict,
+                        AcquireProcessingStatus.ConcurrencyFailureCode
+                    );
+                }
                 catch (InstanceDataStaleException ex)
                 {
                     _logger.LogError(
@@ -263,7 +276,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                     await processEngine.EnqueueProcessNext(
                         instanceDataUnitOfWork.Instance,
                         payload.Actor,
-                        payload.LockToken,
                         payload.WorkflowId,
                         collectionKey,
                         updatedState,
@@ -319,7 +331,12 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
-    private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)
+    private static ObjectResult NonRetryableProblem(
+        string title,
+        string detail,
+        int statusCode,
+        string? workflowFailureCode = null
+    )
     {
         var problemDetails = new ProblemDetails
         {
@@ -328,6 +345,10 @@ public class WorkflowEngineCallbackController : ControllerBase
             Status = statusCode,
         };
         problemDetails.Extensions["nonRetryable"] = true;
+        if (workflowFailureCode is not null)
+        {
+            problemDetails.Extensions["workflowFailureCode"] = workflowFailureCode;
+        }
         return new ObjectResult(problemDetails) { StatusCode = statusCode };
     }
 }

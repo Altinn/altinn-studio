@@ -27,7 +27,6 @@ public class MutateProcessStateTests
                 CommandKey = MutateProcessState.Key,
                 Actor = new Actor { UserId = 1337 },
                 Payload = serializedPayload,
-                LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
@@ -41,7 +40,11 @@ public class MutateProcessStateTests
         {
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Process = new ProcessState
+            {
+                Status = ProcessStatus.Processing,
+                CurrentTask = new ProcessElementInfo { ElementId = taskId },
+            },
         };
     }
 
@@ -63,6 +66,7 @@ public class MutateProcessStateTests
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Equal("Task_2", instance.Process.CurrentTask.ElementId);
+        Assert.Equal(ProcessStatus.Processing, instance.Process.Status);
     }
 
     [Fact]

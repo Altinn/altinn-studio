@@ -16,7 +16,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
@@ -347,7 +346,193 @@ public class DataClientTests
             HttpMethod.Post
         );
         Assert.StartsWith("application/json", requestContentType, StringComparison.Ordinal);
-        Assert.Contains("\"dataValues\":{\"status\":\"paid\"}", requestBody, StringComparison.Ordinal);
+        var requestJson = Newtonsoft.Json.Linq.JObject.Parse(requestBody!);
+        Assert.Equal("paid", requestJson["dataValues"]?["status"]?.ToObject<string>());
+        Assert.Null(requestJson.Property("expectedProcessStatus"));
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_SerializesProcessStatusTransitionFields()
+    {
+        Guid instanceGuid = Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346");
+        string? requestBody = null;
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        $$"""
+                        {
+                          "instance": {
+                            "id": "123/{{instanceGuid}}",
+                            "data": []
+                          }
+                        }
+                        """,
+                        Encoding.UTF8,
+                        "application/json"
+                    ),
+                };
+            }
+        );
+        var mutation = new StorageInstanceMutationRequest
+        {
+            ExpectedProcessStatus = ProcessStatus.Idle,
+            ProcessState = new StorageInstanceMutationProcessStateUpdate
+            {
+                State = new ProcessState { Status = ProcessStatus.Processing },
+                Events = [],
+            },
+        };
+
+        await ((IInstanceMutationClient)fixture.DataClient).CommitInstanceMutationWithStorageMetadata(
+            123,
+            instanceGuid,
+            mutation,
+            new Dictionary<string, StorageInstanceMutationContent>()
+        );
+
+        var requestJson = Newtonsoft.Json.Linq.JObject.Parse(requestBody!);
+        Assert.Equal(ProcessStatus.Idle, requestJson["expectedProcessStatus"]?.ToObject<string>());
+        Assert.Equal(ProcessStatus.Processing, requestJson["processState"]?["state"]?["status"]?.ToObject<string>());
+        Assert.Null(requestJson.Property("ExpectedProcessStatus"));
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_ProcessStatusProblemCreatesTypedException()
+    {
+        Guid instanceGuid = Guid.NewGuid();
+        await using var fixture = Fixture.Create(
+            (_, _) =>
+                Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.Conflict)
+                    {
+                        Content = new StringContent(
+                            """
+                            {
+                              "status": 409,
+                              "type": "process_status_conflict",
+                              "title": "Process status conflict",
+                              "detail": "Process status did not match expected status. Current status: 'processing'."
+                            }
+                            """,
+                            Encoding.UTF8,
+                            "application/problem+json"
+                        ),
+                    }
+                )
+        );
+
+        Exception exception = await Assert.ThrowsAsync<StorageProcessStatusConflictException>(() =>
+            ((IInstanceMutationClient)fixture.DataClient).CommitInstanceMutationWithStorageMetadata(
+                123,
+                instanceGuid,
+                new StorageInstanceMutationRequest { ExpectedProcessStatus = ProcessStatus.Idle },
+                new Dictionary<string, StorageInstanceMutationContent>()
+            )
+        );
+
+        Assert.Equal(HttpStatusCode.Conflict, ((PlatformHttpException)exception).Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_WrongProblemTypeRemainsPlatformHttpException()
+    {
+        Guid instanceGuid = Guid.NewGuid();
+        await using var fixture = Fixture.Create(
+            (_, _) =>
+                Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.Conflict)
+                    {
+                        Content = new StringContent(
+                            """
+                            {
+                              "status": 409,
+                              "type": "mutation_idempotency_instance_mismatch",
+                              "title": "The idempotency key belongs to another instance."
+                            }
+                            """,
+                            Encoding.UTF8,
+                            "application/problem+json"
+                        ),
+                    }
+                )
+        );
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            ((IInstanceMutationClient)fixture.DataClient).CommitInstanceMutationWithStorageMetadata(
+                123,
+                instanceGuid,
+                new StorageInstanceMutationRequest { ExpectedProcessStatus = ProcessStatus.Idle },
+                new Dictionary<string, StorageInstanceMutationContent>()
+            )
+        );
+
+        Assert.IsNotType<StorageProcessStatusConflictException>(exception);
+        Assert.Equal(HttpStatusCode.Conflict, exception.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_MalformedProblemRemainsPlatformHttpException()
+    {
+        Guid instanceGuid = Guid.NewGuid();
+        await using var fixture = Fixture.Create(
+            (_, _) =>
+                Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.Conflict)
+                    {
+                        Content = new StringContent(
+                            "{\"type\":\"process_status_conflict\"",
+                            Encoding.UTF8,
+                            "application/problem+json"
+                        ),
+                    }
+                )
+        );
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            ((IInstanceMutationClient)fixture.DataClient).CommitInstanceMutationWithStorageMetadata(
+                123,
+                instanceGuid,
+                new StorageInstanceMutationRequest { ExpectedProcessStatus = ProcessStatus.Idle },
+                new Dictionary<string, StorageInstanceMutationContent>()
+            )
+        );
+
+        Assert.IsNotType<StorageProcessStatusConflictException>(exception);
+        Assert.Equal(HttpStatusCode.Conflict, exception.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CommitInstanceMutationWithStorageMetadata_UnrelatedJsonStringConflictRemainsPlatformHttpException()
+    {
+        Guid instanceGuid = Guid.NewGuid();
+        await using var fixture = Fixture.Create(
+            (_, _) =>
+                Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.Conflict)
+                    {
+                        Content = new StringContent("\"unrelated conflict\"", Encoding.UTF8, "application/json"),
+                    }
+                )
+        );
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            ((IInstanceMutationClient)fixture.DataClient).CommitInstanceMutationWithStorageMetadata(
+                123,
+                instanceGuid,
+                new StorageInstanceMutationRequest { ExpectedProcessStatus = ProcessStatus.Idle },
+                new Dictionary<string, StorageInstanceMutationContent>()
+            )
+        );
+
+        Assert.IsNotType<StorageProcessStatusConflictException>(exception);
+        Assert.Equal(HttpStatusCode.Conflict, exception.Response.StatusCode);
+        Assert.Equal("application/json", exception.Response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("\"unrelated conflict\"", await exception.Response.Content.ReadAsStringAsync());
     }
 
     [Fact]
@@ -1625,6 +1810,7 @@ public class DataClientTests
     {
         Assert.NotNull(actual);
         Assert.Equal(method, actual.Method);
+        Assert.False(actual.Headers.Contains("Altinn-Storage-Lock-Token"));
 
         var authHeader = actual.Headers.Authorization;
         Assert.NotNull(authHeader);
@@ -1694,7 +1880,6 @@ public class DataClientTests
             services.AddSingleton(mocks.MaskinportenClientMock.Object);
             services.AddSingleton(mocks.AppMetadataMock.Object);
             services.AddSingleton(mocks.AuthenticationContextMock.Object);
-            services.AddSingleton<IInstanceLocker>(Mock.Of<IInstanceLocker>());
             services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
 
             if (telemetrySink is not null)

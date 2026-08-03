@@ -58,8 +58,9 @@ public class AppCommandExecutionTests
         Assert.NotNull(payload);
         Assert.Equal("test-command", payload.CommandKey);
         Assert.Equal("test-user-123", payload.Actor.OrgId);
-        Assert.Equal("test-lock-key", payload.LockToken);
         Assert.Equal("test-payload-data", payload.Payload);
+        using JsonDocument document = JsonDocument.Parse(captured.Body);
+        Assert.False(document.RootElement.TryGetProperty("lockToken", out _));
     }
 
     [Fact]
@@ -194,7 +195,6 @@ public class AppCommandExecutionTests
             new AppWorkflowContext
             {
                 Actor = richActor,
-                LockToken = "test-lock-key",
                 Org = "ttd",
                 App = "test-app",
                 InstanceOwnerPartyId = 12345,
@@ -448,31 +448,6 @@ public class AppCommandExecutionTests
         Assert.NotNull(payload);
         Assert.Equal(workflow.DatabaseId, payload.WorkflowId);
         Assert.Null(payload.State); // First step with no StateIn → null
-    }
-
-    // --- Validation through command ---
-
-    [Fact]
-    public async Task Execute_MissingLockToken_ReturnsCriticalError()
-    {
-        using var fixture = AppCommandTestFixture.Create();
-        var command = GetAppCommand(fixture);
-        var data = CreateCommandData("test-command");
-
-        var contextWithoutLock = new AppWorkflowContext
-        {
-            Actor = new Actor { OrgId = "test-user-123" },
-            LockToken = "", // empty lock token
-            Org = "ttd",
-            App = "test-app",
-            InstanceOwnerPartyId = 12345,
-            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-            CallbackToken = "test-callback-token",
-        };
-        // Validate should catch the missing lock token before execution
-        var validationResult = command.Validate(data, contextWithoutLock);
-        Assert.IsType<CommandValidationResult.Invalid>(validationResult);
-        Assert.Empty(fixture.HttpHandler.Requests);
     }
 
     private static ICommand GetAppCommand(AppCommandTestFixture fixture) => fixture.GetAppCommand();

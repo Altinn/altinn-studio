@@ -62,6 +62,8 @@ public class StorageClientInterceptor : HttpMessageHandler
     public ConcurrentBag<RequestResponse> RequestsResponses { get; } = new();
     public ApplicationMetadata AppMetadata { get; }
     public bool StampDataElementEtags { get; }
+    public bool EnforceExpectedProcessStatus { get; set; }
+    public string? ForcedMutationConflictMessage { get; set; }
 
     public void AddInstance(Instance instance)
     {
@@ -551,14 +553,6 @@ public class StorageClientInterceptor : HttpMessageHandler
             return CreateErrorResponse(HttpStatusCode.BadRequest, "No mutation content provided");
         }
 
-        if (!_instances.TryGetValue($"{instanceOwnerPartyId}/{instanceGuid}", out Instance? instance))
-        {
-            return CreateErrorResponse(
-                HttpStatusCode.NotFound,
-                $"Instance with id {instanceOwnerPartyId}/{instanceGuid} not found"
-            );
-        }
-
         var (mutation, contentParts, parseFailure) = await ReadMutationRequest(request, requestBody, cancellationToken);
         if (parseFailure is not null)
         {
@@ -570,9 +564,31 @@ public class StorageClientInterceptor : HttpMessageHandler
             return CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid mutation content");
         }
 
+        if (ValidateMutationRequestShape(mutation, request) is { } shapeFailure)
+        {
+            return shapeFailure;
+        }
+
+        if (!_instances.TryGetValue($"{instanceOwnerPartyId}/{instanceGuid}", out Instance? instance))
+        {
+            return CreateErrorResponse(
+                HttpStatusCode.NotFound,
+                $"Instance with id {instanceOwnerPartyId}/{instanceGuid} not found"
+            );
+        }
+
         if (TryReplayMutation(instanceOwnerPartyId, instanceGuid, request) is { } replayResponse)
         {
             return replayResponse;
+        }
+
+        if (ForcedMutationConflictMessage is { } forcedConflictMessage)
+        {
+            return CreateErrorResponse(
+                HttpStatusCode.Conflict,
+                JsonConvert.SerializeObject(forcedConflictMessage),
+                "application/json"
+            );
         }
 
         if (
@@ -677,7 +693,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             },
             instanceOwnerPartyId,
             instanceGuid,
-            GetMutationSubOperationCount(mutation),
+            IsTerminalWorkflowDelete(mutation, request) ? 1 : GetMutationSubOperationCount(mutation),
             bumpProcessStateVersion: mutation.ProcessState?.State is not null
         );
         StoreMutationReplayRecord(instanceOwnerPartyId, instanceGuid, request, responseBody, response);
@@ -769,6 +785,56 @@ public class StorageClientInterceptor : HttpMessageHandler
         return (mutationRequest, contentParts, null);
     }
 
+    private static HttpResponseMessage? ValidateMutationRequestShape(
+        StorageInstanceMutationRequest mutation,
+        HttpRequestMessage request
+    )
+    {
+        if (mutation.ExpectedProcessStatus is not (null or ProcessStatus.Idle or ProcessStatus.Processing))
+        {
+            return CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                $"expectedProcessStatus must be '{ProcessStatus.Idle}' or '{ProcessStatus.Processing}'."
+            );
+        }
+
+        if (mutation.ProcessState?.State?.Status is not (null or ProcessStatus.Idle or ProcessStatus.Processing))
+        {
+            return CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                $"processState.state.status must be '{ProcessStatus.Idle}' or '{ProcessStatus.Processing}'."
+            );
+        }
+
+        if (!HasMutationOperations(mutation))
+        {
+            return CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                "The mutation request must contain at least one operation."
+            );
+        }
+
+        if (mutation.DeleteInstance is null)
+        {
+            return null;
+        }
+
+        if (!mutation.DeleteInstance.Hard)
+        {
+            return CreateErrorResponse(HttpStatusCode.BadRequest, "deleteInstance.hard must be true.");
+        }
+
+        if (!IsStandaloneDelete(mutation) && !IsTerminalWorkflowDelete(mutation, request))
+        {
+            return CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                "deleteInstance cannot be combined with other aggregate mutation operations."
+            );
+        }
+
+        return null;
+    }
+
     private HttpResponseMessage? ValidateMutation(
         int instanceOwnerPartyId,
         Guid instanceGuid,
@@ -781,6 +847,24 @@ public class StorageClientInterceptor : HttpMessageHandler
         if (ValidateWritePreconditions(instanceOwnerPartyId, instanceGuid, request) is { } preconditionFailure)
         {
             return preconditionFailure;
+        }
+
+        if (
+            EnforceExpectedProcessStatus
+            && mutation.ExpectedProcessStatus is { } expectedProcessStatus
+            && !string.Equals(
+                instance.Process?.Status ?? ProcessStatus.Idle,
+                expectedProcessStatus,
+                StringComparison.Ordinal
+            )
+        )
+        {
+            return CreateProblemResponse(
+                HttpStatusCode.Conflict,
+                "process_status_conflict",
+                "Process status conflict",
+                $"Process status did not match expected status. Current status: '{instance.Process?.Status ?? ProcessStatus.Idle}'."
+            );
         }
 
         foreach (StorageInstanceMutationCreateDataElement create in mutation.CreateDataElements)
@@ -856,24 +940,59 @@ public class StorageClientInterceptor : HttpMessageHandler
             }
         }
 
-        if (mutation.DeleteInstance is not null)
-        {
-            if (!mutation.DeleteInstance.Hard)
-            {
-                return CreateErrorResponse(HttpStatusCode.BadRequest, "deleteInstance.hard must be true.");
-            }
-
-            if (GetMutationSubOperationCount(mutation) != 1)
-            {
-                return CreateErrorResponse(
-                    HttpStatusCode.BadRequest,
-                    "deleteInstance cannot be combined with other aggregate mutation operations."
-                );
-            }
-        }
-
         return null;
     }
+
+    private static bool HasMutationOperations(StorageInstanceMutationRequest mutation) =>
+        mutation.CreateDataElements.Count > 0
+        || mutation.UpdateDataElements.Count > 0
+        || mutation.DeleteDataElements.Count > 0
+        || mutation.DeleteInstance is not null
+        || mutation.DataValues.Count > 0
+        || mutation.PresentationTexts.Count > 0
+        || mutation.ProcessState?.State is not null
+        || mutation.ProcessState?.Events?.Count > 0;
+
+    private static bool IsStandaloneDelete(StorageInstanceMutationRequest mutation) =>
+        mutation.CreateDataElements.Count == 0
+        && mutation.UpdateDataElements.Count == 0
+        && mutation.DeleteDataElements.Count == 0
+        && mutation.DataValues.Count == 0
+        && mutation.PresentationTexts.Count == 0
+        && mutation.ProcessState?.State is null
+        && mutation.ProcessState?.Events?.Count is not > 0
+        && mutation.ExpectedProcessStatus is null or ProcessStatus.Idle;
+
+    private static bool IsTerminalWorkflowDelete(StorageInstanceMutationRequest mutation, HttpRequestMessage request)
+    {
+        ProcessState? processState = mutation.ProcessState?.State;
+        return mutation.CreateDataElements.Count == 0
+            && mutation.UpdateDataElements.Count == 0
+            && mutation.DataValues.Count == 0
+            && mutation.PresentationTexts.Count == 0
+            && processState?.Ended is not null
+            && processState.CurrentTask is null
+            && !string.IsNullOrWhiteSpace(processState.EndEvent)
+            && processState.Status == ProcessStatus.Idle
+            && mutation.ExpectedProcessStatus == ProcessStatus.Processing
+            && HasIntegerHeader(request, StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName)
+            && HasIntegerHeader(request, StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName)
+            && HasGuidHeader(request, StoragePreconditionHeaders.IdempotencyKeyHeaderName);
+    }
+
+    private static bool HasIntegerHeader(HttpRequestMessage request, string headerName) =>
+        request.Headers.TryGetValues(headerName, out IEnumerable<string>? values)
+        && int.TryParse(
+            values.SingleOrDefault(),
+            System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out int value
+        )
+        && value > 0;
+
+    private static bool HasGuidHeader(HttpRequestMessage request, string headerName) =>
+        request.Headers.TryGetValues(headerName, out IEnumerable<string>? values)
+        && Guid.TryParse(values.SingleOrDefault(), out _);
 
     private static bool MatchesExpectedContentETag(string currentETag, string expectedVersion)
     {
@@ -1508,4 +1627,24 @@ public class StorageClientInterceptor : HttpMessageHandler
             Content = new StringContent(stringContent, Encoding.UTF8, contentType),
         };
     }
+
+    private static HttpResponseMessage CreateProblemResponse(
+        HttpStatusCode status,
+        string type,
+        string title,
+        string detail
+    ) =>
+        CreateErrorResponse(
+            status,
+            JsonConvert.SerializeObject(
+                new
+                {
+                    type,
+                    title,
+                    status = (int)status,
+                    detail,
+                }
+            ),
+            "application/problem+json"
+        );
 }

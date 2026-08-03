@@ -135,6 +135,20 @@
           instance.guid: Guid_4
         },
         {
+          process.callback.command: AcquireProcessingStatus
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_4
+        },
+        {
           process.callback.command: UnlockTaskData
         }
       ],

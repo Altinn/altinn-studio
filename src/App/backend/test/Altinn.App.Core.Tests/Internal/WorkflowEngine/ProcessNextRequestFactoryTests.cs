@@ -4,7 +4,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -50,8 +49,6 @@ public class ProcessNextRequestFactoryTests
     private static ProcessNextRequestFactory CreateFactory(
         Authenticated? authentication = null,
         bool registerEvents = true,
-        bool autoDeleteOnProcessEnd = false,
-        bool hasAutoDeleteDataTypes = true,
         Action<IServiceCollection>? configureServices = null,
         params IServiceTask[] serviceTasks
     )
@@ -78,29 +75,6 @@ public class ProcessNextRequestFactoryTests
 
         var appSettings = Options.Create(new AppSettings { RegisterEventsWithEventsComponent = registerEvents });
 
-        var dataTypes = new List<DataType>();
-        if (hasAutoDeleteDataTypes)
-        {
-            dataTypes.Add(
-                new DataType
-                {
-                    Id = "auto-delete-type",
-                    AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true },
-                }
-            );
-        }
-
-        var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
-                new ApplicationMetadata("ttd/test-app")
-                {
-                    AutoDeleteOnProcessEnd = autoDeleteOnProcessEnd,
-                    DataTypes = dataTypes,
-                }
-            );
-
         var callbackTokenGeneratorMock = new Mock<IWorkflowCallbackTokenGenerator>();
         callbackTokenGeneratorMock.Setup(x => x.GenerateToken(It.IsAny<Guid>())).Returns("test-callback-token");
 
@@ -109,7 +83,6 @@ public class ProcessNextRequestFactoryTests
             authContextMock.Object,
             TestAppIdentifier,
             appSettings,
-            appMetadataMock.Object,
             callbackTokenGeneratorMock.Object,
             stepOptionsResolver
         );
@@ -399,6 +372,20 @@ public class ProcessNextRequestFactoryTests
             .ToList();
     }
 
+    private static ProcessStateChangePayload ExtractCommitProcessStatePayload(WorkflowEnqueueEnvelope bundle)
+    {
+        AppCommandData appData = bundle
+            .Request.Workflows[0]
+            .Steps.Where(s => s.Command.Type == "app" && s.Command.Data is not null)
+            .Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value))
+            .OfType<AppCommandData>()
+            .Single(appData => appData.CommandKey == CommitProcessState.Key);
+
+        return Assert.IsType<ProcessStateChangePayload>(
+            CommandPayloadSerializer.Deserialize<CommandRequestPayload>(appData.Payload)
+        );
+    }
+
     private static List<StepRequest> ExtractExecuteServiceTaskSteps(WorkflowEnqueueEnvelope bundle)
     {
         return bundle
@@ -422,12 +409,18 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
+            AcquireProcessingStatus.Key,
             // Task end commands
             EndTask.Key,
             CommonTaskFinalization.Key,
@@ -459,7 +452,12 @@ public class ProcessNextRequestFactoryTests
         var factory = CreateFactory();
         var stateChange = CreateTaskToTaskTransition("Task_1", "Task_2");
 
-        WorkflowEnqueueEnvelope bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        WorkflowEnqueueEnvelope bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            "{}"
+        );
 
         List<AppCommandData> commands = bundle
             .Request.Workflows[0]
@@ -495,7 +493,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            "{}"
+        );
 
         // Assert
         var processStatePayloads = bundle
@@ -527,12 +530,18 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateSameTaskLoopRevisit();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            "{}"
+        );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
+            AcquireProcessingStatus.Key,
             EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
@@ -548,6 +557,7 @@ public class ProcessNextRequestFactoryTests
             ExecuteServiceTask.Key,
         };
         Assert.Equal(expected, keys);
+        Assert.True(ExtractCommitProcessStatePayload(bundle).ServiceTaskFollows);
 
         // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
         Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
@@ -562,16 +572,22 @@ public class ProcessNextRequestFactoryTests
     public async Task Create_TaskToEndTransition_ProducesCorrectCommandSequence()
     {
         // Arrange
-        var factory = CreateFactory(autoDeleteOnProcessEnd: true);
+        var factory = CreateFactory();
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
+            AcquireProcessingStatus.Key,
             // Task end commands
             EndTask.Key,
             CommonTaskFinalization.Key,
@@ -581,14 +597,11 @@ public class ProcessNextRequestFactoryTests
             MutateProcessState.Key,
             // Process end commands (pre-commit)
             OnProcessEndingHook.Key,
+            EndProcessLegacyHook.Key,
             // CommitProcessState
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
             EnqueueSideEffectsWorkflow.Key,
-            // Critical post-commit (stay in Main)
-            EndProcessLegacyHook.Key,
-            DeleteDataElementsIfConfigured.Key,
-            DeleteInstanceIfConfigured.Key,
         };
         Assert.Equal(expected, keys);
 
@@ -605,10 +618,10 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(
+        var bundle = await factory.CreateChainInitiating(
             TestInstance,
             stateChange,
-            "lock-token",
+            "test-process-next-idempotency-key",
             SignedTestState,
             isInstantiation: true
         );
@@ -621,6 +634,7 @@ public class ProcessNextRequestFactoryTests
 
         var expected = new List<string>
         {
+            AcquireProcessingStatus.Key,
             // Task start commands only
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
@@ -647,7 +661,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractAllCommandKeys(bundle);
@@ -663,12 +682,18 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskAbandonToNextTask();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
+            AcquireProcessingStatus.Key,
             // Abandon commands
             AbandonTask.Key,
             OnTaskAbandonHook.Key,
@@ -693,7 +718,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_ServiceTask_AddsExecuteServiceTaskToPostCommit()
+    public async Task Create_ServiceTask_AddsExecuteServiceTaskAfterCommitAndMarksCommitPayload()
     {
         // Arrange
         var serviceTaskMock = new Mock<IServiceTask>();
@@ -702,7 +727,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert - ExecuteServiceTask is critical: it stays in Main, after the commit boundary.
         var keys = ExtractCommandKeys(bundle);
@@ -718,6 +748,7 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.Single(bundle.Request.Workflows);
         Assert.Contains(MovedToAltinnEvent.Key, ExtractSideEffectsCommandKeys(bundle));
+        Assert.True(ExtractCommitProcessStatePayload(bundle).ServiceTaskFollows);
 
         var payload = Assert.Single(ExtractExecuteServiceTaskPayloads(bundle));
         Assert.Equal("signing", payload.ServiceTaskType);
@@ -739,7 +770,13 @@ public class ProcessNextRequestFactoryTests
         var prefill = new Dictionary<string, string> { ["key1"] = "value1" };
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState, prefill: prefill);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState,
+            prefill: prefill
+        );
 
         // Assert
         var steps = bundle.Request.Workflows[0].Steps.ToList();
@@ -767,10 +804,11 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition("Task_1", "Task_2");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        const string idempotencyKey = "process-next-operation-test-instance-7";
+        var bundle = await factory.CreateChainInitiating(TestInstance, stateChange, idempotencyKey, SignedTestState);
 
         // Assert
-        Assert.Equal("lock-token", bundle.IdempotencyKey);
+        Assert.Equal(idempotencyKey, bundle.IdempotencyKey);
         Assert.Equal("ttd/test-app", bundle.Namespace);
         Assert.NotNull(bundle.Request.Labels);
         InstanceIdentifier instanceIdentifier = new(TestInstance);
@@ -782,6 +820,24 @@ public class ProcessNextRequestFactoryTests
         var workflow = bundle.Request.Workflows[0];
         Assert.Equal("Process next: Task_1 -> Task_2", workflow.OperationId);
         Assert.Equal(SignedTestState, workflow.State);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task CreateChainInitiating_MissingIdempotencyKey_Throws(string? idempotencyKey)
+    {
+        var factory = CreateFactory();
+
+        await Assert.ThrowsAnyAsync<ArgumentException>(() =>
+            factory.CreateChainInitiating(
+                TestInstance,
+                CreateTaskToTaskTransition(),
+                idempotencyKey!,
+                state: "signed-state"
+            )
+        );
     }
 
     [Fact]
@@ -841,7 +897,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart("Task_1", startEvent: "StartEvent_1");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var workflow = bundle.Request.Workflows[0];
@@ -856,7 +917,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition("Task_1", "EndEvent_1");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var workflow = bundle.Request.Workflows[0];
@@ -872,7 +938,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert - Actor is now in Context
         Assert.NotNull(bundle.Request.Context);
@@ -893,7 +964,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         Assert.NotNull(bundle.Request.Context);
@@ -913,7 +989,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         Assert.NotNull(bundle.Request.Context);
@@ -933,7 +1014,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractAllCommandKeys(bundle);
@@ -946,20 +1032,25 @@ public class ProcessNextRequestFactoryTests
     public async Task Create_RegisterEventsDisabled_TaskToEnd_ExcludesCompletedEvent()
     {
         // Arrange
-        var factory = CreateFactory(registerEvents: false, autoDeleteOnProcessEnd: true);
+        var factory = CreateFactory(registerEvents: false);
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
-        // Non-event post-commit commands should still be present
+        // The legacy hook must see the ended process and pre-cleanup data before the terminal commit.
         Assert.Contains(EndProcessLegacyHook.Key, keys);
-        Assert.Contains(DeleteDataElementsIfConfigured.Key, keys);
-        Assert.Contains(DeleteInstanceIfConfigured.Key, keys);
+        Assert.Equal(EndProcessLegacyHook.Key, keys[^2]);
+        Assert.Equal(CommitProcessState.Key, keys[^1]);
     }
 
     [Fact]
@@ -970,7 +1061,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractAllCommandKeys(bundle);
@@ -987,10 +1083,10 @@ public class ProcessNextRequestFactoryTests
         var notification = new InstantiationNotification();
 
         // Act
-        var bundle = await factory.Create(
+        var bundle = await factory.CreateChainInitiating(
             TestInstance,
             stateChange,
-            "lock-token",
+            "test-process-next-idempotency-key",
             SignedTestState,
             isInstantiation: true,
             notification: notification
@@ -1004,53 +1100,83 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_NoAutoDeleteConfig_TaskToEnd_ExcludesDeleteCommands()
+    public async Task Create_TaskToEnd_HasNoPostCommitStorageMutationCommands()
     {
-        // Arrange
-        var factory = CreateFactory(autoDeleteOnProcessEnd: false, hasAutoDeleteDataTypes: false);
+        var factory = CreateFactory();
         var stateChange = CreateTaskToEndTransition();
 
-        // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var keys = ExtractAllCommandKeys(bundle);
-        Assert.DoesNotContain(DeleteDataElementsIfConfigured.Key, keys);
-        Assert.DoesNotContain(DeleteInstanceIfConfigured.Key, keys);
+        Assert.DoesNotContain("DeleteDataElementsIfConfigured", keys);
+        Assert.DoesNotContain("DeleteInstanceIfConfigured", keys);
         // Other process end commands should still be present
         Assert.Contains(EndProcessLegacyHook.Key, keys);
+        Assert.Equal(AcquireProcessingStatus.Key, keys[0]);
+        Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(CommitProcessState.Key));
+        Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(EndProcessLegacyHook.Key));
+        Assert.True(keys.IndexOf(EndProcessLegacyHook.Key) < keys.IndexOf(CommitProcessState.Key));
     }
 
     [Fact]
-    public async Task Create_AutoDeleteInstanceEnabled_TaskToEnd_IncludesDeleteInstanceCommand()
+    public async Task Create_DependentWorkflow_DoesNotAcquireAndPreservesDependency()
     {
-        // Arrange
-        var factory = CreateFactory(autoDeleteOnProcessEnd: true, hasAutoDeleteDataTypes: false);
-        var stateChange = CreateTaskToEndTransition();
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition();
+        WorkflowRef dependency = Guid.NewGuid();
 
-        // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            "signed-state",
+            new Actor { UserId = 1337 },
+            [dependency],
+            "dependent-idempotency-key"
+        );
 
-        // Assert
-        var keys = ExtractAllCommandKeys(bundle);
-        Assert.Contains(DeleteInstanceIfConfigured.Key, keys);
-        Assert.DoesNotContain(DeleteDataElementsIfConfigured.Key, keys);
+        var keys = ExtractCommandKeys(bundle);
+        Assert.DoesNotContain(AcquireProcessingStatus.Key, keys);
+        Assert.Equal(EndTask.Key, keys[0]);
+        Assert.Equal("dependent-idempotency-key", bundle.IdempotencyKey);
+        Assert.Equal("signed-state", bundle.Request.Workflows.Single().State);
+        Assert.Equal(dependency, Assert.Single(bundle.Request.Workflows.Single().DependsOn!));
     }
 
     [Fact]
-    public async Task Create_AutoDeleteDataTypesEnabled_TaskToEnd_IncludesDeleteDataElementsCommand()
+    public async Task Create_AllAppCommandContexts_OmitLegacyLockToken()
     {
-        // Arrange
-        var factory = CreateFactory(autoDeleteOnProcessEnd: false, hasAutoDeleteDataTypes: true);
-        var stateChange = CreateTaskToEndTransition();
+        var factory = CreateFactory();
+        ProcessStateChange stateChange = CreateTaskToTaskTransition();
+        WorkflowEnqueueEnvelope[] bundles =
+        [
+            await factory.CreateChainInitiating(TestInstance, stateChange, "initiating-key"),
+            await factory.CreateDependent(
+                TestInstance,
+                stateChange,
+                "signed-state",
+                new Actor { UserId = 1337 },
+                [Guid.NewGuid()],
+                "dependent-key"
+            ),
+        ];
 
-        // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
-
-        // Assert
-        var keys = ExtractAllCommandKeys(bundle);
-        Assert.Contains(DeleteDataElementsIfConfigured.Key, keys);
-        Assert.DoesNotContain(DeleteInstanceIfConfigured.Key, keys);
+        Assert.All(
+            bundles,
+            bundle =>
+            {
+                Assert.Contains(
+                    bundle.Request.Workflows.SelectMany(workflow => workflow.Steps),
+                    step => step.Command.Type == "app"
+                );
+                Assert.False(bundle.Request.Context!.Value.TryGetProperty("lockToken", out _));
+            }
+        );
     }
 
     [Fact]
@@ -1061,7 +1187,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition("Task_1", "Task_2");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert - one Main workflow; the side-effects workflow travels inside the
         // EnqueueSideEffectsWorkflow step payload and is only enqueued once the commit ran.
@@ -1100,7 +1231,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert - regression guard: the common path is identical to the pre-split behaviour
         var workflow = Assert.Single(bundle.Request.Workflows);
@@ -1121,10 +1257,10 @@ public class ProcessNextRequestFactoryTests
         var notification = new InstantiationNotification();
 
         // Act
-        var bundle = await factory.Create(
+        var bundle = await factory.CreateChainInitiating(
             TestInstance,
             stateChange,
-            "lock-token",
+            "test-process-next-idempotency-key",
             SignedTestState,
             isInstantiation: true,
             notification: notification
@@ -1161,7 +1297,12 @@ public class ProcessNextRequestFactoryTests
         var factory = CreateFactory();
         var stateChange = CreateTaskToTaskTransition();
 
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         Assert.All(
             ExtractSideEffectsWorkflows(bundle),
@@ -1191,7 +1332,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert - nothing stamped, so the engine applies its own global defaults
         var startTaskStep = GetStep(bundle, StartTask.Key);
@@ -1209,7 +1355,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var step = GetStep(bundle, ExecuteServiceTask.Key);
@@ -1231,7 +1382,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var step = GetStep(bundle, ExecuteServiceTask.Key);
@@ -1259,7 +1415,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert - timeout overrides the 10 min tier-2 default AND retry is mapped to the wire model
         var step = GetStep(bundle, ExecuteServiceTask.Key);
@@ -1293,7 +1454,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert - timeout from tier 2, retry from tier 3, mapped to the wire model
         var step = GetStep(bundle, ExecuteServiceTask.Key);
@@ -1320,7 +1486,12 @@ public class ProcessNextRequestFactoryTests
 
         // Act + Assert - fails fast with an actionable message instead of poisoning the engine workflow
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            factory.Create(TestInstance, stateChange, "lock-token", "{}")
+            factory.CreateChainInitiating(
+                TestInstance,
+                stateChange,
+                "test-process-next-idempotency-key",
+                SignedTestState
+            )
         );
         Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), ex.Message);
     }
@@ -1339,7 +1510,12 @@ public class ProcessNextRequestFactoryTests
 
         // Act + Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            factory.Create(TestInstance, stateChange, "lock-token", "{}")
+            factory.CreateChainInitiating(
+                TestInstance,
+                stateChange,
+                "test-process-next-idempotency-key",
+                SignedTestState
+            )
         );
         Assert.Contains(nameof(ProcessStepRetryStrategy.BaseInterval), ex.Message);
     }
@@ -1357,7 +1533,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var step = GetStep(bundle, ExecuteServiceTask.Key);
@@ -1378,7 +1559,12 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
 
         // Assert
         var step = GetStep(bundle, OnTaskStartingHook.Key);

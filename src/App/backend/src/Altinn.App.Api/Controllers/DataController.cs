@@ -18,6 +18,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
@@ -109,6 +110,11 @@ public class DataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 201)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [Obsolete(
         "Use the POST method with the dataType parameter in url instead, to get more sensible BadRequests when validation fails."
     )]
@@ -179,7 +185,11 @@ public class DataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [ProducesResponseType(typeof(DataPostErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DataPostResponse>> Post(
@@ -531,7 +541,11 @@ public class DataController : ControllerBase
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 201)]
     [ProducesResponseType(typeof(CalculationResult), 200)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     public async Task<ActionResult> Put(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -600,7 +614,11 @@ public class DataController : ControllerBase
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPatch("{dataGuid:guid}")]
     [ProducesResponseType(typeof(DataPatchResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     [Obsolete("Use PatchFormDataMultiple instead")]
     public async Task<ActionResult<DataPatchResponse>> PatchFormData(
@@ -651,7 +669,7 @@ public class DataController : ControllerBase
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPatch("")]
     [ProducesResponseType(typeof(DataPatchResponseMultiple), 200)]
-    [ProducesResponseType(typeof(ProblemDetails), 409)]
+    [ProducesResponseType(typeof(ProblemDetails), 409, ProcessStatusProblemResult.ContentType)]
     [ProducesResponseType(typeof(ProblemDetails), 412)]
     [ProducesResponseType(typeof(ProblemDetails), 422)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
@@ -743,7 +761,11 @@ public class DataController : ControllerBase
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpDelete("{dataGuid:guid}")]
     [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     public async Task<ActionResult<DataPostResponse>> Delete(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -922,13 +944,16 @@ public class DataController : ControllerBase
             appModel,
             includeRowId: includeRowId,
             language: language,
-            persistFormData: (processedFormData, cancellationToken) =>
-                _dataClient.UpdateFormData(
-                    instance,
-                    processedFormData,
-                    dataElement,
-                    cancellationToken: cancellationToken
-                )
+            persistFormData: includeRowId
+                ? (processedFormData, cancellationToken) =>
+                    PersistFormDataWithRowIds(instance, dataElement, processedFormData, cancellationToken)
+                : (processedFormData, cancellationToken) =>
+                    _dataClient.UpdateFormData(
+                        instance,
+                        processedFormData,
+                        dataElement,
+                        cancellationToken: cancellationToken
+                    )
         );
 
         // This is likely not required as the instance is already read
@@ -945,6 +970,59 @@ public class DataController : ControllerBase
         }
 
         return Ok(appModel);
+    }
+
+    private async Task PersistFormDataWithRowIds(
+        Instance instance,
+        DataElement dataElement,
+        object processedFormData,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            await _dataClient.UpdateFormData(
+                instance,
+                processedFormData,
+                dataElement,
+                cancellationToken: cancellationToken
+            );
+        }
+        catch (PlatformHttpException exception) when (exception.Response.StatusCode is HttpStatusCode.Conflict)
+        {
+            Instance? refreshedInstance = null;
+            try
+            {
+                refreshedInstance = await _instanceClient.GetInstance(
+                    instance,
+                    authenticationMethod: null,
+                    ct: cancellationToken
+                );
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception refreshException)
+            {
+                _logger.LogWarning(
+                    refreshException,
+                    "Could not refresh instance {InstanceId} after row-id persistence conflict.",
+                    instance.Id
+                );
+            }
+
+            if (refreshedInstance is null || ProcessStatusHelper.IsIdle(refreshedInstance))
+            {
+                throw;
+            }
+
+            _logger.LogInformation(
+                "Skipping row-id persistence for {InstanceId} because the refreshed process status is {ProcessStatus}.",
+                instance.Id,
+                refreshedInstance.Process?.Status
+            );
+        }
     }
 
     private async Task<ActionResult> PutBinaryData(

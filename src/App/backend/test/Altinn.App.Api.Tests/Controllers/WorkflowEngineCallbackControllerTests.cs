@@ -1,10 +1,14 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -21,6 +25,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NewtonsoftJson = Newtonsoft.Json.JsonConvert;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
@@ -62,18 +67,36 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_ForwardsCallbackIdempotencyKeyToWorkflowOwnedSave()
+    public async Task ExecuteCommand_ForwardsWorkflowSavePreconditionsAndNoLockHeader()
     {
-        await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
+        await using ControllerSetup setup = CreateSetup(
+            new AddBinaryDataCommand(),
+            (_, instance) => instance.Process!.Status = ProcessStatus.Processing
+        );
 
         IActionResult result = await setup.Execute(AddBinaryDataCommand.Key, idempotencyKey: "callback-step-id");
 
         Assert.IsType<OkObjectResult>(result);
         var mutationRequest = Assert.Single(GetMutationRequests(setup.Services));
         Assert.Equal(
+            "1",
+            mutationRequest
+                .RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName)
+                .Single()
+        );
+        Assert.Equal(
+            "1",
+            mutationRequest
+                .RequestHeaders.GetValues(StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName)
+                .Single()
+        );
+        Assert.Equal(
             "callback-step-id",
             mutationRequest.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
         );
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.False(mutationRequest.RequestHeaders.Contains("Altinn-Storage-Lock-Token"));
     }
 
     [Fact]
@@ -82,13 +105,24 @@ public class WorkflowEngineCallbackControllerTests
         const string idempotencyKey = "11111111-2222-3333-4444-555555555555";
         var executionReferenceTime = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
         var serviceTask = new CapturingServiceTask(stageMutation: true);
-        await using ControllerSetup setup = CreateSetup(services =>
-        {
-            services.Services.AddSingleton<IServiceTask>(serviceTask);
-            services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
-                serviceProvider.GetRequiredService<AppImplementationFactory>()
-            ));
-        });
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(serviceTask);
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>()
+                ));
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = CapturingServiceTask.ServiceTaskType,
+                };
+            }
+        );
         string commandPayload = CommandPayloadSerializer.Serialize(
             new ExecuteServiceTaskPayload(CapturingServiceTask.ServiceTaskType)
         )!;
@@ -100,15 +134,106 @@ public class WorkflowEngineCallbackControllerTests
             executionReferenceTime
         );
 
-        Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
         Assert.NotNull(serviceTask.ReceivedContext);
         Assert.Equal(idempotencyKey, serviceTask.ReceivedContext.IdempotencyKey);
         Assert.Equal(executionReferenceTime, serviceTask.ReceivedContext.ExecutionReferenceTime);
         var mutationRequest = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
+        Assert.Single(mutation.CreateDataElements);
         Assert.Equal(
             idempotencyKey,
             mutationRequest.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
         );
+        Assert.Equal(ProcessStatus.Idle, setup.DeserializeState(response.State!).Instance.Process?.Status);
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
+        Assert.Equal("ServiceTask_1", storedInstance.Process?.CurrentTask?.ElementId);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AutoAdvanceServiceTask_SavesStagedDataBeforeEnqueueAndKeepsProcessing()
+    {
+        const string action = "approve";
+        const string collectionKey = "service-task-chain";
+        var serviceTask = new AutoAdvanceServiceTask(action);
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        ControllerSetup? setup = null;
+        bool enqueueObservedSavedMutation = false;
+        processEngine
+            .Setup(engine =>
+                engine.EnqueueProcessNext(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<Guid>(),
+                    collectionKey,
+                    It.IsAny<string>(),
+                    action,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, Actor, Guid, string, string, string?, CancellationToken>(
+                (instance, _, _, _, state, _, _) =>
+                {
+                    StorageClientInterceptor.RequestResponse request = Assert.Single(
+                        GetMutationRequests(setup!.Services)
+                    );
+                    StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
+                    Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+                    Assert.Null(mutation.ProcessState);
+                    Assert.Single(mutation.CreateDataElements);
+                    Assert.Equal(ProcessStatus.Processing, instance.Process?.Status);
+                    Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(state).Instance.Process?.Status);
+                    enqueueObservedSavedMutation = true;
+                }
+            )
+            .Returns(Task.CompletedTask);
+
+        setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(serviceTask);
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>()
+                ));
+                services.Services.AddSingleton(processEngine.Object);
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = AutoAdvanceServiceTask.ServiceTaskType,
+                };
+            }
+        );
+        await using (setup)
+        {
+            string payload = CommandPayloadSerializer.Serialize(
+                new ExecuteServiceTaskPayload(AutoAdvanceServiceTask.ServiceTaskType)
+            )!;
+
+            IActionResult result = await setup.Execute(
+                ExecuteServiceTask.Key,
+                Guid.NewGuid().ToString(),
+                payload,
+                collectionKey
+            );
+
+            var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+            Assert.True(enqueueObservedSavedMutation);
+            Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(response.State!).Instance.Process?.Status);
+            var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
+                InstanceOwnerPartyId,
+                setup.InstanceGuid
+            );
+            Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
+            Assert.Equal("ServiceTask_1", storedInstance.Process?.CurrentTask?.ElementId);
+            processEngine.VerifyAll();
+        }
     }
 
     [Fact]
@@ -130,6 +255,101 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal("StoragePreconditionFailedException", problem.Title);
         Assert.Contains("stale", problem.Detail, StringComparison.OrdinalIgnoreCase);
         Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.Single(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenAcquireGetsStaleInstanceVersion_ReturnsNonRetryableConflictWithoutMutation()
+    {
+        await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
+        setup.Services.Storage.SetStorageVersions(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid,
+            instanceVersion: 2,
+            processStateVersion: 1
+        );
+
+        IActionResult result = await setup.Execute(
+            AcquireProcessingStatus.Key,
+            idempotencyKey: "stale-acquire-step-id"
+        );
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("WorkflowAcquireConflict", problem.Title);
+        Assert.Contains("Refresh", problem.Detail, StringComparison.Ordinal);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.Equal(
+            AcquireProcessingStatus.ConcurrencyFailureCode,
+            problem.Extensions["workflowFailureCode"] as string
+        );
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
+        Assert.Single(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenAcquireGetsProcessStatusConflict_ReturnsNonRetryableConflictWithoutMutation()
+    {
+        await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        storedInstance.Process!.Status = ProcessStatus.Processing;
+        setup.Services.Storage.EnforceExpectedProcessStatus = true;
+
+        IActionResult result = await setup.Execute(
+            AcquireProcessingStatus.Key,
+            idempotencyKey: "conflicting-acquire-step-id"
+        );
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("WorkflowAcquireConflict", problem.Title);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.Equal(
+            AcquireProcessingStatus.ConcurrencyFailureCode,
+            problem.Extensions["workflowFailureCode"] as string
+        );
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process.Status);
+        StorageClientInterceptor.RequestResponse mutation = Assert.Single(GetMutationRequests(setup.Services));
+        Assert.Equal("application/problem+json", mutation.ResponseContentHeaders.ContentType?.MediaType);
+        using JsonDocument storageProblem = JsonDocument.Parse(mutation.ResponseBody);
+        Assert.Equal(
+            StorageProcessStatusConflictException.ErrorCode,
+            storageProblem.RootElement.GetProperty("type").GetString()
+        );
+        Assert.Equal(StatusCodes.Status409Conflict, storageProblem.RootElement.GetProperty("status").GetInt32());
+        Assert.Equal("Process status conflict", storageProblem.RootElement.GetProperty("title").GetString());
+        Assert.Contains(
+            "Current status: 'processing'",
+            storageProblem.RootElement.GetProperty("detail").GetString(),
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenAcquireGetsUnrelatedStorageConflict_DoesNotTagAcquireConflict()
+    {
+        await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
+        setup.Services.Storage.ForcedMutationConflictMessage = "unrelated conflict";
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            setup.Execute(AcquireProcessingStatus.Key, idempotencyKey: "unrelated-conflict-step-id")
+        );
+
+        Assert.IsNotType<StorageProcessStatusConflictException>(exception);
+        Assert.Equal(HttpStatusCode.Conflict, exception.Response.StatusCode);
+        Assert.Equal("application/json", exception.Response.Content.Headers.ContentType?.MediaType);
+        string responseBody = await exception.Response.Content.ReadAsStringAsync();
+        Assert.Equal("\"unrelated conflict\"", responseBody);
+        Assert.DoesNotContain(
+            AcquireProcessingStatus.ConcurrencyFailureCode,
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
         Assert.Single(GetMutationRequests(setup.Services));
     }
 
@@ -194,43 +414,56 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenStorageReplaysMutation_RebuildsStateAndReturnsSuccess()
+    public async Task ExecuteCommand_WhenStorageReplaysPreCommitDataMutation_PreservesAdvancedProcessSnapshot()
     {
-        await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
+        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            new AddBinaryDataCommand(),
+            (_, instance) =>
+            {
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                    CurrentTask = null,
+                };
+            }
+        );
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        storedInstance.Process = new ProcessState
+        {
+            Status = ProcessStatus.Processing,
+            CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+        };
 
         IActionResult firstResult = await setup.Execute(AddBinaryDataCommand.Key, idempotencyKey: "replayed-step-id");
         IActionResult replayResult = await setup.Execute(AddBinaryDataCommand.Key, idempotencyKey: "replayed-step-id");
 
-        Assert.IsType<OkObjectResult>(firstResult);
+        var firstResponse = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(firstResult).Value);
         var replayOk = Assert.IsType<OkObjectResult>(replayResult);
         var replayResponse = Assert.IsType<AppCallbackResponse>(replayOk.Value);
+        WorkflowCallbackState firstState = setup.DeserializeState(firstResponse.State!);
         WorkflowCallbackState replayedState = setup.DeserializeState(replayResponse.State!);
+        Assert.Equal(ended, firstState.Instance.Process?.Ended);
+        Assert.Equal("EndEvent_1", firstState.Instance.Process?.EndEvent);
+        Assert.Null(firstState.Instance.Process?.CurrentTask);
+        Assert.Equal(ProcessStatus.Processing, firstState.Instance.Process?.Status);
+        Assert.Equal(ended, replayedState.Instance.Process?.Ended);
+        Assert.Equal("EndEvent_1", replayedState.Instance.Process?.EndEvent);
+        Assert.Null(replayedState.Instance.Process?.CurrentTask);
+        Assert.Equal(ProcessStatus.Processing, replayedState.Instance.Process?.Status);
         Assert.Single(replayedState.Instance.Data);
 
-        var (_, storedData) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
-        Assert.Single(storedData);
-    }
-
-    [Fact]
-    public async Task ExecuteCommand_WhenCommandStagesInstanceDeletion_SavesDeleteInstanceMutation()
-    {
-        await using ControllerSetup setup = CreateSetup(new HardDeleteInstanceCommand());
-
-        IActionResult result = await setup.Execute(HardDeleteInstanceCommand.Key, idempotencyKey: "delete-step-id");
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<AppCallbackResponse>(ok.Value);
-        WorkflowCallbackState capturedState = setup.DeserializeState(response.State!);
-        var mutationRequest = Assert.Single(GetMutationRequests(setup.Services));
-        Assert.Contains("\"deleteInstance\":{\"hard\":true}", mutationRequest.RequestBody, StringComparison.Ordinal);
-        Assert.True(capturedState.Instance.Status.IsHardDeleted);
-
-        var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
+        var (storedAfterReplay, storedData) = setup.Services.Storage.GetInstanceAndData(
             InstanceOwnerPartyId,
             setup.InstanceGuid
         );
-        Assert.True(storedInstance.Status.IsHardDeleted);
-        Assert.Empty(storedData);
+        Assert.Equal("Task_1", storedAfterReplay.Process?.CurrentTask?.ElementId);
+        Assert.Null(storedAfterReplay.Process?.Ended);
+        Assert.Null(storedAfterReplay.Process?.EndEvent);
+        Assert.Equal(ProcessStatus.Processing, storedAfterReplay.Process?.Status);
+        Assert.Single(storedData);
     }
 
     [Fact]
@@ -252,8 +485,222 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ended, capturedState.Instance.Status.Archived);
     }
 
+    [Fact]
+    public async Task ExecuteCommand_AcquireProcessingStatus_PersistsAndRoundTripsThroughReplay()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            new AcquireProcessingStatus(),
+            (_, instance) => instance.Process!.Status = ProcessStatus.Idle
+        );
+        string idempotencyKey = Guid.NewGuid().ToString();
+
+        IActionResult first = await setup.Execute(AcquireProcessingStatus.Key, idempotencyKey);
+        IActionResult replay = await setup.Execute(AcquireProcessingStatus.Key, idempotencyKey);
+
+        var firstState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(first).Value).State!
+        );
+        var replayState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(replay).Value).State!
+        );
+        List<StorageClientInterceptor.RequestResponse> requests = GetMutationRequests(setup.Services);
+        Assert.Equal(2, requests.Count);
+        foreach (StorageClientInterceptor.RequestResponse request in requests)
+        {
+            StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+                request.RequestBody!
+            )!;
+            Assert.Equal(ProcessStatus.Idle, mutation.ExpectedProcessStatus);
+            Assert.Equal(ProcessStatus.Processing, mutation.ProcessState?.State?.Status);
+            Assert.Equal("Task_1", mutation.ProcessState?.State?.CurrentTask?.ElementId);
+            Assert.Empty(mutation.CreateDataElements);
+            Assert.Empty(mutation.UpdateDataElements);
+            Assert.Empty(mutation.DeleteDataElements);
+            Assert.Null(mutation.DeleteInstance);
+            Assert.Equal(
+                idempotencyKey,
+                request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
+            );
+            Assert.Equal(
+                "1",
+                request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName).Single()
+            );
+            Assert.Equal(
+                "1",
+                request
+                    .RequestHeaders.GetValues(StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName)
+                    .Single()
+            );
+        }
+
+        Assert.Equal(ProcessStatus.Processing, firstState.Instance.Process?.Status);
+        Assert.Equal(ProcessStatus.Processing, replayState.Instance.Process?.Status);
+        Assert.Equal(2, firstState.InstanceVersion);
+        Assert.Equal(2, firstState.ProcessStateVersion);
+        Assert.Equal(2, replayState.InstanceVersion);
+        Assert.Equal(2, replayState.ProcessStateVersion);
+        var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
+        Assert.Equal("Task_1", storedInstance.Process?.CurrentTask?.ElementId);
+        Assert.Empty(storedData);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_ProcessEnd_CommitsLockedCleanupClearAndHardDeleteAtomically()
+    {
+        Guid lockedDataElementId = Guid.NewGuid();
+        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AppMetadata.AutoDeleteOnProcessEnd = true;
+                DataType dataType = services.AppMetadata.DataTypes.Single(dataType => dataType.Id == DataTypeId);
+                dataType.AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true };
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new CommitProcessState(
+                    serviceProvider.GetRequiredService<IAppMetadata>()
+                ));
+            },
+            (services, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Data.Add(
+                    new DataElement
+                    {
+                        Id = lockedDataElementId.ToString(),
+                        InstanceGuid = GetInstanceGuid(instance).ToString(),
+                        DataType = DataTypeId,
+                        ContentType = ContentType,
+                        Filename = "locked.json",
+                        Locked = true,
+                        ContentEtag = StorageClientInterceptor.CreateDataETag(1),
+                    }
+                );
+                services.Storage.AddDataRaw(
+                    lockedDataElementId,
+                    """{"locked":true}"""u8.ToArray(),
+                    StorageClientInterceptor.CreateDataETag(1)
+                );
+            }
+        );
+        string commandPayload = CommandPayloadSerializer.Serialize(
+            new ProcessStateChangePayload(
+                new ProcessStateChange
+                {
+                    OldProcessState = new ProcessState
+                    {
+                        Status = ProcessStatus.Processing,
+                        CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+                    },
+                    NewProcessState = new ProcessState
+                    {
+                        Ended = ended,
+                        EndEvent = "EndEvent_1",
+                        CurrentTask = null,
+                    },
+                    Events = [new InstanceEvent { EventType = "process_EndEvent" }],
+                }
+            )
+        )!;
+        string idempotencyKey = Guid.NewGuid().ToString();
+
+        IActionResult result = await setup.Execute(CommitProcessState.Key, idempotencyKey, commandPayload);
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+            request.RequestBody!
+        )!;
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
+        Assert.Equal(ended, mutation.ProcessState?.State?.Ended);
+        Assert.Equal("EndEvent_1", mutation.ProcessState?.State?.EndEvent);
+        Assert.Null(mutation.ProcessState?.State?.CurrentTask);
+        Assert.Equal("process_EndEvent", Assert.Single(mutation.ProcessState!.Events!).EventType);
+        var delete = Assert.Single(mutation.DeleteDataElements);
+        Assert.Equal(lockedDataElementId, delete.DataElementId);
+        Assert.True(delete.IgnoreLock);
+        Assert.True(mutation.DeleteInstance?.Hard);
+        Assert.Empty(mutation.CreateDataElements);
+        Assert.Empty(mutation.UpdateDataElements);
+        Assert.Empty(mutation.DataValues);
+        Assert.Empty(mutation.PresentationTexts);
+        Assert.Equal(
+            idempotencyKey,
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName).Single()
+        );
+
+        Assert.Equal(ProcessStatus.Idle, callbackState.Instance.Process?.Status);
+        Assert.Equal(ended, callbackState.Instance.Process?.Ended);
+        Assert.True(callbackState.Instance.Status.IsHardDeleted);
+        Assert.Empty(callbackState.Instance.Data);
+        Assert.Equal(2, callbackState.InstanceVersion);
+        Assert.Equal(2, callbackState.ProcessStateVersion);
+        var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
+        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
+        Assert.Equal(ended, storedInstance.Process?.Ended);
+        Assert.True(storedInstance.Status.IsHardDeleted);
+        Assert.Empty(storedInstance.Data);
+        Assert.Empty(storedData);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenDurableServiceTaskFails_LeavesProcessingOwnedAndDoesNotSave()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(new FailingServiceTask());
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>()
+                ));
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = FailingServiceTask.ServiceTaskType,
+                };
+            }
+        );
+        string payload = CommandPayloadSerializer.Serialize(
+            new ExecuteServiceTaskPayload(FailingServiceTask.ServiceTaskType)
+        )!;
+
+        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid().ToString(), payload);
+
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status500InternalServerError, error.StatusCode);
+        Assert.Empty(GetMutationRequests(setup.Services));
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
+        Assert.Equal("ServiceTask_1", storedInstance.Process?.CurrentTask?.ElementId);
+        Assert.Equal(FailingServiceTask.ServiceTaskType, storedInstance.Process?.CurrentTask?.AltinnTaskType);
+    }
+
     private static ControllerSetup CreateSetup(IWorkflowEngineCommand command) =>
         CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command));
+
+    private static ControllerSetup CreateSetup(
+        IWorkflowEngineCommand command,
+        Action<MockedServiceCollection, Instance> configureInstance
+    ) => CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command), configureInstance);
 
     private static ControllerSetup CreateSetup(
         Action<MockedServiceCollection> configureServices,
@@ -342,6 +789,22 @@ public class WorkflowEngineCallbackControllerTests
             )
             .ToList();
 
+    private static StorageInstanceMutationRequest DeserializeMutationRequest(string requestBody)
+    {
+        if (requestBody.StartsWith('{'))
+        {
+            return NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(requestBody)!;
+        }
+
+        const string jsonPartStart = "\r\n\r\n{";
+        int partStart = requestBody.IndexOf(jsonPartStart, StringComparison.Ordinal);
+        int start = partStart < 0 ? -1 : partStart + jsonPartStart.Length - 1;
+        Assert.True(start >= 0, "Mutation JSON part was not found in the multipart request body.");
+        int end = requestBody.IndexOf("\r\n--", start, StringComparison.Ordinal);
+        Assert.True(end > start, "Mutation JSON part was not terminated by a multipart boundary.");
+        return NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(requestBody[start..end])!;
+    }
+
     private sealed class TrackingNoOpCommand : IWorkflowEngineCommand
     {
         public bool Executed { get; private set; }
@@ -411,18 +874,32 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
-    private sealed class HardDeleteInstanceCommand : IWorkflowEngineCommand
+    private sealed class AutoAdvanceServiceTask(string action) : IServiceTask
     {
-        public const string Key = "HardDeleteInstanceForCallbackTest";
+        public const string ServiceTaskType = "AutoAdvanceForCallbackTest";
 
-        public string GetKey() => Key;
+        public string Type => ServiceTaskType;
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
         {
-            var unitOfWork = Assert.IsType<InstanceDataUnitOfWork>(context.InstanceDataMutator);
-            unitOfWork.HardDeleteInstance();
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            context.InstanceDataMutator.AddBinaryDataElement(
+                DataTypeId,
+                ContentType,
+                "auto-advance.json",
+                "{}"u8.ToArray()
+            );
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
         }
+    }
+
+    private sealed class FailingServiceTask : IServiceTask
+    {
+        public const string ServiceTaskType = "FailDurableServiceTaskForCallbackTest";
+
+        public string Type => ServiceTaskType;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedRetryable("Expected failure"));
     }
 
     private sealed class StageEndedProcessCommand(DateTime ended) : IWorkflowEngineCommand
@@ -465,14 +942,19 @@ public class WorkflowEngineCallbackControllerTests
             TimeSpan.Zero
         );
 
-        public Task<IActionResult> Execute(string commandKey, string? idempotencyKey, string? commandPayload = null) =>
-            Execute(commandKey, idempotencyKey, commandPayload, FixtureExecutionReferenceTime);
+        public Task<IActionResult> Execute(
+            string commandKey,
+            string? idempotencyKey,
+            string? commandPayload = null,
+            string? collectionKey = null
+        ) => Execute(commandKey, idempotencyKey, commandPayload, FixtureExecutionReferenceTime, collectionKey);
 
         public async Task<IActionResult> Execute(
             string commandKey,
             string? idempotencyKey,
             string? commandPayload,
-            DateTimeOffset executionReferenceTime
+            DateTimeOffset executionReferenceTime,
+            string? collectionKey = null
         )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -481,13 +963,16 @@ public class WorkflowEngineCallbackControllerTests
                 Controller.HttpContext.Request.Headers[StoragePreconditionHeaders.IdempotencyKeyHeaderName] =
                     idempotencyKey;
             }
+            if (collectionKey is not null)
+            {
+                Controller.HttpContext.Request.Headers["Collection-Key"] = collectionKey;
+            }
 
             var payload = new AppCallbackPayload
             {
                 CommandKey = commandKey,
                 Payload = commandPayload,
                 Actor = new Actor { UserId = 42, Language = "nb" },
-                LockToken = Guid.NewGuid().ToString(),
                 WorkflowId = Guid.NewGuid(),
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,

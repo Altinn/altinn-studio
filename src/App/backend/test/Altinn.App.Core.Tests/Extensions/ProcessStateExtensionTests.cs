@@ -20,6 +20,7 @@ public class ProcessStateExtensionTests
     {
         ProcessState original = new ProcessState()
         {
+            Status = ProcessStatus.Processing,
             Ended = DateTime.Now,
             Started = DateTime.Now,
             StartEvent = "StartEvent",
