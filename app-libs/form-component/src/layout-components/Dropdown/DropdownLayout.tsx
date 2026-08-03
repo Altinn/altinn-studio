@@ -8,10 +8,7 @@ import { LabelComponent } from '@app/form-component/layout-components/common/Lab
 import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
 import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
-import {
-  EXPERIMENTAL_Suggestion as Suggestion,
-  Label as DSLabel,
-} from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
