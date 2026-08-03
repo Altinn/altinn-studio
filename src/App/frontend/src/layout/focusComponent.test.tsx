@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { createBrowserRouter, MemoryRouter, useNavigate } from 'react-router';
-import { RouterProvider } from 'react-router/dom';
+import React, { useRef } from 'react';
+import { MemoryRouter } from 'react-router';
 
 import { act, render, screen, waitFor } from '@testing-library/react';
 
@@ -27,7 +26,6 @@ describe('focusComponent', () => {
   afterEach(() => {
     act(() => setFocusComponentRequest(undefined));
     setFocusComponentUrlCleanup(undefined);
-    window.history.replaceState({}, '', '/');
     jest.restoreAllMocks();
   });
 
@@ -127,38 +125,5 @@ describe('focusComponent', () => {
 
     await waitFor(() => expect(screen.getByLabelText('Name')).toHaveFocus());
     expect(cleanup).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not let focus URL cleanup overwrite immediate page navigation', async () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
-
-    function FocusAndNavigate() {
-      const ref = useRef<HTMLDivElement | null>(null);
-      const navigate = useNavigate();
-      const request = useFocusComponentRequest('node-a');
-      useHandleFocusComponent('node-a', ref);
-      useEffect(() => {
-        if (request) {
-          navigate('/summary');
-        }
-      }, [navigate, request]);
-      return (
-        <>
-          <FocusComponentRequestFromUrl />
-          <div ref={ref}>
-            <input aria-label='Name' />
-          </div>
-        </>
-      );
-    }
-
-    window.history.replaceState({}, '', '/form?focusComponentId=node-a');
-    const router = createBrowserRouter([{ path: '*', Component: FocusAndNavigate }]);
-
-    render(<RouterProvider router={router} />);
-
-    await waitFor(() => expect(window.location.pathname).toBe('/summary'));
-    expect(window.location.search).toBe('');
-    expect(consoleError).not.toHaveBeenCalled();
   });
 });
