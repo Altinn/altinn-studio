@@ -310,12 +310,11 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
             JsonNode? data = message["data"];
 
-            // Same field fallbacks as the frontend's getAssistantMessageContent, so the
-            // server-persisted row matches what a client-side persist would have stored.
+            // Same field fallback order as the frontend's getAssistantMessageContent.
             string? content =
-                data?["content"]?.GetValue<string>()
-                ?? data?["response"]?.GetValue<string>()
-                ?? data?["message"]?.GetValue<string>();
+                data?["response"]?.GetValue<string>()
+                ?? data?["message"]?.GetValue<string>()
+                ?? data?["content"]?.GetValue<string>();
             if (string.IsNullOrWhiteSpace(content))
             {
                 return;

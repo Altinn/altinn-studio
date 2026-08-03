@@ -34,6 +34,7 @@ const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
 // Status events this soon after a terminal event are stragglers from the finished run.
 const ADOPTION_GRACE_AFTER_TERMINAL_MS = 10_000;
+const MAX_HANDLED_TRACE_IDS = 200;
 
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
@@ -221,7 +222,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         console.error('Permission response failed:', error);
       }
     },
-    [workflowStatusByThread, clearPermissionRequest, sendPermissionResponse, registerSession, org, app],
+    [
+      workflowStatusByThread,
+      clearPermissionRequest,
+      sendPermissionResponse,
+      registerSession,
+      org,
+      app,
+    ],
   );
 
   const resetRepoForSession = useCallback(
@@ -244,8 +252,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const assistantMessage = event.data;
       if (assistantMessage.traceId) {
         const traceKey = `${threadId}:${assistantMessage.traceId}`;
-        if (handledAssistantTraceIdsRef.current.has(traceKey)) return;
-        handledAssistantTraceIdsRef.current.add(traceKey);
+        const handledTraceIds = handledAssistantTraceIdsRef.current;
+        if (handledTraceIds.has(traceKey)) return;
+        handledTraceIds.add(traceKey);
+        // Bounded FIFO — duplicates arrive close to the original, so only
+        // recent keys matter.
+        if (handledTraceIds.size > MAX_HANDLED_TRACE_IDS) {
+          handledTraceIds.delete(handledTraceIds.values().next().value);
+        }
       }
 
       const messageContent = getAssistantMessageContent(assistantMessage);

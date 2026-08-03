@@ -13,7 +13,9 @@ log = logging.getLogger(__name__)
 # already been sent, and a trailing status/permission event would resurrect
 # the workflow activity indicator in the frontend with nothing left to turn
 # it off. Result-bearing events (assistant_message, error, done) still flow.
-PROGRESS_EVENT_TYPES = frozenset({"status", "assistant_message_chunk", "permission_request"})
+PROGRESS_EVENT_TYPES = frozenset(
+    {"status", "assistant_message_chunk", "permission_request", "plan_proposed"}
+)
 
 
 class _SessionBuffer:

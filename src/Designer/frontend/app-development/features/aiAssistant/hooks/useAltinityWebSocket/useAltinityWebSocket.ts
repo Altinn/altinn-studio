@@ -155,7 +155,14 @@ function ensureAgentMessageDispatcher(connection: any): void {
       return;
     }
 
-    agentMessageSubscribers.forEach((subscriber) => subscriber(message));
+    agentMessageSubscribers.forEach((subscriber) => {
+      try {
+        subscriber(message);
+      } catch (error) {
+        // One failing subscriber must not block delivery to the others.
+        console.error('Altinity agent message subscriber failed:', error);
+      }
+    });
   });
 }
 
