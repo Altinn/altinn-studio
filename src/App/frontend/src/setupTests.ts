@@ -80,6 +80,11 @@ beforeEach(() => {
       postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json',
       altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
       helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+      arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
+      arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
+      arbeidsflateProfileUrl: 'https://af.tt02.altinn.no/profile',
+      accessManagementChangeAndRedirectUrl:
+        'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}',
     },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),

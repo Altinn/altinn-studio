@@ -20,6 +20,7 @@ export function PDFGeneratorPreview({
   const modalRef = React.useRef<HTMLDialogElement>(null);
   const abortRef = React.useRef<AbortController | null>(null);
 
+  const [isOpen, setIsOpen] = React.useState(false);
   const [blobUrl, setBlobUrl] = React.useState<string | null>(null);
   const [errorText, setErrorText] = React.useState<string | null>(null);
 
@@ -36,6 +37,7 @@ export function PDFGeneratorPreview({
 
     setBlobUrl(null);
     setErrorText(null);
+    setIsOpen(true);
     abortRef.current?.abort();
     abortRef.current = new AbortController();
     modalRef.current?.showModal();
@@ -74,35 +76,39 @@ export function PDFGeneratorPreview({
       </Button>
       <Dialog
         ref={modalRef}
-        onClose={() => abortRef.current?.abort()}
+        onClose={() => {
+          abortRef.current?.abort();
+          setIsOpen(false);
+        }}
         closedby='any'
         className={classes.modal}
       >
-        {blobUrl ? (
-          <iframe
-            className={classes.iframe}
-            title='Preview'
-            src={blobUrl}
-          />
-        ) : errorText ? (
-          <div style={{ textAlign: 'center' }}>
-            <Heading id='pdfPreview.error' />
-            {showErrorDetails &&
-              errorText.split('\n').map((line) => (
-                <React.Fragment key={line}>
-                  {line}
-                  <br />
-                </React.Fragment>
-              ))}
-          </div>
-        ) : (
-          <div className={classes.loading}>
-            <Spinner
-              aria-label={langAsString('general.loading')}
-              data-size='xl'
+        {isOpen &&
+          (blobUrl ? (
+            <iframe
+              className={classes.iframe}
+              title='Preview'
+              src={blobUrl}
             />
-          </div>
-        )}
+          ) : errorText ? (
+            <div style={{ textAlign: 'center' }}>
+              <Heading id='pdfPreview.error' />
+              {showErrorDetails &&
+                errorText.split('\n').map((line) => (
+                  <React.Fragment key={line}>
+                    {line}
+                    <br />
+                  </React.Fragment>
+                ))}
+            </div>
+          ) : (
+            <div className={classes.loading}>
+              <Spinner
+                aria-label={langAsString('general.loading')}
+                data-size='xl'
+              />
+            </div>
+          ))}
       </Dialog>
     </>
   );

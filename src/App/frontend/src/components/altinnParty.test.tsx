@@ -31,7 +31,7 @@ describe('altinnParty', () => {
     const handleSelectParty = jest.fn();
     await render({ onSelectParty: handleSelectParty });
 
-    const party = screen.getByText(/personnr\. 01017512345/i);
+    const party = screen.getByText(/personnr\. 010175\*\*\*\*\*/i);
 
     await user.click(party);
 

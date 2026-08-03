@@ -50,6 +50,15 @@ describe('Map component', () => {
     cy.findByRole('link', { name: 'Save' }).click();
     cy.get('g>path').should('not.exist');
   });
+
+  it('should pass accessibility tests', () => {
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Kart');
+
+    // Wait for the map to be rendered before running the axe check
+    cy.get('.leaflet-container').should('be.visible');
+    cy.testWcag();
+  });
 });
 
 function moveAndClick(x: number, y: number) {

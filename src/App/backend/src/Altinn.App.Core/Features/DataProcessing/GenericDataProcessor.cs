@@ -16,7 +16,7 @@ public abstract class GenericDataProcessor<TModel> : IDataProcessor
 
     /// <summary>
     /// Do changes to the model before it is written to storage, and report back to frontend.
-    /// Tyipically used to add calculated values to the model.
+    /// Typically used to add calculated values to the model.
     /// </summary>
     public abstract Task ProcessDataWrite(
         Instance instance,

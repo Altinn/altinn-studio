@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
+using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Features.Maskinporten.Delegates;
@@ -11,7 +12,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Delegates;
 /// </summary>
 internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
 {
-    public IEnumerable<string> Scopes { get; init; }
+    internal MaskinportenTokenRequest Request { get; init; }
     internal readonly TokenAuthority Authority;
 
     private readonly ILogger<MaskinportenDelegatingHandler> _logger;
@@ -21,17 +22,17 @@ internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
     /// Creates a new instance of <see cref="MaskinportenDelegatingHandler"/>.
     /// </summary>
     /// <param name="authority">The token authority to authorise with</param>
-    /// <param name="scopes">A list of scopes to claim authorisation for</param>
+    /// <param name="request">The token request to authorise with</param>
     /// <param name="maskinportenClient">A <see cref="MaskinportenClient"/> instance</param>
     /// <param name="logger">Optional logger interface</param>
     public MaskinportenDelegatingHandler(
         TokenAuthority authority,
-        IEnumerable<string> scopes,
+        MaskinportenTokenRequest request,
         IMaskinportenClient maskinportenClient,
         ILogger<MaskinportenDelegatingHandler> logger
     )
     {
-        Scopes = scopes;
+        Request = request;
         _logger = logger;
         _maskinportenClient = maskinportenClient;
         Authority = authority;
@@ -47,9 +48,9 @@ internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
 
         var token = Authority switch
         {
-            TokenAuthority.Maskinporten => await _maskinportenClient.GetAccessToken(Scopes, cancellationToken),
+            TokenAuthority.Maskinporten => await _maskinportenClient.GetAccessToken(Request, cancellationToken),
             TokenAuthority.AltinnTokenExchange => await _maskinportenClient.GetAltinnExchangedToken(
-                Scopes,
+                Request,
                 cancellationToken
             ),
             _ => throw new MaskinportenAuthenticationException($"Unknown authority `{Authority}`"),
