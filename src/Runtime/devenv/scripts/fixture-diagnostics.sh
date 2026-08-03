@@ -12,6 +12,8 @@ run kubectl get kustomizations.kustomize.toolkit.fluxcd.io --all-namespaces
 run kubectl describe kustomizations.kustomize.toolkit.fluxcd.io --all-namespaces
 run kubectl get events --all-namespaces --sort-by=.lastTimestamp
 run kubectl logs --namespace flux-system deployment/kustomize-controller --all-containers --tail=200
+run kubectl logs --namespace flux-system deployment/source-controller --all-containers --tail=200
+run kubectl logs --namespace flux-system deployment/helm-controller --all-containers --tail=200
 
 # The single quotes intentionally preserve the Go template's $pod variable for kubectl.
 # shellcheck disable=SC2016
