@@ -6,6 +6,11 @@ import { SearchParams } from 'src/core/routing/types';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useQueryKey } from 'src/hooks/navigation';
 
+const focusQueryCleanupOptions = {
+  ...replaceAndPreventResetOptions,
+  flushSync: true,
+};
+
 export type FocusComponentRequest = {
   nodeId: string;
   errorBinding: string | null;
@@ -54,9 +59,13 @@ export function useHandleFocusComponent(nodeId: string, containerDivRef: React.R
           field.focus();
         }
       } finally {
-        if (pathnameWas === window.location.pathname) {
-          cleanupFocusComponentUrl?.();
-        }
+        const cleanup = cleanupFocusComponentUrl;
+        // React cannot flush a router update from an effect. Finish the effect first so the cleanup can be synchronous.
+        queueMicrotask(() => {
+          if (cleanup === cleanupFocusComponentUrl && pathnameWas === window.location.pathname) {
+            cleanup?.();
+          }
+        });
       }
 
       return () => cancelAnimationFrame(animationFrame);
@@ -91,7 +100,7 @@ export function FocusComponentRequestFromUrl() {
         nextParams.delete(SearchParams.FocusComponentId);
         nextParams.delete(SearchParams.FocusErrorBinding);
         return nextParams;
-      }, replaceAndPreventResetOptions);
+      }, focusQueryCleanupOptions);
     });
 
     return () => setFocusComponentUrlCleanup(undefined);

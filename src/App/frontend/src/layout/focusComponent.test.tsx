@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-import { MemoryRouter } from 'react-router';
+import React, { useEffect, useRef } from 'react';
+import { createMemoryRouter, MemoryRouter, useNavigate } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 import { act, render, screen, waitFor } from '@testing-library/react';
 
@@ -13,6 +14,33 @@ import {
 } from 'src/layout/focusComponent';
 
 describe('focusComponent', () => {
+  function SimpleFocusTarget() {
+    const ref = useRef<HTMLDivElement | null>(null);
+    useHandleFocusComponent('node-a', ref);
+    return (
+      <div ref={ref}>
+        <input aria-label='Name' />
+      </div>
+    );
+  }
+  function createFocusRouter(extra?: React.ReactNode) {
+    return createMemoryRouter(
+      [
+        {
+          path: '*',
+          element: (
+            <>
+              <FocusComponentRequestFromUrl />
+              <SimpleFocusTarget />
+              {extra}
+            </>
+          ),
+        },
+      ],
+      { initialEntries: ['/form?focusComponentId=node-a'] },
+    );
+  }
+
   beforeEach(() => {
     setFocusComponentRequest(undefined);
     setFocusComponentUrlCleanup(undefined);
@@ -111,19 +139,45 @@ describe('focusComponent', () => {
 
     expect(cleanup).not.toHaveBeenCalled();
 
-    function FocusTarget() {
-      const ref = useRef<HTMLDivElement | null>(null);
-      useHandleFocusComponent('node-a', ref);
-      return (
-        <div ref={ref}>
-          <input aria-label='Name' />
-        </div>
-      );
-    }
-
-    render(<FocusTarget />);
+    render(<SimpleFocusTarget />);
 
     await waitFor(() => expect(screen.getByLabelText('Name')).toHaveFocus());
     expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not let focus URL cleanup overwrite immediate page navigation', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    function NavigateWhenFocused() {
+      const request = useFocusComponentRequest('node-a');
+      const navigate = useNavigate();
+      useEffect(() => {
+        if (request) {
+          navigate('/summary');
+        }
+      }, [navigate, request]);
+      return null;
+    }
+
+    const router = createFocusRouter(<NavigateWhenFocused />);
+
+    render(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/summary'));
+    expect(router.state.location.search).toBe('');
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it('cleans focus URL parameters synchronously after focusing', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    const router = createFocusRouter();
+    const navigate = jest.spyOn(router, 'navigate');
+
+    render(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(router.state.location.search).toBe(''));
+    expect(router.state.location.pathname).toBe('/form');
+    expect(navigate).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ flushSync: true }));
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });
