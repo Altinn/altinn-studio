@@ -35,7 +35,8 @@ const meta = {
   },
   args: {
     componentId: 'pdf-preview-button-preview',
-    buttonStyle: 'secondary',
+    buttonStyle: 'primary',
+    showErrorDetails: true,
     onGenerate: fn(storybookGenerate),
   },
 } satisfies Meta<typeof PDFPreviewButton>;
@@ -45,15 +46,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {};
-
-export const CustomText: Story = {
-  args: {
-    title: 'Generer PDF',
-  },
-};
-
-export const Disabled: Story = {
-  args: {
-    disabled: true,
-  },
-};

@@ -1,7 +1,2 @@
-export { PDFPreviewButton, PDFPreviewControls } from './PDFPreviewButton';
-export type {
-  PDFPreviewButtonProps,
-  PDFPreviewButtonStyle,
-  PDFPreviewControlsProps,
-  PDFPreviewGenerateResult,
-} from './PDFPreviewButton';
+export { PDFPreviewButton } from './PDFPreviewButton';
+export type { PDFPreviewButtonProps } from './PDFPreviewButton';
