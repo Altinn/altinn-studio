@@ -21,14 +21,16 @@ internal interface IServiceTaskCheckpointStore
 /// runtime registers <see cref="StorageServiceTaskCheckpointStoreFactory"/> as the default.
 /// </summary>
 /// <remarks>
-/// <c>Create</c> takes the <see cref="IInstanceDataMutator"/> rather than an <see cref="Instance"/>
-/// deliberately: a store that mirrors writes must decorate the live execution snapshot — the one
-/// later commands re-sign into the state blob — and the mutator is the only handle that guarantees
-/// that identity. A detached or re-fetched <see cref="Instance"/> would let the mirror drift.
+/// <c>Create</c> takes the execution's <see cref="IInstanceDataAccessor"/> rather than an
+/// <see cref="Instance"/> deliberately: a store that mirrors writes must decorate the live execution
+/// snapshot — the one later commands re-sign into the state blob — and the accessor guarantees that
+/// identity where a detached or re-fetched <see cref="Instance"/> would let the mirror drift. It is
+/// the accessor, not the <see cref="IInstanceDataMutator"/>, because checkpoints live outside the
+/// save-on-success unit of work: a store must never be handed the power to mutate it.
 /// </remarks>
 internal interface IServiceTaskCheckpointStoreFactory
 {
-    IServiceTaskCheckpointStore Create(IInstanceDataMutator instanceDataMutator, string serviceTaskType);
+    IServiceTaskCheckpointStore Create(IInstanceDataAccessor instanceDataAccessor, string serviceTaskType);
 }
 
 /// <summary>
@@ -37,8 +39,8 @@ internal interface IServiceTaskCheckpointStoreFactory
 internal sealed class StorageServiceTaskCheckpointStoreFactory(IInstanceClient instanceClient)
     : IServiceTaskCheckpointStoreFactory
 {
-    public IServiceTaskCheckpointStore Create(IInstanceDataMutator instanceDataMutator, string serviceTaskType) =>
-        new StorageServiceTaskCheckpointStore(instanceClient, instanceDataMutator.Instance, serviceTaskType);
+    public IServiceTaskCheckpointStore Create(IInstanceDataAccessor instanceDataAccessor, string serviceTaskType) =>
+        new StorageServiceTaskCheckpointStore(instanceClient, instanceDataAccessor.Instance, serviceTaskType);
 }
 
 /// <summary>

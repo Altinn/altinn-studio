@@ -140,15 +140,17 @@ public class ServiceTaskCheckpointStoreTests
     }
 
     [Fact]
-    public async Task Factory_CreatesStoreBoundToTheMutatorsInstance()
+    public async Task Factory_CreatesStoreBoundToTheAccessorsInstance()
     {
-        // The factory takes the mutator, not a bare Instance, so the mirror can only ever decorate
-        // the live execution snapshot — the object later commands re-sign into the state blob.
-        var mutatorMock = new Mock<IInstanceDataMutator>();
-        mutatorMock.Setup(x => x.Instance).Returns(_snapshotInstance);
+        // The factory takes the execution's accessor, not a bare Instance, so the mirror can only
+        // ever decorate the live execution snapshot — the object later commands re-sign into the
+        // state blob. Accessor rather than mutator: a store must never be able to touch the
+        // save-on-success unit of work.
+        var accessorMock = new Mock<IInstanceDataAccessor>();
+        accessorMock.Setup(x => x.Instance).Returns(_snapshotInstance);
         var factory = new StorageServiceTaskCheckpointStoreFactory(_instanceClientMock.Object);
 
-        IServiceTaskCheckpointStore store = factory.Create(mutatorMock.Object, "eFormidling");
+        IServiceTaskCheckpointStore store = factory.Create(accessorMock.Object, "eFormidling");
         await store.Set("receipt", "r-42", CancellationToken.None);
 
         Assert.Equal("r-42", _snapshotInstance.DataValues?["serviceTask:eFormidling:receipt"]);
