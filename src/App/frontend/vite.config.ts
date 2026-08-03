@@ -41,10 +41,6 @@ export default defineConfig(({ mode }) => {
       alias: [
         { find: /^leaflet-draw$/, replacement: path.resolve(import.meta.dirname, 'scripts/vite/leafletDrawShim.ts') },
       ],
-      // The @app/* workspace packages are consumed as symlinked raw TypeScript; make sure
-      // their react/react-dom imports always resolve to this app's single copy (two React
-      // instances break hooks).
-      dedupe: ['react', 'react-dom'],
     },
     css: {
       modules: {
