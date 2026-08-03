@@ -37,7 +37,7 @@ public class StorageClientInterceptor : HttpMessageHandler
 
     private ConcurrentDictionary<string, Instance> _instances = new();
     private ConcurrentDictionary<Guid, byte[]> _data = new();
-    private ConcurrentDictionary<Guid, string> _dataEtags = new();
+    private ConcurrentDictionary<Guid, string> _dataBlobVersions = new();
     private ConcurrentDictionary<Guid, int> _dataContentVersions = new();
     private ConcurrentDictionary<string, int> _instanceVersions = new();
     private ConcurrentDictionary<string, int> _processStateVersions = new();
@@ -47,10 +47,10 @@ public class StorageClientInterceptor : HttpMessageHandler
         PropertyNameCaseInsensitive = true,
     };
 
-    public StorageClientInterceptor(ApplicationMetadata appMetadata, bool stampDataElementEtags = true)
+    public StorageClientInterceptor(ApplicationMetadata appMetadata, bool stampDataElementBlobVersionIds = true)
     {
         AppMetadata = appMetadata;
-        StampDataElementEtags = stampDataElementEtags;
+        StampDataElementBlobVersionIds = stampDataElementBlobVersionIds;
         AppMetadata.Title ??= new()
         {
             { LanguageConst.Nb, "Testapplikasjon" },
@@ -61,7 +61,7 @@ public class StorageClientInterceptor : HttpMessageHandler
 
     public ConcurrentBag<RequestResponse> RequestsResponses { get; } = new();
     public ApplicationMetadata AppMetadata { get; }
-    public bool StampDataElementEtags { get; }
+    public bool StampDataElementBlobVersionIds { get; }
     public bool EnforceExpectedProcessStatus { get; set; }
     public string? ForcedMutationConflictMessage { get; set; }
 
@@ -87,13 +87,13 @@ public class StorageClientInterceptor : HttpMessageHandler
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(dataElement.ContentEtag))
+            if (!string.IsNullOrEmpty(dataElement.BlobVersionId))
             {
-                SetDataETag(dataId, dataElement.ContentEtag);
+                SetDataBlobVersionId(dataId, dataElement.BlobVersionId);
             }
-            else if (StampDataElementEtags)
+            else if (StampDataElementBlobVersionIds)
             {
-                dataElement.ContentEtag = EnsureDataETag(dataId);
+                dataElement.BlobVersionId = EnsureDataBlobVersionId(dataId);
             }
         }
         _instances[instance.Id.ToLowerInvariant()] = instance;
@@ -121,44 +121,44 @@ public class StorageClientInterceptor : HttpMessageHandler
         return (instance, data);
     }
 
-    public void AddDataRaw(Guid dataId, byte[] data, string? eTag = null)
+    public void AddDataRaw(Guid dataId, byte[] data, string? blobVersionId = null)
     {
         _data[dataId] = data;
-        if (eTag is not null)
+        if (blobVersionId is not null)
         {
-            SetDataETag(dataId, eTag);
+            SetDataBlobVersionId(dataId, blobVersionId);
         }
-        else if (StampDataElementEtags)
+        else if (StampDataElementBlobVersionIds)
         {
-            EnsureDataETag(dataId);
+            EnsureDataBlobVersionId(dataId);
         }
     }
 
     public void AddDataRawWithoutBlobVersion(Guid dataId, byte[] data)
     {
         _data[dataId] = data;
-        SetDataETag(dataId, null);
+        SetDataBlobVersionId(dataId, null);
         foreach (Instance instance in _instances.Values)
         {
             DataElement? dataElement = instance.Data?.FirstOrDefault(element => element.Id == dataId.ToString());
             if (dataElement is not null)
             {
-                dataElement.ContentEtag = null;
+                dataElement.BlobVersionId = null;
             }
         }
     }
 
-    public void SetDataETag(Guid dataId, string? eTag)
+    public void SetDataBlobVersionId(Guid dataId, string? blobVersionId)
     {
-        if (eTag is null)
+        if (blobVersionId is null)
         {
-            _dataEtags.TryRemove(dataId, out _);
+            _dataBlobVersions.TryRemove(dataId, out _);
             _dataContentVersions.TryRemove(dataId, out _);
             return;
         }
 
-        _dataEtags[dataId] = eTag;
-        if (TryParseGeneratedETagVersion(eTag, out int version))
+        _dataBlobVersions[dataId] = blobVersionId;
+        if (TryParseGeneratedBlobVersion(blobVersionId, out int version))
         {
             _dataContentVersions[dataId] = version;
         }
@@ -176,9 +176,9 @@ public class StorageClientInterceptor : HttpMessageHandler
         };
         instance.Data.Add(dataElement);
         _data[dataId] = data;
-        if (StampDataElementEtags)
+        if (StampDataElementBlobVersionIds)
         {
-            dataElement.ContentEtag = EnsureDataETag(dataId);
+            dataElement.BlobVersionId = EnsureDataBlobVersionId(dataId);
         }
         return dataElement;
     }
@@ -282,8 +282,8 @@ public class StorageClientInterceptor : HttpMessageHandler
         }
         dataElement.Size = dataContent.Length;
         _data[dataId] = dataContent;
-        string contentETag = BumpDataETag(dataId);
-        dataElement.ContentEtag = contentETag;
+        string blobVersionId = BumpDataBlobVersionId(dataId);
+        dataElement.BlobVersionId = blobVersionId;
 
         var dataElementJson = System.Text.Json.JsonSerializer.Serialize(dataElement);
         HttpResponseMessage response = AddVersionHeaders(
@@ -294,7 +294,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             instanceOwnerPartyId,
             instanceGuid
         );
-        response.Headers.ETag = EntityTagHeaderValue.Parse(contentETag);
+        response.Headers.ETag = new EntityTagHeaderValue($"\"{blobVersionId}\"");
 
         return response;
     }
@@ -329,7 +329,7 @@ public class StorageClientInterceptor : HttpMessageHandler
 
         instance.Data.RemoveAll(dataElement => dataElement.Id == dataId.ToString());
         _data.TryRemove(dataId, out _);
-        _dataEtags.TryRemove(dataId, out _);
+        _dataBlobVersions.TryRemove(dataId, out _);
         _dataContentVersions.TryRemove(dataId, out _);
         return AddVersionHeaders(new HttpResponseMessage(HttpStatusCode.OK), instanceOwnerPartyId, instanceGuid);
     }
@@ -359,7 +359,7 @@ public class StorageClientInterceptor : HttpMessageHandler
                 Content = new StringContent($"Instance with id {instanceGuid} not found"),
             };
         }
-        StampContentEtags(instance);
+        StampBlobVersionIds(instance);
         var instanceJson = System.Text.Json.JsonSerializer.Serialize(instance);
         var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -440,9 +440,9 @@ public class StorageClientInterceptor : HttpMessageHandler
                 },
             },
         };
-        if (_dataEtags.TryGetValue(dataId, out string? eTag))
+        if (_dataBlobVersions.TryGetValue(dataId, out string? blobVersionId))
         {
-            response.Headers.ETag = EntityTagHeaderValue.Parse(eTag);
+            response.Headers.ETag = new EntityTagHeaderValue($"\"{blobVersionId}\"");
         }
 
         return response;
@@ -618,7 +618,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             };
             instance.Data.Add(dataElement);
             _data[dataId] = part.Bytes;
-            dataElement.ContentEtag = BumpDataETag(dataId);
+            dataElement.BlobVersionId = BumpDataBlobVersionId(dataId);
         }
 
         foreach (StorageInstanceMutationUpdateDataElement update in mutation.UpdateDataElements)
@@ -634,7 +634,7 @@ public class StorageClientInterceptor : HttpMessageHandler
                 dataElement.Size = part.Bytes.Length;
                 _data[update.DataElementId] = part.Bytes;
 
-                dataElement.ContentEtag = BumpDataETag(update.DataElementId);
+                dataElement.BlobVersionId = BumpDataBlobVersionId(update.DataElementId);
             }
 
             if (update.Metadata is not null)
@@ -652,7 +652,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         {
             instance.Data.RemoveAll(dataElement => dataElement.Id == delete.DataElementId.ToString());
             _data.TryRemove(delete.DataElementId, out _);
-            _dataEtags.TryRemove(delete.DataElementId, out _);
+            _dataBlobVersions.TryRemove(delete.DataElementId, out _);
             _dataContentVersions.TryRemove(delete.DataElementId, out _);
         }
 
@@ -682,7 +682,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             instance.Process = processState;
         }
 
-        StampContentEtags(instance);
+        StampBlobVersionIds(instance);
         string responseBody = JsonConvert.SerializeObject(
             new StorageInstanceMutationResponse { Instance = instance, CreatedDataElementIds = createdDataElementIds }
         );
@@ -908,23 +908,27 @@ public class StorageClientInterceptor : HttpMessageHandler
                 return CreateErrorResponse(HttpStatusCode.BadRequest, $"Missing content part {contentPartName}");
             }
 
-            if (update.ExpectedCurrentBlobVersion is { } expectedVersion)
+            if (
+                !TryNormalizeExpectedCurrentBlobVersion(
+                    update.ExpectedCurrentBlobVersion,
+                    out string? expectedBlobVersionId
+                )
+            )
+            {
+                return CreateErrorResponse(
+                    HttpStatusCode.BadRequest,
+                    "expectedCurrentBlobVersion must identify a blob version id"
+                );
+            }
+
+            if (expectedBlobVersionId is not null)
             {
                 if (
-                    string.IsNullOrEmpty(expectedVersion)
-                    || expectedVersion == "*"
-                    || expectedVersion.StartsWith("W/", StringComparison.Ordinal)
+                    !_dataBlobVersions.TryGetValue(update.DataElementId, out string? currentBlobVersionId)
+                    || currentBlobVersionId != expectedBlobVersionId
                 )
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid expectedCurrentBlobVersion");
-                }
-
-                if (
-                    !_dataEtags.TryGetValue(update.DataElementId, out string? currentETag)
-                    || !MatchesExpectedContentETag(currentETag, expectedVersion)
-                )
-                {
-                    return CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Content ETag mismatch");
+                    return CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Blob version mismatch");
                 }
             }
         }
@@ -993,19 +997,6 @@ public class StorageClientInterceptor : HttpMessageHandler
     private static bool HasGuidHeader(HttpRequestMessage request, string headerName) =>
         request.Headers.TryGetValues(headerName, out IEnumerable<string>? values)
         && Guid.TryParse(values.SingleOrDefault(), out _);
-
-    private static bool MatchesExpectedContentETag(string currentETag, string expectedVersion)
-    {
-        if (currentETag == expectedVersion)
-        {
-            return true;
-        }
-
-        return currentETag.Length >= 2
-            && currentETag[0] == '"'
-            && currentETag[^1] == '"'
-            && currentETag[1..^1] == expectedVersion;
-    }
 
     private static void ApplyInstanceFieldUpdates(
         Dictionary<string, string?> target,
@@ -1467,16 +1458,18 @@ public class StorageClientInterceptor : HttpMessageHandler
             return CreateErrorResponse(HttpStatusCode.BadRequest, "Expected one strong If-Match value");
         }
 
-        NetEntityTagHeaderValue expectedETag = ifMatch[0];
-        string blobVersionId = expectedETag.Tag.Value![1..^1];
-        if (!IsBlobVersionId(blobVersionId))
+        string expectedBlobVersionId = ifMatch[0].Tag.Value![1..^1];
+        if (!IsBlobVersionId(expectedBlobVersionId))
         {
             return CreateErrorResponse(HttpStatusCode.BadRequest, "If-Match ETag value must be a blob version id");
         }
 
-        if (!_dataEtags.TryGetValue(dataId.Value, out string? currentETag) || currentETag != expectedETag.ToString())
+        if (
+            !_dataBlobVersions.TryGetValue(dataId.Value, out string? currentBlobVersionId)
+            || currentBlobVersionId != expectedBlobVersionId
+        )
         {
-            return CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Content ETag mismatch");
+            return CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Blob version mismatch");
         }
 
         return null;
@@ -1539,63 +1532,86 @@ public class StorageClientInterceptor : HttpMessageHandler
         return response;
     }
 
-    private string BumpDataETag(Guid dataId)
+    private string BumpDataBlobVersionId(Guid dataId)
     {
         int contentVersion = _dataContentVersions.AddOrUpdate(dataId, 1, (_, current) => current + 1);
-        string eTag = CreateDataETag(contentVersion);
-        _dataEtags[dataId] = eTag;
-        return eTag;
+        string blobVersionId = CreateBlobVersionId(contentVersion);
+        _dataBlobVersions[dataId] = blobVersionId;
+        return blobVersionId;
     }
 
-    private string EnsureDataETag(Guid dataId)
+    private string EnsureDataBlobVersionId(Guid dataId)
     {
-        return _dataEtags.GetOrAdd(
+        return _dataBlobVersions.GetOrAdd(
             dataId,
             id =>
             {
                 int contentVersion = _dataContentVersions.GetOrAdd(id, 1);
-                return CreateDataETag(contentVersion);
+                return CreateBlobVersionId(contentVersion);
             }
         );
     }
 
-    public static string CreateDataETag(int contentVersion)
+    public static string CreateBlobVersionId(int contentVersion)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(contentVersion);
         Span<byte> bytes = stackalloc byte[16];
         BinaryPrimitives.WriteInt32BigEndian(bytes[12..], contentVersion);
-        return $"\"{Base64Url.EncodeToString(bytes)}\"";
+        return Base64Url.EncodeToString(bytes);
     }
 
-    private void StampContentEtags(Instance instance)
+    public static string CreateDataETag(int contentVersion) => $"\"{CreateBlobVersionId(contentVersion)}\"";
+
+    private void StampBlobVersionIds(Instance instance)
     {
         foreach (DataElement dataElement in instance.Data ?? [])
         {
-            dataElement.ContentEtag =
-                Guid.TryParse(dataElement.Id, out Guid dataId) && _dataEtags.TryGetValue(dataId, out string? eTag)
-                    ? eTag
+            dataElement.BlobVersionId =
+                Guid.TryParse(dataElement.Id, out Guid dataId)
+                && _dataBlobVersions.TryGetValue(dataId, out string? blobVersionId)
+                    ? blobVersionId
                     : null;
         }
     }
 
-    private static bool TryParseGeneratedETagVersion(string eTag, out int version)
+    private static bool TryParseGeneratedBlobVersion(string blobVersionId, out int version)
     {
-        if (eTag.Length == 24 && eTag[0] == '"' && eTag[^1] == '"')
+        version = 0;
+        if (!IsBlobVersionId(blobVersionId))
         {
-            Span<byte> bytes = stackalloc byte[16];
-            if (
-                Base64Url.TryDecodeFromChars(eTag.AsSpan(1, 22), bytes, out int bytesWritten)
-                && bytesWritten == 16
-                && bytes[..12].IndexOfAnyExcept((byte)0) < 0
-            )
-            {
-                version = BinaryPrimitives.ReadInt32BigEndian(bytes[12..]);
-                return version > 0;
-            }
+            return false;
         }
 
-        version = 0;
-        return false;
+        Span<byte> bytes = stackalloc byte[16];
+        Base64Url.DecodeFromChars(blobVersionId, bytes);
+        if (bytes[..12].IndexOfAnyExcept((byte)0) >= 0)
+        {
+            return false;
+        }
+
+        version = BinaryPrimitives.ReadInt32BigEndian(bytes[12..]);
+        return version > 0;
+    }
+
+    public static bool TryNormalizeExpectedCurrentBlobVersion(
+        string? expectedCurrentBlobVersion,
+        out string? blobVersionId
+    )
+    {
+        blobVersionId = null;
+        if (string.IsNullOrWhiteSpace(expectedCurrentBlobVersion))
+        {
+            return true;
+        }
+
+        string candidate = expectedCurrentBlobVersion.Trim();
+        if (!IsBlobVersionId(candidate))
+        {
+            return false;
+        }
+
+        blobVersionId = candidate;
+        return true;
     }
 
     private static bool IsBlobVersionId(string value)

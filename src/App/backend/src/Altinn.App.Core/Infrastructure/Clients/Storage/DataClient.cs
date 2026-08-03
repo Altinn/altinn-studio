@@ -376,23 +376,23 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
         CancellationToken cancellationToken = default
     ) =>
         (
-            await ((IDataClientWithStorageMetadata)this).GetDataBytesWithExpectedContentETag(
+            await ((IDataClientWithStorageMetadata)this).GetDataBytesWithExpectedBlobVersionId(
                 instanceOwnerPartyId,
                 instanceGuid,
                 dataId,
                 authenticationMethod,
-                expectedContentETag: null,
+                expectedBlobVersionId: null,
                 cancellationToken
             )
         );
 
     /// <inheritdoc />
-    async Task<byte[]> IDataClientWithStorageMetadata.GetDataBytesWithExpectedContentETag(
+    async Task<byte[]> IDataClientWithStorageMetadata.GetDataBytesWithExpectedBlobVersionId(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod,
-        string? expectedContentETag,
+        string? expectedBlobVersionId,
         CancellationToken cancellationToken
     )
     {
@@ -412,7 +412,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
         request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         StoragePreconditionHeaders.Add(
             request.Headers,
-            new StorageWritePreconditions(ContentETag: expectedContentETag)
+            new StorageWritePreconditions(BlobVersionId: expectedBlobVersionId)
         );
 
         HttpResponseMessage response = await _client.SendAsync(

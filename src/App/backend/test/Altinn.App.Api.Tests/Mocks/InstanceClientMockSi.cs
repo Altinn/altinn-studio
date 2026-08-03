@@ -141,7 +141,7 @@ internal sealed class InstanceClientMockSi : IInstanceClient, IInstanceClientWit
         var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceId);
         foreach (DataElement dataElement in instance.Data)
         {
-            dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(
+            dataElement.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(
                 instanceIdentifier,
                 Guid.Parse(dataElement.Id)
             );

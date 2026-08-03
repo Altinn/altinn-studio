@@ -2601,7 +2601,7 @@
             "type": "string",
             "nullable": true
           },
-          "contentEtag": {
+          "blobVersionId": {
             "type": "string",
             "nullable": true
           },

@@ -117,7 +117,7 @@ public class DataClientTests
     }
 
     [Fact]
-    public async Task InsertBinaryDataWithStorageMetadata_UsesBodyContentETagAndParsesVersionHeaders()
+    public async Task InsertBinaryDataWithStorageMetadata_UsesBodyBlobVersionIdAndParsesVersionHeaders()
     {
         await using var fixture = Fixture.Create(
             async (_, _) =>
@@ -126,7 +126,7 @@ public class DataClientTests
                 {
                     Id = "DataElement.Id",
                     InstanceGuid = "InstanceGuid",
-                    ContentEtag = "\"etag-body\"",
+                    BlobVersionId = "blob-version-body",
                 };
                 await Task.CompletedTask;
                 var response = new HttpResponseMessage
@@ -153,7 +153,7 @@ public class DataClientTests
             authenticationMethod: null
         );
 
-        Assert.Equal("\"etag-body\"", result.DataElement.ContentEtag);
+        Assert.Equal("blob-version-body", result.DataElement.BlobVersionId);
         Assert.Equal(21, result.Versions.InstanceVersion);
         Assert.Equal(4, result.Versions.ProcessStateVersion);
     }
@@ -170,7 +170,7 @@ public class DataClientTests
                 {
                     Id = dataGuid.ToString(),
                     InstanceGuid = "InstanceGuid",
-                    ContentEtag = "\"etag-body\"",
+                    BlobVersionId = "blob-version-body",
                 };
                 await Task.CompletedTask;
                 var response = new HttpResponseMessage
@@ -196,7 +196,7 @@ public class DataClientTests
             authenticationMethod: null
         );
 
-        Assert.Equal("\"etag-body\"", result.DataElement.ContentEtag);
+        Assert.Equal("blob-version-body", result.DataElement.BlobVersionId);
         Assert.Equal(22, result.Versions.InstanceVersion);
         Assert.Equal(5, result.Versions.ProcessStateVersion);
     }
@@ -227,12 +227,12 @@ public class DataClientTests
                               {
                                 "id": "{{dataGuid}}",
                                 "dataType": "catstories",
-                                "contentEtag": "\"etag-2\""
+                                "blobVersionId": "blob-version-2"
                               },
                               {
                                 "id": "00000000-0000-0000-0000-000000000001",
                                 "dataType": "legacy",
-                                "contentEtag": ""
+                                "blobVersionId": ""
                               },
                               {
                                 "id": "00000000-0000-0000-0000-000000000002",
@@ -291,8 +291,8 @@ public class DataClientTests
         Assert.Equal($"123/{instanceGuid}", result.Instance.Id);
         Assert.Equal([dataGuid], result.CreatedDataElementIds);
         Assert.Equal(
-            "\"etag-2\"",
-            Assert.Single(result.Instance.Data, dataElement => dataElement.Id == dataGuid.ToString()).ContentEtag
+            "blob-version-2",
+            Assert.Single(result.Instance.Data, dataElement => dataElement.Id == dataGuid.ToString()).BlobVersionId
         );
         Assert.Equal(30, result.Metadata.InstanceVersion);
         Assert.Equal(9, result.Metadata.ProcessStateVersion);
@@ -638,12 +638,12 @@ public class DataClientTests
             dataGuid,
             new MemoryStream("hello"u8.ToArray()),
             authenticationMethod: null,
-            preconditions: new StorageWritePreconditions(ProcessStateVersion: 5, ContentETag: "\"etag-3\"")
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 5, BlobVersionId: "blob-version-3")
         );
 
         Assert.NotNull(platformRequest);
         Assert.Equal("5", platformRequest.Headers.GetValues("If-Process-State-Version-Match").Single());
-        Assert.Equal("\"etag-3\"", platformRequest.Headers.IfMatch.Single().ToString());
+        Assert.Equal("\"blob-version-3\"", platformRequest.Headers.IfMatch.Single().ToString());
         Assert.False(platformRequest.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName));
     }
 
@@ -668,7 +668,7 @@ public class DataClientTests
                 dataGuid,
                 new MemoryStream("hello"u8.ToArray()),
                 authenticationMethod: null,
-                preconditions: new StorageWritePreconditions(ProcessStateVersion: 5, ContentETag: "\"etag-3\"")
+                preconditions: new StorageWritePreconditions(ProcessStateVersion: 5, BlobVersionId: "blob-version-3")
             )
         );
 
@@ -755,7 +755,9 @@ public class DataClientTests
             }
         );
 
-        byte[] result = await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
+        byte[] result = await (
+            (IDataClientWithStorageMetadata)fixture.DataClient
+        ).GetDataBytesWithExpectedBlobVersionId(
             123,
             Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
             Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
@@ -768,7 +770,7 @@ public class DataClientTests
     }
 
     [Fact]
-    public async Task GetDataBytes_WithExpectedContentETag_SendsIfMatch()
+    public async Task GetDataBytes_WithExpectedBlobVersionId_SendsIfMatch()
     {
         HttpRequestMessage? platformRequest = null;
         await using var fixture = Fixture.Create(
@@ -780,20 +782,20 @@ public class DataClientTests
             }
         );
 
-        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedBlobVersionId(
             123,
             Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
             Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
             authenticationMethod: null,
-            expectedContentETag: "\"etag-expected\""
+            expectedBlobVersionId: "blob-version-expected"
         );
 
         Assert.NotNull(platformRequest);
-        Assert.Equal("\"etag-expected\"", Assert.Single(platformRequest.Headers.IfMatch).ToString());
+        Assert.Equal("\"blob-version-expected\"", Assert.Single(platformRequest.Headers.IfMatch).ToString());
     }
 
     [Fact]
-    public async Task GetDataBytes_WithEmptyExpectedContentETag_DoesNotSendIfMatch()
+    public async Task GetDataBytes_WithEmptyExpectedBlobVersionId_DoesNotSendIfMatch()
     {
         HttpRequestMessage? platformRequest = null;
         await using var fixture = Fixture.Create(
@@ -805,12 +807,12 @@ public class DataClientTests
             }
         );
 
-        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedContentETag(
+        await ((IDataClientWithStorageMetadata)fixture.DataClient).GetDataBytesWithExpectedBlobVersionId(
             123,
             Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
             Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
             authenticationMethod: null,
-            expectedContentETag: string.Empty
+            expectedBlobVersionId: string.Empty
         );
 
         Assert.NotNull(platformRequest);

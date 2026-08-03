@@ -46,7 +46,7 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
-        ContentEtag: "AAAAAAAAAAAAAAAAAAAAAg",
+        BlobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         Locked: false,
         IsRead: true,
         LastChanged: DateTime_3
@@ -101,7 +101,7 @@
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
-        ContentEtag: "AAAAAAAAAAAAAAAAAAAAAg",
+        BlobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         Locked: false,
         IsRead: true,
         LastChanged: DateTime_3

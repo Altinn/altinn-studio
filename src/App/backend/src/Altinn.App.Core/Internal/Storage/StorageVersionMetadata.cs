@@ -11,7 +11,7 @@ internal sealed record StorageVersionMetadata(int? InstanceVersion = null, int? 
 
 internal sealed record StorageWritePreconditions(
     int? ProcessStateVersion = null,
-    string? ContentETag = null,
+    string? BlobVersionId = null,
     int? InstanceVersion = null,
     string? IdempotencyKey = null
 );
@@ -71,9 +71,9 @@ internal static class StoragePreconditionHeaders
             );
         }
 
-        if (preconditions?.ContentETag is { Length: > 0 } eTag)
+        if (preconditions?.BlobVersionId is { Length: > 0 } blobVersionId)
         {
-            headers.IfMatch.Add(EntityTagHeaderValue.Parse(eTag));
+            headers.IfMatch.Add(new EntityTagHeaderValue($"\"{blobVersionId}\""));
         }
 
         if (preconditions?.IdempotencyKey is { Length: > 0 } idempotencyKey)

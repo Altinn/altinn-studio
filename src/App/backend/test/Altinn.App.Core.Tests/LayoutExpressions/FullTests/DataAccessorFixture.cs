@@ -228,7 +228,7 @@ public sealed class DataAccessorFixture
         var serializationService = new ModelSerializationService(AppModelMock.Object);
         DataClientMock
             .Setup(dc =>
-                dc.GetDataBytesWithExpectedContentETag(
+                dc.GetDataBytesWithExpectedBlobVersionId(
                     InstanceOwnerPartyId,
                     InstanceGuid,
                     dataGuid,

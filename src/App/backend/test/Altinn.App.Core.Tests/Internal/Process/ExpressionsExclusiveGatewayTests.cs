@@ -273,7 +273,7 @@ public class ExpressionsExclusiveGatewayTests
         {
             _dataClient
                 .Setup(d =>
-                    d.GetDataBytesWithExpectedContentETag(
+                    d.GetDataBytesWithExpectedBlobVersionId(
                         It.IsAny<int>(),
                         It.IsAny<Guid>(),
                         It.IsAny<Guid>(),

@@ -893,7 +893,7 @@ public sealed class ProcessEngineTest
         Mock<IInstanceMutationClient> mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
         dataClientWithStorageMetadataMock
             .Setup(c =>
-                c.GetDataBytesWithExpectedContentETag(
+                c.GetDataBytesWithExpectedBlobVersionId(
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     dataElementGuid,

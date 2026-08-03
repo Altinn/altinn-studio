@@ -7,12 +7,12 @@ namespace Altinn.App.Core.Internal.Data;
 
 internal interface IDataClientWithStorageMetadata
 {
-    Task<byte[]> GetDataBytesWithExpectedContentETag(
+    Task<byte[]> GetDataBytesWithExpectedBlobVersionId(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        string? expectedContentETag = null,
+        string? expectedBlobVersionId = null,
         CancellationToken cancellationToken = default
     );
 

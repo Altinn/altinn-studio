@@ -176,12 +176,12 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         return await File.ReadAllBytesAsync(dataPath, cancellationToken);
     }
 
-    async Task<byte[]> IDataClientWithStorageMetadata.GetDataBytesWithExpectedContentETag(
+    async Task<byte[]> IDataClientWithStorageMetadata.GetDataBytesWithExpectedBlobVersionId(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod,
-        string? expectedContentETag,
+        string? expectedBlobVersionId,
         CancellationToken cancellationToken
     )
     {
@@ -192,15 +192,15 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             authenticationMethod,
             cancellationToken
         );
-        string? contentEtag = _storageMetadata.GetDataElementContentEtagForContentRead(
+        string? blobVersionId = _storageMetadata.GetDataElementBlobVersionIdForContentRead(
             new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
             dataId
         );
-        if (!string.IsNullOrEmpty(expectedContentETag) && contentEtag != expectedContentETag)
+        if (!string.IsNullOrEmpty(expectedBlobVersionId) && blobVersionId != expectedBlobVersionId)
         {
             throw new PlatformHttpException(
                 new HttpResponseMessage(HttpStatusCode.PreconditionFailed),
-                "Content ETag mismatch"
+                "Blob version mismatch"
             );
         }
         return bytes;
@@ -562,7 +562,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             cancellationToken
         );
         var instanceIdentifier = new InstanceIdentifier(instanceId);
-        dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(
+        dataElement.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(
             instanceIdentifier,
             Guid.Parse(dataElement.Id)
         );
@@ -603,7 +603,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             authenticationMethod,
             cancellationToken
         );
-        dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(instanceIdentifier, dataGuid);
+        dataElement.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(instanceIdentifier, dataGuid);
         return new DataElementWithStorageMetadata(dataElement, _storageMetadata.GetVersions(instanceIdentifier));
     }
 
@@ -634,7 +634,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
     {
         DataElement result = await Update(instance, dataElement, authenticationMethod, cancellationToken);
         var instanceIdentifier = new InstanceIdentifier(instance);
-        result.ContentEtag = _storageMetadata.GetDataElementContentEtag(instanceIdentifier, Guid.Parse(result.Id));
+        result.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(instanceIdentifier, Guid.Parse(result.Id));
         return new DataElementWithStorageMetadata(result, _storageMetadata.GetVersions(instanceIdentifier));
     }
 
@@ -852,7 +852,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
 
         foreach (DataElement dataElement in instance.Data)
         {
-            dataElement.ContentEtag = _storageMetadata.GetDataElementContentEtag(
+            dataElement.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(
                 instanceIdentifier,
                 Guid.Parse(dataElement.Id)
             );

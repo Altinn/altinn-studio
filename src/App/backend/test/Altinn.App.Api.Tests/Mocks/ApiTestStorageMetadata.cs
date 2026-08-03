@@ -81,9 +81,19 @@ internal sealed class ApiTestStorageMetadata
             foreach (StorageInstanceMutationUpdateDataElement update in mutation.UpdateDataElements)
             {
                 if (
-                    update.ExpectedCurrentBlobVersion is { } expectedCurrentBlobVersion
+                    !StorageClientInterceptor.TryNormalizeExpectedCurrentBlobVersion(
+                        update.ExpectedCurrentBlobVersion,
+                        out string? expectedCurrentBlobVersion
+                    )
+                )
+                {
+                    ThrowBadRequest("expectedCurrentBlobVersion must identify a blob version id");
+                }
+
+                if (
+                    expectedCurrentBlobVersion is not null
                     && expectedCurrentBlobVersion
-                        != CreateDataElementETag(state.GetDataElementVersion(update.DataElementId))
+                        != CreateDataElementBlobVersionId(state.GetDataElementVersion(update.DataElementId))
                 )
                 {
                     ThrowPreconditionFailed("Data element content version mismatch");
@@ -111,16 +121,16 @@ internal sealed class ApiTestStorageMetadata
         }
     }
 
-    public string? GetDataElementContentEtag(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    public string? GetDataElementBlobVersionId(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
         InstanceState state = GetState(instanceIdentifier.GetInstanceId());
         lock (state)
         {
-            return CreateDataElementETag(state.GetDataElementVersion(dataGuid));
+            return CreateDataElementBlobVersionId(state.GetDataElementVersion(dataGuid));
         }
     }
 
-    public string? GetDataElementContentEtagForContentRead(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    public string? GetDataElementBlobVersionIdForContentRead(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
         InstanceState state = GetState(instanceIdentifier.GetInstanceId());
         lock (state)
@@ -130,7 +140,7 @@ internal sealed class ApiTestStorageMetadata
                 state.BumpDataElement(dataGuid);
             }
 
-            return CreateDataElementETag(state.GetDataElementVersion(dataGuid));
+            return CreateDataElementBlobVersionId(state.GetDataElementVersion(dataGuid));
         }
     }
 
@@ -154,7 +164,7 @@ internal sealed class ApiTestStorageMetadata
         }
     }
 
-    public (StorageVersionMetadata Versions, string? ContentEtag) BumpDataElement(
+    public (StorageVersionMetadata Versions, string? BlobVersionId) BumpDataElement(
         InstanceIdentifier instanceIdentifier,
         Guid dataGuid
     )
@@ -164,7 +174,7 @@ internal sealed class ApiTestStorageMetadata
         {
             state.InstanceVersion++;
             int dataElementVersion = state.BumpDataElement(dataGuid);
-            return (state.Versions, CreateDataElementETag(dataElementVersion));
+            return (state.Versions, CreateDataElementBlobVersionId(dataElementVersion));
         }
     }
 
@@ -210,11 +220,14 @@ internal sealed class ApiTestStorageMetadata
 
     private InstanceState GetState(string instanceId) => _instances.GetOrAdd(instanceId, _ => new InstanceState());
 
-    private static string? CreateDataElementETag(int? version) =>
-        version is null ? null : StorageClientInterceptor.CreateDataETag(version.Value);
+    private static string? CreateDataElementBlobVersionId(int? version) =>
+        version is null ? null : StorageClientInterceptor.CreateBlobVersionId(version.Value);
 
     private static void ThrowPreconditionFailed(string message) =>
         throw new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.PreconditionFailed), message);
+
+    private static void ThrowBadRequest(string message) =>
+        throw new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.BadRequest), message);
 
     private sealed class InstanceState
     {

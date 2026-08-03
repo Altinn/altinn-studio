@@ -68,17 +68,17 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task Init_PreservesDataElementContentETagsOnInstanceSnapshot()
+    public async Task Init_PreservesDataElementBlobVersionIdsOnInstanceSnapshot()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             "content"u8.ToArray(),
             dataElementCount: 2,
-            contentETag: "\"etag-snapshot\"",
-            lastContentETagEmpty: true
+            blobVersionId: "blob-version-snapshot",
+            lastBlobVersionIdEmpty: true
         );
 
-        Assert.Equal("\"etag-snapshot\"", setup.DataMutator.Instance.Data[0].ContentEtag);
-        Assert.Null(setup.DataMutator.Instance.Data[1].ContentEtag);
+        Assert.Equal("blob-version-snapshot", setup.DataMutator.Instance.Data[0].BlobVersionId);
+        Assert.Null(setup.DataMutator.Instance.Data[1].BlobVersionId);
     }
 
     [Theory]
@@ -136,9 +136,12 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task GetPersistedBinaryData_SendsSnapshotContentETagAsIfMatch()
+    public async Task GetPersistedBinaryData_SendsSnapshotBlobVersionIdAsIfMatch()
     {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create("content"u8.ToArray(), contentETag: DataETag(1));
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "content"u8.ToArray(),
+            blobVersionId: BlobVersion(1)
+        );
 
         await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
 
@@ -150,7 +153,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task GetPersistedBinaryData_WithoutSnapshotContentETag_DoesNotSendIfMatch()
+    public async Task GetPersistedBinaryData_WithoutSnapshotBlobVersionId_DoesNotSendIfMatch()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("content"u8.ToArray(), withoutBlobVersion: true);
 
@@ -167,7 +170,7 @@ public sealed class InstanceDataUnitOfWorkTests
     public async Task GetPersistedBinaryData_ResponseHeaderETagDoesNotConditionLaterWrite()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("content"u8.ToArray(), withoutBlobVersion: true);
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(1));
+        setup.Services.Storage.SetDataBlobVersionId(Guid.Parse(setup.DataElement.Id), BlobVersion(1));
 
         await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
 
@@ -175,7 +178,7 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.DataMutator.Instance.Data,
             dataElement => dataElement.Id == setup.DataElement.Id
         );
-        Assert.Null(instanceDataElement.ContentEtag);
+        Assert.Null(instanceDataElement.BlobVersionId);
         var contentRead = Assert.Single(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestMethod == HttpMethod.Get
@@ -201,7 +204,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveChanges_WithoutSnapshotContentETag_OmitsExpectedCurrentBlobVersion()
+    public async Task SaveChanges_WithoutSnapshotBlobVersionId_OmitsExpectedCurrentBlobVersion()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("content"u8.ToArray(), withoutBlobVersion: true);
         setup.DataMutator.UpdateBinaryDataElement(
@@ -223,26 +226,33 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task GetPersistedBinaryData_WithMalformedSnapshotContentETag_FailsBeforeSendingRequest()
+    public async Task GetPersistedBinaryData_WithSnapshotBlobVersionIdStorageRejects_SendsQuotedIfMatchAndSurfacesStorageError()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             "content"u8.ToArray(),
-            contentETag: "malformed-etag"
+            blobVersionId: "not!a!blob!version!id!"
         );
 
-        await Assert.ThrowsAsync<FormatException>(() => setup.DataMutator.GetPersistedBinaryData(setup.DataElement));
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            setup.DataMutator.GetPersistedBinaryData(setup.DataElement)
+        );
 
-        Assert.DoesNotContain(
+        Assert.Equal(HttpStatusCode.BadRequest, exception.Response.StatusCode);
+        var request = Assert.Single(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestMethod == HttpMethod.Get
         );
+        Assert.Equal("\"not!a!blob!version!id!\"", Assert.Single(request.RequestHeaders.IfMatch).ToString());
     }
 
     [Fact]
-    public async Task GetPersistedBinaryData_WhenSnapshotContentETagIsStale_ThrowsTypedConflictAndKeepsBaseline()
+    public async Task GetPersistedBinaryData_WhenSnapshotBlobVersionIdIsStale_ThrowsTypedConflictAndKeepsBaseline()
     {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create("content"u8.ToArray(), contentETag: DataETag(1));
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(2));
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "content"u8.ToArray(),
+            blobVersionId: BlobVersion(1)
+        );
+        setup.Services.Storage.SetDataBlobVersionId(Guid.Parse(setup.DataElement.Id), BlobVersion(2));
 
         DataElementContentConflictException exception = await Assert.ThrowsAsync<DataElementContentConflictException>(
             () =>
@@ -253,10 +263,10 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal(Guid.Parse(setup.DataElement.Id), exception.DataElementId);
         Assert.IsType<PlatformHttpException>(exception.InnerException);
         Assert.Equal(
-            DataETag(1),
+            BlobVersion(1),
             Assert
                 .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
-                .ContentEtag
+                .BlobVersionId
         );
     }
 
@@ -347,7 +357,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveChanges_WhenAggregateMutationContentETagIsStale_ThrowsInstanceDataStaleException()
+    public async Task SaveChanges_WhenAggregateMutationBlobVersionIdIsStale_ThrowsInstanceDataStaleException()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] externalBytes = Encoding.UTF8.GetBytes("""{"status":"externally-updated"}""");
@@ -356,10 +366,10 @@ public sealed class InstanceDataUnitOfWorkTests
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
             new StorageVersionMetadata(ProcessStateVersion: 1),
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), externalBytes);
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(2));
+        setup.Services.Storage.SetDataBlobVersionId(Guid.Parse(setup.DataElement.Id), BlobVersion(2));
 
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
@@ -485,8 +495,11 @@ public sealed class InstanceDataUnitOfWorkTests
         var initialForm = new PaymentForm { Status = "created", CustomerName = "Original" };
         var concurrentForm = new PaymentForm { Status = "external", CustomerName = "Concurrent" };
 
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBinaryBytes, contentETag: DataETag(1));
-        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, contentETag: DataETag(1));
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBinaryBytes,
+            blobVersionId: BlobVersion(1)
+        );
+        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, blobVersionId: BlobVersion(1));
         var cachedForm = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
         byte[] concurrentBytes = SerializePaymentForm(setup, formDataElement, concurrentForm);
 
@@ -498,7 +511,7 @@ public sealed class InstanceDataUnitOfWorkTests
         DataElementChanges savedChanges = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         DataElementChange savedChange = Assert.Single(savedChanges.AllChanges);
         Assert.Equal(setup.DataElement.Id, savedChange.DataElementIdentifier.Id);
-        setup.Services.Storage.AddDataRaw(Guid.Parse(formDataElement.Id), concurrentBytes, DataETag(2));
+        setup.Services.Storage.AddDataRaw(Guid.Parse(formDataElement.Id), concurrentBytes, BlobVersion(2));
 
         await setup.DataMutator.SaveChanges(savedChanges);
 
@@ -530,12 +543,12 @@ public sealed class InstanceDataUnitOfWorkTests
             """{"status":"existing"}"""u8.ToArray(),
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         DataElement formDataElement = AddPersistedPaymentForm(
             setup,
             new PaymentForm { Status = cachedStatus },
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.Services.AppMetadata.DataFields =
         [
@@ -589,14 +602,17 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveChanges_WhenUntouchedCachedFormETagIsUnchanged_RetainsBothCachesWithoutRefetch()
+    public async Task SaveChanges_WhenUntouchedCachedFormBlobVersionIsUnchanged_RetainsBothCachesWithoutRefetch()
     {
         byte[] initialBinaryBytes = """{"status":"created"}"""u8.ToArray();
         byte[] updatedBinaryBytes = """{"status":"paid"}"""u8.ToArray();
         var initialForm = new PaymentForm { Status = "created", CustomerName = "Original" };
 
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBinaryBytes, contentETag: DataETag(1));
-        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, contentETag: DataETag(1));
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBinaryBytes,
+            blobVersionId: BlobVersion(1)
+        );
+        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, blobVersionId: BlobVersion(1));
         var cachedForm = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
         byte[] serializedInitialForm = SerializePaymentForm(setup, formDataElement, initialForm);
 
@@ -625,8 +641,11 @@ public sealed class InstanceDataUnitOfWorkTests
         byte[] initialBinaryBytes = """{"status":"created"}"""u8.ToArray();
         var initialForm = new PaymentForm { Status = "created", CustomerName = "Original" };
 
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBinaryBytes, contentETag: DataETag(1));
-        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, contentETag: DataETag(1));
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBinaryBytes,
+            blobVersionId: BlobVersion(1)
+        );
+        DataElement formDataElement = AddPersistedPaymentForm(setup, initialForm, blobVersionId: BlobVersion(1));
         var form = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
         byte[] previousBinary = SerializePaymentForm(setup, formDataElement, initialForm);
         form.Status = "paid";
@@ -654,9 +673,9 @@ public sealed class InstanceDataUnitOfWorkTests
         byte[] initialBytes = """{"status":"created"}"""u8.ToArray();
         byte[] concurrentBytes = """{"status":"external"}"""u8.ToArray();
 
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes, contentETag: DataETag(1));
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes, blobVersionId: BlobVersion(1));
         await setup.DataMutator.GetBinaryData(setup.DataElement);
-        setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), concurrentBytes, DataETag(2));
+        setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), concurrentBytes, BlobVersion(2));
         setup.DataMutator.LockDataElementsForDataType(setup.DataElement.DataType);
 
         await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
@@ -688,7 +707,7 @@ public sealed class InstanceDataUnitOfWorkTests
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             """{"status":"existing"}"""u8.ToArray(),
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.Services.AddDataType<PaymentForm>("created-payment-form", ["application/json"], taskId: "Task_1");
         var createdForm = new PaymentForm { Status = "created", CustomerName = "New" };
@@ -756,7 +775,7 @@ public sealed class InstanceDataUnitOfWorkTests
         setup.Services.Storage.AddDataRaw(
             formDataGuid,
             JsonSerializer.SerializeToUtf8Bytes(new PaymentForm { Status = "created", CustomerName = "Old Name" }),
-            DataETag(1)
+            BlobVersion(1)
         );
 
         var form = (PaymentForm)await setup.DataMutator.GetFormData(formDataElement);
@@ -1051,7 +1070,7 @@ public sealed class InstanceDataUnitOfWorkTests
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
             new StorageVersionMetadata(ProcessStateVersion: 1),
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         DataType formDataType = setup.Services.AddDataType<PaymentForm>(
             "payment-form",
@@ -1141,7 +1160,7 @@ public sealed class InstanceDataUnitOfWorkTests
             initialBytes,
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
 
@@ -1176,7 +1195,7 @@ public sealed class InstanceDataUnitOfWorkTests
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
         Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
-        Assert.Equal(DataETag(1), Assert.Single(mutation.UpdateDataElements).ExpectedCurrentBlobVersion);
+        Assert.Equal(BlobVersion(1), Assert.Single(mutation.UpdateDataElements).ExpectedCurrentBlobVersion);
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
@@ -1206,7 +1225,7 @@ public sealed class InstanceDataUnitOfWorkTests
             "initial"u8.ToArray(),
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
@@ -1267,7 +1286,7 @@ public sealed class InstanceDataUnitOfWorkTests
             "initial"u8.ToArray(),
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.DataMutator.Instance.Process!.Status = snapshotStatus;
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
@@ -1308,7 +1327,7 @@ public sealed class InstanceDataUnitOfWorkTests
             "initial"u8.ToArray(),
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
             setup.InstanceOwnerPartyId,
@@ -1370,7 +1389,7 @@ public sealed class InstanceDataUnitOfWorkTests
             "initial"u8.ToArray(),
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.DataMutator.Instance.Process!.Status = expectedProcessStatus;
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
@@ -1557,7 +1576,7 @@ public sealed class InstanceDataUnitOfWorkTests
             "initial"u8.ToArray(),
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.DataMutator.TransitionProcessStatus(ProcessStatus.Idle, ProcessStatus.Processing);
 
@@ -1618,9 +1637,9 @@ public sealed class InstanceDataUnitOfWorkTests
             initialBytes,
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(2));
+        setup.Services.Storage.SetDataBlobVersionId(Guid.Parse(setup.DataElement.Id), BlobVersion(2));
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
 
@@ -2262,7 +2281,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     DataType = "payment",
                     ContentType = "application/json",
                     Filename = "attempt-one.json",
-                    ContentEtag = "\"etag-replay\"",
+                    BlobVersionId = "blob-version-replay",
                 },
             ],
         };
@@ -2282,11 +2301,11 @@ public sealed class InstanceDataUnitOfWorkTests
                     DataType = "payment",
                     ContentType = "application/json",
                     Filename = "attempt-one.json",
-                    ContentEtag = "\"etag-replayed-response\"",
+                    BlobVersionId = "blob-version-replayed-response",
                 },
             ],
         };
-        authoritativeInstance.Data[0].ContentEtag = "\"etag-fresh-instance\"";
+        authoritativeInstance.Data[0].BlobVersionId = "blob-version-fresh-instance";
         var replayedResponseVersions = new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4);
         var authoritativeVersions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 5);
         var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
@@ -2364,7 +2383,7 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal(ProcessStatus.Processing, unitOfWork.Instance.Process?.Status);
         Assert.Equal(9, unitOfWork.StorageVersions.InstanceVersion);
         Assert.Equal(5, unitOfWork.StorageVersions.ProcessStateVersion);
-        Assert.Equal("\"etag-fresh-instance\"", Assert.Single(unitOfWork.Instance.Data).ContentEtag);
+        Assert.Equal("blob-version-fresh-instance", Assert.Single(unitOfWork.Instance.Data).BlobVersionId);
         Assert.Equal(stagedDataElementId.ToString(), createdChange.DataElement?.Id);
         WorkflowAggregateSaveOutcome replayRebuildOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
@@ -2375,7 +2394,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveChanges_WhenStorageReturnsNewETag_RefreshesInstanceDataElement()
+    public async Task SaveChanges_WhenStorageReturnsNewBlobVersionId_RefreshesInstanceDataElement()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
@@ -2383,17 +2402,17 @@ public sealed class InstanceDataUnitOfWorkTests
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
             new StorageVersionMetadata(ProcessStateVersion: 1),
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await setup.DataMutator.SaveChanges(changes);
 
         Assert.Equal(
-            DataETag(2),
+            BlobVersion(2),
             Assert
                 .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
-                .ContentEtag
+                .BlobVersionId
         );
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
@@ -2874,10 +2893,10 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal(1, setup.DataMutator.StorageVersions.InstanceVersion);
         Assert.Equal(1, setup.DataMutator.StorageVersions.ProcessStateVersion);
         Assert.Equal(
-            DataETag(1),
+            BlobVersion(1),
             Assert
                 .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
-                .ContentEtag
+                .BlobVersionId
         );
     }
 
@@ -3023,7 +3042,7 @@ public sealed class InstanceDataUnitOfWorkTests
             initialBytes,
             new StorageVersionMetadata(InstanceVersion: 1, ProcessStateVersion: 1),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
 
         await setup.DataMutator.GetBinaryData(setup.DataElement);
@@ -3048,7 +3067,7 @@ public sealed class InstanceDataUnitOfWorkTests
             initialBytes,
             new StorageVersionMetadata(InstanceVersion: 1, ProcessStateVersion: 1),
             seedStorageVersions: true,
-            contentETag: DataETag(1)
+            blobVersionId: BlobVersion(1)
         );
 
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
@@ -3169,16 +3188,16 @@ public sealed class InstanceDataUnitOfWorkTests
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
 
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes, contentETag: DataETag(1));
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes, blobVersionId: BlobVersion(1));
 
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(2));
+        setup.Services.Storage.SetDataBlobVersionId(Guid.Parse(setup.DataElement.Id), BlobVersion(2));
 
         await Assert.ThrowsAsync<InstanceDataStaleException>(() => setup.DataMutator.SaveChanges(changes));
         await AssertPreviousBinaryDataUnavailable(setup.DataMutator, setup.DataElement);
 
-        setup.Services.Storage.SetDataETag(Guid.Parse(setup.DataElement.Id), DataETag(1));
+        setup.Services.Storage.SetDataBlobVersionId(Guid.Parse(setup.DataElement.Id), BlobVersion(1));
         await setup.DataMutator.SaveChanges(changes);
 
         await AssertPreviousBinaryDataUnavailable(setup.DataMutator, setup.DataElement);
@@ -3314,7 +3333,7 @@ public sealed class InstanceDataUnitOfWorkTests
             DataType = "payment",
             ContentType = "application/json",
             Filename = "payment.json",
-            ContentEtag = DataETag(1),
+            BlobVersionId = BlobVersion(1),
         };
         var instance = new Instance
         {
@@ -3333,7 +3352,7 @@ public sealed class InstanceDataUnitOfWorkTests
             DataType = dataElement.DataType,
             ContentType = dataElement.ContentType,
             Filename = dataElement.Filename,
-            ContentEtag = DataETag(2),
+            BlobVersionId = BlobVersion(2),
         };
         var authoritativeInstance = new Instance
         {
@@ -3364,7 +3383,7 @@ public sealed class InstanceDataUnitOfWorkTests
             );
         dataClientMock
             .Setup(x =>
-                x.GetDataBytesWithExpectedContentETag(
+                x.GetDataBytesWithExpectedBlobVersionId(
                     instanceOwnerPartyId,
                     instanceGuid,
                     dataElementId,
@@ -3423,7 +3442,7 @@ public sealed class InstanceDataUnitOfWorkTests
     private static DataElement AddPersistedPaymentForm(
         BinaryDataUnitOfWorkSetup setup,
         PaymentForm form,
-        string contentETag
+        string blobVersionId
     )
     {
         const string dataTypeId = "payment-form";
@@ -3438,7 +3457,7 @@ public sealed class InstanceDataUnitOfWorkTests
             DataType = dataTypeId,
             ContentType = contentType,
             Filename = "payment-form.json",
-            ContentEtag = contentETag,
+            BlobVersionId = blobVersionId,
         };
         var storageDataElement = JsonSerializer.Deserialize<DataElement>(
             JsonSerializer.SerializeToUtf8Bytes(unitOfWorkDataElement)
@@ -3453,7 +3472,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 .ServiceProvider.GetRequiredService<ModelSerializationService>()
                 .SerializeToStorage(form, dataType, unitOfWorkDataElement)
                 .data.ToArray(),
-            contentETag
+            blobVersionId
         );
         return unitOfWorkDataElement;
     }
@@ -3486,6 +3505,9 @@ public sealed class InstanceDataUnitOfWorkTests
                 ) == true
             )
             .ToArray();
+
+    private static string BlobVersion(int contentVersion) =>
+        StorageClientInterceptor.CreateBlobVersionId(contentVersion);
 
     private static string DataETag(int contentVersion) => StorageClientInterceptor.CreateDataETag(contentVersion);
 
@@ -3895,8 +3917,8 @@ public sealed class InstanceDataUnitOfWorkTests
             bool seedStorageVersions = false,
             int otherDataTypeElementCount = 0,
             bool locked = false,
-            string? contentETag = null,
-            bool lastContentETagEmpty = false,
+            string? blobVersionId = null,
+            bool lastBlobVersionIdEmpty = false,
             bool withoutBlobVersion = false
         )
         {
@@ -3940,7 +3962,8 @@ public sealed class InstanceDataUnitOfWorkTests
                         ContentType = contentType,
                         Filename = i == 0 ? fileName : $"payment-{i}.json",
                         Locked = locked,
-                        ContentEtag = lastContentETagEmpty && i == dataElementCount - 1 ? string.Empty : contentETag,
+                        BlobVersionId =
+                            lastBlobVersionIdEmpty && i == dataElementCount - 1 ? string.Empty : blobVersionId,
                     }
                 );
             }
@@ -3956,7 +3979,7 @@ public sealed class InstanceDataUnitOfWorkTests
                         ContentType = contentType,
                         Filename = i == 0 ? "receipt.json" : $"receipt-{i}.json",
                         Locked = locked,
-                        ContentEtag = contentETag,
+                        BlobVersionId = blobVersionId,
                     }
                 );
             }
@@ -3974,13 +3997,13 @@ public sealed class InstanceDataUnitOfWorkTests
             for (int i = 0; i < dataElements.Count; i++)
             {
                 DataElement dataElement = dataElements[i];
-                if (withoutBlobVersion || (lastContentETagEmpty && i == dataElementCount - 1))
+                if (withoutBlobVersion || (lastBlobVersionIdEmpty && i == dataElementCount - 1))
                 {
                     services.Storage.AddDataRawWithoutBlobVersion(Guid.Parse(dataElement.Id), initialBytes);
                 }
                 else
                 {
-                    services.Storage.AddDataRaw(Guid.Parse(dataElement.Id), initialBytes, dataElement.ContentEtag);
+                    services.Storage.AddDataRaw(Guid.Parse(dataElement.Id), initialBytes, dataElement.BlobVersionId);
                 }
             }
 

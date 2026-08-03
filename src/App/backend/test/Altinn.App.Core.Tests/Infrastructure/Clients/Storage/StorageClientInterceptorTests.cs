@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage;
 public sealed class StorageClientInterceptorTests
 {
     [Fact]
-    public async Task GetInstance_StampsDataElementETagByDefault()
+    public async Task GetInstance_StampsDataElementBlobVersionIdByDefault()
     {
         var (storage, _, dataId) = CreateStorage();
         using var client = new HttpClient(storage);
@@ -17,20 +17,23 @@ public sealed class StorageClientInterceptorTests
         HttpResponseMessage response = await client.GetAsync(InstanceUrl);
         Instance instance = (await response.Content.ReadFromJsonAsync<Instance>())!;
 
-        Assert.Equal(StorageClientInterceptor.CreateDataETag(1), Assert.Single(instance.Data).ContentEtag);
-        Assert.Equal(StorageClientInterceptor.CreateDataETag(1), GetStoredDataElement(instance, dataId).ContentEtag);
+        Assert.Equal(StorageClientInterceptor.CreateBlobVersionId(1), Assert.Single(instance.Data).BlobVersionId);
+        Assert.Equal(
+            StorageClientInterceptor.CreateBlobVersionId(1),
+            GetStoredDataElement(instance, dataId).BlobVersionId
+        );
     }
 
     [Fact]
-    public async Task GetInstance_WhenDefaultStampingIsDisabled_LeavesLegacyDataElementWithoutETag()
+    public async Task GetInstance_WhenDefaultStampingIsDisabled_LeavesLegacyDataElementWithoutBlobVersionId()
     {
-        var (storage, _, _) = CreateStorage(stampDataElementEtags: false);
+        var (storage, _, _) = CreateStorage(stampDataElementBlobVersionIds: false);
         using var client = new HttpClient(storage);
 
         HttpResponseMessage response = await client.GetAsync(InstanceUrl);
         Instance instance = (await response.Content.ReadFromJsonAsync<Instance>())!;
 
-        Assert.Null(Assert.Single(instance.Data).ContentEtag);
+        Assert.Null(Assert.Single(instance.Data).BlobVersionId);
     }
 
     [Fact]
@@ -97,24 +100,54 @@ public sealed class StorageClientInterceptorTests
     [Fact]
     public async Task PostMutation_WhenExpectedCurrentBlobVersionDoesNotMatch_ReturnsPreconditionFailedWithoutVersionHeadersOrETag()
     {
-        var (storage, _, dataId) = CreateStorage();
-        using var client = new HttpClient(storage);
-        using HttpResponseMessage response = await client.PostAsJsonAsync(
-            MutationUrl,
-            new
-            {
-                updateDataElements = new[]
-                {
-                    new
-                    {
-                        dataElementId = dataId,
-                        expectedCurrentBlobVersion = StorageClientInterceptor.CreateDataETag(2),
-                    },
-                },
-            }
+        using HttpResponseMessage response = await PostExpectedCurrentBlobVersion(
+            StorageClientInterceptor.CreateBlobVersionId(2)
         );
 
         AssertPreconditionFailedWithoutVersionHeadersOrETag(response);
+    }
+
+    [Fact]
+    public async Task PostMutation_WhenExpectedCurrentBlobVersionIsQuoted_ReturnsBadRequest()
+    {
+        using HttpResponseMessage response = await PostExpectedCurrentBlobVersion(
+            StorageClientInterceptor.CreateDataETag(1)
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("\t")]
+    public async Task PostMutation_WhenExpectedCurrentBlobVersionIsBlank_TreatsItAsAbsent(
+        string expectedCurrentBlobVersion
+    )
+    {
+        using HttpResponseMessage response = await PostExpectedCurrentBlobVersion(expectedCurrentBlobVersion);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostMutation_WhenExpectedCurrentBlobVersionIsPadded_TrimsBeforeMatching()
+    {
+        using HttpResponseMessage response = await PostExpectedCurrentBlobVersion(
+            $" {StorageClientInterceptor.CreateBlobVersionId(1)} "
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private static async Task<HttpResponseMessage> PostExpectedCurrentBlobVersion(string expectedCurrentBlobVersion)
+    {
+        var (storage, _, dataId) = CreateStorage();
+        using var client = new HttpClient(storage);
+        return await client.PostAsJsonAsync(
+            MutationUrl,
+            new { updateDataElements = new[] { new { dataElementId = dataId, expectedCurrentBlobVersion } } }
+        );
     }
 
     [Fact]
@@ -193,7 +226,7 @@ public sealed class StorageClientInterceptorTests
     }
 
     private static (StorageClientInterceptor Storage, Instance Instance, Guid DataId) CreateStorage(
-        bool stampDataElementEtags = true
+        bool stampDataElementBlobVersionIds = true
     )
     {
         const string dataTypeId = "payment";
@@ -201,7 +234,7 @@ public sealed class StorageClientInterceptorTests
         {
             DataTypes = [new DataType { Id = dataTypeId, AllowedContentTypes = ["application/json"] }],
         };
-        var storage = new StorageClientInterceptor(appMetadata, stampDataElementEtags);
+        var storage = new StorageClientInterceptor(appMetadata, stampDataElementBlobVersionIds);
         Guid dataId = Guid.NewGuid();
         var instance = new Instance
         {

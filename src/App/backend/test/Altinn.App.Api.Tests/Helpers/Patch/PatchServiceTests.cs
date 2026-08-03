@@ -344,7 +344,7 @@ public sealed class PatchServiceTests : IDisposable
         Assert.Null(exception.InnerException);
         _metadataDataClientMock.Verify(
             d =>
-                d.GetDataBytesWithExpectedContentETag(
+                d.GetDataBytesWithExpectedBlobVersionId(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
@@ -478,7 +478,7 @@ public sealed class PatchServiceTests : IDisposable
     {
         _metadataDataClientMock
             .Setup(d =>
-                d.GetDataBytesWithExpectedContentETag(
+                d.GetDataBytesWithExpectedBlobVersionId(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),

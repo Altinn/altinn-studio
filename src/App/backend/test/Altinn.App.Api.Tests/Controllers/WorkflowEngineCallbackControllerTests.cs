@@ -375,17 +375,17 @@ public class WorkflowEngineCallbackControllerTests
                         DataType = DataTypeId,
                         ContentType = ContentType,
                         Filename = "task-data.json",
-                        ContentEtag = StorageClientInterceptor.CreateDataETag(1),
+                        BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
                     }
                 );
                 services.Storage.AddDataRaw(
                     dataElementId,
                     "stale state"u8.ToArray(),
-                    StorageClientInterceptor.CreateDataETag(1)
+                    StorageClientInterceptor.CreateBlobVersionId(1)
                 );
             }
         );
-        setup.Services.Storage.SetDataETag(dataElementId, StorageClientInterceptor.CreateDataETag(2));
+        setup.Services.Storage.SetDataBlobVersionId(dataElementId, StorageClientInterceptor.CreateBlobVersionId(2));
         string commandPayload = CommandPayloadSerializer.Serialize(
             new ExecuteServiceTaskPayload(LazyReadServiceTask.ServiceTaskType)
         )!;
@@ -575,13 +575,13 @@ public class WorkflowEngineCallbackControllerTests
                         ContentType = ContentType,
                         Filename = "locked.json",
                         Locked = true,
-                        ContentEtag = StorageClientInterceptor.CreateDataETag(1),
+                        BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
                     }
                 );
                 services.Storage.AddDataRaw(
                     lockedDataElementId,
                     """{"locked":true}"""u8.ToArray(),
-                    StorageClientInterceptor.CreateDataETag(1)
+                    StorageClientInterceptor.CreateBlobVersionId(1)
                 );
             }
         );

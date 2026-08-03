@@ -1177,7 +1177,7 @@ public class FormBootstrapServiceTests
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
         _metadataDataClient
             .Setup(x =>
-                x.GetDataBytesWithExpectedContentETag(
+                x.GetDataBytesWithExpectedBlobVersionId(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),

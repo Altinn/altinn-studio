@@ -994,7 +994,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         {
                             DataElementId = change.DataElementIdentifier.Guid,
                             ContentPartName = contentPartName,
-                            ExpectedCurrentBlobVersion = GetDataElementContentETag(change.DataElementIdentifier),
+                            ExpectedCurrentBlobVersion = GetDataElementBlobVersionId(change.DataElementIdentifier),
                             ContentType = change.ContentType,
                             Filename = change switch
                             {
@@ -1302,10 +1302,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private static Dictionary<string, string?> CopyStringDictionary(Dictionary<string, string?>? source) =>
         source is null ? [] : new Dictionary<string, string?>(source, StringComparer.Ordinal);
 
-    private string? GetDataElementContentETag(DataElementIdentifier dataElementIdentifier)
+    private string? GetDataElementBlobVersionId(DataElementIdentifier dataElementIdentifier)
     {
-        string? contentEtag = GetDataElement(dataElementIdentifier).ContentEtag;
-        return string.IsNullOrEmpty(contentEtag) ? null : contentEtag;
+        string? blobVersionId = GetDataElement(dataElementIdentifier).BlobVersionId;
+        return string.IsNullOrEmpty(blobVersionId) ? null : blobVersionId;
     }
 
     private void ApplyAggregateMutationResult(
@@ -1314,9 +1314,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         InstanceMutationWithStorageMetadata result
     )
     {
-        var previousContentETags = Instance.Data.ToDictionary(
+        var previousBlobVersionIds = Instance.Data.ToDictionary(
             dataElement => Guid.Parse(dataElement.Id),
-            dataElement => dataElement.ContentEtag
+            dataElement => dataElement.BlobVersionId
         );
         var contentWrittenDataElementIds = result.CreatedDataElementIds.ToHashSet();
         foreach (
@@ -1371,9 +1371,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         {
             DataElementIdentifier dataElementIdentifier = dataElement;
             if (
-                previousContentETags.Remove(dataElementIdentifier.Guid, out string? previousContentETag)
+                previousBlobVersionIds.Remove(dataElementIdentifier.Guid, out string? previousBlobVersionId)
                 && !contentWrittenDataElementIds.Contains(dataElementIdentifier.Guid)
-                && !StringComparer.Ordinal.Equals(previousContentETag, dataElement.ContentEtag)
+                && !StringComparer.Ordinal.Equals(previousBlobVersionId, dataElement.BlobVersionId)
             )
             {
                 _formDataCache.Remove(dataElementIdentifier);
@@ -1381,7 +1381,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
         }
 
-        foreach (Guid dataElementId in previousContentETags.Keys)
+        foreach (Guid dataElementId in previousBlobVersionIds.Keys)
         {
             var dataElementIdentifier = new DataElementIdentifier(dataElementId);
             _formDataCache.Remove(dataElementIdentifier);
@@ -1578,19 +1578,19 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     private async Task<byte[]> GetDataBytes(DataElementIdentifier dataElementIdentifier)
     {
-        string? expectedContentETag = GetDataElementContentETag(dataElementIdentifier);
+        string? expectedBlobVersionId = GetDataElementBlobVersionId(dataElementIdentifier);
         try
         {
-            return await _dataClient.GetDataBytesWithExpectedContentETag(
+            return await _dataClient.GetDataBytesWithExpectedBlobVersionId(
                 _instanceOwnerPartyId,
                 _instanceGuid,
                 dataElementIdentifier.Guid,
                 authenticationMethod: GetAuthenticationMethod(dataElementIdentifier),
-                expectedContentETag: expectedContentETag
+                expectedBlobVersionId: expectedBlobVersionId
             );
         }
         catch (PlatformHttpException exception)
-            when (!string.IsNullOrEmpty(expectedContentETag)
+            when (!string.IsNullOrEmpty(expectedBlobVersionId)
                 && exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed
             )
         {

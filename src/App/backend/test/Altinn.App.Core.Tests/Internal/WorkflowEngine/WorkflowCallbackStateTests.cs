@@ -24,14 +24,14 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class WorkflowCallbackStateTests
 {
     [Fact]
-    public async Task CaptureState_PreservesStorageVersionsAndInstanceContentEtag()
+    public async Task CaptureState_PreservesStorageVersionsAndInstanceBlobVersionId()
     {
         string dataElementId = Guid.NewGuid().ToString();
         var dataElement = new DataElement
         {
             Id = dataElementId,
             DataType = "attachment",
-            ContentEtag = "\"etag-capture\"",
+            BlobVersionId = "blob-version-capture",
         };
         var instance = new Instance
         {
@@ -60,7 +60,7 @@ public class WorkflowCallbackStateTests
         Assert.NotNull(deserialized);
         Assert.Equal(21, deserialized.InstanceVersion);
         Assert.Equal(14, deserialized.ProcessStateVersion);
-        Assert.Equal("\"etag-capture\"", Assert.Single(deserialized.Instance.Data).ContentEtag);
+        Assert.Equal("blob-version-capture", Assert.Single(deserialized.Instance.Data).BlobVersionId);
     }
 
     [Theory]
@@ -173,7 +173,7 @@ public class WorkflowCallbackStateTests
                 {
                     Id = dataElementId,
                     DataType = "attachment",
-                    ContentEtag = "\"etag-restore\"",
+                    BlobVersionId = "blob-version-restore",
                 },
             ],
         };
@@ -210,7 +210,7 @@ public class WorkflowCallbackStateTests
 
         Assert.Equal(31, unitOfWork.StorageVersions.InstanceVersion);
         Assert.Equal(22, unitOfWork.StorageVersions.ProcessStateVersion);
-        Assert.Equal("\"etag-restore\"", Assert.Single(unitOfWork.Instance.Data).ContentEtag);
+        Assert.Equal("blob-version-restore", Assert.Single(unitOfWork.Instance.Data).BlobVersionId);
 
         InstanceDataUnitOfWork followUpUnitOfWork = await initializer.Init(
             unitOfWork.Instance,
@@ -308,7 +308,7 @@ public class WorkflowCallbackStateTests
             InstanceGuid = instanceGuid.ToString(),
             DataType = formDataType.Id,
             ContentType = "application/json",
-            ContentEtag = "\"etag-form\"",
+            BlobVersionId = "blob-version-form",
         };
         var attachmentDataElement = new DataElement
         {
@@ -316,7 +316,7 @@ public class WorkflowCallbackStateTests
             InstanceGuid = instanceGuid.ToString(),
             DataType = attachmentDataType.Id,
             ContentType = "application/octet-stream",
-            ContentEtag = "\"etag-attachment\"",
+            BlobVersionId = "blob-version-attachment",
         };
         var instance = new Instance
         {
@@ -365,12 +365,12 @@ public class WorkflowCallbackStateTests
         StorageAuthenticationMethod? capturedAuthenticationMethod = null;
         metadataClientMock
             .Setup(x =>
-                x.GetDataBytesWithExpectedContentETag(
+                x.GetDataBytesWithExpectedBlobVersionId(
                     instanceOwnerPartyId,
                     instanceGuid,
                     attachmentGuid,
                     It.IsAny<StorageAuthenticationMethod?>(),
-                    attachmentDataElement.ContentEtag,
+                    attachmentDataElement.BlobVersionId,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -402,15 +402,15 @@ public class WorkflowCallbackStateTests
         Assert.Equal(language, unitOfWork.Language);
         Assert.Equal(31, unitOfWork.StorageVersions.InstanceVersion);
         Assert.Equal(22, unitOfWork.StorageVersions.ProcessStateVersion);
-        Assert.Equal("\"etag-form\"", unitOfWork.GetDataElement(formDataElement).ContentEtag);
-        Assert.Equal("\"etag-attachment\"", unitOfWork.GetDataElement(attachmentDataElement).ContentEtag);
+        Assert.Equal("blob-version-form", unitOfWork.GetDataElement(formDataElement).BlobVersionId);
+        Assert.Equal("blob-version-attachment", unitOfWork.GetDataElement(attachmentDataElement).BlobVersionId);
 
         var restoredFormData = Assert.IsType<CallbackForm>(await unitOfWork.GetFormData(formDataElement));
         Assert.Equal("restored", restoredFormData.Status);
         Assert.Equal(42, restoredFormData.Amount);
         metadataClientMock.Verify(
             x =>
-                x.GetDataBytesWithExpectedContentETag(
+                x.GetDataBytesWithExpectedBlobVersionId(
                     instanceOwnerPartyId,
                     instanceGuid,
                     formDataGuid,
@@ -427,12 +427,12 @@ public class WorkflowCallbackStateTests
         Assert.Equal(StorageAuthenticationMethod.ServiceOwner(), capturedAuthenticationMethod);
         metadataClientMock.Verify(
             x =>
-                x.GetDataBytesWithExpectedContentETag(
+                x.GetDataBytesWithExpectedBlobVersionId(
                     instanceOwnerPartyId,
                     instanceGuid,
                     attachmentGuid,
                     StorageAuthenticationMethod.ServiceOwner(),
-                    attachmentDataElement.ContentEtag,
+                    attachmentDataElement.BlobVersionId,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -521,7 +521,7 @@ public class WorkflowCallbackStateTests
     }
 
     [Fact]
-    public void WorkflowCallbackState_SerializeDeserialize_PreservesExplicitStorageVersionsAndInstanceContentEtag()
+    public void WorkflowCallbackState_SerializeDeserialize_PreservesExplicitStorageVersionsAndInstanceBlobVersionId()
     {
         var instanceState = new WorkflowCallbackState
         {
@@ -529,7 +529,7 @@ public class WorkflowCallbackStateTests
             {
                 Org = "ttd",
                 AppId = "ttd/test-app",
-                Data = [new DataElement { Id = "data-guid-1", ContentEtag = "\"etag-1\"" }],
+                Data = [new DataElement { Id = "data-guid-1", BlobVersionId = "blob-version-1" }],
             },
             InstanceVersion = 13,
             ProcessStateVersion = 8,
@@ -542,7 +542,7 @@ public class WorkflowCallbackStateTests
         Assert.NotNull(deserialized);
         Assert.Equal(13, deserialized.InstanceVersion);
         Assert.Equal(8, deserialized.ProcessStateVersion);
-        Assert.Equal("\"etag-1\"", Assert.Single(deserialized.Instance.Data).ContentEtag);
+        Assert.Equal("blob-version-1", Assert.Single(deserialized.Instance.Data).BlobVersionId);
     }
 
     [Fact]

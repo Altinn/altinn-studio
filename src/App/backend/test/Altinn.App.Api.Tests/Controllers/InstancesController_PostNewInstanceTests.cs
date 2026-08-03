@@ -1283,7 +1283,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                 storage.AddDataRaw(
                     dataElementGuid,
                     await File.ReadAllBytesAsync(blobPath),
-                    StorageClientInterceptor.CreateDataETag(1)
+                    StorageClientInterceptor.CreateBlobVersionId(1)
                 );
             }
         }

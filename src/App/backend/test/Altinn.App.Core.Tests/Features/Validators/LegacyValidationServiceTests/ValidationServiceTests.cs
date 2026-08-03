@@ -305,7 +305,7 @@ public sealed class ValidationServiceTests : IDisposable
     {
         _dataClientWithStorageMetadataMock
             .Setup(d =>
-                d.GetDataBytesWithExpectedContentETag(
+                d.GetDataBytesWithExpectedBlobVersionId(
                     DefaultPartyId,
                     _defaultInstanceId,
                     _defaultDataElementId,
