@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react';
 
 import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
-import { fireEvent, screen } from '@testing-library/react';
+import { findByRole, fireEvent, screen } from '@testing-library/react';
 
 import { Dropdown } from './DropdownLayout';
 
@@ -98,14 +98,11 @@ describe('Dropdown', () => {
     expect(onChange).toHaveBeenCalledWith('sverige');
   });
 
-  it('exposes the title via aria-label and a visually-hidden label when rendered in a table', () => {
+  it('exposes the title via aria-label when rendered in a table', () => {
     const { container } = render({ title: 'dropdown.title', renderedInTable: true });
     // The title is exposed to assistive tech via the input's aria-label...
     expect(getInput(container)).toHaveAttribute('aria-label', 'Bostedsland');
-    // ...and the only label rendered is the visually-hidden one (class name is hashed by CSS modules).
-    const label = container.querySelector('label');
-    expect(label).toHaveTextContent('Bostedsland');
-    expect(label?.className).toMatch(/visuallyHidden/i);
+    expect(screen.getByRole('textbox', { name: 'Bostedsland' })).toBeInTheDocument();
   });
 
   it('does not set an aria-label on the input when not rendered in a table', () => {
