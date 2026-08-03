@@ -434,7 +434,7 @@ Cypress.Commands.add('testWcag', () => {
 // root. The path is resolved in the Node process instead and exposed as `axeCorePath` (see
 // cypress.config.js), so every cy.injectAxe() call gets a working absolute path.
 Cypress.Commands.overwrite('injectAxe', (originalFn, injectOptions) =>
-  originalFn({ axeCorePath: Cypress.expose('axeCorePath'), ...injectOptions }),
+  originalFn({ ...injectOptions, axeCorePath: Cypress.expose('axeCorePath') }),
 );
 
 Cypress.Commands.add('reloadAndWait', () => {
