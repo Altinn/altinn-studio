@@ -15,7 +15,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Build studioctl with .NET SDK 10.0.302.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
 
 ## [0.1.0-preview.18] - 2026-07-24
