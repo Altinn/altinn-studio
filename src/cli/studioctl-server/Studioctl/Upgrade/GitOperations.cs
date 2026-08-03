@@ -25,9 +25,9 @@ internal static class GitOperations
             using var repo = new Repository(repoPath);
             Commands.Stage(repo, "*");
 
-            var stagedCount = repo.Diff.Compare<TreeChanges>(repo.Head.Tip?.Tree, DiffTargets.Index).Count;
+            using var stagedChanges = repo.Diff.Compare<TreeChanges>(repo.Head.Tip?.Tree, DiffTargets.Index);
             output.WriteLine(
-                $"Staged the {stagedCount} updated file(s) - run 'git status' for overview and 'git diff --cached' to review them"
+                $"Staged the {stagedChanges.Count} updated file(s) - run 'git status' for overview and 'git diff --cached' to review them"
             );
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
