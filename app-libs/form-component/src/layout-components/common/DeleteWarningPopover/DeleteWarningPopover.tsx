@@ -39,7 +39,7 @@ export function DeleteWarningPopover({
 
   return (
     <Popover.TriggerContext>
-      <Popover.Trigger asChild onClick={() => setOpen(!open)}>
+      <Popover.Trigger asChild={!!children} onClick={() => setOpen(!open)}>
         {children}
       </Popover.Trigger>
       <Popover
