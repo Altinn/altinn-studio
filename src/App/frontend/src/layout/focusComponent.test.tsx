@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { createMemoryRouter, MemoryRouter, useNavigate } from 'react-router';
+import { createBrowserRouter, createMemoryRouter, MemoryRouter, useNavigate } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 
 import { act, render, screen, waitFor } from '@testing-library/react';
@@ -23,22 +23,22 @@ describe('focusComponent', () => {
       </div>
     );
   }
+  function focusRoutes(extra?: React.ReactNode) {
+    return [
+      {
+        path: '*',
+        element: (
+          <>
+            <FocusComponentRequestFromUrl />
+            <SimpleFocusTarget />
+            {extra}
+          </>
+        ),
+      },
+    ];
+  }
   function createFocusRouter(extra?: React.ReactNode) {
-    return createMemoryRouter(
-      [
-        {
-          path: '*',
-          element: (
-            <>
-              <FocusComponentRequestFromUrl />
-              <SimpleFocusTarget />
-              {extra}
-            </>
-          ),
-        },
-      ],
-      { initialEntries: ['/form?focusComponentId=node-a'] },
-    );
+    return createMemoryRouter(focusRoutes(extra), { initialEntries: ['/form?focusComponentId=node-a'] });
   }
 
   beforeEach(() => {
@@ -54,6 +54,7 @@ describe('focusComponent', () => {
   afterEach(() => {
     act(() => setFocusComponentRequest(undefined));
     setFocusComponentUrlCleanup(undefined);
+    window.history.replaceState({}, '', '/');
     jest.restoreAllMocks();
   });
 
@@ -159,11 +160,13 @@ describe('focusComponent', () => {
       return null;
     }
 
-    const router = createFocusRouter(<NavigateWhenFocused />);
+    window.history.replaceState({}, '', '/form?focusComponentId=node-a');
+    const router = createBrowserRouter(focusRoutes(<NavigateWhenFocused />));
 
     render(<RouterProvider router={router} />);
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/summary'));
+    expect(window.location.pathname).toBe('/summary');
     expect(router.state.location.search).toBe('');
     expect(consoleError).not.toHaveBeenCalled();
   });
