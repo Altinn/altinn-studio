@@ -1,14 +1,16 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type {
   UserMessage,
   AssistantMessage,
   Message,
   WorkflowEvent,
   WorkflowStatus,
+  TrailStep,
   ConnectionStatus,
   AssistantMessageData,
   AgentResponse,
   UserAttachment,
+  PermissionRequest,
 } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -19,13 +21,14 @@ import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSock
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import {
   decorateMessagesWithTraceIds,
+  formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
   shouldSkipBranchOps,
 } from '../../utils/messageUtils';
 
-const INITIAL_WORKFLOW_MESSAGE = 'Jobber med saken...';
+const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
@@ -35,6 +38,7 @@ export interface UseAltinityWorkflowResult {
   workflowStatusByThread: Record<string, WorkflowStatus>;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
   cancelCurrentWorkflow: () => Promise<void>;
+  respondToPermission: (requestId: string, granted: boolean) => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
   messages: Message[];
@@ -47,13 +51,23 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   >({});
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
   const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
-  const { connectionStatus, startWorkflow, cancelWorkflow, registerSession, onAgentMessage } =
-    useAltinityWebSocket();
+  const {
+    connectionStatus,
+    startWorkflow,
+    cancelWorkflow,
+    respondToPermission: sendPermissionResponse,
+    registerSession,
+    onAgentMessage,
+  } = useAltinityWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
+  // Monotonic clock anchor per workflow thread. Each trail step records
+  // its offset from this value so timestamps don't drift if the wall clock
+  // changes mid-flight.
+  const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
 
   const {
     selectedThreadId,
@@ -68,13 +82,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     setWorkflowStatusByThread((prev) => ({ ...prev, [threadId]: status }));
   }, []);
 
-  const setWorkflowStatusMessage = useCallback((threadId: string, statusMessage: string) => {
-    setWorkflowStatusByThread((prev) => {
-      const prevWorkflowStatus = prev[threadId];
-      return { ...prev, [threadId]: { ...prevWorkflowStatus, message: statusMessage } };
-    });
-  }, []);
-
   const markWorkflowCompleted = useCallback(
     (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
       setWorkflowStatus(threadId, {
@@ -87,6 +94,86 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       });
     },
     [setWorkflowStatus],
+  );
+
+  const applyStatusMessage = useCallback(
+    (threadId: string, statusMessage: string, toolUseId?: string) => {
+      setWorkflowStatusByThread((prev) => {
+        const prevStatus = prev[threadId];
+        if (!prevStatus?.isActive) return prev;
+        const steps = prevStatus.steps ?? [];
+        const lastStep = steps.at(-1);
+
+        const matchIndex = toolUseId ? findStepIndexByToolUseId(steps, toolUseId) : -1;
+        if (matchIndex >= 0) {
+          const updated: TrailStep = { ...steps[matchIndex], message: statusMessage };
+          return {
+            ...prev,
+            [threadId]: {
+              ...prevStatus,
+              message: statusMessage,
+              steps: [...steps.slice(0, matchIndex), updated, ...steps.slice(matchIndex + 1)],
+            },
+          };
+        }
+
+        // Dedupe identical text bursts; refresh legacy `message` only.
+        if (lastStep?.message === statusMessage) {
+          return { ...prev, [threadId]: { ...prevStatus, message: statusMessage } };
+        }
+
+        const startedAtMs = workflowStartedAtMsByThreadRef.current[threadId] ?? performance.now();
+        const newStep: TrailStep = {
+          id: `${steps.length}-${Math.round(performance.now())}`,
+          message: statusMessage,
+          offsetMs: performance.now() - startedAtMs,
+          toolUseId,
+        };
+        return {
+          ...prev,
+          [threadId]: {
+            ...prevStatus,
+            message: statusMessage,
+            steps: [...steps, newStep],
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  const applyPermissionRequest = useCallback(
+    (threadId: string, permissionRequest: PermissionRequest) => {
+      setWorkflowStatusByThread((prev) => {
+        const prevStatus = prev[threadId];
+        if (!prevStatus?.isActive) return prev;
+        return { ...prev, [threadId]: { ...prevStatus, permissionRequest } };
+      });
+    },
+    [],
+  );
+
+  const clearPermissionRequest = useCallback((threadId: string) => {
+    setWorkflowStatusByThread((prev) => {
+      const prevStatus = prev[threadId];
+      if (!prevStatus?.permissionRequest) return prev;
+      const { permissionRequest: _cleared, ...rest } = prevStatus;
+      return { ...prev, [threadId]: rest };
+    });
+  }, []);
+
+  const respondToPermission = useCallback(
+    async (requestId: string, granted: boolean): Promise<void> => {
+      const threadId = findThreadIdByPermissionRequestId(workflowStatusByThread, requestId);
+      if (!threadId) return;
+      try {
+        await sendPermissionResponse(threadId, requestId, granted);
+        clearPermissionRequest(threadId);
+      } catch (error) {
+        console.error('Permission response failed:', error);
+      }
+    },
+    [workflowStatusByThread, clearPermissionRequest, sendPermissionResponse],
   );
 
   const resetRepoForSession = useCallback(
@@ -152,22 +239,48 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         if (isTerminal) {
           setWorkflowStatus(threadId, { isActive: false });
         } else {
-          setWorkflowStatusMessage(threadId, event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+          applyStatusMessage(
+            threadId,
+            event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+            event.data?.tool_use_id,
+          );
         }
       } else if (event.type === 'workflow_status') {
-        setWorkflowStatusMessage(threadId, event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+        applyStatusMessage(
+          threadId,
+          event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+          event.data?.tool_use_id,
+        );
+      } else if (event.type === 'permission_request') {
+        applyPermissionRequest(threadId, {
+          requestId: event.data.request_id,
+          message: event.data.message,
+        });
       } else if (event.type === 'error') {
         setWorkflowStatus(threadId, { isActive: false });
         if (event.data?.status === 'cancelled') return;
+        // A rejection carries the actual reason (and often suggestions) —
+        // show it instead of the generic failure text so the user knows
+        // what to change.
+        const content =
+          event.data?.status === 'rejected'
+            ? formatRejectedEventMessage(event.data)
+            : WORKFLOW_ERROR_MESSAGE;
         createMessage(threadId, {
           role: MessageAuthor.Assistant,
-          content: WORKFLOW_ERROR_MESSAGE,
+          content,
           createdAt: new Date().toISOString(),
           filesChanged: [],
         });
       }
     },
-    [setWorkflowStatusMessage, handleAssistantMessage, createMessage, setWorkflowStatus],
+    [
+      applyStatusMessage,
+      applyPermissionRequest,
+      handleAssistantMessage,
+      createMessage,
+      setWorkflowStatus,
+    ],
   );
 
   useEffect(() => {
@@ -185,11 +298,18 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     ): Promise<AgentResponse> => {
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
+      workflowStartedAtMsByThreadRef.current[threadId] = performance.now();
+      const initialStep: TrailStep = {
+        id: 'initial',
+        message: INITIAL_WORKFLOW_MESSAGE,
+        offsetMs: 0,
+      };
       setWorkflowStatus(threadId, {
         isActive: true,
         sessionId: threadId,
         currentStep: 'Initializing',
         message: INITIAL_WORKFLOW_MESSAGE,
+        steps: [initialStep],
       });
       try {
         const result = await startWorkflow({
@@ -313,11 +433,28 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     workflowStatusByThread,
     onSubmitMessage,
     cancelCurrentWorkflow,
+    respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
     messages,
   };
 };
+
+function findThreadIdByPermissionRequestId(
+  workflowStatusByThread: Record<string, WorkflowStatus>,
+  requestId: string,
+): string | undefined {
+  return Object.keys(workflowStatusByThread).find(
+    (threadId) => workflowStatusByThread[threadId].permissionRequest?.requestId === requestId,
+  );
+}
+
+function findStepIndexByToolUseId(steps: TrailStep[], toolUseId: string): number {
+  for (let index = steps.length - 1; index >= 0; index--) {
+    if (steps[index].toolUseId === toolUseId) return index;
+  }
+  return -1;
+}
 
 function buildSessionBranchName(sessionId: string): string {
   const uniqueIdWithoutPrefix = sessionId.startsWith('session_')

@@ -41,6 +41,7 @@ export function PDFPreviewControls({
 }: PDFPreviewControlsProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const { langAsString } = useTranslation();
@@ -60,6 +61,7 @@ export function PDFPreviewControls({
 
     setBlobUrl(null);
     setErrorText(null);
+    setIsOpen(true);
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -91,28 +93,32 @@ export function PDFPreviewControls({
       </Button>
       <Dialog
         ref={modalRef}
-        onClose={() => abortRef.current?.abort()}
+        onClose={() => {
+          abortRef.current?.abort();
+          setIsOpen(false);
+        }}
         closedby='any'
         className={classes.modal}
       >
-        {blobUrl ? (
-          <iframe className={classes.iframe} title='Preview' src={blobUrl} />
-        ) : errorText ? (
-          <div style={{ textAlign: 'center' }}>
-            <Heading>{langAsString('pdfPreview.error')}</Heading>
-            {showErrorDetails &&
-              errorText.split('\n').map((line) => (
-                <span key={line}>
-                  {line}
-                  <br />
-                </span>
-              ))}
-          </div>
-        ) : (
-          <div className={classes.loading}>
-            <Spinner aria-label={langAsString('general.loading')} data-size='xl' />
-          </div>
-        )}
+        {isOpen &&
+          (blobUrl ? (
+            <iframe className={classes.iframe} title='Preview' src={blobUrl} />
+          ) : errorText ? (
+            <div style={{ textAlign: 'center' }}>
+              <Heading>{langAsString('pdfPreview.error')}</Heading>
+              {showErrorDetails &&
+                errorText.split('\n').map((line) => (
+                  <span key={line}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+            </div>
+          ) : (
+            <div className={classes.loading}>
+              <Spinner aria-label={langAsString('general.loading')} data-size='xl' />
+            </div>
+          ))}
       </Dialog>
     </>
   );

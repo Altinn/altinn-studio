@@ -54,6 +54,14 @@ def run_intake_pipeline(
         history_context += "Use this context to understand what has already been done and what the user is asking for now.\n"
         user_prompt = history_context + user_prompt
 
+    # Intake only produces a high-level task description; the spec agent
+    # handles attachment parsing.  Sending the PDF/image here would burn
+    # ~150k input tokens per call for no signal — we pass attachment
+    # metadata (name + mime) so the planner knows one exists, nothing more.
+    attachment_summary = _summarize_attachments(attachments)
+    if attachment_summary:
+        user_prompt = f"{user_prompt}\n\nATTACHMENTS PRESENT (content handled by spec agent):\n{attachment_summary}"
+
     client = LLMClient(role="planner")
     with trace_generation(
         "intake_planning_llm",
@@ -62,7 +70,7 @@ def run_intake_pipeline(
         metadata={"has_attachments": bool(attachments), **client.get_model_metadata()},
     ) as span:
 
-        response = client.call_sync(system_prompt, user_prompt, attachments=attachments, langfuse_prompt=lf_prompt)
+        response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
         span.update(output={"response": response[:5000]})
 
     return {
@@ -70,3 +78,9 @@ def run_intake_pipeline(
         "facts": None,  # Don't provide facts here
         "context": context,
     }
+
+
+def _summarize_attachments(attachments: Optional[List[AgentAttachment]]) -> str:
+    if not attachments:
+        return ""
+    return "\n".join(f"- {a.name} ({a.mime_type})" for a in attachments)
