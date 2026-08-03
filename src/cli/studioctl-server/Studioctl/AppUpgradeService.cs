@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.BackendUpgrade;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FrontendUpgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
@@ -56,6 +57,8 @@ internal sealed class AppUpgradeService : IDisposable
                     error,
                     cancellationToken
                 );
+
+                GitOperations.StageAllChanges(projectFolder, output);
 
                 return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString());
             }
