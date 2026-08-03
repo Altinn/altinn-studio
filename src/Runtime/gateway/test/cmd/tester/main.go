@@ -24,7 +24,6 @@ const (
 	startCommandArgCount   = 3
 	exitCodeCanceled       = 130
 	graphApplyDurationStep = 10 * time.Millisecond
-	gatewayReadyTimeout    = 5 * time.Minute
 )
 
 func main() {
@@ -379,7 +378,7 @@ func addGatewayDeploymentResources(
 				Kind:      resource.KubernetesReadinessFluxKustomization,
 				Namespace: "runtime-gateway",
 				Name:      "gateway",
-				Timeout:   gatewayReadyTimeout,
+				Timeout:   0,
 				Reconcile: nil,
 			},
 			{
