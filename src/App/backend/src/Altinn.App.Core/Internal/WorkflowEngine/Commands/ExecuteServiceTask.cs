@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -15,7 +14,7 @@ internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType) : Comma
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
-    IInstanceClient instanceClient,
+    IServiceTaskCheckpointStoreFactory checkpointStoreFactory,
     Telemetry? telemetry = null
 ) : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
 {
@@ -69,7 +68,7 @@ internal sealed class ExecuteServiceTask(
                     Deadline = context.Payload.WaitDeadline,
                 },
                 Checkpoints = new ServiceTaskCheckpoints(
-                    new StorageServiceTaskCheckpointStore(instanceClient, instance, serviceTask.Type),
+                    checkpointStoreFactory.Create(instanceDataMutator, serviceTask.Type),
                     context.CancellationToken
                 ),
             };

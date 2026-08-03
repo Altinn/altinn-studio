@@ -140,6 +140,21 @@ public class ServiceTaskCheckpointStoreTests
     }
 
     [Fact]
+    public async Task Factory_CreatesStoreBoundToTheMutatorsInstance()
+    {
+        // The factory takes the mutator, not a bare Instance, so the mirror can only ever decorate
+        // the live execution snapshot — the object later commands re-sign into the state blob.
+        var mutatorMock = new Mock<IInstanceDataMutator>();
+        mutatorMock.Setup(x => x.Instance).Returns(_snapshotInstance);
+        var factory = new StorageServiceTaskCheckpointStoreFactory(_instanceClientMock.Object);
+
+        IServiceTaskCheckpointStore store = factory.Create(mutatorMock.Object, "eFormidling");
+        await store.Set("receipt", "r-42", CancellationToken.None);
+
+        Assert.Equal("r-42", _snapshotInstance.DataValues?["serviceTask:eFormidling:receipt"]);
+    }
+
+    [Fact]
     public async Task Get_WhenStorageReadFails_Throws_NeverReturnsNull()
     {
         // null strictly means "never recorded". Mapping a read failure onto null would make the send

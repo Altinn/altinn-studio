@@ -16,6 +16,32 @@ internal interface IServiceTaskCheckpointStore
 }
 
 /// <summary>
+/// Creates the checkpoint store backing one service-task attempt. Stores are stateful per attempt
+/// (read caching, snapshot mirroring), so the DI seam is this factory, not the store itself. The
+/// runtime registers <see cref="StorageServiceTaskCheckpointStoreFactory"/> as the default.
+/// </summary>
+/// <remarks>
+/// <c>Create</c> takes the <see cref="IInstanceDataMutator"/> rather than an <see cref="Instance"/>
+/// deliberately: a store that mirrors writes must decorate the live execution snapshot — the one
+/// later commands re-sign into the state blob — and the mutator is the only handle that guarantees
+/// that identity. A detached or re-fetched <see cref="Instance"/> would let the mirror drift.
+/// </remarks>
+internal interface IServiceTaskCheckpointStoreFactory
+{
+    IServiceTaskCheckpointStore Create(IInstanceDataMutator instanceDataMutator, string serviceTaskType);
+}
+
+/// <summary>
+/// Default factory: checkpoints live in Storage as instance data values.
+/// </summary>
+internal sealed class StorageServiceTaskCheckpointStoreFactory(IInstanceClient instanceClient)
+    : IServiceTaskCheckpointStoreFactory
+{
+    public IServiceTaskCheckpointStore Create(IInstanceDataMutator instanceDataMutator, string serviceTaskType) =>
+        new StorageServiceTaskCheckpointStore(instanceClient, instanceDataMutator.Instance, serviceTaskType);
+}
+
+/// <summary>
 /// Checkpoints as instance data values, keyed <c>serviceTask:{taskType}:{key}</c>.
 /// </summary>
 /// <remarks>

@@ -67,9 +67,12 @@ public class ExecuteServiceTaskTests
     }
 
     private static ExecuteServiceTask CreateCommand(params IServiceTask[] serviceTasks) =>
-        CreateCommand(Mock.Of<IInstanceClient>(), serviceTasks);
+        CreateCommand(new StorageServiceTaskCheckpointStoreFactory(Mock.Of<IInstanceClient>()), serviceTasks);
 
-    private static ExecuteServiceTask CreateCommand(IInstanceClient instanceClient, params IServiceTask[] serviceTasks)
+    private static ExecuteServiceTask CreateCommand(
+        IServiceTaskCheckpointStoreFactory checkpointStoreFactory,
+        params IServiceTask[] serviceTasks
+    )
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -79,7 +82,7 @@ public class ExecuteServiceTaskTests
         }
         var sp = services.BuildServiceProvider();
 
-        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>(), instanceClient);
+        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>(), checkpointStoreFactory);
     }
 
     [Fact]
@@ -298,7 +301,10 @@ public class ExecuteServiceTaskTests
                 await ctx.Checkpoints.Set("receipt", "r-1");
                 return ServiceTaskResult.Success();
             });
-        var command = CreateCommand(instanceClient.Object, serviceTask.Object);
+        var command = CreateCommand(
+            new StorageServiceTaskCheckpointStoreFactory(instanceClient.Object),
+            serviceTask.Object
+        );
         var context = CreateContext(CreateInstance(), "MYSERVICETASK");
 
         // Act

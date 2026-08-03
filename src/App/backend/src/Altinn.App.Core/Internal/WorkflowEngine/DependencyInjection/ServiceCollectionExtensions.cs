@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -58,6 +59,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
         // Process engine callback handlers - ServiceTask
+        services.AddTransient<IServiceTaskCheckpointStoreFactory, StorageServiceTaskCheckpointStoreFactory>();
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
 
         // Process engine callback handlers - Notifications
