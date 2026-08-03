@@ -61,7 +61,21 @@ jobs:
         run: make test
 
       - name: Run fixture
+        id: fixture
         run: make start-minimal
+
+      - name: Collect fixture diagnostics
+        if: ${{ failure() && steps.fixture.outcome == 'failure' }}
+        continue-on-error: true
+        run: |
+          set +e
+          kubectl get pods -A -o wide
+          kubectl get ocirepositories.source.toolkit.fluxcd.io -A
+          kubectl get kustomizations.kustomize.toolkit.fluxcd.io -A
+          kubectl describe kustomization.kustomize.toolkit.fluxcd.io gateway -n runtime-gateway
+          kubectl get events -A --sort-by=.lastTimestamp
+          kubectl logs -n flux-system deployment/kustomize-controller --all-containers --tail=200
+          kubectl logs -n runtime-gateway deployment/gateway --all-containers --tail=200
 
       - name: Run e2e tests
         run: make test-e2e

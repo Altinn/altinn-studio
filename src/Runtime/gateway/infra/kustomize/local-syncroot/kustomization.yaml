@@ -29,6 +29,11 @@ patches:
       spec:
         path: ./local
         prune: true
+        # GitHub-hosted runners can take longer than the production timeout to
+        # start the locally built image. Retry promptly within the fixture's
+        # five-minute readiness budget.
+        retryInterval: 10s
+        timeout: 4m
   # Set local environment config
   - patch: |-
       apiVersion: v1
