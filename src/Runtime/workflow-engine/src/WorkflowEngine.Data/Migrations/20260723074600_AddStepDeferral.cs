@@ -20,33 +20,21 @@ namespace WorkflowEngine.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Metadata-only on PostgreSQL 11+, so these stay transactional and cheap.
-            migrationBuilder.AddColumn<int>(
-                name: "defer_count",
-                schema: "engine",
-                table: "steps",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0
-            );
-
+            // Metadata-only on PostgreSQL 11+, so these stay transactional and cheap. IF NOT EXISTS
+            // because the index swap below suppresses the transaction: a failure there leaves these
+            // columns committed with the migration unrecorded, and the automatic re-run on the next
+            // startup must pass over them instead of dying on "column already exists".
+            //
             // first_deferred_at anchors the wait budget; last_deferred_at anchors the retry deadline
             // for errors occurring after a deferral. Both are needed: collapsing them onto one column
             // makes one of the two clocks measure the wrong span.
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "first_deferred_at",
-                schema: "engine",
-                table: "steps",
-                type: "timestamp with time zone",
-                nullable: true
-            );
-
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "last_deferred_at",
-                schema: "engine",
-                table: "steps",
-                type: "timestamp with time zone",
-                nullable: true
+            migrationBuilder.Sql(
+                """
+                ALTER TABLE engine.steps
+                    ADD COLUMN IF NOT EXISTS defer_count integer NOT NULL DEFAULT 0,
+                    ADD COLUMN IF NOT EXISTS first_deferred_at timestamp with time zone,
+                    ADD COLUMN IF NOT EXISTS last_deferred_at timestamp with time zone;
+                """
             );
 
             SwapFetchGateIndex(migrationBuilder, "status IN (0, 2, 8)");
@@ -57,11 +45,14 @@ namespace WorkflowEngine.Data.Migrations
         {
             SwapFetchGateIndex(migrationBuilder, "status IN (0, 2)");
 
-            migrationBuilder.DropColumn(name: "defer_count", schema: "engine", table: "steps");
-
-            migrationBuilder.DropColumn(name: "first_deferred_at", schema: "engine", table: "steps");
-
-            migrationBuilder.DropColumn(name: "last_deferred_at", schema: "engine", table: "steps");
+            migrationBuilder.Sql(
+                """
+                ALTER TABLE engine.steps
+                    DROP COLUMN IF EXISTS defer_count,
+                    DROP COLUMN IF EXISTS first_deferred_at,
+                    DROP COLUMN IF EXISTS last_deferred_at;
+                """
+            );
         }
 
         /// <summary>
