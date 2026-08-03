@@ -72,6 +72,29 @@ describe('useAltinityWebSocket', () => {
     expect(received).toEqual([event]);
   });
 
+  it('keeps delivering to other subscribers when one of them throws', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { result: first } = renderUseAltinityWebSocket();
+    const { result: second } = renderUseAltinityWebSocket();
+    first.current.onAgentMessage(() => {
+      throw new Error('subscriber crashed');
+    });
+    const received: WorkflowEvent[] = [];
+    second.current.onAgentMessage((message) => received.push(message));
+
+    const dispatch = mockConnection.on.mock.calls[0][1];
+    const event: WorkflowEvent = {
+      type: 'assistant_message',
+      session_id: 'thread-1',
+      data: { content: 'Svar' },
+    };
+    dispatch(event);
+
+    expect(received).toEqual([event]);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
   it('filters out the "session created" status noise', () => {
     const { result } = renderUseAltinityWebSocket();
     const received: WorkflowEvent[] = [];

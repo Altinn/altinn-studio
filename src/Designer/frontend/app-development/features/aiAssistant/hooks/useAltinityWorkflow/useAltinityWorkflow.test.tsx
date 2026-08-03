@@ -320,7 +320,10 @@ describe('useAltinityWorkflow', () => {
   });
 
   it('persists a duplicated assistant_message event only once', async () => {
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
+    });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAltinityWebSocket.mockReturnValue({
@@ -353,6 +356,85 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.createMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('evicts the oldest dedupe keys so late duplicates of old runs are reprocessed', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAltinityWorkflow(threads);
+
+    const dedupeCapacity = 200;
+    const sendAssistantMessage = (traceId: string) =>
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar', traceId, persistedMessageId: `msg-${traceId}` },
+      });
+
+    await act(async () => {
+      for (let index = 0; index <= dedupeCapacity; index++) {
+        sendAssistantMessage(`trace-${index}`);
+      }
+    });
+    expect(threads.refreshMessages).toHaveBeenCalledTimes(dedupeCapacity + 1);
+
+    // trace-0 was evicted from the bounded set — a late duplicate is
+    // processed again instead of leaking memory forever.
+    await act(async () => {
+      sendAssistantMessage('trace-0');
+    });
+    expect(threads.refreshMessages).toHaveBeenCalledTimes(dedupeCapacity + 2);
+  });
+
+  it('marks the workflow inactive on a terminal status event', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo' },
+      });
+      capturedOnAgentMessage!({
+        type: 'status',
+        session_id: 'thread-a',
+        data: { done: true },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
   });
 
   it('persists assistant message using thread ID, not backend session ID', async () => {
@@ -1028,6 +1110,91 @@ describe('useAltinityWorkflow', () => {
     // hub connection — cancel must (re)register first or the hub rejects it.
     expect(registerSession).toHaveBeenCalledWith('testOrg', 'testApp', 'thread-1');
     expect(callOrder).toEqual(['registerSession', 'cancelWorkflow']);
+  });
+
+  it('still cancels the workflow when deleting the pending message fails', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-1',
+      deleteMessage: jest.fn().mockRejectedValue(new Error('delete failed')),
+      chatMessages: [
+        {
+          id: 'message-1',
+          role: MessageAuthor.User,
+          content: 'Please do this',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+      ],
+    });
+    const cancelWorkflow = jest.fn();
+
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow,
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
+    // The message was not deleted, so its content must not be restored to the composer.
+    expect(result.current.cancelledMessageContent).toBeNull();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('swallows cancel request failures and restores then clears the composer content', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-1',
+      deleteMessage: jest.fn().mockResolvedValue(undefined),
+      chatMessages: [
+        {
+          id: 'message-1',
+          role: MessageAuthor.User,
+          content: 'Please do this',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+      ],
+    });
+
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn().mockRejectedValue(new Error('agents unreachable')),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    // The failed cancel must not throw, and the deleted message's content is
+    // still restored to the composer — and clearable once consumed.
+    expect(result.current.cancelledMessageContent).toBe('Please do this');
+    await act(async () => {
+      result.current.clearCancelledMessageContent();
+    });
+    expect(result.current.cancelledMessageContent).toBeNull();
+    consoleErrorSpy.mockRestore();
   });
 
   it('does not delete message on abort when assistant has already responded', async () => {
