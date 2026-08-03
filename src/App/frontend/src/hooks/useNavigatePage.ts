@@ -17,6 +17,7 @@ import {
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { cancelFocusComponentUrlCleanup } from 'src/layout/focusComponent';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
@@ -49,6 +50,7 @@ const useOurNavigate = () => {
         setReturnToView?.(undefined);
         setSummaryNodeOfOrigin?.(undefined);
       }
+      cancelFocusComponentUrlCleanup();
       navigate(path, theirOptions);
     },
     [navigate, setReturnToView, setSummaryNodeOfOrigin],

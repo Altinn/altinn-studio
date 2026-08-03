@@ -31,6 +31,10 @@ export function setFocusComponentUrlCleanup(cleanup: (() => void) | undefined) {
   cleanupFocusComponentUrl = cleanup;
 }
 
+export function cancelFocusComponentUrlCleanup() {
+  cleanupFocusComponentUrl = undefined;
+}
+
 export function useFocusComponentRequest(nodeId: string): FocusComponentRequest | undefined {
   return useSyncExternalStore(
     (listener) => {
@@ -103,7 +107,7 @@ export function FocusComponentRequestFromUrl() {
       }, focusQueryCleanupOptions);
     });
 
-    return () => setFocusComponentUrlCleanup(undefined);
+    return cancelFocusComponentUrlCleanup;
   }, [setSearchParams]);
 
   return null;
