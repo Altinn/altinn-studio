@@ -1,16 +1,12 @@
 import { DisplayDate } from '@app/form-component/app-components/DisplayDate';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { Description } from '@app/form-component/layout-components/common/Description';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
+import { LabelAsSpan } from '@app/form-component/layout-components/common/LabelAsSpan';
 import { getLabelId } from '@app/form-component/layout-components/utils/labelIds';
-import { Label as DsLabel } from '@digdir/designsystemet-react';
-import cn from 'classnames';
 import type { IGridStyling } from '@app/form-component/app-components/Flex';
+import type { LabelAsSpanDirection } from '@app/form-component/layout-components/common/LabelAsSpan';
 
-import classes from './Date.module.css';
-
-export type DateDirection = 'horizontal' | 'vertical';
+export type DateDirection = LabelAsSpanDirection;
 
 export interface DateProps {
   componentId: string;
@@ -33,7 +29,7 @@ export function Date({
   direction = 'horizontal',
   innerGrid,
 }: DateProps) {
-  const { lang, langAsString } = useTranslation();
+  const { langAsString } = useTranslation();
 
   if (!title) {
     return <DisplayDate value={value} iconUrl={icon} iconAltText='' />;
@@ -42,22 +38,13 @@ export function Date({
   const labelId = getLabelId(componentId);
 
   return (
-    <span
-      className={cn(
-        classes.label,
-        classes.dateComponent,
-        direction === 'vertical' ? classes.vertical : classes.horizontal,
-      )}
+    <LabelAsSpan
+      componentId={componentId}
+      title={title}
+      description={description}
+      help={help}
+      direction={direction}
     >
-      <span className={classes.labelWrapper}>
-        <span className={classes.labelRow}>
-          <DsLabel asChild>
-            <span id={labelId}>{lang(title)}</span>
-          </DsLabel>
-          {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
-        </span>
-        {description && <Description componentId={componentId} description={lang(description)} />}
-      </span>
       <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
         <DisplayDate
           value={value}
@@ -66,6 +53,6 @@ export function Date({
           labelId={labelId}
         />
       </ComponentStructure>
-    </span>
+    </LabelAsSpan>
   );
 }

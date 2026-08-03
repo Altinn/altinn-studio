@@ -9,6 +9,7 @@ in `app-components`, layout components are allowed to use utilities like `useTra
 Shared building blocks reused between layout components (see [`common/README.md`](./common/README.md)):
 
 - `HelpTextContainer` — the help-text tooltip used by several components.
+- `LabelAsSpan` — span-based label wrapper for display components (Date, Text, Number, …).
 - `storybook/` — the shared Storybook docs setup that splits a component's Studio-configurable props
   from its runtime (injected) props. See [`common/README.md`](./common/README.md) for how to add it
   to a component.

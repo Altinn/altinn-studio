@@ -1,4 +1,4 @@
-.dateComponent {
+.fieldWrapper {
   display: flex;
   flex-grow: 0;
   max-width: 100%;
@@ -6,7 +6,7 @@
   gap: var(--ds-size-2);
 }
 
-.label span {
+.fieldWrapper > span:first-child span {
   font-size: var(--ds-body-md-font-size);
 }
 
