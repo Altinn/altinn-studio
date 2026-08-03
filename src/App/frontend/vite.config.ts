@@ -3,11 +3,7 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
-// This file is loaded by Vite itself, before any tsconfig path aliases are in play, so the
-// plugin imports must be relative.
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { codegenWatchPlugin } from './scripts/vite/codegenWatchPlugin';
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { devEntryPlugin } from './scripts/vite/devEntryPlugin';
 
 // eslint-disable-next-line import/no-default-export
@@ -15,6 +11,10 @@ export default defineConfig(({ mode }) => {
   const isDevBuild = mode === 'development';
 
   return {
+    // Every codegen run rewrites *.generated.ts, which makes Vite log "page reload" - one of the
+    // messages it prints *after* clearing the screen. That would wipe the codegen output (errors
+    // included), which the subprocess writes straight to the terminal. No effect in CI, which
+    // Vite never clears.
     clearScreen: false,
     define: {
       // The bundle is loaded directly by browsers (no downstream bundler), so this must be

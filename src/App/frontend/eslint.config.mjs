@@ -194,6 +194,13 @@ export default defineConfig([
     },
   },
   {
+    // Vite loads these before any tsconfig path aliases are in play, so their imports must be relative.
+    files: ['vite.config*.ts'],
+    rules: {
+      'no-relative-import-paths/no-relative-import-paths': 'off',
+    },
+  },
+  {
     files: ['src/**/*.generated.{ts,tsx}'],
     rules: {
       'no-explicit-any': 'off',

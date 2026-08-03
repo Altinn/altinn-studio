@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { sinonChaiCjsPlugin } from './scripts/vite/sinonChaiCjsPlugin';
 
 /**
