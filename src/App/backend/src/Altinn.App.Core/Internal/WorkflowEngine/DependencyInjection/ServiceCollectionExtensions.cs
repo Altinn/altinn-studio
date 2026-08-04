@@ -59,7 +59,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
         // Process engine callback handlers - ServiceTask
-        services.AddTransient<IServiceTaskCheckpointStoreFactory, StorageServiceTaskCheckpointStoreFactory>();
+        services.AddTransient<IServiceTaskCheckpointsFactory, StorageServiceTaskCheckpointsFactory>();
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
 
         // Process engine callback handlers - Notifications

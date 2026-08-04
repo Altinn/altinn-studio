@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -55,6 +56,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => _serviceTask.Execute(parameters));
@@ -85,6 +87,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         // Act & Assert
@@ -115,6 +118,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         // Act
@@ -138,6 +142,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
@@ -191,6 +196,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         // Act
@@ -220,6 +226,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         // Act
@@ -266,6 +273,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         // Act
@@ -292,6 +300,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
         await SetShipmentOwner(parameters, Guid.NewGuid().ToString());
 
@@ -323,6 +332,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
         await SetShipmentOwner(parameters, _workflowId.ToString());
 
@@ -350,6 +360,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
@@ -373,6 +384,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
@@ -401,6 +413,7 @@ public class EFormidlingServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };

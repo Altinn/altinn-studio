@@ -14,7 +14,7 @@ internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType) : Comma
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
-    IServiceTaskCheckpointStoreFactory checkpointStoreFactory,
+    IServiceTaskCheckpointsFactory checkpointsFactory,
     Telemetry? telemetry = null
 ) : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
 {
@@ -67,8 +67,9 @@ internal sealed class ExecuteServiceTask(
                     StartedAt = context.Payload.FirstDeferredAt,
                     Deadline = context.Payload.WaitDeadline,
                 },
-                Checkpoints = new ServiceTaskCheckpoints(
-                    checkpointStoreFactory.Create(instanceDataMutator, serviceTask.Type),
+                Checkpoints = checkpointsFactory.Create(
+                    instanceDataMutator,
+                    serviceTask.Type,
                     context.CancellationToken
                 ),
             };

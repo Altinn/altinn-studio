@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -602,6 +603,7 @@ public class SubformPdfServiceTaskTests
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
             CancellationToken = cancellationToken,
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
     }
 

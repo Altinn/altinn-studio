@@ -67,10 +67,10 @@ public class ExecuteServiceTaskTests
     }
 
     private static ExecuteServiceTask CreateCommand(params IServiceTask[] serviceTasks) =>
-        CreateCommand(new StorageServiceTaskCheckpointStoreFactory(Mock.Of<IInstanceClient>()), serviceTasks);
+        CreateCommand(new StorageServiceTaskCheckpointsFactory(Mock.Of<IInstanceClient>()), serviceTasks);
 
     private static ExecuteServiceTask CreateCommand(
-        IServiceTaskCheckpointStoreFactory checkpointStoreFactory,
+        IServiceTaskCheckpointsFactory checkpointsFactory,
         params IServiceTask[] serviceTasks
     )
     {
@@ -82,7 +82,7 @@ public class ExecuteServiceTaskTests
         }
         var sp = services.BuildServiceProvider();
 
-        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>(), checkpointStoreFactory);
+        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>(), checkpointsFactory);
     }
 
     [Fact]
@@ -302,7 +302,7 @@ public class ExecuteServiceTaskTests
                 return ServiceTaskResult.Success();
             });
         var command = CreateCommand(
-            new StorageServiceTaskCheckpointStoreFactory(instanceClient.Object),
+            new StorageServiceTaskCheckpointsFactory(instanceClient.Object),
             serviceTask.Object
         );
         var context = CreateContext(CreateInstance(), "MYSERVICETASK");

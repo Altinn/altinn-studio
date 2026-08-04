@@ -6,16 +6,21 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Process;
 
-public class ServiceTaskCheckpointStoreTests
+public class StorageServiceTaskCheckpointsTests
 {
     private readonly Mock<IInstanceClient> _instanceClientMock = new();
     private readonly Instance _snapshotInstance;
-    private readonly StorageServiceTaskCheckpointStore _store;
+    private readonly StorageServiceTaskCheckpoints _checkpoints;
 
-    public ServiceTaskCheckpointStoreTests()
+    public StorageServiceTaskCheckpointsTests()
     {
         _snapshotInstance = CreateInstance();
-        _store = new StorageServiceTaskCheckpointStore(_instanceClientMock.Object, _snapshotInstance, "eFormidling");
+        _checkpoints = new StorageServiceTaskCheckpoints(
+            _instanceClientMock.Object,
+            _snapshotInstance,
+            "eFormidling",
+            CancellationToken.None
+        );
 
         _instanceClientMock
             .Setup(x =>
@@ -43,7 +48,7 @@ public class ServiceTaskCheckpointStoreTests
     [Fact]
     public async Task Set_WritesPrefixedKeyToStorageImmediately_AndMirrorsOntoSnapshot()
     {
-        await _store.Set("shipmentWorkflowId", "wf-123", CancellationToken.None);
+        await _checkpoints.Set("shipmentWorkflowId", "wf-123");
 
         // The Storage write is immediate — the whole point is surviving an attempt that fails later.
         _instanceClientMock.Verify(
@@ -80,7 +85,7 @@ public class ServiceTaskCheckpointStoreTests
                 CreateInstance(new Dictionary<string, string> { ["serviceTask:eFormidling:receipt"] = "r-42" })
             );
 
-        string? value = await _store.Get("receipt", CancellationToken.None);
+        string? value = await _checkpoints.Get("receipt");
 
         Assert.Equal("r-42", value);
     }
@@ -107,8 +112,8 @@ public class ServiceTaskCheckpointStoreTests
                 )
             );
 
-        Assert.Equal("r-42", await _store.Get("receipt", CancellationToken.None));
-        Assert.Null(await _store.Get("somethingElse", CancellationToken.None));
+        Assert.Equal("r-42", await _checkpoints.Get("receipt"));
+        Assert.Null(await _checkpoints.Get("somethingElse"));
 
         _instanceClientMock.Verify(
             x =>
@@ -124,9 +129,9 @@ public class ServiceTaskCheckpointStoreTests
     [Fact]
     public async Task Get_AfterOwnSet_ReadsOwnWriteWithoutFetching()
     {
-        await _store.Set("receipt", "r-42", CancellationToken.None);
+        await _checkpoints.Set("receipt", "r-42");
 
-        Assert.Equal("r-42", await _store.Get("receipt", CancellationToken.None));
+        Assert.Equal("r-42", await _checkpoints.Get("receipt"));
 
         _instanceClientMock.Verify(
             x =>
@@ -140,18 +145,22 @@ public class ServiceTaskCheckpointStoreTests
     }
 
     [Fact]
-    public async Task Factory_CreatesStoreBoundToTheAccessorsInstance()
+    public async Task Factory_CreatesCheckpointsBoundToTheAccessorsInstance()
     {
         // The factory takes the execution's accessor, not a bare Instance, so the mirror can only
         // ever decorate the live execution snapshot — the object later commands re-sign into the
-        // state blob. Accessor rather than mutator: a store must never be able to touch the
+        // state blob. Accessor rather than mutator: checkpoints must never be able to touch the
         // save-on-success unit of work.
         var accessorMock = new Mock<IInstanceDataAccessor>();
         accessorMock.Setup(x => x.Instance).Returns(_snapshotInstance);
-        var factory = new StorageServiceTaskCheckpointStoreFactory(_instanceClientMock.Object);
+        var factory = new StorageServiceTaskCheckpointsFactory(_instanceClientMock.Object);
 
-        IServiceTaskCheckpointStore store = factory.Create(accessorMock.Object, "eFormidling");
-        await store.Set("receipt", "r-42", CancellationToken.None);
+        IServiceTaskCheckpoints checkpoints = factory.Create(
+            accessorMock.Object,
+            "eFormidling",
+            CancellationToken.None
+        );
+        await checkpoints.Set("receipt", "r-42");
 
         Assert.Equal("r-42", _snapshotInstance.DataValues?["serviceTask:eFormidling:receipt"]);
     }
@@ -172,6 +181,14 @@ public class ServiceTaskCheckpointStoreTests
             )
             .ThrowsAsync(new HttpRequestException("storage unavailable"));
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => _store.Get("receipt", CancellationToken.None));
+        await Assert.ThrowsAsync<HttpRequestException>(() => _checkpoints.Get("receipt"));
+    }
+
+    [Fact]
+    public async Task DegenerateArguments_AreRejected()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() => _checkpoints.Set(" ", "value"));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _checkpoints.Set("key", null!));
+        await Assert.ThrowsAsync<ArgumentException>(() => _checkpoints.Get(""));
     }
 }

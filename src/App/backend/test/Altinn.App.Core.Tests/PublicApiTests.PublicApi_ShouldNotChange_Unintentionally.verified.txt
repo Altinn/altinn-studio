@@ -1976,6 +1976,11 @@ namespace Altinn.App.Core.Features.Process
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
+    public interface IServiceTaskCheckpoints
+    {
+        System.Threading.Tasks.Task<string?> Get(string key);
+        System.Threading.Tasks.Task Set(string key, string value);
+    }
     public sealed class OnProcessEndingContext
     {
         public OnProcessEndingContext() { }
@@ -2035,17 +2040,12 @@ namespace Altinn.App.Core.Features.Process
         public System.DateTimeOffset? Deadline { get; init; }
         public int RetryCount { get; init; }
     }
-    public sealed class ServiceTaskCheckpoints
-    {
-        public System.Threading.Tasks.Task<string?> Get(string key) { }
-        public System.Threading.Tasks.Task Set(string key, string value) { }
-    }
     public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
         public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
-        public Altinn.App.Core.Features.Process.ServiceTaskCheckpoints Checkpoints { get; init; }
+        public required Altinn.App.Core.Features.Process.IServiceTaskCheckpoints Checkpoints { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required System.Guid StepId { get; init; }
         public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }

@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -55,6 +56,7 @@ public class PdfServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         // Act
@@ -110,6 +112,7 @@ public class PdfServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
+            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
         var serviceTask = new PdfServiceTask(_pdfServiceMock.Object, _processReaderMock.Object, _loggerMock.Object);

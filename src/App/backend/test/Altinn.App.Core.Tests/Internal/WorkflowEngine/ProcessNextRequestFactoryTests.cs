@@ -70,7 +70,7 @@ public class ProcessNextRequestFactoryTests
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
         var stepOptionsResolver = new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory, Mock.Of<IServiceTaskCheckpointStoreFactory>())],
+            [new ExecuteServiceTask(appImplFactory, Mock.Of<IServiceTaskCheckpointsFactory>())],
             appImplFactory
         );
 
