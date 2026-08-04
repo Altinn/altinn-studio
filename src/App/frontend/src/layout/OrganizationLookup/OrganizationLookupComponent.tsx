@@ -20,8 +20,8 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/OrganisationLookup/OrganisationLookupComponent.module.css';
-import { validateOrganisationLookupResponse, validateOrgnr } from 'src/layout/OrganisationLookup/validation';
+import classes from 'src/layout/OrganizationLookup/OrganizationLookupComponent.module.css';
+import { validateOrganizationLookupResponse, validateOrgnr } from 'src/layout/OrganizationLookup/validation';
 import utilClasses from 'src/styles/utils.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -31,7 +31,7 @@ import { appPath } from 'src/utils/urls/appUrlHelper';
 const orgLookupQueries = {
   lookup: (orgNr: string) =>
     queryOptions({
-      queryKey: [{ scope: 'organisationLookup', orgNr }],
+      queryKey: [{ scope: 'organizationLookup', orgNr }],
       queryFn: () => fetchOrg(orgNr),
       enabled: false,
       gcTime: 0,
@@ -44,7 +44,7 @@ export type Organisation = {
   orgNr: string;
   name: string;
 };
-export type OrganisationLookupResponse =
+export type OrganizationLookupResponse =
   | { success: false; organisationDetails: null }
   | { success: true; organisationDetails: Organisation };
 
@@ -57,25 +57,25 @@ async function fetchOrg(orgNr: string): Promise<{ org: Organisation; error: null
   try {
     const response = await httpGet(url);
 
-    if (!validateOrganisationLookupResponse(response)) {
-      return { org: null, error: 'organisation_lookup.validation_invalid_response_from_server' };
+    if (!validateOrganizationLookupResponse(response)) {
+      return { org: null, error: 'organization_lookup.validation_invalid_response_from_server' };
     }
 
     if (!response.success || !response.organisationDetails) {
-      return { org: null, error: 'organisation_lookup.validation_error_not_found' };
+      return { org: null, error: 'organization_lookup.validation_error_not_found' };
     }
 
     return { org: response.organisationDetails, error: null };
   } catch {
-    return { org: null, error: 'organisation_lookup.unknown_error' };
+    return { org: null, error: 'organization_lookup.unknown_error' };
   }
 }
 
-export function OrganisationLookupComponent({
+export function OrganizationLookupComponent({
   baseComponentId,
   overrideDisplay,
-}: PropsFromGenericComponent<'OrganisationLookup'>) {
-  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'OrganisationLookup');
+}: PropsFromGenericComponent<'OrganizationLookup'>) {
+  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'OrganizationLookup');
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
@@ -86,7 +86,7 @@ export function OrganisationLookupComponent({
   const statusRef = useRef<HTMLDivElement>(null);
 
   const {
-    formData: { organisation_lookup_orgnr, organisation_lookup_name: orgName },
+    formData: { organization_lookup_orgnr, organization_lookup_name: orgName },
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
@@ -107,7 +107,7 @@ export function OrganisationLookupComponent({
   }
 
   function announceOrgDetails(orgNr: string) {
-    const parts = [`${langAsString('organisation_lookup.orgnr_label')} ${orgNr}`];
+    const parts = [`${langAsString('organization_lookup.orgnr_label')} ${orgNr}`];
 
     const parent = layoutLookups.componentToParent[baseComponentId];
     const childIds = parent?.type === 'node' ? layoutLookups.componentToChildren[parent.id] : undefined;
@@ -159,8 +159,8 @@ export function OrganisationLookupComponent({
 
     const { data } = await performLookup();
     if (data?.org) {
-      setValue('organisation_lookup_orgnr', data.org.orgNr);
-      dataModelBindings.organisation_lookup_name && setValue('organisation_lookup_name', data.org.name);
+      setValue('organization_lookup_orgnr', data.org.orgNr);
+      dataModelBindings.organization_lookup_name && setValue('organization_lookup_name', data.org.name);
       await waitForSave(true);
       announceOrgDetails(data.org.orgNr);
     } else if (data?.error) {
@@ -169,14 +169,14 @@ export function OrganisationLookupComponent({
   }
 
   function handleClear() {
-    setValue('organisation_lookup_orgnr', '');
-    dataModelBindings.organisation_lookup_name && setValue('organisation_lookup_name', '');
+    setValue('organization_lookup_orgnr', '');
+    dataModelBindings.organization_lookup_name && setValue('organization_lookup_name', '');
     setTempOrgNr('');
     setOrgNrErrors(undefined);
     setStatusMessage('');
   }
 
-  const hasSuccessfullyFetched = !!organisation_lookup_orgnr;
+  const hasSuccessfullyFetched = !!organization_lookup_orgnr;
 
   const isValid = (orgNrErrors?.length && orgNrErrors?.length > 0) || data?.error;
 
@@ -193,13 +193,13 @@ export function OrganisationLookupComponent({
           <div className={classes.orgnrLabel}>
             <Label
               htmlFor={`${id}_orgnr`}
-              label={langAsString('organisation_lookup.orgnr_label')}
+              label={langAsString('organization_lookup.orgnr_label')}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
               description={
                 hasSuccessfullyFetched ? (
                   <Description
-                    description={langAsString('organisation_lookup.from_registry_description')}
+                    description={langAsString('organization_lookup.from_registry_description')}
                     componentId={`${id}_orgnr`}
                   />
                 ) : undefined
@@ -210,8 +210,8 @@ export function OrganisationLookupComponent({
             <NumericInput
               id={`${id}_orgnr`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_orgnr`) : undefined}
-              aria-label={langAsString('organisation_lookup.orgnr_label')}
-              value={hasSuccessfullyFetched ? organisation_lookup_orgnr : tempOrgNr}
+              aria-label={langAsString('organization_lookup.orgnr_label')}
+              value={hasSuccessfullyFetched ? organization_lookup_orgnr : tempOrgNr}
               required={required}
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={!!isValid}
@@ -244,7 +244,7 @@ export function OrganisationLookupComponent({
                   isLoading={isFetching}
                   loadingLabel={langAsString('general.loading')}
                 >
-                  <Lang id='organisation_lookup.submit_button' />
+                  <Lang id='organization_lookup.submit_button' />
                 </Button>
               ) : (
                 <Button
@@ -252,7 +252,7 @@ export function OrganisationLookupComponent({
                   color='danger'
                   onClick={handleClear}
                 >
-                  <Lang id='organisation_lookup.clear_button' />
+                  <Lang id='organization_lookup.clear_button' />
                 </Button>
               )}
             </div>
@@ -269,7 +269,7 @@ export function OrganisationLookupComponent({
             <div
               className={classes.orgname}
               role='group'
-              aria-label={langAsString('organisation_lookup.org_name')}
+              aria-label={langAsString('organization_lookup.org_name')}
             >
               <Paragraph data-size='sm'>{orgName}</Paragraph>
             </div>

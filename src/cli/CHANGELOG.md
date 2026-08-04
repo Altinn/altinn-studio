@@ -12,10 +12,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Auto-migrate the Correspondence APIs removed in v9 in `studioctl app upgrade v9`: drop the builder calls and properties v8 already discarded, rename `CustomRecipient` to the `CustomRecipients` list, rename the removed builder step interface, wrap a byte payload passed to `WithData` in a `MemoryStream`, and replace the two superseded payload constructors with `CorrespondenceAuthenticationMethod`. Every rewrite is listed for review.
 - Warn in `studioctl app upgrade v9` about the Correspondence changes that have no mechanical fix — the recipient-override methods, the wrapper-based recipient list, and `IsReserved` — plus anything the auto-migration could not rewrite safely.
+- Remove redundant `showBackButton: true` properties from `NavigationButtons` components during `studioctl app upgrade v9`, while preserving explicit `false` values.
+- Rename `OrganisationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
 
 ### Changed
 
-- Remove redundant `showBackButton: true` properties from `NavigationButtons` components during `studioctl app upgrade v9`, while preserving explicit `false` values.
 - Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
 

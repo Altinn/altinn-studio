@@ -73,10 +73,10 @@
       },
       {
         "id": "organisationLookup",
-        "type": "OrganisationLookup",
+        "type": "OrganizationLookup",
         "dataModelBindings": {
-          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
-          "organisation_lookup_name": "StifterVirksomhet.Navn"
+          "organization_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
+          "organization_lookup_name": "StifterVirksomhet.Navn"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",

@@ -2,11 +2,11 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 
-const organisationLookupIntercept = '**/api/v1/lookup/organisation/*';
+const organizationLookupIntercept = '**/api/v1/lookup/organisation/*';
 
 describe('Organisation lookup', () => {
   it('Renders the organisation lookup component correctly', () => {
-    cy.intercept('GET', organisationLookupIntercept, {
+    cy.intercept('GET', organizationLookupIntercept, {
       statusCode: 200,
       body: {
         success: true,
@@ -42,7 +42,7 @@ describe('Organisation lookup', () => {
     cy.findByRole('button', { name: /Fjern/i }).should('not.exist');
 
     // Add interceptor for failed fetch
-    cy.intercept('GET', organisationLookupIntercept, {
+    cy.intercept('GET', organizationLookupIntercept, {
       statusCode: 200,
       body: {
         success: false,
@@ -57,7 +57,7 @@ describe('Organisation lookup', () => {
     cy.findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i).should('exist');
 
     // Add interceptor for failed fetch due to server error
-    cy.intercept('GET', organisationLookupIntercept, {
+    cy.intercept('GET', organizationLookupIntercept, {
       statusCode: 500,
     }).as('failedFetchOrganisationServerError');
 
@@ -73,7 +73,7 @@ describe('Organisation lookup', () => {
     cy.findByText(/Organisasjonsnummeret er ugyldig/i).should('exist');
 
     cy.changeLayout((component) => {
-      if (component.type === 'OrganisationLookup') {
+      if (component.type === 'OrganizationLookup') {
         component.showValidations = ['All'];
       }
     });
@@ -82,7 +82,7 @@ describe('Organisation lookup', () => {
     cy.findAllByText('Du må fylle ut organisasjonsnummer og hente opplysninger').should('exist').and('have.length', 3);
 
     cy.changeLayout((component) => {
-      if (component.type === 'OrganisationLookup') {
+      if (component.type === 'OrganizationLookup') {
         component.showValidations = undefined;
       }
       if (component.type === 'NavigationButtons') {

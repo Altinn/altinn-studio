@@ -128,6 +128,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -405,6 +408,20 @@ internal static class V8Tov9Upgrade
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating launch settings: {ex.Message}");
             return 1;
+        }
+    }
+
+    static async Task<int> MigrateOrganizationLookupLayouts(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating OrganisationLookup layout components...");
+            return await OrganizationLookupLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating OrganisationLookup components: {ex.Message}");
+            return ExitError;
         }
     }
 
