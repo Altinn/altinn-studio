@@ -7,7 +7,7 @@ import { userEvent } from '@testing-library/user-event';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
+import { OrganizationLookupComponent } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import { httpGet } from 'src/utils/network/networking';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -25,18 +25,18 @@ const orgLookupId = 'org-lookup';
 const textSiblingId = 'text-sibling';
 
 const defaultBindings = {
-  organisation_lookup_orgnr: { field: 'orgNr', dataType: defaultDataTypeMock },
-  organisation_lookup_name: { field: 'orgName', dataType: defaultDataTypeMock },
+  organization_lookup_orgnr: { field: 'orgNr', dataType: defaultDataTypeMock },
+  organization_lookup_name: { field: 'orgName', dataType: defaultDataTypeMock },
 };
 
 const render = async ({
   component,
   queries,
   ...rest
-}: Partial<RenderGenericComponentTestProps<'OrganisationLookup'>> = {}) =>
+}: Partial<RenderGenericComponentTestProps<'OrganizationLookup'>> = {}) =>
   await renderGenericComponentTest({
-    type: 'OrganisationLookup',
-    renderer: (props) => <OrganisationLookupComponent {...props} />,
+    type: 'OrganizationLookup',
+    renderer: (props) => <OrganizationLookupComponent {...props} />,
     component: {
       id: orgLookupId,
       dataModelBindings: defaultBindings,
@@ -70,7 +70,7 @@ const layoutWithSiblingText: ILayoutCollection = {
         },
         {
           id: orgLookupId,
-          type: 'OrganisationLookup',
+          type: 'OrganizationLookup',
           dataModelBindings: defaultBindings,
           textResourceBindings: {
             title: 'Organisation lookup',
@@ -94,7 +94,7 @@ const layoutWithSiblingText: ILayoutCollection = {
   },
 };
 
-describe('OrganisationLookupComponent', () => {
+describe('OrganizationLookupComponent', () => {
   beforeEach(() => {
     mockedHttpGet.mockReset();
   });
@@ -106,7 +106,7 @@ describe('OrganisationLookupComponent', () => {
     expect(screen.getByRole('button', { name: /Hent opplysninger/i })).toBeInTheDocument();
   });
 
-  it('shows validation error for invalid organisation number', async () => {
+  it('shows validation error for invalid organization number', async () => {
     await render();
 
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), '123456789');

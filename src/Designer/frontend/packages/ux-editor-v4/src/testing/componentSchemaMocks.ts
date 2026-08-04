@@ -47,7 +47,12 @@ import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
-export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
+// ComponentType also contains the v9 OrganizationLookup name used by ux-editor.
+export const componentSchemaMocks: Record<
+  Exclude<ComponentType, ComponentType.OrganizationLookup>,
+  JsonSchema
+> &
+  Partial<Record<ComponentType.OrganizationLookup, JsonSchema>> = {
   [ComponentType.AccordionGroup]: AccordionGroupSchema,
   [ComponentType.Accordion]: AccordionSchema,
   [ComponentType.ActionButton]: ActionButtonSchema,

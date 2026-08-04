@@ -1,4 +1,4 @@
-import { checkValidOrgnNr } from 'src/layout/OrganisationLookup/validation';
+import { checkValidOrgnNr } from 'src/layout/OrganizationLookup/validation';
 
 describe('CheckValidOrgNr', () => {
   it('should return true when the orgNr is valid', () => {

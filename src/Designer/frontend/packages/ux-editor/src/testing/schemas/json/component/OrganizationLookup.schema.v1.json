@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/OrganisationLookup.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/OrganizationLookup.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -88,7 +88,7 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": { "const": "OrganisationLookup" },
+    "type": { "const": "OrganizationLookup" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -136,13 +136,13 @@
     "dataModelBindings": {
       "type": "object",
       "properties": {
-        "organisation_lookup_orgnr": { "$ref": "#/definitions/IRawDataModelBinding" },
-        "organisation_lookup_name": { "$ref": "#/definitions/IRawDataModelBinding" }
+        "organization_lookup_orgnr": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "organization_lookup_name": { "$ref": "#/definitions/IRawDataModelBinding" }
       },
-      "required": ["organisation_lookup_orgnr"],
+      "required": ["organization_lookup_orgnr"],
       "additionalProperties": false
     }
   },
   "required": ["id", "type", "dataModelBindings"],
-  "title": "OrganisationLookup component schema"
+  "title": "OrganizationLookup component schema"
 }
