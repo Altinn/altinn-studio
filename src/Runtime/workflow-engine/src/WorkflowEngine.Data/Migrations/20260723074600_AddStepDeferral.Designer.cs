@@ -99,6 +99,11 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("labels");
 
+                    b.Property<string>("LastDeferReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("last_defer_reason");
+
                     b.Property<DateTimeOffset?>("LastDeferredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_deferred_at");
@@ -230,6 +235,10 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("InitialState")
                         .HasColumnType("text")
                         .HasColumnName("initial_state");
+
+                    b.Property<bool?>("IsHead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_head");
 
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb")

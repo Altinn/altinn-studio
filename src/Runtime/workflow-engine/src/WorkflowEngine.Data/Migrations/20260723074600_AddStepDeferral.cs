@@ -27,13 +27,15 @@ namespace WorkflowEngine.Data.Migrations
             //
             // first_deferred_at anchors the wait budget; last_deferred_at anchors the retry deadline
             // for errors occurring after a deferral. Both are needed: collapsing them onto one column
-            // makes one of the two clocks measure the wrong span.
+            // makes one of the two clocks measure the wrong span. last_defer_reason carries the
+            // deferring command's own words, surfaced on status reads while the step waits.
             migrationBuilder.Sql(
                 """
                 ALTER TABLE engine.steps
                     ADD COLUMN IF NOT EXISTS defer_count integer NOT NULL DEFAULT 0,
                     ADD COLUMN IF NOT EXISTS first_deferred_at timestamp with time zone,
-                    ADD COLUMN IF NOT EXISTS last_deferred_at timestamp with time zone;
+                    ADD COLUMN IF NOT EXISTS last_deferred_at timestamp with time zone,
+                    ADD COLUMN IF NOT EXISTS last_defer_reason character varying(500);
                 """
             );
 
@@ -50,7 +52,8 @@ namespace WorkflowEngine.Data.Migrations
                 ALTER TABLE engine.steps
                     DROP COLUMN IF EXISTS defer_count,
                     DROP COLUMN IF EXISTS first_deferred_at,
-                    DROP COLUMN IF EXISTS last_deferred_at;
+                    DROP COLUMN IF EXISTS last_deferred_at,
+                    DROP COLUMN IF EXISTS last_defer_reason;
                 """
             );
         }
