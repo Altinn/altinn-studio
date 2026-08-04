@@ -1,8 +1,8 @@
 name: Dependabot Slack Alerts
 
 on:
-#  schedule:
-#    - cron: '0 */3 * * *' # every 3 hours
+  #  schedule:
+  #    - cron: '0 */3 * * *' # every 3 hours
   workflow_dispatch:
     inputs:
       dry_run:
@@ -66,8 +66,10 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: node .github/scripts/dependabot-notify.mjs
 
+      # Skipped on a dry run: nothing was posted, so there is no new state to keep
+      # and saving would only re-store what was restored a moment ago.
       - name: Save notification state
-        if: always()
+        if: ${{ always() && inputs.dry_run != true }}
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: dependabot-notify-state.json

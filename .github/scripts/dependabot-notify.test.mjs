@@ -7,7 +7,9 @@ import {
   buildSlackPayload,
   groupByWebhookKey,
   matchOwners,
+  oneLine,
   parseCodeowners,
+  parseJsonEnv,
   parseNextLink,
 } from './dependabot-notify.mjs';
 
@@ -146,6 +148,41 @@ test('advisory summaries containing markup are escaped', () => {
   const text = JSON.stringify(payload);
   assert.ok(text.includes('&lt;script&gt;'));
   assert.ok(!text.includes('<script>'));
+});
+
+test('a malformed webhook secret is never echoed back into the log', () => {
+  const secret = '{"team-a": "https://hooks.slack.test/T000/B000/xxxxxxxxxxxx"';
+  process.env.PARSE_LEAK_FIXTURE = secret;
+
+  try {
+    assert.throws(
+      () => parseJsonEnv('PARSE_LEAK_FIXTURE', {}),
+      (error) => {
+        assert.equal(error.message, 'PARSE_LEAK_FIXTURE is not valid JSON');
+        assert.ok(!error.stack.includes('hooks.slack.test'));
+        return true;
+      },
+    );
+  } finally {
+    delete process.env.PARSE_LEAK_FIXTURE;
+  }
+});
+
+test('an unset variable falls back instead of throwing', () => {
+  assert.deepEqual(parseJsonEnv('DEFINITELY_NOT_SET_12345', { a: 1 }), { a: 1 });
+});
+
+test('text interpolated into a workflow command cannot open a second command', () => {
+  assert.equal(
+    oneLine('HTTP 500 boom\n::add-mask::something\n::error::injected'),
+    'HTTP 500 boom ::add-mask::something ::error::injected',
+  );
+  assert.ok(!oneLine('a\r\nb').includes('\n'));
+});
+
+test('masking keeps the whole webhook URL intact', () => {
+  const url = `https://hooks.slack.test/services/${'x'.repeat(300)}`;
+  assert.equal(oneLine(url), url);
 });
 
 test('payloads stay within the Slack 50-block limit', () => {

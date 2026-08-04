@@ -92,6 +92,35 @@ function escape(text) {
   return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/**
+ * Workflow commands are newline-delimited, so any text we interpolate into one has
+ * to stay on a single line — otherwise an API response could close the command and
+ * start a new one of its own.
+ */
+export function oneLine(text) {
+  return String(text)
+    .replace(/[\r\n]+/g, ' ')
+    .trim();
+}
+
+/**
+ * GitHub masks the exact secret value and nothing else, and Node's JSON errors quote
+ * the offending input — so a malformed SLACK_WEBHOOKS would print a webhook URL in
+ * clear text. Never let the input reach the log.
+ */
+export function parseJsonEnv(name, fallback) {
+  const raw = process.env[name];
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new Error(`${name} is not valid JSON`);
+  }
+}
+
 export function buildSlackPayload(webhookKey, alerts) {
   const title =
     webhookKey === FALLBACK_KEY
@@ -108,7 +137,7 @@ export function buildSlackPayload(webhookKey, alerts) {
         type: 'mrkdwn',
         text:
           `${EMOJI[severity] ?? ':white_circle:'} *${severity.toUpperCase()}* — ` +
-          `<${alert.html_url}|${escape(alert.security_advisory?.summary ?? 'Unknown advisory')}>\n` +
+          `<${escape(alert.html_url ?? '')}|${escape(alert.security_advisory?.summary ?? 'Unknown advisory')}>\n` +
           `*${escape(alert.repo)}* · \`${escape(alert.dependency?.package?.name ?? 'unknown')}\` · ` +
           `\`${escape(alert.dependency?.manifest_path ?? 'unknown manifest')}\``,
       },
@@ -131,7 +160,18 @@ export function buildSlackPayload(webhookKey, alerts) {
 }
 
 function readJson(file, fallback) {
-  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : fallback;
+  if (!fs.existsSync(file)) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    // A truncated cache entry must not take the whole run down with it; losing the
+    // dedup state costs us duplicate messages, not missing ones.
+    process.stdout.write(`::warning::${file} is unreadable, starting from an empty state\n`);
+    return fallback;
+  }
 }
 
 /**
@@ -172,13 +212,14 @@ async function fetchAlerts(repo, token) {
 }
 
 async function main() {
-  const webhooks = JSON.parse(process.env.SLACK_WEBHOOKS ?? '{}');
+  const dryRun = process.env.DRY_RUN === 'true';
+  const webhooks = parseJsonEnv('SLACK_WEBHOOKS', {});
   // Secret masking covers the raw JSON blob, not the URLs we pull out of it.
   for (const url of Object.values(webhooks)) {
-    process.stdout.write(`::add-mask::${url}\n`);
+    process.stdout.write(`::add-mask::${oneLine(url)}\n`);
   }
 
-  const repoOwners = JSON.parse(process.env.REPOS ?? '{}');
+  const repoOwners = parseJsonEnv('REPOS', {});
   // Without these, the run would poll nothing and report a healthy-looking zero.
   if (!process.env.GH_TOKEN) {
     throw new Error('GH_TOKEN is not set');
@@ -193,7 +234,9 @@ async function main() {
       alerts.push(...(await fetchAlerts(repo, process.env.GH_TOKEN)));
     } catch (error) {
       // A repo with Dependabot disabled must not fail the whole run.
-      process.stdout.write(`::warning::could not fetch alerts for ${repo}: ${error.message}\n`);
+      process.stdout.write(
+        `::warning::could not fetch alerts for ${repo}: ${oneLine(error.message)}\n`,
+      );
     }
   }
 
@@ -222,26 +265,31 @@ async function main() {
       continue;
     }
 
-    if (process.env.DRY_RUN === 'true') {
+    if (dryRun) {
+      // Nothing was posted, so these alerts must stay unseen — marking them here
+      // would make the next real run skip them and swallow the notification.
       process.stdout.write(`[dry-run] ${key}: ${alerts.length} alert(s)\n`);
-    } else {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildSlackPayload(key, alerts)),
-      });
-      // One bad webhook must not stop the remaining teams from being told.
-      if (!response.ok) {
-        process.stdout.write(`::warning::${key} returned HTTP ${response.status}\n`);
-        continue;
-      }
-      process.stdout.write(`sent ${alerts.length} alert(s) to '${key}'\n`);
+      continue;
     }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildSlackPayload(key, alerts)),
+    });
+    // One bad webhook must not stop the remaining teams from being told.
+    if (!response.ok) {
+      process.stdout.write(`::warning::${key} returned HTTP ${response.status}\n`);
+      continue;
+    }
+    process.stdout.write(`sent ${alerts.length} alert(s) to '${key}'\n`);
 
     alerts.forEach((alert) => seen.add(alertKey(alert)));
   }
 
-  fs.writeFileSync(STATE_FILE, JSON.stringify([...seen]));
+  if (!dryRun) {
+    fs.writeFileSync(STATE_FILE, JSON.stringify([...seen]));
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
