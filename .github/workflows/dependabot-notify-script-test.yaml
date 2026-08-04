@@ -1,0 +1,41 @@
+name: Dependabot Notify Script - Test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - ".github/CODEOWNERS"
+      - ".github/scripts/dependabot-notify.mjs"
+      - ".github/scripts/dependabot-notify.test.mjs"
+      - ".github/workflows/dependabot-notify-script-test.yaml"
+      - ".github/workflows/dependabot-slack-alerts.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Run node tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Test dependabot notify script
+        run: node --test .github/scripts/dependabot-notify.test.mjs

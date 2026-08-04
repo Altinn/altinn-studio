@@ -1,0 +1,76 @@
+name: Dependabot Slack Alerts
+
+on:
+  #  schedule:
+  #    - cron: '0 */3 * * *' # every 3 hours
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Resolve and group alerts but do not post to Slack'
+        type: boolean
+        default: false
+
+# State is cached between runs for dedup, so overlapping runs must not race.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Route Dependabot alerts to owning teams
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Onboard a repository by adding it here. The value is the owner handle every
+      # alert in that repo goes to; null means resolve per manifest path via CODEOWNERS.
+      REPOS: >-
+        {
+          "Altinn/altinn-studio": null,
+          "Altinn/app-lib-dotnet": "@altinn/team-altinn-studio-utforming",
+          "Altinn/app-frontend-react": "@altinn/team-altinn-studio-utforming",
+          "Altinn/altinn-storage": "@altinn/team-altinn-studio-data",
+          "Altinn/altinn-receipt": "@altinn/team-altinn-studio-data"
+        }
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
+      # Cache keys are immutable, so the key rolls per run while restore-keys
+      # picks up the most recent previous state.
+      - name: Restore notification state
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: dependabot-notify-state.json
+          key: dependabot-notify-state-${{ github.run_id }}
+          restore-keys: |
+            dependabot-notify-state-
+
+      - name: Fetch alerts and route them to Slack
+        env:
+          GH_TOKEN: ${{ secrets.DEPENDABOT_ALERTS_TOKEN }}
+          SLACK_WEBHOOKS: ${{ secrets.SLACK_WEBHOOKS }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: node .github/scripts/dependabot-notify.mjs
+
+      # Skipped on a dry run: nothing was posted, so there is no new state to keep
+      # and saving would only re-store what was restored a moment ago.
+      - name: Save notification state
+        if: ${{ always() && inputs.dry_run != true }}
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: dependabot-notify-state.json
+          key: dependabot-notify-state-${{ github.run_id }}
