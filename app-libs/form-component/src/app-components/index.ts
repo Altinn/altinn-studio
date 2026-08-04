@@ -21,6 +21,7 @@ export * from './DisplayText';
 export * from './DisplayNumber';
 export * from './HelpText';
 export * from './ParagraphText';
+export * from './PDFPreviewControls';
 export * from './SoftValidations';
 export * from './Spinner';
 export * from './Timepicker';

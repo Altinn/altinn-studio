@@ -1,11 +1,15 @@
 import React, { useEffect } from 'react';
 
+import { PDFPreviewButton } from '@app/form-component';
+
 import type { PropsFromGenericComponent } from '..';
 
-import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
 import { FormStore } from 'src/features/form/FormContext';
-import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId, useStrictInstanceId } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { generatePdfPreview } from 'src/utils/pdfPreview/generatePdfPreview';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 
 export function PDFPreviewButtonRenderLayoutValidator({
@@ -26,6 +30,19 @@ export function PDFPreviewButtonRenderLayoutValidator({
 }
 
 export function PDFPreviewButtonComponent({ baseComponentId }: PropsFromGenericComponent<'PDFPreviewButton'>) {
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'PDFPreviewButton');
-  return <PDFGeneratorPreview buttonTitle={textResourceBindings?.title} />;
+  const { id, textResourceBindings, buttonStyle } = useItemWhenType(baseComponentId, 'PDFPreviewButton');
+  const { innerGrid } = useComponentStructureData(baseComponentId);
+  const instanceId = useLaxInstanceId();
+  const language = useCurrentLanguage();
+
+  return (
+    <PDFPreviewButton
+      componentId={id}
+      title={textResourceBindings?.title}
+      buttonStyle={buttonStyle}
+      disabled={!instanceId}
+      onGenerate={(signal) => generatePdfPreview(instanceId, language, signal)}
+      innerGrid={innerGrid}
+    />
+  );
 }
