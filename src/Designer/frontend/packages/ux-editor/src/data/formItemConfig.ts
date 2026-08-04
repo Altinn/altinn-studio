@@ -54,7 +54,10 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-export type FormItemConfigs = { [T in ComponentType | CustomComponentType]: FormItemConfig<T> };
+// ComponentType also contains the pre-v9 OrganisationLookup name used by ux-editor-v4.
+export type FormItemConfigs = Partial<{
+  [T in ComponentType | CustomComponentType]: FormItemConfig<T>;
+}>;
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {

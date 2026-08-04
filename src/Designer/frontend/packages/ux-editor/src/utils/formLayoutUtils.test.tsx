@@ -392,7 +392,12 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
+    // The shared enum includes the pre-v9 OrganisationLookup name used by ux-editor-v4.
+    it.each(
+      Object.values(ComponentType).filter(
+        (v) => v !== ComponentType.OrganisationLookup && !containerComponentTypes.includes(v),
+      ),
+    )(
       'Adds a new component to the layout when the given type is %s',
       (componentType) => {
         const id = 'newItemId';

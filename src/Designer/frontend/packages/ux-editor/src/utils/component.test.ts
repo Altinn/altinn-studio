@@ -17,7 +17,12 @@ import { formItemConfigs } from '../data/formItemConfig';
 
 describe('Component utils', () => {
   describe('generateFormItem', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
+    // The shared enum includes the pre-v9 OrganisationLookup name used by ux-editor-v4.
+    it.each(
+      Object.values(ComponentType).filter(
+        (v) => v !== ComponentType.OrganisationLookup && !containerComponentTypes.includes(v),
+      ),
+    )(
       'Generates component of type %s with given ID',
       (componentType) => {
         const id = 'testId';
