@@ -55,9 +55,13 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
 // ComponentType also contains the v9 OrganizationLookup name used by ux-editor.
-export type FormItemConfigs = Omit<
-  { [T in ComponentType | CustomComponentType]: FormItemConfig<T> },
-  ComponentType.OrganizationLookup
+export type FormItemConfigs = {
+  [T in Exclude<
+    ComponentType | CustomComponentType,
+    ComponentType.OrganizationLookup
+  >]: FormItemConfig<T>;
+} & Partial<
+  Record<ComponentType.OrganizationLookup, FormItemConfig<ComponentType.OrganizationLookup>>
 >;
 
 export const formItemConfigs: FormItemConfigs = {

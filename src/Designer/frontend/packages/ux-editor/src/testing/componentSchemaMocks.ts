@@ -48,10 +48,11 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 // ComponentType also contains the pre-v9 OrganisationLookup name used by ux-editor-v4.
-export const componentSchemaMocks: Omit<
-  Record<ComponentType, JsonSchema>,
-  ComponentType.OrganisationLookup
-> = {
+export const componentSchemaMocks: Record<
+  Exclude<ComponentType, ComponentType.OrganisationLookup>,
+  JsonSchema
+> &
+  Partial<Record<ComponentType.OrganisationLookup, JsonSchema>> = {
   [ComponentType.AccordionGroup]: AccordionGroupSchema,
   [ComponentType.Accordion]: AccordionSchema,
   [ComponentType.ActionButton]: ActionButtonSchema,
