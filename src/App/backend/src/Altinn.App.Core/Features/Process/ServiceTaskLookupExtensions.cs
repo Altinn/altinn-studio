@@ -32,4 +32,24 @@ internal static class ServiceTaskLookupExtensions
         factory
             .GetServiceTasks()
             .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// The whole pipeline in execution order: the work steps followed by the final step.
+    /// </summary>
+    public static IEnumerable<IServiceTaskStepBase> GetPipelineSteps(this IStagedServiceTask task)
+    {
+        foreach (IServiceTaskStep step in task.Steps)
+        {
+            yield return step;
+        }
+
+        yield return task.FinalStep;
+    }
+
+    /// <summary>
+    /// The pipeline step with the given name (exact match — step names are our own wire values),
+    /// or <c>null</c>.
+    /// </summary>
+    public static IServiceTaskStepBase? FindPipelineStep(this IStagedServiceTask task, string stepName) =>
+        task.GetPipelineSteps().FirstOrDefault(s => string.Equals(s.Name, stepName, StringComparison.Ordinal));
 }

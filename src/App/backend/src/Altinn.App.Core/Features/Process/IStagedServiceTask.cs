@@ -1,40 +1,48 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// A service task that does several things, declared as an ordered pipeline of steps. The runtime
-/// expands each step into its own workflow-engine step, so every step gets the engine's durability
-/// individually: its own retry budget, its own timeout and wait budget
-/// (<see cref="IServiceTaskStep.StepOptions"/>), its own idempotency key
-/// (<see cref="ServiceTaskContext.StepId"/>) — and, crucially, a step that has succeeded never runs
-/// again. A retry or an operational resume re-enters the pipeline at the failed step, not at the
-/// beginning.
+/// A service task that does several things, declared as an ordered pipeline: the work steps
+/// (<see cref="Steps"/>) followed by the one step that concludes the task
+/// (<see cref="FinalStep"/>). The runtime expands each step into its own workflow-engine step, so
+/// every step gets the engine's durability individually: its own retry budget, its own timeout and
+/// wait budget (<see cref="IServiceTaskStepBase.StepOptions"/>), its own idempotency key
+/// (<see cref="ServiceTaskContext.StepId"/>) — and, crucially, a step that has completed never
+/// runs again. A retry or an operational resume re-enters the pipeline at the failed step, not at
+/// the beginning.
 /// </summary>
 /// <remarks>
 /// <para>
-/// A pipeline is 1 entry step (<see cref="IServiceTaskStep{TOut}"/>), any number of link steps
-/// (<see cref="IServiceTaskStep{TIn, TOut}"/>), and exactly 1 final step
-/// (<see cref="IFinalServiceTaskStep{TIn}"/>) — in that order. Each step's output is handed to the
-/// next step as its typed input; only the final step decides how the task concludes (including
-/// process auto-advancement). The pipeline shape is validated at app startup.
+/// Steps share state the way service tasks already do: through
+/// <see cref="ServiceTaskContext.InstanceDataMutator"/>. A completed step's data changes are saved
+/// and visible to every step after it (and to later passes through the task — instance data
+/// outlives the transition). There is no separate handoff mechanism; a value a later step needs
+/// belongs in the app's own data model.
 /// </para>
 /// <para>
-/// <see cref="Steps"/> is read both when the process transition is enqueued (to expand the engine
-/// steps) and on every step callback (to dispatch by step name). It must therefore be cheap,
-/// deterministic and side-effect free — return the same steps in the same order every time.
+/// <see cref="Steps"/> and <see cref="FinalStep"/> are read both when the process transition is
+/// enqueued (to expand the engine steps — the moment the pipeline's shape is fixed for that
+/// workflow's lifetime) and on every step callback (to dispatch by step name). They must therefore
+/// be cheap, deterministic and side-effect free — return the same steps in the same order every
+/// time. The pipeline is validated at app startup: at least one work step, unique step names, each
+/// step exactly one kind.
 /// </para>
 /// <para>
-/// <strong>Each step MUST be idempotent — a step may be retried on failure.</strong> A completed
-/// step is never re-run, but the crash window within one attempt (the work succeeded, the response
-/// never reached the engine) always exists; <see cref="ServiceTaskContext.StepId"/> is the outbound
-/// idempotency key covering it.
+/// A task that does <em>one</em> thing should implement <see cref="IServiceTask"/> instead — this
+/// interface is for work that benefits from per-step durability.
 /// </para>
 /// </remarks>
 [ImplementableByApps]
 public interface IStagedServiceTask : IServiceTaskBase
 {
     /// <summary>
-    /// The ordered steps of this task's pipeline. See the interface remarks for the required shape
-    /// and the determinism contract.
+    /// The pipeline's work steps, in execution order. Each must implement
+    /// <see cref="IServiceTaskStep"/> only (never also <see cref="IFinalServiceTaskStep"/>).
     /// </summary>
     IEnumerable<IServiceTaskStep> Steps { get; }
+
+    /// <summary>
+    /// The pipeline's concluding step, always executed last. Declared separately so that "exactly
+    /// one final step, at the end" is the shape of the contract rather than a convention.
+    /// </summary>
+    IFinalServiceTaskStep FinalStep { get; }
 }

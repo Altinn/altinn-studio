@@ -1,20 +1,20 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// This class represents the parameters for executing a service task. For a pipeline step that
-/// receives input from its predecessor, see <see cref="ServiceTaskContext{TIn}"/>.
+/// This class represents the parameters for executing a service task — or, for an
+/// <see cref="IStagedServiceTask"/>, one of its pipeline steps.
 /// </summary>
-public record ServiceTaskContext
+public sealed record ServiceTaskContext
 {
     /// <summary>
     /// An instance data mutator that can be used to read and modify the instance data during the service task execution.
     /// </summary>
     /// <remarks>
-    /// Changes are saved after Execute returns a successful result — including a deferral
-    /// (<see cref="ServiceTaskResult.Defer"/>), so a polling task can record what it learned and read it
-    /// back on its next attempt. Keep in mind that data elements from previous tasks are locked.
+    /// Changes are saved when execution completes (success, or the concluding result of a final
+    /// step) — and for a staged pipeline, the saved changes are visible to every later step. A
+    /// <em>deferring</em> attempt is stateless: nothing is saved, and data changes made before a
+    /// deferral are rejected (see <see cref="ServiceTaskResult.Defer"/>). Keep in mind that data
+    /// elements from previous tasks are locked.
     /// </remarks>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }
 
@@ -60,33 +60,4 @@ public record ServiceTaskContext
     /// of these unchanged.
     /// </remarks>
     public ServiceTaskWait Wait { get; init; } = new();
-}
-
-/// <summary>
-/// The execution context for a pipeline step that receives input — a link
-/// (<see cref="IServiceTaskStep{TIn, TOut}"/>) or final (<see cref="IFinalServiceTaskStep{TIn}"/>)
-/// step of an <see cref="IStagedServiceTask"/>. It is the ordinary <see cref="ServiceTaskContext"/>
-/// plus the previous step's output, typed.
-/// </summary>
-/// <typeparam name="TIn">The previous step's declared output type.</typeparam>
-public sealed record ServiceTaskContext<TIn> : ServiceTaskContext
-{
-    /// <summary>
-    /// Creates an empty context for object-initializer construction (e.g. in unit tests).
-    /// </summary>
-    public ServiceTaskContext() { }
-
-    [SetsRequiredMembers]
-    internal ServiceTaskContext(ServiceTaskContext original, TIn input)
-        : base(original)
-    {
-        Input = input;
-    }
-
-    /// <summary>
-    /// The previous step's output. Non-null by construction in the runtime: this step cannot run
-    /// unless its predecessor completed and produced a value. When the step defers, the same input
-    /// is handed to the re-run.
-    /// </summary>
-    public required TIn Input { get; init; }
 }

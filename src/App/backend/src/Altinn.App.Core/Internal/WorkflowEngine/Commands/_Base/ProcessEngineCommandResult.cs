@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 internal abstract class ProcessEngineCommandResult { }
@@ -17,13 +15,6 @@ internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineComman
     /// Only relevant when <see cref="AutoAdvanceProcess"/> is true.
     /// </summary>
     public string? AutoAdvanceAction { get; init; }
-
-    /// <summary>
-    /// The staged-service-task handoff value to carry in the captured callback state: the output a
-    /// completed non-final pipeline step hands to the next step. Null (the default) for every other
-    /// command — including the final pipeline step, whose success clears the handoff.
-    /// </summary>
-    public JsonElement? ServiceTaskBaton { get; init; }
 }
 
 /// <summary>

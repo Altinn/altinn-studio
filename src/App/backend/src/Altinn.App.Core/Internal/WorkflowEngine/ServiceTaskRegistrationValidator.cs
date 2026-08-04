@@ -85,30 +85,38 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
     {
         string taskName = task.GetType().FullName ?? task.GetType().Name;
 
-        List<IServiceTaskStep> steps;
+        List<IServiceTaskStepBase> steps;
         try
         {
-            steps = task.Steps.ToList();
+            // Materializes both Steps and FinalStep — a throwing property lands here.
+            steps = task.GetPipelineSteps().ToList();
         }
         catch (Exception ex)
         {
-            errors.Add($"  - {taskName}: enumerating {nameof(IStagedServiceTask.Steps)} threw: {ex.Message}");
+            errors.Add($"  - {taskName}: reading the pipeline steps threw: {ex.Message}");
             return;
         }
 
+        // GetPipelineSteps always appends FinalStep, so fewer than two steps means Steps was empty.
         if (steps.Count < 2)
         {
             errors.Add(
-                $"  - {taskName}: a pipeline needs at least an entry and a final step ({steps.Count} step(s) "
-                    + $"declared). A task that does one thing should implement {nameof(IServiceTask)} instead."
+                $"  - {taskName}: {nameof(IStagedServiceTask.Steps)} is empty — a pipeline needs at least one work "
+                    + $"step besides {nameof(IStagedServiceTask.FinalStep)}. A task that does one thing should "
+                    + $"implement {nameof(IServiceTask)} instead."
             );
-            return;
         }
 
         var names = new HashSet<string>(StringComparer.Ordinal);
         for (int i = 0; i < steps.Count; i++)
         {
-            IServiceTaskStep step = steps[i];
+            IServiceTaskStepBase step = steps[i];
+            if (step is null)
+            {
+                errors.Add($"  - {taskName}: pipeline step {i} is null.");
+                continue;
+            }
+
             string stepName = step.Name;
 
             if (string.IsNullOrWhiteSpace(stepName))
@@ -123,46 +131,13 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
                 );
             }
 
-            bool isLast = i == steps.Count - 1;
-            if (isLast && !step.IsFinal)
+            if (step is IServiceTaskStep && step is IFinalServiceTaskStep)
             {
                 errors.Add(
-                    $"  - {taskName}: the last step ('{stepName}') must be the final step "
-                        + $"(implement IFinalServiceTaskStep<TIn>) — it is what concludes the task."
+                    $"  - {taskName}: step '{stepName}' ({step.GetType().FullName}) implements both "
+                        + $"{nameof(IServiceTaskStep)} and {nameof(IFinalServiceTaskStep)}. A step must be exactly "
+                        + "one kind."
                 );
-            }
-            else if (!isLast && step.IsFinal)
-            {
-                errors.Add(
-                    $"  - {taskName}: step '{stepName}' is a final step but is not last. A pipeline has exactly "
-                        + "one final step, at the end."
-                );
-            }
-
-            if (i == 0 && step.InputType is not null)
-            {
-                errors.Add(
-                    $"  - {taskName}: the first step ('{stepName}') must be an entry step "
-                        + "(implement IServiceTaskStep<TOut>) — nothing exists yet to feed it input."
-                );
-            }
-            else if (i > 0 && step.InputType is null)
-            {
-                errors.Add(
-                    $"  - {taskName}: step '{stepName}' is an entry step but is not first. Only the first step "
-                        + "takes no input."
-                );
-            }
-
-            if (i > 0 && step.InputType is { } inputType && steps[i - 1].OutputType is { } previousOutputType)
-            {
-                if (inputType != previousOutputType)
-                {
-                    errors.Add(
-                        $"  - {taskName}: handoff mismatch — step '{stepName}' expects "
-                            + $"{inputType.Name} but '{steps[i - 1].Name}' produces {previousOutputType.Name}."
-                    );
-                }
             }
 
             if (step.StepOptions is { } options)

@@ -1949,9 +1949,9 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.FailedHookResult FailedRetryable(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.SuccessfulHookResult Success() { }
     }
-    public interface IFinalServiceTaskStep<TIn> : Altinn.App.Core.Features.Process.IServiceTaskStep
+    public interface IFinalServiceTaskStep : Altinn.App.Core.Features.Process.IServiceTaskStepBase
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext<TIn> context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
     public interface IOnProcessEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
@@ -1981,21 +1981,18 @@ namespace Altinn.App.Core.Features.Process
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
     public interface IServiceTaskBase : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask { }
-    public interface IServiceTaskStep
+    public interface IServiceTaskStep : Altinn.App.Core.Features.Process.IServiceTaskStepBase
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStepResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
+    }
+    public interface IServiceTaskStepBase
     {
         string Name { get; }
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IServiceTaskStep<TOut> : Altinn.App.Core.Features.Process.IServiceTaskStep
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStepResult<TOut>> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
-    }
-    public interface IServiceTaskStep<TIn, TOut> : Altinn.App.Core.Features.Process.IServiceTaskStep
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStepResult<TOut>> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext<TIn> context);
-    }
     public interface IStagedServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Features.Process.IServiceTaskBase, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
+        Altinn.App.Core.Features.Process.IFinalServiceTaskStep FinalStep { get; }
         System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Process.IServiceTaskStep> Steps { get; }
     }
     public sealed class OnProcessEndingContext
@@ -2057,7 +2054,7 @@ namespace Altinn.App.Core.Features.Process
         public System.DateTimeOffset? Deadline { get; init; }
         public int RetryCount { get; init; }
     }
-    public class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
+    public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
         public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
@@ -2066,11 +2063,6 @@ namespace Altinn.App.Core.Features.Process
         public required System.Guid StepId { get; init; }
         public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
         public required System.Guid WorkflowId { get; init; }
-    }
-    public sealed class ServiceTaskContext<TIn> : Altinn.App.Core.Features.Process.ServiceTaskContext, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext<TIn>>
-    {
-        public ServiceTaskContext() { }
-        public required TIn Input { get; init; }
     }
     public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
     {
@@ -2091,26 +2083,12 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult SuccessWithoutAutoAdvance() { }
     }
-    public sealed class ServiceTaskStepDeferral : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStepDeferral>
+    public abstract class ServiceTaskStepResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStepResult>
     {
-        public required System.TimeSpan Delay { get; init; }
-        public string? Reason { get; init; }
-    }
-    public sealed class ServiceTaskStepFailure : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStepFailure>
-    {
-        public required string ErrorMessage { get; init; }
-    }
-    public static class ServiceTaskStepResult
-    {
-        public static Altinn.App.Core.Features.Process.ServiceTaskStepDeferral Defer(System.TimeSpan delay, string? reason = null) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStepFailure FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStepFailure FailedRetryable(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStepResult<TOut> Next<TOut>(TOut output) { }
-    }
-    public abstract class ServiceTaskStepResult<TOut> : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStepResult<TOut>>
-    {
-        public static Altinn.App.Core.Features.Process.ServiceTaskStepResult<TOut> op_Implicit(Altinn.App.Core.Features.Process.ServiceTaskStepDeferral deferral) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStepResult<TOut> op_Implicit(Altinn.App.Core.Features.Process.ServiceTaskStepFailure failure) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStepResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStepResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStepResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStepResult Next() { }
     }
     public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskSuccessResult>
     {

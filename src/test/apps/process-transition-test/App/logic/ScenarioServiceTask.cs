@@ -12,15 +12,15 @@ namespace Altinn.App.Logic;
 
 /// <summary>
 /// Post-commit lever for the forward transition (<c>path == "postCommit"</c>), implemented as a
-/// STAGED service task — a two-step pipeline — so the e2e suite drives the multi-step contract
-/// end to end on every postCommit scenario:
+/// STAGED service task — a work step plus the concluding step — so the e2e suite drives the
+/// multi-step contract end to end on every postCommit scenario:
 ///
-/// <c>ReadLevers</c> (entry) reads the TransitionControl form data once and hands the settled
-/// lever values to <c>RunScenario</c> (final) as its typed input. The engine records the entry
-/// step's completion durably, so every retry, deferral re-check and resume of the scenario re-runs
-/// only <c>RunScenario</c>, with the plan it was originally dealt — proving baton round-trip,
-/// per-step durability, per-step options (the tiny wait budget lives on the final step alone) and
-/// resume-re-enters-at-the-failed-step, all through the public app-facing API.
+/// <c>PrepareScenario</c> (work step) validates that the scenario is reachable and completes;
+/// <c>RunScenario</c> (final step) reads the TransitionControl levers and executes the scenario.
+/// The engine records the work step's completion durably, so every retry, deferral re-check and
+/// resume of the scenario re-runs only <c>RunScenario</c> — proving one-engine-step-per-pipeline-
+/// step expansion, dispatch by step name, per-step durability and per-step options (the tiny wait
+/// budget lives on the final step alone), all through the public app-facing API.
 ///
 /// The <c>Gateway_PostCommit</c> gateway after Task_1 routes through the <c>Task_Service</c>
 /// service task only when the path lever is "postCommit". That transition COMMITS first
@@ -58,64 +58,28 @@ public sealed class ScenarioServiceTask : IStagedServiceTask
     /// <summary>
     /// A deliberately tiny wait budget so the <c>waitExpired</c> scenario can expire inside a test run
     /// (production budgets are hours or days). Only deferrals spend it, so other scenarios are
-    /// unaffected. Declared on the final step alone (see <c>RunScenario.StepOptions</c>) — the entry
+    /// unaffected. Declared on the final step alone (see <c>RunScenario.StepOptions</c>) — the work
     /// step never defers.
     /// </summary>
     internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
 
-    public IEnumerable<IServiceTaskStep> Steps => [new ReadLevers(), new RunScenario(this)];
+    public IEnumerable<IServiceTaskStep> Steps => [new PrepareScenario()];
+
+    public IFinalServiceTaskStep FinalStep => new RunScenario(this);
 
     /// <summary>
-    /// The pipeline's handoff value: the lever values <c>ReadLevers</c> dealt to <c>RunScenario</c>.
-    /// <see cref="Run"/> is false when there is nothing to do (no TransitionControl data, or the
-    /// gateway sent us here on a non-postCommit path) — the final step then settles immediately.
+    /// The pipeline's work step. It has no scenario work of its own — it exists so that every
+    /// postCommit e2e scenario runs a real multi-step pipeline: this step completes exactly once
+    /// per pass, and retries/resumes of the scenario re-enter at <c>RunScenario</c> without
+    /// re-running it (the engine's step ledger, observed end to end).
     /// </summary>
-    public sealed record ScenarioPlan(
-        bool Run,
-        int DelayMs = 0,
-        int Attempts = 1,
-        int Deferrals = 0,
-        int DeferDelayMs = 2000,
-        string? EndState = null,
-        string? Advance = null
-    );
-
-    private sealed class ReadLevers : IServiceTaskStep<ScenarioPlan>
+    private sealed class PrepareScenario : IServiceTaskStep
     {
-        public async Task<ServiceTaskStepResult<ScenarioPlan>> Execute(ServiceTaskContext context)
-        {
-            Instance instance = context.InstanceDataMutator.Instance;
-            DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");
-            if (dataElement is null)
-            {
-                return ServiceTaskStepResult.Next(new ScenarioPlan(Run: false));
-            }
-
-            var levers = (TransitionControl)
-                await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
-
-            // The gateway only routes here when path == "postCommit", but stay defensive: any other
-            // value means there is no scenario to run.
-            if (levers.path != "postCommit")
-            {
-                return ServiceTaskStepResult.Next(new ScenarioPlan(Run: false));
-            }
-
-            return ServiceTaskStepResult.Next(
-                new ScenarioPlan(
-                    Run: true,
-                    DelayMs: levers.delayMs ?? 0,
-                    Attempts: levers.attempts ?? 1,
-                    Deferrals: levers.deferrals ?? 0,
-                    DeferDelayMs: levers.deferDelayMs ?? 2000,
-                    EndState: levers.endState,
-                    Advance: levers.advance
-                )
-            );
-        }
+        public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult(ServiceTaskStepResult.Next());
     }
 
-    private sealed class RunScenario : IFinalServiceTaskStep<ScenarioPlan>
+    private sealed class RunScenario : IFinalServiceTaskStep
     {
         private readonly ScenarioServiceTask _owner;
 
@@ -126,40 +90,53 @@ public sealed class ScenarioServiceTask : IStagedServiceTask
 
         public ProcessStepOptions? StepOptions => new() { WaitBudget = ScenarioWaitBudget };
 
-        public async Task<ServiceTaskResult> Execute(ServiceTaskContext<ScenarioPlan> context)
+        public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
         {
-            ScenarioPlan plan = context.Input;
-            if (!plan.Run)
+            Instance instance = context.InstanceDataMutator.Instance;
+            DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");
+            if (dataElement is null)
             {
                 return ServiceTaskResult.Success();
             }
 
-            Instance instance = context.InstanceDataMutator.Instance;
-            var deferDelay = TimeSpan.FromMilliseconds(plan.DeferDelayMs);
+            var levers = (TransitionControl)
+                await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
+
+            // The gateway only routes here when path == "postCommit", but stay defensive: any other
+            // value means there is no scenario to run.
+            if (levers.path != "postCommit")
+            {
+                return ServiceTaskResult.Success();
+            }
+
+            int delayMs = levers.delayMs ?? 0;
+            int attempts = levers.attempts ?? 1;
+            int deferrals = levers.deferrals ?? 0;
+            var deferDelay = TimeSpan.FromMilliseconds(levers.deferDelayMs ?? 2000);
 
             // Don't start work this attempt cannot finish: the engine abandons it at ExecutionDeadline and
             // records a retryable failure, whereas deferring hands the next attempt a full budget. Inert
             // under the default 10-minute timeout — it demonstrates the pattern a real slow-system call wants.
-            if (plan.DelayMs > 0 && context.Attempt.Deadline is { } executionDeadline)
+            if (delayMs > 0 && context.Attempt.Deadline is { } executionDeadline)
             {
                 var remaining = executionDeadline - DateTimeOffset.UtcNow;
-                if (remaining < TimeSpan.FromMilliseconds(plan.DelayMs))
+                if (remaining < TimeSpan.FromMilliseconds(delayMs))
                 {
                     return ServiceTaskResult.Defer(
                         deferDelay,
-                        $"only {remaining.TotalSeconds:F1}s left of this attempt, need {plan.DelayMs}ms — retrying with a fresh budget"
+                        $"only {remaining.TotalSeconds:F1}s left of this attempt, need {delayMs}ms — retrying with a fresh budget"
                     );
                 }
             }
 
-            if (plan.DelayMs > 0)
+            if (delayMs > 0)
             {
-                await Task.Delay(plan.DelayMs, context.CancellationToken);
+                await Task.Delay(delayMs, context.CancellationToken);
             }
 
             // Reads context.Wait.DeferCount rather than the AttemptTracker: the engine counts deferrals durably,
             // and mixing them into the attempt counter would conflate "not ready" with "failed, retrying".
-            if (plan.EndState == "waitExpired")
+            if (levers.endState == "waitExpired")
             {
                 // Never settles. The engine keeps re-running this step until ScenarioWaitBudget is spent,
                 // then fails the step with wait_expired — a failure nobody's code caused.
@@ -169,22 +146,22 @@ public sealed class ScenarioServiceTask : IStagedServiceTask
                 );
             }
 
-            if (context.Wait.DeferCount < plan.Deferrals)
+            if (context.Wait.DeferCount < deferrals)
             {
                 return ServiceTaskResult.Defer(
                     deferDelay,
-                    $"TransitionControl forced a deferral ({context.Wait.DeferCount + 1} of {plan.Deferrals})"
+                    $"TransitionControl forced a deferral ({context.Wait.DeferCount + 1} of {deferrals})"
                 );
             }
 
             Guid instanceGuid = Guid.Parse(instance.Id.Split('/').Last());
             int attempt = AttemptTracker.Next(instanceGuid, "postCommit");
-            if (attempt < plan.Attempts)
+            if (attempt < attempts)
             {
                 // Not the last attempt yet: fail retryably so the engine re-invokes this step (and
-                // only this step — ReadLevers is complete and stays complete).
+                // only this step — PrepareScenario is complete and stays complete).
                 return ServiceTaskResult.FailedRetryable(
-                    $"TransitionControl forced a transient postCommit failure (attempt {attempt} of {plan.Attempts})."
+                    $"TransitionControl forced a transient postCommit failure (attempt {attempt} of {attempts})."
                 );
             }
 
@@ -192,20 +169,20 @@ public sealed class ScenarioServiceTask : IStagedServiceTask
             // counter, so the resume-driven replay (the failed task view's "Prøv igjen" →
             // process/resume re-running this step) arrives here as attempt attempts+1 and falls
             // through to the success below.
-            if (plan.EndState == "failureThenSuccess" && attempt == plan.Attempts)
+            if (levers.endState == "failureThenSuccess" && attempt == attempts)
             {
                 return ServiceTaskResult.FailedPermanent(
-                    $"TransitionControl forced a terminal postCommit failure after {plan.Attempts} attempt{(plan.Attempts == 1 ? "" : "s")} (recoverable: the next replay succeeds)."
+                    $"TransitionControl forced a terminal postCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")} (recoverable: the next replay succeeds)."
                 );
             }
 
             // Settled: reset so replaying the scenario (e.g. after navigating back from Task_2) starts
             // again from attempt 1. "failure" resets too — every replay fails the same way.
             AttemptTracker.Reset(instanceGuid, "postCommit");
-            if (plan.EndState == "failure")
+            if (levers.endState == "failure")
             {
                 return ServiceTaskResult.FailedPermanent(
-                    $"TransitionControl forced a terminal postCommit failure after {plan.Attempts} attempt{(plan.Attempts == 1 ? "" : "s")}."
+                    $"TransitionControl forced a terminal postCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")}."
                 );
             }
 
@@ -214,9 +191,9 @@ public sealed class ScenarioServiceTask : IStagedServiceTask
             // process/next releases it, simulating a task that waits for an external callback.
             // "parkThenRelease" additionally schedules that release itself (~5s), imitating the
             // external system's callback arriving on its own.
-            if (plan.Advance is "park" or "parkThenRelease")
+            if (levers.advance is "park" or "parkThenRelease")
             {
-                if (plan.Advance == "parkThenRelease")
+                if (levers.advance == "parkThenRelease")
                 {
                     _owner._parkedTaskReleaser.ScheduleRelease(instance.Org, instance.AppId, instance.Id);
                 }

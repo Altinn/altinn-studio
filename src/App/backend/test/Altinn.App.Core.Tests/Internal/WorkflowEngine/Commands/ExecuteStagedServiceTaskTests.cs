@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -11,55 +10,39 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The staged (multi-step) dispatch of <see cref="ExecuteServiceTask"/>: step resolution by name,
-/// input deserialization from the baton, per-shape result mapping, and the version-skew guards.
+/// The staged (multi-step) dispatch of <see cref="ExecuteServiceTask"/>: step resolution by name
+/// across the work steps and the final step, per-kind result mapping, and the version-skew guards.
 /// The single-step dispatch is covered by <see cref="ExecuteServiceTaskTests"/>.
 /// </summary>
 public class ExecuteStagedServiceTaskTests
 {
-    private sealed record CaseRef(string CaseId);
-
-    private sealed record CaseWithDocs(string CaseId, int DocCount);
-
     /// <summary>
-    /// A three-step pipeline (entry → link → final) whose behavior each test scripts via delegates.
-    /// The steps are nested classes, so the default step names are "CreateCase", "UploadDocs" and
-    /// "Finalize" — dispatching on those names is itself part of what these tests prove.
+    /// A send→poll pipeline whose behavior each test scripts via delegates. The steps are nested
+    /// classes, so the default step names are "SendShipment" and "AwaitReceipt" — dispatching on
+    /// those names is itself part of what these tests prove.
     /// </summary>
-    private sealed class ArchiveTask : IStagedServiceTask
+    private sealed class ShippingTask : IStagedServiceTask
     {
-        public string Type => "archive";
+        public string Type => "shipping";
 
-        public Func<ServiceTaskContext, Task<ServiceTaskStepResult<CaseRef>>> OnCreateCase { get; init; } =
-            _ => Task.FromResult(ServiceTaskStepResult.Next(new CaseRef("case-1")));
+        public Func<ServiceTaskContext, Task<ServiceTaskStepResult>> OnSend { get; init; } =
+            _ => Task.FromResult(ServiceTaskStepResult.Next());
 
-        public Func<
-            ServiceTaskContext<CaseRef>,
-            Task<ServiceTaskStepResult<CaseWithDocs>>
-        > OnUploadDocs { get; init; } =
-            ctx => Task.FromResult(ServiceTaskStepResult.Next(new CaseWithDocs(ctx.Input.CaseId, 2)));
-
-        public Func<ServiceTaskContext<CaseWithDocs>, Task<ServiceTaskResult>> OnFinalize { get; init; } =
+        public Func<ServiceTaskContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-        public IEnumerable<IServiceTaskStep> Steps => [new CreateCase(this), new UploadDocs(this), new Finalize(this)];
+        public IEnumerable<IServiceTaskStep> Steps => [new SendShipment(this)];
 
-        private sealed class CreateCase(ArchiveTask owner) : IServiceTaskStep<CaseRef>
+        public IFinalServiceTaskStep FinalStep => new AwaitReceipt(this);
+
+        private sealed class SendShipment(ShippingTask owner) : IServiceTaskStep
         {
-            public Task<ServiceTaskStepResult<CaseRef>> Execute(ServiceTaskContext context) =>
-                owner.OnCreateCase(context);
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) => owner.OnSend(context);
         }
 
-        private sealed class UploadDocs(ArchiveTask owner) : IServiceTaskStep<CaseRef, CaseWithDocs>
+        private sealed class AwaitReceipt(ShippingTask owner) : IFinalServiceTaskStep
         {
-            public Task<ServiceTaskStepResult<CaseWithDocs>> Execute(ServiceTaskContext<CaseRef> context) =>
-                owner.OnUploadDocs(context);
-        }
-
-        private sealed class Finalize(ArchiveTask owner) : IFinalServiceTaskStep<CaseWithDocs>
-        {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<CaseWithDocs> context) =>
-                owner.OnFinalize(context);
+            public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => owner.OnAwait(context);
         }
     }
 
@@ -81,7 +64,7 @@ public class ExecuteStagedServiceTaskTests
         return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>());
     }
 
-    private static ProcessEngineCommandContext CreateContext(object? baton = null)
+    private static ProcessEngineCommandContext CreateContext()
     {
         var instance = new Instance
         {
@@ -109,74 +92,84 @@ public class ExecuteStagedServiceTaskTests
                 WorkflowId = Guid.NewGuid(),
                 StepId = Guid.NewGuid(),
             },
-            ServiceTaskBaton = baton is null ? null : JsonSerializer.SerializeToElement(baton),
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(string? stepName) => new("archive", stepName);
+    private static ExecuteServiceTaskPayload Payload(string? stepName) => new("shipping", stepName);
 
     [Fact]
-    public async Task EntryStep_Next_ReturnsSuccessWithoutAdvance_AndSerializedBaton()
+    public async Task WorkStep_Next_ReturnsSuccessWithoutAdvance()
     {
-        var task = new ArchiveTask();
-        var command = CreateCommand(task);
+        var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload("CreateCase"));
+        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
-        Assert.NotNull(success.ServiceTaskBaton);
-        var baton = success.ServiceTaskBaton.Value.Deserialize<CaseRef>();
-        Assert.Equal("case-1", baton!.CaseId);
     }
 
     [Fact]
-    public async Task LinkStep_ReceivesTypedInputFromBaton_AndHandsItsOutputOn()
+    public async Task WorkStep_Defer_ReturnsDeferredResult()
     {
-        CaseRef? observedInput = null;
-        var task = new ArchiveTask
+        // Any step may await an async dependency — deferral is not reserved for the final step.
+        var task = new ShippingTask
         {
-            OnUploadDocs = ctx =>
-            {
-                observedInput = ctx.Input;
-                return Task.FromResult(ServiceTaskStepResult.Next(new CaseWithDocs(ctx.Input.CaseId, 7)));
-            },
+            OnSend = _ => Task.FromResult(ServiceTaskStepResult.Defer(TimeSpan.FromSeconds(30), "queue is saturated")),
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(baton: new CaseRef("case-42")), Payload("UploadDocs"));
+        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
 
-        Assert.NotNull(observedInput);
-        Assert.Equal("case-42", observedInput.CaseId);
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        var baton = success.ServiceTaskBaton!.Value.Deserialize<CaseWithDocs>();
-        Assert.Equal(new CaseWithDocs("case-42", 7), baton);
+        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        Assert.Equal(TimeSpan.FromSeconds(30), deferred.Delay);
+        Assert.Equal("queue is saturated", deferred.Reason);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task WorkStep_Failure_MapsKind(bool permanent)
+    {
+        var task = new ShippingTask
+        {
+            OnSend = _ =>
+                Task.FromResult(
+                    permanent
+                        ? ServiceTaskStepResult.FailedPermanent("shipment rejected")
+                        : ServiceTaskStepResult.FailedRetryable("shipment service timed out")
+                ),
+        };
+        var command = CreateCommand(task);
+
+        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.Equal(permanent, failed.NonRetryable);
+        Assert.Contains("Service task 'shipping' failed", failed.ErrorMessage);
     }
 
     [Fact]
-    public async Task FinalStep_Success_AutoAdvances_AndClearsBaton()
+    public async Task FinalStep_Success_AutoAdvances()
     {
-        var task = new ArchiveTask();
-        var command = CreateCommand(task);
+        var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(baton: new CaseWithDocs("case-1", 2)), Payload("Finalize"));
+        var result = await command.Execute(CreateContext(), Payload("AwaitReceipt"));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.True(success.AutoAdvanceProcess);
         Assert.Null(success.AutoAdvanceAction);
-        Assert.Null(success.ServiceTaskBaton);
     }
 
     [Fact]
     public async Task FinalStep_SuccessWithAction_CarriesTheAction()
     {
-        var task = new ArchiveTask
+        var task = new ShippingTask
         {
-            OnFinalize = _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("reject")),
+            OnAwait = _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("reject")),
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(baton: new CaseWithDocs("case-1", 2)), Payload("Finalize"));
+        var result = await command.Execute(CreateContext(), Payload("AwaitReceipt"));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.True(success.AutoAdvanceProcess);
@@ -186,13 +179,13 @@ public class ExecuteStagedServiceTaskTests
     [Fact]
     public async Task FinalStep_SuccessWithoutAutoAdvance_DoesNotAdvance()
     {
-        var task = new ArchiveTask
+        var task = new ShippingTask
         {
-            OnFinalize = _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance()),
+            OnAwait = _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance()),
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(baton: new CaseWithDocs("case-1", 2)), Payload("Finalize"));
+        var result = await command.Execute(CreateContext(), Payload("AwaitReceipt"));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
@@ -201,18 +194,17 @@ public class ExecuteStagedServiceTaskTests
     [Fact]
     public async Task FinalStep_Defer_ReturnsDeferredResult()
     {
-        // The final step is where a polling pipeline waits: it defers with its input preserved
-        // (baton carry-over is the controller's job and covered there — here the mapping matters).
-        var task = new ArchiveTask
+        // The final step is where a polling pipeline waits.
+        var task = new ShippingTask
         {
-            OnFinalize = _ =>
+            OnAwait = _ =>
                 Task.FromResult<ServiceTaskResult>(
                     ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "awaiting receipt")
                 ),
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(baton: new CaseWithDocs("case-1", 2)), Payload("Finalize"));
+        var result = await command.Execute(CreateContext(), Payload("AwaitReceipt"));
 
         var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
@@ -220,68 +212,22 @@ public class ExecuteStagedServiceTaskTests
     }
 
     [Fact]
-    public async Task LinkStep_Defer_ReturnsDeferredResult()
-    {
-        // Any step may await an async dependency — deferral is not reserved for the final step.
-        var task = new ArchiveTask
-        {
-            OnUploadDocs = _ =>
-                Task.FromResult<ServiceTaskStepResult<CaseWithDocs>>(
-                    ServiceTaskStepResult.Defer(TimeSpan.FromSeconds(30), "conversion running")
-                ),
-        };
-        var command = CreateCommand(task);
-
-        var result = await command.Execute(CreateContext(baton: new CaseRef("case-1")), Payload("UploadDocs"));
-
-        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
-        Assert.Equal(TimeSpan.FromSeconds(30), deferred.Delay);
-        Assert.Equal("conversion running", deferred.Reason);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task LinkStep_Failure_MapsKind(bool permanent)
-    {
-        var task = new ArchiveTask
-        {
-            OnUploadDocs = _ =>
-                Task.FromResult<ServiceTaskStepResult<CaseWithDocs>>(
-                    permanent
-                        ? ServiceTaskStepResult.FailedPermanent("upload rejected")
-                        : ServiceTaskStepResult.FailedRetryable("upload timed out")
-                ),
-        };
-        var command = CreateCommand(task);
-
-        var result = await command.Execute(CreateContext(baton: new CaseRef("case-1")), Payload("UploadDocs"));
-
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.Equal(permanent, failed.NonRetryable);
-        Assert.Contains("Service task 'archive' failed", failed.ErrorMessage);
-    }
-
-    [Fact]
     public async Task StepThrows_ReturnsRetryableFailure()
     {
-        var task = new ArchiveTask
-        {
-            OnCreateCase = _ => throw new InvalidOperationException("archive system exploded"),
-        };
+        var task = new ShippingTask { OnSend = _ => throw new InvalidOperationException("shipping exploded") };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload("CreateCase"));
+        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
-        Assert.Equal("archive system exploded", failed.ErrorMessage);
+        Assert.Equal("shipping exploded", failed.ErrorMessage);
     }
 
     [Fact]
     public async Task UnknownStepName_FailsPermanently_PointingAtTheRenameHazard()
     {
-        var command = CreateCommand(new ArchiveTask());
+        var command = CreateCommand(new ShippingTask());
 
         var result = await command.Execute(CreateContext(), Payload("OldStepName"));
 
@@ -296,19 +242,19 @@ public class ExecuteStagedServiceTaskTests
     {
         // Task types match the BPMN attribute ignoring case; step names are exact — they are our
         // own wire values, produced from the same property that dispatches them.
-        var command = CreateCommand(new ArchiveTask());
+        var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload("createcase"));
+        var result = await command.Execute(CreateContext(), Payload("sendshipment"));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Contains("no step named 'createcase'", failed.ErrorMessage);
+        Assert.Contains("no step named 'sendshipment'", failed.ErrorMessage);
     }
 
     [Fact]
     public async Task StagedTaskWithoutStepName_FailsPermanently_AsKindMismatch()
     {
-        var command = CreateCommand(new ArchiveTask());
+        var command = CreateCommand(new ShippingTask());
 
         var result = await command.Execute(CreateContext(), Payload(null));
 
@@ -321,10 +267,10 @@ public class ExecuteStagedServiceTaskTests
     public async Task SimpleTaskWithStepName_FailsPermanently_AsKindMismatch()
     {
         var simple = new Mock<IServiceTask>();
-        simple.Setup(x => x.Type).Returns("archive");
+        simple.Setup(x => x.Type).Returns("shipping");
         var command = CreateCommand(simple.Object);
 
-        var result = await command.Execute(CreateContext(), Payload("CreateCase"));
+        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -333,33 +279,21 @@ public class ExecuteStagedServiceTaskTests
     }
 
     [Fact]
-    public async Task InputStepWithoutBaton_FailsPermanently()
-    {
-        var command = CreateCommand(new ArchiveTask());
-
-        var result = await command.Execute(CreateContext(baton: null), Payload("UploadDocs"));
-
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStepInputMissing", failed.ExceptionType);
-    }
-
-    [Fact]
     public async Task StepContext_CarriesTheEngineIdentityAndClocks()
     {
-        ServiceTaskContext<CaseRef>? observed = null;
-        var task = new ArchiveTask
+        ServiceTaskContext? observed = null;
+        var task = new ShippingTask
         {
-            OnUploadDocs = ctx =>
+            OnSend = ctx =>
             {
                 observed = ctx;
-                return Task.FromResult(ServiceTaskStepResult.Next(new CaseWithDocs(ctx.Input.CaseId, 1)));
+                return Task.FromResult(ServiceTaskStepResult.Next());
             },
         };
         var command = CreateCommand(task);
-        var context = CreateContext(baton: new CaseRef("case-1"));
+        var context = CreateContext();
 
-        await command.Execute(context, Payload("UploadDocs"));
+        await command.Execute(context, Payload("SendShipment"));
 
         Assert.NotNull(observed);
         Assert.Equal(context.Payload.WorkflowId, observed.WorkflowId);
@@ -369,22 +303,24 @@ public class ExecuteStagedServiceTaskTests
 
     private sealed class PinnedNameTask : IStagedServiceTask
     {
-        public string Type => "archive";
+        public string Type => "shipping";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry(), new Done()];
+        public IEnumerable<IServiceTaskStep> Steps => [new Entry()];
 
-        private sealed class Entry : IServiceTaskStep<string>
+        public IFinalServiceTaskStep FinalStep => new Done();
+
+        private sealed class Entry : IServiceTaskStep
         {
             // The rename escape hatch: the class was (hypothetically) renamed, the wire name pinned.
             public string Name => "legacySend";
 
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("sent"));
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
         }
 
-        private sealed class Done : IFinalServiceTaskStep<string>
+        private sealed class Done : IFinalServiceTaskStep
         {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
+            public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
                 Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
         }
     }

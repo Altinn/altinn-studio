@@ -29,31 +29,27 @@ public class ServiceTaskRegistrationValidatorTests
         }
     }
 
+    private sealed class SendStep : IServiceTaskStep
+    {
+        public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult(ServiceTaskStepResult.Next());
+    }
+
+    private sealed class AwaitStep : IFinalServiceTaskStep
+    {
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    }
+
     // ── Well-formed pipelines ────────────────────────────────────────────────────────────────
 
     private sealed class GoodTask : IStagedServiceTask
     {
         public string Type => "good";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Send(), new Track(), new AwaitReceipt()];
+        public IEnumerable<IServiceTaskStep> Steps => [new SendStep()];
 
-        private sealed class Send : IServiceTaskStep<string>
-        {
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
-        }
-
-        private sealed class Track : IServiceTaskStep<string, int>
-        {
-            public Task<ServiceTaskStepResult<int>> Execute(ServiceTaskContext<string> context) =>
-                Task.FromResult(ServiceTaskStepResult.Next(1));
-        }
-
-        private sealed class AwaitReceipt : IFinalServiceTaskStep<int>
-        {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<int> context) =>
-                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-        }
+        public IFinalServiceTaskStep FinalStep => new AwaitStep();
     }
 
     [Fact]
@@ -96,7 +92,9 @@ public class ServiceTaskRegistrationValidatorTests
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-        public IEnumerable<IServiceTaskStep> Steps => [];
+        public IEnumerable<IServiceTaskStep> Steps => [new SendStep()];
+
+        public IFinalServiceTaskStep FinalStep => new AwaitStep();
     }
 
     [Fact]
@@ -110,147 +108,80 @@ public class ServiceTaskRegistrationValidatorTests
 
     // ── Pipeline shapes ──────────────────────────────────────────────────────────────────────
 
-    private sealed class SingleStepPipeline : IStagedServiceTask
+    private sealed class NoWorkStepsPipeline : IStagedServiceTask
     {
-        public string Type => "single";
+        public string Type => "noWorkSteps";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Only()];
+        public IEnumerable<IServiceTaskStep> Steps => [];
 
-        private sealed class Only : IFinalServiceTaskStep<string>
-        {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
-                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-        }
+        public IFinalServiceTaskStep FinalStep => new AwaitStep();
     }
 
     [Fact]
-    public async Task PipelineWithOneStep_FailsStartup_PointingAtIServiceTask()
+    public async Task PipelineWithNoWorkSteps_FailsStartup_PointingAtIServiceTask()
     {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, SingleStepPipeline>());
+        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, NoWorkStepsPipeline>());
 
         Assert.NotNull(exception);
-        Assert.Contains("at least an entry and a final step", exception.Message);
+        Assert.Contains("Steps is empty", exception.Message);
         Assert.Contains(nameof(IServiceTask), exception.Message);
     }
 
-    private sealed class MismatchedSeamPipeline : IStagedServiceTask
+    private sealed class DualKindStepPipeline : IStagedServiceTask
     {
-        public string Type => "mismatched";
+        public string Type => "dualKindStep";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new ProducesString(), new ExpectsInt()];
+        public IEnumerable<IServiceTaskStep> Steps => [new BothKinds()];
 
-        private sealed class ProducesString : IServiceTaskStep<string>
+        public IFinalServiceTaskStep FinalStep => new AwaitStep();
+
+        private sealed class BothKinds : IServiceTaskStep, IFinalServiceTaskStep
         {
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
-        }
+            Task<ServiceTaskStepResult> IServiceTaskStep.Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
 
-        private sealed class ExpectsInt : IFinalServiceTaskStep<int>
-        {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<int> context) =>
+            Task<ServiceTaskResult> IFinalServiceTaskStep.Execute(ServiceTaskContext context) =>
                 Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
         }
     }
 
     [Fact]
-    public async Task MismatchedHandoffTypes_FailStartup_NamingBothSteps()
+    public async Task StepImplementingBothKinds_FailsStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, MismatchedSeamPipeline>());
+        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, DualKindStepPipeline>());
 
         Assert.NotNull(exception);
-        Assert.Contains("handoff mismatch", exception.Message);
-        Assert.Contains("'ExpectsInt' expects Int32", exception.Message);
-        Assert.Contains("'ProducesString' produces String", exception.Message);
-    }
-
-    private sealed class FinalNotLastPipeline : IStagedServiceTask
-    {
-        public string Type => "finalNotLast";
-
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry(), new EarlyFinal(), new TrailingLink()];
-
-        private sealed class Entry : IServiceTaskStep<string>
-        {
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
-        }
-
-        private sealed class EarlyFinal : IFinalServiceTaskStep<string>
-        {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
-                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-        }
-
-        private sealed class TrailingLink : IServiceTaskStep<string, string>
-        {
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext<string> context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
-        }
-    }
-
-    [Fact]
-    public async Task FinalStepNotLast_FailsStartup_OnBothEnds()
-    {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, FinalNotLastPipeline>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("'EarlyFinal' is a final step but is not last", exception.Message);
-        Assert.Contains("the last step ('TrailingLink') must be the final step", exception.Message);
-    }
-
-    private sealed class EntryNotFirstPipeline : IStagedServiceTask
-    {
-        public string Type => "entryNotFirst";
-
-        public IEnumerable<IServiceTaskStep> Steps => [new LinkFirst(), new Done()];
-
-        private sealed class LinkFirst : IServiceTaskStep<string, string>
-        {
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext<string> context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
-        }
-
-        private sealed class Done : IFinalServiceTaskStep<string>
-        {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
-                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-        }
-    }
-
-    [Fact]
-    public async Task FirstStepWithInput_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, EntryNotFirstPipeline>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("the first step ('LinkFirst') must be an entry step", exception.Message);
+        Assert.Contains("implements both", exception.Message);
+        Assert.Contains("exactly one kind", exception.Message);
     }
 
     private sealed class DuplicateNamesPipeline : IStagedServiceTask
     {
         public string Type => "duplicateNames";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry(), new Done()];
+        public IEnumerable<IServiceTaskStep> Steps => [new Entry()];
 
-        private sealed class Entry : IServiceTaskStep<string>
+        public IFinalServiceTaskStep FinalStep => new Done();
+
+        private sealed class Entry : IServiceTaskStep
         {
             public string Name => "step";
 
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
         }
 
-        private sealed class Done : IFinalServiceTaskStep<string>
+        private sealed class Done : IFinalServiceTaskStep
         {
             public string Name => "step";
 
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
+            public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
                 Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
         }
     }
 
     [Fact]
-    public async Task DuplicateStepNames_FailStartup()
+    public async Task DuplicateStepNames_AcrossStepsAndFinal_FailStartup()
     {
         var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, DuplicateNamesPipeline>());
 
@@ -262,20 +193,16 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "invalidOptions";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry(), new Done()];
+        public IEnumerable<IServiceTaskStep> Steps => [new Entry()];
 
-        private sealed class Entry : IServiceTaskStep<string>
+        public IFinalServiceTaskStep FinalStep => new AwaitStep();
+
+        private sealed class Entry : IServiceTaskStep
         {
             public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromSeconds(-5) };
 
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
-        }
-
-        private sealed class Done : IFinalServiceTaskStep<string>
-        {
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
-                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
         }
     }
 
@@ -293,6 +220,8 @@ public class ServiceTaskRegistrationValidatorTests
         public string Type => "throwingSteps";
 
         public IEnumerable<IServiceTaskStep> Steps => throw new InvalidOperationException("no steps for you");
+
+        public IFinalServiceTaskStep FinalStep => new AwaitStep();
     }
 
     [Fact]

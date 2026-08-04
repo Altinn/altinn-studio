@@ -1,22 +1,12 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// A single step in an <see cref="IStagedServiceTask"/> pipeline. Do not implement this interface
-/// directly (the compiler will not let you) — implement one of its three shapes, which together
-/// describe any pipeline of length two or more:
-/// <list type="bullet">
-/// <item><see cref="IServiceTaskStep{TOut}"/> — the <em>entry</em> step: takes no input, produces
-/// the pipeline's first output. Every pipeline starts with exactly one.</item>
-/// <item><see cref="IServiceTaskStep{TIn, TOut}"/> — a <em>link</em> step: consumes the previous
-/// step's output, produces the next. A pipeline has any number of these, including none.</item>
-/// <item><see cref="IFinalServiceTaskStep{TIn}"/> — the <em>final</em> step: consumes the previous
-/// step's output and decides how the task concludes (success, auto-advance, deferral or failure).
-/// Every pipeline ends with exactly one.</item>
-/// </list>
-/// Adjacent steps must agree on the handoff type (one step's <c>TOut</c> is the next step's
-/// <c>TIn</c>); this is validated at app startup.
+/// What every pipeline step of an <see cref="IStagedServiceTask"/> declares, regardless of kind:
+/// its identity and its per-step execution options. Implement one of the two kinds —
+/// <see cref="IServiceTaskStep"/> for the work steps, <see cref="IFinalServiceTaskStep"/> for the
+/// one step that concludes the task (a class must be exactly one of the two).
 /// </summary>
-public interface IServiceTaskStep
+public interface IServiceTaskStepBase
 {
     /// <summary>
     /// The step's identity, defaulting to the implementing class's name. It names the step in the
@@ -39,123 +29,59 @@ public interface IServiceTaskStep
     /// service-task command default, then the engine default.
     /// </summary>
     ProcessStepOptions? StepOptions => null;
-
-    /// <summary>
-    /// The step's declared input type: <c>TIn</c> for link and final steps, <c>null</c> for the
-    /// entry step. Used for startup seam validation and input deserialization.
-    /// </summary>
-    internal Type? InputType { get; }
-
-    /// <summary>
-    /// The step's declared output type: <c>TOut</c> for entry and link steps, <c>null</c> for the
-    /// final step. Used for startup seam validation and output serialization.
-    /// </summary>
-    internal Type? OutputType { get; }
-
-    /// <summary>
-    /// Whether this is the pipeline's final step.
-    /// </summary>
-    internal bool IsFinal { get; }
-
-    /// <summary>
-    /// Type-erased execution: builds the typed context around <paramref name="input"/> (already
-    /// deserialized to <see cref="InputType"/>), runs the step, and erases the typed result. Each
-    /// shape supplies this as a default implementation — it is the only place the generics meet the
-    /// runtime, which is what makes the public step contracts fully typed without any reflection.
-    /// </summary>
-    internal Task<ServiceTaskStepOutcome> Invoke(ServiceTaskContext context, object? input);
 }
 
 /// <summary>
-/// The <em>entry</em> step of an <see cref="IStagedServiceTask"/> pipeline: takes no input and
-/// produces the pipeline's first handoff value. See <see cref="IServiceTaskStep"/> for the pipeline
-/// shape rules.
+/// A work step of an <see cref="IStagedServiceTask"/> pipeline. Runs as its own durable engine
+/// step: once it reports <see cref="ServiceTaskStepResult.Next"/> it never runs again — the
+/// pipeline moves on, and any later retry or resume re-enters at the step that failed, not here.
 /// </summary>
-/// <typeparam name="TOut">
-/// The step's output, handed to the next step as its input. Serialized as JSON into the workflow's
-/// callback state between steps — keep it a small, transition-scoped value (an id, a receipt), not
-/// business data, and do not reshape it while workflows may be in flight.
-/// </typeparam>
+/// <remarks>
+/// <para>
+/// Steps share state the same way every service task already does: through
+/// <see cref="ServiceTaskContext.InstanceDataMutator"/>. Changes made by a step that completes are
+/// saved and visible to the steps after it. There is no other channel — a value the next step
+/// needs goes in the app's own data model.
+/// </para>
+/// <para>
+/// <strong>The step MUST be idempotent — it may be retried on failure.</strong> Use
+/// <see cref="ServiceTaskContext.StepId"/> (stable across this step's attempts, unique to it) as
+/// the idempotency key for an outbound call the step must not repeat.
+/// </para>
+/// </remarks>
 [ImplementableByApps]
-public interface IServiceTaskStep<TOut> : IServiceTaskStep
+public interface IServiceTaskStep : IServiceTaskStepBase
 {
     /// <summary>
-    /// Executes the step. Return <see cref="ServiceTaskStepResult.Next{TOut}"/> with the value for
-    /// the next step, <see cref="ServiceTaskStepResult.Defer"/> to run this step again later, or a
-    /// failure. Unhandled exceptions are treated as retryable failures.
+    /// Executes the step. Return <see cref="ServiceTaskStepResult.Next"/> when done (the pipeline
+    /// advances), <see cref="ServiceTaskStepResult.Defer"/> to run this step again later, or a
+    /// failure. Unhandled exceptions are treated as retryable failures. Note that a deferring
+    /// attempt is stateless: data changes are only saved when the step completes — see
+    /// <see cref="ServiceTaskStepResult.Defer"/>.
     /// </summary>
-    Task<ServiceTaskStepResult<TOut>> Execute(ServiceTaskContext context);
-
-    Type? IServiceTaskStep.InputType => null;
-
-    Type? IServiceTaskStep.OutputType => typeof(TOut);
-
-    bool IServiceTaskStep.IsFinal => false;
-
-    async Task<ServiceTaskStepOutcome> IServiceTaskStep.Invoke(ServiceTaskContext context, object? input) =>
-        (await Execute(context)).ToOutcome();
+    Task<ServiceTaskStepResult> Execute(ServiceTaskContext context);
 }
 
 /// <summary>
-/// A <em>link</em> step of an <see cref="IStagedServiceTask"/> pipeline: consumes the previous
-/// step's output and produces the next handoff value. See <see cref="IServiceTaskStep"/> for the
-/// pipeline shape rules.
+/// The concluding step of an <see cref="IStagedServiceTask"/> pipeline — always the pipeline's
+/// last step, declared separately as <see cref="IStagedServiceTask.FinalStep"/>. This is
+/// deliberately the only step kind that returns <see cref="ServiceTaskResult"/>: how the task
+/// concludes (success, auto-advance action, park) is a task-level outcome, and the shape of the
+/// contract reserves it for the pipeline's end.
 /// </summary>
-/// <typeparam name="TIn">The previous step's output, available as <see cref="ServiceTaskContext{TIn}.Input"/>.</typeparam>
-/// <typeparam name="TOut">
-/// The step's output, handed to the next step as its input. Serialized as JSON into the workflow's
-/// callback state between steps — keep it a small, transition-scoped value (an id, a receipt), not
-/// business data, and do not reshape it while workflows may be in flight. A value a later step
-/// needs must be carried forward through each intermediate output type — the handoff is a relay,
-/// not a shared scrapbook.
-/// </typeparam>
+/// <remarks>
+/// The idempotency and state-sharing rules of <see cref="IServiceTaskStep"/> apply here too. This
+/// is where a polling pipeline waits: return <see cref="ServiceTaskResult.Defer"/> until the
+/// outcome arrives, bounded by this step's <see cref="ProcessStepOptions.WaitBudget"/>.
+/// </remarks>
 [ImplementableByApps]
-public interface IServiceTaskStep<TIn, TOut> : IServiceTaskStep
-{
-    /// <summary>
-    /// Executes the step. Return <see cref="ServiceTaskStepResult.Next{TOut}"/> with the value for
-    /// the next step, <see cref="ServiceTaskStepResult.Defer"/> to run this step again later (its
-    /// <see cref="ServiceTaskContext{TIn}.Input"/> is preserved), or a failure. Unhandled exceptions
-    /// are treated as retryable failures.
-    /// </summary>
-    Task<ServiceTaskStepResult<TOut>> Execute(ServiceTaskContext<TIn> context);
-
-    Type? IServiceTaskStep.InputType => typeof(TIn);
-
-    Type? IServiceTaskStep.OutputType => typeof(TOut);
-
-    bool IServiceTaskStep.IsFinal => false;
-
-    async Task<ServiceTaskStepOutcome> IServiceTaskStep.Invoke(ServiceTaskContext context, object? input) =>
-        (await Execute(new ServiceTaskContext<TIn>(context, (TIn)input!))).ToOutcome();
-}
-
-/// <summary>
-/// The <em>final</em> step of an <see cref="IStagedServiceTask"/> pipeline: consumes the previous
-/// step's output and concludes the task. This is deliberately the only step shape that returns
-/// <see cref="ServiceTaskResult"/> — success with or without process auto-advancement is a
-/// task-level outcome, and the type system reserves it for the pipeline's end. See
-/// <see cref="IServiceTaskStep"/> for the pipeline shape rules.
-/// </summary>
-/// <typeparam name="TIn">The previous step's output, available as <see cref="ServiceTaskContext{TIn}.Input"/>.</typeparam>
-[ImplementableByApps]
-public interface IFinalServiceTaskStep<TIn> : IServiceTaskStep
+public interface IFinalServiceTaskStep : IServiceTaskStepBase
 {
     /// <summary>
     /// Executes the step, concluding the task: <see cref="ServiceTaskResult.Success"/> (with
     /// optional auto-advance action), <see cref="ServiceTaskResult.SuccessWithoutAutoAdvance"/>,
-    /// <see cref="ServiceTaskResult.Defer"/> to run this step again later (its
-    /// <see cref="ServiceTaskContext{TIn}.Input"/> is preserved — this is where a polling step
-    /// waits), or a failure. Unhandled exceptions are treated as retryable failures.
+    /// <see cref="ServiceTaskResult.Defer"/> to run this step again later, or a failure. Unhandled
+    /// exceptions are treated as retryable failures.
     /// </summary>
-    Task<ServiceTaskResult> Execute(ServiceTaskContext<TIn> context);
-
-    Type? IServiceTaskStep.InputType => typeof(TIn);
-
-    Type? IServiceTaskStep.OutputType => null;
-
-    bool IServiceTaskStep.IsFinal => true;
-
-    async Task<ServiceTaskStepOutcome> IServiceTaskStep.Invoke(ServiceTaskContext context, object? input) =>
-        new ServiceTaskStepOutcome.Final(await Execute(new ServiceTaskContext<TIn>(context, (TIn)input!)));
+    Task<ServiceTaskResult> Execute(ServiceTaskContext context);
 }

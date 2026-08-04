@@ -415,7 +415,7 @@ internal sealed class ProcessNextRequestFactory
             return null;
 
         return _appImplementationFactory.FindServiceTask(serviceTaskType) is IStagedServiceTask staged
-            ? staged.Steps.Select(s => s.Name).ToList()
+            ? staged.GetPipelineSteps().Select(s => s.Name).ToList()
             : null;
     }
 

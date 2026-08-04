@@ -318,21 +318,23 @@ public class ProcessStepOptionsResolverTests
 
         public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry(), new Done()];
+        public IEnumerable<IServiceTaskStep> Steps => [new Entry()];
 
-        private sealed class Entry : IServiceTaskStep<string>
+        public IFinalServiceTaskStep FinalStep => new Done();
+
+        private sealed class Entry : IServiceTaskStep
         {
             public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(2) };
 
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("id"));
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
         }
 
-        private sealed class Done : IFinalServiceTaskStep<string>
+        private sealed class Done : IFinalServiceTaskStep
         {
             public ProcessStepOptions? StepOptions => new() { WaitBudget = TimeSpan.FromHours(48) };
 
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
+            public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
                 Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
         }
     }

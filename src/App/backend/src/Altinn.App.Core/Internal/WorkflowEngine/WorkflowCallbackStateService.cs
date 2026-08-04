@@ -39,12 +39,7 @@ internal sealed class WorkflowCallbackStateService
     /// <summary>
     /// Captures the current state of the unit of work into an opaque, signed string for transport.
     /// </summary>
-    /// <param name="unitOfWork">The unit of work whose instance and form data to capture.</param>
-    /// <param name="serviceTaskBaton">
-    /// The staged-service-task handoff value to carry (see <see cref="WorkflowCallbackState.ServiceTaskBaton"/>),
-    /// or null for every other capture.
-    /// </param>
-    public async Task<string> CaptureState(InstanceDataUnitOfWork unitOfWork, JsonElement? serviceTaskBaton = null)
+    public async Task<string> CaptureState(InstanceDataUnitOfWork unitOfWork)
     {
         var rawFormData = await unitOfWork.CaptureFormData(_modelSerializationService);
         var formData = rawFormData
@@ -55,12 +50,7 @@ internal sealed class WorkflowCallbackStateService
                 Data = x.Data,
             })
             .ToList();
-        var callbackState = new WorkflowCallbackState
-        {
-            Instance = unitOfWork.Instance,
-            FormData = formData,
-            ServiceTaskBaton = serviceTaskBaton,
-        };
+        var callbackState = new WorkflowCallbackState { Instance = unitOfWork.Instance, FormData = formData };
         string payload = JsonSerializer.Serialize(callbackState);
         return _stateSigner.Sign(payload);
     }
@@ -74,7 +64,7 @@ internal sealed class WorkflowCallbackStateService
     /// </param>
     /// <param name="state">The opaque state blob captured at enqueue time.</param>
     /// <param name="language">The actor language to initialize the unit of work with.</param>
-    public async Task<RestoredWorkflowState> RestoreState(
+    public async Task<InstanceDataUnitOfWork> RestoreState(
         InstanceIdentifier expectedInstance,
         string state,
         string? language
@@ -138,13 +128,6 @@ internal sealed class WorkflowCallbackStateService
             unitOfWork.PreloadBinaryData(identifier, storageBytes);
         }
 
-        return new RestoredWorkflowState(unitOfWork, callbackState.ServiceTaskBaton);
+        return unitOfWork;
     }
 }
-
-/// <summary>
-/// The restored workflow callback state: the unit of work rebuilt from the blob, plus the
-/// staged-service-task handoff value the blob carried (see
-/// <see cref="WorkflowCallbackState.ServiceTaskBaton"/>).
-/// </summary>
-internal sealed record RestoredWorkflowState(InstanceDataUnitOfWork UnitOfWork, JsonElement? ServiceTaskBaton);

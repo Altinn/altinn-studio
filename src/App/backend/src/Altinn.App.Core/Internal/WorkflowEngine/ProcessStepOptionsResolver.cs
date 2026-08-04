@@ -106,9 +106,7 @@ internal sealed class ProcessStepOptionsResolver
             {
                 // Per-pipeline-step options win field-wise over the task's own, mirroring how the
                 // merged result then wins over the command default in Resolve.
-                ProcessStepOptions? stepOptions = staged
-                    .Steps.FirstOrDefault(s => string.Equals(s.Name, serviceTaskStepName, StringComparison.Ordinal))
-                    ?.StepOptions;
+                ProcessStepOptions? stepOptions = staged.FindPipelineStep(serviceTaskStepName)?.StepOptions;
                 ProcessStepOptions? taskOptions = staged.StepOptions;
                 if (stepOptions is null || taskOptions is null)
                 {

@@ -99,10 +99,10 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        RestoredWorkflowState restoredState;
+        InstanceDataUnitOfWork instanceDataUnitOfWork;
         try
         {
-            restoredState = await _workflowCallbackStateService.RestoreState(
+            instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
                 instanceId,
                 payload.State,
                 payload.Actor.Language
@@ -124,8 +124,6 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        InstanceDataUnitOfWork instanceDataUnitOfWork = restoredState.UnitOfWork;
-
         // Set the lock token from the workflow engine payload so all Storage clients include it. Done after the
         // state blob has been validated against the route instance, so the token is only applied once we know
         // the callback targets the expected instance.
@@ -142,7 +140,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 InstanceDataMutator = instanceDataUnitOfWork,
                 CancellationToken = ct,
                 Payload = payload,
-                ServiceTaskBaton = restoredState.ServiceTaskBaton,
             }
         );
 
@@ -173,13 +170,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.UpdateInstanceData(changes);
                 await instanceDataUnitOfWork.SaveChanges(changes);
 
-                // Capture updated state (includes Storage-assigned IDs for newly created data elements).
-                // The service-task baton is whatever the command produced: a completed non-final pipeline
-                // step hands its output to the next step here; every other success clears the baton.
-                string updatedState = await _workflowCallbackStateService.CaptureState(
-                    instanceDataUnitOfWork,
-                    success.ServiceTaskBaton
-                );
+                // Capture updated state (includes Storage-assigned IDs for newly created data elements)
+                string updatedState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
 
                 // If the command signals auto-advance, enqueue a dependent process-next workflow.
                 // This happens AFTER save so the state blob includes Storage-assigned IDs.
@@ -221,20 +213,32 @@ public class WorkflowEngineCallbackController : ControllerBase
                 return Ok(new AppCallbackResponse { State = updatedState });
 
             case DeferredProcessEngineCommandResult deferred:
-                // A deferral is a successful execution: data is saved and state re-signed exactly as
-                // above, so the next attempt resumes from it. What must NOT happen is auto-advance — the
-                // transition has not finished, it is waiting.
+                // A deferral is stateless by contract: nothing is saved and the incoming state is
+                // echoed back unchanged, so the re-run starts exactly where this attempt did. A step
+                // that checks-and-waits is not a step that records — work that produces something
+                // durable belongs in its own pipeline step. Enforced rather than silently discarded:
+                // a deferring handler that made data changes has broken the contract, and dropping
+                // its writes quietly would be the one worse outcome.
                 DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
-
-                await instanceDataUnitOfWork.UpdateInstanceData(deferredChanges);
-                await instanceDataUnitOfWork.SaveChanges(deferredChanges);
-
-                // A deferred step re-runs with the state it received, so the incoming baton (the
-                // deferring step's own input) is carried forward unchanged for the re-run to consume.
-                string deferredState = await _workflowCallbackStateService.CaptureState(
-                    instanceDataUnitOfWork,
-                    restoredState.ServiceTaskBaton
-                );
+                if (deferredChanges.AllChanges.Count > 0)
+                {
+                    _logger.LogError(
+                        "Callback handler deferred after modifying instance data ({ChangeCount} change(s)). "
+                            + "A deferral is stateless: move the work that records data into its own step. "
+                            + "CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        deferredChanges.AllChanges.Count,
+                        command.GetKey(),
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Deferring handler modified instance data");
+                    return NonRetryableProblem(
+                        "Deferral With Data Changes",
+                        "A deferring handler must not modify instance data — a deferral is stateless. "
+                            + "Move the work that records data into its own pipeline step.",
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
 
                 // The resolved command's own key rather than the route string it matched: same value,
                 // but provably from the registered set, so nothing route-derived reaches the log.
@@ -250,7 +254,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 return Ok(
                     new AppCallbackResponse
                     {
-                        State = deferredState,
+                        State = payload.State,
                         Defer = new AppCallbackDeferral { Delay = deferred.Delay, Reason = deferred.Reason },
                     }
                 );

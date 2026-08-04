@@ -20,10 +20,10 @@ void RegisterCustomAppServices(
 
     // Post-commit lever: the "scenario" service task (Task_Service / Task_ServiceLayout) the
     // Gateway_PostCommit gateway routes through when path == "postCommit". A STAGED task — a
-    // ReadLevers → RunScenario pipeline — so every postCommit e2e scenario also drives the
-    // multi-step contract (baton handoff, per-step durability/options). The engine runs its steps
-    // as critical post-commit steps, so delays/failures are frontend-observable (committed = the
-    // service task).
+    // PrepareScenario → RunScenario pipeline — so every postCommit e2e scenario also drives the
+    // multi-step contract (dispatch by step name, per-step durability/options). The engine runs
+    // its steps as critical post-commit steps, so delays/failures are frontend-observable
+    // (committed = the service task).
     services.AddTransient<IStagedServiceTask, ScenarioServiceTask>();
 
     // Background driver for the parkThenRelease lever: releases a parked service task after a few

@@ -90,31 +90,34 @@ alert for a non-error condition.
 ## Consequences
 
 - Multi-phase integrations ("send, then confirm") get their shape from **staged service tasks on
-  the public `IStagedServiceTask` surface**: a typed pipeline (entry → links → final) the app
-  declares, expanded to one engine step per pipeline step at enqueue time. The engine's step ledger
-  is the durable send guard — a completed step never re-runs, and a retry or an operational resume
-  re-enters the pipeline at the failed step — while the per-step `StepId` remains the outbound
-  idempotency key for the crash window inside one attempt (send succeeded, response never landed).
-  The guard is never `DeferCount` — an attempt can send, crash before answering, and re-run with
-  the count unchanged. eFormidling in v9 migrates onto this as a send step plus a polling final
-  step (IP status mapped to Success / Defer / Critical / Retryable), idempotent per #18888. An
-  earlier iteration of this decision chose a **single** task phasing itself on checkpointed
-  evidence and rejected the multi-step split for forking the first-party integration off the API
-  third parties get; that objection dissolved when the split itself became the public API.
+  the public `IStagedServiceTask` surface**: the app declares the work steps (`Steps`) and the one
+  concluding step (`FinalStep` — the only step kind that can conclude the task or auto-advance the
+  process, structurally), expanded to one engine step per pipeline step at enqueue time. The
+  engine's step ledger is the durable send guard — a completed step never re-runs, and a retry or
+  an operational resume re-enters the pipeline at the failed step — while the per-step `StepId`
+  remains the outbound idempotency key for the crash window inside one attempt (send succeeded,
+  response never landed). The guard is never `DeferCount` — an attempt can send, crash before
+  answering, and re-run with the count unchanged. Steps share state the way service tasks already
+  do — through the instance data mutator, saved on step completion — deliberately introducing no
+  new handoff channel; a typed per-step input/output relay was built and then backed out as
+  machinery the feature doesn't need. eFormidling in v9 migrates onto this as a send step plus a
+  polling final step (IP status mapped to Success / Defer / Critical / Retryable), idempotent per
+  #18888. An earlier iteration of this decision chose a **single** task phasing itself on
+  checkpointed evidence and rejected the multi-step split for forking the first-party integration
+  off the API third parties get; that objection dissolved when the split itself became the public
+  API.
 - **Checkpoints — the interim app-managed send guard — were designed, built, and removed within
   this change.** They stored evidence as instance data values written immediately, deliberately
   outside the save-on-success unit of work; exactly that out-of-band write collides with the
   upcoming instance-lock feature, and the staged split makes the concept unnecessary: "the send
-  happened" is the engine's own step-completion record, and what a step learns travels to the next
-  step as its typed input via the signed callback-state blob (`serviceTaskBaton`) — a channel that
-  already has the right lifecycle and needs no mid-attempt durability, because the handoff
-  accompanies step completion. Storing durable business evidence engine-side stays rejected (it
+  happened" is the engine's own step-completion record, and what a step learns is ordinary
+  instance data saved on its completion through the lock-holding save path — durable exactly when
+  the step's completion is. Storing durable business evidence engine-side stays rejected (it
   would make the engine's database a second source of business truth and end its
-  rebuildable-machinery operational posture); step outputs are transition-scoped plumbing in the
-  app's own signed state, not engine business data. Evidence that must survive BPMN round trips
+  rebuildable-machinery operational posture). Evidence that must survive BPMN round trips
   (each pass is a new workflow) — e.g. eFormidling's one-shipment-per-instance ownership claim —
-  remains ordinary instance data written through the lock-holding save path; the eFormidling claim
-  keeps that shape until its v9 migration.
+  is the same instance data, read on a later pass; the eFormidling claim keeps its pre-existing
+  shape until its v9 migration.
 - A deferral's reason travels to every surface that shows a wait: persisted on the step
   (`lastDeferReason`), projected onto a `Waiting` collection head (`waitingReason`), and annotated
   on the app's process reads (`workflow.waitingReason`) — so waiting UIs and ops read the task's
@@ -125,9 +128,15 @@ alert for a non-error condition.
   alone). Shipping the budget alone would release a public, binary-compatible-forever knob
   configuring a wait no app could request. The primitive and its app surface ship together;
   migrating eFormidling, payment capture and signing is the next phase.
-- Deferral is stateful across attempts: data changes are saved on every attempt that makes them, and a
-  step's own `StateOut` becomes its next attempt's `StateIn`. A `state` parameter on `Defer` was
-  rejected as a third state channel alongside Storage and the signed blob.
+- **Deferral is stateless.** A deferring attempt saves nothing: the app echoes the incoming state
+  blob back unchanged and rejects (non-retryable) a deferring handler that modified instance data,
+  so every re-check starts from exactly the state the step first received. At this level of
+  sharding, a step that checks-and-waits is by definition not a step that records — work that
+  produces something durable belongs in its own pipeline step, completed rather than deferred.
+  This reverses the earlier "stateful across attempts" decision, which existed to let a *single*
+  re-entrant task accumulate what it learned between polls; the staged split removes that need. A
+  `state` parameter on `Defer` stays rejected as a third state channel alongside Storage and the
+  signed blob.
 - Park and defer are deliberately **identical UX on a layouted service task** — both leave the
   process on the committed task (park awaits an external release, e.g. Fiks Arkiv's callback;
   defer polls, e.g. eFormidling), and an app-supplied layout owns the waiting presentation for
@@ -155,10 +164,13 @@ Four details are load-bearing, and all four are easy to "simplify" back into bug
   to reach "the last deferral's write-back" — because that column advances on *every* write-back, so each
   failed attempt slides the deadline forward and `MaxDuration` stops binding. Under the shipped default
   (no `MaxRetries`) a deferred step whose command starts failing would retry forever.
-- **`StateIn` prefers a step's own `StateOut`.** Without it a deferring step's state is persisted and
-  then discarded on every re-execution, while its data writes sit in Storage — actively misleading given
-  `IInstanceDataMutator` promises "changes are saved". Narrow by construction: only success-shaped
-  outcomes write `StateOut`, so deferral is the only path that produces state and then re-executes.
+- **`StateIn` prefers a step's own `StateOut`.** The engine hands a re-executing deferred step the
+  state that step itself last returned, not the previous step's. With stateless deferral the app
+  echoes the incoming blob back, so the two are identical in practice — but the preference stays
+  load-bearing as the engine-side contract: it is what makes "every re-check starts from the state
+  the step first received" true regardless of what a (non-app) command returns, and it is narrow by
+  construction — only success-shaped outcomes write `StateOut`, so deferral is the only path that
+  produces state and then re-executes.
 - **Cancelling a parked workflow clears its backoff.** The in-memory cancellation watcher only reaches
   workflows a pod is executing, so without clearing `backoff_until` a cancel would sit unapplied for up
   to `MaxStepWaitBudget`. `Enqueued` is excluded: there `backoff_until` carries `StartAt`, and clearing

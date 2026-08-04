@@ -62,10 +62,11 @@ public abstract record ServiceTaskResult
     /// </param>
     /// <remarks>
     /// <para>
-    /// A deferral is not a failure: it records no error and resets the retry counter. Data changes are
-    /// saved on every attempt that makes them, exactly as for a successful result, and the next attempt
-    /// sees them — so the instance is where a polling task keeps what it learned. Those writes must be
-    /// idempotent, which <see cref="IServiceTask"/> already requires.
+    /// A deferral is not a failure: it records no error and resets the retry counter. It is also
+    /// <strong>stateless</strong>: nothing is saved, and instance data changes made by a deferring
+    /// attempt are rejected as a contract violation. A task that checks-and-waits is not a task that
+    /// records — work that produces something durable belongs before the wait, in its own pipeline
+    /// step (<see cref="IStagedServiceTask"/>), completed rather than deferred.
     /// </para>
     /// <para>
     /// Waiting is bounded by <see cref="ProcessStepOptions.WaitBudget"/> (or the engine default); expiry
@@ -76,10 +77,10 @@ public abstract record ServiceTaskResult
     /// </para>
     /// <para>
     /// For the send-then-poll pattern — dispatch once, then wait until the outcome arrives — implement
-    /// <see cref="IStagedServiceTask"/> instead and give the send and the poll their own steps: the
-    /// engine's durable step ledger then guarantees the send never re-runs once it has succeeded, and
-    /// the poll is where deferral lives. Within a single <see cref="IServiceTask"/>, never branch on
-    /// anything under <see cref="ServiceTaskContext.Attempt"/> or <see cref="ServiceTaskContext.Wait"/>
+    /// <see cref="IStagedServiceTask"/> and give the send and the poll their own steps: the engine's
+    /// durable step ledger then guarantees the send never re-runs once it has completed, and the
+    /// final step is where deferral lives. Never branch on anything under
+    /// <see cref="ServiceTaskContext.Attempt"/> or <see cref="ServiceTaskContext.Wait"/>
     /// to guard a side effect: the engine records an attempt only after it answers, so an attempt that
     /// sends and crashes re-runs with all of those unchanged. Use
     /// <see cref="ServiceTaskContext.StepId"/> as the outbound idempotency key — it is the one value a

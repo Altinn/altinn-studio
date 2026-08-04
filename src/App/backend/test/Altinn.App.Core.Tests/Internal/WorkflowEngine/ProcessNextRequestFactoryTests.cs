@@ -553,19 +553,21 @@ public class ProcessNextRequestFactoryTests
 
         public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Dispatch(), new AwaitOutcome()];
+        public IEnumerable<IServiceTaskStep> Steps => [new Dispatch()];
 
-        private sealed class Dispatch : IServiceTaskStep<string>
+        public IFinalServiceTaskStep FinalStep => new AwaitOutcome();
+
+        private sealed class Dispatch : IServiceTaskStep
         {
-            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next("order-id"));
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
         }
 
-        private sealed class AwaitOutcome : IFinalServiceTaskStep<string>
+        private sealed class AwaitOutcome : IFinalServiceTaskStep
         {
             public ProcessStepOptions? StepOptions => new() { WaitBudget = TimeSpan.FromHours(48) };
 
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
+            public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
                 Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
         }
     }

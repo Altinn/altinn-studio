@@ -18,16 +18,6 @@ internal sealed record WorkflowCallbackState
     /// </summary>
     [JsonPropertyName("formData")]
     public required List<FormDataEntry> FormData { get; init; }
-
-    /// <summary>
-    /// The staged-service-task handoff value: the serialized output of the most recently completed
-    /// pipeline step, destined for the next step (see <c>IStagedServiceTask</c>). Set when a
-    /// non-final step completes, preserved across a step's deferrals, cleared by the final step.
-    /// Null in every other state blob.
-    /// </summary>
-    [JsonPropertyName("serviceTaskBaton")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public JsonElement? ServiceTaskBaton { get; init; }
 }
 
 /// <summary>

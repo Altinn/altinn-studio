@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
@@ -26,7 +25,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
     /// systems (eFormidling, payment providers, other government APIs), so they get a far more generous
     /// budget than the engine's global default. An individual service task that needs even
     /// longer can override this via <see cref="IProcessStepConfigurable.StepOptions"/> (per task) or
-    /// <see cref="IServiceTaskStep.StepOptions"/> (per pipeline step).
+    /// <see cref="IServiceTaskStepBase.StepOptions"/> (per pipeline step).
     /// </summary>
     internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
 
@@ -81,8 +80,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 (IStagedServiceTask staged, { } stepName) => await ExecuteStagedStep(
                     staged,
                     stepName,
-                    serviceTaskContext,
-                    context.ServiceTaskBaton
+                    serviceTaskContext
                 ),
                 (IStagedServiceTask, null) => FailedProcessEngineCommandResult.Permanent(
                     $"Service task '{serviceTask.Type}' is a staged (multi-step) task, but this workflow step carries "
@@ -108,70 +106,48 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
     private static async Task<ProcessEngineCommandResult> ExecuteStagedStep(
         IStagedServiceTask serviceTask,
         string stepName,
-        ServiceTaskContext serviceTaskContext,
-        JsonElement? baton
+        ServiceTaskContext serviceTaskContext
     )
     {
-        IServiceTaskStep? step = serviceTask
-            .Steps.Where(s => string.Equals(s.Name, stepName, StringComparison.Ordinal))
-            .FirstOrDefault();
-        if (step is null)
+        IServiceTaskStepBase? step = serviceTask.FindPipelineStep(stepName);
+        return step switch
         {
-            return FailedProcessEngineCommandResult.Permanent(
+            null => FailedProcessEngineCommandResult.Permanent(
                 $"Service task '{serviceTask.Type}' has no step named '{stepName}'. Step names are a compatibility "
                     + "surface for in-flight workflows: if the step's class was renamed since this workflow was "
-                    + $"enqueued, redeploy with the original name pinned via {nameof(IServiceTaskStep)}.{nameof(IServiceTaskStep.Name)} "
+                    + $"enqueued, redeploy with the original name pinned via {nameof(IServiceTaskStepBase)}.{nameof(IServiceTaskStepBase.Name)} "
                     + "and resume the workflow.",
                 "ServiceTaskStepNotFound"
-            );
-        }
-
-        object? input = null;
-        if (step.InputType is { } inputType)
-        {
-            if (baton is not { } inputJson)
-            {
-                return FailedProcessEngineCommandResult.Permanent(
-                    $"Step '{stepName}' of service task '{serviceTask.Type}' requires the previous step's output, "
-                        + "but the callback state carries none. The workflow's state predates the pipeline shape "
-                        + "this app version declares; it cannot continue against this version.",
-                    "ServiceTaskStepInputMissing"
-                );
-            }
-
-            input = JsonSerializer.Deserialize(inputJson, inputType);
-            if (input is null)
-            {
-                return FailedProcessEngineCommandResult.Permanent(
-                    $"Step '{stepName}' of service task '{serviceTask.Type}' received a null input value.",
-                    "ServiceTaskStepInputMissing"
-                );
-            }
-        }
-
-        ServiceTaskStepOutcome outcome = await step.Invoke(serviceTaskContext, input);
-        return outcome switch
-        {
-            // A completed non-final step never advances the process; its output becomes the next
-            // step's input, carried in the callback state the engine hands forward.
-            ServiceTaskStepOutcome.Next(var output) => new SuccessfulProcessEngineCommandResult
-            {
-                ServiceTaskBaton = JsonSerializer.SerializeToElement(output, step.OutputType!),
-            },
-            ServiceTaskStepOutcome.Final(var result) => MapServiceTaskResult(result, serviceTask),
-            ServiceTaskStepOutcome.Deferred(var delay, var reason) => new DeferredProcessEngineCommandResult
-            {
-                Delay = delay,
-                Reason = reason,
-            },
-            ServiceTaskStepOutcome.Failed(var errorMessage, var kind) => MapFailure(
-                serviceTask,
-                errorMessage,
-                kind == FailureKind.Permanent
             ),
-            _ => throw new UnreachableException($"Unknown step outcome type: {outcome.GetType().Name}"),
+            // Final first: startup validation forbids a class implementing both step kinds, but if
+            // one slips through, concluding semantics must win over silently swallowing them.
+            IFinalServiceTaskStep finalStep => MapServiceTaskResult(
+                await finalStep.Execute(serviceTaskContext),
+                serviceTask
+            ),
+            IServiceTaskStep workStep => MapStepResult(await workStep.Execute(serviceTaskContext), serviceTask),
+            _ => throw new UnreachableException($"Unknown pipeline step kind: {step.GetType().Name}"),
         };
     }
+
+    private static ProcessEngineCommandResult MapStepResult(ServiceTaskStepResult result, IServiceTaskBase task) =>
+        result switch
+        {
+            // A completed work step never advances the process — the pipeline just moves on to the
+            // next engine step.
+            NextServiceTaskStepResult => new SuccessfulProcessEngineCommandResult(),
+            DeferredServiceTaskStepResult deferred => new DeferredProcessEngineCommandResult
+            {
+                Delay = deferred.Delay,
+                Reason = deferred.Reason,
+            },
+            FailedServiceTaskStepResult failed => MapFailure(
+                task,
+                failed.ErrorMessage,
+                failed.Kind == FailureKind.Permanent
+            ),
+            _ => throw new UnreachableException($"Unknown step result type: {result.GetType().Name}"),
+        };
 
     private static ProcessEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, IServiceTaskBase task) =>
         result switch
