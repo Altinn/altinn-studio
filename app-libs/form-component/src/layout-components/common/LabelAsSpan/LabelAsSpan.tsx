@@ -34,7 +34,6 @@ export function LabelAsSpan({
 
   return (
     <span
-      id={labelId}
       className={cn(
         classes.fieldWrapper,
         direction === 'vertical' ? classes.vertical : classes.horizontal,
@@ -44,7 +43,7 @@ export function LabelAsSpan({
       <span className={classes.labelWrapper}>
         <span className={classes.labelRow}>
           <DsLabel asChild weight='medium' data-size='md'>
-            <span>{lang(title)}</span>
+            <span id={labelId}>{lang(title)}</span>
           </DsLabel>
           {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
         </span>

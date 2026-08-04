@@ -19,8 +19,11 @@ describe('LabelAsSpan', () => {
     expect(screen.getByText('20.07.2026')).toBeInTheDocument();
   });
 
-  it('sets the label id on the outer span', () => {
+  it('sets the label id on the title span', () => {
     render({ componentId: 'date-preview' });
-    expect(document.getElementById('label-date-preview')).toBeInTheDocument();
+    const label = document.getElementById('label-date-preview');
+    expect(label).toBeInTheDocument();
+    expect(label).toHaveTextContent('my.title');
+    expect(label?.tagName).toBe('SPAN');
   });
 });
