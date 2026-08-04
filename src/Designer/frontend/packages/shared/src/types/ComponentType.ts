@@ -30,7 +30,9 @@ export enum ComponentType {
   MultipleSelect = 'MultipleSelect',
   NavigationBar = 'NavigationBar',
   NavigationButtons = 'NavigationButtons',
+  // Keep the British-spelled type for frontend v4 apps; frontend v9 uses OrganizationLookup.
   OrganisationLookup = 'OrganisationLookup',
+  OrganizationLookup = 'OrganizationLookup',
   Panel = 'Panel',
   Paragraph = 'Paragraph',
   Payment = 'Payment',

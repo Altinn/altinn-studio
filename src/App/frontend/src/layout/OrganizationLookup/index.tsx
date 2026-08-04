@@ -4,9 +4,9 @@ import type { JSX } from 'react';
 import type { ComponentValidationContext, PropsFromGenericComponent } from '..';
 
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
-import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.generated';
-import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
-import { OrganisationLookupSummary } from 'src/layout/OrganisationLookup/OrganisationLookupSummary';
+import { OrganizationLookupDef } from 'src/layout/OrganizationLookup/config.def.generated';
+import { OrganizationLookupComponent } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
+import { OrganizationLookupSummary } from 'src/layout/OrganizationLookup/OrganizationLookupSummary';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
@@ -15,33 +15,33 @@ import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class OrganisationLookup extends OrganisationLookupDef {
-  render = forwardRef<HTMLElement, PropsFromGenericComponent<'OrganisationLookup'>>(
-    function LayoutComponentOrganisationLookupRender(props, _): JSX.Element | null {
-      return <OrganisationLookupComponent {...props} />;
+export class OrganizationLookup extends OrganizationLookupDef {
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'OrganizationLookup'>>(
+    function LayoutComponentOrganizationLookupRender(props, _): JSX.Element | null {
+      return <OrganizationLookupComponent {...props} />;
     },
   );
 
   useDisplayData(baseComponentId: string): string {
-    const formData = useNodeFormDataWhenType(baseComponentId, 'OrganisationLookup');
+    const formData = useNodeFormDataWhenType(baseComponentId, 'OrganizationLookup');
     return Object.values(formData ?? {}).join(', ');
   }
 
   renderSummary2(props: Summary2Props): JSX.Element | null {
-    return <OrganisationLookupSummary {...props} />;
+    return <OrganizationLookupSummary {...props} />;
   }
 
   renderSummary(_props: SummaryRendererProps): JSX.Element | null {
     return null;
   }
 
-  validateEmptyField(ctx: ComponentValidationContext<'OrganisationLookup'>): ComponentValidation[] {
-    return validateEmptyFieldOnlyOneBinding(ctx, 'organisation_lookup_orgnr', 'organisation_lookup.error_required');
+  validateEmptyField(ctx: ComponentValidationContext<'OrganizationLookup'>): ComponentValidation[] {
+    return validateEmptyFieldOnlyOneBinding(ctx, 'organization_lookup_orgnr', 'organization_lookup.error_required');
   }
 
   validateDataModelBindings(
     baseComponentId: string,
-    bindings: IDataModelBindings<'OrganisationLookup'>,
+    bindings: IDataModelBindings<'OrganizationLookup'>,
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
     return (
@@ -50,7 +50,7 @@ export class OrganisationLookup extends OrganisationLookupDef {
         bindings,
         lookupBinding,
         layoutLookups,
-        'organisation_lookup_orgnr',
+        'organization_lookup_orgnr',
         ['string'],
       )[0] ?? []
     );
