@@ -22,20 +22,17 @@ describe('Component utils', () => {
       Object.values(ComponentType).filter(
         (v) => v !== ComponentType.OrganisationLookup && !containerComponentTypes.includes(v),
       ),
-    )(
-      'Generates component of type %s with given ID',
-      (componentType) => {
-        const id = 'testId';
-        const component = generateFormItem(componentType, id);
-        expect(component).toEqual(
-          expect.objectContaining({
-            id,
-            type: componentType,
-            itemType: 'COMPONENT',
-          }),
-        );
-      },
-    );
+    )('Generates component of type %s with given ID', (componentType) => {
+      const id = 'testId';
+      const component = generateFormItem(componentType, id);
+      expect(component).toEqual(
+        expect.objectContaining({
+          id,
+          type: componentType,
+          itemType: 'COMPONENT',
+        }),
+      );
+    });
 
     it('maps custom component type to correct component reference', () => {
       expect(formItemConfigs[CustomComponentType.CloseSubformButton].componentRef).toBe(
