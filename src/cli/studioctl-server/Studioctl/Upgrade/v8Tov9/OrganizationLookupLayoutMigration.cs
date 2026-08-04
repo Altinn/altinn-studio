@@ -7,6 +7,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 internal static class OrganizationLookupLayoutMigration
 {
     private const string OldComponentType = "OrganisationLookup";
+    private const string NewComponentType = "OrganizationLookup";
     private const string OldOrganizationNumberBinding = "organisation_lookup_orgnr";
     private const string OldOrganizationNameBinding = "organisation_lookup_name";
 
@@ -34,6 +35,7 @@ internal static class OrganizationLookupLayoutMigration
 
         var changedFiles = 0;
         var changedComponents = 0;
+        var changedBindings = 0;
         foreach (var layoutFile in FindLayoutFiles(uiDirectory))
         {
             var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(layoutFile));
@@ -46,13 +48,17 @@ internal static class OrganizationLookupLayoutMigration
                 throw new JsonException($"Layout file does not contain JSON: {layoutFile}");
 
             var occurrences = CountLegacyContract(root);
-            if (occurrences.Components == 0)
+            if (
+                occurrences.Components == 0
+                && occurrences.OrganizationNumberBindings == 0
+                && occurrences.OrganizationNameBindings == 0
+            )
                 continue;
 
             EnsureExpectedOccurrences(layoutFile, decoded.Text, occurrences);
             var migrated = _componentTypePattern.Replace(
                 decoded.Text,
-                match => match.Groups[1].Value + "\"OrganizationLookup\""
+                match => match.Groups[1].Value + $"\"{NewComponentType}\""
             );
             migrated = _organizationNumberBindingPattern.Replace(migrated, "\"organization_lookup_orgnr\"");
             migrated = _organizationNameBindingPattern.Replace(migrated, "\"organization_lookup_name\"");
@@ -60,15 +66,17 @@ internal static class OrganizationLookupLayoutMigration
             await Utf8TextFile.Write(layoutFile, migrated, decoded.HadBom);
             changedFiles++;
             changedComponents += occurrences.Components;
+            var bindings = occurrences.OrganizationNumberBindings + occurrences.OrganizationNameBindings;
+            changedBindings += bindings;
             await UpgradeConsole.Out.WriteLineAsync(
-                $"Migrated {occurrences.Components} OrganizationLookup component(s) in {layoutFile}"
+                $"Migrated {occurrences.Components} OrganizationLookup component type(s) and {bindings} binding(s) in {layoutFile}"
             );
         }
 
         await UpgradeConsole.Out.WriteLineAsync(
-            changedComponents == 0
-                ? "No OrganisationLookup components found to migrate"
-                : $"Migrated {changedComponents} OrganizationLookup component(s) across {changedFiles} layout file(s)"
+            changedFiles == 0
+                ? "No OrganisationLookup contract tokens found to migrate"
+                : $"Migrated {changedComponents} OrganizationLookup component type(s) and {changedBindings} binding(s) across {changedFiles} layout file(s)"
         );
         return 0;
     }
@@ -95,9 +103,9 @@ internal static class OrganizationLookupLayoutMigration
         var occurrences = new LegacyContractOccurrences();
         if (node is JsonObject obj)
         {
-            if (HasOldComponentType(obj))
+            if (HasLookupComponentType(obj, out var isLegacyComponent))
             {
-                occurrences.Components++;
+                occurrences.Components += isLegacyComponent ? 1 : 0;
                 if (obj["dataModelBindings"] is JsonObject bindings)
                 {
                     occurrences.OrganizationNumberBindings += bindings.ContainsKey(OldOrganizationNumberBinding)
@@ -125,10 +133,15 @@ internal static class OrganizationLookupLayoutMigration
         return occurrences;
     }
 
-    private static bool HasOldComponentType(JsonObject obj) =>
-        obj["type"] is JsonValue type
-        && type.TryGetValue<string>(out var componentType)
-        && componentType == OldComponentType;
+    private static bool HasLookupComponentType(JsonObject obj, out bool isLegacyComponent)
+    {
+        isLegacyComponent = false;
+        if (obj["type"] is not JsonValue type || !type.TryGetValue<string>(out var componentType))
+            return false;
+
+        isLegacyComponent = componentType == OldComponentType;
+        return isLegacyComponent || componentType == NewComponentType;
+    }
 
     private static void EnsureExpectedOccurrences(string layoutFile, string content, LegacyContractOccurrences expected)
     {
@@ -142,7 +155,10 @@ internal static class OrganizationLookupLayoutMigration
         )
         {
             throw new InvalidOperationException(
-                $"Could not safely migrate {layoutFile}: legacy OrganizationLookup tokens occur outside matching components"
+                $"Could not safely migrate {layoutFile}: legacy OrganisationLookup tokens occur outside matching components "
+                    + $"(type: {componentTypes} text vs {expected.Components} structural, "
+                    + $"organization-number binding: {organizationNumberBindings} text vs {expected.OrganizationNumberBindings} structural, "
+                    + $"name binding: {organizationNameBindings} text vs {expected.OrganizationNameBindings} structural)"
             );
         }
     }
