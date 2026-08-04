@@ -22,7 +22,6 @@ app-libs/**/package.json                                                  @altin
 src/App/frontend/**/docker-compose.yml                                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                          @altinn/team-altinn-studio-utforming
 src/Designer/frontend/**/package.json                                     @altinn/team-altinn-studio-utforming
-src/Designer/frontend/**/yarn.lock                                        @altinn/team-altinn-studio-utforming
 
 # Team Access Info
 .github/workflows/designer-frontend-resourceadm-playwright-staging.yml    @altinn/team-access-info
@@ -31,14 +30,14 @@ src/Designer/frontend/resourceadm/**/package.json                         @altin
 
 # AI
 .github/workflows/deploy-studio-mcp-server.yaml                           @ErlingHauan
-.github/workflows/mcp-build.yaml                                          @ErlingHauan
-.github/workflows/mcp-test.yaml                                           @ErlingHauan
+.github/workflows/mcp-build-test.yaml                                     @ErlingHauan
 src/AI/agents/**/docker-compose.*.yml                                     @ErlingHauan
 src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
 src/AI/agents/**/dockerfile*                                              @ErlingHauan
 src/AI/agents/**/pyproject.toml                                           @ErlingHauan
 src/AI/agents/**/requirements-dev.txt                                     @ErlingHauan
 src/AI/agents/**/requirements.txt                                         @ErlingHauan
+src/AI/agents/**/uv.lock                                                  @ErlingHauan
 src/AI/augmenter-agent/**/*.csproj                                        @ErlingHauan
 src/AI/augmenter-agent/**/docker-compose.yaml                             @ErlingHauan
 src/AI/augmenter-agent/**/dockerfile*                                     @ErlingHauan
