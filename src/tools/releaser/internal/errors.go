@@ -27,6 +27,7 @@ var (
 	errPrereleaseSeqInvalid   = errors.New("active prerelease version must end with numeric prerelease identifier")
 	errPrereleaseLineOpen     = errors.New("active prerelease line has not entered stabilization")
 	errPrereleaseLineNotNewer = errors.New("planned prerelease line must be newer than the active line")
+	errPrereleaseMismatch     = errors.New("prerelease candidate differs from pinned main")
 	errPrereleaseLineClosed   = errors.New("prerelease line is already stabilizing or stable")
 	errStabilizationMismatch  = errors.New("stabilization candidate differs between main and release branch")
 	errValidationBaseRequired = errors.New("base commit is required")

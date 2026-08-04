@@ -421,6 +421,106 @@ func TestRunPrepareWithDeps_StartsPlannedPrereleaseLineAfterStabilization(t *tes
 	}
 }
 
+func TestRunPrepareWithDeps_StartsPlannedLineFromUnnumberedPrerelease(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next release line entry
+
+## [1.2.0-rc] - 2025-01-03
+
+### Added
+
+- Stabilizing release candidate
+`)
+	createReleaseBranch(t, repo, "release/studioctl/v1.2")
+	t.Chdir(repo)
+
+	var output bytes.Buffer
+	logger := internal.NewConsoleLogger(internal.WithWriters(&output, &output))
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		Line:      "v1.3",
+		DryRun:    true,
+	}, git, &fakeGH{}, logger)
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+	if !strings.Contains(output.String(), "Would promote changelog to: [v1.3.0-rc.1]") {
+		t.Fatalf("dry-run did not carry the unnumbered prerelease channel:\n%s", output.String())
+	}
+}
+
+func TestRunPrepareWithDeps_RejectsPrereleaseCandidateFromStaleMain(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Initially resolved entry
+
+## [1.2.0-preview.3] - 2025-01-03
+
+### Added
+
+- Initial channel
+`)
+	upstream := addUpstreamRemote(t, repo)
+	createRemoteBranch(t, upstream, "release/studioctl/v1.2")
+	const canonicalMainBranch = "main"
+	fetches := 0
+	gitLog := &commandHookLogger{
+		onCommand: func(command string, args []string) {
+			if command != "git" || len(args) != 3 ||
+				args[0] != "fetch" || args[1] != "upstream" || args[2] != canonicalMainBranch {
+				return
+			}
+			fetches++
+			if fetches != 2 {
+				return
+			}
+			updateRemoteChangelog(t, upstream, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Concurrently resolved entry
+
+## [1.2.0-rc.1] - 2025-01-04
+
+### Added
+
+- Concurrent channel
+`)
+		},
+	}
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(gitLog))
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		Line:      "v1.3",
+		DryRun:    true,
+	}, git, &fakeGH{canonicalRepositoryURL: upstream}, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected stale candidate error, got nil")
+	}
+	if !strings.Contains(err.Error(), "prerelease candidate differs") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want stale candidate error", err)
+	}
+	if fetches != 2 {
+		t.Fatalf("main fetches = %d, want concurrent update before pinned fetch", fetches)
+	}
+}
+
 func TestRunPrepareWithDeps_IncrementsNewestPrereleaseAcrossHistoricalLines(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, `# Changelog
 

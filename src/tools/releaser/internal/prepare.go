@@ -110,7 +110,7 @@ func RunPrepareWithDeps(ctx context.Context, req PrepareRequest, git *GitCLI, gh
 	}
 	log.Detail("Release version", version)
 
-	cfg, err := prepareReleasePrepConfig(ctx, git, comp, topology, version, req.Kind, clPath)
+	cfg, err := prepareReleasePrepConfig(ctx, git, comp, topology, version, req.Kind, req.Line, clPath)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func prepareReleasePrepConfig(
 	git *GitCLI,
 	comp *Component,
 	topology RepositoryTopology,
-	version, kind, clPath string,
+	version, kind, line, clPath string,
 ) (*releasePrepConfig, error) {
 	verStr := version
 	if !strings.HasPrefix(verStr, "v") {
@@ -189,15 +189,16 @@ func prepareReleasePrepConfig(
 
 	sourceBranch := baseBranch
 	if createReleaseBranch {
-		// First stable release lines are cut from main before promotion.
-		sourceBranch = mainBranch
+		sourceBranch = mainBranch // First stable release lines are cut from main before promotion.
 	}
 	cl, baseCommit, err := loadReleasePrepChangelog(
 		ctx,
 		git,
+		comp,
 		topology.SourceRemote,
 		sourceBranch,
 		kind,
+		line,
 		verStr,
 		clPath,
 	)
@@ -244,7 +245,8 @@ func prepareReleasePrepConfig(
 func loadReleasePrepChangelog(
 	ctx context.Context,
 	git *GitCLI,
-	sourceRemote, sourceBranch, kind, version, clPath string,
+	comp *Component,
+	sourceRemote, sourceBranch, kind, line, version, clPath string,
 ) (*changelog.Changelog, string, error) {
 	content, baseCommit, err := readRemoteFileAtCommit(
 		ctx,
@@ -261,7 +263,28 @@ func loadReleasePrepChangelog(
 	if err != nil {
 		return nil, "", fmt.Errorf("parse changelog: %w", err)
 	}
-	if strings.EqualFold(strings.TrimSpace(kind), prepareKindStabilization) {
+	switch strings.ToLower(strings.TrimSpace(kind)) {
+	case prepareKindPrerelease:
+		actual, validationErr := resolvePrereleaseVersion(
+			ctx,
+			git,
+			comp,
+			sourceRemote,
+			line,
+			cl,
+		)
+		if validationErr != nil {
+			return nil, "", fmt.Errorf("revalidate prerelease candidate: %w", validationErr)
+		}
+		if actual != version {
+			return nil, "", fmt.Errorf(
+				"%w: initially resolved %s while pinned main resolves %s",
+				errPrereleaseMismatch,
+				version,
+				actual,
+			)
+		}
+	case prepareKindStabilization:
 		if validationErr := validateStabilizationCandidate(cl, version, sourceBranch); validationErr != nil {
 			return nil, "", validationErr
 		}
@@ -325,16 +348,34 @@ func resolveNextPrereleaseVersion(
 	if err != nil {
 		return "", err
 	}
+	return resolvePrereleaseVersion(ctx, git, comp, sourceRemote, line, cl)
+}
+
+func resolvePrereleaseVersion(
+	ctx context.Context,
+	git *GitCLI,
+	comp *Component,
+	sourceRemote, line string,
+	cl *changelog.Changelog,
+) (string, error) {
 	prerelease, err := activePrereleaseVersion(cl)
 	if err != nil {
 		return "", err
 	}
+	if line != "" {
+		return resolvePlannedPrereleaseVersion(
+			ctx,
+			git,
+			comp,
+			sourceRemote,
+			line,
+			prerelease,
+			plannedPrereleaseChannel(prerelease),
+		)
+	}
 	channel, sequence, err := splitNumberedPrerelease(prerelease)
 	if err != nil {
 		return "", err
-	}
-	if line != "" {
-		return resolvePlannedPrereleaseVersion(ctx, git, comp, sourceRemote, line, prerelease, channel)
 	}
 	return fmt.Sprintf(
 		"v%d.%d.%d-%s.%d",
@@ -344,6 +385,17 @@ func resolveNextPrereleaseVersion(
 		channel,
 		sequence+1,
 	), nil
+}
+
+func plannedPrereleaseChannel(version *semver.Version) string {
+	identifiers := strings.Split(version.Prerelease, ".")
+	if len(identifiers) < 2 {
+		return version.Prerelease
+	}
+	if _, err := strconv.Atoi(identifiers[len(identifiers)-1]); err != nil {
+		return version.Prerelease
+	}
+	return strings.Join(identifiers[:len(identifiers)-1], ".")
 }
 
 func resolvePlannedPrereleaseVersion(
