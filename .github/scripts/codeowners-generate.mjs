@@ -68,8 +68,7 @@ const GROUPS = [
     roots: ['src/AI/agents', 'src/AI/augmenter-agent', 'src/AI/mcp'],
     extraPaths: [
       '.github/workflows/deploy-studio-mcp-server.yaml',
-      '.github/workflows/mcp-build.yaml',
-      '.github/workflows/mcp-test.yaml',
+      '.github/workflows/mcp-build-test.yaml',
     ],
   },
   {
