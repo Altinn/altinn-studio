@@ -24,6 +24,7 @@ internal sealed class ShowBackButtonMigrator
 
         var filesChanged = 0;
         var propertiesRemoved = 0;
+        var changedFiles = new List<string>();
 
         foreach (var path in Directory.EnumerateFiles(uiPath, "*.json", SearchOption.AllDirectories))
         {
@@ -45,6 +46,7 @@ internal sealed class ShowBackButtonMigrator
                 updated += Environment.NewLine;
 
             await Utf8TextFile.Write(path, updated, withBom: hadBom);
+            changedFiles.Add(path);
             filesChanged++;
             propertiesRemoved += removedFromFile;
         }
@@ -53,7 +55,7 @@ internal sealed class ShowBackButtonMigrator
         {
             try
             {
-                new WhitespaceRestorationProcessor(uiPath).RestoreWhitespaceOnlyChanges();
+                new WhitespaceRestorationProcessor(uiPath).RestoreWhitespaceOnlyChanges(changedFiles);
             }
             catch
             {

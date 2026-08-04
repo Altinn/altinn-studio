@@ -259,7 +259,12 @@ public class LayoutServiceTests
             .GetProperty("layout")
             .EnumerateArray()
             .Single(component => component.GetProperty("type").GetString() == "NavigationButtons");
-        Assert.Equal(expectShowBackButton, navigationButtons.TryGetProperty("showBackButton", out _));
+        bool hasShowBackButton = navigationButtons.TryGetProperty("showBackButton", out JsonElement showBackButton);
+        Assert.Equal(expectShowBackButton, hasShowBackButton);
+        if (expectShowBackButton)
+        {
+            Assert.True(showBackButton.GetBoolean());
+        }
     }
 
     [Fact]
