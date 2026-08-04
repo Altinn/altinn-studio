@@ -22,6 +22,10 @@ patches:
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.altinn.no/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.altinn.no/correspondence/api/v1/
         GeneralSettings__HostName: altinn.no
+        PlatformFrontendSettings__ArbeidsflateInboxUrl: https://af.altinn.no/
+        PlatformFrontendSettings__ArbeidsflateDialogUrl: https://af.altinn.no/inbox/{dialogId}
+        PlatformFrontendSettings__ArbeidsflateProfileUrl: https://af.altinn.no/profile
+        PlatformFrontendSettings__AccessManagementChangeAndRedirectUrl: https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}
         AppSettings__OpenIdWellKnownEndpoint: https://platform.altinn.no/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Production
         AppSettings__EFormidlingSender: "991825827"
@@ -47,6 +51,12 @@ patches:
             },
             "GeneralSettings": {
               "HostName": "altinn.no"
+            },
+            "PlatformFrontendSettings": {
+              "ArbeidsflateInboxUrl": "https://af.altinn.no/",
+              "ArbeidsflateDialogUrl": "https://af.altinn.no/inbox/{dialogId}",
+              "ArbeidsflateProfileUrl": "https://af.altinn.no/profile",
+              "AccessManagementChangeAndRedirectUrl": "https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.altinn.no/authentication/api/v1/openid/",
