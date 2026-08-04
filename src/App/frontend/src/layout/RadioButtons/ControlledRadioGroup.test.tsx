@@ -2,7 +2,6 @@ import React from 'react';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
@@ -42,6 +41,7 @@ const render = async ({
   formData,
   groupData = getFormDataMockForRepGroup(),
   queries,
+  apis,
 }: Props = {}) =>
   await renderGenericComponentTest({
     type: 'RadioButtons',
@@ -56,11 +56,6 @@ const render = async ({
       ...component,
     },
     queries: {
-      fetchOptions: () =>
-        options
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
-          : Promise.reject(new Error('No options provided to render()')),
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.dataModels[defaultDataTypeMock].initialData = formData
@@ -68,6 +63,13 @@ const render = async ({
             : { ...groupData };
         }),
       ...queries,
+    },
+    apis: {
+      optionsApi: {
+        getOptions: () =>
+          options ? Promise.resolve({ data: options, headers: {} }) : Promise.reject(new Error('No options provided')),
+      },
+      ...apis,
     },
   });
 

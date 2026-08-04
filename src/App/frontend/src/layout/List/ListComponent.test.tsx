@@ -94,6 +94,7 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       dataListId: 'countries',
       ...component,
     },
+    ...rest,
     queries: {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
@@ -112,19 +113,23 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
             },
           };
         }),
-      fetchDataList: async () => ({
-        listItems: countries,
-        _metaData: {
-          page: 0,
-          pageCount: 1,
-          pageSize: 5,
-          totaltItemsCount: 6,
-          links: [],
-        },
-      }),
       ...rest.queries,
     },
-    ...rest,
+    apis: {
+      optionsApi: {
+        getDataList: async () => ({
+          listItems: countries,
+          _metaData: {
+            page: 0,
+            pageCount: 1,
+            pageSize: 5,
+            totaltItemsCount: 6,
+            links: [],
+          },
+        }),
+      },
+      ...rest.apis,
+    },
   });
 
 describe('ListComponent', () => {

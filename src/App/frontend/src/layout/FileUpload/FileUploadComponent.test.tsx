@@ -3,7 +3,6 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
-import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
@@ -17,7 +16,6 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternalExact } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
@@ -579,6 +577,7 @@ describe('File uploading components', () => {
     component,
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     queries,
+    apis,
   }: Props<T>) {
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
@@ -618,15 +617,6 @@ describe('File uploading components', () => {
         ...component,
       } as CompExternalExact<T>,
       queries: {
-        fetchOptions: () =>
-          Promise.resolve({
-            data: [
-              { value: 'tag1', label: 'Tag 1' },
-              { value: 'tag2', label: 'Tag 2' },
-              { value: 'tag3', label: 'Tag 3' },
-            ],
-            headers: {},
-          } as AxiosResponse<IRawOption[], unknown>),
         ...queries,
       },
       apis: {
@@ -638,6 +628,17 @@ describe('File uploading components', () => {
             process: getProcessDataMock(),
           }),
         },
+        optionsApi: {
+          getOptions: async () => ({
+            data: [
+              { value: 'tag1', label: 'Tag 1' },
+              { value: 'tag2', label: 'Tag 2' },
+              { value: 'tag3', label: 'Tag 3' },
+            ],
+            headers: {},
+          }),
+        },
+        ...apis,
       },
     });
 

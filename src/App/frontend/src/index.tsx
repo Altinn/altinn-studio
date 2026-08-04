@@ -18,7 +18,7 @@ import 'src/features/toggles';
 
 import { createAppQueryClient } from 'src/appQueryClient';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
-import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
+import { backendValidationApi, instanceApi, optionsApi, partyApi, textResourcesApi } from 'src/core/api-client';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import * as queries from 'src/queries/queries';
@@ -37,6 +37,7 @@ const apiClients: ApiClients = {
   partyApi,
   instanceApi,
   textResourcesApi,
+  optionsApi,
 };
 
 document.addEventListener('DOMContentLoaded', () => {
