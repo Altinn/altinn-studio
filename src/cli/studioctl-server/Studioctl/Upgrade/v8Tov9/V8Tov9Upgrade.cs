@@ -658,7 +658,7 @@ internal static class V8Tov9Upgrade
         try
         {
             await UpgradeConsole.Out.WriteLineAsync("Migrating layout-sets.json to task-folder UI settings...");
-            using var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
+            var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
             var result = migrator.Migrate();
 
             if (!result.LayoutSetsDeleted)
@@ -873,15 +873,18 @@ internal static class V8Tov9Upgrade
     private const int ExitManualActionRequired = 3;
 
     /// <summary>
+    /// Whether an exit code reports a hard error. Any non-zero that isn't the manual-action signal counts
+    /// as one, so an unexpected/future non-zero code can never be swallowed into success.
+    /// </summary>
+    public static bool IsError(int code) => code != ExitSuccess && code != ExitManualActionRequired;
+
+    /// <summary>
     /// Aggregates two job exit codes by severity: a genuine error must never be masked by a
     /// manual-action or success result, and manual-action outranks success. (Numeric order does not
     /// track severity, so this cannot be a plain <see cref="Math.Max(int,int)"/>.)
     /// </summary>
     private static int CombineExitCodes(int current, int next)
     {
-        // Any non-zero that isn't the manual-action signal counts as a hard error and dominates, so an
-        // unexpected/future non-zero code can never be swallowed into success.
-        static bool IsError(int code) => code != ExitSuccess && code != ExitManualActionRequired;
         if (IsError(current) || IsError(next))
             return ExitError;
         if (current == ExitManualActionRequired || next == ExitManualActionRequired)

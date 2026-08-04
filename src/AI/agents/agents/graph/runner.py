@@ -1,6 +1,5 @@
 """LangGraph runner for agent workflow"""
 import asyncio
-import json
 
 from langgraph.graph import StateGraph, END
 
@@ -10,8 +9,6 @@ from .nodes.intake_node import handle as intake_node
 from .nodes.spec_node import handle as spec_node
 from agents.services.events import AgentEvent, EventSink, sink
 from shared.utils.logging_utils import get_logger
-
-_active_tasks: set = set()
 
 
 class WorkflowCancelled(Exception):
@@ -34,6 +31,20 @@ def _with_cancellation(fn):
     return wrapper
 
 log = get_logger(__name__)
+
+
+def _route_entry(state: AgentState) -> str:
+    """Read-only runs skip intake: no change-plan to propose or validate.
+
+    They still get spec extraction when attachments are present — a
+    question about an uploaded PDF needs the extracted content just as
+    much as a change request does.
+    """
+    if state.allow_app_changes:
+        return "intake"
+    if state.attachments:
+        return "spec"
+    return "agentic_loop"
 
 
 def _route_after_intake(state: AgentState) -> str:
@@ -65,7 +76,10 @@ def build_graph():
     g.add_node("spec", _with_cancellation(spec_node))
     g.add_node("agentic_loop", _with_cancellation(agentic_loop_node))
 
-    g.set_entry_point("intake")
+    g.set_conditional_entry_point(
+        _route_entry,
+        {"intake": "intake", "spec": "spec", "agentic_loop": "agentic_loop"},
+    )
 
     g.add_conditional_edges(
         "intake",
@@ -86,12 +100,13 @@ graph = build_graph()
 
 from langfuse import get_client, propagate_attributes
 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client, flush_langfuse
-from agents.services.llm import parse_intent_async, suggest_goal_correction
+from agents.services.llm import parse_intent_async, suggest_goal_correction, check_scope_async
 
 import logging as _logging
 _log = _logging.getLogger(__name__)
 
 MINIMUM_INTENT_CONFIDENCE = 0.1
+_FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 
 
 class GoalRejected(Exception):
@@ -99,8 +114,93 @@ class GoalRejected(Exception):
     pass
 
 
+async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
+    """Run the pre-graph gates. Returns the decline text when the turn was
+    already fully handled (read-only out-of-scope decline) — the caller must
+    then skip the graph. Raises GoalRejected for write-mode rejections.
+
+    Two gates with different jobs:
+    - Scope check (ALL runs): is this about Altinn app development at all?
+      Product behavior, not security — the assistant must not act as a
+      general-purpose chatbot on government infrastructure. An out-of-scope
+      write request rejects like any other invalid goal; an out-of-scope
+      chat question gets a polite decline delivered as a normal reply.
+    - Intent validation (write runs only): see _validate_intent.
+    """
+    scope_result = await check_scope_async(state.user_goal)
+    if not scope_result.in_scope:
+        decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
+        _log.info(
+            "Out-of-scope goal for session %s (%s)",
+            state.session_id, scope_result.reason,
+        )
+        if state.allow_app_changes:
+            # GoalRejected messages are "reason|suggestions" — strip pipes
+            # from the LLM-written decline so it can't spill into fake
+            # suggestion chips.
+            raise GoalRejected(decline_text.replace("|", "/"))
+        _emit_chat_decline(state, event_sink, decline_text)
+        return decline_text
+
+    if state.allow_app_changes:
+        await _validate_intent(state)
+    return None
+
+
+def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> None:
+    """Deliver an out-of-scope decline as a normal chat turn.
+
+    A declined question is not an error: the frontend gets the same
+    assistant_message + terminal status pair a real answer produces, and
+    the decline lands in conversation history so follow-up turns see it.
+    """
+    event_sink.send(AgentEvent(
+        type="assistant_message",
+        session_id=state.session_id,
+        data={
+            "author": "assistant",
+            "content": decline_text,
+            "filesChanged": [],
+            "sources": [],
+            "no_branch_operations": True,
+        },
+    ))
+    try:
+        event_sink.add_to_conversation_history(state.session_id, "assistant", decline_text)
+    except Exception:
+        _log.warning("Could not store the decline in conversation history", exc_info=True)
+    event_sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={
+            "done": True,
+            "success": True,
+            "status": "completed",
+            "message": "Out-of-scope question declined",
+        },
+    ))
+
+
 async def _validate_intent(state: AgentState):
-    """Parse intent and reject unsafe or unclear goals."""
+    """Parse intent and reject unsafe or unclear goals.
+
+    Deliberately runs ONLY for write-mode sessions (`allow_app_changes`),
+    skipping both the keyword blocklist and the LLM classifier for
+    read-only runs. This is a conscious trade-off, not an oversight:
+
+    - Read-only enforcement is structural, not goal-based: write tools
+      require an explicit user approval via the permission broker,
+      file access is repo-contained, and web_fetch is allowlisted to
+      Digdir-controlled hosts. There is no channel this gate would close.
+    - The screening exists to protect the WRITE path, and its false
+      positives are unacceptable for Q&A: legitimate developer questions
+      ("how do I configure an API key?") trip the credential keywords
+      before the LLM can classify them as questions.
+
+    Note the parser sees only attachment FILENAMES — PDF content is never
+    screened here in either mode; injection via attachment content is
+    mitigated in the prompts, not in this gate.
+    """
     parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
 
     if not parsed.safe:
@@ -122,75 +222,6 @@ async def _validate_intent(state: AgentState):
         state.session_id, parsed.action, parsed.component, parsed.confidence,
     )
 
-async def _evaluate_intent_match(user_goal: str, final_state: AgentState, trace_id: str) -> bool:
-    try:
-        from agents.services.evaluation.intent_judge import run_intent_judge
-        step_plan = final_state.step_plan or []
-        return await run_intent_judge(
-            user_goal=user_goal,
-            agent_plan=step_plan[0] if step_plan else None,
-            trace_id=trace_id,
-        )
-    except asyncio.CancelledError:
-        raise
-    except Exception:
-        log.exception("Evaluation pipeline error (intent_match)")
-        return False
-
-
-async def _evaluate_implementation_match(final_state: AgentState, trace_id: str) -> None:
-    try:
-        from agents.services.evaluation.implementation_judge import run_implementation_judge
-        step_plan = final_state.step_plan or []
-        await run_implementation_judge(
-            implementation_plan=final_state.implementation_plan,
-            step_plan=step_plan[0] if step_plan else None,
-            changed_files=final_state.changed_files or [],
-            patch_data=final_state.patch_data,
-            trace_id=trace_id,
-            planning_guidance=str(final_state.planning_guidance or ""),
-        )
-    except asyncio.CancelledError:
-        raise
-    except Exception:
-        log.exception("Evaluation pipeline error (implementation_match)")
-
-
-async def _evaluate_intent_then_implementation(user_goal: str, final_state: AgentState, trace_id: str) -> None:
-    """Run intent_match; if it passes, also run implementation_match."""
-    intent_passed = await _evaluate_intent_match(user_goal, final_state, trace_id)
-    if intent_passed:
-        await _evaluate_implementation_match(final_state, trace_id)
-
-
-async def _evaluate_no_hallucination(user_goal: str, final_state: AgentState, trace_id: str) -> None:
-    try:
-        from agents.services.evaluation.hallucination_judge import run_hallucination_judge
-        step_plan = final_state.step_plan or []
-        implementation_plan = final_state.implementation_plan
-        response_parts = []
-        if step_plan:
-            response_parts.append("\n".join(str(step) for step in step_plan))
-        if implementation_plan:
-            response_parts.append(
-                json.dumps(implementation_plan, ensure_ascii=False)
-                if isinstance(implementation_plan, (dict, list))
-                else str(implementation_plan)
-            )
-        agent_response = "\n\n".join(response_parts)
-        sources = str(final_state.planning_guidance or "")
-        await run_hallucination_judge(
-            user_goal=user_goal,
-            agent_response=agent_response,
-            sources=sources,
-            trace_id=trace_id,
-        )
-    except asyncio.CancelledError:
-        raise
-    except Exception:
-        log.exception("Evaluation pipeline error (no_hallucination)")
-
-
 async def run_once(state: AgentState, event_sink: EventSink = None):
     """Run one complete workflow loop with unified tracing"""
     if event_sink is None:
@@ -203,13 +234,18 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     # Use start_as_current_observation as the root - this creates a trace and sets context
     # so all nested observations will be children of this root
     if langfuse:
+        history_for_trace = [
+            {"role": m.role, "content": m.content[:300]}
+            for m in state.conversation_history
+        ]
         with langfuse.start_as_current_observation(
             as_type="span",
             name="Altinity Agent Workflow",
             input={
                 "user_goal": str(state.user_goal)[:500],
                 "repo_path": str(state.repo_path),
-                "session_id": str(state.session_id)
+                "session_id": str(state.session_id),
+                "conversation_history": history_for_trace,
             },
             metadata={
                 "span_type": "AGENT",
@@ -221,31 +257,44 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
         ) as root_span:
             with propagate_attributes(user_id=state.org):
                 try:
-                    await _validate_intent(state)
+                    decline_text = await _gate_goal(state, event_sink)
+                    if decline_text is not None:
+                        # The decline IS the workflow result — record it in the
+                        # trace output so the evaluators (in particular
+                        # no_irrelevant_responses) see declined turns too.
+                        root_span.update(output={
+                            "success": True,
+                            "changed_files": [],
+                            "verify_notes": [],
+                            "summary": decline_text,
+                            "sources": [],
+                            "commit": None,
+                            "next_action": "declined_out_of_scope",
+                        })
+                        return None
 
                     final_state = await graph.ainvoke(state)
 
+                    # The trace output is what LLM-as-a-judge evaluators (and
+                    # dataset-run experiments) see as {{output}} — carry the
+                    # actual result, not just counters.
+                    # LLM-as-a-judge evaluation runs as Langfuse-managed
+                    # evaluators (Evaluation → Rules in the UI), triggered by
+                    # this observation — nothing is scored from code.  The
+                    # `sources` list gives the no_hallucination evaluator
+                    # ground truth for what the agent actually consulted.
+                    assistant_response = final_state.get("assistant_response") or {}
                     root_span.update(output={
                         "success": bool(final_state.get("tests_passed", False)),
-                        "changed_files": len(final_state.get("changed_files", [])),
+                        "changed_files": sorted(final_state.get("changed_files") or []),
+                        "verify_notes": (final_state.get("verify_notes") or [])[:30],
+                        "summary": str(
+                            assistant_response.get("text") or assistant_response.get("response") or ""
+                        )[:4000],
+                        "sources": assistant_response.get("sources") or [],
+                        "commit": assistant_response.get("commit"),
                         "next_action": str(final_state.get("next_action", ""))
                     })
-
-                    # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
-                    try:
-                        typed_state = AgentState.model_validate(final_state)
-                    except Exception:
-                        log.exception("Failed to validate final state for judge evaluations — skipping")
-                        typed_state = None
-
-                    if typed_state is not None:
-                        for coro in (
-                            _evaluate_intent_then_implementation(state.user_goal, typed_state, root_span.trace_id),
-                            _evaluate_no_hallucination(state.user_goal, typed_state, root_span.trace_id),
-                        ):
-                            task = asyncio.create_task(coro)
-                            _active_tasks.add(task)
-                            task.add_done_callback(_active_tasks.discard)
 
                 except Exception as e:
                     root_span.update(
@@ -254,7 +303,9 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     )
                     raise
     else:
-        await _validate_intent(state)
+        decline_text = await _gate_goal(state, event_sink)
+        if decline_text is not None:
+            return None
         final_state = await graph.ainvoke(state)
 
     # Check if cancelled during execution

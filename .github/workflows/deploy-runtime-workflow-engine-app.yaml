@@ -77,7 +77,7 @@ jobs:
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: az login
-        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -139,7 +139,7 @@ jobs:
         include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
       - name: az login
-        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}

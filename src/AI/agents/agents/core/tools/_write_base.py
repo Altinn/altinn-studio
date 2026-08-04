@@ -26,7 +26,7 @@ class WriteToolMixin(Tool):
     ) -> PermissionResult:
         if not ctx.allow_app_changes:
             return PermissionResult.deny(
-                "Write tools are disabled in this session (chat mode). "
-                "Answer the question directly using read-only tools."
+                "Write tools are disabled in this session (read-only mode).",
+                escalatable=True,
             )
         return PermissionResult.allow()

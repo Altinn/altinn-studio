@@ -24,6 +24,7 @@ export type AssistantProps = {
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
   onMessageFeedback?: (feedback: UserFeedback) => void;
+  onPermissionResponse?: (requestId: string, granted: boolean) => void;
   workflowStatusByThread: Record<string, WorkflowStatus>;
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
@@ -46,6 +47,7 @@ export function Assistant({
   onDeleteThread,
   onCreateThread,
   onMessageFeedback,
+  onPermissionResponse,
   previewContent,
   fileBrowserContent,
   currentUser,
@@ -68,6 +70,7 @@ export function Assistant({
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}
       onMessageFeedback={onMessageFeedback}
+      onPermissionResponse={onPermissionResponse}
       previewContent={previewContent}
       fileBrowserContent={fileBrowserContent}
       currentUser={currentUser}

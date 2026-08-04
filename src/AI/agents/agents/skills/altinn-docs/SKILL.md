@@ -1,6 +1,8 @@
 ---
 description: Navigate the official Altinn documentation (docs.altinn.studio). Load when you need information the other skills don't cover — APIs, process/BPMN, signing, payment, authorization details, deployment, or anything unfamiliar. Contains a curated page index.
 include: llms.txt
+title: Altinn Studio-dokumentasjon
+docs_url: https://docs.altinn.studio/nb/altinn-studio/
 ---
 
 # Altinn documentation navigation

@@ -35,6 +35,12 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
+      "description": "Helm Go dependency updates are done manually because even patch releases can change Kubernetes client minor versions",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": ["helm.sh/helm/v3"],
+      "enabled": false
+    },
+    {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
       "matchManagers": ["gomod"],
       "matchPackageNames": [
@@ -154,6 +160,18 @@
         "src/App/codelists/**"
       ],
       "enabled": false
+    },
+    {
+      "description": "Upgrade React consistently across the entire repository",
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "groupName": "React ecosystem",
+      "groupSlug": "react-ecosystem"
     }
   ],
   "schedule": []

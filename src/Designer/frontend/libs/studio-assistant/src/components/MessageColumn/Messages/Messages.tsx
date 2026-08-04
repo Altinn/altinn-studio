@@ -10,6 +10,7 @@ import type { UserFeedback } from '../../../types/UserFeedback';
 import { UserMessage } from './UserMessage';
 import { AssistantMessage } from './AssistantMessage';
 import { AssistantLoadingBubble } from './AssistantLoadingBubble';
+import { PermissionPrompt } from './PermissionPrompt';
 
 export type MessagesProps = {
   messages: Message[];
@@ -18,6 +19,7 @@ export type MessagesProps = {
   currentUser?: User;
   assistantAvatarUrl?: string;
   onMessageFeedback?: (feedback: UserFeedback) => void;
+  onPermissionResponse?: (requestId: string, granted: boolean) => void;
 };
 
 export function Messages({
@@ -27,15 +29,17 @@ export function Messages({
   currentUser,
   assistantAvatarUrl,
   onMessageFeedback,
+  onPermissionResponse,
 }: MessagesProps): ReactElement {
   const showLoadingBubble = workflowStatus?.isActive === true;
   const trailSteps = resolveTrailSteps(workflowStatus);
+  const permissionRequest = workflowStatus?.isActive ? workflowStatus.permissionRequest : undefined;
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     container?.scrollTo?.({ top: container.scrollHeight, behavior: 'smooth' });
-  }, [messages, showLoadingBubble]);
+  }, [messages, showLoadingBubble, permissionRequest]);
 
   return (
     <div ref={containerRef} className={classes.messagesContainer}>
@@ -57,6 +61,13 @@ export function Messages({
           steps={trailSteps}
           assistantName={texts.heading}
           assistantAvatarUrl={assistantAvatarUrl}
+        />
+      )}
+      {permissionRequest && onPermissionResponse && (
+        <PermissionPrompt
+          message={permissionRequest.message}
+          texts={texts.permissionPrompt}
+          onRespond={(granted) => onPermissionResponse(permissionRequest.requestId, granted)}
         />
       )}
     </div>

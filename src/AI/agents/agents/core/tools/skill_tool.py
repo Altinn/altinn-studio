@@ -56,4 +56,10 @@ class SkillTool(Tool):
                 content=f"Failed to load skill {args.skill!r}: {exc}",
                 is_error=True,
             )
-        return ToolResult(content=body, metadata={"skill": skill.name})
+        source: dict[str, str] = {"title": skill.title or skill.name, "kind": "skill"}
+        if skill.docs_url:
+            source["url"] = skill.docs_url
+        return ToolResult(
+            content=body,
+            metadata={"skill": skill.name, "source": source},
+        )
