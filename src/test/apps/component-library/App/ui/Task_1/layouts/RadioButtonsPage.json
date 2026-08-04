@@ -85,7 +85,6 @@
       },
       {
         "id": "RadioButtonsPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

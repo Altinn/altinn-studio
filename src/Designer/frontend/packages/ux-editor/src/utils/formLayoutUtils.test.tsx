@@ -350,7 +350,6 @@ describe('formLayoutUtils', () => {
         'id',
         'itemType',
         'onClickAction',
-        'showBackButton',
         'textResourceBindings',
         'type',
         'pageIndex',

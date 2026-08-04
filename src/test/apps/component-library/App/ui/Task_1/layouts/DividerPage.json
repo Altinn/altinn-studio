@@ -115,7 +115,6 @@
       {
         "id": "DividerPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

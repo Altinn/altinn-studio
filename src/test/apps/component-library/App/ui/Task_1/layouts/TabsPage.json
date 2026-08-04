@@ -218,7 +218,6 @@
       {
         "id": "TabsPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

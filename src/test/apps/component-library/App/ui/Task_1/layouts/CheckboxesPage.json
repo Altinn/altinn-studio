@@ -224,7 +224,6 @@
       },
       {
         "id": "CheckboxesPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }
