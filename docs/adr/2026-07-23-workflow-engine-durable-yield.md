@@ -89,35 +89,42 @@ alert for a non-error condition.
 
 ## Consequences
 
-- eFormidling in v9 migrates onto the primitive as a **single service task on the public
-  `IServiceTask` surface** — the same API any app integration uses, not a private step sequence in
-  the app's command factory. The one execution phases itself on durable evidence: no shipment
-  receipt checkpointed → send (idempotent per #18888, with the callback's step id as the outbound
-  idempotency key) and defer; receipt present → poll IP status (mapped to
-  Success / Defer / Critical / Retryable) and confirm. The send guard is the recorded receipt,
-  never `DeferCount` — an attempt can send, crash before answering, and re-run with the count
-  unchanged. A multi-step split (send → await → confirm) was rejected: it isolates the send only
-  against the poll phase (its own retries still need the idempotency key), while forking the
-  first-party integration off the API third parties get.
-- The guard gets a first-class home: `context.Checkpoints.Set`/`Get`, stored as
-  instance data values keyed `serviceTask:{Type}:{key}`. Writes are immediate — deliberately outside
-  the save-on-success unit of work, so evidence survives an attempt that fails after a side effect —
-  and reads go through to Storage, so a crashed attempt's checkpoint is visible to its retry.
-  Checkpoints live on the **instance**, not in the engine, because their lifecycle is the instance's:
-  they must survive BPMN round trips (each pass is a new workflow) and the engine's terminal-workflow
-  retention, and must die with the instance (deletion, GDPR). Storing them engine-side was considered
-  and rejected — it would make the engine's database a second source of business truth and end its
-  rebuildable-machinery operational posture. Round-trip semantics stay a deliberate task decision:
-  keys are instance-scoped, and a task that needs pass identity puts the workflow id in the value
-  (the eFormidling ownership claim is the reference).
+- Multi-phase integrations ("send, then confirm") get their shape from **staged service tasks on
+  the public `IStagedServiceTask` surface**: a typed pipeline (entry → links → final) the app
+  declares, expanded to one engine step per pipeline step at enqueue time. The engine's step ledger
+  is the durable send guard — a completed step never re-runs, and a retry or an operational resume
+  re-enters the pipeline at the failed step — while the per-step `StepId` remains the outbound
+  idempotency key for the crash window inside one attempt (send succeeded, response never landed).
+  The guard is never `DeferCount` — an attempt can send, crash before answering, and re-run with
+  the count unchanged. eFormidling in v9 migrates onto this as a send step plus a polling final
+  step (IP status mapped to Success / Defer / Critical / Retryable), idempotent per #18888. An
+  earlier iteration of this decision chose a **single** task phasing itself on checkpointed
+  evidence and rejected the multi-step split for forking the first-party integration off the API
+  third parties get; that objection dissolved when the split itself became the public API.
+- **Checkpoints — the interim app-managed send guard — were designed, built, and removed within
+  this change.** They stored evidence as instance data values written immediately, deliberately
+  outside the save-on-success unit of work; exactly that out-of-band write collides with the
+  upcoming instance-lock feature, and the staged split makes the concept unnecessary: "the send
+  happened" is the engine's own step-completion record, and what a step learns travels to the next
+  step as its typed input via the signed callback-state blob (`serviceTaskBaton`) — a channel that
+  already has the right lifecycle and needs no mid-attempt durability, because the handoff
+  accompanies step completion. Storing durable business evidence engine-side stays rejected (it
+  would make the engine's database a second source of business truth and end its
+  rebuildable-machinery operational posture); step outputs are transition-scoped plumbing in the
+  app's own signed state, not engine business data. Evidence that must survive BPMN round trips
+  (each pass is a new workflow) — e.g. eFormidling's one-shipment-per-instance ownership claim —
+  remains ordinary instance data written through the lock-holding save path; the eFormidling claim
+  keeps that shape until its v9 migration.
 - A deferral's reason travels to every surface that shows a wait: persisted on the step
   (`lastDeferReason`), projected onto a `Waiting` collection head (`waitingReason`), and annotated
   on the app's process reads (`workflow.waitingReason`) — so waiting UIs and ops read the task's
   own words instead of a generic spinner.
 - The app-facing surface ships with the primitive, not after it: `ServiceTaskResult.Defer` plus the
-  `ProcessStepOptions.WaitBudget` that bounds it. Shipping the budget alone would release a public,
-  binary-compatible-forever knob configuring a wait no app could request. The primitive and its app
-  surface ship together; migrating eFormidling, payment capture and signing is the next phase.
+  `ProcessStepOptions.WaitBudget` that bounds it, and the staged pipeline surface
+  (`IStagedServiceTask`, with per-step `StepOptions` so the wait budget sits on the polling step
+  alone). Shipping the budget alone would release a public, binary-compatible-forever knob
+  configuring a wait no app could request. The primitive and its app surface ship together;
+  migrating eFormidling, payment capture and signing is the next phase.
 - Deferral is stateful across attempts: data changes are saved on every attempt that makes them, and a
   step's own `StateOut` becomes its next attempt's `StateIn`. A `state` parameter on `Defer` was
   rejected as a third state channel alongside Storage and the signed blob.
