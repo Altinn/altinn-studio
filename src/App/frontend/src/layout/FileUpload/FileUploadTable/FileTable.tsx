@@ -42,6 +42,12 @@ export function FileTable({
   }
   const tagTitle =
     (textResourceBindings && 'tagTitle' in textResourceBindings && textResourceBindings?.tagTitle) || undefined;
+  const actionColumnLabelKey = isSummary
+    ? 'general.edit'
+    : hasTag && !readOnly
+      ? 'general.edit_alt'
+      : 'form_filler.file_uploader_list_header_delete_sr';
+
   const label = (attachment: IAttachment) => {
     if (!isAttachmentUploaded(attachment)) {
       return undefined;
@@ -84,9 +90,9 @@ export function FileTable({
 
             {!pdfModeActive && (
               <th>
-                <p className='sr-only'>
-                  <Lang id='form_filler.file_uploader_list_header_delete_sr' />
-                </p>
+                <span className='sr-only'>
+                  <Lang id={actionColumnLabelKey} />
+                </span>
               </th>
             )}
           </tr>

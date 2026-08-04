@@ -17,7 +17,10 @@ import {
   useRepeatingGroupComponentId,
   useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
+import {
+  useDeleteRowAndFocus,
+  useRepeatingGroupsFocusContext,
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -59,9 +62,9 @@ function RepeatingGroupsEditContainerInternal({
 }): JSX.Element | null {
   const baseComponentId = useRepeatingGroupComponentId();
   const closeForEditing = RepGroupContext.useCloseForEditing();
-  const deleteRow = RepGroupContext.useDeleteRow();
+  const deleteRow = useDeleteRowAndFocus();
   const openNextForEditing = RepGroupContext.useOpenNextForEditing();
-  const { visibleRows } = useRepeatingGroupRowState();
+  const { visibleRows, editableRows } = useRepeatingGroupRowState();
   const childIds = RepGroupHooks.useChildIdsWithMultiPage(baseComponentId);
 
   const editingRowIndex = visibleRows.find((r) => r.uuid === editId)?.index;
@@ -81,7 +84,7 @@ function RepeatingGroupsEditContainerInternal({
   const textsForRow = rowWithExpressions?.textResourceBindings;
   const editForRow = rowWithExpressions?.edit;
   const { textResourceBindings, edit: editForGroup, tableColumns } = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const { refSetter } = useRepeatingGroupsFocusContext();
+  const { refSetter, focusEditContainer, focusEditButton } = useRepeatingGroupsFocusContext();
   const texts = {
     ...textResourceBindings,
     ...textsForRow,
@@ -186,7 +189,14 @@ function RepeatingGroupsEditContainerInternal({
                   <Button
                     variant='secondary'
                     color='second'
-                    onClick={() => prevMultiPage()}
+                    onClick={() => {
+                      prevMultiPage();
+                      if (editingRowIndex !== undefined) {
+                        // Wait for the new page to render, then move focus to the top of the edit
+                        // container instead of leaving it on this navigation button.
+                        requestAnimationFrame(() => focusEditContainer(editingRowIndex));
+                      }
+                    }}
                   >
                     <ChevronLeftIcon
                       fontSize='1rem'
@@ -201,7 +211,14 @@ function RepeatingGroupsEditContainerInternal({
                   <Button
                     variant='secondary'
                     color='second'
-                    onClick={() => nextMultiPage()}
+                    onClick={() => {
+                      nextMultiPage();
+                      if (editingRowIndex !== undefined) {
+                        // Wait for the new page to render, then move focus to the top of the edit
+                        // container instead of leaving it on this navigation button.
+                        requestAnimationFrame(() => focusEditContainer(editingRowIndex));
+                      }
+                    }}
                   >
                     <Lang id={texts.multipage_next_button ? texts.multipage_next_button : 'general.next'} />
                     <ChevronRightIcon
@@ -223,7 +240,18 @@ function RepeatingGroupsEditContainerInternal({
               <Flex item>
                 <Button
                   id={`next-button-grp-${id}`}
-                  onClick={() => openNextForEditing()}
+                  onClick={async () => {
+                    // Move focus to the top of its edit container
+                    const currentEditableIndex = editableRows.findIndex((r) => r.uuid === editId);
+                    const nextEditableRow = editableRows[currentEditableIndex + 1];
+                    const opened = await openNextForEditing();
+                    if (opened) {
+                      requestAnimationFrame(() =>
+                        // Fall back to focusing this row's edit button like save and close.
+                        nextEditableRow ? focusEditContainer(nextEditableRow.index) : focusEditButton(row.index),
+                      );
+                    }
+                  }}
                   variant='primary'
                   color='first'
                 >
@@ -235,7 +263,13 @@ function RepeatingGroupsEditContainerInternal({
               <Flex item>
                 <Button
                   id={`save-button-${id}`}
-                  onClick={() => closeForEditing({ index: row.index, uuid: row.uuid })}
+                  onClick={async () => {
+                    const closed = await closeForEditing({ index: row.index, uuid: row.uuid });
+                    // Move focus back to this row's edit button
+                    if (closed) {
+                      requestAnimationFrame(() => focusEditButton(row.index));
+                    }
+                  }}
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
                 >

@@ -21,6 +21,10 @@ import { optionFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
+function focusOnMount(node: HTMLDivElement | null) {
+  node?.focus();
+}
+
 export interface EditWindowProps {
   baseComponentId: string;
   attachment: IAttachment;
@@ -86,8 +90,16 @@ export function EditWindowComponent({
   const isLoading = attachment.updating || !attachment.uploaded || isFetching || options?.length === 0;
   const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
 
+  const announceUploaded = isAttachmentUploaded(attachment)
+    ? langAsString('form_filler.file_uploader_attachment_uploaded_sr', [attachment.data?.filename])
+    : undefined;
+
   return (
     <div
+      ref={focusOnMount}
+      tabIndex={-1}
+      role='group'
+      aria-label={announceUploaded}
       id={`attachment-edit-window-${uniqueId}`}
       className={classes.editContainer}
     >

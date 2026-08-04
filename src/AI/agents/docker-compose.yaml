@@ -7,3 +7,15 @@ services:
       - "8071:8071"
     env_file:
       - .env.docker
+    networks:
+      - default
+      - designer
+
+# The gitea-proxy lives on Designer's compose network.  We attach the agents
+# container to that network so it can reach `gitea-proxy:80` (the X-Api-Key
+# entry) via Docker DNS — port 81 (exposed to the host) is the internal
+# X-WEBAUTH-USER path and doesn't accept the api_key flow.
+networks:
+  designer:
+    external: true
+    name: designer_default

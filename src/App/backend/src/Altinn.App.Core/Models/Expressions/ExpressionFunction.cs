@@ -75,12 +75,12 @@ public enum ExpressionFunction
     lowerCase,
 
     /// <summary>
-    ///  Capitalize the first letter of a string
+    /// Capitalize the first letter of a string
     /// </summary>
     upperCaseFirst,
 
     /// <summary>
-    ///  Lowercase the first letter of a string
+    /// Lowercase the first letter of a string
     /// </summary>
     lowerCaseFirst,
 
@@ -225,4 +225,35 @@ public enum ExpressionFunction
     /// Divide numbers. Must be numeric values.
     /// </summary>
     divide,
+
+    /// <summary>Create a list from the arguments.</summary>
+    list,
+
+    /// <summary>
+    /// Create a dictionary from the arguments, which must be alternating keys and values.
+    /// </summary>
+#pragma warning disable CA1720
+    @object,
+#pragma warning restore CA1720
+
+    /// <summary>
+    /// Run a Jmespath query on the arguments
+    /// </summary>
+    jmespath,
+
+    /// <summary>
+    /// Adding numbers. Must be numeric values in a list.
+    /// </summary>
+    sum,
+
+    /// <summary>
+    /// Calculate the average of the numeric values in a list (first argument).
+    /// The mandatory second argument is the value (a number or null) returned when the list is empty.
+    /// </summary>
+    average,
+
+    /// <summary>
+    /// Counts the number of elements in a list
+    /// </summary>
+    count,
 }

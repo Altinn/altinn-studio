@@ -328,7 +328,12 @@ internal sealed class DbMaintenanceService(
 
         var staleDeadline = now - settings.StaleWorkflowThreshold;
 
-        int failed;
+        // Bucketed by the head-visibility directive so poisoned finalization feeds the same
+        // is_head alert dimension as the execution failure paths: an is_head=false workflow
+        // (e.g. a fire-and-forget side chain) that dies poisoned gates nothing and is otherwise
+        // silent, so it must be visible to the is_head="false" failure alert.
+        var failedByIsHead = new Dictionary<string, int>(StringComparer.Ordinal);
+        int failed = 0;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
         {
             await using var cmd = dataSource.CreateCommand(Sql.FailPoisonedWorkflows);
@@ -336,12 +341,28 @@ internal sealed class DbMaintenanceService(
             cmd.Parameters.AddWithValue("staleDeadline", staleDeadline);
             cmd.Parameters.AddWithValue("maxReclaimCount", settings.MaxReclaimCount);
 
-            failed = await cmd.ExecuteNonQueryAsync(ct);
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+                bool? isHead = await reader.IsDBNullAsync(0, ct) ? null : reader.GetBoolean(0);
+                string isHeadTag = isHead switch
+                {
+                    true => "true",
+                    false => "false",
+                    null => "unset",
+                };
+                failedByIsHead[isHeadTag] = failedByIsHead.GetValueOrDefault(isHeadTag) + 1;
+                failed++;
+            }
         }
 
         if (failed > 0)
         {
-            Metrics.WorkflowsFailed.Add(failed, ("reason", "poisoned"));
+            foreach ((string isHeadTag, int count) in failedByIsHead)
+            {
+                Metrics.WorkflowsFailed.Add(count, ("reason", "poisoned"), ("is_head", isHeadTag));
+            }
+
             logger.FailedPoisonedWorkflows(failed);
         }
     }
@@ -529,6 +550,7 @@ internal sealed class DbMaintenanceService(
               AND heartbeat_at IS NOT NULL
               AND heartbeat_at < @staleDeadline
               AND reclaim_count >= @maxReclaimCount
+            RETURNING is_head
             """;
 
         internal static readonly string ReclaimStaleWorkflows = $"""

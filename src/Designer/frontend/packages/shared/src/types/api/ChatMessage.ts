@@ -4,11 +4,14 @@ export enum MessageAuthor {
 }
 
 type Source = {
-  tool: string;
   title: string;
+  url?: string;
+  kind?: string;
+  /** Legacy fields from the retired retrieval pipeline — still present
+   *  on messages persisted before the agentic-loop architecture. */
+  tool?: string;
   previewText?: string;
   contentLength?: number;
-  url?: string;
   relevance?: number;
   matchedTerms?: string;
   cited?: boolean;

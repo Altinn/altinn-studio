@@ -365,6 +365,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/api/xsdschema/{id},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/instance-selection,
         metadata: {
           errorMessageTextResourceKeyUser: null,

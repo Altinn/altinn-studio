@@ -84,6 +84,8 @@ export function nb() {
     'form_filler.file_uploader_list_header_name': 'Navn',
     'form_filler.file_uploader_list_header_status': 'Status',
     'form_filler.file_uploader_list_status_done': 'Ferdig lastet',
+    'form_filler.file_uploader_attachment_uploaded_sr':
+      'Vedlegget {0} er lastet opp. Du kan nå legge til en beskrivelse av vedlegget.',
     'form_filler.file_uploader_status_scanning': 'Skanner...',
     'form_filler.file_uploader_status_infected': 'Infisert',
     'form_filler.file_uploader_infected_file_alert':
@@ -219,6 +221,7 @@ export function nb() {
       'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
     'group.row_popover_delete_message': 'Er du sikker på at du vil slette denne raden?',
     'group.row_popover_delete_button_confirm': 'Ja, slett raden',
+    'group.row_deleted_sr': 'Rad slettet, {0} gjenstår',
     'iframe_component.unsupported_browser_title': 'Nettleseren din støttes ikke',
     'iframe_component.unsupported_browser':
       'Nettleseren du bruker støtter ikke iframes som benytter seg av srcdoc. Dette kan føre til at du ikke ser all innholdet som er ment å vises her. Vi anbefaler deg å prøve en annen nettleser.',
@@ -420,6 +423,9 @@ export function nb() {
     'validation_errors.formatMaximum': 'Største gyldig verdi er {0}',
     'map_component.selectedLocation': 'Valgt lokasjon: {0}° nord, {1}° øst',
     'map_component.noSelectedLocation': 'Ingen lokasjon valgt',
+    'map_component.ariaLabel': 'Interaktivt kart. Bruk piltaster for å panorere, pluss og minus for å zoome.',
+    'map_component.zoomIn': 'Zoom inn',
+    'map_component.zoomOut': 'Zoom ut',
     'multiple_select_component.no_options': 'Ingen valg tilgjengelig',
     'multiple_select_component.placeholder': 'Velg...',
     'list_component.rowsPerPage': 'Rader per side',
@@ -520,10 +526,11 @@ export function nb() {
     'signing.delegation_error_panel_title': 'Kunne ikke gi tilgang til skjema',
     'signing.delegation_error_panel_description':
       'En eller flere av signatarene er ugyldige og har ikke fått tilgang til skjemaet. Gå tilbake for å prøve å rette opp feilen eller kontakt skjemaeier.',
-    'signing.reject_modal_title': 'Avbryt signeringsprosessen',
+    'signing.reject_modal_title': 'Avbryt signering',
     'signing.reject_modal_description':
-      'Ved å avbryte signeringsprosessen vil alle signaturer bli slettet og alle delegerte tilganger trukket tilbake.',
-    'signing.reject_modal_button': 'Avbryt signeringsprosessen',
+      'Alle signaturer blir slettet. Alle personer du har delegert til mister tilgang. Du kan ikke angre dette.',
+    'signing.reject_modal_button': 'Avbryt signering',
+    'signing.reject_modal_close_button': 'Fortsett signering',
     'signing.reject_modal_trigger_button': 'Avbryt signering',
     'signing.loading': 'Laster inn signeringsstatus...',
     'signing.wrong_task_error': '{0}-komponenten er kun tilgjengelig i et signeringssteg.',
@@ -569,6 +576,9 @@ export function nb() {
       'Du kan prøve å utføre behandlingen på nytt ved å klikke på "{0}". Hvis problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
     'service_task.back_button': 'Gå tilbake',
+    'service_task.waiting_title': 'Vi behandler forespørselen din',
+    'service_task.waiting_body':
+      'Dette kan ta litt tid. Du trenger ikke å gjøre noe, vi går automatisk videre når alt er klart.',
     'service_task_custom_pdf_default.title': 'Noe gikk galt',
     'service_task_custom_pdf_default.body':
       'En feil oppstod under automatisk behandling av skjemaet.',

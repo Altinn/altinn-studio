@@ -23,6 +23,18 @@
  */
 
 /**
+ * A related workflow (dependency, dependent, or link) as carried on a card.
+ * @typedef {{
+ *   databaseId:  string,
+ *   operationId: string,
+ *   status:      string,
+ * }} WorkflowRelation
+ */
+
+/**
+ * Relation arrays are tri-state: `undefined` = not loaded by the source query (fetch on demand
+ * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks workflows
+ * deliberately invisible to collection head tracking (side chains).
  * @typedef {{
  *   databaseId:     string,
  *   idempotencyKey: string,
@@ -39,6 +51,10 @@
  *   removedAt:      string | null,
  *   startAt:        string | null,
  *   hasState:       boolean,
+ *   isHead:         boolean | undefined,
+ *   dependsOn:      WorkflowRelation[] | undefined,
+ *   dependents:     WorkflowRelation[] | undefined,
+ *   links:          WorkflowRelation[] | undefined,
  *   steps:          Step[],
  * }} Workflow
  */
@@ -112,6 +128,9 @@ export const dom = {
     stateModal: /** @type {HTMLElement} */ (document.getElementById('state-modal')),
     stateTitle: /** @type {HTMLElement} */ (document.getElementById('state-title')),
     stateBody: /** @type {HTMLElement} */ (document.getElementById('state-body')),
+    chainModal: /** @type {HTMLElement} */ (document.getElementById('chain-modal')),
+    chainTitle: /** @type {HTMLElement} */ (document.getElementById('chain-title')),
+    chainBody: /** @type {HTMLElement} */ (document.getElementById('chain-body')),
     themeToggle: /** @type {HTMLElement} */ (document.getElementById('theme-toggle')),
     themeIcon: /** @type {HTMLElement} */ (document.getElementById('theme-icon')),
     themeLabel: /** @type {HTMLElement} */ (document.getElementById('theme-label')),
@@ -144,9 +163,30 @@ export const state = {
         recent: localStorage.getItem('compact:recent') === '1',
         query: localStorage.getItem('compact:query') !== '0',
     },
+    /** @type {'chains' | 'compact' | 'full'} Recent section view mode */
+    recentView: /** @type {'chains' | 'compact' | 'full'} */ (
+        (() => {
+            const v = localStorage.getItem('recentView');
+            if (v === 'chains' || v === 'compact' || v === 'full') return v;
+            // Migrate the legacy two-way toggle; new default is the grouped chains view.
+            return localStorage.getItem('compact:recent') === '1' ? 'compact' : 'chains';
+        })()
+    ),
+    /** @type {'chains' | 'compact' | 'full'} Query tab view mode (compact default: results are often unrelated single rows) */
+    queryView: /** @type {'chains' | 'compact' | 'full'} */ (
+        (() => {
+            const v = localStorage.getItem('queryView');
+            if (v === 'chains' || v === 'compact' || v === 'full') return v;
+            return localStorage.getItem('compact:query') !== '0' ? 'compact' : 'full';
+        })()
+    ),
     /** @type {Workflow[]} */ recentWorkflows: [],
     /** @type {Set<string>} */ pendingExpand: new Set(),
 };
+
+// The flat-mode card builders and URL sync still key off the booleans; keep them derived.
+state.compactSections.recent = state.recentView === 'compact';
+state.compactSections.query = state.queryView === 'compact';
 
 /** @type {Record<string, Workflow>} */
 export const workflowData = {};

@@ -85,6 +85,8 @@ export function en() {
     'form_filler.file_uploader_list_header_status': 'Status',
     'form_filler.file_uploader_list_header_delete_sr': 'Delete',
     'form_filler.file_uploader_list_status_done': 'Uploaded',
+    'form_filler.file_uploader_attachment_uploaded_sr':
+      'The attachment {0} has been uploaded. You can now add a description for the attachment.',
     'form_filler.file_uploader_status_scanning': 'Scanning...',
     'form_filler.file_uploader_status_infected': 'Infected',
     'form_filler.file_uploader_infected_file_alert':
@@ -218,6 +220,7 @@ export function en() {
       'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
     'group.row_popover_delete_message': 'Are you sure you want to delete this row?',
     'group.row_popover_delete_button_confirm': 'Yes, delete the row',
+    'group.row_deleted_sr': 'Row deleted, {0} remaining',
     'iframe_component.unsupported_browser_title': 'Your browser is unsupported',
     'iframe_component.unsupported_browser':
       'Your browser does not support iframes that use srcdoc. This may result in not being able to see all the content intended to be displayed here. We recommend trying a different browser.',
@@ -418,6 +421,9 @@ export function en() {
     'validation_errors.formatMaximum': 'Maximum valid value is {0}',
     'map_component.selectedLocation': 'Selected location: {0}° north, {1}° east',
     'map_component.noSelectedLocation': 'No selected location',
+    'map_component.ariaLabel': 'Interactive map. Use the arrow keys to pan, and plus and minus to zoom.',
+    'map_component.zoomIn': 'Zoom in',
+    'map_component.zoomOut': 'Zoom out',
     'multiple_select_component.no_options': 'No options available',
     'multiple_select_component.placeholder': 'Select...',
     'list_component.rowsPerPage': 'Rows per page',
@@ -519,10 +525,11 @@ export function en() {
     'signing.delegation_error_panel_title': 'Could not grant access to form',
     'signing.delegation_error_panel_description':
       'One or more of the signees are invalid and have not been granted access to the form. Go back to try to correct the issue or contact the form owner.',
-    'signing.reject_modal_title': 'Cancel the signing process',
+    'signing.reject_modal_title': 'Cancel signing',
     'signing.reject_modal_description':
-      'By canceling the signing process, all signatures will be deleted, and all delegated access will be revoked.',
-    'signing.reject_modal_button': 'Cancel the signing process',
+      'All signatures will be deleted. Everyone you have delegated to will lose access. This cannot be undone.',
+    'signing.reject_modal_button': 'Cancel signing',
+    'signing.reject_modal_close_button': 'Continue signing',
     'signing.reject_modal_trigger_button': 'Cancel signing',
     'signing.wrong_task_error': 'The {0} component is only available in a signing task.',
     'signing.error_missing_signing_rights':
@@ -569,6 +576,9 @@ export function en() {
       'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
     'service_task.retry_button': 'Try again',
     'service_task.back_button': 'Go back',
+    'service_task.waiting_title': 'We are processing your request',
+    'service_task.waiting_body':
+      'This may take a little while. You do not need to do anything, we will continue automatically once everything is ready.',
     'service_task_custom_pdf_default.title': 'Something went wrong',
     'service_task_custom_pdf_default.body':
       'An error occurred during automatic processing of the form.',

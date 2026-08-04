@@ -157,11 +157,71 @@
           {
             "value": "failure",
             "label": "endState.failure"
+          },
+          {
+            "value": "failureThenSuccess",
+            "label": "endState.failureThenSuccess"
           }
         ],
         "textResourceBindings": {
           "title": "endState.title",
           "help": "endState.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "advance",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "advance",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
+        "options": [
+          {
+            "value": "auto",
+            "label": "advance.auto"
+          },
+          {
+            "value": "park",
+            "label": "advance.park"
+          },
+          {
+            "value": "parkThenRelease",
+            "label": "advance.parkThenRelease"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "advance.title",
+          "help": "advance.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "serviceView",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "serviceView",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
+        "options": [
+          {
+            "value": "default",
+            "label": "serviceView.default"
+          },
+          {
+            "value": "layout",
+            "label": "serviceView.layout"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "serviceView.title",
+          "help": "serviceView.help"
         }
       },
       {

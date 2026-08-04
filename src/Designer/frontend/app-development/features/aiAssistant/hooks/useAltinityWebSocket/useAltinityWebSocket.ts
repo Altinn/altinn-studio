@@ -18,6 +18,7 @@ export interface UseAltinityWebSocketResult {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   startWorkflow: (request: WorkflowRequest) => Promise<AgentResponse>;
   cancelWorkflow: (sessionId: string) => Promise<void>;
+  respondToPermission: (sessionId: string, requestId: string, granted: boolean) => Promise<void>;
   registerSession: (org: string, app: string, threadId: string) => Promise<void>;
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
 }
@@ -76,6 +77,23 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
     }
   }, []);
 
+  const respondToPermission = useCallback(
+    async (sessionId: string, requestId: string, granted: boolean): Promise<void> => {
+      const connection = getAltinitySignalRConnection(wsInstanceRef.current);
+      if (!connection) {
+        throw new Error('No active SignalR connection to Altinity hub');
+      }
+
+      try {
+        await connection.invoke('RespondToPermission', sessionId, requestId, granted);
+      } catch (error) {
+        console.error('Failed to respond to permission request:', error);
+        throw error;
+      }
+    },
+    [],
+  );
+
   const registerSession = useCallback(
     async (org: string, app: string, threadId: string): Promise<void> => {
       const connection = getAltinitySignalRConnection(wsInstanceRef.current);
@@ -97,6 +115,7 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
     connectionStatus,
     startWorkflow,
     cancelWorkflow,
+    respondToPermission,
     registerSession,
     onAgentMessage,
   };

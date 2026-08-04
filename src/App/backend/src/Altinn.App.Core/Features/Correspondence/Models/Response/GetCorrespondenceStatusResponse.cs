@@ -100,13 +100,6 @@ public sealed record GetCorrespondenceStatusResponse
     public DateTimeOffset? RequestedPublishTime { get; init; }
 
     /// <summary>
-    /// The date for when Altinn can remove the correspondence from its database.
-    /// </summary>
-    [Obsolete("AllowSystemDeleteAfter is no longer returned by the Correspondence API.")]
-    [JsonPropertyName("allowSystemDeleteAfter")]
-    public DateTimeOffset? AllowSystemDeleteAfter { get; init; }
-
-    /// <summary>
     /// A date and time for when the recipient must reply.
     /// </summary>
     [JsonPropertyName("dueDateTime")]

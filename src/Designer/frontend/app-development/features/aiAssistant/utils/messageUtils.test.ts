@@ -3,6 +3,7 @@ import { ErrorMessages, MessageAuthor } from '@studio/assistant';
 import {
   decorateMessagesWithTraceIds,
   formatErrorMessage,
+  formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
@@ -30,6 +31,24 @@ describe('messageUtils', () => {
       expect(formatRejectionMessage(rejectionResult)).toBe(
         `${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\nSuggestions:\nTry A\nTry B`,
       );
+    });
+  });
+
+  describe('formatRejectedEventMessage', () => {
+    it('formats rejection reason and suggestions', () => {
+      expect(formatRejectedEventMessage({ message: 'Nope', suggestions: ['Try A', 'Try B'] })).toBe(
+        `${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\nForslag:\nTry A\nTry B`,
+      );
+    });
+
+    it('omits the suggestions block when there are none', () => {
+      expect(formatRejectedEventMessage({ message: 'Nope' })).toBe(
+        `${ErrorMessages.REQUEST_REJECTED}\n\nNope`,
+      );
+    });
+
+    it('falls back to the rejection header alone when the event carries no details', () => {
+      expect(formatRejectedEventMessage({})).toBe(ErrorMessages.REQUEST_REJECTED);
     });
   });
 

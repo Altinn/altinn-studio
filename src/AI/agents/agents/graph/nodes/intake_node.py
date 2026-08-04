@@ -10,6 +10,27 @@ from agents.services.events import sink
 from agents.workflows.intake.pipeline import run_intake_pipeline
 
 
+def _intake_failure_hint(exc: BaseException) -> str:
+    """Derive a short, actionable hint from an intake-pipeline exception.
+
+    Surfaces the most common operator-fixable causes (missing/wrong Azure
+    deployment, auth) without exposing internals.  Falls back to a generic
+    message when the cause is unclear.
+    """
+    msg = str(exc)
+    if "DeploymentNotFound" in msg or "does not exist" in msg:
+        return (
+            "The configured LLM deployment was not found on Azure AI Foundry. "
+            "Check LLM_MODEL_PLANNER vs the deployments provisioned in your "
+            "Foundry workspace."
+        )
+    if "401" in msg or "Unauthorized" in msg or "invalid_api_key" in msg:
+        return "LLM auth failed — check AZURE_API_KEY."
+    if "timeout" in msg.lower() or "timed out" in msg.lower():
+        return "LLM call timed out — the upstream may be overloaded; retry shortly."
+    return "Intake failed before producing a plan. See server logs for the underlying error."
+
+
 async def handle(state: AgentState) -> AgentState:
     """Generate an initial plan and repository context."""
     
@@ -17,6 +38,18 @@ async def handle(state: AgentState) -> AgentState:
     from shared.utils.logging_utils import get_logger
     log = get_logger(__name__)
     log.info(f"⏱️ [INTAKE NODE] Starting at {time.time()}")
+
+    # The intake pipeline runs an LLM call to generate the initial plan.
+    # That's the first multi-second blocking step the user waits on, so
+    # emit a status right away — otherwise the UI sits silent until the
+    # `plan_proposed` event lands.
+    sink.send(
+        AgentEvent(
+            type="status",
+            session_id=state.session_id,
+            data={"message": "Analyserer forespørselen…", "phase": "thinking"},
+        )
+    )
 
     try:
         result: Dict[str, Any] = run_intake_pipeline(
@@ -53,6 +86,7 @@ async def handle(state: AgentState) -> AgentState:
     except Exception as exc:
         error_type = type(exc).__name__
         log.error(f"Intake failed ({error_type}): {exc}", exc_info=True)
+        hint = _intake_failure_hint(exc)
         sink.send(
             AgentEvent(
                 type="error",
@@ -83,11 +117,8 @@ async def scan_repository(state: AgentState) -> AgentState:
     log.info(f"⏱️ [SCAN NODE] Starting at {time.time()}")
 
     try:
-        # Use the same scanning logic as the MCP client for consistency
-        from agents.services.mcp import get_mcp_client
         from agents.services.repo import discover_repository_context
-        
-        mcp_client = get_mcp_client()
+
         context = discover_repository_context(state.repo_path)
         # Convert PlanContext to dict format for compatibility
         facts = {
