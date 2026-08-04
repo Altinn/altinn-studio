@@ -188,7 +188,7 @@ func runPrepare(args []string) error {
 	component := fs.String("component", "", "Component name (required, e.g., studioctl)")
 	version := fs.String("version", "", "Explicit version to release (e.g., v1.2.3)")
 	kind := fs.String("kind", "", "Release kind when version is omitted: prerelease, stabilization, or patch")
-	line := fs.String("line", "", "Release line for patch releases (e.g., v1.0)")
+	line := fs.String("line", "", "Release line for a planned prerelease or patch release (e.g., v1.0)")
 	dryRun := fs.Bool("dry-run", false, "Show what would be done without making changes")
 	yes := fs.Bool("yes", false, "Skip confirmation prompts")
 	yesShort := fs.Bool("y", false, "Alias for -yes")
@@ -202,6 +202,7 @@ After merging the PR, CI can run the release workflow if configured.
 Version behavior:
   - Release state is read from the canonical GitHub repository behind the configured fork
   - -kind prerelease: increments the active prerelease sequence from main
+  - -kind prerelease -line vX.Y: starts a newer line at the current channel's first sequence
   - -kind stabilization: removes the active prerelease suffix from main
   - -kind patch -line vX.Y: resolves vX.Y.Z+1 from release/<component>/vX.Y
   - -version vX.Y.Z: uses the explicit version and existing branch policy

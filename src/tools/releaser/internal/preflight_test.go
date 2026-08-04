@@ -384,6 +384,145 @@ func TestRunPrepareWithDeps_InferredPrereleaseVersion(t *testing.T) {
 	assertChangelogContains(t, repo, "## [1.2.0-rc.4] - ")
 }
 
+func TestRunPrepareWithDeps_StartsPlannedPrereleaseLineAfterStabilization(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next release line entry
+
+## [1.2.0-rc.3] - 2025-01-03
+
+### Added
+
+- Stabilizing prerelease
+`)
+	createReleaseBranch(t, repo, "release/studioctl/v1.2")
+	t.Chdir(repo)
+
+	var output bytes.Buffer
+	logger := internal.NewConsoleLogger(internal.WithWriters(&output, &output))
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		Line:      "v2.0",
+		DryRun:    true,
+	}, git, &fakeGH{}, logger)
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	if !strings.Contains(output.String(), "Would promote changelog to: [v2.0.0-rc.1]") {
+		t.Fatalf("dry-run did not start the planned prerelease line:\n%s", output.String())
+	}
+}
+
+func TestRunPrepareWithDeps_IncrementsNewestPrereleaseAcrossHistoricalLines(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next prerelease entry
+
+## [2.0.0-rc.1] - 2025-02-01
+
+### Added
+
+- Current release line
+
+## [1.2.0-rc.3] - 2025-01-03
+
+### Added
+
+- Historical release line
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+	if gh.prTitle != "chore: release studioctl v2.0.0-rc.2" {
+		t.Fatalf("PR title = %q, want newest prerelease line increment", gh.prTitle)
+	}
+}
+
+func TestRunPrepareWithDeps_RejectsPlannedPrereleaseLineBeforeStabilization(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next prerelease entry
+
+## [1.2.0-preview.3] - 2025-01-03
+
+### Added
+
+- Active prerelease
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		Line:      "v1.3",
+		DryRun:    true,
+	}, git, &fakeGH{}, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "active prerelease line has not entered stabilization") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want open prerelease line error", err)
+	}
+}
+
+func TestRunPrepareWithDeps_RejectsPlannedPrereleaseLineThatIsNotNewer(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next prerelease entry
+
+## [1.2.0-preview.3] - 2025-01-03
+
+### Added
+
+- Stabilizing prerelease
+`)
+	createReleaseBranch(t, repo, "release/studioctl/v1.2")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Kind:      "prerelease",
+		Line:      "v1.2",
+		DryRun:    true,
+	}, git, &fakeGH{}, internal.NopLogger{})
+	if err == nil {
+		t.Fatal("RunPrepareWithDeps() expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "planned prerelease line must be newer") {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want newer release line error", err)
+	}
+}
+
 func TestRunPrepareWithDeps_InferredPrereleaseUsesDiscoveredCanonicalRemote(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, `# Changelog
 
@@ -981,7 +1120,7 @@ func TestRunPrepareWithDeps_InferredStabilizationAllowsUnnumberedPrerelease(t *t
 	assertChangelogContains(t, repo, "- Stabilization fix")
 }
 
-func TestRunPrepareWithDeps_LineOnlyAllowedForPatchKind(t *testing.T) {
+func TestRunPrepareWithDeps_LineRejectedForStabilizationKind(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, `# Changelog
 
 ## [Unreleased]

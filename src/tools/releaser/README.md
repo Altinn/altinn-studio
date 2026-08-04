@@ -31,8 +31,10 @@ Context: on `main`
    - `cd src/tools/releaser`
    - `go run . prepare -component <component> -kind prerelease`
    - `prepare` resolves the next prerelease version from the latest prerelease section in the canonical changelog on `main`.
-   - If that release line has entered stabilization, start the next planned line explicitly with
-     `-version vX.Y.Z-<channel>.1`.
+   - If that release line has entered stabilization, start the next planned line with
+     `go run . prepare -component <component> -kind prerelease -line vX.Y`.
+     `prepare` verifies that the active line has a canonical release branch, carries its prerelease channel forward,
+     and starts the newer line at `<channel>.1`.
 3. Approve and merge the prep PR.
 4. For same-repository PRs, CI runs automatically on merge. For fork PRs, dispatch the component's release
    workflow from the merged `main` branch. It calls:

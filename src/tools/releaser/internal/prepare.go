@@ -284,12 +284,12 @@ func resolvePrepareRequestVersion(
 	}
 
 	kind := strings.ToLower(strings.TrimSpace(req.Kind))
-	if kind != prepareKindPatch && req.Line != "" {
+	if kind == prepareKindStabilization && req.Line != "" {
 		return "", errReleaseLineConflict
 	}
 	switch kind {
 	case prepareKindPrerelease:
-		return resolveNextPrereleaseVersion(ctx, git, sourceRemote, clPath)
+		return resolveNextPrereleaseVersion(ctx, git, comp, sourceRemote, clPath, req.Line)
 	case prepareKindStabilization:
 		return resolveStabilizationVersion(ctx, git, comp, sourceRemote, clPath)
 	case prepareKindPatch:
@@ -318,7 +318,8 @@ func normalizeVersionPrefix(version string) string {
 func resolveNextPrereleaseVersion(
 	ctx context.Context,
 	git *GitCLI,
-	sourceRemote, clPath string,
+	comp *Component,
+	sourceRemote, clPath, line string,
 ) (string, error) {
 	cl, err := readRemoteChangelog(ctx, git, sourceRemote, mainBranch, clPath)
 	if err != nil {
@@ -332,6 +333,9 @@ func resolveNextPrereleaseVersion(
 	if err != nil {
 		return "", err
 	}
+	if line != "" {
+		return resolvePlannedPrereleaseVersion(ctx, git, comp, sourceRemote, line, prerelease, channel)
+	}
 	return fmt.Sprintf(
 		"v%d.%d.%d-%s.%d",
 		prerelease.Major,
@@ -340,6 +344,40 @@ func resolveNextPrereleaseVersion(
 		channel,
 		sequence+1,
 	), nil
+}
+
+func resolvePlannedPrereleaseVersion(
+	ctx context.Context,
+	git *GitCLI,
+	comp *Component,
+	sourceRemote, line string,
+	active *semver.Version,
+	channel string,
+) (string, error) {
+	major, minor, err := parseReleaseLine(line)
+	if err != nil {
+		return "", err
+	}
+	if major < active.Major || major == active.Major && minor <= active.Minor {
+		return "", fmt.Errorf(
+			"%w: %s is not newer than v%d.%d",
+			errPrereleaseLineNotNewer,
+			line,
+			active.Major,
+			active.Minor,
+		)
+	}
+
+	activeReleaseBranch := comp.ReleaseBranch(active.Major, active.Minor)
+	exists, err := git.RemoteBranchExists(ctx, sourceRemote, activeReleaseBranch)
+	if err != nil {
+		return "", fmt.Errorf("check release branch: %w", err)
+	}
+	if !exists {
+		return "", fmt.Errorf("%w: %s", errPrereleaseLineOpen, activeReleaseBranch)
+	}
+
+	return fmt.Sprintf("v%d.%d.0-%s.1", major, minor, channel), nil
 }
 
 func resolveStabilizationVersion(
