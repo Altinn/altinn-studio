@@ -219,4 +219,42 @@ public class WorkflowCallbackStateTests
         Assert.Equal("attachment", deserialized.Instance.Data[1].DataType);
         Assert.Equal("application/pdf", deserialized.Instance.Data[1].ContentType);
     }
+
+    [Fact]
+    public void WorkflowCallbackState_SerializeDeserialize_PreservesServiceTaskBaton()
+    {
+        // The baton is the staged-service-task handoff: a step's output must survive the blob's
+        // round trip byte-for-byte so the next step can deserialize it as its typed input.
+        var instanceState = new WorkflowCallbackState
+        {
+            Instance = new Instance { Org = "ttd", AppId = "ttd/test-app" },
+            FormData = new List<FormDataEntry>(),
+            ServiceTaskBaton = JsonSerializer.SerializeToElement(new { CaseId = "case-42", DocCount = 7 }),
+        };
+
+        string json = JsonSerializer.Serialize(instanceState);
+        var deserialized = JsonSerializer.Deserialize<WorkflowCallbackState>(json);
+
+        Assert.NotNull(deserialized);
+        Assert.NotNull(deserialized.ServiceTaskBaton);
+        Assert.Equal("case-42", deserialized.ServiceTaskBaton.Value.GetProperty("CaseId").GetString());
+        Assert.Equal(7, deserialized.ServiceTaskBaton.Value.GetProperty("DocCount").GetInt32());
+    }
+
+    [Fact]
+    public void WorkflowCallbackState_WithoutBaton_OmitsTheFieldEntirely()
+    {
+        // Every non-staged state blob stays byte-identical to before the baton existed.
+        var instanceState = new WorkflowCallbackState
+        {
+            Instance = new Instance { Org = "ttd", AppId = "ttd/test-app" },
+            FormData = new List<FormDataEntry>(),
+        };
+
+        string json = JsonSerializer.Serialize(instanceState);
+
+        Assert.DoesNotContain("serviceTaskBaton", json);
+        var deserialized = JsonSerializer.Deserialize<WorkflowCallbackState>(json);
+        Assert.Null(deserialized!.ServiceTaskBaton);
+    }
 }

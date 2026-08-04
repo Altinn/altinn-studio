@@ -305,4 +305,74 @@ public class ProcessStepOptionsResolverTests
 
         Assert.Null(result);
     }
+
+    // ── Staged service tasks: per-pipeline-step options (tier 3, two levels) ─────────────────
+
+    /// <summary>
+    /// Task-level options (1 h timeout) with one step overriding the timeout (2 h) and the final
+    /// step declaring only a wait budget.
+    /// </summary>
+    private sealed class StagedTask : IStagedServiceTask
+    {
+        public string Type => "staged";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
+
+        public IEnumerable<IServiceTaskStep> Steps => [new Entry(), new Done()];
+
+        private sealed class Entry : IServiceTaskStep<string>
+        {
+            public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(2) };
+
+            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next("id"));
+        }
+
+        private sealed class Done : IFinalServiceTaskStep<string>
+        {
+            public ProcessStepOptions? StepOptions => new() { WaitBudget = TimeSpan.FromHours(48) };
+
+            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
+                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        }
+    }
+
+    private static ProcessStepOptionsResolver CreateResolverWithStagedTask() =>
+        CreateResolver(services => services.AddSingleton<IStagedServiceTask, StagedTask>());
+
+    [Fact]
+    public void Resolve_StagedStep_StepFieldWinsOverTaskField()
+    {
+        var resolver = CreateResolverWithStagedTask();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "staged", "Entry");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime);
+        Assert.Null(result.WaitBudget);
+    }
+
+    [Fact]
+    public void Resolve_StagedStep_UnsetStepFieldFallsBackToTaskField()
+    {
+        var resolver = CreateResolverWithStagedTask();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "staged", "Done");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // task level
+        Assert.Equal(TimeSpan.FromHours(48), result.WaitBudget); // step level
+    }
+
+    [Fact]
+    public void Resolve_StagedStep_UnknownStepName_FallsBackToTaskOptions()
+    {
+        var resolver = CreateResolverWithStagedTask();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "staged", "Nope");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime);
+        Assert.Null(result.WaitBudget);
+    }
 }

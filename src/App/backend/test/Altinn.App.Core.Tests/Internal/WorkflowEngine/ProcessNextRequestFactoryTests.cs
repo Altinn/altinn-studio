@@ -54,14 +54,22 @@ public class ProcessNextRequestFactoryTests
         bool autoDeleteOnProcessEnd = false,
         bool hasAutoDeleteDataTypes = true,
         Action<IServiceCollection>? configureServices = null,
-        params IServiceTask[] serviceTasks
+        params IServiceTaskBase[] serviceTasks
     )
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
         foreach (var st in serviceTasks)
         {
-            services.AddSingleton(st);
+            switch (st)
+            {
+                case IStagedServiceTask staged:
+                    services.AddSingleton(staged);
+                    break;
+                case IServiceTask simple:
+                    services.AddSingleton(simple);
+                    break;
+            }
         }
         configureServices?.Invoke(services);
         var sp = services.BuildServiceProvider();
@@ -534,6 +542,102 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.Single(bundle.Request.Workflows);
         Assert.Contains(MovedToAltinnEvent.Key, ExtractSideEffectsCommandKeys(bundle));
+    }
+
+    /// <summary>
+    /// A staged send→poll task used by the expansion tests. Default step names are the class names.
+    /// </summary>
+    private sealed class StagedSigningTask : IStagedServiceTask
+    {
+        public string Type => "signing";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
+
+        public IEnumerable<IServiceTaskStep> Steps => [new Dispatch(), new AwaitOutcome()];
+
+        private sealed class Dispatch : IServiceTaskStep<string>
+        {
+            public Task<ServiceTaskStepResult<string>> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next("order-id"));
+        }
+
+        private sealed class AwaitOutcome : IFinalServiceTaskStep<string>
+        {
+            public ProcessStepOptions? StepOptions => new() { WaitBudget = TimeSpan.FromHours(48) };
+
+            public Task<ServiceTaskResult> Execute(ServiceTaskContext<string> context) =>
+                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        }
+    }
+
+    private static List<(
+        string OperationId,
+        ExecuteServiceTaskPayload Payload,
+        StepRequest Step
+    )> ExtractServiceTaskSteps(WorkflowEnqueueEnvelope bundle) =>
+        bundle
+            .Request.Workflows[0]
+            .Steps.Select(s =>
+            {
+                if (s.Command.Data is not { } data)
+                    return default;
+                var appData = JsonSerializer.Deserialize<AppCommandData>(data);
+                if (appData?.CommandKey != ExecuteServiceTask.Key)
+                    return default;
+                var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
+                return (s.OperationId, payload, s);
+            })
+            .Where(x => x != default)
+            .ToList();
+
+    [Fact]
+    public async Task Create_StagedServiceTask_ExpandsToOneEngineStepPerPipelineStep_InOrder()
+    {
+        // Arrange
+        var factory = CreateFactory(serviceTasks: new StagedSigningTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert — one ExecuteServiceTask engine step per pipeline step, in pipeline order, each
+        // payload carrying its step's name and a distinct OperationId for the engine's records.
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        Assert.Equal(2, serviceTaskSteps.Count);
+
+        Assert.Equal("Dispatch", serviceTaskSteps[0].Payload.StepName);
+        Assert.Equal($"{ExecuteServiceTask.Key} · Dispatch", serviceTaskSteps[0].OperationId);
+        Assert.Equal("AwaitOutcome", serviceTaskSteps[1].Payload.StepName);
+        Assert.Equal($"{ExecuteServiceTask.Key} · AwaitOutcome", serviceTaskSteps[1].OperationId);
+        Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
+
+        // Both stay critical: in Main, after the commit boundary and the side-effects enqueue.
+        var keys = ExtractCommandKeys(bundle);
+        int saveIndex = keys.IndexOf(SaveProcessStateToStorage.Key);
+        int firstServiceTaskIndex = keys.IndexOf(ExecuteServiceTask.Key);
+        Assert.True(firstServiceTaskIndex > saveIndex);
+    }
+
+    [Fact]
+    public async Task Create_StagedServiceTask_ResolvesOptionsPerPipelineStep()
+    {
+        // Arrange
+        var factory = CreateFactory(serviceTasks: new StagedSigningTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // Assert — the task-wide 30 min timeout reaches both steps (tier 3, task level); the final
+        // step's own WaitBudget lands only on it (tier 3, step level).
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        var dispatch = serviceTaskSteps.Single(s => s.Payload.StepName == "Dispatch").Step;
+        var awaitOutcome = serviceTaskSteps.Single(s => s.Payload.StepName == "AwaitOutcome").Step;
+
+        Assert.Equal(TimeSpan.FromMinutes(30), dispatch.Command.MaxExecutionTime);
+        Assert.Null(dispatch.Command.WaitBudget);
+        Assert.Equal(TimeSpan.FromMinutes(30), awaitOutcome.Command.MaxExecutionTime);
+        Assert.Equal(TimeSpan.FromHours(48), awaitOutcome.Command.WaitBudget);
     }
 
     [Fact]
