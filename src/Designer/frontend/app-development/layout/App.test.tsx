@@ -26,15 +26,28 @@ describe('App', () => {
 
     expect(document.title).toBe(`${defaultDocumentTitle}: second-app`);
   });
+
+  it('restores the default document title when navigating outside an app', () => {
+    renderApp('/test-org/first-app/overview');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Navigate outside app' }));
+
+    expect(document.title).toBe(defaultDocumentTitle);
+  });
 });
 
 const TestPage = () => {
   const navigate = useNavigate();
 
   return (
-    <button type='button' onClick={() => navigate('/test-org/second-app/overview')}>
-      Navigate to another app
-    </button>
+    <>
+      <button type='button' onClick={() => navigate('/test-org/second-app/overview')}>
+        Navigate to another app
+      </button>
+      <button type='button' onClick={() => navigate('/outside')}>
+        Navigate outside app
+      </button>
+    </>
   );
 };
 
@@ -42,8 +55,9 @@ const renderApp = (initialEntry: string) => {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
-        <Route path='/:org/:app' element={<App />}>
-          <Route path='overview' element={<TestPage />} />
+        <Route path='/' element={<App />}>
+          <Route path=':org/:app/overview' element={<TestPage />} />
+          <Route path='outside' element={<div />} />
         </Route>
       </Routes>
     </MemoryRouter>,
