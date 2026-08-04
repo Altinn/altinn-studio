@@ -160,6 +160,18 @@
         "src/App/codelists/**"
       ],
       "enabled": false
+    },
+    {
+      "description": "Upgrade React consistently across the entire repository",
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "groupName": "React ecosystem",
+      "groupSlug": "react-ecosystem"
     }
   ],
   "schedule": []
