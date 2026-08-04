@@ -9,6 +9,16 @@ const ROOT_FILE_ENTRIES = [
     path: '/.github/CODEOWNERS',
     owner: '@altinn/team-altinn-studio',
   },
+  // Root-anchored so they do not shadow the per-root lockfile rules below.
+  // The root lockfile spans every yarn workspace, so it cannot be split further.
+  {
+    path: '/package.json',
+    owner: '@altinn/team-altinn-studio-utforming',
+  },
+  {
+    path: '/yarn.lock',
+    owner: '@altinn/team-altinn-studio-utforming',
+  },
 ];
 const EXACT_SOURCE_FILES = [
   'package.json',
@@ -37,7 +47,15 @@ const GROUPS = [
   {
     title: 'Team Utforming',
     owner: '@altinn/team-altinn-studio-utforming',
-    roots: ['app-libs', 'src/App/frontend', 'src/Designer/frontend'],
+    roots: [
+      'app-libs',
+      'src/App/frontend',
+      'src/App/backend',
+      'src/Designer/frontend',
+      'src/Designer/backend',
+      'src/Designer/development/azure-devops-mock',
+      'src/test/apps',
+    ],
     extraPaths: [
       '.github/workflows/app-frontend-codeql.yml',
       '.github/workflows/app-frontend-cypress.yml',
@@ -66,10 +84,16 @@ const GROUPS = [
     title: 'AI',
     owner: '@ErlingHauan',
     roots: ['src/AI/agents', 'src/AI/augmenter-agent', 'src/AI/mcp'],
-    extraPaths: [
-      '.github/workflows/deploy-studio-mcp-server.yaml',
-      '.github/workflows/mcp-build.yaml',
-      '.github/workflows/mcp-test.yaml',
+    extraPaths: ['.github/workflows/deploy-studio-mcp-server.yaml'],
+  },
+  {
+    title: 'Squad Data',
+    owner: '@altinn/team-altinn-studio-data',
+    roots: [
+      'src/App/codelists',
+      'src/App/fileanalyzers',
+      'src/App/template',
+      'src/Designer/testdata',
     ],
   },
   {
@@ -77,6 +101,7 @@ const GROUPS = [
     owner: '@altinn/team-altinn-studio-kjoring',
     roots: [
       'src/cli',
+      'src/common',
       'src/gitea',
       'src/gitea-runner',
       'src/gitea-proxy',
@@ -89,11 +114,17 @@ const GROUPS = [
       'src/Runtime/gateway',
       'src/Runtime/devenv',
       'src/Designer/development/fake-ansattporten',
+      'src/runner-org-sync',
       'src/test/K6',
+      'src/tools/altinn-fleet-stats',
       'src/tools/health',
       'src/tools/releaser',
+      'charts/altinn-designer',
+      'charts/altinn-designer-config',
       'charts/altinn-loadbalancer',
       'charts/altinn-loadbalancer-config',
+      'charts/altinn-repositories',
+      'charts/altinn-repositories-config',
       'charts/gitea-org-runner',
       'charts/gitea-org-runner-config',
     ],
