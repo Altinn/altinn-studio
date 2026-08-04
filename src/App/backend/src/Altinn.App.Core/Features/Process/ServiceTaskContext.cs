@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// This class represents the parameters for executing a service task.
+/// This class represents the parameters for executing a service task. For a pipeline step that
+/// receives input from its predecessor, see <see cref="ServiceTaskContext{TIn}"/>.
 /// </summary>
-public sealed record ServiceTaskContext
+public record ServiceTaskContext
 {
     /// <summary>
     /// An instance data mutator that can be used to read and modify the instance data during the service task execution.
@@ -54,19 +57,36 @@ public sealed record ServiceTaskContext
     /// <remarks>
     /// Everything here is a pacing signal, never an idempotency guard: the engine records an attempt
     /// only after it answers, so an attempt that performed a side effect and crashed re-runs with all
-    /// of these unchanged. Evidence of a side effect lives in <see cref="Checkpoints"/>.
+    /// of these unchanged.
     /// </remarks>
     public ServiceTaskWait Wait { get; init; } = new();
+}
+
+/// <summary>
+/// The execution context for a pipeline step that receives input — a link
+/// (<see cref="IServiceTaskStep{TIn, TOut}"/>) or final (<see cref="IFinalServiceTaskStep{TIn}"/>)
+/// step of an <see cref="IStagedServiceTask"/>. It is the ordinary <see cref="ServiceTaskContext"/>
+/// plus the previous step's output, typed.
+/// </summary>
+/// <typeparam name="TIn">The previous step's declared output type.</typeparam>
+public sealed record ServiceTaskContext<TIn> : ServiceTaskContext
+{
+    /// <summary>
+    /// Creates an empty context for object-initializer construction (e.g. in unit tests).
+    /// </summary>
+    public ServiceTaskContext() { }
+
+    [SetsRequiredMembers]
+    internal ServiceTaskContext(ServiceTaskContext original, TIn input)
+        : base(original)
+    {
+        Input = input;
+    }
 
     /// <summary>
-    /// Durable checkpoints — the send guard for send-then-poll tasks. Written immediately, read
-    /// through to Storage; see <see cref="IServiceTaskCheckpoints"/>.
+    /// The previous step's output. Non-null by construction in the runtime: this step cannot run
+    /// unless its predecessor completed and produced a value. When the step defers, the same input
+    /// is handed to the re-run.
     /// </summary>
-    /// <remarks>
-    /// The runtime supplies the Storage-backed implementation. Like <see cref="InstanceDataMutator"/>
-    /// there is deliberately no default: a unit test constructing a context injects a fake (an
-    /// in-memory dictionary is enough) rather than getting checkpoint writes that silently succeed
-    /// without durability.
-    /// </remarks>
-    public required IServiceTaskCheckpoints Checkpoints { get; init; }
+    public required TIn Input { get; init; }
 }

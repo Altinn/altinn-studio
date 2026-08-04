@@ -66,13 +66,7 @@ public class ExecuteServiceTaskTests
         };
     }
 
-    private static ExecuteServiceTask CreateCommand(params IServiceTask[] serviceTasks) =>
-        CreateCommand(new StorageServiceTaskCheckpointsFactory(Mock.Of<IInstanceClient>()), serviceTasks);
-
-    private static ExecuteServiceTask CreateCommand(
-        IServiceTaskCheckpointsFactory checkpointsFactory,
-        params IServiceTask[] serviceTasks
-    )
+    private static ExecuteServiceTask CreateCommand(params IServiceTask[] serviceTasks)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -82,7 +76,7 @@ public class ExecuteServiceTaskTests
         }
         var sp = services.BuildServiceProvider();
 
-        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>(), checkpointsFactory);
+        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>());
     }
 
     [Fact]
@@ -273,55 +267,6 @@ public class ExecuteServiceTaskTests
         Assert.NotNull(observed);
         Assert.Equal(stepId, observed.StepId);
         Assert.Equal(firstDeferredAt, observed.Wait.StartedAt);
-    }
-
-    [Fact]
-    public async Task Execute_WiresStorageBackedCheckpoints_PrefixedByCanonicalTaskType()
-    {
-        // Arrange — the BPMN attribute may differ in casing from the task's declared Type (resolution
-        // ignores case); the checkpoint prefix must use the canonical Type so keys stay stable.
-        var instanceClient = new Mock<IInstanceClient>();
-        instanceClient
-            .Setup(x =>
-                x.UpdateDataValues(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<DataValues>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(CreateInstance());
-        var serviceTask = new Mock<IServiceTask>();
-        serviceTask.Setup(x => x.Type).Returns("myServiceTask");
-        serviceTask
-            .Setup(x => x.Execute(It.IsAny<ServiceTaskContext>()))
-            .Returns<ServiceTaskContext>(async ctx =>
-            {
-                await ctx.Checkpoints.Set("receipt", "r-1");
-                return ServiceTaskResult.Success();
-            });
-        var command = CreateCommand(
-            new StorageServiceTaskCheckpointsFactory(instanceClient.Object),
-            serviceTask.Object
-        );
-        var context = CreateContext(CreateInstance(), "MYSERVICETASK");
-
-        // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("MYSERVICETASK"));
-
-        // Assert
-        instanceClient.Verify(
-            x =>
-                x.UpdateDataValues(
-                    1337,
-                    Guid.Parse("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde"),
-                    It.Is<DataValues>(dv => dv.Values!["serviceTask:myServiceTask:receipt"] == "r-1"),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
     }
 
     [Fact]

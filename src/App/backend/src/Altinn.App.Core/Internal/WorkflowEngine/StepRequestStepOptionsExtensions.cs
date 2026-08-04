@@ -28,14 +28,24 @@ internal static class StepRequestStepOptionsExtensions
 
     /// <summary>
     /// Resolves the effective step options for a single step (via <paramref name="resolver"/>) and maps
-    /// them onto the wire request.
+    /// them onto the wire request. A staged service-task step resolves by its command key plus its
+    /// pipeline-step name (its OperationId is a display identity carrying the step name); every other
+    /// step's OperationId is its command key.
     /// </summary>
     public static StepRequest ApplyStepOptions(
         this StepRequest step,
         ProcessStepOptionsResolver resolver,
         string? taskId,
         string? serviceTaskType
-    ) => step.WithStepOptions(resolver.Resolve(step.OperationId, taskId, serviceTaskType));
+    ) =>
+        step.WithStepOptions(
+            resolver.Resolve(
+                step.ServiceTaskStepName is null ? step.OperationId : Commands.ExecuteServiceTask.Key,
+                taskId,
+                serviceTaskType,
+                step.ServiceTaskStepName
+            )
+        );
 
     /// <summary>
     /// Maps already-resolved options onto the wire request. A null <paramref name="options"/> leaves the

@@ -1071,17 +1071,12 @@ internal class ProcessEngine : IProcessEngine
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
-    private IServiceTask? CheckIfServiceTask(string? altinnTaskType)
+    private IServiceTaskBase? CheckIfServiceTask(string? altinnTaskType)
     {
         if (altinnTaskType is null)
             return null;
 
-        IEnumerable<IServiceTask> serviceTasks = _appImplementationFactory.GetAll<IServiceTask>();
-        IServiceTask? serviceTask = serviceTasks.FirstOrDefault(x =>
-            x.Type.Equals(altinnTaskType, StringComparison.OrdinalIgnoreCase)
-        );
-
-        return serviceTask;
+        return _appImplementationFactory.FindServiceTask(altinnTaskType);
     }
 
     private sealed record CurrentTaskIdAndAltinnTaskType(string CurrentTaskId, string AltinnTaskType);

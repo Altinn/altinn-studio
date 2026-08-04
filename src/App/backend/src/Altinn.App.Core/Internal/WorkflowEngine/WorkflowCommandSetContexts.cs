@@ -14,6 +14,14 @@ internal sealed record TaskStartContext
     public required string? ServiceTaskType { get; init; }
 
     /// <summary>
+    /// If the service task is staged (an <c>IStagedServiceTask</c>), the ordered names of its
+    /// pipeline steps — each expands to its own ExecuteServiceTask engine step. Null when the task
+    /// is a plain <c>IServiceTask</c> (or not a service task at all), which expands to the single
+    /// unnamed engine step.
+    /// </summary>
+    public IReadOnlyList<string>? ServiceTaskStepNames { get; init; }
+
+    /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.
     /// </summary>
     public required bool IsInitialTaskStart { get; init; }

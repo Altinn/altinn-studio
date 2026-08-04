@@ -13,7 +13,6 @@ public class ServiceTaskContextTests
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
             Wait = new ServiceTaskWait { Deadline = waitDeadline },
-            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
 
     [Fact]

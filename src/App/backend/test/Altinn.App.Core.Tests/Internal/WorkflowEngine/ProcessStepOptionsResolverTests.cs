@@ -23,10 +23,7 @@ public class ProcessStepOptionsResolverTests
         var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
 
         // ExecuteServiceTask is the only command declaring a tier-2 default (10 min) today.
-        return new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory, Mock.Of<IServiceTaskCheckpointsFactory>())],
-            appImplFactory
-        );
+        return new ProcessStepOptionsResolver([new ExecuteServiceTask(appImplFactory)], appImplFactory);
     }
 
     private static ProcessStepOptionsResolver CreateResolver(params IServiceTask[] serviceTasks) =>

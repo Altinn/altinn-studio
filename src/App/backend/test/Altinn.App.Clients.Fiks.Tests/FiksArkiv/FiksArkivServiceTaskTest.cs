@@ -38,7 +38,6 @@ public class FiksArkivServiceTaskTest
             InstanceDataMutator = instanceDataMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
-            Checkpoints = Mock.Of<IServiceTaskCheckpoints>(),
         };
         await fixture.FiksArkivServiceTask.Execute(parameters);
 
@@ -70,7 +69,6 @@ public class FiksArkivServiceTaskTest
             InstanceDataMutator = instanceDataMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
-            Checkpoints = Mock.Of<IServiceTaskCheckpoints>(),
         };
         var result = await fixture.FiksArkivServiceTask.Execute(parameters);
 

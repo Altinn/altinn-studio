@@ -358,10 +358,13 @@ internal sealed class ProcessNextRequestFactory
             case InstanceEventType.process_StartEvent:
                 return null;
             case InstanceEventType.process_StartTask:
+            {
+                string? serviceTaskType = GetServiceTaskType(altinnTaskType);
                 return WorkflowCommandSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
-                        ServiceTaskType = GetServiceTaskType(altinnTaskType),
+                        ServiceTaskType = serviceTaskType,
+                        ServiceTaskStepNames = GetServiceTaskStepNames(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -369,6 +372,7 @@ internal sealed class ProcessNextRequestFactory
                         RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
                     }
                 );
+            }
             case InstanceEventType.process_EndTask:
                 return WorkflowCommandSet.GetTaskEndSteps();
             case InstanceEventType.process_AbandonTask:
@@ -397,9 +401,22 @@ internal sealed class ProcessNextRequestFactory
         if (altinnTaskType is null)
             return null;
 
-        IEnumerable<IServiceTask> serviceTasks = _appImplementationFactory.GetAll<IServiceTask>();
-        bool isServiceTask = serviceTasks.Any(x => x.Type.Equals(altinnTaskType, StringComparison.OrdinalIgnoreCase));
-        return isServiceTask ? altinnTaskType : null;
+        return _appImplementationFactory.FindServiceTask(altinnTaskType) is not null ? altinnTaskType : null;
+    }
+
+    /// <summary>
+    /// The ordered pipeline-step names when the service task is staged, or null for a plain
+    /// service task. Enumerated at enqueue time — this is the moment the pipeline's shape is fixed
+    /// for the workflow's lifetime (callback dispatch is by these names).
+    /// </summary>
+    private IReadOnlyList<string>? GetServiceTaskStepNames(string? serviceTaskType)
+    {
+        if (serviceTaskType is null)
+            return null;
+
+        return _appImplementationFactory.FindServiceTask(serviceTaskType) is IStagedServiceTask staged
+            ? staged.Steps.Select(s => s.Name).ToList()
+            : null;
     }
 
     private async Task<Actor> ExtractActor()

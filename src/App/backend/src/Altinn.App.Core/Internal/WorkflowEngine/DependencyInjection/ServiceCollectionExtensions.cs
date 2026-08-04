@@ -59,7 +59,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
         // Process engine callback handlers - ServiceTask
-        services.AddTransient<IServiceTaskCheckpointsFactory, StorageServiceTaskCheckpointsFactory>();
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
 
         // Process engine callback handlers - Notifications
@@ -86,5 +85,8 @@ internal static class ServiceCollectionExtensions
 
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();
+
+        // Fail fast at startup on invalid service-task registrations or staged pipeline shapes.
+        services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }

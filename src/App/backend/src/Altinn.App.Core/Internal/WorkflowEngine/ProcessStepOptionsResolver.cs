@@ -43,13 +43,23 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="operationId">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
-    public ProcessStepOptions? Resolve(string operationId, string? taskId, string? serviceTaskType)
+    /// <param name="serviceTaskStepName">
+    /// For a staged service-task step: the pipeline step's name. Tier 3 is then the pipeline step's
+    /// own options over the task's, field-wise.
+    /// </param>
+    public ProcessStepOptions? Resolve(
+        string operationId,
+        string? taskId,
+        string? serviceTaskType,
+        string? serviceTaskStepName = null
+    )
     {
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(operationId);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
             operationId,
             taskId,
-            serviceTaskType
+            serviceTaskType,
+            serviceTaskStepName
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
@@ -85,15 +95,35 @@ internal sealed class ProcessStepOptionsResolver
     private ProcessStepOptions? ResolveImplementationStepOptions(
         string operationId,
         string? taskId,
-        string? serviceTaskType
+        string? serviceTaskType,
+        string? serviceTaskStepName
     )
     {
         if (operationId == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
-            return _appImplementationFactory
-                .GetAll<IServiceTask>()
-                .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase))
-                ?.StepOptions;
+            IServiceTaskBase? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
+            if (serviceTask is IStagedServiceTask staged && serviceTaskStepName is not null)
+            {
+                // Per-pipeline-step options win field-wise over the task's own, mirroring how the
+                // merged result then wins over the command default in Resolve.
+                ProcessStepOptions? stepOptions = staged
+                    .Steps.FirstOrDefault(s => string.Equals(s.Name, serviceTaskStepName, StringComparison.Ordinal))
+                    ?.StepOptions;
+                ProcessStepOptions? taskOptions = staged.StepOptions;
+                if (stepOptions is null || taskOptions is null)
+                {
+                    return stepOptions ?? taskOptions;
+                }
+
+                return new ProcessStepOptions
+                {
+                    MaxExecutionTime = stepOptions.MaxExecutionTime ?? taskOptions.MaxExecutionTime,
+                    RetryStrategy = stepOptions.RetryStrategy ?? taskOptions.RetryStrategy,
+                    WaitBudget = stepOptions.WaitBudget ?? taskOptions.WaitBudget,
+                };
+            }
+
+            return serviceTask?.StepOptions;
         }
 
         if (operationId == OnTaskStartingHook.Key && taskId is not null)

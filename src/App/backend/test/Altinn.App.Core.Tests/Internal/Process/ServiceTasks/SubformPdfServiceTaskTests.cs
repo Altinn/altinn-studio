@@ -603,7 +603,6 @@ public class SubformPdfServiceTaskTests
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
             CancellationToken = cancellationToken,
-            Checkpoints = new InMemoryServiceTaskCheckpoints(),
         };
     }
 

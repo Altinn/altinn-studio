@@ -75,16 +75,15 @@ public abstract record ServiceTaskResult
     /// wait or give up early on your own terms.
     /// </para>
     /// <para>
-    /// The send-then-poll pattern — dispatch once, then defer until the outcome arrives — hinges on the
-    /// send guard being durable: record the dispatch receipt with
-    /// <c>context.Checkpoints.Set</c> <em>in the same attempt that sends</em> and branch on
-    /// <c>context.Checkpoints.Get</c> (see <see cref="IServiceTaskCheckpoints"/>). Never branch on
-    /// anything under <see cref="ServiceTaskContext.Attempt"/> or <see cref="ServiceTaskContext.Wait"/>:
-    /// the engine records an attempt only after it
-    /// answers, so an attempt that sends and crashes re-runs with all of those unchanged. Use
-    /// <see cref="ServiceTaskContext.StepId"/> as the outbound idempotency key: it covers the residual
-    /// crash window between the send and the checkpoint write, being the one value the crashed attempt
-    /// and its retry share by construction.
+    /// For the send-then-poll pattern — dispatch once, then wait until the outcome arrives — implement
+    /// <see cref="IStagedServiceTask"/> instead and give the send and the poll their own steps: the
+    /// engine's durable step ledger then guarantees the send never re-runs once it has succeeded, and
+    /// the poll is where deferral lives. Within a single <see cref="IServiceTask"/>, never branch on
+    /// anything under <see cref="ServiceTaskContext.Attempt"/> or <see cref="ServiceTaskContext.Wait"/>
+    /// to guard a side effect: the engine records an attempt only after it answers, so an attempt that
+    /// sends and crashes re-runs with all of those unchanged. Use
+    /// <see cref="ServiceTaskContext.StepId"/> as the outbound idempotency key — it is the one value a
+    /// crashed attempt and its retry share by construction.
     /// </para>
     /// </remarks>
     public static ServiceTaskDeferredResult Defer(TimeSpan delay, string? reason = null)

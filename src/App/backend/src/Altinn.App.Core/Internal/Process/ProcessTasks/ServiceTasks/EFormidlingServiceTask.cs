@@ -2,9 +2,11 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
@@ -22,6 +24,7 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
     private readonly ILogger<EFormidlingServiceTask> _logger;
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly IInstanceClient _instanceClient;
     private readonly IEFormidlingService? _eFormidlingService;
 
     /// <summary>
@@ -31,12 +34,14 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
         ILogger<EFormidlingServiceTask> logger,
         IProcessReader processReader,
         IHostEnvironment hostEnvironment,
+        IInstanceClient instanceClient,
         IEFormidlingService? eFormidlingService = null
     )
     {
         _logger = logger;
         _processReader = processReader;
         _hostEnvironment = hostEnvironment;
+        _instanceClient = instanceClient;
         _eFormidlingService = eFormidlingService;
     }
 
@@ -68,14 +73,17 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
 
         // The message id sent to eFormidling is the instance guid, so only one shipment can ever be
         // sent per instance (see docs/adr/2026-07-24-eformidling-shipment-id.md). The workflow id of
-        // the pass that sent it is recorded as a checkpoint: a matching (or absent) owner means this
+        // the pass that sent it is recorded on the instance: a matching (or absent) owner means this
         // execution is the first attempt or a retry of the same transition and may send/resume; a
         // different owner means an earlier pass through this task already sent the shipment, and
         // silently skipping (stale shipment) or re-sending (duplicate id) are both wrong - a human
-        // has to decide. The checkpoint read goes through to Storage, so even a retry of the attempt that
-        // wrote the owner sees it; only a crash between the send and the checkpoint write slips past
-        // the gate, and that case converges through the send's duplicate-create self-healing.
-        string? shipmentOwner = await context.Checkpoints.Get(EformidlingConstants.ShipmentOwnerCheckpointKey);
+        // has to decide. The state-blob instance is sufficient for this read: a foreign owner was
+        // written before that pass's transition settled, so any later pass's blob (captured at its
+        // own process/next entry) contains it.
+        // Our own claim is invisible on a retry of this step (the blob predates it), but that case
+        // converges through the send's duplicate-create self-healing instead.
+        string? shipmentOwner = null;
+        instance.DataValues?.TryGetValue(EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey, out shipmentOwner);
         if (shipmentOwner is not null && shipmentOwner != context.WorkflowId.ToString())
         {
             return ServiceTaskResult.FailedPermanent(
@@ -104,7 +112,13 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
 
         // Record ownership after the send: if this write fails the step retries, and the retry
         // resumes/no-ops the already-sent message before writing the owner again.
-        await context.Checkpoints.Set(EformidlingConstants.ShipmentOwnerCheckpointKey, context.WorkflowId.ToString());
+        await _instanceClient.UpdateDataValue(
+            instance,
+            EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
+            context.WorkflowId.ToString(),
+            StorageAuthenticationMethod.ServiceOwner(),
+            context.CancellationToken
+        );
 
         return ServiceTaskResult.Success();
     }

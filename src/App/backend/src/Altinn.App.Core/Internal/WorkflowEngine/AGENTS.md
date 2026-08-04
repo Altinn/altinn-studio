@@ -134,7 +134,7 @@ EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
 ── instance.Process.CurrentTask = Task_2 (NEW) ──
 UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
   ── SaveProcessStateToStorage (persist to Storage) ──
-EnqueueSideEffectsWorkflow → [ExecuteServiceTask if service task]
+EnqueueSideEffectsWorkflow → [ExecuteServiceTask if service task — one engine step per pipeline step if staged]
 
 Side-effects workflow (single-step independent root, IsHead=false, own commit-time state, links→Main):
 MovedToAltinnEvent
@@ -162,7 +162,7 @@ Main workflow:
 ── instance.Process.CurrentTask = Task_1 (already set by CreateInitialProcessState) ──
 UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
   ── SaveProcessStateToStorage (persist to Storage) ──
-EnqueueSideEffectsWorkflow → [ExecuteServiceTask if service task]
+EnqueueSideEffectsWorkflow → [ExecuteServiceTask if service task — one engine step per pipeline step if staged]
 
 Side-effects workflows (one single-step independent root per effect, IsHead=false, own commit-time state, links→Main):
 MovedToAltinnEvent ∥ [InstanceCreatedAltinnEvent if instantiation] ∥ [NotifyInstanceOwnerOnInstantiation if configured]
@@ -280,7 +280,8 @@ Each callback needs the app's workflow callback state (`instance` + `formData`).
 ## Command Conventions
 
 - Every command has `public static string Key => "..."` and `public string GetKey() => Key`
-- Commands return `SuccessfulProcessEngineCommandResult`, `DeferredProcessEngineCommandResult` or `FailedProcessEngineCommandResult` (never throw from Execute). `FailedProcessEngineCommandResult` distinguishes `Retryable` (→ 500, engine retries) from `Permanent`/`NonRetryable` (→ 422, engine gives up). `DeferredProcessEngineCommandResult` is neither: it returns 200 with a `defer` block, so the engine parks the workflow in `Waiting` and re-executes the step later — no error recorded, retry counter reset. Today only `ExecuteServiceTask` produces one (from `ServiceTaskResult.Defer`); the app-facing contract, the wait budget (`ProcessStepOptions.WaitBudget`) and the two clock groups a task reads to pace itself (`context.Attempt` for this execution, `context.Wait` — incl. the derived `Remaining`/`IsFinalCheck` — for the whole wait) are documented on those types. For send-then-poll tasks: the send guard is a **checkpoint** (`context.Checkpoints.Set`/`Get` — instance data values keyed `serviceTask:{Type}:{key}`, written to Storage immediately and read through to Storage, so a crashed attempt's evidence survives to its retry), never anything under `Attempt`/`Wait`; `StepId` is the outbound idempotency key covering the send→checkpoint crash window (see the `Defer` xmldocs)
+- Commands return `SuccessfulProcessEngineCommandResult`, `DeferredProcessEngineCommandResult` or `FailedProcessEngineCommandResult` (never throw from Execute). `FailedProcessEngineCommandResult` distinguishes `Retryable` (→ 500, engine retries) from `Permanent`/`NonRetryable` (→ 422, engine gives up). `DeferredProcessEngineCommandResult` is neither: it returns 200 with a `defer` block, so the engine parks the workflow in `Waiting` and re-executes the step later — no error recorded, retry counter reset. Today only `ExecuteServiceTask` produces one (from `ServiceTaskResult.Defer`); the app-facing contract, the wait budget (`ProcessStepOptions.WaitBudget`) and the two clock groups a task reads to pace itself (`context.Attempt` for this execution, `context.Wait` — incl. the derived `Remaining`/`IsFinalCheck` — for the whole wait) are documented on those types. For send-then-poll (or any multi-phase) tasks: implement `IStagedServiceTask` and give each phase its own pipeline step — the engine's step ledger is the durable send guard (a completed step never re-runs; a retry or resume re-enters at the failed step), never anything under `Attempt`/`Wait`; `StepId` (per pipeline step) is the outbound idempotency key covering the in-attempt crash window (see the `Defer` xmldocs)
+- **Staged service tasks** (`IStagedServiceTask`, sibling of `IServiceTask` under the root `IServiceTaskBase`): the factory expands the pipeline to one `ExecuteServiceTask` engine step per pipeline step at enqueue time (payload carries the step name; OperationId is `ExecuteServiceTask · {stepName}`), fixing the pipeline's shape for the workflow's lifetime — step names are therefore a compatibility surface for in-flight workflows (default = class name; pin via `Name` when renaming). Step outputs travel as the `serviceTaskBaton` field of the callback state blob: a completed non-final step's output is captured into the state the engine hands the next step, a deferring step's incoming baton is preserved for its re-run, and the final step clears it. `ServiceTaskRegistrationValidator` fails startup on invalid registrations (root-registered tasks, dual-kind classes) and invalid pipeline shapes (missing entry/final step, duplicate/empty names, mismatched handoff types)
 - Commands get instance data through `context.InstanceDataMutator` (an `InstanceDataUnitOfWork`)
 - Commands pass `context.CancellationToken` into app-facing contexts (`ProcessTaskContext`, hook contexts, and `ServiceTaskContext`)
 - The callback controller saves data changes after successful execution - commands don't need to persist data themselves (except `SaveProcessStateToStorage`, which writes to the process/events API)

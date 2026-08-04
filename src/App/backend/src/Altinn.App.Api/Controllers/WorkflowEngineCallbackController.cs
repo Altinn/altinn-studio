@@ -99,10 +99,10 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        InstanceDataUnitOfWork instanceDataUnitOfWork;
+        RestoredWorkflowState restoredState;
         try
         {
-            instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
+            restoredState = await _workflowCallbackStateService.RestoreState(
                 instanceId,
                 payload.State,
                 payload.Actor.Language
@@ -124,6 +124,8 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
+        InstanceDataUnitOfWork instanceDataUnitOfWork = restoredState.UnitOfWork;
+
         // Set the lock token from the workflow engine payload so all Storage clients include it. Done after the
         // state blob has been validated against the route instance, so the token is only applied once we know
         // the callback targets the expected instance.
@@ -140,6 +142,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 InstanceDataMutator = instanceDataUnitOfWork,
                 CancellationToken = ct,
                 Payload = payload,
+                ServiceTaskBaton = restoredState.ServiceTaskBaton,
             }
         );
 
@@ -170,8 +173,13 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.UpdateInstanceData(changes);
                 await instanceDataUnitOfWork.SaveChanges(changes);
 
-                // Capture updated state (includes Storage-assigned IDs for newly created data elements)
-                string updatedState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
+                // Capture updated state (includes Storage-assigned IDs for newly created data elements).
+                // The service-task baton is whatever the command produced: a completed non-final pipeline
+                // step hands its output to the next step here; every other success clears the baton.
+                string updatedState = await _workflowCallbackStateService.CaptureState(
+                    instanceDataUnitOfWork,
+                    success.ServiceTaskBaton
+                );
 
                 // If the command signals auto-advance, enqueue a dependent process-next workflow.
                 // This happens AFTER save so the state blob includes Storage-assigned IDs.
@@ -221,7 +229,12 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.UpdateInstanceData(deferredChanges);
                 await instanceDataUnitOfWork.SaveChanges(deferredChanges);
 
-                string deferredState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
+                // A deferred step re-runs with the state it received, so the incoming baton (the
+                // deferring step's own input) is carried forward unchanged for the re-run to consume.
+                string deferredState = await _workflowCallbackStateService.CaptureState(
+                    instanceDataUnitOfWork,
+                    restoredState.ServiceTaskBaton
+                );
 
                 // The resolved command's own key rather than the route string it matched: same value,
                 // but provably from the registered set, so nothing route-derived reaches the log.
