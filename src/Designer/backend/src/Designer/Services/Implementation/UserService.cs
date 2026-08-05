@@ -22,22 +22,26 @@ public class UserService : IUserService
 
     public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext)
     {
+        if (IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org))
+        {
+            return new UserOrgPermission { CanCreateOrgRepo = true, IsOrgOwner = false };
+        }
+
         List<Team> teams = await _giteaClient.GetTeams();
-        bool canCreateOrgRepo =
-            IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org)
-            || teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
+        bool canCreateOrgRepo = teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
         bool isOrgOwner = teams.Any(team => IsOwnerTeamForOrg(team, altinnOrgEditingContext.Org));
         return new UserOrgPermission { CanCreateOrgRepo = canCreateOrgRepo, IsOrgOwner = isOrgOwner };
     }
 
-    private bool IsUserSelfOrg(string developerName, string org)
+    private static bool IsUserSelfOrg(string developerName, string org)
     {
-        return developerName == org;
+        return string.Equals(developerName, org, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)
     {
-        return team?.CanCreateOrgRepo == true && team.Organization?.Username == org;
+        return team?.CanCreateOrgRepo == true
+            && string.Equals(team.Organization?.Username, org, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsOwnerTeamForOrg(Team team, string org)

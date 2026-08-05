@@ -105,7 +105,9 @@ public class GiteaClient(
     {
         RepositoryClient.Model.Repository repository = new();
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-        string urlEnd = developer == org ? "user/repos" : $"org/{org}/repos";
+        string urlEnd = string.Equals(developer, org, StringComparison.OrdinalIgnoreCase)
+            ? "user/repos"
+            : $"org/{org}/repos";
         HttpResponseMessage response = await httpClient.PostAsJsonAsync(urlEnd, options);
 
         if (response.StatusCode == HttpStatusCode.Created)
