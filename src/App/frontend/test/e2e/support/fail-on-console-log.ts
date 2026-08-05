@@ -3,8 +3,8 @@ export const ignoredConsoleMessages = [
   /** @see window.CypressLog */
   /^CypressLog:/,
 
-  // Webpack stuff
-  /^\[webpack-dev-server]/,
+  // Vite dev server/client messages ("[vite] connecting...", "[vite] hot updated: ...", etc.)
+  /^\[vite]/,
 
   // This ia a bug we should fix, but it's not critical.
   /^FormProvider re-rendered/,

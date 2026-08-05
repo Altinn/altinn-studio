@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const webpackPreprocessor = require('@cypress/webpack-preprocessor');
 const { defineConfig } = require('cypress');
+const { vitePreprocessor } = require('cypress-vite');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { existsSync } = require('node:fs');
@@ -15,7 +15,7 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       const snapshotsPath = path.resolve('snapshots.json');
       require('cypress-terminal-report/src/installLogsPrinter')(on, { printLogsToConsole: 'always' });
-      on('file:preprocessor', webpackPreprocessor({ webpackOptions: getCypressWebpackOptions() }));
+      on('file:preprocessor', vitePreprocessor(path.resolve(__dirname, 'vite.config.cypress.ts')));
 
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.name === 'electron') {
@@ -97,6 +97,14 @@ Valid environments are:
     specPattern: ['test/e2e/integration/', 'test/e2e/manual/'],
     supportFile: 'test/e2e/support/index.ts',
   },
+  // cypress-axe locates axe-core with `require.resolve`, which throws "require is not defined" in a
+  // browser bundle (webpack provided a bare `require` inside bundled modules, Rolldown does not),
+  // and its fallback path assumes axe-core sits in this project's node_modules - in this monorepo
+  // Yarn hoists it to the repo root. Resolve it here in the Node process instead and hand it to
+  // `cy.injectAxe` (see the command override in test/e2e/support/custom.ts).
+  expose: {
+    axeCorePath: require.resolve('axe-core/axe.min.js'),
+  },
   fixturesFolder: 'test/e2e/fixtures',
   downloadsFolder: 'test/downloads',
   screenshotOnRunFailure: true,
@@ -122,26 +130,4 @@ Valid environments are:
 async function getConfigurationByFile(file) {
   const pathToJsonDataFile = path.resolve('test/e2e/config', `${file}.json`);
   return JSON.parse((await fs.readFile(pathToJsonDataFile)).toString());
-}
-
-function getCypressWebpackOptions() {
-  return {
-    mode: 'development',
-    resolve: {
-      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-      modules: [__dirname, 'node_modules'],
-    },
-    module: {
-      rules: [
-        {
-          test: /\.[mc]?[jt]sx?$/i,
-          exclude: /node_modules/,
-          loader: 'esbuild-loader',
-          options: {
-            target: 'es2020',
-          },
-        },
-      ],
-    },
-  };
 }
