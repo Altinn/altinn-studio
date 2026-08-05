@@ -48,7 +48,6 @@ src/AI/mcp/**/requirements.txt                                            @Erlin
 src/AI/mcp/**/uv.lock                                                     @ErlingHauan
 
 # Squad Kjøring
-.github/scripts/resolve-release-trigger.mjs                               @altinn/team-altinn-studio-kjoring
 .github/workflows/cli-build-test.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/construct-environments-script-test.yaml                 @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                               @altinn/team-altinn-studio-kjoring
@@ -141,6 +140,7 @@ src/test/K6/**/yarn.lock                                                  @altin
 src/tools/health/**/go.mod                                                @altinn/team-altinn-studio-kjoring
 src/tools/health/**/go.sum                                                @altinn/team-altinn-studio-kjoring
 src/tools/releaser/**/go.mod                                              @altinn/team-altinn-studio-kjoring
+src/tools/releaser/internal/release_trigger.go                            @altinn/team-altinn-studio-kjoring
 
 # Squad Flyt
 .github/workflows/deploy-runtime-workflow-engine-app.yaml                 @altinn/team-altinn-studio-flyt

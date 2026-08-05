@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -44,6 +45,8 @@ func main() {
 		err = runValidateChangelogs(os.Args[2:])
 	case "resolve-version":
 		err = runResolveVersion(os.Args[2:])
+	case "resolve-trigger":
+		err = runResolveTrigger(os.Args[2:])
 	case "help", "-h", "--help":
 		printUsage()
 		return
@@ -71,6 +74,7 @@ Commands:
   validate-changelog  Validate a component changelog was modified and release-ready
   validate-changelogs Validate the structure of every changed CHANGELOG.md (any project)
   resolve-version     Print the release version resolved from a component changelog
+  resolve-trigger     Resolve whether a trusted repository event should release a component
 
 Notes:
   - workflow resolves the release version from CHANGELOG.md using -base-branch
@@ -180,6 +184,49 @@ Options:
 		return fmt.Errorf("resolve version: %w", err)
 	}
 	fmt.Println(version)
+	return nil
+}
+
+func runResolveTrigger(args []string) error {
+	fs := flag.NewFlagSet("resolve-trigger", flag.ExitOnError)
+	eventName := fs.String("event-name", "", "GitHub event name (push or workflow_dispatch)")
+	refName := fs.String("ref-name", "", "Git ref name")
+	refType := fs.String("ref-type", "", "Git ref type")
+	sha := fs.String("sha", "", "Commit SHA for the event")
+	beforeSHA := fs.String("before-sha", "", "Commit before a push event")
+	selectedComponent := fs.String("selected-component", "", "Component selected for manual recovery")
+	fs.Usage = func() {
+		fmt.Print(`Usage: releaser resolve-trigger [options]
+
+Resolves a trusted canonical repository event into a component release context.
+Push events are matched to their merged release PR and validated against the
+registered component's label, branch policy, and changelog. Manual dispatches
+validate the selected component and branch for recovery.
+
+The result is emitted as JSON for CI orchestration.
+
+Options:
+`)
+		fs.PrintDefaults()
+	}
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("parse flags: %w", err)
+	}
+
+	result, err := internal.ResolveReleaseTrigger(context.Background(), internal.ReleaseTriggerRequest{
+		EventName:         *eventName,
+		RefName:           *refName,
+		RefType:           *refType,
+		SHA:               *sha,
+		BeforeSHA:         *beforeSHA,
+		SelectedComponent: *selectedComponent,
+	})
+	if err != nil {
+		return fmt.Errorf("resolve trigger: %w", err)
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(result); err != nil {
+		return fmt.Errorf("encode trigger result: %w", err)
+	}
 	return nil
 }
 
