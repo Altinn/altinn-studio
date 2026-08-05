@@ -46,7 +46,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
     - name: Generate CodeQL config
       id: codeql-config
@@ -55,7 +55,7 @@ jobs:
         language: ${{ matrix.language }}
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3
+      uses: github/codeql-action/init@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
       with:
         languages: ${{ matrix.language }}
         build-mode: manual
@@ -63,7 +63,7 @@ jobs:
         config-file: ${{ steps.codeql-config.outputs.config-file }}
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
+      uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
       with:
         global-json-file: src/App/codelists/global.json
 
@@ -71,6 +71,6 @@ jobs:
       run: dotnet build solutions/Src.slnx -v m
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3
+      uses: github/codeql-action/analyze@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
       with:
         category: "/codeql/app/codelists/${{ matrix.language }}"
