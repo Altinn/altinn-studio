@@ -1,4 +1,4 @@
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -12,12 +12,14 @@ import type { AxiosError } from 'axios';
  *
  * @param org the organisation of the user
  * @param app the app the user is in
+ * @param meta the query meta data
  *
  * @returns UseQueryResult with an object of Policy
  */
 export const useAppMetadataQuery = (
   org: string,
   app: string,
+  meta?: QueryMeta,
 ): UseQueryResult<ApplicationMetadata, AxiosError> => {
   const { getAppMetadata } = useServicesContext();
   const repoType = getRepositoryType(org, app);
@@ -26,5 +28,6 @@ export const useAppMetadataQuery = (
     queryKey: [QueryKey.AppMetadata, org, app],
     queryFn: () => getAppMetadata(org, app),
     enabled: repoType !== RepositoryType.DataModels,
+    meta,
   });
 };
