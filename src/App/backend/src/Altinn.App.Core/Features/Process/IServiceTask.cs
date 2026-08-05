@@ -33,7 +33,7 @@ public interface IServiceTask : IPipelineServiceTask
             + nameof(IServiceTask)
             + ", "
             + nameof(Execute)
-            + " would never run."
+            + " would never run"
     )]
     ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder task) => task.Finally(Execute);
 }

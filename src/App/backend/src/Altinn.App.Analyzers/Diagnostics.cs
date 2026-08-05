@@ -42,7 +42,7 @@ public static class Diagnostics
             "ALTINNAPP0700",
             Category.Contracts,
             "Sealed default implementation replaced",
-            "'{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}"
+            "'{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}."
         );
     }
 

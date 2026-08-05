@@ -8,9 +8,8 @@
 
 A1: The eFormidling message/shipment id remains the instance guid. Idempotency is achieved around
 the fixed id: duplicate-create self-healing in `DefaultEFormidlingService`, plus a
-shipment-ownership claim gating `EFormidlingServiceTask` — a service-task checkpoint stored as the
-`serviceTask:eFormidling:shipmentWorkflowId` instance data value (originally the unprefixed
-`eFormidlingShipmentWorkflowId`, before the checkpoint API existed).
+shipment-ownership claim (`eFormidlingShipmentWorkflowId` instance data value) gating
+`EFormidlingServiceTask`.
 
 ## Problem context
 
