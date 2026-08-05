@@ -48,6 +48,7 @@ src/AI/mcp/**/requirements.txt                                            @Erlin
 src/AI/mcp/**/uv.lock                                                     @ErlingHauan
 
 # Squad Kjøring
+.github/scripts/resolve-release-trigger.mjs                               @altinn/team-altinn-studio-kjoring
 .github/workflows/cli-build-test.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/construct-environments-script-test.yaml                 @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                               @altinn/team-altinn-studio-kjoring
@@ -71,7 +72,7 @@ src/AI/mcp/**/uv.lock                                                     @Erlin
 .github/workflows/deployer-check.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-check-texts-file.yml                              @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-runner-test.yml                                   @altinn/team-altinn-studio-kjoring
-.github/workflows/release-studioctl.yaml                                  @altinn/team-altinn-studio-kjoring
+.github/workflows/release-components.yaml                                 @altinn/team-altinn-studio-kjoring
 .github/workflows/releaser-build-test.yml                                 @altinn/team-altinn-studio-kjoring
 .github/workflows/repositories-scan.yml                                   @altinn/team-altinn-studio-kjoring
 .github/workflows/runtime-devenv-build.yml                                @altinn/team-altinn-studio-kjoring

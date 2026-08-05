@@ -1,0 +1,338 @@
+name: Release - components
+
+# Release from trusted canonical branch updates after a release preparation PR merges.
+# Manual dispatch is retained for recovery and must target the component's canonical branch.
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/app/v*'
+      - 'release/studioctl/v*'
+    paths:
+      - 'src/App/backend/CHANGELOG.md'
+      - 'src/cli/CHANGELOG.md'
+  workflow_dispatch:
+    inputs:
+      component:
+        description: Component to release
+        required: true
+        type: choice
+        options:
+          - app
+          - studioctl
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: release-components-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  resolve-trigger:
+    name: Resolve release trigger
+    runs-on: ubuntu-latest
+    outputs:
+      component: ${{ steps.resolve.outputs.component }}
+      base-branch: ${{ steps.resolve.outputs.base-branch }}
+      merge-sha: ${{ steps.resolve.outputs.merge-sha }}
+      pull-request-number: ${{ steps.resolve.outputs.pull-request-number }}
+    steps:
+      - name: Checkout release resolver
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Resolve component
+        id: resolve
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          MERGE_SHA: ${{ github.sha }}
+          SELECTED_COMPONENT: ${{ inputs.component || '' }}
+        with:
+          script: |
+            const { pathToFileURL } = await import("node:url");
+            const resolverUrl = pathToFileURL(
+              `${process.env.GITHUB_WORKSPACE}/.github/scripts/resolve-release-trigger.mjs`
+            );
+            const { resolveReleaseTrigger } = await import(resolverUrl.href);
+
+            let pullRequests = [];
+            if (process.env.EVENT_NAME === "push") {
+              pullRequests = await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: process.env.MERGE_SHA,
+                  per_page: 100,
+                }
+              );
+
+              for (const pullRequest of pullRequests) {
+                const files = await github.paginate(github.rest.pulls.listFiles, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pullRequest.number,
+                  per_page: 100,
+                });
+                pullRequest.changedFiles = files.map(({ filename }) => filename);
+              }
+            }
+
+            const result = resolveReleaseTrigger({
+              eventName: process.env.EVENT_NAME,
+              refName: process.env.REF_NAME,
+              refType: process.env.REF_TYPE,
+              sha: process.env.MERGE_SHA,
+              selectedComponent: process.env.SELECTED_COMPONENT,
+              pullRequests,
+            });
+
+            core.setOutput("component", result.component);
+            core.setOutput("base-branch", result.baseBranch);
+            core.setOutput("merge-sha", result.mergeSha);
+            core.setOutput("pull-request-number", result.pullRequestNumber);
+
+            if (result.component === "") {
+              core.notice("No release-labelled pull request is associated with this push.");
+            } else {
+              core.notice(`Resolved ${result.component} release from ${result.baseBranch}.`);
+            }
+
+  resolve-app-context:
+    name: Resolve app release context
+    if: needs.resolve-trigger.outputs.component == 'app'
+    needs: resolve-trigger
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.context.outputs.environment }}
+      version: ${{ steps.context.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ needs.resolve-trigger.outputs.merge-sha }}
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Resolve environment
+        id: context
+        env:
+          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+        run: |
+          version="$(go run . resolve-version --component app --base-branch "$BASE_BRANCH")"
+
+          environment="prod"
+          if [[ "$version" == *"-preview."* ]]; then
+            environment="dev"
+          elif [[ "$version" == *"-rc."* ]]; then
+            environment="staging"
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "environment=$environment" >> "$GITHUB_OUTPUT"
+        working-directory: src/tools/releaser
+
+  release-app:
+    name: Build, release and publish app
+    if: needs.resolve-trigger.outputs.component == 'app'
+    needs:
+      - resolve-trigger
+      - resolve-app-context
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    environment: ${{ needs.resolve-app-context.outputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ needs.resolve-trigger.outputs.merge-sha }}
+          persist-credentials: false
+
+      - name: Checkout base branch
+        env:
+          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+          MERGE_SHA: ${{ needs.resolve-trigger.outputs.merge-sha }}
+        run: |
+          git fetch origin "$BASE_BRANCH"
+          if ! git merge-base --is-ancestor "$MERGE_SHA" FETCH_HEAD; then
+            echo "Release commit $MERGE_SHA is not on origin/$BASE_BRANCH" >&2
+            exit 1
+          fi
+          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/App/backend/global.json
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+        run: go run . workflow --component app --base-branch "$BASE_BRANCH"
+        working-directory: src/tools/releaser
+
+      - name: NuGet login
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_TRUSTED_PUBLISHING_USER }}
+
+      - name: Publish packages to NuGet
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: |
+          shopt -s nullglob
+          packages=(build/release/*.nupkg build/release/*.snupkg)
+
+          if (( ${#packages[@]} == 0 )); then
+            echo "No NuGet packages found in build/release" >&2
+            exit 1
+          fi
+
+          for package in "${packages[@]}"; do
+            dotnet nuget push "$package" \
+              --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
+
+      - name: Summary
+        if: always()
+        env:
+          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+          PR_NUMBER: ${{ needs.resolve-trigger.outputs.pull-request-number }}
+          RELEASE_VERSION: ${{ needs.resolve-app-context.outputs.version }}
+        run: |
+          {
+            echo "## Release Summary"
+            echo ""
+            if [[ -n "${PR_NUMBER}" ]]; then
+              echo "- **PR**: #${PR_NUMBER}"
+            fi
+            echo "- **Base branch**: ${BASE_BRANCH}"
+            echo "- **Version**: ${RELEASE_VERSION}"
+            echo "- **Environment**: ${{ needs.resolve-app-context.outputs.environment }}"
+            echo "- **Version source**: latest released section in src/App/backend/CHANGELOG.md"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -d "build/release" ]]; then
+            {
+              echo "### NuGet packages"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            ls -la build/release/ >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No packages found" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  release-studioctl:
+    name: Build and release studioctl
+    if: needs.resolve-trigger.outputs.component == 'studioctl'
+    needs: resolve-trigger
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ needs.resolve-trigger.outputs.merge-sha }}
+
+      - name: Checkout base branch
+        env:
+          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+          MERGE_SHA: ${{ needs.resolve-trigger.outputs.merge-sha }}
+        run: |
+          git fetch origin "$BASE_BRANCH"
+          if ! git merge-base --is-ancestor "$MERGE_SHA" FETCH_HEAD; then
+            echo "Release commit $MERGE_SHA is not on origin/$BASE_BRANCH" >&2
+            exit 1
+          fi
+          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/cli/global.json
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+        run: go run . workflow --component studioctl --base-branch "$BASE_BRANCH"
+        working-directory: src/tools/releaser
+
+      - name: Summary
+        if: always()
+        env:
+          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+          PR_NUMBER: ${{ needs.resolve-trigger.outputs.pull-request-number }}
+        run: |
+          {
+            echo "## Release Summary"
+            echo ""
+            if [[ -n "${PR_NUMBER}" ]]; then
+              echo "- **PR**: #${PR_NUMBER}"
+            fi
+            echo "- **Base branch**: ${BASE_BRANCH}"
+            echo "- **Version source**: latest released section in src/cli/CHANGELOG.md"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -d "build/release" ]]; then
+            {
+              echo "### Assets"
+              echo '```'
+              ls -la build/release/ 2>/dev/null || echo "No assets found"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
