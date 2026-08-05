@@ -8,25 +8,28 @@ namespace Altinn.Studio.Cli.Upgrade;
 internal static class GitOperations
 {
     /// <summary>
-    /// Whether the repository containing <paramref name="path"/> has local changes — staged, unstaged or
-    /// untracked. Failures are reported to <paramref name="output"/> and treated as no local changes, so a
-    /// repository we cannot read never blocks the caller.
+    /// Whether the working tree of the repository containing <paramref name="path"/> is confirmed clean — no
+    /// staged, unstaged or untracked changes. A path deliberately outside git counts as clean. Anything we
+    /// cannot confirm is not clean: local changes leave <paramref name="error"/> <c>null</c>, while a
+    /// repository we cannot read reports the git failure in <paramref name="error"/>.
     /// </summary>
-    public static bool HasLocalChanges(string path, TextWriter output)
+    public static bool IsWorkingTreeClean(string path, out string? error)
     {
+        error = null;
+
         try
         {
             using var repo = TryOpenRepository(path);
             if (repo is null)
             {
-                return false;
+                return true;
             }
 
-            return repo.RetrieveStatus().IsDirty;
+            return !repo.RetrieveStatus().IsDirty;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            output.WriteLine($"Warning: Failed to check for local git changes: {ex.Message}");
+            error = ex.Message;
             return false;
         }
     }
