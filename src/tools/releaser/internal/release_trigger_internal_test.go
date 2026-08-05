@@ -313,3 +313,23 @@ func TestValidateReleaseTriggerFiles(t *testing.T) {
 		})
 	}
 }
+
+func TestReleaseTriggerFilePaths(t *testing.T) {
+	t.Parallel()
+
+	paths, err := releaseTriggerFilePaths([]releaseTriggerPullRequestFile{{
+		Filename:         "src/App/renamed/CHANGELOG.md",
+		PreviousFilename: "src/App/backend/CHANGELOG.md",
+	}})
+	if err != nil {
+		t.Fatalf("releaseTriggerFilePaths() error = %v", err)
+	}
+	if len(paths) != 2 || paths[0] != "src/App/renamed/CHANGELOG.md" || paths[1] != "src/App/backend/CHANGELOG.md" {
+		t.Fatalf("releaseTriggerFilePaths() = %v", paths)
+	}
+
+	files := make([]releaseTriggerPullRequestFile, maxGitHubPullRequestFiles)
+	if _, err := releaseTriggerFilePaths(files); !errors.Is(err, errReleaseTriggerFilesIncomplete) {
+		t.Fatalf("releaseTriggerFilePaths() error = %v, want %v", err, errReleaseTriggerFilesIncomplete)
+	}
+}

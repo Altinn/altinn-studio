@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const maxGitHubPullRequestFiles = 3000
+
 var (
 	errReleaseTriggerEvent             = errors.New("unsupported release trigger event")
 	errReleaseTriggerBranchRequired    = errors.New("release trigger must run from a branch")
@@ -26,6 +28,7 @@ var (
 	errReleaseTriggerMultipleChangelogs = errors.New(
 		"release pull request changes changelogs for multiple registered components",
 	)
+	errReleaseTriggerFilesIncomplete = errors.New("release pull request file list may be truncated")
 )
 
 // ReleaseTriggerRequest describes a canonical repository event that may start a release.
@@ -62,7 +65,8 @@ type releaseTriggerPullRequestLabel struct {
 }
 
 type releaseTriggerPullRequestFile struct {
-	Filename string `json:"filename"`
+	Filename         string `json:"filename"`
+	PreviousFilename string `json:"previous_filename"` //nolint:tagliatelle // GitHub API field name.
 }
 
 type releaseTriggerPullRequestReader interface {
@@ -278,9 +282,20 @@ func (g *GitHubCLI) pullRequestFiles(ctx context.Context, number int) ([]string,
 	if err != nil {
 		return nil, fmt.Errorf("decode release pull request files: %w", err)
 	}
-	paths := make([]string, 0, len(files))
+	return releaseTriggerFilePaths(files)
+}
+
+func releaseTriggerFilePaths(files []releaseTriggerPullRequestFile) ([]string, error) {
+	if len(files) >= maxGitHubPullRequestFiles {
+		return nil, fmt.Errorf("%w: received %d files", errReleaseTriggerFilesIncomplete, len(files))
+	}
+
+	paths := make([]string, 0, len(files)*2)
 	for _, file := range files {
 		paths = append(paths, file.Filename)
+		if file.PreviousFilename != "" {
+			paths = append(paths, file.PreviousFilename)
+		}
 	}
 	return paths, nil
 }
