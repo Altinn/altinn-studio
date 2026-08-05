@@ -5,6 +5,9 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - "src/tools/releaser/**"
+      - ".github/scripts/resolve-release-trigger.mjs"
+      - ".github/scripts/resolve-release-trigger.test.mjs"
+      - ".github/workflows/release-components.yaml"
       - ".github/workflows/releaser-build-test.yml"
       - "!**/AGENTS.md"
       - "!**/CLAUDE.md"
@@ -33,6 +36,14 @@ jobs:
         with:
           go-version-file: src/tools/releaser/go.mod
           cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+
+      - name: Test release trigger resolution
+        run: node --test ../../.github/scripts/resolve-release-trigger.test.mjs
 
       - name: Build
         run: make build

@@ -37,7 +37,7 @@ make test      # 6. Unit tests
   changelog is validated separately (`.github/workflows/changelog.yml`).
 - Releases are changelog-promotion PRs: move `[Unreleased]` into a new `## [<version>] - <date>`
   section and label the PR `release/studioctl`; merging it triggers
-  `.github/workflows/release-studioctl.yaml`. Use `src/tools/releaser`
+  `.github/workflows/release-components.yaml`. Use `src/tools/releaser`
   (`go run . prepare -component studioctl -version vX.Y.Z-preview.N`) or promote manually,
   and validate with `go run . validate-changelog` / `resolve-version`.
 
