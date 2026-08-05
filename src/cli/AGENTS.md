@@ -58,7 +58,7 @@ see @README.md for the full contributor walkthrough.
 - **Locally served frontend** — `studioctl run --dev-frontend` (also `app run` / `app env`).
   Sets `AppSettings__AppFrontendAssetBaseUrl` (see `internal/cmd/app/env.go`) to the
   `frontendDevServer` component URL, host-bridged to host port `8080` where
-  `src/App/frontend`'s webpack dev server (`yarn start`) listens. The
+  `src/App/frontend`'s Vite dev server (`yarn start`) listens. The
   `app-frontend.local.altinn.cloud` host must resolve — `studioctl env hosts add` writes it;
   `env up` does not touch the hosts file.
 - The topology/host wiring for both lives in `internal/envtopology/` (`topology.yaml`,
