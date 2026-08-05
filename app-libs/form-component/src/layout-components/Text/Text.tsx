@@ -1,4 +1,5 @@
 import { DisplayText } from '@app/form-component/app-components/DisplayText';
+import { Flex } from '@app/form-component/app-components/Flex';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import { Description } from '@app/form-component/layout-components/common/Description';
@@ -20,6 +21,7 @@ export interface TextProps {
   help?: string;
   icon?: string;
   direction?: TextDirection;
+  labelGrid?: IGridStyling;
   innerGrid?: IGridStyling;
 }
 
@@ -31,6 +33,7 @@ export function Text({
   help,
   icon,
   direction = 'horizontal',
+  labelGrid,
   innerGrid,
 }: TextProps) {
   const { lang, langAsString } = useTranslation();
@@ -50,15 +53,17 @@ export function Text({
         direction === 'vertical' ? classes.vertical : classes.horizontal,
       )}
     >
-      <span className={classes.labelWrapper}>
-        <span className={classes.labelRow}>
-          <DsLabel asChild>
-            <span>{lang(title)}</span>
-          </DsLabel>
-          {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
+      <Flex item size={labelGrid ?? { xs: 12 }}>
+        <span className={classes.labelWrapper}>
+          <span className={classes.labelRow}>
+            <DsLabel asChild>
+              <span>{lang(title)}</span>
+            </DsLabel>
+            {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
+          </span>
+          {description && <Description componentId={componentId} description={lang(description)} />}
         </span>
-        {description && <Description componentId={componentId} description={lang(description)} />}
-      </span>
+      </Flex>
       <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
         <DisplayText
           value={value}
