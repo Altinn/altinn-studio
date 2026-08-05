@@ -22,7 +22,7 @@ public class UserService : IUserService
 
     public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext)
     {
-        if (IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org))
+        if (altinnOrgEditingContext.IsPersonalProfile)
         {
             return new UserOrgPermission { CanCreateOrgRepo = true, IsOrgOwner = false };
         }
@@ -31,11 +31,6 @@ public class UserService : IUserService
         bool canCreateOrgRepo = teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
         bool isOrgOwner = teams.Any(team => IsOwnerTeamForOrg(team, altinnOrgEditingContext.Org));
         return new UserOrgPermission { CanCreateOrgRepo = canCreateOrgRepo, IsOrgOwner = isOrgOwner };
-    }
-
-    private static bool IsUserSelfOrg(string developerName, string org)
-    {
-        return string.Equals(developerName, org, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)
