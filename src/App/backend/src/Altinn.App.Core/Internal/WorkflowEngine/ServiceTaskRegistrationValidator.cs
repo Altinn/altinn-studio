@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.App.Core.Features.Process;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,16 +7,19 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates every registered service task's declared steps, once at startup. Anything caught here
-/// — a throwing <c>Steps</c> property, a duplicate or empty step name, invalid per-step options —
-/// would otherwise surface only when a citizen first advances the affected task, as a failed
-/// transition in production. Validating at boot turns that into a fast, unmissable startup failure.
+/// Validates every registered service task's pipeline, once at startup. Anything caught here — a
+/// <c>Define</c> that throws (the builder rejects duplicate/empty stage names and invalid
+/// per-stage options eagerly), returns null, or is replaced on an <c>IServiceTask</c> where the
+/// forwarding default is the contract — would otherwise surface only when a citizen first
+/// advances the affected task, as a failed transition in production. Validating at boot turns
+/// that into a fast, unmissable startup failure.
 /// </summary>
 /// <remarks>
 /// Mirrors <see cref="WorkflowStepOptionsValidator"/>: handlers are resolved in a fresh DI scope,
 /// and a handler whose constructor cannot run at startup is skipped with a warning rather than
 /// failing the app — the executor's own guards remain as the backstop. Only an actual contract
-/// violation fails startup.
+/// violation fails startup. The sealed-<c>Define</c> check is itself a backstop: the
+/// <c>Altinn.App.Analyzers</c> package reports the same violation at compile time.
 /// </remarks>
 internal sealed class ServiceTaskRegistrationValidator : IHostedService
 {
@@ -38,9 +42,15 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
         var errors = new List<string>();
 
-        foreach (IServiceTask task in Resolve<IServiceTask>(sp))
+        foreach (IPipelineServiceTask task in Resolve<IServiceTask>(sp))
         {
-            ValidateSteps(task, errors);
+            ValidateSealedDefine(task, errors);
+            ValidatePipeline(task, errors);
+        }
+
+        foreach (IPipelineServiceTask task in Resolve<IPipelineServiceTask>(sp))
+        {
+            ValidatePipeline(task, errors);
         }
 
         if (errors.Count > 0)
@@ -57,56 +67,47 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private static void ValidateSteps(IServiceTask task, List<string> errors)
+    private static void ValidatePipeline(IPipelineServiceTask task, List<string> errors)
     {
         string taskName = task.GetType().FullName ?? task.GetType().Name;
 
-        List<IServiceTaskStep> steps;
         try
         {
-            // Materializes Steps — a throwing property lands here.
-            steps = task.GetSteps().ToList();
+            // Runs Define — a throwing or null-returning implementation lands here, as do the
+            // builder's own eager rejections (duplicate/empty stage names, invalid options).
+            _ = task.ResolvePipeline();
         }
         catch (Exception ex)
         {
-            errors.Add($"  - {taskName}: reading {nameof(IServiceTask.Steps)} threw: {ex.Message}");
-            return;
+            errors.Add($"  - {taskName}: defining the pipeline failed: {ex.Message}");
         }
+    }
 
-        var names = new HashSet<string>(StringComparer.Ordinal);
-        for (int i = 0; i < steps.Count; i++)
+    /// <summary>
+    /// An <see cref="IServiceTask"/> must keep the forwarding default of
+    /// <see cref="IPipelineServiceTask.Define"/> (<c>Finally(Execute)</c>) — a class providing its
+    /// own would silently turn its <c>Execute</c> into dead code. Backstop for the compile-time
+    /// analyzer diagnostic.
+    /// </summary>
+    private static void ValidateSealedDefine(IPipelineServiceTask task, List<string> errors)
+    {
+        Type taskType = task.GetType();
+        InterfaceMapping map = taskType.GetInterfaceMap(typeof(IPipelineServiceTask));
+        for (int i = 0; i < map.InterfaceMethods.Length; i++)
         {
-            IServiceTaskStep step = steps[i];
-            if (step is null)
-            {
-                errors.Add($"  - {taskName}: step {i} is null.");
+            if (map.InterfaceMethods[i].Name != nameof(IPipelineServiceTask.Define))
                 continue;
-            }
 
-            string stepName = step.Name;
-
-            if (string.IsNullOrWhiteSpace(stepName))
-            {
-                errors.Add($"  - {taskName}: step {i} ({step.GetType().FullName}) has an empty name.");
-            }
-            else if (!names.Add(stepName))
+            // The forwarding default lives on the IServiceTask interface; any non-interface
+            // target means the class re-implemented Define.
+            if (map.TargetMethods[i].DeclaringType is { IsInterface: false })
             {
                 errors.Add(
-                    $"  - {taskName}: duplicate step name '{stepName}'. Names are the steps' identity and must be "
-                        + "unique within the task."
+                    $"  - {taskType.FullName}: implements {nameof(IServiceTask)} but replaces "
+                        + $"{nameof(IPipelineServiceTask)}.{nameof(IPipelineServiceTask.Define)}, whose forwarding "
+                        + $"default is the contract — its {nameof(IServiceTask.Execute)} would never run. Implement "
+                        + $"{nameof(IPipelineServiceTask)} directly instead."
                 );
-            }
-
-            if (step.StepOptions is { } options)
-            {
-                try
-                {
-                    options.Validate();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    errors.Add($"  - {taskName}: step '{stepName}' declares invalid StepOptions: {ex.Message}");
-                }
             }
         }
     }

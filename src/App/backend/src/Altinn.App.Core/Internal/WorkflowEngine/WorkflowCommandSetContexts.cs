@@ -14,12 +14,12 @@ internal sealed record TaskStartContext
     public required string? ServiceTaskType { get; init; }
 
     /// <summary>
-    /// The ordered names of the service task's declared steps (<c>IServiceTask.Steps</c>), read at
-    /// enqueue time — each expands to its own ExecuteServiceTask engine step, before the task's
-    /// concluding unnamed one. Null or empty when the task declares none (most don't), or when
+    /// The ordered names of the service task's pipeline stages, read at enqueue time — each
+    /// expands to its own ExecuteServiceTask engine step, before the pipeline's concluding
+    /// unnamed one. Null or empty when the pipeline is just the conclusion (most tasks), or when
     /// this is not a service task at all.
     /// </summary>
-    public IReadOnlyList<string>? ServiceTaskStepNames { get; init; }
+    public IReadOnlyList<string>? ServiceTaskStageNames { get; init; }
 
     /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.

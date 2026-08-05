@@ -10,39 +10,33 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The step dispatch of <see cref="ExecuteServiceTask"/> for a task with declared
-/// <see cref="IServiceTask.Steps"/>: resolution by step name, step-result mapping, the null step
-/// name routing to the task's own Execute, and the rename version-skew guard. The plain concluding
-/// dispatch (a task without declared steps) is covered by <see cref="ExecuteServiceTaskTests"/>.
+/// The pipeline dispatch of <see cref="ExecuteServiceTask"/> for an
+/// <see cref="IPipelineServiceTask"/>: resolution by stage name, stage-result mapping, the null
+/// stage name routing to the pipeline's Finally, and the rename version-skew guard. The simple
+/// dispatch (an <see cref="IServiceTask"/>, whose pipeline is the forwarding default
+/// <c>Finally(Execute)</c>) is covered by <see cref="ExecuteServiceTaskTests"/>.
 /// </summary>
-public class ExecuteServiceTaskStepTests
+public class ExecuteServiceTaskStageTests
 {
     /// <summary>
-    /// A send→poll task whose behavior each test scripts via delegates: <c>SendShipment</c> is a
-    /// declared step (its default name — the nested class's name — is itself part of what these
-    /// tests prove), and the task's own <c>Execute</c> awaits the receipt and concludes.
+    /// A send→poll pipeline whose behavior each test scripts via delegates: the "SendShipment"
+    /// stage dispatches, and the Finally awaits the receipt and concludes.
     /// </summary>
-    private sealed class ShippingTask : IServiceTask
+    private sealed class ShippingTask : IPipelineServiceTask
     {
         public string Type => "shipping";
 
-        public Func<ServiceTaskContext, Task<ServiceTaskStepResult>> OnSend { get; init; } =
-            _ => Task.FromResult(ServiceTaskStepResult.Next());
+        public Func<ServiceTaskContext, Task<ServiceTaskStageResult>> OnSend { get; init; } =
+            _ => Task.FromResult(ServiceTaskStageResult.Completed());
 
         public Func<ServiceTaskContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-        public IEnumerable<IServiceTaskStep> Steps => [new SendShipment(this)];
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => OnAwait(context);
-
-        private sealed class SendShipment(ShippingTask owner) : IServiceTaskStep
-        {
-            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) => owner.OnSend(context);
-        }
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
+            task.Stage("SendShipment", ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
     }
 
-    private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
+    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -83,10 +77,10 @@ public class ExecuteServiceTaskStepTests
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(string? stepName) => new("shipping", stepName);
+    private static ExecuteServiceTaskPayload Payload(string? stageName) => new("shipping", stageName);
 
     [Fact]
-    public async Task Step_Next_ReturnsSuccessWithoutAdvance()
+    public async Task Stage_Completed_ReturnsSuccessWithoutAdvance()
     {
         var command = CreateCommand(new ShippingTask());
 
@@ -97,12 +91,12 @@ public class ExecuteServiceTaskStepTests
     }
 
     [Fact]
-    public async Task Step_Defer_ReturnsDeferredResult()
+    public async Task Stage_Defer_ReturnsDeferredResult()
     {
-        // Any step may await an async dependency — deferral is not reserved for the conclusion.
+        // Any stage may await an async dependency — deferral is not reserved for the conclusion.
         var task = new ShippingTask
         {
-            OnSend = _ => Task.FromResult(ServiceTaskStepResult.Defer(TimeSpan.FromSeconds(30), "queue is saturated")),
+            OnSend = _ => Task.FromResult(ServiceTaskStageResult.Defer(TimeSpan.FromSeconds(30), "queue is saturated")),
         };
         var command = CreateCommand(task);
 
@@ -116,15 +110,15 @@ public class ExecuteServiceTaskStepTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Step_Failure_MapsKind(bool permanent)
+    public async Task Stage_Failure_MapsKind(bool permanent)
     {
         var task = new ShippingTask
         {
             OnSend = _ =>
                 Task.FromResult(
                     permanent
-                        ? ServiceTaskStepResult.FailedPermanent("shipment rejected")
-                        : ServiceTaskStepResult.FailedRetryable("shipment service timed out")
+                        ? ServiceTaskStageResult.FailedPermanent("shipment rejected")
+                        : ServiceTaskStageResult.FailedRetryable("shipment service timed out")
                 ),
         };
         var command = CreateCommand(task);
@@ -137,10 +131,10 @@ public class ExecuteServiceTaskStepTests
     }
 
     [Fact]
-    public async Task NullStepName_RunsTheTasksOwnExecute_AndAutoAdvances()
+    public async Task NullStageName_RunsTheFinally_AndAutoAdvances()
     {
-        // The concluding engine step carries no step name — it is the task's own Execute, the
-        // only step that can conclude the task, and a task with declared steps runs it last.
+        // The concluding engine step carries no stage name — it is the pipeline's Finally, the
+        // only step that can conclude the task, and it runs after every stage has completed.
         var command = CreateCommand(new ShippingTask());
 
         var result = await command.Execute(CreateContext(), Payload(null));
@@ -151,7 +145,7 @@ public class ExecuteServiceTaskStepTests
     }
 
     [Fact]
-    public async Task Conclusion_SuccessWithAction_CarriesTheAction()
+    public async Task Finally_SuccessWithAction_CarriesTheAction()
     {
         var task = new ShippingTask
         {
@@ -167,7 +161,7 @@ public class ExecuteServiceTaskStepTests
     }
 
     [Fact]
-    public async Task Conclusion_SuccessWithoutAutoAdvance_DoesNotAdvance()
+    public async Task Finally_SuccessWithoutAutoAdvance_DoesNotAdvance()
     {
         var task = new ShippingTask
         {
@@ -182,9 +176,9 @@ public class ExecuteServiceTaskStepTests
     }
 
     [Fact]
-    public async Task Conclusion_Defer_ReturnsDeferredResult()
+    public async Task Finally_Defer_ReturnsDeferredResult()
     {
-        // The task's own Execute is where a send-then-poll task waits.
+        // The Finally is where a send-then-poll pipeline waits.
         var task = new ShippingTask
         {
             OnAwait = _ =>
@@ -202,7 +196,7 @@ public class ExecuteServiceTaskStepTests
     }
 
     [Fact]
-    public async Task StepThrows_ReturnsRetryableFailure()
+    public async Task StageThrows_ReturnsRetryableFailure()
     {
         var task = new ShippingTask { OnSend = _ => throw new InvalidOperationException("shipping exploded") };
         var command = CreateCommand(task);
@@ -215,54 +209,82 @@ public class ExecuteServiceTaskStepTests
     }
 
     [Fact]
-    public async Task UnknownStepName_FailsPermanently_PointingAtTheRenameHazard()
+    public async Task UnknownStageName_FailsPermanently_PointingAtTheRenameHazard()
     {
         var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload("OldStepName"));
+        var result = await command.Execute(CreateContext(), Payload("OldStageName"));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStepNotFound", failed.ExceptionType);
-        Assert.Contains("no step named 'OldStepName'", failed.ErrorMessage);
+        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
+        Assert.Contains("no stage named 'OldStageName'", failed.ErrorMessage);
         Assert.Contains("renamed", failed.ErrorMessage);
     }
 
     [Fact]
-    public async Task StepNameIsCaseSensitive_UnlikeTaskTypeResolution()
+    public async Task StageNameIsCaseSensitive_UnlikeTaskTypeResolution()
     {
-        // Task types match the BPMN attribute ignoring case; step names are exact — they are our
-        // own wire values, produced from the same property that dispatches them.
+        // Task types match the BPMN attribute ignoring case; stage names are exact — they are our
+        // own wire values, produced from the same Define that dispatches them.
         var command = CreateCommand(new ShippingTask());
 
         var result = await command.Execute(CreateContext(), Payload("sendshipment"));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Contains("no step named 'sendshipment'", failed.ErrorMessage);
+        Assert.Contains("no stage named 'sendshipment'", failed.ErrorMessage);
+    }
+
+    private sealed class SimpleTask : IServiceTask
+    {
+        public bool Executed { get; private set; }
+
+        public string Type => "shipping";
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        {
+            Executed = true;
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        }
     }
 
     [Fact]
-    public async Task StepNameAgainstTaskWithoutSteps_FailsPermanently_AndToleratesANullStepsMock()
+    public async Task StageNameAgainstSimpleTask_FailsPermanently_AsStageNotFound()
     {
-        // Version skew: a workflow enqueued when the task declared this step, calling back into an
-        // app version where it no longer does. Doubles as the Moq gotcha on purpose: an unstubbed
-        // mock bypasses the interface default and returns null from Steps — the dispatch must
-        // treat that as "no steps", not throw.
-        var simple = new Mock<IServiceTask>();
-        simple.Setup(x => x.Type).Returns("shipping");
-        var command = CreateCommand(simple.Object);
+        // Version skew: a workflow enqueued when the task composed this stage, calling back into
+        // an app version where the task is a simple IServiceTask (pipeline = just the Finally).
+        var simple = new SimpleTask();
+        var command = CreateCommand(simple);
 
         var result = await command.Execute(CreateContext(), Payload("SendShipment"));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStepNotFound", failed.ExceptionType);
-        simple.Verify(x => x.Execute(It.IsAny<ServiceTaskContext>()), Times.Never);
+        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
+        Assert.False(simple.Executed);
     }
 
     [Fact]
-    public async Task StepContext_CarriesTheEngineIdentityAndClocks()
+    public async Task MockedTaskWhoseDefineReturnsNull_FailsRetryably_WithALegibleMessage()
+    {
+        // Moq bypasses interface defaults: an unstubbed mock returns null from Define. The
+        // dispatch must fail legibly rather than NullReference — the same guard covers a broken
+        // real implementation.
+        var mock = new Mock<IServiceTask>();
+        mock.Setup(x => x.Type).Returns("shipping");
+        var command = CreateCommand(mock.Object);
+
+        var result = await command.Execute(CreateContext(), Payload(null));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.False(failed.NonRetryable);
+        Assert.Contains("Define returned null", failed.ErrorMessage);
+        mock.Verify(x => x.Execute(It.IsAny<ServiceTaskContext>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task StageContext_CarriesTheEngineIdentityAndClocks()
     {
         ServiceTaskContext? observed = null;
         var task = new ShippingTask
@@ -270,7 +292,7 @@ public class ExecuteServiceTaskStepTests
             OnSend = ctx =>
             {
                 observed = ctx;
-                return Task.FromResult(ServiceTaskStepResult.Next());
+                return Task.FromResult(ServiceTaskStageResult.Completed());
             },
         };
         var command = CreateCommand(task);
@@ -284,35 +306,30 @@ public class ExecuteServiceTaskStepTests
         Assert.Same(context.InstanceDataMutator, observed.InstanceDataMutator);
     }
 
-    private sealed class PinnedNameTask : IServiceTask
+    private sealed class RenamedMethodTask : IPipelineServiceTask
     {
         public string Type => "shipping";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry()];
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
+            // The wire identity is the literal, not the method: renaming SendViaNewClient (from,
+            // say, SendShipment) is refactor-safe because "legacySend" stays put.
+            task.Stage("legacySend", SendViaNewClient)
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-        private sealed class Entry : IServiceTaskStep
-        {
-            // The rename escape hatch: the class was (hypothetically) renamed, the wire name pinned.
-            public string Name => "legacySend";
-
-            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next());
-        }
+        private Task<ServiceTaskStageResult> SendViaNewClient(ServiceTaskContext context) =>
+            Task.FromResult(ServiceTaskStageResult.Completed());
     }
 
     [Fact]
-    public async Task PinnedStepName_OverridesTheClassNameDefault()
+    public async Task StageNameIsTheLiteral_NotTheMethodName()
     {
-        var command = CreateCommand(new PinnedNameTask());
+        var command = CreateCommand(new RenamedMethodTask());
 
-        var pinned = await command.Execute(CreateContext(), Payload("legacySend"));
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(pinned);
+        var byLiteral = await command.Execute(CreateContext(), Payload("legacySend"));
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(byLiteral);
 
-        var byClassName = await command.Execute(CreateContext(), Payload("Entry"));
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(byClassName);
-        Assert.Contains("no step named 'Entry'", failed.ErrorMessage);
+        var byMethodName = await command.Execute(CreateContext(), Payload("SendViaNewClient"));
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(byMethodName);
+        Assert.Contains("no stage named 'SendViaNewClient'", failed.ErrorMessage);
     }
 }

@@ -306,49 +306,41 @@ public class ProcessStepOptionsResolverTests
         Assert.Null(result);
     }
 
-    // ── Service tasks with declared steps: per-step options (tier 3, two levels) ────────────
+    // ── Pipeline service tasks: per-stage options (tier 3, two levels) ───────────────────────
 
     /// <summary>
-    /// Task-level options (1 h timeout) with one declared step overriding the timeout (2 h) and a
-    /// second declared step declaring only a wait budget.
+    /// Task-level options (1 h timeout) with one stage overriding the timeout (2 h) and a second
+    /// stage declaring only a wait budget.
     /// </summary>
-    private sealed class SteppedTask : IServiceTask
+    private sealed class PipelineTask : IPipelineServiceTask
     {
-        public string Type => "stepped";
+        public string Type => "pipeline";
 
         public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry(), new Done()];
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-        private sealed class Entry : IServiceTaskStep
-        {
-            public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(2) };
-
-            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next());
-        }
-
-        private sealed class Done : IServiceTaskStep
-        {
-            public ProcessStepOptions? StepOptions => new() { WaitBudget = TimeSpan.FromHours(48) };
-
-            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next());
-        }
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
+            task.Stage(
+                    "Entry",
+                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+                )
+                .Stage(
+                    "Done",
+                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(48) }
+                )
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 
-    private static ProcessStepOptionsResolver CreateResolverWithSteppedTask() =>
-        CreateResolver(services => services.AddSingleton<IServiceTask, SteppedTask>());
+    private static ProcessStepOptionsResolver CreateResolverWithPipelineTask() =>
+        CreateResolver(services => services.AddSingleton<IPipelineServiceTask, PipelineTask>());
 
     [Fact]
-    public void Resolve_DeclaredStep_StepFieldWinsOverTaskField()
+    public void Resolve_Stage_StageFieldWinsOverTaskField()
     {
-        var resolver = CreateResolverWithSteppedTask();
+        var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "stepped", "Entry");
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Entry");
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime);
@@ -356,23 +348,23 @@ public class ProcessStepOptionsResolverTests
     }
 
     [Fact]
-    public void Resolve_DeclaredStep_UnsetStepFieldFallsBackToTaskField()
+    public void Resolve_Stage_UnsetStageFieldFallsBackToTaskField()
     {
-        var resolver = CreateResolverWithSteppedTask();
+        var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "stepped", "Done");
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Done");
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // task level
-        Assert.Equal(TimeSpan.FromHours(48), result.WaitBudget); // step level
+        Assert.Equal(TimeSpan.FromHours(48), result.WaitBudget); // stage level
     }
 
     [Fact]
-    public void Resolve_DeclaredStep_UnknownStepName_FallsBackToTaskOptions()
+    public void Resolve_Stage_UnknownStageName_FallsBackToTaskOptions()
     {
-        var resolver = CreateResolverWithSteppedTask();
+        var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "stepped", "Nope");
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Nope");
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime);
@@ -380,12 +372,12 @@ public class ProcessStepOptionsResolverTests
     }
 
     [Fact]
-    public void Resolve_ConcludingStep_NullStepName_UsesTheTasksOwnOptions()
+    public void Resolve_Conclusion_NullStageName_UsesTheTasksOwnOptions()
     {
-        // The concluding engine step carries no step name — the task's own options apply directly.
-        var resolver = CreateResolverWithSteppedTask();
+        // The concluding engine step carries no stage name — the task's own options apply directly.
+        var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "stepped");
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline");
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime);

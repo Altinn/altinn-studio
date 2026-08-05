@@ -8,12 +8,12 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// Request payload for ExecuteServiceTask command. Contains the service task type identifier and,
-/// optionally, the name of the task step this engine step executes. <see cref="StepName"/> is null
-/// exactly when this engine step runs the task's own <see cref="IServiceTask.Execute"/> — the
-/// concluding step every service task has (for most tasks, the only one); a name identifies one of
-/// the task's declared <see cref="IServiceTask.Steps"/>.
+/// optionally, the name of the pipeline stage this engine step executes. <see cref="StageName"/>
+/// is null exactly when this engine step runs the pipeline's conclusion (its <c>Finally</c> — for
+/// an <see cref="IServiceTask"/>, its <c>Execute</c>), which every service task has and which for
+/// most tasks is the whole pipeline; a name identifies one of the task's composed stages.
 /// </summary>
-internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, string? StepName = null)
+internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, string? StageName = null)
     : CommandRequestPayload;
 
 internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementationFactory, Telemetry? telemetry = null)
@@ -26,7 +26,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
     /// systems (eFormidling, payment providers, other government APIs), so they get a far more generous
     /// budget than the engine's global default. An individual service task that needs even
     /// longer can override this via <see cref="IProcessStepConfigurable.StepOptions"/> (per task) or
-    /// <see cref="IServiceTaskStep.StepOptions"/> (per step).
+    /// the per-stage options on <see cref="ServiceTaskPipelineBuilder.Stage"/>.
     /// </summary>
     internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
 
@@ -48,7 +48,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
 
         try
         {
-            IServiceTask serviceTask =
+            IPipelineServiceTask serviceTask =
                 appImplementationFactory.FindServiceTask(serviceTaskType)
                 ?? throw new ProcessException($"No service task found for type {serviceTaskType}");
 
@@ -71,11 +71,12 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 },
             };
 
-            // The step name routes within the task: null is the task's own Execute (the concluding
-            // engine step, which every service task has), a name is one of the task's declared Steps.
-            return payload.StepName is { } stepName
-                ? await ExecuteStep(serviceTask, stepName, serviceTaskContext)
-                : MapServiceTaskResult(await serviceTask.Execute(serviceTaskContext), serviceTask);
+            // The stage name routes within the pipeline: null is the conclusion (the pipeline's
+            // Finally — for a simple task, its Execute), a name is one of the composed stages.
+            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
+            return payload.StageName is { } stageName
+                ? await ExecuteStage(pipeline, serviceTask, stageName, serviceTaskContext)
+                : MapServiceTaskResult(await pipeline.Final(serviceTaskContext), serviceTask);
         }
         catch (Exception ex)
         {
@@ -84,47 +85,54 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
         }
     }
 
-    private static async Task<ProcessEngineCommandResult> ExecuteStep(
-        IServiceTask serviceTask,
-        string stepName,
+    private static async Task<ProcessEngineCommandResult> ExecuteStage(
+        ServiceTaskPipeline pipeline,
+        IPipelineServiceTask serviceTask,
+        string stageName,
         ServiceTaskContext serviceTaskContext
     )
     {
-        IServiceTaskStep? step = serviceTask.FindStep(stepName);
-        if (step is null)
+        ServiceTaskStage? stage = pipeline.FindStage(stageName);
+        if (stage is null)
         {
             return FailedProcessEngineCommandResult.Permanent(
-                $"Service task '{serviceTask.Type}' has no step named '{stepName}'. Step names are a compatibility "
-                    + "surface for in-flight workflows: if the step's class was renamed since this workflow was "
-                    + $"enqueued, redeploy with the original name pinned via {nameof(IServiceTaskStep)}.{nameof(IServiceTaskStep.Name)} "
-                    + "and resume the workflow.",
-                "ServiceTaskStepNotFound"
+                $"Service task '{serviceTask.Type}' composes no stage named '{stageName}'. Stage names are a "
+                    + "compatibility surface for in-flight workflows: if the stage was renamed or removed since this "
+                    + "workflow was enqueued, redeploy with the original name restored in "
+                    + $"{nameof(IPipelineServiceTask.Define)} and resume the workflow.",
+                "ServiceTaskStageNotFound"
             );
         }
 
-        return MapStepResult(await step.Execute(serviceTaskContext), serviceTask);
+        return MapStageResult(await stage.Work(serviceTaskContext), serviceTask);
     }
 
-    private static ProcessEngineCommandResult MapStepResult(ServiceTaskStepResult result, IServiceTask task) =>
+    private static ProcessEngineCommandResult MapStageResult(
+        ServiceTaskStageResult result,
+        IPipelineServiceTask task
+    ) =>
         result switch
         {
-            // A completed step never advances the process — the task just moves on to its next
-            // engine step.
-            NextServiceTaskStepResult => new SuccessfulProcessEngineCommandResult(),
-            DeferredServiceTaskStepResult deferred => new DeferredProcessEngineCommandResult
+            // A completed stage never advances the process — the pipeline just moves on to its
+            // next engine step.
+            CompletedServiceTaskStageResult => new SuccessfulProcessEngineCommandResult(),
+            DeferredServiceTaskStageResult deferred => new DeferredProcessEngineCommandResult
             {
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            FailedServiceTaskStepResult failed => MapFailure(
+            FailedServiceTaskStageResult failed => MapFailure(
                 task,
                 failed.ErrorMessage,
                 failed.Kind == FailureKind.Permanent
             ),
-            _ => throw new UnreachableException($"Unknown step result type: {result.GetType().Name}"),
+            _ => throw new UnreachableException($"Unknown stage result type: {result.GetType().Name}"),
         };
 
-    private static ProcessEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, IServiceTask task) =>
+    private static ProcessEngineCommandResult MapServiceTaskResult(
+        ServiceTaskResult result,
+        IPipelineServiceTask task
+    ) =>
         result switch
         {
             ServiceTaskFailedResult failed => MapFailure(
@@ -145,7 +153,11 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
             _ => new SuccessfulProcessEngineCommandResult(),
         };
 
-    private static FailedProcessEngineCommandResult MapFailure(IServiceTask task, string errorMessage, bool permanent)
+    private static FailedProcessEngineCommandResult MapFailure(
+        IPipelineServiceTask task,
+        string errorMessage,
+        bool permanent
+    )
     {
         string message = $"Service task '{task.Type}' failed: {errorMessage}";
         return permanent

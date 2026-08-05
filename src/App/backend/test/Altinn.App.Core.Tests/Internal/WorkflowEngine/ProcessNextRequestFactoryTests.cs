@@ -54,12 +54,12 @@ public class ProcessNextRequestFactoryTests
         bool autoDeleteOnProcessEnd = false,
         bool hasAutoDeleteDataTypes = true,
         Action<IServiceCollection>? configureServices = null,
-        params IServiceTask[] serviceTasks
+        params IPipelineServiceTask[] serviceTasks
     )
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        foreach (IServiceTask st in serviceTasks)
+        foreach (IPipelineServiceTask st in serviceTasks)
         {
             services.AddSingleton(st);
         }
@@ -512,9 +512,7 @@ public class ProcessNextRequestFactoryTests
     public async Task Create_ServiceTask_AddsExecuteServiceTaskToPostCommit()
     {
         // Arrange
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var factory = CreateFactory(serviceTasks: new FakeServiceTask("signing"));
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
@@ -537,30 +535,38 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// A send→poll task used by the expansion tests: one declared step (its default name is the
-    /// class name), with the task's own Execute polling and concluding. The task-wide options
-    /// carry the 30 min timeout and the poll's 48 h wait budget; the declared step overrides the
-    /// timeout for itself.
+    /// A simple IServiceTask with configurable type and options — a real class, not a mock,
+    /// because Moq bypasses the forwarding Define default the factory relies on.
     /// </summary>
-    private sealed class SigningTask : IServiceTask
+    private sealed class FakeServiceTask(string type, ProcessStepOptions? options = null) : IServiceTask
+    {
+        public string Type => type;
+
+        public ProcessStepOptions? StepOptions => options;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    }
+
+    /// <summary>
+    /// A send→poll pipeline used by the expansion tests: one stage ("Dispatch") plus the
+    /// concluding Finally. The task-wide options carry the 30 min timeout and the poll's 48 h
+    /// wait budget; the stage overrides the timeout for itself.
+    /// </summary>
+    private sealed class SigningTask : IPipelineServiceTask
     {
         public string Type => "signing";
 
         public ProcessStepOptions? StepOptions =>
             new() { MaxExecutionTime = TimeSpan.FromMinutes(30), WaitBudget = TimeSpan.FromHours(48) };
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Dispatch()];
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-        private sealed class Dispatch : IServiceTaskStep
-        {
-            public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(10) };
-
-            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next());
-        }
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
+            task.Stage(
+                    "Dispatch",
+                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
+                )
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 
     private static List<(
@@ -584,7 +590,7 @@ public class ProcessNextRequestFactoryTests
             .ToList();
 
     [Fact]
-    public async Task Create_ServiceTaskWithDeclaredSteps_ExpandsToOneEngineStepEach_ThenTheConclusion()
+    public async Task Create_PipelineServiceTask_ExpandsToOneEngineStepPerStage_ThenTheConclusion()
     {
         // Arrange
         var factory = CreateFactory(serviceTasks: new SigningTask());
@@ -593,16 +599,16 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert — one ExecuteServiceTask engine step per declared step, in declared order, each
-        // payload carrying its step's name and a distinct OperationId for the engine's records;
-        // then the concluding step (the task's own Execute) with no step name — the exact shape a
-        // task without declared steps produces on its own.
+        // Assert — one ExecuteServiceTask engine step per stage, in composition order, each
+        // payload carrying its stage's name and a distinct OperationId for the engine's records;
+        // then the concluding step (the pipeline's Finally) with no stage name — the exact shape
+        // a simple IServiceTask produces on its own.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         Assert.Equal(2, serviceTaskSteps.Count);
 
-        Assert.Equal("Dispatch", serviceTaskSteps[0].Payload.StepName);
+        Assert.Equal("Dispatch", serviceTaskSteps[0].Payload.StageName);
         Assert.Equal($"{ExecuteServiceTask.Key} · Dispatch", serviceTaskSteps[0].OperationId);
-        Assert.Null(serviceTaskSteps[1].Payload.StepName);
+        Assert.Null(serviceTaskSteps[1].Payload.StageName);
         Assert.Equal(ExecuteServiceTask.Key, serviceTaskSteps[1].OperationId);
         Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
 
@@ -614,7 +620,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_ServiceTaskWithDeclaredSteps_ResolvesOptionsPerStep()
+    public async Task Create_PipelineServiceTask_ResolvesOptionsPerStage()
     {
         // Arrange
         var factory = CreateFactory(serviceTasks: new SigningTask());
@@ -623,13 +629,13 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert — the concluding step carries the task's own options unchanged; the declared
-        // step's own timeout wins field-wise over the task's, and the unset WaitBudget field is
-        // inherited from the task (deliberate: shared options are the default, and a budget is
-        // inert on a step that never defers).
+        // Assert — the concluding step carries the task's own options unchanged; the stage's own
+        // timeout wins field-wise over the task's, and the unset WaitBudget field is inherited
+        // from the task (deliberate: shared options are the default, and a budget is inert on a
+        // stage that never defers).
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        var dispatch = serviceTaskSteps.Single(s => s.Payload.StepName == "Dispatch").Step;
-        var conclusion = serviceTaskSteps.Single(s => s.Payload.StepName is null).Step;
+        var dispatch = serviceTaskSteps.Single(s => s.Payload.StageName == "Dispatch").Step;
+        var conclusion = serviceTaskSteps.Single(s => s.Payload.StageName is null).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), dispatch.Command.WaitBudget);
@@ -1109,9 +1115,7 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_ServiceTask_NoOverride_UsesCommandDefaultTimeout()
     {
         // Arrange - tier 2: service task without its own options → ExecuteServiceTask's 10 min default
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var factory = CreateFactory(serviceTasks: new FakeServiceTask("signing"));
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
@@ -1128,12 +1132,12 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_ServiceTask_ImplementationTimeout_OverridesCommandDefault()
     {
         // Arrange - tier 3: a greedy service task asks for two hours
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        serviceTaskMock
-            .Setup(x => x.StepOptions)
-            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) });
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var factory = CreateFactory(
+            serviceTasks: new FakeServiceTask(
+                "signing",
+                new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+            )
+        );
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
@@ -1150,18 +1154,16 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_ServiceTask_ImplementationBothFields_HonorsBoth()
     {
         // Arrange - tier 3 sets BOTH timeout and retry; both must land on the wire, resolved per-field
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        serviceTaskMock
-            .Setup(x => x.StepOptions)
-            .Returns(
+        var factory = CreateFactory(
+            serviceTasks: new FakeServiceTask(
+                "signing",
                 new ProcessStepOptions
                 {
                     MaxExecutionTime = TimeSpan.FromHours(2),
                     RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(5), maxRetries: 3),
                 }
-            );
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+            )
+        );
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
@@ -1180,11 +1182,9 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_ServiceTask_ImplementationRetryOnly_FallsBackToCommandTimeout()
     {
         // Arrange - tier 3 sets only the retry strategy; timeout must fall back to the tier-2 default
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        serviceTaskMock
-            .Setup(x => x.StepOptions)
-            .Returns(
+        var factory = CreateFactory(
+            serviceTasks: new FakeServiceTask(
+                "signing",
                 new ProcessStepOptions
                 {
                     RetryStrategy = ProcessStepRetryStrategy.Exponential(
@@ -1194,8 +1194,8 @@ public class ProcessNextRequestFactoryTests
                         maxDuration: TimeSpan.FromMinutes(30)
                     ),
                 }
-            );
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+            )
+        );
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
@@ -1216,10 +1216,12 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_ServiceTask_WaitBudget_LandsOnTheWireCommand()
     {
         // Arrange - a handler that only widens the wait allowance, leaving the timeout to its tier-2 default
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("eformidling");
-        serviceTaskMock.Setup(x => x.StepOptions).Returns(new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(7) });
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var factory = CreateFactory(
+            serviceTasks: new FakeServiceTask(
+                "eformidling",
+                new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(7) }
+            )
+        );
         var stateChange = CreateInitialTaskStart(altinnTaskType: "eformidling");
 
         // Act
@@ -1235,12 +1237,12 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_NegativeMaxExecutionTime_ThrowsAtEnqueue()
     {
         // Arrange - a misconfigured handler (e.g. arithmetic slip producing a negative timeout)
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        serviceTaskMock
-            .Setup(x => x.StepOptions)
-            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-10) });
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var factory = CreateFactory(
+            serviceTasks: new FakeServiceTask(
+                "signing",
+                new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-10) }
+            )
+        );
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act + Assert - fails fast with an actionable message instead of poisoning the engine workflow
@@ -1254,12 +1256,12 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_ZeroIntervalRetryWithRetriesEnabled_ThrowsAtEnqueue()
     {
         // Arrange - a bare strategy (Constant, zero interval, unbounded) would hot-loop in the engine
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        serviceTaskMock
-            .Setup(x => x.StepOptions)
-            .Returns(new ProcessStepOptions { RetryStrategy = new ProcessStepRetryStrategy() });
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var factory = CreateFactory(
+            serviceTasks: new FakeServiceTask(
+                "signing",
+                new ProcessStepOptions { RetryStrategy = new ProcessStepRetryStrategy() }
+            )
+        );
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act + Assert
@@ -1273,12 +1275,12 @@ public class ProcessNextRequestFactoryTests
     public async Task StepOptions_RetryStrategyNone_IsAcceptedAndMapped()
     {
         // Arrange - None() is the sanctioned zero-interval strategy (retries disabled)
-        var serviceTaskMock = new Mock<IServiceTask>();
-        serviceTaskMock.Setup(x => x.Type).Returns("signing");
-        serviceTaskMock
-            .Setup(x => x.StepOptions)
-            .Returns(new ProcessStepOptions { RetryStrategy = ProcessStepRetryStrategy.None() });
-        var factory = CreateFactory(serviceTasks: serviceTaskMock.Object);
+        var factory = CreateFactory(
+            serviceTasks: new FakeServiceTask(
+                "signing",
+                new ProcessStepOptions { RetryStrategy = ProcessStepRetryStrategy.None() }
+            )
+        );
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act

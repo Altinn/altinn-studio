@@ -364,7 +364,7 @@ internal sealed class ProcessNextRequestFactory
                     new TaskStartContext
                     {
                         ServiceTaskType = serviceTaskType,
-                        ServiceTaskStepNames = GetServiceTaskStepNames(serviceTaskType),
+                        ServiceTaskStageNames = GetServiceTaskStageNames(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -405,16 +405,21 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The ordered names of the service task's declared steps — empty for most tasks, which
-    /// declare none. Enumerated at enqueue time: this is the moment the task's step shape is
-    /// fixed for the workflow's lifetime (callback dispatch is by these names).
+    /// The ordered names of the service task's pipeline stages — empty for most tasks, whose
+    /// pipeline is just the conclusion. Enumerated at enqueue time: this is the moment the
+    /// pipeline's shape is fixed for the workflow's lifetime (callback dispatch is by these
+    /// names).
     /// </summary>
-    private IReadOnlyList<string>? GetServiceTaskStepNames(string? serviceTaskType)
+    private IReadOnlyList<string>? GetServiceTaskStageNames(string? serviceTaskType)
     {
         if (serviceTaskType is null)
             return null;
 
-        return _appImplementationFactory.FindServiceTask(serviceTaskType)?.GetSteps().Select(s => s.Name).ToList();
+        return _appImplementationFactory
+            .FindServiceTask(serviceTaskType)
+            ?.ResolvePipeline()
+            .Stages.Select(s => s.Name)
+            .ToList();
     }
 
     private async Task<Actor> ExtractActor()

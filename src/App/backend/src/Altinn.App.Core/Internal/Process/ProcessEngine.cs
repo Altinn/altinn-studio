@@ -1071,7 +1071,7 @@ internal class ProcessEngine : IProcessEngine
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
-    private IServiceTask? CheckIfServiceTask(string? altinnTaskType)
+    private IPipelineServiceTask? CheckIfServiceTask(string? altinnTaskType)
     {
         if (altinnTaskType is null)
             return null;

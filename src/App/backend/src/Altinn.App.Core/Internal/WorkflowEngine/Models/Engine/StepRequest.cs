@@ -32,10 +32,9 @@ internal sealed record StepRequest
     public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
-    /// For a declared service-task step: the step's name, carried so the per-step options
-    /// resolution (see <c>ProcessStepOptionsResolver</c>) can find the matching
-    /// <c>IServiceTaskStep</c>. Internal and never serialized — the engine sees the step name only
-    /// inside the command payload.
+    /// For a service-task pipeline stage: the stage's name, carried so the per-stage options
+    /// resolution (see <c>ProcessStepOptionsResolver</c>) can find the matching stage. Internal
+    /// and never serialized — the engine sees the stage name only inside the command payload.
     /// </summary>
-    internal string? ServiceTaskStepName { get; init; }
+    internal string? ServiceTaskStageName { get; init; }
 }

@@ -12,21 +12,21 @@ namespace Altinn.App.Logic;
 
 /// <summary>
 /// Post-commit lever for the forward transition (<c>path == "postCommit"</c>), implemented as a
-/// service task WITH a declared step — so the e2e suite drives the multi-step contract end to end
-/// on every postCommit scenario:
+/// PIPELINE service task with one stage — so the e2e suite drives the multi-stage contract end to
+/// end on every postCommit scenario:
 ///
-/// <c>PrepareScenario</c> (declared via <c>Steps</c>) completes first; the task's own
-/// <c>Execute</c> then reads the TransitionControl levers and runs the scenario, concluding the
-/// task. The engine records the declared step's completion durably, so every retry, deferral
-/// re-check and resume of the scenario re-runs only <c>Execute</c> — proving
-/// one-engine-step-per-declared-step expansion, dispatch by step name, per-step durability, and
-/// that the task's own StepOptions govern the concluding step (the tiny wait budget below), all
+/// The <c>PrepareScenario</c> stage completes first; the pipeline's <c>Finally</c>
+/// (<c>RunScenario</c>) then reads the TransitionControl levers and runs the scenario, concluding
+/// the task. The engine records the stage's completion durably, so every retry, deferral re-check
+/// and resume of the scenario re-runs only <c>RunScenario</c> — proving
+/// one-engine-step-per-stage expansion, dispatch by stage name, per-stage durability, and that
+/// the task's own StepOptions govern the concluding step (the tiny wait budget below), all
 /// through the public app-facing API.
 ///
 /// The <c>Gateway_PostCommit</c> gateway after Task_1 routes through the <c>Task_Service</c>
 /// service task only when the path lever is "postCommit". That transition COMMITS first
 /// (committed = Task_Service); the engine then runs the task's steps as critical post-commit
-/// steps in the same Main workflow. A delay or transient failure in <c>Execute</c> is
+/// steps in the same Main workflow. A delay or transient failure in <c>RunScenario</c> is
 /// therefore surfaced by the live workflow-status as <c>processing</c> on the committed
 /// Task_Service, and a permanent failure as the terminal <c>failed</c> state — the two post-commit
 /// states the workflow-status e2e drives. On success the service task auto-advances to Task_2, so
@@ -45,7 +45,7 @@ namespace Altinn.App.Logic;
 /// (Task_Service and its layouted twin Task_ServiceLayout, chosen via <c>serviceView</c>) run
 /// this same scenario.
 /// </summary>
-public sealed class ScenarioServiceTask : IServiceTask
+public sealed class ScenarioServiceTask : IPipelineServiceTask
 {
     private readonly ParkedTaskReleaser _parkedTaskReleaser;
 
@@ -59,28 +59,26 @@ public sealed class ScenarioServiceTask : IServiceTask
     /// <summary>
     /// A deliberately tiny wait budget so the <c>waitExpired</c> scenario can expire inside a test run
     /// (production budgets are hours or days). Only deferrals spend it, so other scenarios are
-    /// unaffected. The task's own options govern the concluding <c>Execute</c> step (the only one
-    /// that defers) and are the fallback for <c>PrepareScenario</c>, which never defers — inert there.
+    /// unaffected. The task's own options govern the concluding <c>RunScenario</c> step (the only
+    /// one that defers) and are the fallback for <c>PrepareScenario</c>, which never defers — inert there.
     /// </summary>
     internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
 
     public ProcessStepOptions? StepOptions => new() { WaitBudget = ScenarioWaitBudget };
 
-    public IEnumerable<IServiceTaskStep> Steps => [new PrepareScenario()];
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
+        task.Stage("PrepareScenario", PrepareScenario).Finally(RunScenario);
 
     /// <summary>
-    /// The task's declared step. It has no scenario work of its own — it exists so that every
-    /// postCommit e2e scenario runs a real multi-step task: this step completes exactly once
-    /// per pass, and retries/resumes of the scenario re-enter at <c>Execute</c> without
+    /// The pipeline's stage. It has no scenario work of its own — it exists so that every
+    /// postCommit e2e scenario runs a real multi-stage pipeline: this stage completes exactly
+    /// once per pass, and retries/resumes of the scenario re-enter at <c>RunScenario</c> without
     /// re-running it (the engine's step ledger, observed end to end).
     /// </summary>
-    private sealed class PrepareScenario : IServiceTaskStep
-    {
-        public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
-            Task.FromResult(ServiceTaskStepResult.Next());
-    }
+    private Task<ServiceTaskStageResult> PrepareScenario(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
 
-    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    private async Task<ServiceTaskResult> RunScenario(ServiceTaskContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");
