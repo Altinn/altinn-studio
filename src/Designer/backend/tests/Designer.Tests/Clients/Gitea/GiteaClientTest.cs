@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -25,41 +24,6 @@ namespace Designer.Tests.Clients.Gitea;
 
 public class GiteaClientTest
 {
-    [Theory]
-    [InlineData("Developer", "developer", "/user/repos")]
-    [InlineData("Developer", "ttd", "/org/ttd/repos")]
-    public async Task CreateRepository_UsesExpectedRepositoryEndpoint(
-        string developer,
-        string org,
-        string expectedEndpoint
-    )
-    {
-        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-        handlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(request =>
-                    request.Method == HttpMethod.Post
-                    && request.RequestUri.AbsolutePath.EndsWith(expectedEndpoint, StringComparison.Ordinal)
-                ),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.Conflict })
-            .Verifiable();
-
-        var httpClient = new HttpClient(handlerMock.Object)
-        {
-            BaseAddress = new Uri("http://studio.localhost/repos/api/v1/"),
-        };
-        GiteaClient sut = GetServiceForTest(httpClient, developer: developer);
-
-        Repository result = await sut.CreateRepository(org, new CreateRepoOption("new-app"));
-
-        Assert.Equal(HttpStatusCode.Conflict, result.RepositoryCreatedStatus);
-        handlerMock.VerifyAll();
-    }
-
     [Fact]
     public async Task CreateBranch_Successful_BranchReturned()
     {
@@ -1102,8 +1066,7 @@ public class GiteaClientTest
     private static GiteaClient GetServiceForTest(
         HttpClient client,
         ILogger<GiteaClient> logger = null,
-        bool useNullContext = false,
-        string developer = null
+        bool useNullContext = false
     )
     {
         Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
@@ -1114,12 +1077,6 @@ public class GiteaClientTest
         else
         {
             HttpContext context = new DefaultHttpContext();
-            if (developer is not null)
-            {
-                context.User = new ClaimsPrincipal(
-                    new ClaimsIdentity([new Claim(ClaimTypes.Name, developer)], "TestAuthentication")
-                );
-            }
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(context);
         }
 
