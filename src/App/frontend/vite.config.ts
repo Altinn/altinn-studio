@@ -61,12 +61,8 @@ export default defineConfig(({ mode }) => {
       target: 'es2020',
       // `cssTarget` defaults to `target`, which would make the CSS minifier read "es2020" as a
       // browser baseline old enough to lack `:is()`, and downlevel it to the legacy
-      // `:-webkit-any()`. That is not a safe rewrite: `:-webkit-any()` has the specificity of a
-      // plain pseudo-class instead of taking its most specific argument, so Designsystemet's
-      // `.ds-table > :is(tbody,thead,tfoot) > tr > :is(th,td)` went from (0,1,3) to (0,3,1) and
-      // started winning over rules that are supposed to override it. It also mangled
-      // `:is(.ds-readonly-icon:before)` into an empty, invalid `:is()`. Webpack shipped this CSS
-      // untransformed, so keep it that way.
+      // `:-webkit-any()`. That is not a safe rewrite. Webpack shipped this CSS
+      // untransformed, so keep it that way. (not setting cssTarget gave screenshot diff i percy in LIst-Component)
       cssTarget: 'esnext',
       sourcemap: isDevBuild ? 'inline' : false,
       minify: !isDevBuild,
