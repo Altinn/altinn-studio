@@ -5,7 +5,9 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - "src/tools/releaser/**"
+      - ".github/workflows/release-app.yaml"
       - ".github/workflows/release-components.yaml"
+      - ".github/workflows/release-studioctl.yaml"
       - ".github/workflows/releaser-build-test.yml"
       - "!**/AGENTS.md"
       - "!**/CLAUDE.md"

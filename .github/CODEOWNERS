@@ -71,7 +71,9 @@ src/AI/mcp/**/uv.lock                                                     @Erlin
 .github/workflows/deployer-check.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-check-texts-file.yml                              @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-runner-test.yml                                   @altinn/team-altinn-studio-kjoring
+.github/workflows/release-app.yaml                                        @altinn/team-altinn-studio-kjoring
 .github/workflows/release-components.yaml                                 @altinn/team-altinn-studio-kjoring
+.github/workflows/release-studioctl.yaml                                  @altinn/team-altinn-studio-kjoring
 .github/workflows/releaser-build-test.yml                                 @altinn/team-altinn-studio-kjoring
 .github/workflows/repositories-scan.yml                                   @altinn/team-altinn-studio-kjoring
 .github/workflows/runtime-devenv-build.yml                                @altinn/team-altinn-studio-kjoring

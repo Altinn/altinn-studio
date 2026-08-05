@@ -94,5 +94,5 @@ prerelease, stabilization, and patch release flows.
   alike. Trigger resolution reuses the component registry, branch policy, and changelog validation in this tool.
 - Manual workflow dispatch is a recovery path. Select the component and dispatch from `main` or the matching
   `release/<component>/vX.Y` branch.
-- Release publication depends on the component being configured in the unified CI workflow.
+- Release publication depends on the unified CI workflow routing the component to its reusable publisher workflow.
 - Version is resolved from the latest released section in the component changelog on the base branch.
