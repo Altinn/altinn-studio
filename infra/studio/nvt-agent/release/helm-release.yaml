@@ -147,6 +147,9 @@ spec:
           egress: mediated
           egressEnforcement: true
           egressTransport: transparent
+          execution:
+            kind: pod
+            driver: kubernetes
           name: mirkoSekulic
           runtime:
             autonomy: trusted-local
@@ -201,6 +204,9 @@ spec:
           egress: mediated
           egressEnforcement: true
           egressTransport: transparent
+          execution:
+            kind: pod
+            driver: kubernetes
           name: jondyr
           runtime:
             autonomy: trusted-local

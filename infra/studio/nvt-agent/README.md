@@ -9,11 +9,12 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.29` (verified OCI digest
-`sha256:cdcbf1969f4525aa19d4b1b698a2656889f4c422739942f92d1e6da6790ac9ec`),
+The public chart is pinned to `0.8.50` (verified OCI digest
+`sha256:886933fa504f90d14e4e0d2a7629610a7818fdc86130c5446f3aad3301a92860`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.29-2e815d1` production images without
-component overrides. The staging release has `producer.enabled: true`,
+tag. It resolves the coordinated `0.8.50-485eb99` production images without
+component overrides. Both execution profiles explicitly select the built-in
+Kubernetes Pod driver. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
 RuntimeClass. Its shared AgentRun template carries the matching
 `purpose=nvt-agent:NoSchedule` toleration, and the schedule admits at most two

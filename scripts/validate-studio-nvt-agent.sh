@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.29
-chart_digest=sha256:cdcbf1969f4525aa19d4b1b698a2656889f4c422739942f92d1e6da6790ac9ec
+chart_version=0.8.50
+chart_digest=sha256:886933fa504f90d14e4e0d2a7629610a7818fdc86130c5446f3aad3301a92860
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -88,6 +88,8 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].egress == "mediated" and
   .spec.values.agentSchedule.profiles[0].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[0].execution.kind == "pod" and
+  .spec.values.agentSchedule.profiles[0].execution.driver == "kubernetes" and
   (.spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add | length) == 1 and
   .spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add[0] == "SYS_PTRACE" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
@@ -96,6 +98,8 @@ yq -e '
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[1].execution.kind == "pod" and
+  .spec.values.agentSchedule.profiles[1].execution.driver == "kubernetes" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.pull_requests == "write" and
