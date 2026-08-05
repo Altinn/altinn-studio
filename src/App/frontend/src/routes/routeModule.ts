@@ -21,11 +21,14 @@ type ConvertedRouteModule = Omit<NonIndexRouteObject, 'path' | 'index' | 'childr
  *
  * @see https://reactrouter.com/upgrading/router-provider
  */
-export function convertRouteModule({
-  default: Component,
-  clientLoader,
-  clientAction,
-  ...rest
-}: RouteModule): ConvertedRouteModule {
-  return { ...rest, loader: clientLoader, action: clientAction, Component };
+export function convertRouteModule(routeModule: RouteModule): ConvertedRouteModule {
+  return {
+    Component: routeModule.default,
+    loader: routeModule.clientLoader,
+    action: routeModule.clientAction,
+    ErrorBoundary: routeModule.ErrorBoundary,
+    HydrateFallback: routeModule.HydrateFallback,
+    shouldRevalidate: routeModule.shouldRevalidate,
+    handle: routeModule.handle,
+  };
 }

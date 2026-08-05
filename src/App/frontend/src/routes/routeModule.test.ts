@@ -46,11 +46,28 @@ describe('convertRouteModule', () => {
     expect(converted.handle).toBe(handle);
   });
 
-  it('should not leak the route module export names onto the route object', () => {
-    const converted = convertRouteModule({ default: Component, clientLoader: () => null });
+  it('should copy nothing but the supported route object fields', () => {
+    // The route module export names are renamed rather than copied, and `path`, `index` and `children`
+    // must stay with the router configuration. A route module has no business exporting the latter, but
+    // a module namespace object is structurally assignable to RouteModule, so TypeScript cannot say so.
+    const routeModule = {
+      default: Component,
+      clientLoader: () => null,
+      path: 'somewhere-else',
+      index: true,
+      children: [],
+    };
 
-    expect(converted).not.toHaveProperty('default');
-    expect(converted).not.toHaveProperty('clientLoader');
-    expect(converted).not.toHaveProperty('clientAction');
+    const converted = convertRouteModule(routeModule);
+
+    expect(Object.keys(converted).sort()).toEqual([
+      'Component',
+      'ErrorBoundary',
+      'HydrateFallback',
+      'action',
+      'handle',
+      'loader',
+      'shouldRevalidate',
+    ]);
   });
 });
