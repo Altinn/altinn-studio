@@ -21,11 +21,11 @@ jobs:
     name: Build and release
     runs-on: ubuntu-latest
     # Automatically release same-repo release PRs. Fork PRs can be retried manually
-    # from main after merge because their pull_request token cannot publish releases.
+    # from their merged base branch because their pull_request token cannot publish releases.
     if: >
       (
         github.event_name == 'workflow_dispatch' &&
-        github.ref == 'refs/heads/main'
+        github.ref_type == 'branch'
       ) ||
       (
         github.event_name == 'pull_request' &&
@@ -44,14 +44,9 @@ jobs:
 
       - name: Checkout base branch
         env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
           MERGE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
         run: |
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF}" != "refs/heads/main" ]]; then
-            echo "Manual studioctl releases must be dispatched from main"
-            exit 1
-          fi
-
           if [[ "${BASE_BRANCH}" != "main" && ! "${BASE_BRANCH}" =~ ^release/studioctl/v[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid base branch: ${BASE_BRANCH}"
             exit 1
@@ -79,7 +74,7 @@ jobs:
       - name: Run release workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
         run: |
           go run . workflow --component studioctl --base-branch "$BASE_BRANCH"
         working-directory: src/tools/releaser
@@ -107,5 +102,5 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
         env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
           PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
