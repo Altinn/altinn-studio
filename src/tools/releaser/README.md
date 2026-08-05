@@ -90,7 +90,8 @@ prerelease, stabilization, and patch release flows.
 - Dry runs and repository discovery only require Git. Creating pull requests or releases requires an authenticated
   `gh` CLI.
 - Automatic publication requires a merged PR with label `release/<component>`. The unified component release
-  workflow resolves that PR from the trusted canonical branch push, so fork and same-repository PRs behave alike.
+  workflow calls `resolve-trigger` on the trusted canonical branch push, so fork and same-repository PRs behave
+  alike. Trigger resolution reuses the component registry, branch policy, and changelog validation in this tool.
 - Manual workflow dispatch is a recovery path. Select the component and dispatch from `main` or the matching
   `release/<component>/vX.Y` branch.
 - Release publication depends on the component being configured in the unified CI workflow.

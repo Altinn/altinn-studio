@@ -120,7 +120,6 @@ const GROUPS = [
       '.github/workflows/deployer-check.yaml',
       '.github/workflows/gitea-check-texts-file.yml',
       '.github/workflows/gitea-runner-test.yml',
-      '.github/scripts/resolve-release-trigger.mjs',
       '.github/workflows/release-components.yaml',
       '.github/workflows/releaser-build-test.yml',
       '.github/workflows/repositories-scan.yml',
@@ -134,6 +133,7 @@ const GROUPS = [
       '.github/workflows/template-runtime-construct-environments.yaml',
       '.github/workflows/template-studio-construct-environments.yaml',
       '.github/workflows/validate-renovate.yaml',
+      'src/tools/releaser/internal/release_trigger.go',
     ],
   },
   {
