@@ -37,6 +37,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx,js,jsx}'],
     reporters: process.env.CI ? ['default', 'junit'] : ['default'],
     outputFile: process.env.CI ? { junit: 'junit.xml' } : undefined,
+    pool: 'threads',
     setupFiles: ['./src/setupTests.ts'],
     testTimeout: Number.parseInt(process.env.VITEST_TIMEOUT ?? '20000', 10),
     coverage: {
