@@ -321,3 +321,28 @@ jobs:
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+  verify-release-routed:
+    name: Verify release is routed to a publisher
+    if: >-
+      always() &&
+      needs.resolve-trigger.result == 'success' &&
+      needs.resolve-release-context.result == 'success' &&
+      needs.resolve-trigger.outputs.component != ''
+    needs:
+      - resolve-trigger
+      - resolve-release-context
+      - release-app
+      - release-studioctl
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify publisher selected
+        env:
+          APP_RESULT: ${{ needs.release-app.result }}
+          COMPONENT: ${{ needs.resolve-trigger.outputs.component }}
+          STUDIOCTL_RESULT: ${{ needs.release-studioctl.result }}
+        run: |
+          if [[ "$APP_RESULT" == "skipped" && "$STUDIOCTL_RESULT" == "skipped" ]]; then
+            echo "No publisher job is configured for resolved component: $COMPONENT" >&2
+            exit 1
+          fi

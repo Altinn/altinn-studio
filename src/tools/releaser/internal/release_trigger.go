@@ -20,6 +20,12 @@ var (
 	errReleaseTriggerValidatorRequired = errors.New("release trigger validator is required")
 	errReleaseTriggerLabelCount        = errors.New("release pull request must have exactly one release label")
 	errReleaseTriggerPullRequestCount  = errors.New("multiple release pull requests are associated with the commit")
+	errReleaseTriggerChangelogMissing  = errors.New(
+		"release pull request does not change the selected component changelog",
+	)
+	errReleaseTriggerMultipleChangelogs = errors.New(
+		"release pull request changes changelogs for multiple registered components",
+	)
 )
 
 // ReleaseTriggerRequest describes a canonical repository event that may start a release.
@@ -55,8 +61,13 @@ type releaseTriggerPullRequestLabel struct {
 	Name string `json:"name"`
 }
 
+type releaseTriggerPullRequestFile struct {
+	Filename string `json:"filename"`
+}
+
 type releaseTriggerPullRequestReader interface {
 	pullRequestsForCommit(ctx context.Context, sha string) ([]releaseTriggerPullRequest, error)
+	pullRequestFiles(ctx context.Context, number int) ([]string, error)
 }
 
 type releaseTriggerValidator func(context.Context, string, string, string) error
@@ -158,7 +169,15 @@ func resolvePushReleaseTrigger(
 	}
 
 	component := candidateComponents[0]
-	if err := validateReleaseTriggerComponent(component, req.RefName); err != nil {
+	validationErr := validateReleaseTriggerComponent(component, req.RefName)
+	if validationErr != nil {
+		return ReleaseTriggerResult{}, validationErr
+	}
+	changedFiles, err := reader.pullRequestFiles(ctx, candidate.Number)
+	if err != nil {
+		return ReleaseTriggerResult{}, fmt.Errorf("list release pull request files: %w", err)
+	}
+	if err := validateReleaseTriggerFiles(component, changedFiles); err != nil {
 		return ReleaseTriggerResult{}, err
 	}
 	if req.BeforeSHA == "" {
@@ -199,6 +218,35 @@ func validateReleaseTriggerComponent(component, baseBranch string) error {
 	return nil
 }
 
+func validateReleaseTriggerFiles(component string, changedFiles []string) error {
+	selected, err := GetComponent(component)
+	if err != nil {
+		return fmt.Errorf("get release trigger component: %w", err)
+	}
+
+	files := make(map[string]struct{}, len(changedFiles))
+	for _, path := range changedFiles {
+		files[path] = struct{}{}
+	}
+	if _, found := files[selected.ChangelogPath]; !found {
+		return fmt.Errorf("%w: %s", errReleaseTriggerChangelogMissing, selected.ChangelogPath)
+	}
+	for name, registered := range components {
+		if name == component {
+			continue
+		}
+		if _, found := files[registered.ChangelogPath]; found {
+			return fmt.Errorf(
+				"%w: %s and %s",
+				errReleaseTriggerMultipleChangelogs,
+				selected.ChangelogPath,
+				registered.ChangelogPath,
+			)
+		}
+	}
+	return nil
+}
+
 func (g *GitHubCLI) pullRequestsForCommit(
 	ctx context.Context,
 	sha string,
@@ -215,15 +263,45 @@ func (g *GitHubCLI) pullRequestsForCommit(
 	return parseReleaseTriggerPullRequestPages(output)
 }
 
-func parseReleaseTriggerPullRequestPages(output string) ([]releaseTriggerPullRequest, error) {
-	var pages [][]releaseTriggerPullRequest
-	if err := json.Unmarshal([]byte(output), &pages); err != nil {
-		return nil, fmt.Errorf("decode pull requests for commit: %w", err)
+func (g *GitHubCLI) pullRequestFiles(ctx context.Context, number int) ([]string, error) {
+	endpoint := fmt.Sprintf(
+		"repos/%s/pulls/%d/files?per_page=100",
+		canonicalRepositoryName,
+		number,
+	)
+	output, err := g.runRead(ctx, "api", "--paginate", "--slurp", endpoint)
+	if err != nil {
+		return nil, err
 	}
 
-	var pullRequests []releaseTriggerPullRequest
-	for _, page := range pages {
-		pullRequests = append(pullRequests, page...)
+	files, err := parseReleaseTriggerPages[releaseTriggerPullRequestFile](output)
+	if err != nil {
+		return nil, fmt.Errorf("decode release pull request files: %w", err)
+	}
+	paths := make([]string, 0, len(files))
+	for _, file := range files {
+		paths = append(paths, file.Filename)
+	}
+	return paths, nil
+}
+
+func parseReleaseTriggerPullRequestPages(output string) ([]releaseTriggerPullRequest, error) {
+	pullRequests, err := parseReleaseTriggerPages[releaseTriggerPullRequest](output)
+	if err != nil {
+		return nil, fmt.Errorf("decode pull requests for commit: %w", err)
 	}
 	return pullRequests, nil
+}
+
+func parseReleaseTriggerPages[T any](output string) ([]T, error) {
+	var pages [][]T
+	if err := json.Unmarshal([]byte(output), &pages); err != nil {
+		return nil, fmt.Errorf("decode paginated GitHub response: %w", err)
+	}
+
+	var items []T
+	for _, page := range pages {
+		items = append(items, page...)
+	}
+	return items, nil
 }

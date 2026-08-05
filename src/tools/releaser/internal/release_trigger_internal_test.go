@@ -8,13 +8,23 @@ import (
 
 var errTriggerValidation = errors.New("trigger validation failed")
 
-type releaseTriggerPullRequestReaderFunc func(context.Context, string) ([]releaseTriggerPullRequest, error)
+type fakeReleaseTriggerPullRequestReader struct {
+	pullRequestsForCommitFunc func(context.Context, string) ([]releaseTriggerPullRequest, error)
+	pullRequestFilesFunc      func(context.Context, int) ([]string, error)
+}
 
-func (f releaseTriggerPullRequestReaderFunc) pullRequestsForCommit(
+func (f fakeReleaseTriggerPullRequestReader) pullRequestsForCommit(
 	ctx context.Context,
 	sha string,
 ) ([]releaseTriggerPullRequest, error) {
-	return f(ctx, sha)
+	return f.pullRequestsForCommitFunc(ctx, sha)
+}
+
+func (f fakeReleaseTriggerPullRequestReader) pullRequestFiles(
+	ctx context.Context,
+	number int,
+) ([]string, error) {
+	return f.pullRequestFilesFunc(ctx, number)
 }
 
 func TestResolveReleaseTriggerManual(t *testing.T) {
@@ -93,6 +103,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 		name         string
 		refName      string
 		pullRequests []releaseTriggerPullRequest
+		changedFiles []string
 	}{
 		{
 			name:         "merged app release",
@@ -182,12 +193,28 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			validateErr:  errTriggerValidation,
 			wantErr:      errTriggerValidation,
 		},
+		{
+			name:         "release label must match the candidate pull request files",
+			pullRequests: []releaseTriggerPullRequest{appPR},
+			refName:      "main",
+			changedFiles: []string{"src/cli/CHANGELOG.md"},
+			wantErr:      errReleaseTriggerChangelogMissing,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			validated := false
+			changedFiles := tc.changedFiles
+			if changedFiles == nil {
+				switch {
+				case tc.want.Component == "studioctl":
+					changedFiles = []string{"src/cli/CHANGELOG.md"}
+				case tc.want.Component == "app" || tc.validateErr != nil:
+					changedFiles = []string{"src/App/backend/CHANGELOG.md"}
+				}
+			}
 			got, err := resolveReleaseTriggerWithDeps(
 				t.Context(),
 				ReleaseTriggerRequest{
@@ -197,9 +224,14 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 					SHA:       "0123456789abcdef",
 					BeforeSHA: "abcdef0123456789",
 				},
-				releaseTriggerPullRequestReaderFunc(func(context.Context, string) ([]releaseTriggerPullRequest, error) {
-					return tc.pullRequests, nil
-				}),
+				fakeReleaseTriggerPullRequestReader{
+					pullRequestsForCommitFunc: func(context.Context, string) ([]releaseTriggerPullRequest, error) {
+						return tc.pullRequests, nil
+					},
+					pullRequestFilesFunc: func(context.Context, int) ([]string, error) {
+						return changedFiles, nil
+					},
+				},
 				func(_ context.Context, component, base, head string) error {
 					validated = true
 					if component == "" || base != "abcdef0123456789" || head != "0123456789abcdef" {
@@ -237,5 +269,47 @@ func TestParseReleaseTriggerPullRequestPages(t *testing.T) {
 	}
 	if len(pullRequests) != 1 || pullRequests[0].Number != 123 {
 		t.Fatalf("parseReleaseTriggerPullRequestPages() = %+v", pullRequests)
+	}
+}
+
+func TestValidateReleaseTriggerFiles(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		wantErr   error
+		name      string
+		component string
+		files     []string
+	}{
+		{
+			name:      "registered component changelog",
+			component: "app",
+			files:     []string{"src/App/backend/CHANGELOG.md"},
+		},
+		{
+			name:      "wrong component changelog",
+			component: "studioctl",
+			files:     []string{"src/App/backend/CHANGELOG.md"},
+			wantErr:   errReleaseTriggerChangelogMissing,
+		},
+		{
+			name:      "multiple component changelogs",
+			component: "app",
+			files: []string{
+				"src/App/backend/CHANGELOG.md",
+				"src/cli/CHANGELOG.md",
+			},
+			wantErr: errReleaseTriggerMultipleChangelogs,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			err := validateReleaseTriggerFiles(tc.component, tc.files)
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("validateReleaseTriggerFiles() error = %v, want %v", err, tc.wantErr)
+			}
+		})
 	}
 }
