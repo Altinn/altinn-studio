@@ -49,6 +49,7 @@ export default defineConfig({
     pool: 'vmThreads',
     setupFiles: ['./src/setupTests.ts'],
     testTimeout: Number.parseInt(process.env.VITEST_TIMEOUT ?? '20000', 10),
+    vmMemoryLimit: '2GB',
     coverage: {
       include: ['src/**/*.{ts,tsx}'],
       provider: 'v8',
