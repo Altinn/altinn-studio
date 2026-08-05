@@ -48,9 +48,16 @@ export type DataModelBindingsSimple = {
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
 
+// Frontend v4 and v9 use different spellings for this component contract. Keep both definitions
+// while Designer supports editing both app versions.
 type DataModelBindingsOrganisationLookup = {
   organisation_lookup_orgnr: ExplicitDataModelBinding;
   organisation_lookup_name?: ExplicitDataModelBinding;
+};
+
+type DataModelBindingsOrganizationLookup = {
+  organization_lookup_orgnr: ExplicitDataModelBinding;
+  organization_lookup_name?: ExplicitDataModelBinding;
 };
 
 type DataModelBindingsPersonLookup = {
@@ -353,9 +360,14 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     validateOnNext?: PageValidation;
     validateOnPrevious?: PageValidation;
   };
+  // Legacy frontend v4 contract; frontend v9 uses the OrganizationLookup entry below.
   [ComponentType.OrganisationLookup]: FormComponentProps &
     SummarizableComponentProps & {
       dataModelBindings: DataModelBindingsOrganisationLookup;
+    };
+  [ComponentType.OrganizationLookup]: FormComponentProps &
+    SummarizableComponentProps & {
+      dataModelBindings: DataModelBindingsOrganizationLookup;
     };
   [ComponentType.Panel]: {
     variant?: FormPanelVariant;

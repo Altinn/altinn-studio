@@ -11,7 +11,7 @@ public class InstanceDataListsFactory
     private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DataListsFactory"/> class.
+    /// Initializes a new instance of the <see cref="InstanceDataListsFactory"/> class.
     /// </summary>
     public InstanceDataListsFactory(IServiceProvider serviceProvider)
     {

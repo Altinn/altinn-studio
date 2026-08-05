@@ -30,7 +30,6 @@ export default defineConfig([
     '**/*.snap',
     'src/features/expressions/shared-tests/**/*.json',
     'schemas/**/*.json',
-    'webpack*.js', // FIXME: should this be included?
     '.yarn/*',
     'test/e2e/k6-browser/**/*',
   ]),
@@ -192,6 +191,13 @@ export default defineConfig([
     files: ['src/codegen/**/*.ts'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    // Vite loads these before any tsconfig path aliases are in play, so their imports must be relative.
+    files: ['vite.config*.ts'],
+    rules: {
+      'no-relative-import-paths/no-relative-import-paths': 'off',
     },
   },
   {

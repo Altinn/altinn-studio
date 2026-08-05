@@ -30,6 +30,17 @@ internal static class BpmnBuilder
                 </bpmn:task>
             """;
 
+    public static string ServiceTask(string id, string taskType) =>
+        $"""
+                <bpmn:serviceTask id="{id}" name="{id}">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>{taskType}</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                </bpmn:serviceTask>
+            """;
+
     /// <summary>A pdf service task as the migrator emits it (serviceTask carrying taskType `pdf`).</summary>
     public static string PdfServiceTask(string id) =>
         $"""

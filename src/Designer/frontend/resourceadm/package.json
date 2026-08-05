@@ -12,8 +12,8 @@
     "dompurify": "^3.2.6",
     "html-react-parser": "^5.2.5",
     "markdown-to-jsx": "7.7.17",
-    "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",

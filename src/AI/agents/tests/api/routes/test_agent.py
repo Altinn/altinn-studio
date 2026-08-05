@@ -1,5 +1,5 @@
 import contextlib
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -39,18 +39,15 @@ def reset_rate_limiters():
 
 @contextlib.contextmanager
 def _stubbed_agent_start(repo_path):
-    """Stub the side effects of a successful start so the body returns 200 without cloning or MCP."""
+    """Stub the side effects of a successful start so the body returns 200 without cloning."""
     repo_manager = Mock()
     repo_manager.clone_repo_for_session.return_value = str(repo_path)
-    mcp_client = Mock()
-    mcp_client.check_server_status = AsyncMock()
     sink_stub = Mock()
     sink_stub.get_conversation_history.return_value = []
     with (
         patch("api.routes.agent.get_repo_manager", return_value=repo_manager),
         patch("api.routes.agent.run_in_background"),
         patch("api.routes.agent.sink", sink_stub),
-        patch("agents.services.mcp.get_mcp_client", return_value=mcp_client),
     ):
         yield
 
@@ -104,3 +101,33 @@ class TestStartAgentRateLimiting:
             response = _post_start(client, "a-fresh-developer")
 
         assert response.status_code == 429
+
+
+class TestPermissionGateDefaults:
+    """The write-permission flag must fail closed everywhere it has a default."""
+
+    def test_start_request_defaults_to_read_only(self):
+        from api.routes.agent import StartReq
+
+        request = StartReq(
+            session_id="sess-1",
+            goal="add a field",
+            repo_url="http://gitea/repo.git",
+            org="ttd",
+        )
+
+        assert request.allow_app_changes is False
+
+    def test_agent_state_defaults_to_read_only(self):
+        from agents.graph.state import AgentState
+
+        state = AgentState(
+            session_id="sess-1",
+            user_goal="add a field",
+            repo_path="/tmp/repo",
+            app_name="test-app",
+            developer="dev",
+            org="ttd",
+        )
+
+        assert state.allow_app_changes is False

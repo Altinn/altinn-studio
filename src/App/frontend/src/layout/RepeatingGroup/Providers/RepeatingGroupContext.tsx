@@ -26,6 +26,7 @@ interface Store {
   deletingIds: string[];
   addingIds: string[];
   currentPage: number | undefined;
+  deletedRowsCount: number;
 }
 
 interface ZustandHiddenMethods {
@@ -205,6 +206,7 @@ function newStore({ baseComponentId, getRows, editMode, pagination }: NewStorePr
     deletingIds: [],
     addingIds: [],
     currentPage: pagination ? 0 : undefined,
+    deletedRowsCount: 0,
 
     closeForEditing: (row) => {
       set((state) => {
@@ -286,11 +288,13 @@ function newStore({ baseComponentId, getRows, editMode, pagination }: NewStorePr
           return state;
         }
         const deletingIds = [...state.deletingIds.slice(0, i), ...state.deletingIds.slice(i + 1)];
+        const deletedRowsCount = successful ? state.deletedRowsCount + 1 : state.deletedRowsCount;
         if (isEditing && successful) {
-          return { editingId: undefined, deletingIds };
+          return { editingId: undefined, deletingIds, deletedRowsCount };
         }
         return {
           deletingIds,
+          deletedRowsCount,
           editingId: isEditing && successful ? undefined : state.editingId,
         };
       });
@@ -441,11 +445,13 @@ export const RepGroupContext = {
     const rawOpenNextForEditing = ZStore.useStaticSelector((state) => state.openNextForEditing);
     const maybeValidateRow = useMaybeValidateRow();
 
-    return async () => {
+    // Returns true when the next row was opened, false when validation blocked it (row stays open).
+    return async (): Promise<boolean> => {
       if (await maybeValidateRow()) {
-        return;
+        return false;
       }
       rawOpenNextForEditing();
+      return true;
     };
   },
   useCloseForEditing() {
@@ -453,12 +459,14 @@ export const RepGroupContext = {
     const maybeValidateRow = useMaybeValidateRow();
     const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
 
-    return async (row: BaseRow) => {
+    // Returns true when the row was closed, false when validation blocked it (row stays open).
+    return async (row: BaseRow): Promise<boolean> => {
       if (await maybeValidateRow()) {
-        return;
+        return false;
       }
       setRowValidationMask(row.uuid, undefined);
       rawCloseForEditing(row);
+      return true;
     };
   },
   useChangePage() {

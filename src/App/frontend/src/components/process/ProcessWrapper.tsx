@@ -23,7 +23,9 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
-import { ServiceTask } from 'src/features/process/service/ServiceTask';
+import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
+import { ServiceTaskWaiting } from 'src/features/process/service/ServiceTaskWaiting';
+import { useFollowProcess } from 'src/features/process/useFollowProcess';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { useWaitForQueries } from 'src/hooks/useWaitForQueries';
@@ -31,6 +33,7 @@ import { getComponentDef, implementsSubRouting } from 'src/layout';
 import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
 interface NavigationErrorProps {
@@ -128,9 +131,20 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
+  const { data: process } = useProcessQuery();
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
   useNavigateToSettledTask(taskId, !isPdfMode);
+
+  // A process parked on a service task advances out-of-band (the task is waiting for an external
+  // outcome), so nothing in this session would otherwise observe the advance: the live workflow
+  // annotation is idle (no transition in flight) and InstanceContext only polls while processing.
+  // Poll here and carry the user forward when the process moves. Keyed on the committed task's
+  // element type - not the classified taskType - so a service task with a custom layout (which
+  // classifies and renders as a Data task) is followed the same way as the default waiting view.
+  const isParkedOnServiceTask =
+    process?.currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK && (workflow?.status ?? 'idle') === 'idle';
+  useFollowProcess(!isPdfMode && isParkedOnServiceTask);
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
@@ -180,6 +194,19 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
+  // A failure owned by the current service task renders the task's recoverable failure view.
+  // This takes precedence over a custom layout (which would classify the task as Data below and
+  // render its form with no trace of the failure), and sits before the wrong-task guard for the
+  // same reason as the guards above: the URL may still point at the transition's previous task
+  // while useNavigateToSettledTask converges it onto the committed one.
+  if (!isPdfMode && failedOnCurrentServiceTask) {
+    return (
+      <PresentationComponent>
+        <ServiceTaskFailed />
+      </PresentationComponent>
+    );
+  }
+
   if (isWrongTask) {
     return (
       <PresentationComponent showNavigation={false}>
@@ -204,11 +231,15 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
+  // A service task without a failure and without a custom layout is an implicit waiting step:
+  // the process is parked here pending an outcome, and the poll above carries the user forward
+  // when it advances. The PdfWrapper stays because PDF mode renders the PDF service task's
+  // snapshot through it; outside PDF mode it just passes the waiting view through.
   if (taskType === ProcessTaskType.Service) {
     return (
       <PdfWrapper>
         <PresentationComponent>
-          <ServiceTask />
+          <ServiceTaskWaiting />
         </PresentationComponent>
       </PdfWrapper>
     );

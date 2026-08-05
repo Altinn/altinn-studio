@@ -13,6 +13,7 @@ import labelClasses from './Label.module.css';
 
 export type FieldsetProps = {
   id?: string;
+  'aria-describedby'?: string;
   legend: string | ReactElement | undefined;
   legendSize?: Extract<DesignsystemetLabelProps['data-size'], 'sm' | 'md' | 'lg' | 'xl'>;
   className?: string;
@@ -28,6 +29,7 @@ export type FieldsetProps = {
 
 export function Fieldset({
   id,
+  'aria-describedby': ariaDescribedBy,
   children,
   className,
   legend,
@@ -63,6 +65,7 @@ export function Fieldset({
           className={cn(className)}
           data-size={size}
           aria-labelledby={`${legendId} ${descriptionId}`}
+          aria-describedby={ariaDescribedBy}
         >
           <DesignsystemetFieldset.Legend id={legendId} className={labelClasses.legend}>
             <span className={cn(labelClasses.labelAndHelpWrapper)}>

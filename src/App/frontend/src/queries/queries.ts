@@ -22,6 +22,7 @@ import {
   getPaymentInformationForTaskUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
+  getProcessResumeUrl,
   getUpdateFileTagsUrl,
   refreshJwtTokenUrl,
 } from 'src/utils/urls/appUrlHelper';
@@ -36,10 +37,12 @@ import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
-import type { IActionType, IData, PostalCodesRegistry } from 'src/types/shared';
+import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
+
+export const doProcessResume = async (instanceId: string) => httpPost<IProcess>(getProcessResumeUrl(instanceId));
 
 export const doAttachmentUpload = async (
   instanceId: string,

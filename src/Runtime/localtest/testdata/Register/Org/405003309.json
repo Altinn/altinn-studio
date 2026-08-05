@@ -7,10 +7,10 @@
   "FaxNumber": "92110000",
   "EMailAddress": "localtest@digdir.no",
   "InternetAddress": "http://digdir.no",
-  "MailingAddress": "Lørenfaret 1C",
+  "MailingAddress": "Lørenfaret 1C 0580 Oslo",
   "MailingPostalCode": "0580",
   "MailingPostalCity": "Oslo",
-  "BusinessAddress": "Lørenfaret 1C",
+  "BusinessAddress": "Lørenfaret 1C 0580 Oslo",
   "BusinessPostalCode": "0580",
   "BusinessPostalCity": "Oslo"
 }

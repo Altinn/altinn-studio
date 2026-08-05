@@ -1,6 +1,6 @@
 # Core MCP framework
 fastmcp>=3.1.1
-mcp>=1.26.0
+mcp>=1.28.1
 
 # Server
 uvicorn>=0.42.0

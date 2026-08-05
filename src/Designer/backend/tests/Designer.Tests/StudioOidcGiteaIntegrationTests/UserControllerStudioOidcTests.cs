@@ -76,6 +76,7 @@ public class UserControllerStudioOidcTests : StudioOidcGiteaIntegrationTestsBase
 
     [Theory]
     [InlineData(GiteaConstants.TestOrgUsername, true)]
+    [InlineData(GiteaConstants.TestUser, true)]
     [InlineData("OtherOrg", false)]
     public async Task HasAccessToCreateRepository_ShouldReturnCorrectPermissions(string org, bool expectedCanCreate)
     {

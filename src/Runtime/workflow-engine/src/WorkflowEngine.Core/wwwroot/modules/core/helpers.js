@@ -15,6 +15,17 @@ export const esc = (s) => {
 export const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
+ * Escape a value for use as a single-quoted string argument inside an inline `onclick`
+ * attribute. `esc()` alone HTML-escapes but leaves quotes intact, so an apostrophe in a
+ * caller-controlled value (namespace, collection key, step names) would terminate the JS
+ * string literal, and a double quote would end the attribute itself. Backslash-escapes
+ * quotes/backslashes for the JS layer, then HTML-escapes for the attribute layer.
+ * @param {string} s
+ */
+export const escJsArg = (s) =>
+    esc(String(s ?? '').replace(/[\\']/g, (c) => `\\${c}`)).replace(/"/g, '&quot;');
+
+/**
  * Decode a namespace for display. Namespaces are URL-encoded for use as routing
  * path segments (e.g. `ttd%2fworkflow-engine-test`), so decode for human display.
  * Keep the raw value for filtering, data attributes, and API calls.
@@ -30,14 +41,21 @@ export const fmtNamespace = (ns) => {
 };
 
 /**
- * Abbreviate any 32-char hex GUID ("N" format) runs to their first 8 chars for
- * compact display. Works on bare GUIDs and on strings that embed them (e.g. a
- * collection key like `process-next:<guid>:Form:2`). Keep the full value for
+ * Abbreviate GUID runs ("N" format 32-char hex, or dashed "D" format) to their first
+ * 8 chars for compact display. Works on bare GUIDs and on strings that embed them
+ * (e.g. a collection key like `process-next:<guid>:Form:2`). Keep the full value for
  * filtering, data attributes, and titles.
  * @param {string|null|undefined} s
  */
 export const abbrevGuids = (s) =>
-    s == null ? s : String(s).replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
+    s == null
+        ? s
+        : String(s)
+              .replace(
+                  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+                  (m) => `${m.slice(0, 8)}…`,
+              )
+              .replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
 
 /** @param {number} seconds */
 export const formatElapsed = (seconds) => {

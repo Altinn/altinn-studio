@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.26.5-trixie@sha256:117e07f49461abb984fc8aef661432461ff43d06faa22c3b73af6a49ce325cb9 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.5-trixie@sha256:8229e3b2cf7fc08878a86977547e3119c173681c3cc4a64c38cf0c6fe0b42fa8 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -12,7 +12,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o main ./cmd/worker
 
-FROM docker.io/chromedp/headless-shell:stable@sha256:7f8ec4782f1b138c30900e65ae53795d5966fbf52168b8fc062843db3e6d5be5
+FROM docker.io/chromedp/headless-shell:stable@sha256:c65aef2b8fef5113cb97be8c99f7bf094320ca9b11e511041e6924e516bda0a1
 
 USER root
 

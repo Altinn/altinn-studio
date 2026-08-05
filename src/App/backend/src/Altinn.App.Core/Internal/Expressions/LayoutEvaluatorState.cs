@@ -235,7 +235,9 @@ public class LayoutEvaluatorState
     public async Task<DataReference[]> GetResolvedKeys(DataReference reference)
     {
         var data = await DataAccessor.GetFormDataWrapper(reference.DataElementIdentifier);
-        return data.GetResolvedKeys(reference);
+        return data.GetResolvedKeys(reference.Field)
+            .Select(resolvedField => reference with { Field = resolvedField })
+            .ToArray();
     }
 
     /// <summary>
