@@ -1982,7 +1982,7 @@ namespace Altinn.App.Core.Features.Process
     }
     public interface IPipelineServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
-        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder task);
+        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder pipeline);
     }
     public interface IProcessStepConfigurable
     {

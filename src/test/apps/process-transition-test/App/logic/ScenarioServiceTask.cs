@@ -66,8 +66,7 @@ public sealed class ScenarioServiceTask : IPipelineServiceTask
 
     public ProcessStepOptions? StepOptions => new() { WaitBudget = ScenarioWaitBudget };
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-        task.Stage("PrepareScenario", PrepareScenario).Finally(RunScenario);
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>        pipeline.Stage("PrepareScenario", PrepareScenario).Finally(RunScenario);
 
     /// <summary>
     /// The pipeline's stage. It has no scenario work of its own — it exists so that every
@@ -75,8 +74,7 @@ public sealed class ScenarioServiceTask : IPipelineServiceTask
     /// once per pass, and retries/resumes of the scenario re-enter at <c>RunScenario</c> without
     /// re-running it (the engine's step ledger, observed end to end).
     /// </summary>
-    private Task<ServiceTaskStageResult> PrepareScenario(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private Task<ServiceTaskStageResult> PrepareScenario(ServiceTaskContext context) =>        Task.FromResult(ServiceTaskStageResult.Completed());
 
     private async Task<ServiceTaskResult> RunScenario(ServiceTaskContext context)
     {

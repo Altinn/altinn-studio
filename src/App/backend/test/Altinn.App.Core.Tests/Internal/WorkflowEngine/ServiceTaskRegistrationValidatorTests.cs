@@ -48,8 +48,8 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "good";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage("Send", NoopStage).Finally(NoopFinally);
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline.Stage("Send", NoopStage).Finally(NoopFinally);
     }
 
     [Fact]
@@ -82,8 +82,8 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "duplicateNames";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage("stage", NoopStage).Stage("stage", NoopStage).Finally(NoopFinally);
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline.Stage("stage", NoopStage).Stage("stage", NoopStage).Finally(NoopFinally);
     }
 
     [Fact]
@@ -100,8 +100,8 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "emptyName";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage("  ", NoopStage).Finally(NoopFinally);
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline.Stage("  ", NoopStage).Finally(NoopFinally);
     }
 
     [Fact]
@@ -117,8 +117,8 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "nonAsciiName";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage("Send · Arkiv", NoopStage).Finally(NoopFinally);
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline.Stage("Send · Arkiv", NoopStage).Finally(NoopFinally);
     }
 
     [Fact]
@@ -137,8 +137,9 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "invalidOptions";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage("Send", NoopStage, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) })
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("Send", NoopStage, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) })
                 .Finally(NoopFinally);
     }
 
@@ -155,7 +156,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "throwingDefine";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             throw new InvalidOperationException("no pipeline for you");
     }
 
@@ -172,7 +173,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "nullDefine";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) => null!;
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => null!;
     }
 
     [Fact]
@@ -195,7 +196,8 @@ public class ServiceTaskRegistrationValidatorTests
         // The violation: an IServiceTask providing its own Define, silently turning Execute into
         // dead code. (Suppressing the compile-time diagnostic here would be circular — this test
         // project doesn't run the app-facing analyzer.)
-        ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder task) => task.Finally(NoopFinally);
+        ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline.Finally(NoopFinally);
     }
 
     [Fact]

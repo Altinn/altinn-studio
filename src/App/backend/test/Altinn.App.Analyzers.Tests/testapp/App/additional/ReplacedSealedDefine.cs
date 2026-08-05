@@ -11,7 +11,7 @@ internal sealed class ExplicitlyReplacedDefineTask : IServiceTask
     public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder task) => task.Finally(Execute);
+    ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
 }
 
 // Violates ALTINNAPP0700: the same replacement, implicitly (a public Define shadowing the default).
@@ -22,7 +22,7 @@ internal sealed class ImplicitlyReplacedDefineTask : IServiceTask
     public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) => task.Finally(Execute);
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
 }
 
 // Fine: a simple task keeping the forwarding default.
@@ -39,7 +39,8 @@ internal sealed class WellBehavedPipelineTask : IPipelineServiceTask
 {
     public string Type => "pipeline";
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-        task.Stage("Send", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        pipeline
+            .Stage("Send", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 }

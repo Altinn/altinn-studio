@@ -27,13 +27,7 @@ public interface IServiceTask : IPipelineServiceTask
     /// must never replace it (enforced at compile time and at app startup).
     /// </summary>
     [SealedImplementation(
-        "Implement "
-            + nameof(IPipelineServiceTask)
-            + " directly instead — on an "
-            + nameof(IServiceTask)
-            + ", "
-            + nameof(Execute)
-            + " would never run"
+        $"Implement {nameof(IPipelineServiceTask)} directly instead — on an {nameof(IServiceTask)}, {nameof(Execute)} would never run"
     )]
-    ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder task) => task.Finally(Execute);
+    ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
 }

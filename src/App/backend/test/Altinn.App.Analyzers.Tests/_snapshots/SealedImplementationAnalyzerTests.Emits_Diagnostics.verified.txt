@@ -8,7 +8,7 @@
     Code: Define,
     HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0700,
     MessageFormat: '{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}.,
-    Message: 'ExplicitlyReplacedDefineTask' replaces 'ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder task)', whose default implementation on 'IServiceTask' is sealed. Implement IPipelineServiceTask directly instead — on an IServiceTask, Execute would never run.,
+    Message: 'ExplicitlyReplacedDefineTask' replaces 'ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline)', whose default implementation on 'IServiceTask' is sealed. Implement IPipelineServiceTask directly instead — on an IServiceTask, Execute would never run.,
     Category: Contracts
   },
   {
@@ -20,7 +20,7 @@
     Code: Define,
     HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0700,
     MessageFormat: '{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}.,
-    Message: 'ImplicitlyReplacedDefineTask' replaces 'ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder task)', whose default implementation on 'IServiceTask' is sealed. Implement IPipelineServiceTask directly instead — on an IServiceTask, Execute would never run.,
+    Message: 'ImplicitlyReplacedDefineTask' replaces 'ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline)', whose default implementation on 'IServiceTask' is sealed. Implement IPipelineServiceTask directly instead — on an IServiceTask, Execute would never run.,
     Category: Contracts
   }
 ]

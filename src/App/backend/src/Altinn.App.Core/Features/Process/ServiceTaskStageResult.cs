@@ -45,6 +45,10 @@ public abstract record ServiceTaskStageResult
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
+    /// <remarks>
+    /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
+    /// failure are discarded, and the retry starts from exactly the state this attempt received.
+    /// </remarks>
     public static ServiceTaskStageResult FailedRetryable(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
@@ -57,6 +61,11 @@ public abstract record ServiceTaskStageResult
     /// (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
+    /// <remarks>
+    /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
+    /// failure are discarded, and an operational resume re-runs this stage from exactly the state
+    /// this attempt received.
+    /// </remarks>
     public static ServiceTaskStageResult FailedPermanent(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);

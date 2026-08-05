@@ -32,8 +32,8 @@ public class ExecuteServiceTaskStageTests
         public Func<ServiceTaskContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage("SendShipment", ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline.Stage("SendShipment", ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
     }
 
     private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
@@ -310,10 +310,10 @@ public class ExecuteServiceTaskStageTests
     {
         public string Type => "shipping";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            // The wire identity is the literal, not the method: renaming SendViaNewClient (from,
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => // The wire identity is the literal, not the method: renaming SendViaNewClient (from,
             // say, SendShipment) is refactor-safe because "legacySend" stays put.
-            task.Stage("legacySend", SendViaNewClient)
+            pipeline
+                .Stage("legacySend", SendViaNewClient)
                 .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
         private Task<ServiceTaskStageResult> SendViaNewClient(ServiceTaskContext context) =>

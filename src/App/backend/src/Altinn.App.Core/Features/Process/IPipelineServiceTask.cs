@@ -43,5 +43,5 @@ public interface IPipelineServiceTask : IProcessTask, IProcessStepConfigurable
     /// free: compose the same pipeline every time, and do no work — work happens inside the
     /// stages when the engine runs them.
     /// </remarks>
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task);
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline);
 }

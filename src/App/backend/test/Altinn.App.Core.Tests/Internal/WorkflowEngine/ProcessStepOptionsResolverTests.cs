@@ -318,8 +318,9 @@ public class ProcessStepOptionsResolverTests
 
         public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage(
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(
                     "Entry",
                     _ => Task.FromResult(ServiceTaskStageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }

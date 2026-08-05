@@ -24,8 +24,9 @@ public sealed class ThreePartPipelineTask : IPipelineServiceTask
 {
     public string Type => "pipeline";
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-        task.Stage("ReserveResources", ReserveResources)
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        pipeline
+            .Stage("ReserveResources", ReserveResources)
             .Stage(
                 "DispatchOrder",
                 DispatchOrder,

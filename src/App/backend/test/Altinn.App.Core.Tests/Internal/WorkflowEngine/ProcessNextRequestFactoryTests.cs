@@ -560,8 +560,9 @@ public class ProcessNextRequestFactoryTests
         public ProcessStepOptions? StepOptions =>
             new() { MaxExecutionTime = TimeSpan.FromMinutes(30), WaitBudget = TimeSpan.FromHours(48) };
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
-            task.Stage(
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(
                     "Dispatch",
                     _ => Task.FromResult(ServiceTaskStageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
