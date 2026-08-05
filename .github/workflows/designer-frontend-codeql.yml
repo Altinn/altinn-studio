@@ -60,13 +60,13 @@ jobs:
             src/Designer/frontend
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3
+        uses: github/codeql-action/init@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
         with:
           languages: javascript
           queries: ${{ steps.codeql-config.outputs.queries }}
           config-file: ${{ steps.codeql-config.outputs.config-file }}
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3
+        uses: github/codeql-action/analyze@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
         with:
           category: '/codeql/designer/frontend/javascript'

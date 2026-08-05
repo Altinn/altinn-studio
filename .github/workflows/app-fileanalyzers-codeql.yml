@@ -55,7 +55,7 @@ jobs:
         language: ${{ matrix.language }}
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3
+      uses: github/codeql-action/init@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
       with:
         languages: ${{ matrix.language }}
         build-mode: manual
@@ -71,6 +71,6 @@ jobs:
       run: dotnet build solutions/Src.slnx -v m
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3
+      uses: github/codeql-action/analyze@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
       with:
         category: "/codeql/app/fileanalyzers/${{ matrix.language }}"
