@@ -8,6 +8,29 @@ namespace Altinn.Studio.Cli.Upgrade;
 internal static class GitOperations
 {
     /// <summary>
+    /// Whether the repository containing <paramref name="path"/> has local changes — staged, unstaged or
+    /// untracked.
+    /// </summary>
+    public static bool HasLocalChanges(string path)
+    {
+        try
+        {
+            var repoPath = Repository.Discover(path);
+            if (string.IsNullOrEmpty(repoPath))
+            {
+                return false;
+            }
+
+            using var repo = new Repository(repoPath);
+            return repo.RetrieveStatus().IsDirty;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Stages every change in the repository containing <paramref name="path"/> — the equivalent of
     /// <c>git add -A</c>. Failures are reported to <paramref name="output"/> and never fail the caller.
     /// </summary>
