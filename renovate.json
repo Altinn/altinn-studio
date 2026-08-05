@@ -166,7 +166,9 @@
         "@types/react-dom"
       ],
       "groupName": "React ecosystem",
-      "groupSlug": "react-ecosystem"
+      "groupSlug": "react-ecosystem",
+      "additionalBranchPrefix": "",
+      "commitMessageSuffix": ""
     }
   ],
   "schedule": []
