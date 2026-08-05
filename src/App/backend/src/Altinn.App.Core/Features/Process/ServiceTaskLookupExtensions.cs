@@ -1,55 +1,32 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Resolution of registered service tasks across their kinds. Tasks register against the kind
-/// interface they implement (<see cref="IServiceTask"/> or <see cref="IStagedServiceTask"/>), so
-/// every consumer that means "any service task" must query both — through here, so the set of
-/// kinds lives in one place.
+/// Lookup helpers for registered service tasks and their steps, so the matching rules — task type
+/// is case-insensitive (BPMN attribute semantics), step names are exact (they are our own wire
+/// values) — live in one place.
 /// </summary>
 internal static class ServiceTaskLookupExtensions
 {
     /// <summary>
-    /// All registered service tasks, of every kind.
-    /// </summary>
-    public static IEnumerable<IServiceTaskBase> GetServiceTasks(this AppImplementationFactory factory)
-    {
-        foreach (IServiceTask task in factory.GetAll<IServiceTask>())
-        {
-            yield return task;
-        }
-
-        foreach (IStagedServiceTask task in factory.GetAll<IStagedServiceTask>())
-        {
-            yield return task;
-        }
-    }
-
-    /// <summary>
     /// The registered service task whose <c>Type</c> matches <paramref name="serviceTaskType"/>
     /// (ignoring case, matching the BPMN attribute semantics), or <c>null</c>.
     /// </summary>
-    public static IServiceTaskBase? FindServiceTask(this AppImplementationFactory factory, string serviceTaskType) =>
+    public static IServiceTask? FindServiceTask(this AppImplementationFactory factory, string serviceTaskType) =>
         factory
-            .GetServiceTasks()
+            .GetAll<IServiceTask>()
             .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// The whole pipeline in execution order: the work steps followed by the final step.
+    /// The task's declared steps. Tolerates a null <see cref="IServiceTask.Steps"/>: the interface
+    /// default is an empty sequence, but mocks and hand-rolled test doubles routinely bypass
+    /// default interface members and return null.
     /// </summary>
-    public static IEnumerable<IServiceTaskStepBase> GetPipelineSteps(this IStagedServiceTask task)
-    {
-        foreach (IServiceTaskStep step in task.Steps)
-        {
-            yield return step;
-        }
-
-        yield return task.FinalStep;
-    }
+    public static IEnumerable<IServiceTaskStep> GetSteps(this IServiceTask task) => task.Steps ?? [];
 
     /// <summary>
-    /// The pipeline step with the given name (exact match — step names are our own wire values),
+    /// The task's step with the given name (exact match — step names are our own wire values),
     /// or <c>null</c>.
     /// </summary>
-    public static IServiceTaskStepBase? FindPipelineStep(this IStagedServiceTask task, string stepName) =>
-        task.GetPipelineSteps().FirstOrDefault(s => string.Equals(s.Name, stepName, StringComparison.Ordinal));
+    public static IServiceTaskStep? FindStep(this IServiceTask task, string stepName) =>
+        task.GetSteps().FirstOrDefault(s => string.Equals(s.Name, stepName, StringComparison.Ordinal));
 }

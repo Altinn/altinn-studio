@@ -6,11 +6,10 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates the app's service-task registrations and every staged task's pipeline shape, once at
-/// startup. Anything caught here — a task registered against the root interface, a class
-/// implementing two kinds, a pipeline with a mismatched handoff seam — would otherwise surface only
-/// when a citizen first advances the affected task, as a failed transition in production. Validating
-/// at boot turns that into a fast, unmissable startup failure.
+/// Validates every registered service task's declared steps, once at startup. Anything caught here
+/// — a throwing <c>Steps</c> property, a duplicate or empty step name, invalid per-step options —
+/// would otherwise surface only when a citizen first advances the affected task, as a failed
+/// transition in production. Validating at boot turns that into a fast, unmissable startup failure.
 /// </summary>
 /// <remarks>
 /// Mirrors <see cref="WorkflowStepOptionsValidator"/>: handlers are resolved in a fresh DI scope,
@@ -39,32 +38,9 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
         var errors = new List<string>();
 
-        foreach (IServiceTaskBase task in Resolve<IServiceTaskBase>(sp))
+        foreach (IServiceTask task in Resolve<IServiceTask>(sp))
         {
-            errors.Add(
-                $"  - {task.GetType().FullName} is registered against {nameof(IServiceTaskBase)}, which the runtime "
-                    + $"never resolves. Register it against the kind it implements: {nameof(IServiceTask)} or "
-                    + $"{nameof(IStagedServiceTask)}."
-            );
-        }
-
-        List<IServiceTask> simpleTasks = Resolve<IServiceTask>(sp);
-        List<IStagedServiceTask> stagedTasks = Resolve<IStagedServiceTask>(sp);
-
-        foreach (object task in simpleTasks.Cast<object>().Concat(stagedTasks).Distinct())
-        {
-            if (task is IServiceTask && task is IStagedServiceTask)
-            {
-                errors.Add(
-                    $"  - {task.GetType().FullName} implements both {nameof(IServiceTask)} and "
-                        + $"{nameof(IStagedServiceTask)}. A service task must be exactly one kind."
-                );
-            }
-        }
-
-        foreach (IStagedServiceTask staged in stagedTasks)
-        {
-            ValidatePipeline(staged, errors);
+            ValidateSteps(task, errors);
         }
 
         if (errors.Count > 0)
@@ -81,39 +57,29 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private static void ValidatePipeline(IStagedServiceTask task, List<string> errors)
+    private static void ValidateSteps(IServiceTask task, List<string> errors)
     {
         string taskName = task.GetType().FullName ?? task.GetType().Name;
 
-        List<IServiceTaskStepBase> steps;
+        List<IServiceTaskStep> steps;
         try
         {
-            // Materializes both Steps and FinalStep — a throwing property lands here.
-            steps = task.GetPipelineSteps().ToList();
+            // Materializes Steps — a throwing property lands here.
+            steps = task.GetSteps().ToList();
         }
         catch (Exception ex)
         {
-            errors.Add($"  - {taskName}: reading the pipeline steps threw: {ex.Message}");
+            errors.Add($"  - {taskName}: reading {nameof(IServiceTask.Steps)} threw: {ex.Message}");
             return;
-        }
-
-        // GetPipelineSteps always appends FinalStep, so fewer than two steps means Steps was empty.
-        if (steps.Count < 2)
-        {
-            errors.Add(
-                $"  - {taskName}: {nameof(IStagedServiceTask.Steps)} is empty — a pipeline needs at least one work "
-                    + $"step besides {nameof(IStagedServiceTask.FinalStep)}. A task that does one thing should "
-                    + $"implement {nameof(IServiceTask)} instead."
-            );
         }
 
         var names = new HashSet<string>(StringComparer.Ordinal);
         for (int i = 0; i < steps.Count; i++)
         {
-            IServiceTaskStepBase step = steps[i];
+            IServiceTaskStep step = steps[i];
             if (step is null)
             {
-                errors.Add($"  - {taskName}: pipeline step {i} is null.");
+                errors.Add($"  - {taskName}: step {i} is null.");
                 continue;
             }
 
@@ -127,16 +93,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
             {
                 errors.Add(
                     $"  - {taskName}: duplicate step name '{stepName}'. Names are the steps' identity and must be "
-                        + "unique within the pipeline."
-                );
-            }
-
-            if (step is IServiceTaskStep && step is IFinalServiceTaskStep)
-            {
-                errors.Add(
-                    $"  - {taskName}: step '{stepName}' ({step.GetType().FullName}) implements both "
-                        + $"{nameof(IServiceTaskStep)} and {nameof(IFinalServiceTaskStep)}. A step must be exactly "
-                        + "one kind."
+                        + "unique within the task."
                 );
             }
 

@@ -1,17 +1,17 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The result of a work step in an <see cref="IStagedServiceTask"/> pipeline
-/// (<see cref="IServiceTaskStep"/>). Note what is deliberately missing compared to
-/// <see cref="ServiceTaskResult"/>: a work step cannot conclude the task or advance the process —
-/// that is reserved for the pipeline's <see cref="IFinalServiceTaskStep"/>.
+/// The result of an <see cref="IServiceTaskStep"/> — one of a service task's declared
+/// <see cref="IServiceTask.Steps"/>. Note what is deliberately missing compared to
+/// <see cref="ServiceTaskResult"/>: a step cannot conclude the task or advance the process —
+/// that is reserved for the task's own <see cref="IServiceTask.Execute"/>, which always runs last.
 /// </summary>
 public abstract record ServiceTaskStepResult
 {
     private protected ServiceTaskStepResult() { }
 
     /// <summary>
-    /// The step is done: the pipeline advances to the next step. Recorded durably by the engine —
+    /// The step is done: the task advances to its next step. Recorded durably by the engine —
     /// once this result lands, the step never runs again. Data changes made through
     /// <see cref="ServiceTaskContext.InstanceDataMutator"/> are saved, so the steps after this one
     /// see them.

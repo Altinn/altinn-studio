@@ -405,18 +405,16 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The ordered pipeline-step names when the service task is staged, or null for a plain
-    /// service task. Enumerated at enqueue time — this is the moment the pipeline's shape is fixed
-    /// for the workflow's lifetime (callback dispatch is by these names).
+    /// The ordered names of the service task's declared steps — empty for most tasks, which
+    /// declare none. Enumerated at enqueue time: this is the moment the task's step shape is
+    /// fixed for the workflow's lifetime (callback dispatch is by these names).
     /// </summary>
     private IReadOnlyList<string>? GetServiceTaskStepNames(string? serviceTaskType)
     {
         if (serviceTaskType is null)
             return null;
 
-        return _appImplementationFactory.FindServiceTask(serviceTaskType) is IStagedServiceTask staged
-            ? staged.GetPipelineSteps().Select(s => s.Name).ToList()
-            : null;
+        return _appImplementationFactory.FindServiceTask(serviceTaskType)?.GetSteps().Select(s => s.Name).ToList();
     }
 
     private async Task<Actor> ExtractActor()

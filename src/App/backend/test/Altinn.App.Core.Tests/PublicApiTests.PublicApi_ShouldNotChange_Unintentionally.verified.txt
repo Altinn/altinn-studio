@@ -1961,10 +1961,6 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.FailedHookResult FailedRetryable(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.SuccessfulHookResult Success() { }
     }
-    public interface IFinalServiceTaskStep : Altinn.App.Core.Features.Process.IServiceTaskStepBase
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
-    }
     public interface IOnProcessEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndingContext context);
@@ -1988,24 +1984,16 @@ namespace Altinn.App.Core.Features.Process
     {
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Features.Process.IServiceTaskBase, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    public interface IServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
+        System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Process.IServiceTaskStep> Steps { get; }
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
-    public interface IServiceTaskBase : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask { }
-    public interface IServiceTaskStep : Altinn.App.Core.Features.Process.IServiceTaskStepBase
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStepResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
-    }
-    public interface IServiceTaskStepBase
+    public interface IServiceTaskStep
     {
         string Name { get; }
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
-    }
-    public interface IStagedServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Features.Process.IServiceTaskBase, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
-    {
-        Altinn.App.Core.Features.Process.IFinalServiceTaskStep FinalStep { get; }
-        System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Process.IServiceTaskStep> Steps { get; }
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStepResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
     public sealed class OnProcessEndingContext
     {

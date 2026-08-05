@@ -35,27 +35,42 @@ public class ServiceTaskRegistrationValidatorTests
             Task.FromResult(ServiceTaskStepResult.Next());
     }
 
-    private sealed class AwaitStep : IFinalServiceTaskStep
+    private abstract class TaskBase : IServiceTask
     {
+        public abstract string Type { get; }
+
+        public virtual IEnumerable<IServiceTaskStep> Steps => [];
+
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 
-    // ── Well-formed pipelines ────────────────────────────────────────────────────────────────
+    // ── Well-formed tasks ────────────────────────────────────────────────────────────────────
 
-    private sealed class GoodTask : IStagedServiceTask
+    private sealed class PlainTask : TaskBase
     {
-        public string Type => "good";
+        public override string Type => "plain";
+    }
 
-        public IEnumerable<IServiceTaskStep> Steps => [new SendStep()];
+    private sealed class GoodTask : TaskBase
+    {
+        public override string Type => "good";
 
-        public IFinalServiceTaskStep FinalStep => new AwaitStep();
+        public override IEnumerable<IServiceTaskStep> Steps => [new SendStep()];
     }
 
     [Fact]
-    public async Task WellFormedPipeline_PassesValidation()
+    public async Task TaskWithoutDeclaredSteps_PassesValidation()
     {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, GoodTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, PlainTask>());
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task TaskWithDeclaredSteps_PassesValidation()
+    {
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, GoodTask>());
 
         Assert.Null(exception);
     }
@@ -68,100 +83,13 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Null(exception);
     }
 
-    // ── Registration hygiene ─────────────────────────────────────────────────────────────────
+    // ── Step declarations ────────────────────────────────────────────────────────────────────
 
-    private sealed class RootRegisteredTask : IServiceTaskBase
+    private sealed class DuplicateNamesTask : TaskBase
     {
-        public string Type => "root";
-    }
+        public override string Type => "duplicateNames";
 
-    [Fact]
-    public async Task TaskRegisteredAgainstRootInterface_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IServiceTaskBase, RootRegisteredTask>());
-
-        Assert.NotNull(exception);
-        Assert.Contains(nameof(RootRegisteredTask), exception.Message);
-        Assert.Contains("Register it against the kind it implements", exception.Message);
-    }
-
-    private sealed class DualKindTask : IServiceTask, IStagedServiceTask
-    {
-        public string Type => "dual";
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-        public IEnumerable<IServiceTaskStep> Steps => [new SendStep()];
-
-        public IFinalServiceTaskStep FinalStep => new AwaitStep();
-    }
-
-    [Fact]
-    public async Task TaskImplementingBothKinds_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IServiceTask, DualKindTask>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("exactly one kind", exception.Message);
-    }
-
-    // ── Pipeline shapes ──────────────────────────────────────────────────────────────────────
-
-    private sealed class NoWorkStepsPipeline : IStagedServiceTask
-    {
-        public string Type => "noWorkSteps";
-
-        public IEnumerable<IServiceTaskStep> Steps => [];
-
-        public IFinalServiceTaskStep FinalStep => new AwaitStep();
-    }
-
-    [Fact]
-    public async Task PipelineWithNoWorkSteps_FailsStartup_PointingAtIServiceTask()
-    {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, NoWorkStepsPipeline>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("Steps is empty", exception.Message);
-        Assert.Contains(nameof(IServiceTask), exception.Message);
-    }
-
-    private sealed class DualKindStepPipeline : IStagedServiceTask
-    {
-        public string Type => "dualKindStep";
-
-        public IEnumerable<IServiceTaskStep> Steps => [new BothKinds()];
-
-        public IFinalServiceTaskStep FinalStep => new AwaitStep();
-
-        private sealed class BothKinds : IServiceTaskStep, IFinalServiceTaskStep
-        {
-            Task<ServiceTaskStepResult> IServiceTaskStep.Execute(ServiceTaskContext context) =>
-                Task.FromResult(ServiceTaskStepResult.Next());
-
-            Task<ServiceTaskResult> IFinalServiceTaskStep.Execute(ServiceTaskContext context) =>
-                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-        }
-    }
-
-    [Fact]
-    public async Task StepImplementingBothKinds_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, DualKindStepPipeline>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("implements both", exception.Message);
-        Assert.Contains("exactly one kind", exception.Message);
-    }
-
-    private sealed class DuplicateNamesPipeline : IStagedServiceTask
-    {
-        public string Type => "duplicateNames";
-
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry()];
-
-        public IFinalServiceTaskStep FinalStep => new Done();
+        public override IEnumerable<IServiceTaskStep> Steps => [new Entry(), new Exit()];
 
         private sealed class Entry : IServiceTaskStep
         {
@@ -171,31 +99,53 @@ public class ServiceTaskRegistrationValidatorTests
                 Task.FromResult(ServiceTaskStepResult.Next());
         }
 
-        private sealed class Done : IFinalServiceTaskStep
+        private sealed class Exit : IServiceTaskStep
         {
             public string Name => "step";
 
-            public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
-                Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
         }
     }
 
     [Fact]
-    public async Task DuplicateStepNames_AcrossStepsAndFinal_FailStartup()
+    public async Task DuplicateStepNames_FailStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, DuplicateNamesPipeline>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, DuplicateNamesTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("duplicate step name 'step'", exception.Message);
     }
 
-    private sealed class InvalidStepOptionsPipeline : IStagedServiceTask
+    private sealed class EmptyNameTask : TaskBase
     {
-        public string Type => "invalidOptions";
+        public override string Type => "emptyName";
 
-        public IEnumerable<IServiceTaskStep> Steps => [new Entry()];
+        public override IEnumerable<IServiceTaskStep> Steps => [new Unnamed()];
 
-        public IFinalServiceTaskStep FinalStep => new AwaitStep();
+        private sealed class Unnamed : IServiceTaskStep
+        {
+            public string Name => "  ";
+
+            public Task<ServiceTaskStepResult> Execute(ServiceTaskContext context) =>
+                Task.FromResult(ServiceTaskStepResult.Next());
+        }
+    }
+
+    [Fact]
+    public async Task EmptyStepName_FailsStartup()
+    {
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, EmptyNameTask>());
+
+        Assert.NotNull(exception);
+        Assert.Contains("has an empty name", exception.Message);
+    }
+
+    private sealed class InvalidStepOptionsTask : TaskBase
+    {
+        public override string Type => "invalidOptions";
+
+        public override IEnumerable<IServiceTaskStep> Steps => [new Entry()];
 
         private sealed class Entry : IServiceTaskStep
         {
@@ -209,25 +159,23 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task InvalidPerStepOptions_FailStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, InvalidStepOptionsPipeline>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, InvalidStepOptionsTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("'Entry' declares invalid StepOptions", exception.Message);
     }
 
-    private sealed class ThrowingStepsPipeline : IStagedServiceTask
+    private sealed class ThrowingStepsTask : TaskBase
     {
-        public string Type => "throwingSteps";
+        public override string Type => "throwingSteps";
 
-        public IEnumerable<IServiceTaskStep> Steps => throw new InvalidOperationException("no steps for you");
-
-        public IFinalServiceTaskStep FinalStep => new AwaitStep();
+        public override IEnumerable<IServiceTaskStep> Steps => throw new InvalidOperationException("no steps for you");
     }
 
     [Fact]
     public async Task StepsEnumerationThrowing_FailsStartup_WithTheUnderlyingMessage()
     {
-        var exception = await Validate(s => s.AddSingleton<IStagedServiceTask, ThrowingStepsPipeline>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, ThrowingStepsTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("no steps for you", exception.Message);

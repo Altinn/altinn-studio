@@ -57,28 +57,25 @@ internal sealed class WorkflowCommandSet
 
         if (context.ServiceTaskType is not null)
         {
-            if (context.ServiceTaskStepNames is { Count: > 0 } stepNames)
-            {
-                // A staged service task expands to one engine step per pipeline step, in pipeline
-                // order. Each gets a distinct OperationId for the engine's records and dashboards;
-                // the payload's step name is what callback dispatch keys on.
-                foreach (string stepName in stepNames)
-                {
-                    group.AddCriticalPostCommitCommand(
-                        ExecuteServiceTask.Key,
-                        new ExecuteServiceTaskPayload(context.ServiceTaskType, stepName),
-                        operationId: $"{ExecuteServiceTask.Key} · {stepName}",
-                        serviceTaskStepName: stepName
-                    );
-                }
-            }
-            else
+            // One engine step per declared task step, in declared order. Each gets a distinct
+            // OperationId for the engine's records and dashboards; the payload's step name is
+            // what callback dispatch keys on.
+            foreach (string stepName in context.ServiceTaskStepNames ?? [])
             {
                 group.AddCriticalPostCommitCommand(
                     ExecuteServiceTask.Key,
-                    new ExecuteServiceTaskPayload(context.ServiceTaskType)
+                    new ExecuteServiceTaskPayload(context.ServiceTaskType, stepName),
+                    operationId: $"{ExecuteServiceTask.Key} · {stepName}",
+                    serviceTaskStepName: stepName
                 );
             }
+
+            // The concluding engine step — the task's own Execute, identified by a null step
+            // name. Every service task has it; for most (no declared steps) it is the only one.
+            group.AddCriticalPostCommitCommand(
+                ExecuteServiceTask.Key,
+                new ExecuteServiceTaskPayload(context.ServiceTaskType)
+            );
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -164,11 +161,11 @@ internal sealed class WorkflowCommandSet
     /// <param name="payload">Optional command payload.</param>
     /// <param name="operationId">
     /// Optional display identity for the engine step when it must differ from the command key —
-    /// staged service-task steps carry the step name here so the engine's records tell them apart.
+    /// declared service-task steps carry the step name here so the engine's records tell them apart.
     /// </param>
     /// <param name="serviceTaskStepName">
-    /// For a staged service-task step: the pipeline step's name, so per-step options can be
-    /// resolved when the step request is finalized.
+    /// For a declared service-task step: the step's name, so per-step options can be resolved
+    /// when the step request is finalized.
     /// </param>
     private WorkflowCommandSet AddCriticalPostCommitCommand(
         string commandKey,

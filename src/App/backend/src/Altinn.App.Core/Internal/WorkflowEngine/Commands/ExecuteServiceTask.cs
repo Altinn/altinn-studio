@@ -7,10 +7,11 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Request payload for ExecuteServiceTask command. Contains the service task type identifier and —
-/// for a step of an <see cref="IStagedServiceTask"/> pipeline — the name of the step this engine
-/// step executes. <see cref="StepName"/> is null exactly when the task is a plain
-/// <see cref="IServiceTask"/>.
+/// Request payload for ExecuteServiceTask command. Contains the service task type identifier and,
+/// optionally, the name of the task step this engine step executes. <see cref="StepName"/> is null
+/// exactly when this engine step runs the task's own <see cref="IServiceTask.Execute"/> — the
+/// concluding step every service task has (for most tasks, the only one); a name identifies one of
+/// the task's declared <see cref="IServiceTask.Steps"/>.
 /// </summary>
 internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, string? StepName = null)
     : CommandRequestPayload;
@@ -25,7 +26,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
     /// systems (eFormidling, payment providers, other government APIs), so they get a far more generous
     /// budget than the engine's global default. An individual service task that needs even
     /// longer can override this via <see cref="IProcessStepConfigurable.StepOptions"/> (per task) or
-    /// <see cref="IServiceTaskStepBase.StepOptions"/> (per pipeline step).
+    /// <see cref="IServiceTaskStep.StepOptions"/> (per step).
     /// </summary>
     internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
 
@@ -47,7 +48,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
 
         try
         {
-            IServiceTaskBase serviceTask =
+            IServiceTask serviceTask =
                 appImplementationFactory.FindServiceTask(serviceTaskType)
                 ?? throw new ProcessException($"No service task found for type {serviceTaskType}");
 
@@ -70,31 +71,11 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 },
             };
 
-            // Dispatch on the task's kind, cross-checked against the payload's shape. The mismatch
-            // arms guard deployment version skew: a workflow enqueued against one shape of the task
-            // calling back into an app deployed with another must fail permanently (and legibly)
-            // rather than execute the wrong thing.
-            return (serviceTask, payload.StepName) switch
-            {
-                (IServiceTask simple, null) => MapServiceTaskResult(await simple.Execute(serviceTaskContext), simple),
-                (IStagedServiceTask staged, { } stepName) => await ExecuteStagedStep(
-                    staged,
-                    stepName,
-                    serviceTaskContext
-                ),
-                (IStagedServiceTask, null) => FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTask.Type}' is a staged (multi-step) task, but this workflow step carries "
-                        + "no step name. The workflow was likely enqueued by an app version where the task was not "
-                        + "staged; it cannot continue against this version.",
-                    "ServiceTaskKindMismatch"
-                ),
-                _ => FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTask.Type}' is not a staged (multi-step) task, but this workflow step "
-                        + $"carries the step name '{payload.StepName}'. The workflow was likely enqueued by an app "
-                        + "version where the task was staged; it cannot continue against this version.",
-                    "ServiceTaskKindMismatch"
-                ),
-            };
+            // The step name routes within the task: null is the task's own Execute (the concluding
+            // engine step, which every service task has), a name is one of the task's declared Steps.
+            return payload.StepName is { } stepName
+                ? await ExecuteStep(serviceTask, stepName, serviceTaskContext)
+                : MapServiceTaskResult(await serviceTask.Execute(serviceTaskContext), serviceTask);
         }
         catch (Exception ex)
         {
@@ -103,38 +84,32 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
         }
     }
 
-    private static async Task<ProcessEngineCommandResult> ExecuteStagedStep(
-        IStagedServiceTask serviceTask,
+    private static async Task<ProcessEngineCommandResult> ExecuteStep(
+        IServiceTask serviceTask,
         string stepName,
         ServiceTaskContext serviceTaskContext
     )
     {
-        IServiceTaskStepBase? step = serviceTask.FindPipelineStep(stepName);
-        return step switch
+        IServiceTaskStep? step = serviceTask.FindStep(stepName);
+        if (step is null)
         {
-            null => FailedProcessEngineCommandResult.Permanent(
+            return FailedProcessEngineCommandResult.Permanent(
                 $"Service task '{serviceTask.Type}' has no step named '{stepName}'. Step names are a compatibility "
                     + "surface for in-flight workflows: if the step's class was renamed since this workflow was "
-                    + $"enqueued, redeploy with the original name pinned via {nameof(IServiceTaskStepBase)}.{nameof(IServiceTaskStepBase.Name)} "
+                    + $"enqueued, redeploy with the original name pinned via {nameof(IServiceTaskStep)}.{nameof(IServiceTaskStep.Name)} "
                     + "and resume the workflow.",
                 "ServiceTaskStepNotFound"
-            ),
-            // Final first: startup validation forbids a class implementing both step kinds, but if
-            // one slips through, concluding semantics must win over silently swallowing them.
-            IFinalServiceTaskStep finalStep => MapServiceTaskResult(
-                await finalStep.Execute(serviceTaskContext),
-                serviceTask
-            ),
-            IServiceTaskStep workStep => MapStepResult(await workStep.Execute(serviceTaskContext), serviceTask),
-            _ => throw new UnreachableException($"Unknown pipeline step kind: {step.GetType().Name}"),
-        };
+            );
+        }
+
+        return MapStepResult(await step.Execute(serviceTaskContext), serviceTask);
     }
 
-    private static ProcessEngineCommandResult MapStepResult(ServiceTaskStepResult result, IServiceTaskBase task) =>
+    private static ProcessEngineCommandResult MapStepResult(ServiceTaskStepResult result, IServiceTask task) =>
         result switch
         {
-            // A completed work step never advances the process — the pipeline just moves on to the
-            // next engine step.
+            // A completed step never advances the process — the task just moves on to its next
+            // engine step.
             NextServiceTaskStepResult => new SuccessfulProcessEngineCommandResult(),
             DeferredServiceTaskStepResult deferred => new DeferredProcessEngineCommandResult
             {
@@ -149,7 +124,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
             _ => throw new UnreachableException($"Unknown step result type: {result.GetType().Name}"),
         };
 
-    private static ProcessEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, IServiceTaskBase task) =>
+    private static ProcessEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, IServiceTask task) =>
         result switch
         {
             ServiceTaskFailedResult failed => MapFailure(
@@ -170,11 +145,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
             _ => new SuccessfulProcessEngineCommandResult(),
         };
 
-    private static FailedProcessEngineCommandResult MapFailure(
-        IServiceTaskBase task,
-        string errorMessage,
-        bool permanent
-    )
+    private static FailedProcessEngineCommandResult MapFailure(IServiceTask task, string errorMessage, bool permanent)
     {
         string message = $"Service task '{task.Type}' failed: {errorMessage}";
         return permanent

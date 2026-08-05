@@ -14,10 +14,10 @@ internal sealed record TaskStartContext
     public required string? ServiceTaskType { get; init; }
 
     /// <summary>
-    /// If the service task is staged (an <c>IStagedServiceTask</c>), the ordered names of its
-    /// pipeline steps — each expands to its own ExecuteServiceTask engine step. Null when the task
-    /// is a plain <c>IServiceTask</c> (or not a service task at all), which expands to the single
-    /// unnamed engine step.
+    /// The ordered names of the service task's declared steps (<c>IServiceTask.Steps</c>), read at
+    /// enqueue time — each expands to its own ExecuteServiceTask engine step, before the task's
+    /// concluding unnamed one. Null or empty when the task declares none (most don't), or when
+    /// this is not a service task at all.
     /// </summary>
     public IReadOnlyList<string>? ServiceTaskStepNames { get; init; }
 

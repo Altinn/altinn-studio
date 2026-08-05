@@ -44,8 +44,8 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
     /// <param name="serviceTaskStepName">
-    /// For a staged service-task step: the pipeline step's name. Tier 3 is then the pipeline step's
-    /// own options over the task's, field-wise.
+    /// For a declared service-task step: the step's name — tier 3 is then the step's own options
+    /// over the task's, field-wise. Null for the task's concluding step (its own options apply).
     /// </param>
     public ProcessStepOptions? Resolve(
         string operationId,
@@ -101,13 +101,13 @@ internal sealed class ProcessStepOptionsResolver
     {
         if (operationId == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
-            IServiceTaskBase? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
-            if (serviceTask is IStagedServiceTask staged && serviceTaskStepName is not null)
+            IServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
+            if (serviceTask is not null && serviceTaskStepName is not null)
             {
-                // Per-pipeline-step options win field-wise over the task's own, mirroring how the
+                // Per-step options win field-wise over the task's own, mirroring how the
                 // merged result then wins over the command default in Resolve.
-                ProcessStepOptions? stepOptions = staged.FindPipelineStep(serviceTaskStepName)?.StepOptions;
-                ProcessStepOptions? taskOptions = staged.StepOptions;
+                ProcessStepOptions? stepOptions = serviceTask.FindStep(serviceTaskStepName)?.StepOptions;
+                ProcessStepOptions? taskOptions = serviceTask.StepOptions;
                 if (stepOptions is null || taskOptions is null)
                 {
                     return stepOptions ?? taskOptions;

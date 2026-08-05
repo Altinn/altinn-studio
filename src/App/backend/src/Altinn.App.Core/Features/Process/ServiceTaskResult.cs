@@ -65,8 +65,8 @@ public abstract record ServiceTaskResult
     /// A deferral is not a failure: it records no error and resets the retry counter. It is also
     /// <strong>stateless</strong>: nothing is saved, and instance data changes made by a deferring
     /// attempt are rejected as a contract violation. A task that checks-and-waits is not a task that
-    /// records — work that produces something durable belongs before the wait, in its own pipeline
-    /// step (<see cref="IStagedServiceTask"/>), completed rather than deferred.
+    /// records — work that produces something durable belongs before the wait, in its own step
+    /// (<see cref="IServiceTask.Steps"/>), completed rather than deferred.
     /// </para>
     /// <para>
     /// Waiting is bounded by <see cref="ProcessStepOptions.WaitBudget"/> (or the engine default); expiry
@@ -76,10 +76,10 @@ public abstract record ServiceTaskResult
     /// wait or give up early on your own terms.
     /// </para>
     /// <para>
-    /// For the send-then-poll pattern — dispatch once, then wait until the outcome arrives — implement
-    /// <see cref="IStagedServiceTask"/> and give the send and the poll their own steps: the engine's
-    /// durable step ledger then guarantees the send never re-runs once it has completed, and the
-    /// final step is where deferral lives. Never branch on anything under
+    /// For the send-then-poll pattern — dispatch once, then wait until the outcome arrives — declare
+    /// the send as its own step (<see cref="IServiceTask.Steps"/>) and let <c>Execute</c> poll: the
+    /// engine's durable step ledger then guarantees the send never re-runs once it has completed,
+    /// and the concluding step is where deferral lives. Never branch on anything under
     /// <see cref="ServiceTaskContext.Attempt"/> or <see cref="ServiceTaskContext.Wait"/>
     /// to guard a side effect: the engine records an attempt only after it answers, so an attempt that
     /// sends and crashes re-runs with all of those unchanged. Use

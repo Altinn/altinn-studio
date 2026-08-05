@@ -85,7 +85,7 @@ internal static class ServiceCollectionExtensions
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();
 
-        // Fail fast at startup on invalid service-task registrations or staged pipeline shapes.
+        // Fail fast at startup on invalid service-task step declarations.
         services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }
