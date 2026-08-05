@@ -114,7 +114,7 @@ ws.onopen = () => {
     JSON.stringify({
       type: 'session',
       session_id: 'your-session-id',
-    })
+    }),
   );
 };
 
@@ -202,5 +202,7 @@ altinity-agents/
 
 ## Dependencies
 
-- **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** - Altinn-specific tools and documentation
-- FastAPI, LangGraph, LangChain, Langfuse, GitPython
+- FastAPI
+- LangGraph
+- LangChain
+- Langfuse
