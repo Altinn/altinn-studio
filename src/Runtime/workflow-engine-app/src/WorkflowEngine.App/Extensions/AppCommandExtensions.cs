@@ -50,7 +50,6 @@ internal static class AppCommandOptionsBuilderExtensions
                 Org = "org",
                 InstanceOwnerPartyId = 12345,
                 InstanceGuid = Guid.NewGuid(),
-                LockToken = "asdf",
                 CallbackToken = "asdf",
             };
 

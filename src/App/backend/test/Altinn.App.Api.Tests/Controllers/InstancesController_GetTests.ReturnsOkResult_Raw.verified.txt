@@ -27,6 +27,7 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
+      status: idle,
       started: DateTimeOffset_1,
       startEvent: StartEvent_1,
       currentTask: {
@@ -67,6 +68,7 @@
         },
         size: 147,
         contentHash: null,
+        blobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         locked: false,
         refs: null,
         isRead: true,
@@ -77,14 +79,16 @@
         references: null,
         created: null,
         createdBy: null,
-        lastChanged: null,
+        lastChanged: DateTimeOffset_3,
         lastChangedBy: null
       }
     ],
+    presentationTexts: null,
+    dataValues: null,
     created: null,
     createdBy: null,
-    lastChanged: DateTimeOffset_3,
-    lastChangedBy: 
+    lastChanged: DateTimeOffset_4,
+    lastChangedBy: null
   },
   readResponse: {
     id: <instancOwnerPartyId>/<instanceGuid>,
@@ -114,6 +118,7 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
+      status: idle,
       started: DateTimeOffset_1,
       startEvent: StartEvent_1,
       currentTask: {
@@ -154,6 +159,7 @@
         },
         size: 147,
         contentHash: null,
+        blobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         locked: false,
         refs: null,
         isRead: true,
@@ -164,13 +170,15 @@
         references: null,
         created: null,
         createdBy: null,
-        lastChanged: null,
+        lastChanged: DateTimeOffset_3,
         lastChangedBy: null
       }
     ],
+    presentationTexts: null,
+    dataValues: null,
     created: null,
     createdBy: null,
-    lastChanged: DateTimeOffset_3,
-    lastChangedBy: 
+    lastChanged: DateTimeOffset_4,
+    lastChangedBy: null
   }
 }

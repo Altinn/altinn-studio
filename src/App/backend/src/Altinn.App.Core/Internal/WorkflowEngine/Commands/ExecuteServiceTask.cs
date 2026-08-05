@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -39,6 +40,14 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
     {
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = context.InstanceDataMutator.Instance;
+        ProcessState? processState = instance.Process;
+        if (processState is null)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                "Executing a service task requires an active process state.",
+                nameof(InvalidOperationException)
+            );
+        }
         string serviceTaskType = payload.ServiceTaskType;
 
         using Activity? activity = telemetry?.StartProcessExecuteServiceTaskActivity(instance, serviceTaskType);
@@ -71,10 +80,38 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
 
             // The stage name routes within the pipeline: null is the conclusion (the pipeline's
             // Finally — for a simple task, its Execute), a name is one of the composed stages.
+            // A stage never hands back processing ownership: a completed one only moves the pipeline
+            // on to its next engine step, and a deferred one is stateless and stages no mutation.
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
-            return payload.StageName is { } stageName
-                ? await ExecuteStage(pipeline, serviceTask, stageName, serviceTaskContext)
-                : MapServiceTaskResult(await pipeline.Final(serviceTaskContext), serviceTask);
+            if (payload.StageName is { } stageName)
+            {
+                return await ExecuteStage(pipeline, serviceTask, stageName, serviceTaskContext);
+            }
+
+            ProcessEngineCommandResult result = MapServiceTaskResult(
+                await pipeline.Final(serviceTaskContext),
+                serviceTask
+            );
+
+            // The pipeline concluded without advancing: the process pauses at the durable service
+            // task, so processing ownership is released. Auto-advance keeps it for the transition it
+            // schedules, and a deferral has not concluded at all. This branch also covers the null a
+            // legacy app-supplied implementation can still return.
+            if (result is SuccessfulProcessEngineCommandResult { AutoAdvanceProcess: false })
+            {
+                if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+                {
+                    return FailedProcessEngineCommandResult.Permanent(
+                        "Pausing a service task requires callback state restored into an InstanceDataUnitOfWork.",
+                        nameof(InvalidOperationException)
+                    );
+                }
+
+                unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+                processState.Status = ProcessStatus.Idle;
+            }
+
+            return result;
         }
         catch (Exception ex)
         {

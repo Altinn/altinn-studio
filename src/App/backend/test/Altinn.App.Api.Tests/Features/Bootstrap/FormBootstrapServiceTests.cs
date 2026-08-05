@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Tests.Controllers.TestResources;
@@ -15,6 +16,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -38,12 +40,22 @@ public class FormBootstrapServiceTests
     private readonly Mock<IFormDataReader> _formDataReader = new();
     private readonly IAppModel _appModel = new AppModelMock<DummyModel>();
     private readonly Mock<IDataClient> _dataClient = new();
+    private readonly Mock<IDataClientWithStorageMetadata> _metadataDataClient;
+    private readonly Mock<IInstanceMutationClient> _mutationClient;
     private readonly Mock<IInstanceClient> _instanceClient = new();
+    private readonly Mock<IInstanceClientWithStorageMetadata> _metadataInstanceClient;
     private readonly Mock<ITranslationService> _translationService = new();
     private readonly Mock<IDataProcessor> _dataProcessor = new();
     private readonly Mock<IPrefill> _prefillService = new();
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
+
+    public FormBootstrapServiceTests()
+    {
+        _metadataDataClient = _dataClient.As<IDataClientWithStorageMetadata>();
+        _mutationClient = _dataClient.As<IInstanceMutationClient>();
+        _metadataInstanceClient = _instanceClient.As<IInstanceClientWithStorageMetadata>();
+    }
 
     private FormBootstrapService CreateService(IAppModel? appModel = null) =>
         new(
@@ -62,8 +74,11 @@ public class FormBootstrapServiceTests
         var resolvedAppModel = appModel ?? _appModel;
         var services = new ServiceCollection();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-        services.AddSingleton(_dataClient.Object);
-        services.AddSingleton(_instanceClient.Object);
+        services.AddSingleton<IDataClient>(_dataClient.Object);
+        services.AddSingleton<IDataClientWithStorageMetadata>(_metadataDataClient.Object);
+        services.AddSingleton<IInstanceMutationClient>(_mutationClient.Object);
+        services.AddSingleton<IInstanceClient>(_instanceClient.Object);
+        services.AddSingleton<IInstanceClientWithStorageMetadata>(_metadataInstanceClient.Object);
         services.AddSingleton(_translationService.Object);
         services.AddSingleton(new ModelSerializationService(resolvedAppModel));
         services.AddSingleton<IOptions<FrontEndSettings>>(Options.Create(new FrontEndSettings()));
@@ -71,8 +86,9 @@ public class FormBootstrapServiceTests
         services.AddSingleton(_appMetadata.Object);
         services.AddSingleton(
             new InstanceDataUnitOfWorkInitializer(
-                _dataClient.Object,
-                _instanceClient.Object,
+                _metadataDataClient.Object,
+                _mutationClient.Object,
+                _metadataInstanceClient.Object,
                 _appMetadata.Object,
                 _translationService.Object,
                 new ModelSerializationService(resolvedAppModel),
@@ -794,6 +810,168 @@ public class FormBootstrapServiceTests
         );
     }
 
+    [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    [InlineData("future-status")]
+    public async Task GetInstanceFormBootstrap_WhenNonIdle_ReturnsReadHookChangesWithoutPersisting(string status)
+    {
+        var instance = CreateTestInstance("Task_1");
+        instance.Process.Status = status;
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("changed", Assert.IsType<DummyModel>(result.DataModels["model"].InitialData).Name);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenIdle_PersistsReadHookChanges()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceMutationWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("changed", Assert.IsType<DummyModel>(result.DataModels["model"].InitialData).Name);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenAcquireWinsReadHookPersistenceRace_IgnoresTypedStatusConflict()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+        StorageProcessStatusConflictException conflict = await CreateProcessStatusConflictException();
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(conflict);
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("changed", Assert.IsType<DummyModel>(result.DataModels["model"].InitialData).Name);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenReadHookPersistenceHasUntypedConflict_Propagates()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+        var conflict = new PlatformHttpException(HttpStatusCode.Conflict, "Conflict");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(conflict);
+
+        var service = CreateService();
+
+        PlatformHttpException actual = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb")
+        );
+
+        Assert.Same(conflict, actual);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
     [Fact]
     public async Task GetInstanceFormBootstrap_IgnoresForbiddenWhenPersistingProcessDataReadChanges()
     {
@@ -828,15 +1006,15 @@ public class FormBootstrapServiceTests
                     return appModel;
                 }
             );
-        _dataClient
+        _mutationClient
             .Setup(x =>
-                x.UpdateBinaryData(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<string?>(),
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<Stream>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -847,18 +1025,65 @@ public class FormBootstrapServiceTests
         var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
 
         Assert.True(result.DataModels.ContainsKey("model"));
-        _dataClient.Verify(
+        _mutationClient.Verify(
             x =>
-                x.UpdateBinaryData(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<string?>(),
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<Stream>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
+        );
+    }
+
+    private void SetupMutatingReadHook()
+    {
+        _formDataReader
+            .Setup(x =>
+                x.ProcessLoadedFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<object>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Func<object, CancellationToken, Task>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    Instance _,
+                    DataElement _,
+                    object appModel,
+                    bool _,
+                    string? _,
+                    Func<object, CancellationToken, Task>? _,
+                    CancellationToken _
+                ) =>
+                {
+                    ((DummyModel)appModel).Name = "changed";
+                    return appModel;
+                }
+            );
+    }
+
+    private static async Task<StorageProcessStatusConflictException> CreateProcessStatusConflictException()
+    {
+        var response = new HttpResponseMessage(HttpStatusCode.Conflict)
+        {
+            Content = new StringContent(
+                """{"type":"process_status_conflict"}""",
+                Encoding.UTF8,
+                "application/problem+json"
+            ),
+        };
+
+        return Assert.IsType<StorageProcessStatusConflictException>(
+            await StorageProcessStatusConflictException.TryCreate(response, CancellationToken.None)
         );
     }
 
@@ -950,13 +1175,14 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-        _dataClient
+        _metadataDataClient
             .Setup(x =>
-                x.GetDataBytes(
+                x.GetDataBytesWithExpectedBlobVersionId(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

@@ -5,8 +5,9 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.InstanceLocking;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -40,7 +41,6 @@ public sealed class InstanceClientTests : IDisposable
             _logger.Object,
             _authenticationTokenResolver.Object,
             httpClient,
-            Mock.Of<IInstanceLocker>(),
             _telemetry.Object
         );
     }
@@ -110,6 +110,268 @@ public sealed class InstanceClientTests : IDisposable
         _handlerMock.VerifyAll();
 
         Assert.NotNull(actualException);
+    }
+
+    [Fact]
+    public async Task GetInstanceWithStorageMetadata_ParsesVersionHeaders()
+    {
+        // Arrange
+        Instance instance = new Instance { Id = $"{1337}/{Guid.NewGuid()}" };
+        HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
+        };
+        httpResponseMessage.Headers.Add("Instance-Version", "17");
+        httpResponseMessage.Headers.Add("Process-State-Version", "9");
+
+        InitializeMocks([httpResponseMessage], ["instances/1337"]);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
+        InstanceClient target = CreateTarget(httpClient);
+
+        // Act
+        InstanceWithStorageMetadata result = await target.GetInstanceWithStorageMetadata(
+            "app",
+            "org",
+            1337,
+            Guid.NewGuid()
+        );
+
+        // Assert
+        Assert.Equal(17, result.Metadata.InstanceVersion);
+        Assert.Equal(9, result.Metadata.ProcessStateVersion);
+        Assert.Equal(instance.Id, result.Instance.Id);
+        _handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task CreateInstanceWithStorageMetadata_ReturnsCreatedInstanceAndVersions_WithSingleRequest()
+    {
+        // Arrange
+        const string org = "ttd";
+        const string app = "metadata-app";
+        Guid instanceGuid = Guid.NewGuid();
+        var instanceTemplate = new Instance { InstanceOwner = new InstanceOwner { PartyId = "1337" } };
+        var createdInstance = new Instance
+        {
+            Id = $"1337/{instanceGuid}",
+            AppId = $"{org}/{app}",
+            Org = org,
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+        };
+        HttpResponseMessage httpResponseMessage = new()
+        {
+            StatusCode = HttpStatusCode.Created,
+            Content = new StringContent(
+                JsonConvert.SerializeObject(createdInstance),
+                Encoding.UTF8,
+                "application/json"
+            ),
+        };
+        httpResponseMessage.Headers.Add("Instance-Version", "17");
+        httpResponseMessage.Headers.Add("Process-State-Version", "9");
+
+        InitializeMocks([httpResponseMessage], [$"instances?appId={org}/{app}"]);
+        HttpClient httpClient = new(_handlerMock.Object);
+        InstanceClient target = CreateTarget(httpClient);
+
+        // Act
+        InstanceWithStorageMetadata result = await target.CreateInstanceWithStorageMetadata(org, app, instanceTemplate);
+
+        // Assert
+        Assert.Equal(createdInstance.Id, result.Instance.Id);
+        Assert.Equal(createdInstance.AppId, result.Instance.AppId);
+        Assert.Equal(17, result.Metadata.InstanceVersion);
+        Assert.Equal(9, result.Metadata.ProcessStateVersion);
+        VerifySingleRequest(HttpMethod.Post, new Uri($"http://localhost/instances?appId={org}/{app}"));
+        _handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetInstanceWithStorageMetadata_Instance_RoutesIdentifiersAndReturnsVersions_WithSingleRequest()
+    {
+        // Arrange
+        const string org = "ttd";
+        const string app = "metadata-app";
+        const int instanceOwnerPartyId = 1337;
+        Guid instanceGuid = Guid.NewGuid();
+        var instance = new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{org}/{app}",
+            Org = org,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+        };
+        var fetchedInstance = new Instance
+        {
+            Id = instance.Id,
+            AppId = instance.AppId,
+            Org = instance.Org,
+            InstanceOwner = instance.InstanceOwner,
+        };
+        HttpResponseMessage httpResponseMessage = new()
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(
+                JsonConvert.SerializeObject(fetchedInstance),
+                Encoding.UTF8,
+                "application/json"
+            ),
+        };
+        httpResponseMessage.Headers.Add("Instance-Version", "23");
+        httpResponseMessage.Headers.Add("Process-State-Version", "11");
+
+        string requestPath = $"instances/{instanceOwnerPartyId}/{instanceGuid}";
+        InitializeMocks([httpResponseMessage], [requestPath]);
+        HttpClient httpClient = new(_handlerMock.Object);
+        InstanceClient target = CreateTarget(httpClient);
+
+        // Act
+        InstanceWithStorageMetadata result = await target.GetInstanceWithStorageMetadata(instance);
+
+        // Assert
+        Assert.Equal(fetchedInstance.Id, result.Instance.Id);
+        Assert.Equal(fetchedInstance.AppId, result.Instance.AppId);
+        Assert.Equal(23, result.Metadata.InstanceVersion);
+        Assert.Equal(11, result.Metadata.ProcessStateVersion);
+        VerifySingleRequest(HttpMethod.Get, new Uri($"http://localhost/{requestPath}"));
+        _handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task UpdatePresentationTextsWithStorageMetadata_SendsProcessPreconditionWithoutInstancePrecondition()
+    {
+        // Arrange
+        Guid instanceGuid = Guid.NewGuid();
+        int instanceOwnerId = 1337;
+        Instance instance = new Instance
+        {
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId.ToString() },
+            Id = $"{instanceOwnerId}/{instanceGuid}",
+        };
+        HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
+        };
+
+        InitializeMocks([httpResponseMessage], ["presentationtexts"]);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
+        InstanceClient target = CreateTarget(httpClient);
+
+        // Act
+        await target.UpdatePresentationTextsWithStorageMetadata(
+            instanceOwnerId,
+            instanceGuid,
+            new PresentationTexts(),
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 7)
+        );
+
+        // Assert
+        _handlerMock
+            .Protected()
+            .Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(request =>
+                    HasHeaderValue(request, "If-Process-State-Version-Match", "7")
+                    && !request.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName)
+                ),
+                ItExpr.IsAny<CancellationToken>()
+            );
+        _handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task UpdateDataValuesWithStorageMetadata_SendsProcessPreconditionWithoutInstancePrecondition()
+    {
+        // Arrange
+        Guid instanceGuid = Guid.NewGuid();
+        int instanceOwnerId = 1337;
+        Instance instance = new Instance
+        {
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId.ToString() },
+            Id = $"{instanceOwnerId}/{instanceGuid}",
+        };
+        HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
+        };
+
+        InitializeMocks([httpResponseMessage], ["datavalues"]);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
+        InstanceClient target = CreateTarget(httpClient);
+
+        // Act
+        await target.UpdateDataValuesWithStorageMetadata(
+            instanceOwnerId,
+            instanceGuid,
+            new DataValues { Values = new Dictionary<string, string> { ["key"] = "value" } },
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 8)
+        );
+
+        // Assert
+        _handlerMock
+            .Protected()
+            .Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(request =>
+                    HasHeaderValue(request, "If-Process-State-Version-Match", "8")
+                    && !request.Headers.Contains(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName)
+                ),
+                ItExpr.IsAny<CancellationToken>()
+            );
+        _handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task UpdateProcessAndEventsWithStorageMetadata_SendsInstanceAndProcessPreconditions()
+    {
+        // Arrange
+        Guid instanceGuid = Guid.NewGuid();
+        int instanceOwnerId = 1337;
+        Instance instance = new Instance
+        {
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId.ToString() },
+            Id = $"{instanceOwnerId}/{instanceGuid}",
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
+        };
+        HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
+        };
+        httpResponseMessage.Headers.Add("Instance-Version", "13");
+        httpResponseMessage.Headers.Add("Process-State-Version", "9");
+
+        InitializeMocks([httpResponseMessage], ["process/instanceandevents"]);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
+        InstanceClient target = CreateTarget(httpClient);
+
+        // Act
+        InstanceWithStorageMetadata result = await target.UpdateProcessAndEventsWithStorageMetadata(
+            instance,
+            [],
+            preconditions: new StorageWritePreconditions(ProcessStateVersion: 8, InstanceVersion: 12)
+        );
+
+        // Assert
+        Assert.Equal(13, result.Metadata.InstanceVersion);
+        Assert.Equal(9, result.Metadata.ProcessStateVersion);
+        _handlerMock
+            .Protected()
+            .Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(request =>
+                    HasHeaderValue(request, "If-Instance-Version-Match", "12")
+                    && HasHeaderValue(request, "If-Process-State-Version-Match", "8")
+                ),
+                ItExpr.IsAny<CancellationToken>()
+            );
+        _handlerMock.VerifyAll();
     }
 
     [Fact]
@@ -410,7 +672,6 @@ public sealed class InstanceClientTests : IDisposable
             _logger.Object,
             _authenticationTokenResolver.Object,
             httpClient,
-            Mock.Of<IInstanceLocker>(),
             _telemetry.Object
         );
 
@@ -525,6 +786,20 @@ public sealed class InstanceClientTests : IDisposable
         return $"{header}.{payload}.{sig}";
     }
 
+    private static bool HasHeaderValue(HttpRequestMessage request, string headerName, string expectedValue) =>
+        request.Headers.TryGetValues(headerName, out IEnumerable<string>? values)
+        && values.SingleOrDefault() == expectedValue;
+
+    private void VerifySingleRequest(HttpMethod method, Uri requestUri) =>
+        _handlerMock
+            .Protected()
+            .Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(request => request.Method == method && request.RequestUri == requestUri),
+                ItExpr.IsAny<CancellationToken>()
+            );
+
     private void InitializeMocks(HttpResponseMessage[] httpResponseMessages, string[] urlPart)
     {
         PlatformSettings platformSettings = new PlatformSettings
@@ -545,7 +820,8 @@ public sealed class InstanceClientTests : IDisposable
                 .SetupSequence<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(p =>
-                        p.RequestUri!.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])
+                        (p.RequestUri!.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1]))
+                        && !p.Headers.Contains("Altinn-Storage-Lock-Token")
                     ),
                     ItExpr.IsAny<CancellationToken>()
                 )
@@ -558,7 +834,10 @@ public sealed class InstanceClientTests : IDisposable
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri!.ToString().Contains(urlPart[0])),
+                    ItExpr.Is<HttpRequestMessage>(p =>
+                        p.RequestUri!.ToString().Contains(urlPart[0])
+                        && !p.Headers.Contains("Altinn-Storage-Lock-Token")
+                    ),
                     ItExpr.IsAny<CancellationToken>()
                 )
                 .ReturnsAsync(httpResponseMessages[0])

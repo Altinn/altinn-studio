@@ -2376,6 +2376,10 @@
       "ProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -2594,6 +2598,10 @@
             "format": "int64"
           },
           "contentHash": {
+            "type": "string",
+            "nullable": true
+          },
+          "blobVersionId": {
             "type": "string",
             "nullable": true
           },
@@ -2967,6 +2975,10 @@
       "AppProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
           "started": {
             "type": "string",
             "format": "date-time",

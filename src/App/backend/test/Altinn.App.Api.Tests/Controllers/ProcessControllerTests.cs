@@ -7,15 +7,24 @@ using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Mocks;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -26,6 +35,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
+[Collection("Process version admission file-backed tests")]
 public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     // Define constants
@@ -120,6 +130,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                   "elementId": "Task_1"
                 }
               ],
+              "status": "processing",
               "started": "2019-12-05T13:24:34.8412179Z",
               "startEvent": "StartEvent_1",
               "ended": null,
@@ -636,6 +647,42 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Fact]
+    public async Task RunCompleteProcess_TwoTasks_CarriesVersionsAndEndsProcess()
+    {
+        const string org = "ttd";
+        const string app = "process-version-admission";
+        const int instanceOwnerPartyId = 501337;
+        var instanceGuid = new Guid("d2af1cfd-db99-45f9-9625-9dfa1223485f");
+        var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+        TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        var storageMetadata = new ApiTestStorageMetadata();
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IFormDataValidator>();
+            services.Replace(ServiceDescriptor.Singleton(storageMetadata));
+        };
+        int initialProcessStateVersion = storageMetadata.GetVersions(instanceId).ProcessStateVersion!.Value;
+
+        using var client = GetRootedUserClient(org, app);
+        using var response = await client.PutAsync($"{org}/{app}/instances/{instanceId}/process/completeProcess", null);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        var processState = JsonSerializer.Deserialize<AppProcessState>(responseContent, _jsonSerializerOptions);
+        processState.Should().NotBeNull();
+        processState!.CurrentTask.Should().BeNull();
+        processState.EndEvent.Should().Be("EndEvent_1");
+
+        var instance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        instance.Process.CurrentTask.Should().BeNull();
+        instance.Process.EndEvent.Should().Be("EndEvent_1");
+        storageMetadata.AggregateMutationRequestCount.Should().BeGreaterThanOrEqualTo(2);
+        storageMetadata.GetVersions(instanceId).ProcessStateVersion.Should().BeGreaterThan(initialProcessStateVersion);
+    }
+
+    [Fact]
     public async Task RunNextWithAction_WhenActionIsNotDefinedInBpmn_ReturnsOk()
     {
         var pdfMock = SetupPdfGeneratorMock();
@@ -668,6 +715,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             services.AddSingleton(pdfMock.Object);
         };
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "processing");
         using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         using var content = new StringContent(
             """{"action": "action_defined_in_bpmn_but_unauthorized"}""",
@@ -745,7 +793,6 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 "Process workflow execution failed."
             )
         );
-
         using HttpClient client = GetClientWithProcessEngine(processEngineMock);
 
         // Act
@@ -775,6 +822,600 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Be($"/{Org}/{App}/instances/{_instanceId}/process/resume");
         // Literal, not WorkflowFailureKind.StepFailed.ToString(), so renaming the enum member fails this test.
         root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("stepFailed");
+    }
+
+    [Fact]
+    public async Task NextElement_WhenAcquireFails_ReturnsConflictWithRefreshMeaning()
+    {
+        var workflowFailure = new Altinn.App.Core.Models.Process.WorkflowFailure
+        {
+            Kind = Altinn.App.Core.Models.Process.WorkflowFailureKind.AcquireConflict,
+            StepOperationId = "AcquireProcessingStatus",
+            LastError = new Altinn.App.Core.Models.Process.WorkflowFailureError
+            {
+                Message = "The captured instance version is stale.",
+                HttpStatusCode = StatusCodes.Status409Conflict,
+                WasRetryable = false,
+            },
+        };
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
+        processEngineMock
+            .Setup(engine =>
+                engine.Next(
+                    It.IsAny<Altinn.App.Core.Models.Process.ProcessNextRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new Altinn.App.Core.Models.Process.ProcessChangeResult
+                {
+                    Success = false,
+                    ErrorType = Altinn.App.Core.Models.Process.ProcessErrorType.Conflict,
+                    ErrorMessage =
+                        "The instance changed before the process transition could start. Refresh the instance and try again.",
+                    WorkflowFailure = workflowFailure,
+                }
+            );
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+
+        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("detail").GetString().Should().Contain("Refresh");
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
+        root.TryGetProperty("processNextState", out _).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("processing")]
+    [InlineData("future-status")]
+    public async Task NextElement_WhenProcessStatusBlocks_ReturnsSharedProblem(string processStatus)
+    {
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
+        processEngineMock
+            .Setup(engine =>
+                engine.Next(
+                    It.IsAny<Altinn.App.Core.Models.Process.ProcessNextRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new Altinn.App.Core.Models.Process.ProcessChangeResult
+                {
+                    Success = false,
+                    ErrorType = Altinn.App.Core.Models.Process.ProcessErrorType.Conflict,
+                    ErrorTitle = "Instance mutation blocked.",
+                    ErrorMessage = $"The instance cannot be changed while its process status is '{processStatus}'.",
+                    BlockingProcessStatus = processStatus,
+                }
+            );
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next",
+            null
+        );
+
+        await ProcessStatusProblemAssertions.AssertResponse(response, processStatus);
+    }
+
+    [Theory]
+    [InlineData("processing")]
+    [InlineData("future-status")]
+    public async Task CompleteProcess_WhenStoredProcessStatusBlocks_ReturnsSharedProblemBeforeAppCode(
+        string processStatus
+    )
+    {
+        var workflowEngineService = CreateWorkflowEngineServiceMock(new CurrentTaskWorkflowState.Unblocked());
+        var action = CreateStrictCompleteActionMock();
+        var authorizer = CreateCompleteAuthorizerMock("write");
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IWorkflowEngineService>();
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.AddSingleton(workflowEngineService.Object);
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(action.Object);
+        };
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, processStatus);
+        using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+            null
+        );
+
+        await ProcessStatusProblemAssertions.AssertResponse(response, processStatus);
+        workflowEngineService.Verify(
+            service =>
+                service.GetCurrentTaskWorkflowState(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        workflowEngineService.VerifyNoOtherCalls();
+        VerifyCompleteAuthorizations(authorizer, "write", completeAuthorizationExpected: false);
+        VerifyAppCodeWasNotInvoked(action);
+    }
+
+    [Theory]
+    [InlineData("retrying")]
+    [InlineData("resumeRequired")]
+    public async Task CompleteProcess_WorkflowRecoveryDispositionWinsOverStoredProcessStatus(
+        string expectedProcessNextState
+    )
+    {
+        Guid workflowId = Guid.NewGuid();
+        CurrentTaskWorkflowState workflowState = expectedProcessNextState switch
+        {
+            "retrying" => new CurrentTaskWorkflowState.Retrying(workflowId, "collection-key"),
+            "resumeRequired" => new CurrentTaskWorkflowState.ResumeRequired(workflowId, "collection-key"),
+            _ => throw new ArgumentOutOfRangeException(nameof(expectedProcessNextState)),
+        };
+        var workflowEngineService = CreateWorkflowEngineServiceMock(workflowState);
+        var action = CreateStrictCompleteActionMock();
+        var authorizer = CreateCompleteAuthorizerMock("write");
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IWorkflowEngineService>();
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.AddSingleton(workflowEngineService.Object);
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(action.Object);
+        };
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "processing");
+        using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        document.RootElement.GetProperty("processNextState").GetString().Should().Be(expectedProcessNextState);
+        document.RootElement.TryGetProperty("processStatus", out _).Should().BeFalse();
+        workflowEngineService.Verify(
+            service =>
+                service.GetCurrentTaskWorkflowState(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        workflowEngineService.VerifyNoOtherCalls();
+        VerifyCompleteAuthorizations(authorizer, "write", completeAuthorizationExpected: false);
+        VerifyAppCodeWasNotInvoked(action);
+    }
+
+    [Theory]
+    [InlineData(AltinnTaskTypes.Payment, "payment")]
+    [InlineData(AltinnTaskTypes.SubformPdf, "subformPdf")]
+    public async Task CompleteProcess_WhenLegacyTaskTypeAuthorizationDiffers_ReturnsBareForbidden(
+        string taskType,
+        string action
+    )
+    {
+        var workflowEngineService = CreateWorkflowEngineServiceMock(new CurrentTaskWorkflowState.Unblocked());
+        var authorizer = CreateCompleteAuthorizerMock(action, completeProcessAuthorized: false);
+        var userAction = CreateStrictCompleteActionMock(action);
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IWorkflowEngineService>();
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.AddSingleton(workflowEngineService.Object);
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(userAction.Object);
+        };
+        await TestData.SetCurrentTaskType(Org, App, InstanceOwnerPartyId, _instanceGuid, taskType);
+        try
+        {
+            using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+            using HttpResponseMessage response = await client.PutAsync(
+                $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+                null
+            );
+
+            response.Should().HaveStatusCode(HttpStatusCode.Forbidden);
+            response.Content.Headers.ContentType.Should().BeNull();
+            (await response.Content.ReadAsStringAsync()).Should().BeEmpty();
+            VerifyCompleteAuthorizations(authorizer, action, completeAuthorizationExpected: true);
+            workflowEngineService.Verify(
+                service =>
+                    service.GetCurrentTaskWorkflowState(
+                        It.Is<Instance>(instance => instance.Id == _instanceId),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+            workflowEngineService.VerifyNoOtherCalls();
+            VerifyAppCodeWasNotInvoked(userAction);
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        }
+    }
+
+    [Fact]
+    public async Task CompleteProcess_WhenActionAndLegacyAuthorizationDeny_ReturnsBareForbidden()
+    {
+        var workflowEngineService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        var authorizer = CreateCompleteAuthorizerMock(
+            "write",
+            completeProcessAuthorized: false,
+            actionAuthorized: false
+        );
+        var validationService = new Mock<IValidationService>(MockBehavior.Strict);
+        var action = CreateStrictCompleteActionMock();
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IWorkflowEngineService>();
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.RemoveAll<IValidationService>();
+            services.AddSingleton(workflowEngineService.Object);
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(validationService.Object);
+            services.AddSingleton(action.Object);
+        };
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "idle");
+        using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.Forbidden);
+        response.Content.Headers.ContentType.Should().BeNull();
+        (await response.Content.ReadAsStringAsync()).Should().BeEmpty();
+        VerifyCompleteAuthorizations(authorizer, "write", completeAuthorizationExpected: true);
+        workflowEngineService.VerifyNoOtherCalls();
+        validationService.VerifyNoOtherCalls();
+        VerifyAppCodeWasNotInvoked(action);
+    }
+
+    [Fact]
+    public async Task CompleteProcess_WhenOnlyActionAuthorizationDenies_ReturnsEngineUnauthorizedProblem()
+    {
+        var workflowEngineService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        var authorizer = CreateCompleteAuthorizerMock(
+            "write",
+            completeProcessAuthorized: true,
+            actionAuthorized: false
+        );
+        var validationService = new Mock<IValidationService>(MockBehavior.Strict);
+        var action = CreateStrictCompleteActionMock();
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IWorkflowEngineService>();
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.RemoveAll<IValidationService>();
+            services.AddSingleton(workflowEngineService.Object);
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(validationService.Object);
+            services.AddSingleton(action.Object);
+        };
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "idle");
+        using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.Forbidden);
+        response.Content.Headers.ContentType!.MediaType.Should().Be("application/problem+json");
+        using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        document.RootElement.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status403Forbidden);
+        document.RootElement.GetProperty("title").GetString().Should().Be("Unauthorized");
+        document
+            .RootElement.GetProperty("detail")
+            .GetString()
+            .Should()
+            .Contain("User is not authorized to perform process next.");
+        VerifyCompleteAuthorizations(authorizer, "write", completeAuthorizationExpected: true);
+        workflowEngineService.VerifyNoOtherCalls();
+        validationService.VerifyNoOtherCalls();
+        VerifyAppCodeWasNotInvoked(action);
+    }
+
+    [Fact]
+    public async Task CompleteProcess_WhenIdleAndValidationFails_StopsMatchingActionBeforeAppCode()
+    {
+        var workflowEngineService = CreateWorkflowEngineServiceMock(new CurrentTaskWorkflowState.Unblocked());
+        var authorizer = CreateCompleteAuthorizerMock("write", completeProcessAuthorized: true);
+        var action = CreateStrictCompleteActionMock();
+        var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        dataValidator.SetupGet(validator => validator.NoIncrementalValidation).Returns(false);
+        dataValidator.SetupGet(validator => validator.ShouldRunAfterRemovingHiddenData).Returns(false);
+        dataValidator.SetupGet(validator => validator.DataType).Returns("*");
+        dataValidator.SetupGet(validator => validator.ValidationSource).Returns("complete-validation");
+        dataValidator
+            .Setup(validator =>
+                validator.ValidateFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<object>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .ReturnsAsync([
+                new ValidationIssue
+                {
+                    Code = "complete-validation-error",
+                    Description = "Complete validation failed.",
+                    Severity = ValidationIssueSeverity.Error,
+                },
+            ]);
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IWorkflowEngineService>();
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.AddSingleton(workflowEngineService.Object);
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(action.Object);
+            services.RemoveAll<IFormDataValidator>();
+            services.AddSingleton(dataValidator.Object);
+        };
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "idle");
+        using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        JsonElement issue = document.RootElement.GetProperty("validationIssues").EnumerateArray().Single();
+        issue.GetProperty("source").GetString().Should().Be("complete-validation");
+        issue.GetProperty("code").GetString().Should().Be("complete-validation-error");
+        dataValidator.Verify(
+            validator =>
+                validator.ValidateFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<object>(),
+                    It.IsAny<string?>()
+                ),
+            Times.Once
+        );
+        workflowEngineService.Verify(
+            service =>
+                service.GetCurrentTaskWorkflowState(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        workflowEngineService.VerifyNoOtherCalls();
+        VerifyCompleteAuthorizations(authorizer, "write", completeAuthorizationExpected: true);
+        VerifyAppCodeWasNotInvoked(action);
+    }
+
+    [Fact]
+    public async Task CompleteProcess_WhenServiceTaskValidationFails_StopsBeforeActionAndServiceEffects()
+    {
+        const string serviceType = "test-service";
+        var workflowEngineService = CreateWorkflowEngineServiceMock(new CurrentTaskWorkflowState.Unblocked());
+        var authorizer = CreateCompleteAuthorizerMock(serviceType, completeProcessAuthorized: true);
+        var validationService = CreateValidationServiceMock([
+            new ValidationIssueWithSource
+            {
+                Severity = ValidationIssueSeverity.Error,
+                Code = "service-invalid",
+                Description = "Service task validation failed.",
+                Source = "service-validation",
+            },
+        ]);
+        var action = CreateStrictCompleteActionMock(serviceType);
+        // A real class, not a mock: resolving the task's pipeline goes through the forwarding
+        // Define default, which mocks bypass.
+        var serviceTask = new RecordingServiceTask(serviceType);
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IWorkflowEngineService>();
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.RemoveAll<IValidationService>();
+            services.AddSingleton(workflowEngineService.Object);
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(validationService.Object);
+            services.AddSingleton(action.Object);
+            services.AddSingleton<IServiceTask>(serviceTask);
+        };
+        await TestData.SetCurrentTaskType(Org, App, InstanceOwnerPartyId, _instanceGuid, serviceType);
+        try
+        {
+            using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+            using HttpResponseMessage response = await client.PutAsync(
+                $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+                null
+            );
+
+            response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+            using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            JsonElement issue = document.RootElement.GetProperty("validationIssues").EnumerateArray().Single();
+            issue.GetProperty("source").GetString().Should().Be("service-validation");
+            issue.GetProperty("code").GetString().Should().Be("service-invalid");
+            VerifyCompleteAuthorizations(authorizer, serviceType, completeAuthorizationExpected: true);
+            VerifyValidationCalls(validationService, Times.Once());
+            action.Verify(userAction => userAction.HandleAction(It.IsAny<UserActionContext>()), Times.Never);
+            action.VerifyNoOtherCalls();
+            Assert.Equal(0, serviceTask.ExecuteCount);
+            workflowEngineService.Verify(
+                service =>
+                    service.GetCurrentTaskWorkflowState(
+                        It.Is<Instance>(instance => instance.Id == _instanceId),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+            workflowEngineService.VerifyNoOtherCalls();
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        }
+    }
+
+    [Fact]
+    public async Task CompleteProcess_WhenValid_PrevalidatesThenRunsActionThenPostvalidates()
+    {
+        List<string> callOrder = [];
+        var authorizer = CreateCompleteAuthorizerMock("write", completeProcessAuthorized: true);
+        var validationService = CreateValidationServiceMock([], () => callOrder.Add("validate"));
+        var action = CreateStrictCompleteActionMock();
+        action
+            .Setup(userAction => userAction.HandleAction(It.IsAny<UserActionContext>()))
+            .Callback(() => callOrder.Add("action"))
+            .ReturnsAsync(UserActionResult.SuccessResult());
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IProcessEngineAuthorizer>();
+            services.RemoveAll<IValidationService>();
+            services.AddSingleton(authorizer.Object);
+            services.AddSingleton(validationService.Object);
+            services.AddSingleton(action.Object);
+        };
+        using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/completeProcess",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        callOrder.Should().Equal("validate", "action", "validate");
+        VerifyCompleteAuthorizations(authorizer, "write", completeAuthorizationExpected: true);
+        VerifyValidationCalls(validationService, Times.Exactly(2));
+        action.VerifyGet(userAction => userAction.Id, Times.Once);
+        action.Verify(userAction => userAction.HandleAction(It.IsAny<UserActionContext>()), Times.Once);
+        action.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task NextElement_WhenEngineRejectsDifferentBodyForSameVersionKey_ReturnsConflict()
+    {
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
+        processEngineMock
+            .Setup(engine =>
+                engine.Next(
+                    It.IsAny<Altinn.App.Core.Models.Process.ProcessNextRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(
+                Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.NotAccepted(
+                    "Engine idempotency conflict.",
+                    HttpStatusCode.Conflict,
+                    _instanceGuid.ToString()
+                )
+            );
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+
+        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        document.RootElement.GetProperty("title").GetString().Should().Be("Concurrent process transition attempt.");
+        document.RootElement.GetProperty("detail").GetString().Should().Contain("Refresh");
+    }
+
+    [Fact]
+    public async Task StartProcess_WhenAcquireFails_ReturnsConflictWithoutResume()
+    {
+        var instance = new Instance
+        {
+            Id = _instanceId,
+            AppId = $"{Org}/{App}",
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
+        };
+        var workflowFailure = new Altinn.App.Core.Models.Process.WorkflowFailure
+        {
+            Kind = Altinn.App.Core.Models.Process.WorkflowFailureKind.AcquireConflict,
+            StepOperationId = "AcquireProcessingStatus",
+        };
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
+            new Altinn.App.Core.Internal.WorkflowEngine.WorkflowExecutionFailedException(
+                instance,
+                workflowFailure,
+                processStateChanged: false,
+                "Acquire conflict."
+            )
+        );
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PostAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/start",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+
+        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("recommendedAction").GetString().Should().Be("retryStartProcess");
+        root.GetProperty("detail").GetString().Should().Contain("Refresh");
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("processing")]
+    [InlineData("future-status")]
+    public async Task StartProcess_WhenProcessStatusBlocks_ReturnsSharedProblemBeforeEngine(string processStatus)
+    {
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, processStatus);
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PostAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/start",
+            null
+        );
+
+        await ProcessStatusProblemAssertions.AssertResponse(response, processStatus);
+        processEngineMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task StartProcess_WhenEngineRejectsDifferentBodyForSameVersionKey_ReturnsConflictWithoutResume()
+    {
+        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
+            Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.NotAccepted(
+                "Engine idempotency conflict.",
+                HttpStatusCode.Conflict,
+                _instanceGuid.ToString()
+            )
+        );
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PostAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/start",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+
+        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
+        root.GetProperty("detail").GetString().Should().Contain("Refresh");
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
     }
 
     // Pins the wire strings of the process-start submission-failure contract. NotAccepted leaves the existing
@@ -843,8 +1484,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Setup(p =>
                 p.SubmitInitialProcessState(
                     It.IsAny<Instance>(),
+                    It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<Altinn.App.Core.Models.Process.ProcessStateChange>(),
-                    It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstantiationNotification?>(),
@@ -870,6 +1511,117 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             }
         );
 
+    private static Mock<IWorkflowEngineService> CreateWorkflowEngineServiceMock(CurrentTaskWorkflowState workflowState)
+    {
+        var workflowEngineService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        workflowEngineService
+            .Setup(service => service.GetCurrentTaskWorkflowState(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(workflowState);
+        return workflowEngineService;
+    }
+
+    private static Mock<IProcessEngineAuthorizer> CreateCompleteAuthorizerMock(
+        string action,
+        bool? completeProcessAuthorized = null,
+        bool actionAuthorized = true
+    )
+    {
+        var authorizer = new Mock<IProcessEngineAuthorizer>(MockBehavior.Strict);
+        authorizer
+            .Setup(service =>
+                service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), action)
+            )
+            .ReturnsAsync(actionAuthorized);
+        if (completeProcessAuthorized is bool authorized)
+        {
+            authorizer
+                .Setup(service =>
+                    service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), null)
+                )
+                .ReturnsAsync(authorized);
+        }
+
+        return authorizer;
+    }
+
+    private static void VerifyCompleteAuthorizations(
+        Mock<IProcessEngineAuthorizer> authorizer,
+        string action,
+        bool completeAuthorizationExpected
+    )
+    {
+        authorizer.Verify(
+            service => service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), action),
+            Times.Once
+        );
+        authorizer.Verify(
+            service => service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), null),
+            completeAuthorizationExpected ? Times.Once() : Times.Never()
+        );
+        authorizer.VerifyNoOtherCalls();
+    }
+
+    private static Mock<IValidationService> CreateValidationServiceMock(
+        IReadOnlyCollection<ValidationIssueWithSource> validationIssues,
+        Action? onValidation = null
+    )
+    {
+        var validationService = new Mock<IValidationService>(MockBehavior.Strict);
+        validationService
+            .Setup(service =>
+                service.ValidateInstanceAtTask(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    "Task_1",
+                    null,
+                    null,
+                    It.IsAny<string?>()
+                )
+            )
+            .Callback(() => onValidation?.Invoke())
+            .ReturnsAsync(validationIssues.ToList());
+        return validationService;
+    }
+
+    private static void VerifyValidationCalls(Mock<IValidationService> validationService, Times times)
+    {
+        validationService.Verify(
+            service =>
+                service.ValidateInstanceAtTask(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    "Task_1",
+                    null,
+                    null,
+                    It.IsAny<string?>()
+                ),
+            times
+        );
+        validationService.VerifyNoOtherCalls();
+    }
+
+    private static Mock<IUserAction> CreateStrictCompleteActionMock(string actionId = "write")
+    {
+        var action = new Mock<IUserAction>(MockBehavior.Strict);
+        action.SetupGet(userAction => userAction.Id).Returns(actionId);
+        return action;
+    }
+
+    private void VerifyAppCodeWasNotInvoked(Mock<IUserAction> action)
+    {
+        _formDataValidatorMock.Verify(
+            validator =>
+                validator.ValidateFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<object>(),
+                    It.IsAny<string?>()
+                ),
+            Times.Never
+        );
+        action.Verify(userAction => userAction.HandleAction(It.IsAny<UserActionContext>()), Times.Never);
+        action.VerifyNoOtherCalls();
+        _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
     private static Mock<IPdfGeneratorClient> SetupPdfGeneratorMock()
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
@@ -892,5 +1644,19 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         T? expected = JsonSerializer.Deserialize<T>(expectedString);
         T? actual = JsonSerializer.Deserialize<T>(actualString);
         actual.Should().BeEquivalentTo(expected);
+    }
+
+    /// <summary>A real service task that records whether it ran — validation must stop before it does.</summary>
+    private sealed class RecordingServiceTask(string type) : IServiceTask
+    {
+        public int ExecuteCount { get; private set; }
+
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        {
+            ExecuteCount++;
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        }
     }
 }
