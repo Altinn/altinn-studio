@@ -65,7 +65,7 @@ internal sealed class WorkflowCommandSet
                 group.AddCriticalPostCommitCommand(
                     ExecuteServiceTask.Key,
                     new ExecuteServiceTaskPayload(context.ServiceTaskType, stageName),
-                    operationId: $"{ExecuteServiceTask.Key} · {stageName}",
+                    operationId: $"{ExecuteServiceTask.Key}: {stageName}",
                     serviceTaskStageName: stageName
                 );
             }

@@ -113,6 +113,26 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Contains(nameof(EmptyStageNameTask), exception.Message);
     }
 
+    private sealed class NonAsciiStageNameTask : IPipelineServiceTask
+    {
+        public string Type => "nonAsciiName";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder task) =>
+            task.Stage("Send · Arkiv", NoopStage).Finally(NoopFinally);
+    }
+
+    [Fact]
+    public async Task NonAsciiStageName_FailsStartup_PointingAtTheHeaderBoundary()
+    {
+        // Stage names flow into the engine step's OperationId, which the engine forwards as an
+        // HTTP header — a non-ASCII name would poison every callback into a retry loop, so the
+        // builder rejects it at compose time and the validator surfaces it at boot.
+        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, NonAsciiStageNameTask>());
+
+        Assert.NotNull(exception);
+        Assert.Contains("printable ASCII", exception.Message);
+    }
+
     private sealed class InvalidStageOptionsTask : IPipelineServiceTask
     {
         public string Type => "invalidOptions";

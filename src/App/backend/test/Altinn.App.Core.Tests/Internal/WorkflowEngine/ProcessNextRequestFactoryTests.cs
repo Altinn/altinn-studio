@@ -607,7 +607,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(2, serviceTaskSteps.Count);
 
         Assert.Equal("Dispatch", serviceTaskSteps[0].Payload.StageName);
-        Assert.Equal($"{ExecuteServiceTask.Key} · Dispatch", serviceTaskSteps[0].OperationId);
+        Assert.Equal($"{ExecuteServiceTask.Key}: Dispatch", serviceTaskSteps[0].OperationId);
         Assert.Null(serviceTaskSteps[1].Payload.StageName);
         Assert.Equal(ExecuteServiceTask.Key, serviceTaskSteps[1].OperationId);
         Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));

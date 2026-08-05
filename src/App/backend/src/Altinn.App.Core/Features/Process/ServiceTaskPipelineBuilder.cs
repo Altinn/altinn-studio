@@ -23,9 +23,10 @@ public sealed class ServiceTaskPipelineBuilder
     /// </summary>
     /// <param name="name">
     /// The stage's identity — in the engine's records, logs and dashboards, and how a callback
-    /// finds its way back to this stage. <strong>The name is a compatibility surface for
-    /// in-flight workflows:</strong> a workflow enqueued with this stage keeps calling back by
-    /// name until it settles, so keep names stable. Renaming the work method is free; this
+    /// finds its way back to this stage. Printable ASCII only: the name travels in engine step
+    /// identities that cross HTTP header boundaries. <strong>The name is a compatibility surface
+    /// for in-flight workflows:</strong> a workflow enqueued with this stage keeps calling back
+    /// by name until it settles, so keep names stable. Renaming the work method is free; this
     /// literal is what must not drift.
     /// </param>
     /// <param name="work">
@@ -48,6 +49,14 @@ public sealed class ServiceTaskPipelineBuilder
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(work);
+        if (name.Any(c => c < 0x20 || c > 0x7E))
+        {
+            throw new ArgumentException(
+                $"Stage name '{name}' contains a character outside printable ASCII. Stage names travel in "
+                    + "engine step identities that cross HTTP header boundaries, which reject non-ASCII values.",
+                nameof(name)
+            );
+        }
         if (_stages.Any(s => string.Equals(s.Name, name, StringComparison.Ordinal)))
         {
             throw new ArgumentException(
