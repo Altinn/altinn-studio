@@ -51,7 +51,7 @@ public class OutboundHeaderExtensionsTests
     {
         // Regression: "ExecuteServiceTask · DispatchOrder" (non-ASCII '·') threw
         // "Request headers must contain only ASCII characters" on every dispatch attempt,
-        // leaving the workflow requeueing forever.
+        // leaving the workflow requeuing forever.
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://app.example/callback");
 
         request.AddWorkflowMetadataHeaders(CreateContext("ExecuteServiceTask · Godkjenning på vent"));
