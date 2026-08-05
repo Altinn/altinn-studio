@@ -25,6 +25,14 @@ export default defineConfig({
         classNameStrategy: 'non-scoped',
       },
     },
+    deps: {
+      optimizer: {
+        client: {
+          enabled: true,
+          include: ['html-react-parser'],
+        },
+      },
+    },
     environment: 'jsdom',
     environmentOptions: {
       jsdom: {
@@ -37,7 +45,8 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx,js,jsx}'],
     reporters: process.env.CI ? ['default', 'junit'] : ['default'],
     outputFile: process.env.CI ? { junit: 'junit.xml' } : undefined,
-    pool: 'threads',
+    execArgv: ['--no-experimental-webstorage'],
+    pool: 'vmThreads',
     setupFiles: ['./src/setupTests.ts'],
     testTimeout: Number.parseInt(process.env.VITEST_TIMEOUT ?? '20000', 10),
     coverage: {
