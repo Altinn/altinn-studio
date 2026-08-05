@@ -69,6 +69,11 @@ describe('Dropdown', () => {
     expect(getInput(container)).toHaveAttribute('readonly');
   });
 
+  it('renders an editable input when readOnly is not set', () => {
+    const { container } = render({ readOnly: false });
+    expect(getInput(container)).not.toHaveAttribute('readonly');
+  });
+
   it('marks the input as invalid when isValid is false', () => {
     const { container } = render({ isValid: false });
     expect(getInput(container)).toHaveAttribute('aria-invalid', 'true');

@@ -20,7 +20,7 @@ export interface IDeleteWarningPopover {
 
 /**
  * A controlled confirmation popover shown before applying a destructive change (e.g. overwriting a
- * selected value). The `open` state is driven from the outside (typically by {@link useAlertOnChange})
+ * selected value). The `open` state is driven from the outside (typically by 'useAlertOnChange')
  * rather than by the trigger, so it can be wired to the native popover API. Ported from the
  * app-frontend component of the same name.
  */
