@@ -7,19 +7,15 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates every registered service task's pipeline, once at startup. Anything caught here — a
-/// <c>Define</c> that throws (the builder rejects duplicate/empty stage names and invalid
-/// per-stage options eagerly), returns null, or is replaced on an <c>IServiceTask</c> where the
-/// forwarding default is the contract — would otherwise surface only when a citizen first
-/// advances the affected task, as a failed transition in production. Validating at boot turns
-/// that into a fast, unmissable startup failure.
+/// Validates every registered service task's pipeline once at startup. A <c>Define</c> that
+/// throws, returns null, or is replaced on an <c>IServiceTask</c> would otherwise surface only
+/// when a citizen first advances the affected task; validating at boot turns that into an
+/// unmissable startup failure.
 /// </summary>
 /// <remarks>
-/// Mirrors <see cref="WorkflowStepOptionsValidator"/>: handlers are resolved in a fresh DI scope,
-/// and a handler whose constructor cannot run at startup is skipped with a warning rather than
-/// failing the app — the executor's own guards remain as the backstop. Only an actual contract
-/// violation fails startup. The sealed-<c>Define</c> check is itself a backstop: the
-/// <c>Altinn.App.Analyzers</c> package reports the same violation at compile time.
+/// Mirrors <see cref="WorkflowStepOptionsValidator"/>: handlers whose constructors cannot run at
+/// startup are skipped with a warning — only an actual contract violation fails the app. The
+/// sealed-<c>Define</c> check is itself a backstop for the compile-time analyzer rule.
 /// </remarks>
 internal sealed class ServiceTaskRegistrationValidator : IHostedService
 {

@@ -7,11 +7,10 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Request payload for ExecuteServiceTask command. Contains the service task type identifier and,
-/// optionally, the name of the pipeline stage this engine step executes. <see cref="StageName"/>
-/// is null exactly when this engine step runs the pipeline's conclusion (its <c>Finally</c> — for
-/// an <see cref="IServiceTask"/>, its <c>Execute</c>), which every service task has and which for
-/// most tasks is the whole pipeline; a name identifies one of the task's composed stages.
+/// Request payload for the ExecuteServiceTask command: the service task type and, optionally, the
+/// pipeline stage this engine step executes. <see cref="StageName"/> is null exactly when the
+/// step runs the pipeline's conclusion (its <c>Finally</c> — for an <see cref="IServiceTask"/>,
+/// its <c>Execute</c>).
 /// </summary>
 internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, string? StageName = null)
     : CommandRequestPayload;
@@ -22,11 +21,9 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
     public static string Key => "ExecuteServiceTask";
 
     /// <summary>
-    /// The default execution timeout for service tasks. Service tasks routinely call slow external
-    /// systems (eFormidling, payment providers, other government APIs), so they get a far more generous
-    /// budget than the engine's global default. An individual service task that needs even
-    /// longer can override this via <see cref="IProcessStepConfigurable.StepOptions"/> (per task) or
-    /// the per-stage options on <see cref="ServiceTaskPipelineBuilder.Stage"/>.
+    /// Service tasks routinely call slow external systems (eFormidling, payment providers), so
+    /// they get a far more generous default timeout than the engine's. Override per task via
+    /// <see cref="IProcessStepConfigurable.StepOptions"/> or per stage on the builder.
     /// </summary>
     internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
 

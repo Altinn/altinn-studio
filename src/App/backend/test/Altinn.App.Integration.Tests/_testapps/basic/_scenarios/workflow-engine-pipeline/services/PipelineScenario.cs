@@ -10,15 +10,11 @@ using TestApp.Shared;
 namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEnginePipeline;
 
 /// <summary>
-/// A three-part pipeline whose middle part misbehaves on purpose, so the test can prove the
-/// composition property no unit test spans: a completed stage never re-runs while a later part
-/// retries and defers — re-entry lands on the failed/deferred part, and only there.
-///
-/// Part 1 (stage "ReserveResources") completes on its first run. Part 2 (stage "DispatchOrder")
-/// fails retryably on run 1, defers on run 2, and completes on run 3 — exercising BOTH re-entry
-/// paths on the same stage. Part 3 (the Finally, "ConfirmOrder") succeeds. Every run of every
-/// part logs its own run number via <see cref="SnapshotLogger"/>; the test asserts the exact
-/// sequence and, crucially, the absence of a second run of parts 1 and 3.
+/// A three-part pipeline whose middle part misbehaves on purpose: "ReserveResources" completes on
+/// its first run; "DispatchOrder" fails retryably on run 1, defers on run 2, and completes on
+/// run 3 — both re-entry paths on the same stage; the Finally ("ConfirmOrder") succeeds. Every
+/// run logs its run number via <see cref="SnapshotLogger"/>; the test asserts the exact sequence
+/// and, crucially, the absence of a second run of parts 1 and 3.
 /// </summary>
 public sealed class ThreePartPipelineTask : IPipelineServiceTask
 {

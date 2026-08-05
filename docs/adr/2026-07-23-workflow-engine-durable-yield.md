@@ -90,62 +90,50 @@ alert for a non-error condition.
 ## Consequences
 
 - Multi-phase integrations ("send, then confirm") get their shape from **pipeline service
-  tasks**: `IPipelineServiceTask` is the root contract — the task composes its pipeline in
-  `Define(builder)` as `Stage(name, work, options?)` calls ended by the one `Finally(work)`, with
-  the builder's types making any other shape uncompilable ("exactly one conclusion, at the end"
-  is compile-time, not a validator rule). `IServiceTask` — the simple task the 99% implement —
-  derives from it with a sealed forwarding default, `Define => Finally(Execute)`: a simple task
-  *is* a pipeline whose only step is the conclusion, so the runtime has exactly one dispatch
-  path and the simple case is a derived fact rather than a special case (the seal is enforced by
-  analyzer rule ALTINNAPP0700 and a startup backstop — replacing it would silently orphan
-  `Execute`). Each stage expands to its own engine step at enqueue time; a task without stages
-  produces a wire shape identical to before. The engine's step ledger is the durable send guard —
-  a completed stage never re-runs, and a retry or an operational resume re-enters the pipeline at
-  the failed stage — while the per-stage `StepId` remains the outbound idempotency key for the
-  crash window inside one attempt (send succeeded, response never landed). The guard is never
-  `DeferCount` — an attempt can send, crash before answering, and re-run with the count unchanged.
-  Stage names are explicit literals (refactor-safe: renaming the work method never moves the wire
-  identity). Stages share state the way service tasks always have — through the instance data
-  mutator, saved on stage completion — deliberately introducing no new handoff channel.
-  eFormidling in v9 migrates onto this as a send stage plus a polling `Finally` (IP status mapped
-  to Success / Defer / Critical / Retryable), idempotent per #18888. Three earlier iterations
-  were built and backed out within this change: a **single** task phasing itself on checkpointed
-  evidence (rejected for forking the first-party integration off the API third parties get — an
-  objection that dissolved when the multi-stage shape became the public API); a parallel
-  `IStagedServiceTask` kind with typed per-step relays and a separate final-step entity; and a
-  `Steps` property on `IServiceTask` itself (each collapsed further once it became clear the
-  concluding step *is* the task's own execution and the composition wants to be one expression).
+  tasks**: `IPipelineServiceTask` is the root contract — `Define(builder)` composes
+  `Stage(name, work, options?)` calls ended by the one `Finally(work)`, the builder's types making
+  any other shape uncompilable. `IServiceTask` — the simple task the 99% implement — derives from
+  it with a sealed forwarding default, `Define => Finally(Execute)` (enforced by analyzer rule
+  ALTINNAPP0700 plus a startup backstop — replacing it would silently orphan `Execute`), so the
+  runtime has one dispatch path and the simple case is a derived fact, not a special case. Each
+  stage expands to its own engine step at enqueue; a task without stages produces a wire shape
+  identical to before. The engine's step ledger is the durable send guard — a completed stage
+  never re-runs; a retry or resume re-enters at the failed stage — while the per-stage `StepId`
+  covers the crash window inside one attempt. The guard is never `DeferCount`: an attempt can
+  send, crash before answering, and re-run with the count unchanged. Stage names are explicit
+  literals (the wire identity — renaming the work method never moves it); stages share state
+  through the instance data mutator, saved on stage completion — no new handoff channel.
+  eFormidling in v9 migrates onto this as a send stage plus a polling `Finally`, idempotent per
+  #18888. Three earlier iterations were built and backed out within this change: a single task
+  phasing itself on checkpointed evidence, a parallel `IStagedServiceTask` kind with a separate
+  final-step entity, and a `Steps` property on `IServiceTask` itself — each collapsed once it
+  became clear the concluding step *is* the task's own execution and the composition wants to be
+  one expression.
 - **Checkpoints — the interim app-managed send guard — were designed, built, and removed within
-  this change.** They stored evidence as instance data values written immediately, deliberately
-  outside the save-on-success unit of work; exactly that out-of-band write collides with the
-  upcoming instance-lock feature, and the pipeline split makes the concept unnecessary: "the send
-  happened" is the engine's own step-completion record, and what a step learns is ordinary
-  instance data saved on its completion through the lock-holding save path — durable exactly when
-  the step's completion is. Storing durable business evidence engine-side stays rejected (it
-  would make the engine's database a second source of business truth and end its
-  rebuildable-machinery operational posture). Evidence that must survive BPMN round trips
-  (each pass is a new workflow) — e.g. eFormidling's one-shipment-per-instance ownership claim —
-  is the same instance data, read on a later pass; the eFormidling claim keeps its pre-existing
-  shape until its v9 migration.
+  this change.** They stored evidence as instance data written out-of-band, exactly the write
+  that collides with the upcoming instance-lock feature — and the pipeline split makes them
+  unnecessary: "the send happened" is the engine's own step-completion record, and what a step
+  learns is ordinary instance data saved through the lock-holding save path. Storing durable
+  business evidence engine-side stays rejected (a second source of business truth would end the
+  engine's rebuildable-machinery posture). Evidence that must survive BPMN round trips — e.g.
+  eFormidling's one-shipment-per-instance claim — is the same instance data, read on a later
+  pass; the eFormidling claim keeps its pre-existing shape until its v9 migration.
 - A deferral's reason travels to every surface that shows a wait: persisted on the step
   (`lastDeferReason`), projected onto a `Waiting` collection head (`waitingReason`), and annotated
   on the app's process reads (`workflow.waitingReason`) — so waiting UIs and ops read the task's
   own words instead of a generic spinner.
-- The app-facing surface ships with the primitive, not after it: `ServiceTaskResult.Defer` plus the
-  `ProcessStepOptions.WaitBudget` that bounds it, and the pipeline surface (`IPipelineServiceTask`
-  with per-stage builder options winning field-wise over the task's own, which govern the
-  concluding step directly). Shipping the budget alone would release a public,
-  binary-compatible-forever knob configuring a wait no app could request. The primitive and its
-  app surface ship together; migrating eFormidling, payment capture and signing is the next phase.
+- The app-facing surface ships with the primitive, not after it: `ServiceTaskResult.Defer`, the
+  `ProcessStepOptions.WaitBudget` that bounds it, and the pipeline surface. Shipping the budget
+  alone would release a public, binary-compatible-forever knob configuring a wait no app could
+  request. Migrating eFormidling, payment capture and signing is the next phase.
 - **Deferral is stateless.** A deferring attempt saves nothing: the app echoes the incoming state
   blob back unchanged and rejects (non-retryable) a deferring handler that modified instance data,
-  so every re-check starts from exactly the state the step first received. At this level of
-  sharding, a stage that checks-and-waits is by definition not a stage that records — work that
-  produces something durable belongs in its own step, completed rather than deferred.
-  This reverses the earlier "stateful across attempts" decision, which existed to let a *single*
-  re-entrant task accumulate what it learned between polls; the pipeline split removes that need. A
-  `state` parameter on `Defer` stays rejected as a third state channel alongside Storage and the
-  signed blob.
+  so every re-check starts from exactly the state the step first received. A stage that
+  checks-and-waits is by definition not a stage that records — durable work belongs in its own
+  step, completed rather than deferred. This reverses the earlier "stateful across attempts"
+  decision, which let a *single* re-entrant task accumulate what it learned between polls; the
+  pipeline split removes that need. A `state` parameter on `Defer` stays rejected as a third
+  state channel alongside Storage and the signed blob.
 - Park and defer are deliberately **identical UX on a layouted service task** — both leave the
   process on the committed task (park awaits an external release, e.g. Fiks Arkiv's callback;
   defer polls, e.g. eFormidling), and an app-supplied layout owns the waiting presentation for

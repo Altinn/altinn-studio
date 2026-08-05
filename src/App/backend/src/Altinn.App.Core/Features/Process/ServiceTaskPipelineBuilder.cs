@@ -22,19 +22,17 @@ public sealed class ServiceTaskPipelineBuilder
     /// the failed stage.
     /// </summary>
     /// <param name="name">
-    /// The stage's identity — in the engine's records, logs and dashboards, and how a callback
-    /// finds its way back to this stage. Printable ASCII only: the name travels in engine step
-    /// identities that cross HTTP header boundaries. <strong>The name is a compatibility surface
-    /// for in-flight workflows:</strong> a workflow enqueued with this stage keeps calling back
-    /// by name until it settles, so keep names stable. Renaming the work method is free; this
+    /// The stage's identity — in the engine's records, and how a callback finds its way back to
+    /// this stage. Printable ASCII only (it travels in HTTP header values). <strong>A
+    /// compatibility surface for in-flight workflows:</strong> a workflow enqueued with this
+    /// stage keeps calling back by name until it settles. Renaming the work method is free; this
     /// literal is what must not drift.
     /// </param>
     /// <param name="work">
     /// The stage's work. <strong>MUST be idempotent — it may be retried on failure.</strong> Use
-    /// <see cref="ServiceTaskContext.StepId"/> (stable across this stage's attempts, unique to
-    /// it) as the idempotency key for an outbound call the stage must not repeat. Data changes
-    /// via <see cref="ServiceTaskContext.InstanceDataMutator"/> are saved when the stage
-    /// completes and are visible to every stage after it; a deferring attempt saves nothing.
+    /// <see cref="ServiceTaskContext.StepId"/> as the idempotency key for an outbound call the
+    /// stage must not repeat. Data changes via <see cref="ServiceTaskContext.InstanceDataMutator"/>
+    /// are saved when the stage completes; a deferring attempt saves nothing.
     /// </param>
     /// <param name="options">
     /// Optional per-stage execution options (timeout, retry strategy, wait budget) for the engine
