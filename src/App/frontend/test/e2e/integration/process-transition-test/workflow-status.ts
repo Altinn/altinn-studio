@@ -336,6 +336,12 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task1AdvanceButton }).click();
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
 
+    // The failed view converges the URL onto the committed Task_Service moments after the heading
+    // appears (useNavigateToSettledTask). Clicking mid-convergence races the reject's own
+    // navigation back to Task_1 and can strand the session on a loader (seen on slow CI runners;
+    // tracked in #19771) — settle the URL first, as a human effectively would.
+    cy.url().should('include', '/Task_Service');
+
     // Backing out: the bpmn-allowed reject supersedes the terminally failed workflow (the engine
     // writes it off) and Gateway_Service routes the reject back to Task_1, where the levers are
     // editable again.
