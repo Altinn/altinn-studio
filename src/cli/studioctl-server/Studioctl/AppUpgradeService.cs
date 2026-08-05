@@ -41,12 +41,6 @@ internal sealed class AppUpgradeService : IDisposable
         if (!Directory.Exists(projectFolder))
             return AppUpgradeResult.Invalid($"projectFolder does not exist: {projectFolder}");
 
-        // We want to enforce a clean directory, so git diff will only show what the update did
-        if (GitOperations.HasLocalChanges(projectFolder))
-            return AppUpgradeResult.Invalid(
-                "The git repository has local changes. Commit or stash them before upgrading."
-            );
-
         await _upgradeLock.WaitAsync(cancellationToken);
         try
         {
@@ -54,6 +48,12 @@ internal sealed class AppUpgradeService : IDisposable
             var error = new StringWriter(CultureInfo.InvariantCulture);
             try
             {
+                // We want to enforce a clean directory, so git diff will only show what the update did
+                if (GitOperations.HasLocalChanges(projectFolder, output))
+                    return AppUpgradeResult.Invalid(
+                        "The git repository has local changes. Commit or stash them before upgrading."
+                    );
+
                 var exitCode = await RunUpgradeAsync(
                     request with
                     {

@@ -9,23 +9,24 @@ internal static class GitOperations
 {
     /// <summary>
     /// Whether the repository containing <paramref name="path"/> has local changes — staged, unstaged or
-    /// untracked.
+    /// untracked. Failures are reported to <paramref name="output"/> and treated as no local changes, so a
+    /// repository we cannot read never blocks the caller.
     /// </summary>
-    public static bool HasLocalChanges(string path)
+    public static bool HasLocalChanges(string path, TextWriter output)
     {
         try
         {
-            var repoPath = Repository.Discover(path);
-            if (string.IsNullOrEmpty(repoPath))
+            using var repo = TryOpenRepository(path);
+            if (repo is null)
             {
                 return false;
             }
 
-            using var repo = new Repository(repoPath);
             return repo.RetrieveStatus().IsDirty;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            output.WriteLine($"Warning: Failed to check for local git changes: {ex.Message}");
             return false;
         }
     }
@@ -38,14 +39,13 @@ internal static class GitOperations
     {
         try
         {
-            var repoPath = Repository.Discover(path);
-            if (string.IsNullOrEmpty(repoPath))
+            using var repo = TryOpenRepository(path);
+            if (repo is null)
             {
                 output.WriteLine("Not a git repository - leaving changes unstaged");
                 return;
             }
 
-            using var repo = new Repository(repoPath);
             Commands.Stage(repo, "*");
 
             using var stagedChanges = repo.Diff.Compare<TreeChanges>(repo.Head.Tip?.Tree, DiffTargets.Index);
@@ -57,5 +57,15 @@ internal static class GitOperations
         {
             output.WriteLine($"Warning: Failed to stage changes: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Opens the repository containing <paramref name="path"/>, or <c>null</c> when <paramref name="path"/> is
+    /// not inside a git repository.
+    /// </summary>
+    private static Repository? TryOpenRepository(string path)
+    {
+        var repoPath = Repository.Discover(path);
+        return string.IsNullOrEmpty(repoPath) ? null : new Repository(repoPath);
     }
 }
