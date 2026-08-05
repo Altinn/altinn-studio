@@ -4859,14 +4859,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@percy/cypress@npm:3.1.8":
-  version: 3.1.8
-  resolution: "@percy/cypress@npm:3.1.8"
+"@percy/cypress@npm:3.1.9":
+  version: 3.1.9
+  resolution: "@percy/cypress@npm:3.1.9"
   dependencies:
-    "@percy/sdk-utils": "npm:^1.31.10"
+    "@percy/sdk-utils": "npm:1.32.3-beta.1"
   peerDependencies:
     cypress: ">=3"
-  checksum: 10/a424c9c793da0a18c29ba9bbdd8889afb1e1e9345897fe8357fa455adf646d93795b0a21bc18c6b9d3e341255977f150917eda84fbf0a576a292722a481d5c64
+  checksum: 10/86ceb402092fb14e1bd1857d8ed5b90fdbeaaa2711eb4ee09aa2a5dd8dda98cab9f06ffb6dd2b9a6185f70807fec38ba4855d90ab1a0556143d6241bbb72644c
   languageName: node
   linkType: hard
 
@@ -4914,12 +4914,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@percy/sdk-utils@npm:^1.31.10":
-  version: 1.32.5
-  resolution: "@percy/sdk-utils@npm:1.32.5"
+"@percy/sdk-utils@npm:1.32.3-beta.1":
+  version: 1.32.3-beta.1
+  resolution: "@percy/sdk-utils@npm:1.32.3-beta.1"
   dependencies:
     pac-proxy-agent: "npm:^7.0.2"
-  checksum: 10/870234341e0cb1b1567faf58735497415a596ad78151ff68d3b30a920acd32ef80ef015f5c901d0540bf2f63a833708f7bc284997b28a3247f6035f52f7ac080
+  checksum: 10/ff2582ea87b364ea41b1677595f591f096550fbb54b037eb20fe2758ad3af8aa0f0ccb0881f1aa93fae7fcb4b79290b2bca3b3aec6071cfbb6e06605c8377b24
   languageName: node
   linkType: hard
 
@@ -8023,7 +8023,7 @@ __metadata:
     "@lhci/cli": "npm:^0.15.1"
     "@navikt/aksel-icons": "npm:8.13.1"
     "@percy/cli": "npm:1.31.14"
-    "@percy/cypress": "npm:3.1.8"
+    "@percy/cypress": "npm:3.1.9"
     "@rolldown/plugin-babel": "npm:0.2.3"
     "@tanstack/react-query": "npm:5.101.4"
     "@tanstack/react-query-devtools": "npm:5.101.4"
