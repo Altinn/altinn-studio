@@ -1133,7 +1133,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
     },
     "context": {
         "actor": { "orgId": "12345678901" },
-        "lockToken": "lock-token-from-app",
+        "callbackToken": "opaque-callback-token",
         "org": "ttd",
         "app": "my-app",
         "instanceOwnerPartyId": 50001234,
@@ -1750,7 +1750,7 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 
 - **Type string**: `"app"`
 - **Data**: `AppCommandData` — `{ commandKey, payload? }`
-- **Context**: `AppWorkflowContext` — `{ actor, lockToken, org, app, instanceOwnerPartyId, instanceGuid }`
+- **Context**: `AppWorkflowContext` — `{ actor, callbackToken, org, app, instanceOwnerPartyId, instanceGuid }`
 - **Execution**: HTTP POST to a templated URL expanded from the workflow context
 
 ### Error Classification

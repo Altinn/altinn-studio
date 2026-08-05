@@ -1,13 +1,13 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -35,10 +35,10 @@ public class CommonTaskInitializationTests
                 CommandKey = CommonTaskInitialization.Key,
                 Actor = new Actor { UserId = 1337 },
                 Payload = serializedPayload,
-                LockToken = Guid.NewGuid().ToString(),
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                StepId = Guid.NewGuid(),
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
     }
@@ -65,10 +65,10 @@ public class CommonTaskInitializationTests
                 CommandKey = CommonTaskInitialization.Key,
                 Actor = new Actor { UserId = 1337 },
                 Payload = serializedPayload,
-                LockToken = Guid.NewGuid().ToString(),
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                StepId = Guid.NewGuid(),
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
         return (context, mutatorMock);
@@ -152,6 +152,60 @@ public class CommonTaskInitializationTests
         prefillMock.Verify(x => x.PrefillDataModel("1337", "model", testData, null), Times.Once);
         instantiationProcessorMock.Verify(x => x.DataCreation(instance, testData, null), Times.Once);
         mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
+    }
+
+    [Fact]
+    public async Task Execute_DirectDataClientCallInsideDataCreationSucceeds()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        var instanceGuid = Guid.NewGuid();
+        var dataGuid = Guid.NewGuid();
+        var testData = new TestModel { Name = "test" };
+        var dataClient = new Mock<IDataClient>(MockBehavior.Strict);
+
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(testData);
+
+        var instantiationProcessorMock = new Mock<IInstantiationProcessor>();
+        instantiationProcessorMock
+            .Setup(x => x.DataCreation(instance, testData, null))
+            .Returns(async () =>
+            {
+                await Task.Yield();
+                await dataClient.Object.GetDataBytes(1337, instanceGuid, dataGuid);
+            });
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskId = "Task_1",
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
+                },
+            ],
+        };
+
+        var command = CreateCommand(
+            appMetadata,
+            appModelMock: appModelMock,
+            instantiationProcessorMock: instantiationProcessorMock
+        );
+        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
+
+        byte[] expectedBytes = [1, 2, 3];
+        dataClient.Setup(x => x.GetDataBytes(1337, instanceGuid, dataGuid)).ReturnsAsync(expectedBytes);
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
+        dataClient.VerifyAll();
     }
 
     [Fact]

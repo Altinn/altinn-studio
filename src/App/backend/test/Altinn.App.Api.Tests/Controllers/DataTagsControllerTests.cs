@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Models;
@@ -238,6 +239,36 @@ public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITe
     #endregion
 
     #region DELETE endpoint tests
+
+    [Fact]
+    public async Task SetTags_WhenProcessing_ReturnsSharedProblemBeforeUpdate()
+    {
+        HttpClient client = GetRootedClient(_org, _app);
+        string token = TestAuthentication.GetUserToken(1337, _instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        TestData.PrepareInstance(_org, _app, _instanceOwnerPartyId, _instanceGuid);
+        await TestData.SetProcessStatus(_org, _app, _instanceOwnerPartyId, _instanceGuid, "processing");
+        try
+        {
+            using JsonContent content = JsonContent.Create(new SetTagsRequest { Tags = ["ChangedTag"] });
+
+            using HttpResponseMessage response = await client.PutAsync(
+                $"/{_org}/{_app}/instances/{_instanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}/tags",
+                content
+            );
+
+            await ProcessStatusProblemAssertions.AssertResponse(response, "processing");
+            using HttpResponseMessage getResponse = await client.GetAsync(
+                $"/{_org}/{_app}/instances/{_instanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}/tags"
+            );
+            TagsList storedTags = await VerifyStatusAndDeserialize<TagsList>(getResponse, HttpStatusCode.OK);
+            storedTags.Tags.Should().Equal("Tag1");
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(_org, _app, _instanceOwnerPartyId, _instanceGuid);
+        }
+    }
 
     [Fact]
     public async Task DeleteTag_ExistingTag_ReturnsNoContent()

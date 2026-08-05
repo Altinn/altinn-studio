@@ -59,6 +59,44 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
     }
 
     [Fact]
+    public async Task PutUserDefinedMetadata_WhenProcessing_ReturnsSharedProblemBeforeUpdate()
+    {
+        using HttpClient client = GetRootedUserClient(Org, App, 1337);
+        (string instanceId, string dataGuid) = await CreateInstanceAndDataElement(client);
+        string[] instanceIdParts = instanceId.Split('/');
+        int instanceOwnerPartyId = int.Parse(instanceIdParts[0], System.Globalization.CultureInfo.InvariantCulture);
+        Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
+        await TestData.SetProcessStatus(Org, App, instanceOwnerPartyId, instanceGuid, "processing");
+        try
+        {
+            using var content = new StringContent(
+                """{"userDefinedMetadata": [{ "key" : "TheKey", "value": "Changed" }] }""",
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+
+            using HttpResponseMessage response = await client.PutAsync(
+                $"/{Org}/{App}/instances/{instanceId}/data/{dataGuid}/user-defined-metadata",
+                content
+            );
+
+            await ProcessStatusProblemAssertions.AssertResponse(response, "processing");
+            using HttpResponseMessage getResponse = await client.GetAsync(
+                $"/{Org}/{App}/instances/{instanceId}/data/{dataGuid}/user-defined-metadata"
+            );
+            UserDefinedMetadataDto storedMetadata = await VerifyStatusAndDeserialize<UserDefinedMetadataDto>(
+                getResponse,
+                HttpStatusCode.OK
+            );
+            storedMetadata.UserDefinedMetadata.Should().BeNull();
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(Org, App, instanceId);
+        }
+    }
+
+    [Fact]
     public async Task PutUserDefinedMetadata_DuplicatedKey_ReturnsBadRequest()
     {
         using HttpClient client = GetRootedUserClient(Org, App, 1337);

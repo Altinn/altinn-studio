@@ -1,10 +1,18 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
@@ -75,7 +83,6 @@ public class ExecuteServiceTaskStageTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = Guid.NewGuid().ToString(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.NewGuid(),
@@ -120,6 +127,41 @@ public class ExecuteServiceTaskStageTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueStageResult), failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A context whose mutator is a real unit of work, for the concluding step that releases
+    /// processing ownership — that transition is staged on the unit of work, not on a bare mutator.
+    /// </summary>
+    private static ProcessEngineCommandContext CreateContextWithUnitOfWork()
+    {
+        ProcessEngineCommandContext context = CreateContext();
+        var dataClient = new Mock<IDataClientWithStorageMetadata>();
+        IInstanceMutationClient mutationClient = dataClient.As<IInstanceMutationClient>().Object;
+        var unitOfWork = new InstanceDataUnitOfWork(
+            context.InstanceDataMutator.Instance,
+            new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
+            dataClient.Object,
+            mutationClient,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            new ApplicationMetadata("ttd/test-app") { DataTypes = [] },
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            taskId: context.InstanceDataMutator.Instance.Process?.CurrentTask?.ElementId,
+            language: null
+        );
+
+        return new ProcessEngineCommandContext
+        {
+            StateCarry = context.StateCarry,
+            AppId = context.AppId,
+            InstanceId = context.InstanceId,
+            InstanceDataMutator = unitOfWork,
+            CancellationToken = context.CancellationToken,
+            Payload = context.Payload,
+        };
     }
 
     [Fact]
@@ -210,7 +252,9 @@ public class ExecuteServiceTaskStageTests
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
+        // Concluding without advancing releases processing ownership, which is staged on the unit
+        // of work — so this step needs a real one rather than a mutator mock.
+        var result = await command.Execute(CreateContextWithUnitOfWork(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);

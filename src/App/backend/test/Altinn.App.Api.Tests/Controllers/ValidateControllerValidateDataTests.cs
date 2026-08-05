@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -191,13 +192,23 @@ public class ValidationControllerValidateDataTests
     public const string App = "app-test";
     public const string Org = "ttd";
     private readonly Mock<IInstanceClient> _instanceMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClientWithStorageMetadata> _metadataInstanceMock;
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<IValidationService> _validationMock = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataClientWithStorageMetadata> _metadataDataClientMock;
+    private readonly Mock<IInstanceMutationClient> _mutationClientMock;
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _services = new();
+
+    public ValidationControllerValidateDataTests()
+    {
+        _metadataInstanceMock = _instanceMock.As<IInstanceClientWithStorageMetadata>();
+        _metadataDataClientMock = _dataClientMock.As<IDataClientWithStorageMetadata>();
+        _mutationClientMock = _dataClientMock.As<IInstanceMutationClient>();
+    }
 
     [Theory]
     [ClassData(typeof(TestScenariosData))]
@@ -239,9 +250,9 @@ public class ValidationControllerValidateDataTests
 
     private void SetupMocks(string app, string org, int instanceOwnerId, ValidateDataTestScenario testScenario)
     {
-        _instanceMock
+        _metadataInstanceMock
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     app,
                     org,
                     instanceOwnerId,
@@ -250,7 +261,11 @@ public class ValidationControllerValidateDataTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns(Task.FromResult(testScenario.ReceivedInstance)!);
+            .ReturnsAsync(
+                testScenario.ReceivedInstance is null
+                    ? null!
+                    : new InstanceWithStorageMetadata(testScenario.ReceivedInstance, StorageVersionMetadata.Empty)
+            );
         if (testScenario.ReceivedApplication != null)
         {
             _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(testScenario.ReceivedApplication);
@@ -269,9 +284,12 @@ public class ValidationControllerValidateDataTests
                 .ReturnsAsync(testScenario.ReceivedValidationIssues);
         }
         _services.AddSingleton(_instanceMock.Object);
+        _services.AddSingleton(_metadataInstanceMock.Object);
         _services.AddSingleton(_appMetadataMock.Object);
         _services.AddSingleton(_validationMock.Object);
         _services.AddSingleton(_dataClientMock.Object);
+        _services.AddSingleton(_metadataDataClientMock.Object);
+        _services.AddSingleton(_mutationClientMock.Object);
         _services.AddSingleton(_appModelMock.Object);
         _services.AddSingleton(_translationServiceMock.Object);
         _services.AddSingleton(_appResourcesMock.Object);

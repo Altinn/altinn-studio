@@ -9,6 +9,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -194,6 +195,8 @@ public class FiksArkivMessageSenderTest
     [Fact]
     public async Task GenerateAndSendMessage_WithUnitOfWork_DoesNotWriteStorageUntilNormalUnitOfWorkSave()
     {
+        var initialVersions = new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 4);
+        var committedVersions = new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4);
         var fiksIOClientMock = new Mock<IFiksIOClient>(MockBehavior.Strict);
         var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
         var fiksArkivConfigResolverMock = new Mock<IFiksArkivConfigResolver>(MockBehavior.Strict);
@@ -252,48 +255,66 @@ public class FiksArkivMessageSenderTest
             .ReturnsAsync(TestHelpers.GetFiksIOMessageResponse())
             .Verifiable(Times.Once);
 
-        int insertCalls = 0;
+        int commitCalls = 0;
         fixture
-            .DataClientMock.Setup(x =>
-                x.InsertBinaryData(
-                    instance.Id,
-                    customFiksArkivSettings.Receipt.ArchiveRecord.DataType,
-                    "application/xml",
-                    It.IsAny<string?>(),
-                    It.IsAny<Stream>(),
-                    "task",
+            .InstanceMutationClientMock.Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    12345,
+                    Guid.Parse("8a19d133-f897-4c41-aac1-ec3859b0d67c"),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(
                 (
-                    string _,
-                    string dataType,
-                    string contentType,
-                    string? filename,
-                    Stream _,
-                    string? _,
+                    int _,
+                    Guid _,
+                    StorageInstanceMutationRequest request,
+                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
                     StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? _,
                     CancellationToken _
                 ) =>
                 {
-                    insertCalls++;
-                    return new DataElement
+                    commitCalls++;
+                    var createdDataElement = request.CreateDataElements.Single();
+                    Guid createdDataElementId = Guid.NewGuid();
+                    var updatedInstance = new Instance
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        DataType = dataType,
-                        ContentType = contentType,
-                        Filename = filename,
-                        InstanceGuid = "8a19d133-f897-4c41-aac1-ec3859b0d67c",
+                        Id = instance.Id,
+                        AppId = instance.AppId,
+                        Org = instance.Org,
+                        InstanceOwner = instance.InstanceOwner,
+                        Process = instance.Process,
+                        Data =
+                        [
+                            new DataElement
+                            {
+                                Id = createdDataElementId.ToString(),
+                                DataType = createdDataElement.DataType,
+                                ContentType = createdDataElement.ContentType,
+                                Filename = createdDataElement.Filename,
+                            },
+                        ],
                     };
+
+                    return new InstanceMutationWithStorageMetadata(
+                        updatedInstance,
+                        committedVersions,
+                        [createdDataElementId]
+                    );
                 }
             );
 
         var unitOfWork = new InstanceDataUnitOfWork(
             instance,
-            fixture.DataClientMock.Object,
-            fixture.InstanceClientMock.Object,
+            initialVersions,
+            fixture.DataClientWithStorageMetadataMock.Object,
+            fixture.InstanceMutationClientMock.Object,
+            fixture.InstanceClientWithStorageMetadataMock.Object,
             applicationMetadata,
             Mock.Of<ITranslationService>(),
             new ModelSerializationService(null!),
@@ -312,16 +333,21 @@ public class FiksArkivMessageSenderTest
             unitOfWork
         );
 
-        Assert.Equal(0, insertCalls);
+        Assert.Equal(0, commitCalls);
         fiksIOClientMock.Verify();
         fiksArkivInstanceClientMock.VerifyNoOtherCalls();
 
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
         Assert.Single(changes.BinaryDataChanges);
 
-        await unitOfWork.UpdateInstanceData(changes);
-        await unitOfWork.SaveChanges(changes);
+        WorkflowAggregateSaveOutcome saveOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+            changes,
+            "d483baea-587c-47cf-beca-1d1a4e3849b1",
+            CancellationToken.None
+        );
 
-        Assert.Equal(1, insertCalls);
+        Assert.Equal(1, commitCalls);
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, saveOutcome);
+        Assert.Equal(committedVersions, unitOfWork.StorageVersions);
     }
 }

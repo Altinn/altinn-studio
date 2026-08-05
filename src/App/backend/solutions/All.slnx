@@ -3,6 +3,7 @@
         <Project Path="../benchmark/Altinn.App.Benchmarks/Altinn.App.Benchmarks.csproj" />
     </Folder>
     <Folder Name="/src/">
+        <Project Path="../../../_vendor/Storage.Interface/Altinn.Platform.Storage.Interface.csproj" />
         <Project Path="../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
         <Project Path="../src/Altinn.App.Api/Altinn.App.Api.csproj" />
         <Project Path="../src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj" />

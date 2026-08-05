@@ -8,6 +8,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -93,6 +94,13 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
 
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
 
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            throw new ProcessException(
+                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to record shipment ownership."
+            );
+        }
+
         // The message id sent to eFormidling is the instance guid, so only one shipment can ever be
         // sent per instance (see docs/adr/2026-07-24-eformidling-shipment-id.md). The workflow id of
         // the pass that sent it is recorded on the instance: a matching (or absent) owner means this
@@ -146,13 +154,12 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
             LogSanitizer.Sanitize(taskId)
         );
 
-        // Record ownership after the send: if this write fails the stage retries, and the retry
-        // resumes/no-ops the already-sent message before writing the owner again.
-        await UpdateDataValue(
-            instance,
+        // Record ownership after the send: the value is staged on the unit of work and commits with
+        // this callback's version-fenced workflow-owned save. If that save fails the stage retries,
+        // and the retry resumes/no-ops the already-sent message before staging the owner again.
+        unitOfWork.UpdateInstanceDataValue(
             EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
-            context.WorkflowId.ToString(),
-            context.CancellationToken
+            context.WorkflowId.ToString()
         );
 
         return ServiceTaskStageResult.Completed();
@@ -361,8 +368,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// <summary>
     /// Writes an instance data value directly to Storage. The deliberate exception to reading and
     /// writing through the unit of work: this is cross-workflow, cross-visit bookkeeping, and a
-    /// per-transition state blob cannot carry it (nor does the unit of work have a data-values
-    /// concept).
+    /// per-transition state blob cannot carry it.
     /// </summary>
     private Task UpdateDataValue(Instance instance, string key, string value, CancellationToken cancellationToken) =>
         _instanceClient.UpdateDataValue(
