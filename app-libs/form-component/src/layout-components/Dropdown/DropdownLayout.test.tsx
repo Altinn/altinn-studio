@@ -37,6 +37,8 @@ const render = (
 const getInput = (container: HTMLElement) =>
   container.querySelector<HTMLInputElement>('input#my-dropdown');
 
+const getPopover = (container: HTMLElement) => container.querySelector('.ds-popover');
+
 describe('Dropdown', () => {
   it('renders the label and associates it with the input', () => {
     const { container } = render({ title: 'dropdown.title' });
@@ -90,17 +92,33 @@ describe('Dropdown', () => {
     const onChange = vi.fn();
     // Clicking an option fires the option's onClick (React attaches it to the host element regardless
     // of the web-component upgrade), which drives the real alert-on-change wiring in DropdownLayout.
-    render({ value: 'norge', alertOnChange: true, onChange });
+    const { container } = render({ value: 'norge', alertOnChange: true, onChange });
 
     fireEvent.click(screen.getByText('Sverige'));
 
-    // The change is suspended: the popover is shown and onChange has not fired yet.
-    expect(screen.getByTestId('delete-warning-popover')).toBeInTheDocument();
+    // The change is suspended: the alert message is rendered and onChange has not fired yet.
+    expect(getPopover(container)).toHaveTextContent('Are you sure you want to change to Sverige?');
     expect(onChange).not.toHaveBeenCalled();
 
     // Confirming applies the change (confirm label resolves from general/text resources — 'Confirm' in en).
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(onChange).toHaveBeenCalledWith('sverige');
+  });
+
+  it('discards the change when the alert is cancelled', () => {
+    const onChange = vi.fn();
+    const { container } = render({ value: 'norge', alertOnChange: true, onChange });
+
+    fireEvent.click(screen.getByText('Sverige'));
+
+    // The cancel label resolves from the text resources ('general.cancel' → 'Cancel' in en).
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(getPopover(container)).not.toHaveTextContent('Are you sure you want to change to');
+
+    // The suspended change is dropped, so confirming afterwards does not apply it either.
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('exposes the title via aria-label when rendered in a table', () => {

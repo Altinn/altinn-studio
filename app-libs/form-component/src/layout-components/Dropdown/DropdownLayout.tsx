@@ -1,9 +1,9 @@
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
 
+import { ConfirmPopover } from '@app/form-component/app-components/ConfirmPopover';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { DeleteWarningPopover } from '@app/form-component/layout-components/common/DeleteWarningPopover';
 import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
 import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
 import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
@@ -145,13 +145,15 @@ export function Dropdown({
         validationMessages={validationMessages}
       >
         {alertOnChange && (
-          <DeleteWarningPopover
-            onPopoverDeleteClick={confirmChange}
-            onCancelClick={cancelChange}
-            deleteButtonText={langAsString('form_filler.alert_confirm')}
-            messageText={alertMessage}
+          <ConfirmPopover
             open={alertOpen}
-            setOpen={setAlertOpen}
+            onOpenChange={setAlertOpen}
+            onConfirm={confirmChange}
+            onCancel={cancelChange}
+            confirmText={langAsString('form_filler.alert_confirm')}
+            cancelText={langAsString('general.cancel')}
+            message={alertMessage}
+            placement='bottom'
             popoverId={`${componentId}-popover`}
           />
         )}

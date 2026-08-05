@@ -423,7 +423,7 @@ describe('UI Components', () => {
 
     cy.findByRole('radio', { name: /Gårdsbruk/ }).check();
     //makes sure that textresources from active radiobutton are displayed in the alert dialog
-    cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil endre fra Slektskap?');
+    cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil endre fra Slektskap?');
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
@@ -445,7 +445,7 @@ describe('UI Components', () => {
 
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
-    cy.get(appFrontend.deleteWarningPopover).should(
+    cy.get(appFrontend.confirmPopover).should(
       'contain.text',
       'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?',
     );
@@ -454,7 +454,7 @@ describe('UI Components', () => {
 
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
-    cy.get(appFrontend.deleteWarningPopover).should(
+    cy.get(appFrontend.confirmPopover).should(
       'contain.text',
       'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?',
     );
@@ -487,7 +487,7 @@ describe('UI Components', () => {
     cy.findByRole('option', {
       name: /Grønn, Press to remove/i,
     }).click('right', { force: true });
-    cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Grønn?');
+    cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil slette Grønn?');
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('option', {
       name: /Grønn, Press to remove/i,
@@ -496,7 +496,7 @@ describe('UI Components', () => {
     cy.findByRole('option', {
       name: /Gul, Press to remove/i,
     }).click('right', { force: true });
-    cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Gul?');
+    cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil slette Gul?');
     cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.findByRole('option', {
       name: /Gul, Press to remove/i,
@@ -551,7 +551,7 @@ describe('UI Components', () => {
     // dialog pops up when unchecking a checkbox
     cy.findAllByRole('checkbox', { name: /Ja/ }).first().dblclick();
     //Make sure that the alert popover for only one checkbox is displayed, if several dialogs are displayed, the test will fail
-    cy.get(appFrontend.deleteWarningPopover);
+    cy.get(appFrontend.confirmPopover);
   });
 
   it('should render components as summary', () => {

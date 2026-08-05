@@ -25,8 +25,8 @@ export interface AlertOnChange<Fn extends ChangeFn> {
  * @param onChange - The change handler
  * @param shouldAlert - Optional function to determine whether the alert should be shown based on the change event
  * @param generateMessage - Optional function to override the message to display
- * @returns A new change handler, and the necessary props needed to control the DeleteWarningPopover
- * @see DeleteWarningPopover
+ * @returns A new change handler, and the necessary props needed to control the ConfirmPopover
+ * @see ConfirmPopover
  */
 export function useAlertOnChange<Fn extends ChangeFn>(
   enabled: boolean,
