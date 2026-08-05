@@ -100,8 +100,8 @@ __metadata:
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     react-redux: "npm:9.3.0"
     redux: "npm:5.0.1"
     redux-mock-store: "npm:1.5.5"
@@ -119,8 +119,8 @@ __metadata:
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     typescript: "npm:@typescript/typescript6@6.0.2"
     uuid: "npm:13.0.2"
   languageName: unknown
@@ -145,8 +145,8 @@ __metadata:
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
     "@testing-library/user-event": "npm:14.6.1"
-    "@types/react": "npm:19.2.17"
-    "@types/react-dom": "npm:19.2.3"
+    "@types/react": "npm:19.2.18"
+    "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
     "@typescript-eslint/parser": "npm:8.61.1"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -172,10 +172,10 @@ __metadata:
     marked-mangle: "npm:1.1.13"
     mime: "npm:4.1.0"
     prettier: "npm:3.8.5"
-    react: "npm:19.2.7"
+    react: "npm:19.2.8"
     react-content-loader: "npm:7.1.2"
     react-day-picker: "npm:10.0.1"
-    react-dom: "npm:19.2.7"
+    react-dom: "npm:19.2.8"
     react-dropzone: "npm:15.0.0"
     react-number-format: "npm:5.4.5"
     storybook: "npm:10.4.6"
@@ -187,8 +187,8 @@ __metadata:
   peerDependencies:
     "@digdir/designsystemet-react": 1.11.1
     "@navikt/aksel-icons": 8.12.1
-    react: 19.2.7
-    react-dom: 19.2.7
+    react: 19.2.8
+    react-dom: 19.2.8
   languageName: unknown
   linkType: soft
 
@@ -200,8 +200,8 @@ __metadata:
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
     "@testing-library/user-event": "npm:14.6.1"
-    "@types/react": "npm:19.2.17"
-    "@types/react-dom": "npm:19.2.3"
+    "@types/react": "npm:19.2.18"
+    "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
     "@typescript-eslint/parser": "npm:8.61.1"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -5803,10 +5803,10 @@ __metadata:
     eslint-plugin-storybook: "npm:10.4.6"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:19.2.7"
+    react: "npm:19.2.8"
     react-dnd: "npm:16.0.1"
     react-dnd-html5-backend: "npm:16.0.1"
-    react-dom: "npm:19.2.7"
+    react-dom: "npm:19.2.8"
     storybook: "npm:10.4.6"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:@typescript/typescript6@6.0.2"
@@ -5921,8 +5921,8 @@ __metadata:
     eslint: "npm:10.5.0"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:@typescript/typescript6@6.0.2"
     uuid: "npm:13.0.2"
@@ -5942,8 +5942,8 @@ __metadata:
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:@typescript/typescript6@6.0.2"
   languageName: unknown
@@ -6782,21 +6782,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:19.2.3":
-  version: 19.2.3
-  resolution: "@types/react-dom@npm:19.2.3"
+"@types/react-dom@npm:19.2.4":
+  version: 19.2.4
+  resolution: "@types/react-dom@npm:19.2.4"
   peerDependencies:
     "@types/react": ^19.2.0
-  checksum: 10/616c4a8aee250ea05fb1e7b98e7e00475dd3a6c1c30d7be18b4b93caba832f4203106b3a496a6b147e5acc2da14575eca47bce234c633bca1f8430ef8ffb234a
+  checksum: 10/e055ef08805768b2e6abc39955b1ac25a8bfd0f8034e6dc62846d007982e40fb69400c3b9440e35335bf4175d1789bf71dacf6007d2ba57385ed8433d16286fc
   languageName: node
   linkType: hard
 
-"@types/react@npm:19.2.17":
-  version: 19.2.17
-  resolution: "@types/react@npm:19.2.17"
+"@types/react@npm:19.2.18":
+  version: 19.2.18
+  resolution: "@types/react@npm:19.2.18"
   dependencies:
     csstype: "npm:^3.2.2"
-  checksum: 10/8debb092bd0bb9c99176a31824c7587c27c775a6526b60060e7b9e8dc2af53aee2ffadc7a1e3845953792437db5699d34a9054e198c9d4e54a74728ff47c6725
+  checksum: 10/c718ec5c5272ef5c1c77fcdd07f567c77197b593583539459b4bdaea89ca55ad7c814b7eb2151dccfa459b2c384b599a45e7e35550b789883d66b363d30c94d8
   languageName: node
   linkType: hard
 
@@ -7797,8 +7797,8 @@ __metadata:
     i18next: "npm:25.10.10"
     jest: "npm:29.7.0"
     posthog-js: "npm:1.386.8"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     react-i18next: "npm:17.0.11"
     react-router-dom: "npm:7.17.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
@@ -8048,8 +8048,8 @@ __metadata:
     i18next: "npm:25.10.10"
     jest: "npm:29.7.0"
     posthog-js: "npm:1.386.8"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     react-i18next: "npm:17.0.11"
     react-router-dom: "npm:7.17.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
@@ -8097,8 +8097,8 @@ __metadata:
     "@types/leaflet": "npm:1"
     "@types/leaflet-draw": "npm:1.0.13"
     "@types/node": "npm:24.13.3"
-    "@types/react": "npm:19.2.17"
-    "@types/react-dom": "npm:19.2.3"
+    "@types/react": "npm:19.2.18"
+    "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
     "@typescript-eslint/parser": "npm:8.61.1"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -8164,9 +8164,9 @@ __metadata:
     lru-cache: "npm:11.5.2"
     prettier: "npm:3.8.5"
     puppeteer: "npm:^24.29.0"
-    react: "npm:19.2.7"
+    react: "npm:19.2.8"
     react-content-loader: "npm:7.1.2"
-    react-dom: "npm:19.2.7"
+    react-dom: "npm:19.2.8"
     react-dropzone: "npm:15.0.0"
     react-leaflet: "npm:5.0.0"
     react-leaflet-draw: "npm:0.21.0"
@@ -8203,8 +8203,8 @@ __metadata:
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:29.7.0"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     react-router-dom: "npm:7.17.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vite: "npm:^6.3.2"
@@ -8217,14 +8217,14 @@ __metadata:
   dependencies:
     "@studio/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
-    "@types/react": "npm:19.2.17"
+    "@types/react": "npm:19.2.18"
     "@typescript/native": "npm:typescript@7.0.2"
     bpmn-moddle: "npm:9.0.4"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
     qs: "npm:6.15.3"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     react-router-dom: "npm:7.17.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
   languageName: unknown
@@ -10289,8 +10289,8 @@ __metadata:
     "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     jest: "npm:29.7.0"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     react-router-dom: "npm:7.17.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vite: "npm:^6.3.2"
@@ -18958,14 +18958,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:19.2.7":
-  version: 19.2.7
-  resolution: "react-dom@npm:19.2.7"
+"react-dom@npm:19.2.8":
+  version: 19.2.8
+  resolution: "react-dom@npm:19.2.8"
   dependencies:
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.7
-  checksum: 10/9564f4b83843ca5518ed5f807c93cb1663706559cde52f3ef814b41e60b63b16e684d849926458f0ba436745d7eabf822cba1c528be370e7b2f35a4c91e35941
+    react: ^19.2.8
+  checksum: 10/fb45d500a8615a36d71a821213a3d4bfe32a70aa1d04ce17d8791dd10c4ef0281e7fdd46694e1112f0f2dcf58df89d12043a13228be9788458aa82f4885a9cdc
   languageName: node
   linkType: hard
 
@@ -19157,10 +19157,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.2.7":
-  version: 19.2.7
-  resolution: "react@npm:19.2.7"
-  checksum: 10/2939997e87d7f0ee0d9d2bb556866b616b999dfb7916283647034eda867a045a39c4f7a736c8ea6beffffcd78397fc30f63a7a3aaf8425b683c3060670859560
+"react@npm:19.2.8":
+  version: 19.2.8
+  resolution: "react@npm:19.2.8"
+  checksum: 10/a3c697798035e295ca9e51591d3a8700824535cb8c070fac1f8abbe69717ceb99108cbc4ba7b31a606806f336b1eba705705f63b9d39ace198fe51e8990ac843
   languageName: node
   linkType: hard
 
@@ -19529,8 +19529,8 @@ __metadata:
     html-react-parser: "npm:^5.2.5"
     jest: "npm:29.7.0"
     markdown-to-jsx: "npm:7.7.17"
-    react: "npm:19.2.7"
-    react-dom: "npm:19.2.7"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vite: "npm:^6.3.2"
   languageName: unknown
@@ -20818,8 +20818,8 @@ __metadata:
     "@testing-library/user-event": "npm:14.6.1"
     "@types/css-modules": "npm:1.0.5"
     "@types/jest": "npm:30.0.0"
-    "@types/react": "npm:19.2.17"
-    "@types/react-dom": "npm:19.2.3"
+    "@types/react": "npm:19.2.18"
+    "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
     "@typescript-eslint/parser": "npm:8.61.1"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -20848,9 +20848,9 @@ __metadata:
     lightningcss: "npm:^1.29.3"
     mini-css-extract-plugin: "npm:2.10.2"
     prettier: "npm:3.8.5"
-    react: "npm:19.2.7"
+    react: "npm:19.2.8"
     react-chartjs-2: "npm:5.3.1"
-    react-dom: "npm:19.2.7"
+    react-dom: "npm:19.2.8"
     react-error-boundary: "npm:6.1.2"
     react-i18next: "npm:17.0.11"
     react-router-dom: "npm:7.17.0"
