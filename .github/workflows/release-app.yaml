@@ -1,0 +1,135 @@
+name: Release - app publisher
+
+# NuGet trusted publishing policy is bound to this workflow filename.
+
+on:
+  workflow_call:
+    inputs:
+      base-branch:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      merge-sha:
+        required: true
+        type: string
+      pull-request-number:
+        required: true
+        type: string
+      release-version:
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Build, release and publish app
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ inputs.merge-sha }}
+          persist-credentials: false
+
+      - name: Checkout base branch
+        env:
+          BASE_BRANCH: ${{ inputs.base-branch }}
+          MERGE_SHA: ${{ inputs.merge-sha }}
+        run: |
+          git fetch origin "$BASE_BRANCH"
+          if ! git merge-base --is-ancestor "$MERGE_SHA" FETCH_HEAD; then
+            echo "Release commit $MERGE_SHA is not on origin/$BASE_BRANCH" >&2
+            exit 1
+          fi
+          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/App/backend/global.json
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ inputs.base-branch }}
+        run: go run . workflow --component app --base-branch "$BASE_BRANCH"
+        working-directory: src/tools/releaser
+
+      - name: NuGet login
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_TRUSTED_PUBLISHING_USER }}
+
+      - name: Publish packages to NuGet
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: |
+          shopt -s nullglob
+          packages=(build/release/*.nupkg build/release/*.snupkg)
+
+          if (( ${#packages[@]} == 0 )); then
+            echo "No NuGet packages found in build/release" >&2
+            exit 1
+          fi
+
+          for package in "${packages[@]}"; do
+            dotnet nuget push "$package" \
+              --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
+
+      - name: Summary
+        if: always()
+        env:
+          BASE_BRANCH: ${{ inputs.base-branch }}
+          PR_NUMBER: ${{ inputs.pull-request-number }}
+          RELEASE_VERSION: ${{ inputs.release-version }}
+          RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          {
+            echo "## Release Summary"
+            echo ""
+            if [[ -n "${PR_NUMBER}" ]]; then
+              echo "- **PR**: #${PR_NUMBER}"
+            fi
+            echo "- **Base branch**: ${BASE_BRANCH}"
+            echo "- **Version**: ${RELEASE_VERSION}"
+            echo "- **Environment**: ${RELEASE_ENVIRONMENT}"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -d "build/release" ]]; then
+            {
+              echo "### NuGet packages"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            ls -la build/release/ >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No packages found" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi

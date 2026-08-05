@@ -1,0 +1,93 @@
+name: Release - studioctl publisher
+
+on:
+  workflow_call:
+    inputs:
+      base-branch:
+        required: true
+        type: string
+      merge-sha:
+        required: true
+        type: string
+      pull-request-number:
+        required: true
+        type: string
+      release-version:
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Build and release studioctl
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ inputs.merge-sha }}
+
+      - name: Checkout base branch
+        env:
+          BASE_BRANCH: ${{ inputs.base-branch }}
+          MERGE_SHA: ${{ inputs.merge-sha }}
+        run: |
+          git fetch origin "$BASE_BRANCH"
+          if ! git merge-base --is-ancestor "$MERGE_SHA" FETCH_HEAD; then
+            echo "Release commit $MERGE_SHA is not on origin/$BASE_BRANCH" >&2
+            exit 1
+          fi
+          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/cli/global.json
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ inputs.base-branch }}
+        run: go run . workflow --component studioctl --base-branch "$BASE_BRANCH"
+        working-directory: src/tools/releaser
+
+      - name: Summary
+        if: always()
+        env:
+          BASE_BRANCH: ${{ inputs.base-branch }}
+          PR_NUMBER: ${{ inputs.pull-request-number }}
+          RELEASE_VERSION: ${{ inputs.release-version }}
+        run: |
+          {
+            echo "## Release Summary"
+            echo ""
+            if [[ -n "${PR_NUMBER}" ]]; then
+              echo "- **PR**: #${PR_NUMBER}"
+            fi
+            echo "- **Base branch**: ${BASE_BRANCH}"
+            echo "- **Version**: ${RELEASE_VERSION}"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -d "build/release" ]]; then
+            {
+              echo "### Assets"
+              echo '```'
+              ls -la build/release/ 2>/dev/null || echo "No assets found"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
