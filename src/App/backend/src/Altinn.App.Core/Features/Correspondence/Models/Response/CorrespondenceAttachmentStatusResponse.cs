@@ -32,4 +32,9 @@ public enum CorrespondenceAttachmentStatusResponse
     /// Failed.
     /// </summary>
     Failed,
+
+    /// <summary>
+    /// Expired.
+    /// </summary>
+    Expired,
 }

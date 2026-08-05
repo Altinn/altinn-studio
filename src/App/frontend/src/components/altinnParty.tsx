@@ -10,6 +10,7 @@ import classes from 'src/components/altinnParty.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PartyType } from 'src/types/shared';
+import { maskSsn } from 'src/utils/maskSsn';
 import type { IParty } from 'src/types/shared';
 
 export interface IAltinnPartyProps {
@@ -161,7 +162,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
         <Paragraph className={classes.partyInfo}>
           {isOrg
             ? `${langAsString('party_selection.unit_org_number')} ${party.orgNumber}`
-            : `${langAsString('party_selection.unit_personal_number')} ${party.ssn}`}
+            : `${langAsString('party_selection.unit_personal_number')} ${maskSsn(party.ssn)}`}
         </Paragraph>
       </Flex>
       {renderSubunits()}

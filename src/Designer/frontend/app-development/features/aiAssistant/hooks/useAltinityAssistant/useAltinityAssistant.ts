@@ -16,6 +16,7 @@ export interface UseAltinityAssistantResult {
   selectedThreadId: string | null;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
   cancelCurrentWorkflow: () => Promise<void>;
+  respondToPermission: (requestId: string, granted: boolean) => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
   selectThread: (threadId: string | null) => void;
@@ -33,6 +34,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     workflowStatusByThread,
     onSubmitMessage,
     cancelCurrentWorkflow,
+    respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
     messages,
@@ -46,6 +48,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     selectedThreadId: threads.selectedThreadId,
     onSubmitMessage,
     cancelCurrentWorkflow,
+    respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread: threads.selectThread,

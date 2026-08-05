@@ -67,4 +67,9 @@ public enum CorrespondenceStatus
     /// Correspondence has failed.
     /// </summary>
     Failed,
+
+    /// <summary>
+    /// Attachments have been downloaded by the recipient.
+    /// </summary>
+    AttachmentsDownloaded,
 }

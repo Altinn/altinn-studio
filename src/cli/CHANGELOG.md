@@ -15,6 +15,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Rename `OrganisationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
+- Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
 
 ## [0.1.0-preview.18] - 2026-07-24

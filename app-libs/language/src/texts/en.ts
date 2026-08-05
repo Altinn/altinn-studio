@@ -85,6 +85,8 @@ export function en() {
     'form_filler.file_uploader_list_header_status': 'Status',
     'form_filler.file_uploader_list_header_delete_sr': 'Delete',
     'form_filler.file_uploader_list_status_done': 'Uploaded',
+    'form_filler.file_uploader_attachment_uploaded_sr':
+      'The attachment {0} has been uploaded. You can now add a description for the attachment.',
     'form_filler.file_uploader_status_scanning': 'Scanning...',
     'form_filler.file_uploader_status_infected': 'Infected',
     'form_filler.file_uploader_infected_file_alert':
@@ -130,8 +132,8 @@ export function en() {
     'form_filler.clear_selection': 'Clear selection',
     'form_filler.person_lookup_ssn': 'national ID number/D-number',
     'form_filler.person_lookup_name': 'name',
-    'form_filler.organisation_lookup_orgnr': 'organisation number',
-    'form_filler.organisation_lookup_name': 'organisation name',
+    'form_filler.organization_lookup_orgnr': 'organization number',
+    'form_filler.organization_lookup_name': 'organization name',
     'navigation.main': 'Primary',
     'navigation.form': 'Form pages',
     'navigation.to_main_content': 'Go to main content',
@@ -218,6 +220,7 @@ export function en() {
       'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
     'group.row_popover_delete_message': 'Are you sure you want to delete this row?',
     'group.row_popover_delete_button_confirm': 'Yes, delete the row',
+    'group.row_deleted_sr': 'Row deleted, {0} remaining',
     'iframe_component.unsupported_browser_title': 'Your browser is unsupported',
     'iframe_component.unsupported_browser':
       'Your browser does not support iframes that use srcdoc. This may result in not being able to see all the content intended to be displayed here. We recommend trying a different browser.',
@@ -343,18 +346,18 @@ export function en() {
     'payment.component.price': 'Price',
     'payment.component.total': 'Total',
     'payment.component.vat': 'VAT',
-    'organisation_lookup.orgnr_label': 'Organisation number',
-    'organisation_lookup.org_name': 'Organisation name',
-    'organisation_lookup.from_registry_description': 'From the CCR',
-    'organisation_lookup.validation_error_not_found':
+    'organization_lookup.orgnr_label': 'Organisation number',
+    'organization_lookup.org_name': 'Organisation name',
+    'organization_lookup.from_registry_description': 'From the CCR',
+    'organization_lookup.validation_error_not_found':
       'Organisation number not found in the registry',
-    'organisation_lookup.validation_invalid_response_from_server':
+    'organization_lookup.validation_invalid_response_from_server':
       'Invalid response from the server',
-    'organisation_lookup.unknown_error': 'An unknown error occurred. Please try again later',
-    'organisation_lookup.validation_error_orgnr': 'The organisation number is invalid',
-    'organisation_lookup.error_required': 'You have to fill out {0} and fetch details',
-    'organisation_lookup.submit_button': 'Fetch details',
-    'organisation_lookup.clear_button': 'Clear',
+    'organization_lookup.unknown_error': 'An unknown error occurred. Please try again later',
+    'organization_lookup.validation_error_orgnr': 'The organization number is invalid',
+    'organization_lookup.error_required': 'You have to fill out {0} and fetch details',
+    'organization_lookup.submit_button': 'Fetch details',
+    'organization_lookup.clear_button': 'Clear',
     'person_lookup.error_required': 'You have to fill out {0} and fetch details',
     'person_lookup.submit_button': 'Fetch details',
     'person_lookup.clear_button': 'Clear',
@@ -418,6 +421,9 @@ export function en() {
     'validation_errors.formatMaximum': 'Maximum valid value is {0}',
     'map_component.selectedLocation': 'Selected location: {0}° north, {1}° east',
     'map_component.noSelectedLocation': 'No selected location',
+    'map_component.ariaLabel': 'Interactive map. Use the arrow keys to pan, and plus and minus to zoom.',
+    'map_component.zoomIn': 'Zoom in',
+    'map_component.zoomOut': 'Zoom out',
     'multiple_select_component.no_options': 'No options available',
     'multiple_select_component.placeholder': 'Select...',
     'list_component.rowsPerPage': 'Rows per page',
@@ -519,10 +525,11 @@ export function en() {
     'signing.delegation_error_panel_title': 'Could not grant access to form',
     'signing.delegation_error_panel_description':
       'One or more of the signees are invalid and have not been granted access to the form. Go back to try to correct the issue or contact the form owner.',
-    'signing.reject_modal_title': 'Cancel the signing process',
+    'signing.reject_modal_title': 'Cancel signing',
     'signing.reject_modal_description':
-      'By canceling the signing process, all signatures will be deleted, and all delegated access will be revoked.',
-    'signing.reject_modal_button': 'Cancel the signing process',
+      'All signatures will be deleted. Everyone you have delegated to will lose access. This cannot be undone.',
+    'signing.reject_modal_button': 'Cancel signing',
+    'signing.reject_modal_close_button': 'Continue signing',
     'signing.reject_modal_trigger_button': 'Cancel signing',
     'signing.wrong_task_error': 'The {0} component is only available in a signing task.',
     'signing.error_missing_signing_rights':

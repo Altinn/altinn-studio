@@ -6,16 +6,6 @@
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutModel,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetUiConfiguration,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ApplicationMetadata.Service.GetUiConfiguration,
       IdFormat: W3C,
       HasParent: true

@@ -25,7 +25,6 @@ public class ExpressionValidator : IValidator
 
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
-    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IAppMetadata _appMetadata;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
 
@@ -35,14 +34,12 @@ public class ExpressionValidator : IValidator
     public ExpressionValidator(
         ILogger<ExpressionValidator> logger,
         IAppResources appResourceService,
-        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IAppMetadata appMetadata,
         IServiceProvider serviceProvider
     )
     {
         _logger = logger;
         _appResourceService = appResourceService;
-        _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appMetadata = appMetadata;
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
     }
@@ -96,7 +93,7 @@ public class ExpressionValidator : IValidator
             var validationConfig = _appResourceService.GetValidationConfiguration(dataType.Id);
             if (!string.IsNullOrEmpty(validationConfig))
             {
-                var issues = await ValidateFormData(dataElement, dataAccessor, validationConfig, taskId, language);
+                var issues = await ValidateFormData(dataElement, dataAccessor, validationConfig);
                 validationIssues.AddRange(issues);
             }
         }
@@ -108,19 +105,12 @@ public class ExpressionValidator : IValidator
     internal async Task<List<ValidationIssue>> ValidateFormData(
         DataElement dataElement,
         IInstanceDataAccessor dataAccessor,
-        string rawValidationConfig,
-        string taskId,
-        string? language
+        string rawValidationConfig
     )
     {
-        var evaluatorState = await _layoutEvaluatorStateInitializer.Init(
-            dataAccessor,
-            taskId,
-            gatewayAction: null,
-            language
-        );
+        var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataElement);
         var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(
-            evaluatorState,
+            dataAccessor.GetLayoutEvaluatorState(),
             evaluateRemoveWhenHidden: false
         );
 
@@ -130,9 +120,11 @@ public class ExpressionValidator : IValidator
 
         foreach (var (baseField, validations) in expressionValidations)
         {
-            var resolvedFields = await evaluatorState.GetResolvedKeys(
-                new DataReference() { Field = baseField, DataElementIdentifier = dataElementIdentifier }
-            );
+            var resolvedFields = await dataAccessor
+                .GetLayoutEvaluatorState()
+                .GetResolvedKeys(
+                    new DataReference() { Field = baseField, DataElementIdentifier = dataElementIdentifier }
+                );
             foreach (var resolvedField in resolvedFields)
             {
                 if (
@@ -147,16 +139,17 @@ public class ExpressionValidator : IValidator
                 var context = new ComponentContext(
                     dataAccessor,
                     component: null,
-                    rowIndices: GetRowIndices(resolvedField.Field),
+                    rowIndices: ExpressionHelper.GetRowIndices(resolvedField.Field),
                     dataElementIdentifier: resolvedField.DataElementIdentifier
                 );
-                var positionalArguments = new object[] { resolvedField.Field };
+                var positionalArguments = new ExpressionValue[] { resolvedField.Field };
                 foreach (var validation in validations)
                 {
                     await RunValidation(
-                        evaluatorState,
+                        dataAccessor,
                         validationIssues,
                         resolvedField,
+                        formDataWrapper,
                         context,
                         positionalArguments,
                         validation
@@ -168,66 +161,33 @@ public class ExpressionValidator : IValidator
         return validationIssues;
     }
 
-    private static int[]? GetRowIndices(string field)
-    {
-        Span<int> rowIndicesSpan = stackalloc int[200]; // Assuming max 200 indices for simplicity recursion will never go deeper than 3-4
-        int count = 0;
-        for (int index = 0; index < field.Length; index++)
-        {
-            if (field[index] == '[')
-            {
-                int startIndex = index + 1;
-                int endIndex = field.IndexOf(']', startIndex);
-                if (endIndex == -1)
-                {
-                    throw new InvalidOperationException($"Unpaired [ character in field: {field}");
-                }
-                string indexString = field[startIndex..endIndex];
-                if (int.TryParse(indexString, out int rowIndex))
-                {
-                    rowIndicesSpan[count] = rowIndex;
-                    count++;
-                    index = endIndex; // Move index to the end of the current bracket
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Invalid row index in field: {field} at position {startIndex}"
-                    );
-                }
-            }
-        }
-        if (count == 0)
-        {
-            return null; // No indices found
-        }
-        int[] rowIndices = new int[count];
-        rowIndicesSpan[..count].CopyTo(rowIndices);
-        return rowIndices;
-    }
-
     private async Task RunValidation(
-        LayoutEvaluatorState evaluatorState,
+        IInstanceDataAccessor dataAccessor,
         List<ValidationIssue> validationIssues,
         DataReference resolvedField,
+        IFormDataWrapper formDataWrapper,
         ComponentContext context,
-        object[] positionalArguments,
+        ExpressionValue[] positionalArguments,
         ExpressionValidation validation
     )
     {
         try
         {
-            var validationResult = await ExpressionEvaluator.EvaluateExpression(
-                evaluatorState,
+            if (formDataWrapper.Get(resolvedField.Field) == null)
+            {
+                return; // Assume that the required validator will catch empty fields.
+            }
+            var validationResult = await ExpressionEvaluator.EvaluateExpressionToExpressionValue(
+                dataAccessor,
                 validation.Condition,
                 context,
                 positionalArguments
             );
-            switch (validationResult)
+            switch (validationResult.ValueKind)
             {
-                case true:
-                    var message = await ExpressionEvaluator.EvaluateExpression(
-                        evaluatorState,
+                case JsonValueKind.True:
+                    var message = await ExpressionEvaluator.EvaluateExpressionToExpressionValue(
+                        dataAccessor,
                         validation.Message,
                         context,
                         positionalArguments
@@ -238,13 +198,13 @@ public class ExpressionValidator : IValidator
                         Field = resolvedField.Field,
                         DataElementId = resolvedField.DataElementIdentifier.Id,
                         Severity = validation.Severity ?? ValidationIssueSeverity.Error,
-                        CustomTextKey = message as string ?? "",
-                        Code = message as string ?? "",
+                        Code = message.ToStringForText(),
+                        CustomTextKey = message.ToStringForText(),
                     };
                     validationIssues.Add(validationIssue);
 
                     break;
-                case false:
+                case JsonValueKind.False:
                     break;
                 default:
                     throw new ArgumentException(

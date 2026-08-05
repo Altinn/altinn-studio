@@ -8,6 +8,18 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- The Maskinporten JWT-grant audience (the well-known issuer) is resolved once per configured `Authority` and cached for the process lifetime, warmed up at app startup and re-resolved every 12 hours by a background service. Previously it was cached for one hour and refreshed from the request path. Changing the `Authority` (settings are hot-reloadable) still triggers a fresh fetch.
+
+### Fixed
+
+- A well-known lookup failure no longer costs every token request a blocking 10 second fetch during an outage: failures fail fast to the `Authority` fallback for 30 seconds, and concurrent lookups share a single fetch.
+- A request cancelled at the wrong moment could permanently disable the background refresh of the well-known metadata.
+- A well-known response with a missing or empty `issuer` is now treated as a failed lookup instead of producing an invalid `aud` claim.
+
+## [9.0.0-preview.3] - 2026-07-29
+
 ### Added
 
 - Add durable yield for service tasks: `ServiceTaskResult.Defer(delay, reason)` parks the process on the task — no error recorded, worker released — and re-runs it after `delay`, bounded by `ProcessStepOptions.WaitBudget`. A deferral is stateless: nothing is saved, and a deferring attempt that modified instance data is rejected — work that records something durable belongs in its own pipeline step (see staged service tasks below), completed rather than deferred. `ServiceTaskContext` groups the two engine clocks as `Attempt` (`RetryCount`, `Deadline`) and `Wait` (`DeferCount`, `StartedAt`, `Deadline`, and the derived `Remaining`/`IsFinalCheck`), and carries `StepId`, a stable per-step idempotency key for outbound calls a send-then-poll task must not repeat. The deferral's `reason` surfaces on engine status reads and as `workflow.waitingReason` on the app's process reads.

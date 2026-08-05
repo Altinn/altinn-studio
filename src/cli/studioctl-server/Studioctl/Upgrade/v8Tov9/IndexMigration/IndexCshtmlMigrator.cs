@@ -105,7 +105,6 @@ internal sealed class IndexCshtmlMigrator
     private async Task<int> PerformMigration(CategorizationResult categorizationResult)
     {
         var createdFiles = new List<string>();
-        var generatedConfig = false;
 
         var hasInlineContent = categorizationResult.KnownCustomizations.Any(c =>
             c.CustomizationType == CustomizationType.InlineStylesheet
@@ -145,7 +144,6 @@ internal sealed class IndexCshtmlMigrator
             if (config.HasContent)
             {
                 await configGenerator.WriteToFile(_configOutputPath);
-                generatedConfig = true;
                 var urlCount = config.Stylesheets.Count + config.Scripts.Count;
                 UpgradeConsole.WriteLine($"Generated assets.json with {urlCount} external URL(s)");
             }
@@ -164,7 +162,6 @@ internal sealed class IndexCshtmlMigrator
             }
 
             CleanupEmptyDirectories();
-            StageMigrationChanges(createdFiles, generatedConfig);
 
             return 0;
         }
@@ -185,33 +182,6 @@ internal sealed class IndexCshtmlMigrator
                 File.Delete(_configOutputPath);
             }
             return 1;
-        }
-    }
-
-    private void StageMigrationChanges(IEnumerable<string> createdFiles, bool generatedConfig)
-    {
-        using var git = GitOperations.TryCreate(_projectFolder);
-        if (git is null)
-        {
-            return;
-        }
-
-        foreach (var file in createdFiles)
-        {
-            if (File.Exists(file))
-            {
-                git.StageFile(file);
-            }
-        }
-
-        if (generatedConfig && File.Exists(_configOutputPath))
-        {
-            git.StageFile(_configOutputPath);
-        }
-
-        if (!File.Exists(_indexCshtmlPath))
-        {
-            git.StageRemoval(_indexCshtmlPath);
         }
     }
 

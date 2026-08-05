@@ -13,6 +13,7 @@ import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { maskSsn } from 'src/utils/maskSsn';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompInternal } from 'src/layout/layout';
 
@@ -68,7 +69,7 @@ function useInstanceSummaryData(elements: CompInternal<'InstanceInformation'>['e
   const instanceDateSent =
     lastChanged && dateSent !== false && formatDate(toTimeZonedDate(formatISO(lastChanged)), PrettyDateAndTime);
 
-  const identifier = instanceOwnerParty?.ssn ?? instanceOwnerParty?.orgNumber;
+  const identifier = instanceOwnerParty?.ssn ? maskSsn(instanceOwnerParty.ssn) : instanceOwnerParty?.orgNumber;
   const instanceSender =
     sender !== false &&
     instanceOwnerParty &&

@@ -370,6 +370,13 @@ export interface IPlatformFrontendSettings {
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
   postalCodesUrl: string;
+  /** URL templates; undefined in environments where the arbeidsflate is not deployed. */
+  arbeidsflateInboxUrl?: string;
+  /** Supports the {dialogId} placeholder. */
+  arbeidsflateDialogUrl?: string;
+  arbeidsflateProfileUrl?: string;
+  /** Supports the {partyId} and {goTo} placeholders. */
+  accessManagementChangeAndRedirectUrl?: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';
