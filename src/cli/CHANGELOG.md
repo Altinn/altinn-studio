@@ -20,6 +20,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
 
+### Fixed
+
+- Remove the hidden 100-second cap on requests tunneled through the host bridge: `studioctl-server` left `HttpClient.Timeout` at its default, so any app request running longer — such as a workflow-engine service-task callback with a generous per-step `MaxExecutionTime` (e.g. long-running AI or external-system tasks) — was aborted at exactly 100s (the app saw 499/`TaskCanceledException`) and the step failed despite being within its budget. The bridge now relies on the tunnel's own per-request cancellation, matching how the workflow engine itself disables the client timeout so the step budget is the single source of truth.
+
 ## [0.1.0-preview.18] - 2026-07-24
 
 ### Added
