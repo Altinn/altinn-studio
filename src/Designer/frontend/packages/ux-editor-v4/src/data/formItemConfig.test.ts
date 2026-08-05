@@ -14,9 +14,15 @@ describe('formItemConfig', () => {
     confOnScreenComponents,
   ];
   const allAvailableComponents = allAvailableLists.flat();
-  const excludedComponents = [ComponentType.Custom, ComponentType.Payment, ComponentType.Summary];
+  const excludedComponents = [
+    ComponentType.Custom,
+    // The American spelling belongs to v9 ux-editor.
+    ComponentType.OrganizationLookup,
+    ComponentType.Payment,
+    ComponentType.Summary,
+  ];
 
-  /**  Test that all components, except Custom, Payment, and Summary, are available in one of the visible lists */
+  /** Test that all v4 components, except Custom, Payment, and Summary, are available in a visible list. */
   it.each(
     Object.values(ComponentType).filter(
       (componentType) => !excludedComponents.includes(componentType),

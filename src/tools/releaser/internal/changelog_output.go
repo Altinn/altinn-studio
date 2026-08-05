@@ -8,7 +8,7 @@ import (
 	semver "altinn.studio/releaser/internal/version"
 )
 
-const compareBaseURL = "https://github.com/Altinn/altinn-studio/compare"
+const compareBaseURL = canonicalRepositoryURL + "/compare"
 
 func withFullChangelogLink(baseContent, previousTag, currentTag string) string {
 	baseContent = strings.TrimRight(baseContent, "\n")

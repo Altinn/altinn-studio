@@ -23,11 +23,6 @@
   "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
-      "description": "Disable minimum release age checks for digest updates",
-      "matchUpdateTypes": ["digest"],
-      "minimumReleaseAge": null
-    },
-    {
       "matchManagers": ["gomod", "pep621"],
       "groupName": "{{manager}} non-major dependencies",
       "matchPackageNames": ["*"],

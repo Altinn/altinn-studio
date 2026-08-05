@@ -37,14 +37,14 @@ jobs:
       run:
         working-directory: infra/runtime/grafana-manifests
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Set vars
         id: vars
         run: echo "config-repo=altinncr.azurecr.io/studio-apps/runtime-grafana-manifests-repo:${GITHUB_SHA::10}" >> "$GITHUB_OUTPUT"
 
       - name: az login
-        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -54,7 +54,7 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@1fd61a06264d71cf445ed55c4f14d401d26a1c64 # v2.8.8
+        uses: fluxcd/flux2/action@16602fa989daa99762f1c6d1186ae2ad1c735815 # v2.9.3
 
       - name: push artifact
         working-directory: infra/runtime/grafana-manifests
@@ -76,7 +76,7 @@ jobs:
         include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
       - name: az login
-        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -86,7 +86,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@1fd61a06264d71cf445ed55c4f14d401d26a1c64 # v2.8.8
+        uses: fluxcd/flux2/action@16602fa989daa99762f1c6d1186ae2ad1c735815 # v2.9.3
 
       - name: tag artifact
         run: |

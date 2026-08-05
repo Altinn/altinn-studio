@@ -3,8 +3,8 @@ import adderrors from 'ajv-errors';
 
 import type {
   Organisation,
-  OrganisationLookupResponse,
-} from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
+  OrganizationLookupResponse,
+} from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
 
 const ajv = new Ajv({ allErrors: true });
 adderrors(ajv);
@@ -27,7 +27,7 @@ const orgNrSchema: JSONSchemaType<Pick<Organisation, 'orgNr'>> = {
     orgNr: {
       type: 'string',
       isValidOrgNr: true,
-      errorMessage: 'organisation_lookup.validation_error_orgnr',
+      errorMessage: 'organization_lookup.validation_error_orgnr',
     },
   },
   required: ['orgNr'],
@@ -57,7 +57,7 @@ export const validateOrgnr = ajv.compile(orgNrSchema);
 
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
 
-const organisationLookupResponseSchema: JSONSchemaType<OrganisationLookupResponse> = {
+const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupResponse> = {
   type: 'object',
   oneOf: [
     {
@@ -85,4 +85,4 @@ const organisationLookupResponseSchema: JSONSchemaType<OrganisationLookupRespons
   required: ['success', 'organisationDetails'],
 };
 
-export const validateOrganisationLookupResponse = ajv.compile(organisationLookupResponseSchema);
+export const validateOrganizationLookupResponse = ajv.compile(organizationLookupResponseSchema);
