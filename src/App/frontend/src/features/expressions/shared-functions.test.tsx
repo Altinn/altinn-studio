@@ -32,11 +32,11 @@ import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 's
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-jest.mock('src/queries/queries', () => {
-  const actual = jest.requireActual<typeof import('src/queries/queries')>('src/queries/queries');
+vi.mock('src/queries/queries', async () => {
+  const actual = await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries');
   return {
     ...actual,
-    fetchExternalApi: jest.fn(),
+    fetchExternalApi: vi.fn(),
   };
 });
 
@@ -119,37 +119,31 @@ const defaultLanguage = 'nb';
 
 describe('Expressions shared function tests', () => {
   beforeAll(() => {
-    jest
-      .spyOn(window, 'logError')
+    vi.spyOn(window, 'logError')
       .mockImplementation(() => {})
       .mockName('window.logError');
-    jest
-      .spyOn(window, 'logWarnOnce')
+    vi.spyOn(window, 'logWarnOnce')
       .mockImplementation(() => {})
       .mockName('window.logWarnOnce');
-    jest
-      .spyOn(window, 'logErrorOnce')
+    vi.spyOn(window, 'logErrorOnce')
       .mockImplementation(() => {})
       .mockName('window.logErrorOnce');
-    jest.mocked(fetchExternalApi).mockImplementation(async () => undefined);
+    vi.mocked(fetchExternalApi).mockImplementation(async () => undefined);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const sharedTests = getSharedTests('functions').content;
 
   describe.each(sharedTests)('Function: $folderName', (folder) => {
-    describe.each(folder.content)('$name', (test) => {
-      if (test.disabledFrontend) {
-        return;
-      }
-
+    const enabledTests = folder.content.filter((test) => !test.disabledFrontend && getAllTestCases(test).length > 0);
+    describe.each(enabledTests)('$name', (test) => {
       it.each(getAllTestCases(test))('$expression', async (testCase) => {
         clearGlobals();
         setupMocks(test);
@@ -189,7 +183,7 @@ function setupMocks(test: FunctionTest): void {
     stateless: { defaultDataType: 'default', pages: { order: Object.keys(layouts ?? []) } },
   };
 
-  jest.mocked(fetchExternalApi).mockImplementation(async ({ externalApiId }) => externalApis?.data[externalApiId]);
+  vi.mocked(fetchExternalApi).mockImplementation(async ({ externalApiId }) => externalApis?.data[externalApiId]);
 }
 
 function createApplicationMetadata({
@@ -413,7 +407,7 @@ async function assertExpr({ expression, expects, expectsFailure, name: _, ...res
   // dependencies for the expression in some way)
   expect(Object.keys(rest)).toHaveLength(0);
 
-  const errorMock = window.logError as jest.Mock;
+  const errorMock = window.logError as Mock;
   const textContent = (await screen.findByTestId('expr-result')).textContent;
   const result = textContent ? JSON.parse(textContent) : null;
 
@@ -426,5 +420,6 @@ async function assertExpr({ expression, expects, expectsFailure, name: _, ...res
     expect(result).toEqual(expects);
   }
 
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 }
+import type { Mock } from 'vitest';

@@ -48,10 +48,10 @@ const mockInstanceData = [
   },
 ] as unknown as IData[];
 
-jest.mock('src/utils/layout/useNodeItem');
+vi.mock('src/utils/layout/useNodeItem');
 
-jest.mock('src/utils/layout/useComponentStructureData', () => ({
-  useComponentStructureData: jest.fn(() => ({
+vi.mock('src/utils/layout/useComponentStructureData', () => ({
+  useComponentStructureData: vi.fn(() => ({
     componentId: 'attachment-list-1',
     innerGrid: undefined,
     validationGrid: undefined,
@@ -59,12 +59,12 @@ jest.mock('src/utils/layout/useComponentStructureData', () => ({
   })),
 }));
 
-jest.mock('src/features/instance/InstanceContext', () => ({
-  useInstanceDataElements: jest.fn(() => mockInstanceData),
+vi.mock('src/features/instance/InstanceContext', () => ({
+  useInstanceDataElements: vi.fn(() => mockInstanceData),
 }));
 
-jest.mock('src/features/instance/useProcessQuery', () => ({
-  useProcessQuery: jest.fn(() => ({
+vi.mock('src/features/instance/useProcessQuery', () => ({
+  useProcessQuery: vi.fn(() => ({
     data: {
       currentTask: {
         elementId: 'Task_1',
@@ -73,24 +73,22 @@ jest.mock('src/features/instance/useProcessQuery', () => ({
   })),
 }));
 
-jest.mock('@app/form-component', () => ({
-  AttachmentList: jest.fn(
-    ({ attachments, title, groupByDataTypeGrouping, showLinks, showDescription, componentId }) => (
-      <div data-testid='attachment-list'>
-        <div data-testid='attachment-list-component-id'>{componentId}</div>
-        <div data-testid='attachment-list-title'>{title}</div>
-        <div data-testid='attachment-list-grouped'>{groupByDataTypeGrouping ? 'true' : 'false'}</div>
-        <div data-testid='attachment-list-showlinks'>{showLinks ? 'true' : 'false'}</div>
-        <div data-testid='attachment-list-showdescription'>{showDescription ? 'true' : 'false'}</div>
-        <div data-testid='attachment-list-count'>{attachments?.length ?? 0}</div>
-      </div>
-    ),
-  ),
+vi.mock('@app/form-component', () => ({
+  AttachmentList: vi.fn(({ attachments, title, groupByDataTypeGrouping, showLinks, showDescription, componentId }) => (
+    <div data-testid='attachment-list'>
+      <div data-testid='attachment-list-component-id'>{componentId}</div>
+      <div data-testid='attachment-list-title'>{title}</div>
+      <div data-testid='attachment-list-grouped'>{groupByDataTypeGrouping ? 'true' : 'false'}</div>
+      <div data-testid='attachment-list-showlinks'>{showLinks ? 'true' : 'false'}</div>
+      <div data-testid='attachment-list-showdescription'>{showDescription ? 'true' : 'false'}</div>
+      <div data-testid='attachment-list-count'>{attachments?.length ?? 0}</div>
+    </div>
+  )),
 }));
 
 describe('AttachmentListComponent', () => {
-  const mockUseItemWhenType = jest.mocked(useItemWhenType<'AttachmentList'>);
-  const mockUseInstanceDataElements = jest.mocked(useInstanceDataElements);
+  const mockUseItemWhenType = vi.mocked(useItemWhenType<'AttachmentList'>);
+  const mockUseInstanceDataElements = vi.mocked(useInstanceDataElements);
 
   const setupMockUseNodeItem = ({
     groupByDataTypeGrouping = false,
@@ -112,7 +110,7 @@ describe('AttachmentListComponent', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     setupMockUseNodeItem();
 
     window.altinnAppGlobalData.applicationMetadata = {

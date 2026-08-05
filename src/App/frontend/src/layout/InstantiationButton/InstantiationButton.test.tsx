@@ -59,7 +59,7 @@ const render = async (createWithPrefill: InstanceApi['createWithPrefill']) => {
 
 describe('InstantiationButton', () => {
   it('should show button and it should be possible to click and start loading', async () => {
-    const createWithPrefillMock = jest.fn(async () => ({
+    const createWithPrefillMock = vi.fn(async () => ({
       ...getInstanceDataMock(),
       id: '512345/abc123',
       process: getProcessDataMock(),

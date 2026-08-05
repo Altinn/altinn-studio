@@ -28,7 +28,7 @@ const render = async (renderAs: RenderAs) => {
     m.partyTypesAllowed.person = true;
     m.partyTypesAllowed.organisation = true;
   });
-  const getInstanceMock = jest.fn(async () => {
+  const getInstanceMock = vi.fn(async () => {
     const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
     return {
       ...getInstanceDataMock(

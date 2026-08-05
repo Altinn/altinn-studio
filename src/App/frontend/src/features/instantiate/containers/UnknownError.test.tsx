@@ -8,7 +8,7 @@ import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 // Need to unmock axios to get actual implementation of isAxiosError
-jest.unmock('axios');
+vi.unmock('axios');
 
 const failedInstantiationBody = {
   title: 'Instance initialization failed.',
@@ -30,13 +30,13 @@ function makeInstantiationError(): AxiosError {
 
 describe('Unknown error', () => {
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should be able to render with minimal providers', async () => {
     const user = userEvent.setup({ delay: null });
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     await renderWithMinimalProviders({
       renderer: () => <UnknownError error={new Error('Error test message')} />,
     });
@@ -53,7 +53,7 @@ describe('Unknown error', () => {
     await user.click(showDetailsButton);
     expect(screen.getByText('Error test message')).toBeInTheDocument();
 
-    const writeTextMock = jest.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
+    const writeTextMock = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
 
     const copyButton = screen.getByRole('button', { name: 'Kopier' });
     await user.click(copyButton);
@@ -63,7 +63,7 @@ describe('Unknown error', () => {
 
   it('should show the failing request and the response body for an axios error', async () => {
     const user = userEvent.setup({ delay: null });
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     await renderWithMinimalProviders({
       renderer: () => <UnknownError error={makeInstantiationError()} />,
     });
@@ -75,7 +75,7 @@ describe('Unknown error', () => {
     expect(screen.getByText('500')).toBeInTheDocument();
     expect(screen.getByText(/"title": "Instance initialization failed\."/)).toBeInTheDocument();
 
-    const writeTextMock = jest.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
+    const writeTextMock = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
     await user.click(screen.getByRole('button', { name: 'Kopier' }));
 
     const copiedJson = JSON.parse(writeTextMock.mock.calls[0][0]);
