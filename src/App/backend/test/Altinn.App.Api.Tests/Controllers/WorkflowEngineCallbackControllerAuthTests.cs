@@ -116,6 +116,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
             LockToken = "lock-token",
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
             // Properly signed so the instance-mismatch check (not the signature check) is what rejects it.
             State = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
@@ -156,6 +157,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
             LockToken = "lock-token",
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
             // Raw inner state, NOT wrapped in a signed envelope.
             State = JsonSerializer.Serialize(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
@@ -206,6 +208,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
             LockToken = "lock-token",
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
             State = tampered,
         };
