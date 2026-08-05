@@ -1,0 +1,50 @@
+using Altinn.App.Core.Internal.Process;
+using Altinn.Platform.Storage.Interface.Models;
+
+namespace Altinn.App.Core.Tests.Internal.Process;
+
+public sealed class ProcessStatusHelperTests
+{
+    [Fact]
+    public void IsIdle_WhenProcessIsAbsent_ReturnsTrue()
+    {
+        var instance = new Instance();
+
+        Assert.True(ProcessStatusHelper.IsIdle(instance));
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData(ProcessStatus.Idle, true)]
+    [InlineData(ProcessStatus.Processing, false)]
+    [InlineData("future-status", false)]
+    [InlineData("Idle", false)]
+    [InlineData(" idle", false)]
+    [InlineData("idle ", false)]
+    [InlineData("", false)]
+    [InlineData(" ", false)]
+    public void IsIdle_UsesFailClosedExactStatusSemantics(string? status, bool expected)
+    {
+        var instance = new Instance { Process = new ProcessState { Status = status } };
+
+        Assert.Equal(expected, ProcessStatusHelper.IsIdle(instance));
+    }
+
+    [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    [InlineData("future-status")]
+    [InlineData("")]
+    [InlineData(" idle")]
+    public void GetMutationProblem_ExposesExactBlockingStatus(string status)
+    {
+        var instance = new Instance { Process = new ProcessState { Status = status } };
+
+        var problem = ProcessStatusHelper.GetMutationProblem(instance);
+
+        Assert.NotNull(problem);
+        Assert.Equal(409, problem.Status);
+        Assert.Equal(ProcessStatusHelper.MutationBlockedProblemType, problem.Type);
+        Assert.Equal(status, problem.Extensions["processStatus"]);
+        Assert.Contains($"'{status}'", problem.Detail, StringComparison.Ordinal);
+    }
+}

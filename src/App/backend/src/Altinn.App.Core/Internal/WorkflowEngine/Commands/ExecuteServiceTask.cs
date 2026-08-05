@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -49,6 +50,14 @@ internal sealed class ExecuteServiceTask(
     {
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = context.InstanceDataMutator.Instance;
+        ProcessState? processState = instance.Process;
+        if (processState is null)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                "Executing a service task requires an active process state.",
+                nameof(InvalidOperationException)
+            );
+        }
         string serviceTaskType = payload.ServiceTaskType;
 
         using Activity? activity = telemetry?.StartProcessExecuteServiceTaskActivity(instance, serviceTaskType);
@@ -89,7 +98,8 @@ internal sealed class ExecuteServiceTask(
             };
 
             AppCallbackMailbox? rendezvous = context.Payload.Mailbox;
-            return pipeline.Items.ElementAtOrDefault(itemIndex) switch
+            PipelineItem? pipelineItem = pipeline.Items.ElementAtOrDefault(itemIndex);
+            ProcessEngineCommandResult result = pipelineItem switch
             {
                 null => PipelineItemNotFound(serviceTaskType, itemIndex),
 
@@ -138,6 +148,34 @@ internal sealed class ExecuteServiceTask(
 
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
+
+            // The pipeline concluded without advancing: the process pauses at the durable service task, so
+            // processing ownership is released. Auto-advance keeps it for the transition it schedules, and a
+            // deferral has not concluded at all. A stage that only moves the pipeline on to its next engine
+            // step never hands ownership back, so the conclusion is read off the item and the continuation:
+            // the pipeline's own last item, or the verdict that closed the task from an exchange. This branch
+            // also covers the null a legacy app-supplied implementation can still return.
+            if (
+                result is SuccessfulProcessEngineCommandResult { AutoAdvanceProcess: false } concluded
+                && (
+                    pipelineItem is PipelineConclusion.FinalStep
+                    || concluded.MailboxContinuation is MailboxContinuation.Conclude
+                )
+            )
+            {
+                if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+                {
+                    return FailedProcessEngineCommandResult.Permanent(
+                        "Pausing a service task requires callback state restored into an InstanceDataUnitOfWork.",
+                        nameof(InvalidOperationException)
+                    );
+                }
+
+                unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+                processState.Status = ProcessStatus.Idle;
+            }
+
+            return result;
         }
         catch (Exception ex)
         {

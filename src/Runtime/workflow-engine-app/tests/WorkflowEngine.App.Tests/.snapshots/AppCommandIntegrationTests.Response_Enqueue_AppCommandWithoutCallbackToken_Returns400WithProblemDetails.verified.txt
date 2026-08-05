@@ -1,0 +1,7 @@
+﻿{
+  type: https://tools.ietf.org/html/rfc9110#section-15.5.1,
+  title: Bad Request,
+  status: 400,
+  detail: Failed to deserialize workflow context for 'app' in workflow 'wf-1' step #0: JSON deserialization for type 'WorkflowEngine.App.Commands.AppCommand.AppWorkflowContext' was missing required properties including: 'callbackToken'.,
+  traceId: {Scrubbed}
+}

@@ -42,6 +42,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
         TestData.PrepareInstance(org, app, 1337, guid);
+        await TestData.SetProcessStatus(org, app, 1337, guid, "processing");
         string token = TestAuthentication.GetUserToken(1000, authenticationLevel: 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         using var content = new StringContent(
@@ -170,6 +171,40 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Theory]
+    [InlineData("processing")]
+    [InlineData("future-status")]
+    public async Task Perform_WhenProcessStatusBlocks_ReturnsSharedProblemBeforeAction(string processStatus)
+    {
+        OverrideServicesForThisTest = services => services.AddTransient<IUserAction, LookupAction>();
+        const string org = "tdd";
+        const string app = "task-action";
+        var guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        TestData.PrepareInstance(org, app, 1337, guid);
+        await TestData.SetProcessStatus(org, app, 1337, guid, processStatus);
+        try
+        {
+            HttpClient client = GetRootedClient(org, app);
+            string token = TestAuthentication.GetUserToken(1000, authenticationLevel: 3);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                AuthorizationSchemes.Bearer,
+                token
+            );
+            using JsonContent content = JsonContent.Create(new { action = "lookup" });
+
+            using HttpResponseMessage response = await client.PostAsync(
+                $"/{org}/{app}/instances/1337/{guid}/actions",
+                content
+            );
+
+            await ProcessStatusProblemAssertions.AssertResponse(response, processStatus);
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, 1337, guid);
+        }
     }
 
     [Fact]

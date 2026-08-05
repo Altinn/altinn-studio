@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -108,6 +109,12 @@ public class UserDefinedMetadataController : ControllerBase
     [HttpPut]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [ProducesResponseType(typeof(UserDefinedMetadataDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType,
+        MediaTypeNames.Application.Json
+    )]
     public async Task<ActionResult<UserDefinedMetadataDto>> Update(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -166,7 +173,9 @@ public class UserDefinedMetadataController : ControllerBase
             { } problem
         )
         {
-            return StatusCode(problem.Status ?? 500, problem);
+            return problem.Type == ProcessStatusHelper.MutationBlockedProblemType
+                ? ProcessStatusProblemResult.Create(problem)
+                : StatusCode(problem.Status ?? 500, problem);
         }
 
         List<string> notAllowedKeys = FindNotAllowedKeys(userDefinedMetadataDto, dataTypeFromMetadata);
