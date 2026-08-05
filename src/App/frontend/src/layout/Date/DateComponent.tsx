@@ -10,7 +10,7 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const DateComponent = ({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Date'>) => {
-  const { textResourceBindings, direction, value, icon, format } = useItemWhenType(baseComponentId, 'Date');
+  const { textResourceBindings, direction, value, icon, format, grid } = useItemWhenType(baseComponentId, 'Date');
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
   const language = useCurrentLanguage();
 
@@ -43,6 +43,7 @@ export const DateComponent = ({ baseComponentId, overrideDisplay }: PropsFromGen
       help={showLabel ? textResourceBindings?.help : undefined}
       icon={icon}
       direction={direction ?? 'horizontal'}
+      labelGrid={grid?.labelGrid}
       innerGrid={innerGrid}
     />
   );

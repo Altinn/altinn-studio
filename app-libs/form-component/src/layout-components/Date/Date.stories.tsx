@@ -12,6 +12,7 @@ export const DATE_PROP_CATEGORIES = {
   icon: 'content',
   direction: 'content',
   componentId: 'content',
+  labelGrid: 'content',
   innerGrid: 'content',
 } satisfies PropCategories<DateProps>;
 
