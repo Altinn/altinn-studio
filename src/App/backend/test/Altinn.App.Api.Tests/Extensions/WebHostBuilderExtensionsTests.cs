@@ -107,7 +107,8 @@ public sealed class WebHostBuilderExtensionsTests
         projectedVolume.WriteVersion(
             KubernetesProjectedVolume.InitialVersionDirectoryName,
             fileName,
-            CreateRuntimeSettingsJson("before")
+            CreateRuntimeSettingsJson("before"),
+            KubernetesProjectedVolume.InitialVersionLastWriteTimeUtc
         );
         projectedVolume.CreateSymlinks(KubernetesProjectedVolume.InitialVersionDirectoryName, fileName);
 
@@ -125,7 +126,8 @@ public sealed class WebHostBuilderExtensionsTests
         projectedVolume.WriteVersion(
             KubernetesProjectedVolume.UpdatedVersionDirectoryName,
             fileName,
-            CreateRuntimeSettingsJson("after")
+            CreateRuntimeSettingsJson("after"),
+            KubernetesProjectedVolume.UpdatedVersionLastWriteTimeUtc
         );
         projectedVolume.SwapDataSymlink(KubernetesProjectedVolume.UpdatedVersionDirectoryName);
 
