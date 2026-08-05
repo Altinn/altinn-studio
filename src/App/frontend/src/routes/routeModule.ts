@@ -17,7 +17,7 @@ type ConvertedRouteModule = Omit<NonIndexRouteObject, 'path' | 'index' | 'childr
 
 /**
  * Maps a route module onto the route object shape `createBrowserRouter` expects. React Router's Vite
- * plugin reads the route module exports directly, so this conversion goes away once we adopt it.
+ * plugin reads the route module exports directly, so this conversion goes away if we decide to adopt it sometime in the future.
  *
  * @see https://reactrouter.com/upgrading/router-provider
  */
