@@ -36,7 +36,7 @@ describe('Overview', () => {
     jest.clearAllMocks();
   });
   it('renders the app title from the application metadata', async () => {
-    render({
+    renderOverview({
       getOrgList: orgListQuery(),
       getAppMetadata: appMetadataQueryWithTitle(),
     });
@@ -46,7 +46,7 @@ describe('Overview', () => {
   });
 
   it('prefers the app title over the appName text resource', async () => {
-    render({
+    renderOverview({
       getOrgList: orgListQuery(),
       getAppMetadata: appMetadataQueryWithTitle(),
       ...appNameTextResourceQueries(),
@@ -57,7 +57,7 @@ describe('Overview', () => {
   });
 
   it('falls back to the appName text resource when the app title is not set', async () => {
-    render({
+    renderOverview({
       getOrgList: orgListQuery(),
       ...appNameTextResourceQueries(),
     });
@@ -67,7 +67,7 @@ describe('Overview', () => {
   });
 
   it('falls back to the app name when neither the app title nor the appName text resource is set', async () => {
-    render({
+    renderOverview({
       getOrgList: orgListQuery(),
     });
 
@@ -75,7 +75,7 @@ describe('Overview', () => {
   });
 
   it('should display error message if fetching goes wrong', async () => {
-    render({
+    renderOverview({
       getAppMetadata: () => Promise.reject(createApiErrorMock()),
       getOrgList: () => Promise.reject(createApiErrorMock()),
     });
@@ -83,7 +83,7 @@ describe('Overview', () => {
   });
 
   it('should display DeploymentLogList if environments exist', async () => {
-    render({
+    renderOverview({
       getOrgList: jest.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
@@ -109,7 +109,7 @@ describe('Overview', () => {
   });
 
   it('should not display DeploymentLogList if environments do not exist for repo owned by org', async () => {
-    render({
+    renderOverview({
       getRepoMetadata: jest.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
@@ -136,16 +136,24 @@ describe('Overview', () => {
   });
 
   it('should display RepoOwnedByPersonInfo if repo is not owned by an org', async () => {
-    render();
+    renderOverview();
     expect(
       await screen.findByText(textMock('app_deployment.private_app_owner')),
     ).toBeInTheDocument();
   });
+
+  it('renders the repository name for a data model repository, where the metadata query is disabled', async () => {
+    const dataModelRepo = `${org}-datamodels`;
+    renderOverview({ getOrgList: orgListQuery() }, dataModelRepo);
+
+    expect(await screen.findByRole('heading', { name: dataModelRepo })).toBeInTheDocument();
+    expect(screen.queryByText(textMock('overview.header_loading'))).not.toBeInTheDocument();
+  });
 });
 
-const render = (queries = {}) => {
+const renderOverview = (queries = {}, appName: string = app) => {
   return renderWithProviders(<Overview />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${appName}`,
     queries,
   });
 };

@@ -15,15 +15,17 @@ export const Header = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
+  // These use isLoading rather than isPending because a disabled query stays pending
+  // indefinitely, which would leave the spinner in place forever.
   const {
     data: appMetadata,
-    isPending: isAppMetadataPending,
+    isLoading: isAppMetadataLoading,
     isError: isAppMetadataError,
   } = useAppMetadataQuery(org, app, {
     hideDefaultError: true,
   });
 
-  const { data: textResources, isPending: isTextResourcesPending } = useTextResourcesQuery(
+  const { data: textResources, isLoading: isTextResourcesLoading } = useTextResourcesQuery(
     org,
     app,
   );
@@ -35,9 +37,9 @@ export const Header = () => {
   }, [isAppMetadataError, t]);
 
   const title = appMetadata?.title?.[DEFAULT_LANGUAGE];
-  const isWaitingForFallbackName = !title && isTextResourcesPending;
+  const isWaitingForFallbackName = !title && isTextResourcesLoading;
 
-  if (isAppMetadataPending || isWaitingForFallbackName) {
+  if (isAppMetadataLoading || isWaitingForFallbackName) {
     return <StudioSpinner aria-hidden spinnerTitle={t('overview.header_loading')} />;
   }
 
