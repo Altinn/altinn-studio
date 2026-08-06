@@ -23,7 +23,7 @@ export const Empty: StoryObj<typeof FatalErrorEmpty> = {
   parameters: {
     docs: {
       description: {
-        story: 'Renders a hidden marker element signalling a fatal error without visible content.',
+        story: 'Renders a hidden marker element signaling a fatal error without visible content.',
       },
     },
   },

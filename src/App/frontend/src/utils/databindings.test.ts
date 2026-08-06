@@ -7,7 +7,7 @@ describe('utils/databindings.ts', () => {
     });
   });
 
-  describe('getKeyWithouthIndex', () => {
+  describe('getKeyWithoutIndex', () => {
     it('should return stripped formdata key for nested groups', () => {
       const withIndex = 'somegroup[0].someprop.someothergroup[2].someotherprop';
       const expected = 'somegroup.someprop.someothergroup.someotherprop';

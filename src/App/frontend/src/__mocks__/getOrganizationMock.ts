@@ -1,6 +1,6 @@
-import type { IOrganisation } from 'src/types/shared';
+import type { IOrganization } from 'src/types/shared';
 
-export const getOrganisationMock = (): IOrganisation => ({
+export const getOrganizationMock = (): IOrganization => ({
   orgNumber: '123456789',
   name: 'Fancy Org',
   unitType: 'unitType',

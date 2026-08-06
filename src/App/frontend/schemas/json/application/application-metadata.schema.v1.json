@@ -408,7 +408,7 @@
         "validationErrorOnPendingFileScan": {
           "type": "boolean",
           "title": "Validation error on pending file scan",
-          "description": "A value indicating wheter a file scan status of pending should trigger a validation error or not.",
+          "description": "A value indicating whether a file scan status of pending should trigger a validation error or not.",
           "default": false
         },
         "enabledFileAnalysers": {

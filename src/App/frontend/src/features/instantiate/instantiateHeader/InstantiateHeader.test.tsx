@@ -2,16 +2,16 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getOrganisationMock } from 'src/__mocks__/getOrganisationMock';
+import { getOrganizationMock } from 'src/__mocks__/getOrganizationMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { InstantiateHeader } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { InstantiateHeaderProps } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
 
 describe('InstantiateHeader', () => {
-  it('should not show organisation name when profile has party, and party has organisation with name', async () => {
+  it('should not show organization name when profile has party, and party has organization with name', async () => {
     const profile = getProfileMock();
-    const org = getOrganisationMock();
+    const org = getOrganizationMock();
     profile.party!.organization = org;
 
     await render({

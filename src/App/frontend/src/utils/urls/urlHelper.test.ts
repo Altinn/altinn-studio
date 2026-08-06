@@ -23,7 +23,7 @@ const hostStudioDev = 'dev.altinn.studio';
 const hostUnknown = 'www.vg.no';
 
 describe('Shared urlHelper.ts', () => {
-  test('returnUrlToMessageBox() returning correct environemnts', () => {
+  test('returnUrlToMessageBox() returning correct environments', () => {
     vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
     expect(getMessageBoxUrl()).toBe('https://af.tt02.altinn.no/');
     vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
@@ -38,7 +38,7 @@ describe('Shared urlHelper.ts', () => {
     expect(getMessageBoxUrl()).toBe(undefined);
   });
 
-  test('returnBaseUrlToAltinn() returning correct environemnts', () => {
+  test('returnBaseUrlToAltinn() returning correct environments', () => {
     expect(returnBaseUrlToAltinn(hostTT)).toBe('https://tt02.altinn.no/');
     expect(returnBaseUrlToAltinn(hostAT)).toBe('https://at21.altinn.cloud/');
     expect(returnBaseUrlToAltinn(hostYT)).toBe('https://yt01.altinn.cloud/');

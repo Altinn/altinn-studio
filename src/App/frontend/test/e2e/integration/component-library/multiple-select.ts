@@ -98,7 +98,7 @@ describe('Multiple select component', () => {
     cy.findByRole('option', { name: /Kjøring i skogen, Press to remove/i }).should('exist');
     cy.findByRole('option', { name: /Kjøre til hytta på fjellet, Press to remove/i }).should('exist');
 
-    // The clickable element is a psuedo-element within the button
+    // The clickable element is a pseudo-element within the button
     cy.findByRole('option', { name: /Kjøring i skogen, Press to remove/i }).click('right', { force: true });
     cy.findByRole('button', { name: /Bekreft/i }).click();
 
@@ -141,7 +141,7 @@ describe('Multiple select component', () => {
     // Close the multiple select component
     cy.get(multiselect).type('{esc}');
 
-    // Validate that the corresponding options in multiple select is avaliable in repeating group
+    // Validate that the corresponding options in multiple select is available in repeating group
     cy.get(repGroup).findByRole('cell', { name: checkboxText1 }).should('exist');
     cy.get(repGroup).findByRole('cell', { name: checkboxText2 }).should('exist');
     cy.get(repGroup).findByRole('cell', { name: checkboxText3 }).should('exist');

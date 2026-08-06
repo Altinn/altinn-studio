@@ -1,6 +1,6 @@
 {
   "name": "Lookup for component hidden by parent child-visibility callback",
-  "comment": "This may not work on the backend at all, because it's checking the edit.mode which hides the component when tableColumns[..].showInExpandedEdit = false. We should consider backend <-> frontend compatiblity here.",
+  "comment": "This may not work on the backend at all, because it's checking the edit.mode which hides the component when tableColumns[..].showInExpandedEdit = false. We should consider backend <-> frontend compatibility here.",
   "expression": ["component", "bedriftsNavn"],
   "context": {
     "component": "bransje",

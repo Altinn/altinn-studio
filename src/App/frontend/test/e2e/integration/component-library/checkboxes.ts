@@ -391,7 +391,7 @@ describe('Checkboxes component', () => {
   });
 
   //Required
-  it('Required validation shows when chekcbox is selected with simpleBinding', () => {
+  it('Required validation shows when checkbox is selected with simpleBinding', () => {
     cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes') {
         component.required = true;
@@ -411,7 +411,7 @@ describe('Checkboxes component', () => {
 
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
-  it('Required validation shows when chekcbox is selected with group and soft delete', () => {
+  it('Required validation shows when checkbox is selected with group and soft delete', () => {
     cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.required = true;
@@ -431,7 +431,7 @@ describe('Checkboxes component', () => {
 
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
-  it('Required validation shows when chekcbox is selected with group and hard delete', () => {
+  it('Required validation shows when checkbox is selected with group and hard delete', () => {
     cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.required = true;
@@ -453,7 +453,7 @@ describe('Checkboxes component', () => {
 
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
-  it('Required validation shows when chekcbox is selected with group, hard delete, Number and label', () => {
+  it('Required validation shows when checkbox is selected with group, hard delete, Number and label', () => {
     cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.required = true;

@@ -259,7 +259,7 @@ declare global {
       ): Chainable<null>;
 
       /**
-       * Convenient way to check for the absense of a validation in a resultContainer
+       * Convenient way to check for the absence of a validation in a resultContainer
        */
       expectValidationNotToExist(
         resultContainer: BackendValidationResult,

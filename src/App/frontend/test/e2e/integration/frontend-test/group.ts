@@ -501,7 +501,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroup).find('tbody > tr > td').eq(1).should('have.text', 'NOK 2');
     cy.findByRole('button', { name: 'Rediger NOK 1' }).click();
 
-    // Navigate to nested group and test delete warning popoup cancel and confirm
+    // Navigate to nested group and test delete warning popup cancel and confirm
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
 
     cy.get(appFrontend.group.subGroup).find('tbody > tr > td').first().should('have.text', 'automation');

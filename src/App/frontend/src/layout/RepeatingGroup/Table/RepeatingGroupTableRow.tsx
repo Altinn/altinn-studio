@@ -124,7 +124,7 @@ export function RepeatingGroupTableRow({
     : getEditButtonText(isEditingRow, langTools, trbForRow);
 
   const deleteButtonText = langAsString('general.delete');
-  const togleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
+  const toggleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
 
   return (
     <Table.Row
@@ -334,7 +334,7 @@ export function RepeatingGroupTableRow({
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
                 >
-                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : togleDeletebuttonText}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
                 </DeleteElement>
               </>
             )}

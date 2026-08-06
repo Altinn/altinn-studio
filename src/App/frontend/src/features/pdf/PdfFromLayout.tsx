@@ -5,7 +5,7 @@ import type { PropsWithChildren } from 'react';
 import { Flex, LoadingEmpty } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 
-import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
+import { OrganizationLogo } from 'src/components/presentation/OrganizationLogo/OrganizationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
@@ -151,7 +151,7 @@ function PdfWrapping({ children }: PropsWithChildren) {
           className={classes.pdfLogoContainer}
           data-testid='pdf-logo'
         >
-          <OrganisationLogo />
+          <OrganizationLogo />
         </div>
       )}
       {appOwner && <span role='doc-subtitle'>{appOwner}</span>}

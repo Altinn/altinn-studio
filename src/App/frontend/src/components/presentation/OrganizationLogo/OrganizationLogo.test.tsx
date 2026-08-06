@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
+import { OrganizationLogo } from 'src/components/presentation/OrganizationLogo/OrganizationLogo';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
@@ -11,11 +11,11 @@ const render = async (logo: ApplicationMetadata['logo']) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({ logo });
 
   return await renderWithInstanceAndLayout({
-    renderer: () => <OrganisationLogo />,
+    renderer: () => <OrganizationLogo />,
   });
 };
 
-describe('OrganisationLogo', () => {
+describe('OrganizationLogo', () => {
   beforeEach(() => {
     window.altinnAppGlobalData.orgLogoUrl = 'https://altinncdn.no/orgs/mockOrg/mockOrg.png';
     window.altinnAppGlobalData.orgName = { nb: 'Mockdepartementet', en: 'Mock Ministry', nn: 'Mockdepartementet' };

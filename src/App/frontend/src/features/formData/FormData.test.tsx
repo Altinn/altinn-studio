@@ -740,7 +740,7 @@ describe('FormData', () => {
     });
   });
 
-  describe('Invaid data', () => {
+  describe('Invalid data', () => {
     function InvalidReadWrite({
       path,
       dataType = statelessDataTypeMock,

@@ -367,7 +367,7 @@ export class AppFrontend {
     textField1: '#Input-bhWSyO',
     textField2: '#Input-aWlSF3',
     addressField: '#Address-xdZ7PE',
-    chooseIndusty: '#choose-industry',
+    chooseIndustry: '#choose-industry',
     textField1Summary: '[data-testid="summary-text1"]',
     textField2Summary: '[data-testid="summary-text2"]',
     textField3Summary: '[data-testid="summary-text3"]',

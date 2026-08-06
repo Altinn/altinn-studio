@@ -2,11 +2,11 @@ import React from 'react';
 
 import cn from 'classnames';
 
-import classes from 'src/components/presentation/OrganisationLogo/OrganisationLogo.module.css';
+import classes from 'src/components/presentation/OrganizationLogo/OrganizationLogo.module.css';
 import { useAppLogoAltText, useAppOwner } from 'src/core/texts/appTexts';
 import { useAppLogoSize, useAppLogoUrl, useDisplayAppOwnerNameInHeader } from 'src/hooks/useAppLogo';
 
-export const OrganisationLogo = () => {
+export const OrganizationLogo = () => {
   const appLogoUrl = useAppLogoUrl();
   const appLogoAltText = useAppLogoAltText();
   const appLogoSize = useAppLogoSize();
