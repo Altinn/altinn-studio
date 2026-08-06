@@ -16,7 +16,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -25,7 +25,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -293,7 +293,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -302,7 +302,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -362,7 +362,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -371,7 +371,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -442,7 +442,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -451,7 +451,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -713,7 +713,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -722,7 +722,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -800,7 +800,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -809,7 +809,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1018,7 +1018,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1027,7 +1027,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1193,7 +1193,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1202,7 +1202,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1241,7 +1241,7 @@
           {
             "name": "dataType",
             "in": "path",
-            "description": "Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec",
+            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec",
             "required": true,
             "schema": {
               "type": "string"
@@ -1280,7 +1280,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1289,7 +1289,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1328,7 +1328,7 @@
           {
             "name": "dataType",
             "in": "path",
-            "description": "Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec,",
+            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
             "required": true,
             "schema": {
               "type": "string"
@@ -1405,7 +1405,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1414,7 +1414,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1572,7 +1572,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -1581,7 +1581,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1620,7 +1620,7 @@
           {
             "name": "dataType",
             "in": "path",
-            "description": "Optional parameter, verified if pressent. Used to have different schemas for different data types in openApi spec,",
+            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
             "required": true,
             "schema": {
               "type": "string"
@@ -2396,7 +2396,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2405,7 +2405,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation",
+            "description": "Application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -2496,7 +2496,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2505,7 +2505,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2661,7 +2661,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2670,7 +2670,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3317,7 +3317,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3326,7 +3326,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3451,7 +3451,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3460,7 +3460,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3530,7 +3530,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3539,7 +3539,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3607,7 +3607,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3616,7 +3616,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3636,17 +3636,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             }
           }
@@ -3754,7 +3754,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3763,7 +3763,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3854,12 +3854,12 @@
         "tags": [
           "Instances"
         ],
-        "summary": "Retrieves all active instances that fulfull the org, app, and instanceOwnerParty Id combination.",
+        "summary": "Retrieves all active instances that fulfill the org, app, and instanceOwnerParty Id combination.",
         "parameters": [
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -3868,7 +3868,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3902,12 +3902,12 @@
         }
       }
     },
-    "/{org}/{app}/api/v1/lookup/organisation/{orgNr}": {
+    "/{org}/{app}/api/v1/lookup/organization/{orgNr}": {
       "get": {
         "tags": [
-          "LookupOrganisation"
+          "LookupOrganization"
         ],
-        "summary": "Allows an organisation lookup by orgNr in ER",
+        "summary": "Allows an organization lookup by orgNr in ER",
         "parameters": [
           {
             "name": "orgNr",
@@ -3941,7 +3941,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LookupOrganisationResponse"
+                  "$ref": "#/components/schemas/LookupOrganizationResponse"
                 }
               }
             }
@@ -4265,7 +4265,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4274,7 +4274,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4493,7 +4493,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4502,7 +4502,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4607,7 +4607,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4616,7 +4616,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4744,7 +4744,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -4753,7 +4753,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -4870,7 +4870,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -4879,7 +4879,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5083,7 +5083,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5092,7 +5092,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5192,7 +5192,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5201,7 +5201,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5350,7 +5350,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5359,7 +5359,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5474,7 +5474,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5483,7 +5483,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5785,12 +5785,12 @@
         "tags": [
           "Process"
         ],
-        "summary": "Attemts to end the process by running next until an end event is reached.\nNotice that process must have been started.",
+        "summary": "Attempts to end the process by running next until an end event is reached.\nNotice that process must have been started.",
         "parameters": [
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5799,7 +5799,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -6292,7 +6292,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -6301,7 +6301,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -6931,7 +6931,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identfier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -6940,7 +6940,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -7060,7 +7060,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -7069,7 +7069,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -7317,7 +7317,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7326,7 +7326,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
+            "description": "Application identifier which is unique within an organization.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7547,7 +7547,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7556,7 +7556,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation",
+            "description": "Application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -7770,7 +7770,7 @@
           {
             "name": "org",
             "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
+            "description": "Unique identifier of the organization responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -7779,7 +7779,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "Application identifier which is unique within an organisation",
+            "description": "Application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -9567,7 +9567,7 @@
           },
           "org": {
             "type": "string",
-            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case.",
+            "description": "Application owner identifier, usually a abbreviation of organization name. All in lower case.",
             "nullable": true
           },
           "selfLinks": {
@@ -9852,7 +9852,7 @@
       },
       "InstanceOwnerResponse": {
         "required": [
-          "organisationNumber",
+          "organizationNumber",
           "party",
           "partyId",
           "personNumber",
@@ -9870,9 +9870,9 @@
             "description": "Person number (national identification number) of the party. Null if the party is not a person.",
             "nullable": true
           },
-          "organisationNumber": {
+          "organizationNumber": {
             "type": "string",
-            "description": "The organisation number of the party. Null if the party is not an organisation.",
+            "description": "The organization number of the party. Null if the party is not an organization.",
             "nullable": true
           },
           "username": {
@@ -9929,7 +9929,7 @@
           },
           "org": {
             "type": "string",
-            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case.",
+            "description": "Application owner identifier, usually a abbreviation of organization name. All in lower case.",
             "nullable": true
           },
           "selfLinks": {
@@ -10077,7 +10077,7 @@
         },
         "additionalProperties": false
       },
-      "InstansiationInstance": {
+      "InstantiationInstance": {
         "type": "object",
         "properties": {
           "instanceOwner": {
@@ -10306,19 +10306,19 @@
         },
         "additionalProperties": false
       },
-      "LookupOrganisationResponse": {
+      "LookupOrganizationResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
             "description": "Indicates whether a person was found or not."
           },
-          "organisationDetails": {
-            "$ref": "#/components/schemas/OrganisationDetails"
+          "organizationDetails": {
+            "$ref": "#/components/schemas/OrganizationDetails"
           }
         },
         "additionalProperties": false,
-        "description": "Contains the result of an organisation lookup."
+        "description": "Contains the result of an organization lookup."
       },
       "LookupPersonRequest": {
         "required": [
@@ -10481,27 +10481,6 @@
         },
         "additionalProperties": false
       },
-      "OrganisationDetails": {
-        "required": [
-          "name",
-          "orgNr"
-        ],
-        "type": "object",
-        "properties": {
-          "orgNr": {
-            "type": "string",
-            "description": "The organisation number",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "description": "The full name",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Contains details about an organisation"
-      },
       "Organization": {
         "type": "object",
         "properties": {
@@ -10567,6 +10546,27 @@
           }
         },
         "additionalProperties": false
+      },
+      "OrganizationDetails": {
+        "required": [
+          "name",
+          "orgNr"
+        ],
+        "type": "object",
+        "properties": {
+          "orgNr": {
+            "type": "string",
+            "description": "The organization number",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Contains details about an organization"
       },
       "Party": {
         "type": "object",
@@ -10655,7 +10655,7 @@
           },
           "orgNumber": {
             "type": "string",
-            "description": "The organisation number of the party. Null if the party is not an organisation.",
+            "description": "The organization number of the party. Null if the party is not an organization.",
             "nullable": true
           },
           "unitType": {
@@ -10759,7 +10759,7 @@
       "PayerCompany": {
         "type": "object",
         "properties": {
-          "organisationNumber": {
+          "organizationNumber": {
             "type": "string",
             "nullable": true
           },
@@ -10910,7 +10910,7 @@
       "PaymentReceiver": {
         "type": "object",
         "properties": {
-          "organisationNumber": {
+          "organizationNumber": {
             "type": "string",
             "nullable": true
           },
@@ -11199,7 +11199,7 @@
           },
           "actionOnBehalfOf": {
             "type": "string",
-            "description": "The organisation number of the party the user is acting on behalf of",
+            "description": "The organization number of the party the user is acting on behalf of",
             "nullable": true
           }
         },
@@ -11459,7 +11459,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The instance identifier formated as {instanceOwner.partyId}/{instanceGuid}.",
+            "description": "The instance identifier formatted as {instanceOwner.partyId}/{instanceGuid}.",
             "nullable": true
           },
           "presentationTexts": {
@@ -11724,7 +11724,7 @@
           },
           "onBehalfOf": {
             "type": "string",
-            "description": "The organisation number of the party the user is acting on behalf of",
+            "description": "The organization number of the party the user is acting on behalf of",
             "nullable": true
           }
         },
@@ -12221,7 +12221,7 @@
       "name": "Instances"
     },
     {
-      "name": "LookupOrganisation"
+      "name": "LookupOrganization"
     },
     {
       "name": "LookupPerson"

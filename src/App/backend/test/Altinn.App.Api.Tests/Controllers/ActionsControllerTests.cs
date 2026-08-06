@@ -418,7 +418,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         updatedScheme.TestCustomButtonReadOnlyInput.Should().Be("Her kommer det data fra backend");
 
         TestData
-            .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
+            .GetDataElementBlobContent(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
             .Should()
             .Contain("Her kommer det data fra backend");
 
@@ -449,7 +449,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         updatedObsoleteScheme.description.Should().Be("Obsolete data");
 
         TestData
-            .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
+            .GetDataElementBlobContent(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
             .Should()
             .Contain("Obsolete data");
 

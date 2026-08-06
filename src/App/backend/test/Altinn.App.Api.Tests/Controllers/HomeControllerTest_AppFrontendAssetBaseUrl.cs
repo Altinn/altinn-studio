@@ -16,7 +16,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const string GeneratedOrg = "xunit";
     private const string GeneratedApp = "test-app";
 

@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -22,7 +22,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly string _org = "tdd";
-    private static readonly string _app = "contributer-restriction";
+    private static readonly string _app = "contributor-restriction";
     private static readonly int _instanceOwnerPartyId = 500600;
     private static readonly Guid _instanceGuid = Guid.Parse("09e16a2d-e009-4f3a-940b-da1ea54a18b4");
     private readonly string _formElementId = "c52f40dd-11d1-4e24-b13b-4fcfdf6ca1c6";
@@ -116,7 +116,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
         newData.Melding!.Random.Should().Be("fromClient");
 
         // Verify stored data
-        var newDataStored = TestData.GetDataElementBlobContnet(
+        var newDataStored = TestData.GetDataElementBlobContent(
             _org,
             _app,
             _instanceOwnerPartyId,
@@ -127,7 +127,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
         Assert.Contains("fromClient", newDataStored);
         Assert.Contains("FromDataProcessor", newDataStored);
 
-        var oldDataStored = TestData.GetDataElementBlobContnet(
+        var oldDataStored = TestData.GetDataElementBlobContent(
             _org,
             _app,
             _instanceOwnerPartyId,

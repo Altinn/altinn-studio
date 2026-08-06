@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Language;
@@ -41,7 +41,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
     // Define constants
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const int UserId = 1337;
     private const int InstanceOwnerPartyId = 500600;
     private static readonly Guid _instanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354ce");
@@ -200,7 +200,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                                 AppLogic = new()
                                 {
                                     ClassRef =
-                                        "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
+                                        "Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models.Skjema",
                                 },
                             }
                         );
@@ -463,7 +463,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public async Task AddItemToNonInitializedList_ReturnsUnprocessableEntity()
     {
         // This test fails to initialize the list, thus creating an error
-        // Added this test to ensure that a change in behaviour (when changing json patch library)
+        // Added this test to ensure that a change in behavior (when changing json patch library)
         // is detected
         var pointer = JsonPointer.Create("melding", "nested_list", 0, "newKey");
         var patch = new JsonPatch(PatchOperation.Add(pointer, JsonNode.Parse("\"newValue\"")));
@@ -500,7 +500,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
-    public async Task SetXmlTextPropertyToEmtpy_ReturnsCorrectDataModel()
+    public async Task SetXmlTextPropertyToEmpty_ReturnsCorrectDataModel()
     {
         _dataProcessorMock
             .Setup(p =>

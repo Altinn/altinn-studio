@@ -16,10 +16,10 @@ public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<Web
         : base(factory, outputHelper) { }
 
     [Fact]
-    public async Task VeryfyExtraFieldsInApplicationMetadataIsPreserved()
+    public async Task VerifyExtraFieldsInApplicationMetadataIsPreserved()
     {
         var org = "tdd";
-        var appId = "contributer-restriction";
+        var appId = "contributor-restriction";
         var appMetadataSample =
             $"{{\"id\":\"{org}/{appId}\",\"org\":\"{org}\",\"title\":{{\"nb\":\"Bestillingseksempelapp\"}},\"dataTypes\":[],\"partyTypesAllowed\":{{}},\"extra_Unknown_list\":[3,\"tre\",{{\"verdi\":3}}]}}";
         var application = JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataSample, JsonSerializerOptions)!;
@@ -36,7 +36,7 @@ public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<Web
         Assert.Contains("extra_Unknown_list", responseString);
         Assert.Contains("verdi\":3", responseString);
 
-        // Verify that [ResponseCache] attribute is not overridden by midleware
+        // Verify that [ResponseCache] attribute is not overridden by middleware
         Assert.NotNull(response.Headers.CacheControl);
         var cacheControl = response.Headers.GetValues("Cache-Control").ToArray();
         Assert.Single(cacheControl);

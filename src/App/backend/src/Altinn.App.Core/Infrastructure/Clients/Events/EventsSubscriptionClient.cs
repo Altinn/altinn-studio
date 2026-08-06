@@ -48,9 +48,9 @@ public class EventsSubscriptionClient : IEventsSubscription
     /// Creates a subscription on behalf of the org/app for the specified event type.
     /// </summary>
     /// <param name="org">The organization subscribing to the event.</param>
-    /// <param name="app">The application the subscription should be deliverd to, will be combinded with org.</param>
+    /// <param name="app">The application the subscription should be delivered to, will be combined with org.</param>
     /// <param name="eventType">The event type to subscribe to.
-    /// Source filter will be automatially added, and set to the url of the application.</param>
+    /// Source filter will be automatically added, and set to the url of the application.</param>
     /// <returns>The created <see cref="Subscription"/></returns>
     public async Task<Subscription> AddSubscription(string org, string app, string eventType)
     {
@@ -61,7 +61,7 @@ public class EventsSubscriptionClient : IEventsSubscription
         {
             TypeFilter = eventType,
             EndPoint = new Uri($"{appBaseUrl}api/v1/eventsreceiver?code={await secretCodeProvider.GetSecretCode()}"),
-            SourceFilter = new Uri(appBaseUrl.TrimEnd('/')), // The event system is requireing the source filter to be without trailing slash
+            SourceFilter = new Uri(appBaseUrl.TrimEnd('/')), // The event system is requiring the source filter to be without trailing slash
         };
 
         string serializedSubscriptionRequest = JsonSerializer.Serialize(subscriptionRequest);

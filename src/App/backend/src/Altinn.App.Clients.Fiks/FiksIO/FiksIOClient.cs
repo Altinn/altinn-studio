@@ -62,7 +62,7 @@ internal sealed class FiksIOClient : IFiksIOClient
             throw new FiksIOConfigurationException("Fiks IO has not been configured");
 
         // Subscribe to settings changes
-        fiksIOSettings.OnChange(InitialiseFiksIOClient_NeverThrowsWrapper);
+        fiksIOSettings.OnChange(InitializeFiksIOClient_NeverThrowsWrapper);
     }
 
     public async Task<FiksIOMessageResponse> SendMessage(
@@ -201,7 +201,7 @@ internal sealed class FiksIOClient : IFiksIOClient
         return _fiksIoClient;
     }
 
-    private async void InitialiseFiksIOClient_NeverThrowsWrapper(object? x = null)
+    private async void InitializeFiksIOClient_NeverThrowsWrapper(object? x = null)
     {
         try
         {
@@ -209,7 +209,7 @@ internal sealed class FiksIOClient : IFiksIOClient
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to initialise Fiks IO client: {ErrorMessage}", e.Message);
+            _logger.LogError(e, "Failed to initialize Fiks IO client: {ErrorMessage}", e.Message);
         }
     }
 
@@ -233,7 +233,7 @@ internal sealed class FiksIOClient : IFiksIOClient
 
     private Task SubscriptionCancelledHandler(ConsumerEventArgs eventArgs)
     {
-        InitialiseFiksIOClient_NeverThrowsWrapper();
+        InitializeFiksIOClient_NeverThrowsWrapper();
         return Task.CompletedTask;
     }
 

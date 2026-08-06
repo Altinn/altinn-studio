@@ -65,7 +65,7 @@ public class RunTest1
     }
 
     [Fact]
-    public async Task RunLayoutValidationsForRequired_InvalidComponentHidden_ReturnsNoIssus()
+    public async Task RunLayoutValidationsForRequired_InvalidComponentHidden_ReturnsNoIssues()
     {
         var state = await LayoutTestUtils.GetLayoutModelTools(
             new DataModel

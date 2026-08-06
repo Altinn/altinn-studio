@@ -23,7 +23,7 @@ public class EventsReceiverControllerTests : ApiTestBase, IClassFixture<WebAppli
     public async Task Post_ValidEventType_ShouldReturnOk()
     {
         var org = "tdd";
-        var app = "contributer-restriction";
+        var app = "contributor-restriction";
 
         using var client = GetRootedUserClient(org, app, 1338);
         CloudEvent cloudEvent = new()
@@ -58,7 +58,7 @@ public class EventsReceiverControllerTests : ApiTestBase, IClassFixture<WebAppli
     public async Task Post_NonValidEventType_ShouldReturnBadRequest()
     {
         var org = "tdd";
-        var app = "contributer-restriction";
+        var app = "contributor-restriction";
 
         using var client = GetRootedUserClient(org, app, userId: 1338);
         CloudEvent cloudEvent = new()

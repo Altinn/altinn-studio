@@ -62,7 +62,7 @@ public class EventsReceiverController : ControllerBase
         {
             bool eventSuccessfullyProcessed = await eventHandler.ProcessEvent(cloudEvent);
 
-            // A return value of 425 will ensure the event system triggers the retry mecanism.
+            // A return value of 425 will ensure the event system triggers the retry mechanism.
             // Actually any other return value than 200 Ok will do this, but this is the "correct way"
             // of saying we would like to be reminded again later.
             return eventSuccessfullyProcessed ? Ok() : new StatusCodeResult(425);

@@ -45,14 +45,14 @@ export type Organization = {
   name: string;
 };
 export type OrganizationLookupResponse =
-  | { success: false; organisationDetails: null }
-  | { success: true; organisationDetails: Organization };
+  | { success: false; organizationDetails: null }
+  | { success: true; organizationDetails: Organization };
 
 async function fetchOrg(orgNr: string): Promise<{ org: Organization; error: null } | { org: null; error: string }> {
   if (!orgNr) {
     throw new Error('orgNr is required');
   }
-  const url = `${appPath}/api/v1/lookup/organisation/${orgNr}`;
+  const url = `${appPath}/api/v1/lookup/organization/${orgNr}`;
 
   try {
     const response = await httpGet(url);
@@ -61,11 +61,11 @@ async function fetchOrg(orgNr: string): Promise<{ org: Organization; error: null
       return { org: null, error: 'organization_lookup.validation_invalid_response_from_server' };
     }
 
-    if (!response.success || !response.organisationDetails) {
+    if (!response.success || !response.organizationDetails) {
       return { org: null, error: 'organization_lookup.validation_error_not_found' };
     }
 
-    return { org: response.organisationDetails, error: null };
+    return { org: response.organizationDetails, error: null };
   } catch {
     return { org: null, error: 'organization_lookup.unknown_error' };
   }

@@ -381,7 +381,7 @@ public class DefaultEFormidlingServiceTests
     }
 
     private const string DuplicateMessageBody =
-        "The remote server returned an unexpcted error: {\n"
+        "The remote server returned an unexpected error: {\n"
         + "  \"timestamp\" : \"2026-05-28T14:52:16.925861287+02:00\",\n"
         + "  \"exception\" : \"no.difi.meldingsutveksling.exceptions.MessageAlreadyExistsException\",\n"
         + "  \"message\" : \"Message with messageId = e9f0f271-a01e-4457-8a24-3c2079824717 already exists\",\n"
@@ -399,7 +399,7 @@ public class DefaultEFormidlingServiceTests
             .Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 // A status entry without a status value (the frozen client model is pre-NRT, so a
-                // missing field deserialises to null) must not break the recovery path.
+                // missing field deserializes to null) must not break the recovery path.
                 new Statuses
                 {
                     Content = statuses
@@ -489,9 +489,9 @@ public class DefaultEFormidlingServiceTests
 
     [Theory]
     [InlineData(DuplicateMessageBody, true)]
-    [InlineData("The remote server returned an unexpcted error: not json MessageAlreadyExistsException.", true)]
+    [InlineData("The remote server returned an unexpected error: not json MessageAlreadyExistsException.", true)]
     [InlineData(
-        "The remote server returned an unexpcted error: { \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }.",
+        "The remote server returned an unexpected error: { \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }.",
         false
     )]
     [InlineData("Connection refused", false)]

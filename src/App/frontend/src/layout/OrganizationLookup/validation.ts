@@ -63,14 +63,14 @@ const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupRespons
     {
       properties: {
         success: { const: false },
-        organisationDetails: { type: 'null' },
+        organizationDetails: { type: 'null' },
       },
-      required: ['success', 'organisationDetails'],
+      required: ['success', 'organizationDetails'],
     },
     {
       properties: {
         success: { const: true },
-        organisationDetails: {
+        organizationDetails: {
           type: 'object',
           properties: {
             orgNr: { type: 'string' },
@@ -79,10 +79,10 @@ const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupRespons
           required: ['orgNr', 'name'],
         },
       },
-      required: ['success', 'organisationDetails'],
+      required: ['success', 'organizationDetails'],
     },
   ],
-  required: ['success', 'organisationDetails'],
+  required: ['success', 'organizationDetails'],
 };
 
 export const validateOrganizationLookupResponse = ajv.compile(organizationLookupResponseSchema);

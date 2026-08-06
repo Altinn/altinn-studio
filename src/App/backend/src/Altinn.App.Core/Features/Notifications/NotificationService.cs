@@ -115,7 +115,7 @@ internal sealed class NotificationService : INotificationService
                     instanceOwnerName: instanceOwnerName,
                     serviceOwnerName: serviceOwnerName?.GetByLanguage(language),
                     orgNumber: instanceOwner.OrganisationNumber,
-                    nationalIndentityNumber: instanceOwner.PersonNumber,
+                    nationalIdentityNumber: instanceOwner.PersonNumber,
                     dueDateTime: dueDate
                 )
                 : NotificationTexts.GetDefaultSubject(language),
@@ -127,7 +127,7 @@ internal sealed class NotificationService : INotificationService
                     instanceOwnerName: instanceOwnerName,
                     serviceOwnerName: serviceOwnerName?.GetByLanguage(language),
                     orgNumber: instanceOwner.OrganisationNumber,
-                    nationalIndentityNumber: instanceOwner.PersonNumber,
+                    nationalIdentityNumber: instanceOwner.PersonNumber,
                     dueDateTime: dueDate
                 )
                 : NotificationTexts.GetDefaultBody(
@@ -136,7 +136,7 @@ internal sealed class NotificationService : INotificationService
                     instanceOwnerName: instanceOwnerName,
                     serviceOwnerName: serviceOwnerName?.GetByLanguage(language),
                     orgNumber: instanceOwner.OrganisationNumber,
-                    nationalIndentityNumber: instanceOwner.PersonNumber,
+                    nationalIdentityNumber: instanceOwner.PersonNumber,
                     dueDate: dueDate
                 ),
         };
@@ -154,7 +154,7 @@ internal sealed class NotificationService : INotificationService
                     instanceOwnerName: instanceOwnerName,
                     serviceOwnerName: serviceOwnerName?.GetByLanguage(language),
                     orgNumber: instanceOwner.OrganisationNumber,
-                    nationalIndentityNumber: instanceOwner.PersonNumber,
+                    nationalIdentityNumber: instanceOwner.PersonNumber,
                     dueDateTime: dueDate
                 )
                 : NotificationTexts.GetDefaultBody(
@@ -163,7 +163,7 @@ internal sealed class NotificationService : INotificationService
                     instanceOwnerName: instanceOwnerName,
                     serviceOwnerName: serviceOwnerName?.GetByLanguage(language),
                     orgNumber: instanceOwner.OrganisationNumber,
-                    nationalIndentityNumber: instanceOwner.PersonNumber,
+                    nationalIdentityNumber: instanceOwner.PersonNumber,
                     dueDate: dueDate
                 ),
         };

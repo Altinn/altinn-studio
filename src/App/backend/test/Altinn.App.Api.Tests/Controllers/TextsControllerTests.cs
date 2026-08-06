@@ -11,7 +11,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class TextsControllerTests
 {
     [Fact]
-    public async Task Get_RetrunsTexts_when_found()
+    public async Task Get_ReturnsTexts_when_found()
     {
         // Arrange
         const string org = "ttd";

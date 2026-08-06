@@ -4,7 +4,7 @@ using Altinn.App.Core.Models;
 namespace Altinn.App.Core.Features.Maskinporten;
 
 /// <summary>
-/// Contains logic for handling authorisation requests with Maskinporten.
+/// Contains logic for handling authorization requests with Maskinporten.
 /// </summary>
 public interface IMaskinportenClient
 {
@@ -17,7 +17,7 @@ public interface IMaskinportenClient
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>
     /// <returns>A <see cref="JwtToken"/> which contains an access token, amongst other things.</returns>
     /// <exception cref="Exceptions.MaskinportenAuthenticationException">
-    /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
+    /// Authentication failed. This could be caused by an authentication/authorization issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
     /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.
@@ -36,7 +36,7 @@ public interface IMaskinportenClient
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>
     /// <returns><inheritdoc cref="GetAccessToken(IEnumerable{string}, CancellationToken)"/></returns>
     /// <exception cref="Exceptions.MaskinportenAuthenticationException">
-    /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
+    /// Authentication failed. This could be caused by an authentication/authorization issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
     /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.
@@ -56,7 +56,7 @@ public interface IMaskinportenClient
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>
     /// <returns>A <see cref="JwtToken"/> which contains an access token, amongst other things.</returns>
     /// <exception cref="Exceptions.MaskinportenAuthenticationException">
-    /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
+    /// Authentication failed. This could be caused by an authentication/authorization issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
     /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.
@@ -81,7 +81,7 @@ public interface IMaskinportenClient
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>
     /// <returns><inheritdoc cref="GetAltinnExchangedToken(IEnumerable{string}, CancellationToken)"/></returns>
     /// <exception cref="Exceptions.MaskinportenAuthenticationException">
-    /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
+    /// Authentication failed. This could be caused by an authentication/authorization issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
     /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.

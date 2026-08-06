@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
@@ -36,7 +36,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
@@ -181,7 +181,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         // Run previous test with different setup
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
@@ -255,7 +255,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         var instanceOwnerPartyId = 500600;
         var instanceId = Guid.Parse("00000000-DEAD-0000-BABE-000000000999");
         var dataGuid = Guid.Parse("cd691c32-0000-4555-8aee-0b7054a413e4");

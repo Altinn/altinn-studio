@@ -77,7 +77,7 @@
           TestId: Guid_2
         },
         {
-          url.path: /tdd/contributer-restriction/instances/500600/5a2fa5ec-f97c-4816-b57a-dc78a981917e/process/next
+          url.path: /tdd/contributor-restriction/instances/500600/5a2fa5ec-f97c-4816-b57a-dc78a981917e/process/next
         },
         {
           url.scheme: http
@@ -162,7 +162,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models.Skjema
         }
       ],
       HasParent: true

@@ -124,7 +124,7 @@ describe('OrganizationLookupComponent', () => {
   it('fetches organization, announces details, and allows clearing', async () => {
     mockedHttpGet.mockResolvedValue({
       success: true,
-      organisationDetails: {
+      organizationDetails: {
         orgNr: validOrgNr,
         name: orgName,
       },
@@ -184,7 +184,7 @@ describe('OrganizationLookupComponent', () => {
   it('submits lookup on Enter key', async () => {
     mockedHttpGet.mockResolvedValue({
       success: true,
-      organisationDetails: {
+      organizationDetails: {
         orgNr: validOrgNr,
         name: orgName,
       },
@@ -200,7 +200,7 @@ describe('OrganizationLookupComponent', () => {
   it('shows not found error when lookup returns no organization', async () => {
     mockedHttpGet.mockResolvedValue({
       success: false,
-      organisationDetails: null,
+      organizationDetails: null,
     });
 
     await render();

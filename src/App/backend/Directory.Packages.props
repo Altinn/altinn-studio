@@ -67,7 +67,7 @@
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Transitive dependecies for JWTCookieAuthentication -->
+    <!-- Transitive dependencies for JWTCookieAuthentication -->
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.17.0" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime.Azure" Version="3.3.19" />

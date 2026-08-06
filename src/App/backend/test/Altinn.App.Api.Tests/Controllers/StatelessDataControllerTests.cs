@@ -260,7 +260,7 @@ public class StatelessDataControllerTests
     }
 
     [Fact]
-    public async Task Get_Returns_Forbidden_when_returned_descision_is_Deny()
+    public async Task Get_Returns_Forbidden_when_returned_decision_is_Deny()
     {
         // Arrange
         using var fixture = SimpleFixture.Create();

@@ -13,7 +13,7 @@ public class MaskinportenTokenRequestTest
     [InlineData(new[] { " a ", "", "  ", "b" }, "a b")]
     [InlineData(new[] { "c", "b", "a" }, "a b c")]
     [InlineData(new[] { "a\tb" }, "a b")]
-    public void Scopes_AreNormalised(string[] input, string expected)
+    public void Scopes_AreNormalized(string[] input, string expected)
     {
         var request = new MaskinportenTokenRequest { Scopes = input };
 
@@ -120,7 +120,7 @@ public class MaskinportenTokenRequestTest
     {
         var systemUser = new MaskinportenSystemUser
         {
-            Organisation = OrganisationNumber.Parse("991825827"),
+            Organization = OrganizationNumber.Parse("991825827"),
             ExternalRef = input,
         };
 
@@ -135,7 +135,7 @@ public class MaskinportenTokenRequestTest
     {
         // Maskinporten answers MP_302 for these
         var act = () =>
-            new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827"), ExternalRef = input };
+            new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827"), ExternalRef = input };
 
         var ex = Assert.Throws<ArgumentException>(act);
         Assert.Equal("ExternalRef", ex.ParamName);
@@ -147,7 +147,7 @@ public class MaskinportenTokenRequestTest
         var act = () =>
             new MaskinportenSystemUser
             {
-                Organisation = OrganisationNumber.Parse("991825827"),
+                Organization = OrganizationNumber.Parse("991825827"),
                 ExternalRef = new string('a', 256),
             };
 
@@ -175,21 +175,21 @@ public class MaskinportenTokenRequestTest
     }
 
     [Fact]
-    public void ConsumerOrg_RejectsDefaultOrganisationNumber()
+    public void ConsumerOrg_RejectsDefaultOrganizationNumber()
     {
-        var act = () => new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = default(OrganisationNumber) };
+        var act = () => new MaskinportenTokenRequest { Scopes = ["a"], ConsumerOrg = default(OrganizationNumber) };
 
         var ex = Assert.Throws<ArgumentException>(act);
         Assert.Equal("ConsumerOrg", ex.ParamName);
     }
 
     [Fact]
-    public void SystemUser_RejectsDefaultOrganisationNumber()
+    public void SystemUser_RejectsDefaultOrganizationNumber()
     {
-        var act = () => new MaskinportenSystemUser { Organisation = default };
+        var act = () => new MaskinportenSystemUser { Organization = default };
 
         var ex = Assert.Throws<ArgumentException>(act);
-        Assert.Equal("Organisation", ex.ParamName);
+        Assert.Equal("Organization", ex.ParamName);
     }
 
     [Theory]
@@ -200,7 +200,7 @@ public class MaskinportenTokenRequestTest
     {
         var systemUser = new MaskinportenSystemUser
         {
-            Organisation = OrganisationNumber.Parse("991825827"),
+            Organization = OrganizationNumber.Parse("991825827"),
             ExternalRef = input,
         };
 
@@ -210,15 +210,15 @@ public class MaskinportenTokenRequestTest
     [Fact]
     public void Equality_IsStructural()
     {
-        // Notably, the synthesised record equality would compare the scope collection by reference
+        // Notably, the synthesized record equality would compare the scope collection by reference
         var request1 = new MaskinportenTokenRequest
         {
             Scopes = ["a", "b"],
-            ConsumerOrg = OrganisationNumber.Parse("991825827"),
+            ConsumerOrg = OrganizationNumber.Parse("991825827"),
             Resource = "https://api.example.com",
             SystemUser = new MaskinportenSystemUser
             {
-                Organisation = OrganisationNumber.Parse("311169963"),
+                Organization = OrganizationNumber.Parse("311169963"),
                 ExternalRef = "ref",
             },
         };
@@ -237,7 +237,7 @@ public class MaskinportenTokenRequestTest
     }
 
     [Fact]
-    public void With_PreservesNormalisation()
+    public void With_PreservesNormalization()
     {
         var request = new MaskinportenTokenRequest { Scopes = ["a"] } with { Scopes = ["b c", "b"] };
 

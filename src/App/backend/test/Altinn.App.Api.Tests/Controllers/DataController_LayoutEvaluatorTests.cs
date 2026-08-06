@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
@@ -73,7 +73,7 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<We
         };
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         Guid dataGuid = Guid.Parse("f3e04c65-aa70-40ec-84df-087cc2583402");

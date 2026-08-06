@@ -32,7 +32,7 @@ public class UserActionRequest
     public List<string>? IgnoredValidators { get; set; }
 
     /// <summary>
-    /// The organisation number of the party the user is acting on behalf of
+    /// The organization number of the party the user is acting on behalf of
     /// </summary>
     [JsonPropertyName("onBehalfOf")]
     public string? OnBehalfOf { get; set; }

@@ -24,7 +24,7 @@
           TestId: Guid_1
         },
         {
-          url.path: /tdd/contributer-restriction/api/v1/applicationmetadata
+          url.path: /tdd/contributor-restriction/api/v1/applicationmetadata
         },
         {
           url.scheme: http

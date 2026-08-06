@@ -105,7 +105,7 @@ public static class TestData
         return Path.Join(dataDirectory, $"{dataGuid}.json");
     }
 
-    public static string GetDataElementBlobContnet(
+    public static string GetDataElementBlobContent(
         string org,
         string app,
         int instanceOwnerId,

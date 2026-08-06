@@ -25,7 +25,7 @@
             TestId: Guid_1
           },
           {
-            url.path: /tdd/contributer-restriction/api/v1/profile/user
+            url.path: /tdd/contributor-restriction/api/v1/profile/user
           },
           {
             url.scheme: http

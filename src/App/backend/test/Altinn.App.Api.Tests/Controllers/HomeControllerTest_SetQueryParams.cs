@@ -20,7 +20,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
 
     // Define mocks
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
@@ -176,7 +176,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
     }
 
     [Fact]
-    public async Task SetQueryParms_ReturnBadRequestWhenValidationFails()
+    public async Task SetQueryParams_ReturnBadRequestWhenValidationFails()
     {
         var prefillValidatorMock = new Mock<IValidateQueryParamPrefill>();
         prefillValidatorMock
@@ -218,7 +218,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
 
         // Should probably parse out the json from the response, but this is easier
         var prefillJson =
-            """[{"dataModelName":"my-data-type","appId":"tdd/contributer-restriction","prefillFields":{"some.Field":"\u003C/script\u003E\u003Cscript\u003Ealert(\u0027XSS\u0027)\u003C/script\u003E"}}]""";
+            """[{"dataModelName":"my-data-type","appId":"tdd/contributor-restriction","prefillFields":{"some.Field":"\u003C/script\u003E\u003Cscript\u003Ealert(\u0027XSS\u0027)\u003C/script\u003E"}}]""";
         Assert.Contains(prefillJson, responseString);
 
         using var jsonDocument = JsonDocument.Parse(prefillJson);
@@ -238,7 +238,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
     }
 
     [Fact]
-    public async Task ReturnsMappedModelWhenValidationSucceds()
+    public async Task ReturnsMappedModelWhenValidationSucceeds()
     {
         var prefillValidatorMock = new Mock<IValidateQueryParamPrefill>();
         prefillValidatorMock
@@ -288,7 +288,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
 
         // Should probably parse out the json from the response, but this is easier
         var prefillJson =
-            """[{"dataModelName":"my-data-type","appId":"tdd/contributer-restriction","prefillFields":{"some.Field":"\u003C/script\u003E\u003Cscript\u003Ealert(\u0027XSS\u0027)\u003C/script\u003E"}}]""";
+            """[{"dataModelName":"my-data-type","appId":"tdd/contributor-restriction","prefillFields":{"some.Field":"\u003C/script\u003E\u003Cscript\u003Ealert(\u0027XSS\u0027)\u003C/script\u003E"}}]""";
         Assert.Contains(prefillJson, responseString);
 
         using var jsonDocument = JsonDocument.Parse(prefillJson);

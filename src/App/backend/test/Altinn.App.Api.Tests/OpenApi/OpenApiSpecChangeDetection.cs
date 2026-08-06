@@ -14,7 +14,7 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
     [Fact]
     public async Task SaveJsonSwagger()
     {
-        using HttpClient client = GetRootedClient("tdd", "contributer-restriction");
+        using HttpClient client = GetRootedClient("tdd", "contributor-restriction");
         // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
         using HttpResponseMessage response = await client.GetAsync("/swagger/v1/swagger.json");
         await Snapshot(response);
@@ -24,7 +24,7 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
     public async Task SaveCustomOpenApiSpec()
     {
         var org = "tdd";
-        var app = "contributer-restriction";
+        var app = "contributor-restriction";
         using HttpClient client = GetRootedClient(org, app);
         // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
         using HttpResponseMessage response = await client.GetAsync($"/{org}/{app}/v1/customOpenapi.json");

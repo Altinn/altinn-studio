@@ -258,7 +258,7 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize<int?>(ExpressionValue.False, 0, true);
         TestTryDeserialize<int?>(ExpressionValue.True, 1, true);
         // Not sure what the correct string representation should be for JsonTokenType.True and JsonTokenType.False:
-        // There are many possibilites "true", "True", "sann", "ja", "ok", "1"
+        // There are many possibilities "true", "True", "sann", "ja", "ok", "1"
         TestTryDeserialize<string?>(ExpressionValue.False, null, false);
         TestTryDeserialize<string?>(ExpressionValue.True, null, false);
         TestTryDeserialize<string?>(ExpressionValue.Null, null, true);

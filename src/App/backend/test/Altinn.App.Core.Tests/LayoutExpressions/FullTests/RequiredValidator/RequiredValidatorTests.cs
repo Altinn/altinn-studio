@@ -122,14 +122,14 @@ public class RequiredValidatorTests
         );
     }
 
-    private async Task VerifyValidationIssues(Model data, SubModel[] subDatas)
+    private async Task VerifyValidationIssues(Model data, SubModel[] subDataItems)
     {
         var fixture = await DataAccessorFixture.CreateAsync(
             [new("mainLayout", typeof(Model), MaxCount: 1), new("subLayout", typeof(SubModel), MaxCount: 0)],
             _outputHelper
         );
         fixture.AddFormData(data);
-        foreach (var subData in subDatas)
+        foreach (var subData in subDataItems)
         {
             fixture.AddFormData(subData);
         }

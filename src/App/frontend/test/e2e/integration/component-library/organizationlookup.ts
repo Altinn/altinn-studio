@@ -2,7 +2,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 
-const organizationLookupIntercept = '**/api/v1/lookup/organisation/*';
+const organizationLookupIntercept = '**/api/v1/lookup/organization/*';
 
 describe('Organization lookup', () => {
   it('Renders the organization lookup component correctly', () => {
@@ -10,7 +10,7 @@ describe('Organization lookup', () => {
       statusCode: 200,
       body: {
         success: true,
-        organisationDetails: {
+        organizationDetails: {
           orgNr: '043871668',
           name: 'Skog og Fjell Consulting',
         },
@@ -46,7 +46,7 @@ describe('Organization lookup', () => {
       statusCode: 200,
       body: {
         success: false,
-        organisationDetails: null,
+        organizationDetails: null,
       },
     }).as('failedFetchOrganization');
 

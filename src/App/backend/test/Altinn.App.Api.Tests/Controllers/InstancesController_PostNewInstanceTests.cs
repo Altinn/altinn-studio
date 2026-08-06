@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.FileAnalysis;
@@ -52,7 +52,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task PostNewInstanceWithContent_FailsWhenDataTypeSpecifiesNotFirstTask()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
@@ -74,7 +74,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         OutputHelper.WriteLine(createResponseContent);
         Assert.Equal(HttpStatusCode.Conflict, createResponse.StatusCode);
 
-        // This asserts on the current behaviour. Next version might use the `StartEvent` when posting a multipart instance creation
+        // This asserts on the current behavior. Next version might use the `StartEvent` when posting a multipart instance creation
         Assert.Contains(
             "Data element of type task2DataType can only be modified in Task_2 (current task Task_1)",
             createResponseContent
@@ -85,13 +85,13 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task PostNewInstanceWithContent_ValidFilename_Succeeds()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         string filename = "validfile.png";
 
         OverrideServicesForThisTest = services =>
         {
-            services.AddTransient<IFileAnalyser, FilenameAnalyserStub>();
+            services.AddTransient<IFileAnalyzer, FilenameAnalyzerStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
 
@@ -134,13 +134,13 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task PostNewInstanceWithContent_InvalidFilename_Fails()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         string filename = "malicious.exe";
 
         OverrideServicesForThisTest = services =>
         {
-            services.AddTransient<IFileAnalyser, FilenameAnalyserStub>();
+            services.AddTransient<IFileAnalyzer, FilenameAnalyzerStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
 
@@ -177,7 +177,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         // Setup test data
         string testName = nameof(PostNewInstanceWithContent_EnsureDataIsPresent);
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
@@ -244,7 +244,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         using HttpClient client = GetRootedOrgClient(org, app);
 
         // Create instance data
@@ -317,7 +317,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
@@ -499,7 +499,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
 
         OverrideServicesForThisTest = services =>
@@ -546,7 +546,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         // Setup test data
         string testName = nameof(PostNewInstanceWithWrongPartname_EnsureBadRequest);
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
@@ -582,7 +582,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         // Setup test data
         string testName = nameof(InstationAllowedByOrg_Returns_Forbidden_For_user);
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         OverrideServicesForThisTest = services =>
             services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
@@ -614,7 +614,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task PostNewInstanceWithInstanceTemplate()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         int userId = 1337;
         using HttpClient client = GetRootedUserClient(org, app, userId, instanceOwnerPartyId);
@@ -638,7 +638,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task PostNewInstanceWithInstanceTemplateString()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         // Get an org token
         // (to avoid issues with read status being set when initialized by normal users)
@@ -683,7 +683,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task PostNewInstanceWithMissingTemplate()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         int userId = 1337;
         using HttpClient client = GetRootedUserClient(org, app, userId, instanceOwnerPartyId);
@@ -712,7 +712,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         OverrideServicesForThisTest = services =>
             services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
@@ -754,7 +754,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         OverrideServicesForThisTest = services =>
         {
@@ -838,7 +838,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 501337;
         OverrideServicesForThisTest = services =>
         {
@@ -1082,11 +1082,13 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 }
 
-public class FilenameAnalyserStub : IFileAnalyser
+public class FilenameAnalyzerStub : IFileAnalyzer
 {
+    // Must match the id listed under "enabledFileAnalysers" in the test app's
+    // applicationmetadata.json, which keeps Altinn Storage's spelling of that field.
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)

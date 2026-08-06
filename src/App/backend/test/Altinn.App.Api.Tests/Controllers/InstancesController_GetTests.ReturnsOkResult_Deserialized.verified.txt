@@ -12,10 +12,10 @@
         IsDeleted: false
       }
     },
-    AppId: tdd/contributer-restriction,
+    AppId: tdd/contributor-restriction,
     Org: tdd,
     SelfLinks: {
-      Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
+      Apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
     },
     Process: {
       Started: DateTime_1,
@@ -42,7 +42,7 @@
         DataType: default,
         ContentType: application/xml,
         SelfLinks: {
-          Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
+          Apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
         Locked: false,
@@ -65,10 +65,10 @@
         IsDeleted: false
       }
     },
-    AppId: tdd/contributer-restriction,
+    AppId: tdd/contributor-restriction,
     Org: tdd,
     SelfLinks: {
-      Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
+      Apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
     },
     Process: {
       Started: DateTime_1,
@@ -95,7 +95,7 @@
         DataType: default,
         ContentType: application/xml,
         SelfLinks: {
-          Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
+          Apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
         Size: 147,
         Locked: false,

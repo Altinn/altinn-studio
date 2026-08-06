@@ -11,7 +11,7 @@
   <ItemGroup>
     <!--
       We reference wildcard versions because the integration test harness
-      is building and packing the libaries and providing them as a local NuGet feed.
+      is building and packing the libraries and providing them as a local NuGet feed.
       So we dont care about the exact version, it just has to be compiled from the code in the current commit
     -->
     <PackageReference Include="Altinn.App.Api" Version="*-*">

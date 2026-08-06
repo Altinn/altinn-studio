@@ -17,7 +17,7 @@ public class NationalIdentityNumberJsonConverterTest
     [Theory]
     [InlineData("13896396174", "13896396174")]
     [InlineData($"{AltinnUrns.PersonId}:13896396174", "13896396174")]
-    public void JsonDeserialisesCorrectly(string incomingJsonData, string expectedParsedNumber)
+    public void JsonDeserializesCorrectly(string incomingJsonData, string expectedParsedNumber)
     {
         // Arrange
         var json = $$"""
@@ -36,7 +36,7 @@ public class NationalIdentityNumberJsonConverterTest
 
     [Theory]
     [InlineData("13896396174", "13896396174")]
-    public void JsonSerialisesCorrectly(string originalValue, string expectedJsonResult)
+    public void JsonSerializesCorrectly(string originalValue, string expectedJsonResult)
     {
         // Arrange
         var data = new TestObject { Value = NationalIdentityNumber.Parse(originalValue) };

@@ -17,8 +17,8 @@ public interface IData
     /// <param name="dataToSerialize">The app model to serialize</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
     Task<DataElement> InsertFormData<T>(
@@ -49,8 +49,8 @@ public interface IData
     /// <param name="dataToSerialize">The form data to serialize</param>
     /// <param name="instanceGuid">The instanceid</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
     Task<DataElement> UpdateData<T>(
@@ -68,8 +68,8 @@ public interface IData
     /// </summary>
     /// <param name="instanceGuid">The instanceid</param>
     /// <param name="type">The type for serialization</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
     Task<object> GetFormData(
@@ -84,8 +84,8 @@ public interface IData
     /// <summary>
     /// Gets the data as is.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instanceid</param>
     /// <param name="dataId">the data id</param>
@@ -94,8 +94,8 @@ public interface IData
     /// <summary>
     /// Method that gets metadata on form attachments ordered by attachmentType
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <returns>A list with attachments metadata ordered by attachmentType</returns>
@@ -104,8 +104,8 @@ public interface IData
     /// <summary>
     /// Method that removes a form attachments from disk/storage
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The attachment id</param>
@@ -113,10 +113,10 @@ public interface IData
     Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
 
     /// <summary>
-    /// Method that removes a data elemen from disk/storage immediatly or marks it as deleted.
+    /// Method that removes a data element from disk/storage immediately or marks it as deleted.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The attachment id</param>
@@ -133,8 +133,8 @@ public interface IData
     /// <summary>
     /// Method that saves a form attachments to disk/storage and returns the new data element.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
@@ -151,8 +151,8 @@ public interface IData
     /// <summary>
     /// Method that updates a form attachments to disk/storage and returns the updated data element.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The data id</param>
@@ -189,7 +189,7 @@ public interface IData
     /// <summary>
     /// Insert a binary data element.
     /// </summary>
-    /// <param name="instanceId">isntanceId = {instanceOwnerPartyId}/{instanceGuid}</param>
+    /// <param name="instanceId">instanceId = {instanceOwnerPartyId}/{instanceGuid}</param>
     /// <param name="dataType">data type</param>
     /// <param name="contentType">content type</param>
     /// <param name="filename">filename</param>

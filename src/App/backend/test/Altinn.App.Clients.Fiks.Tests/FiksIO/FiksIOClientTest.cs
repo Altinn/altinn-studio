@@ -28,7 +28,7 @@ public class FiksIOClientTest
     [Theory]
     [InlineData("Production")]
     [InlineData("AnythingElse")]
-    public async Task InitialiseFiksIOClient_CallsCreateClientWithCorrectPayload_Default(string environment)
+    public async Task InitializeFiksIOClient_CallsCreateClientWithCorrectPayload_Default(string environment)
     {
         // Arrange
         var externalFiksIOClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
@@ -68,7 +68,7 @@ public class FiksIOClientTest
     [InlineData(1, "https://custom-api.fiks.test", "amqp://custom-amqp.fiks.test")]
     [InlineData(2, "http://custom-api.fiks.test", "ignored://custom-amqp.fiks.test")]
     [InlineData(3, "https://custom-api.fiks.test:1234", "amqp://custom-amqp.fiks.test:1234")]
-    public async Task InitialiseFiksIOClient_CallsCreateClientWithCorrectPayload_Custom(
+    public async Task InitializeFiksIOClient_CallsCreateClientWithCorrectPayload_Custom(
         int testId,
         string apiHost,
         string amqpHost
@@ -121,7 +121,7 @@ public class FiksIOClientTest
     }
 
     [Fact]
-    public async Task InitialiseFiksIOClient_DisposesAndSubscribesToEvents()
+    public async Task InitializeFiksIOClient_DisposesAndSubscribesToEvents()
     {
         // Arrange
         var externalFiksIOClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();

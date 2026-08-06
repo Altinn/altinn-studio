@@ -330,7 +330,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public void GetOverridenLanguage_ShouldReturnLanguageFromQuery()
+    public void GetOverriddenLanguage_ShouldReturnLanguageFromQuery()
     {
         // Arrange
         var queries = new QueryCollection(new Dictionary<string, StringValues> { { "lang", LanguageConst.Nb } });
@@ -343,7 +343,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public void GetOverridenLanguage_HttpContextIsNull_ShouldReturnNull()
+    public void GetOverriddenLanguage_HttpContextIsNull_ShouldReturnNull()
     {
         // Arrange
         QueryCollection? queries = null;
@@ -356,7 +356,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public void GetOverridenLanguage_NoLanguageInQuery_ShouldReturnNull()
+    public void GetOverriddenLanguage_NoLanguageInQuery_ShouldReturnNull()
     {
         // Arrange
         IQueryCollection queries = new QueryCollection();

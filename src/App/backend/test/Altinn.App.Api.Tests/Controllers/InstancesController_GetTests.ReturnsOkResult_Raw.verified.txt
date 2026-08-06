@@ -4,7 +4,7 @@
     instanceOwner: {
       partyId: 501337,
       personNumber: 01039012345,
-      organisationNumber: null,
+      organizationNumber: null,
       username: null,
       externalIdentifier: null,
       party: {
@@ -18,10 +18,10 @@
         isDeleted: false
       }
     },
-    appId: tdd/contributer-restriction,
+    appId: tdd/contributor-restriction,
     org: tdd,
     selfLinks: {
-      apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>,
+      apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>,
       platform: null
     },
     dueBefore: null,
@@ -62,7 +62,7 @@
         contentType: application/xml,
         blobStoragePath: null,
         selfLinks: {
-          apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
+          apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
           platform: null
         },
         size: 147,
@@ -91,7 +91,7 @@
     instanceOwner: {
       partyId: 501337,
       personNumber: 01039012345,
-      organisationNumber: null,
+      organizationNumber: null,
       username: null,
       externalIdentifier: null,
       party: {
@@ -105,10 +105,10 @@
         isDeleted: false
       }
     },
-    appId: tdd/contributer-restriction,
+    appId: tdd/contributor-restriction,
     org: tdd,
     selfLinks: {
-      apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>,
+      apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>,
       platform: null
     },
     dueBefore: null,
@@ -149,7 +149,7 @@
         contentType: application/xml,
         blobStoragePath: null,
         selfLinks: {
-          apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
+          apps: https://localhost/tdd/contributor-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
           platform: null
         },
         size: 147,

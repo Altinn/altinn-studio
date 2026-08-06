@@ -52,7 +52,7 @@ public class InstanceFileScanResultTests
     }
 
     [Fact]
-    public void AllDataElemementsClean_AggregatedStatusShouldBeClean()
+    public void AllDataElementsClean_AggregatedStatusShouldBeClean()
     {
         var instanceFileScanResult = new InstanceFileScanResult(new InstanceIdentifier(12345, Guid.NewGuid()));
 

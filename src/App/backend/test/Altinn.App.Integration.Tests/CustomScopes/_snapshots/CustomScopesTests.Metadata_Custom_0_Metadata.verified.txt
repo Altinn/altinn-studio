@@ -309,7 +309,7 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/api/v1/lookup/organisation/{orgNr},
+        endpoint: GET {org}/{app}/api/v1/lookup/organization/{orgNr},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,

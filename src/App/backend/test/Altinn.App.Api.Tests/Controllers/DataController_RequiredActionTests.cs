@@ -20,7 +20,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class DataController_RequiredActionTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string OrgId = "tdd";
-    private const string AppId = "contributer-restriction";
+    private const string AppId = "contributor-restriction";
     private const int InstanceOwnerPartyId = 501337;
     private const int UserId = 1337;
 

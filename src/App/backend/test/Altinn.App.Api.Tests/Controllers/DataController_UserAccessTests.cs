@@ -10,7 +10,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class DataController_UserAccessTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     const string OrgId = "tdd";
-    const string AppId = "contributer-restriction";
+    const string AppId = "contributor-restriction";
 
     public DataController_UserAccessTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper) { }

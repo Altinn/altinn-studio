@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.ContractTests;
 /// The two model sets are intentionally <em>not</em> identical — the app copies are internal, omit
 /// engine-only response variants, and may use different (but wire-equivalent) JSON converters. The
 /// check therefore verifies compatibility, not equality: every field the app models must exist on the
-/// engine with the same shape, and every value the engine always sends must be modelled by the app.
+/// engine with the same shape, and every value the engine always sends must be modeled by the app.
 ///
 /// When this test fails, the engine contract changed. Reconcile the app copies in
 /// <c>Internal/WorkflowEngine/Models/</c> with the committed engine description and update this test's
