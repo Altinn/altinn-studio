@@ -1,6 +1,7 @@
 package doctor
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/fs"
 	"os"
@@ -46,11 +47,12 @@ func isExternalOnlyMaskinportenKey(key string) bool {
 	}
 }
 
-// isBuiltInMaskinportenSecretKey reports whether a settings key carries a credential in the built-in
-// client's shape.
-func isBuiltInMaskinportenSecretKey(key string) bool {
+// isProvisionedMaskinportenKey reports whether a settings key is one the platform also provisions, so an
+// app-supplied value is replaced or merged at deploy time. "authority" is deliberately absent: it carries
+// no identity, and the provisioned value overriding it is the correct outcome rather than a hazard.
+func isProvisionedMaskinportenKey(key string) bool {
 	switch strings.ToLower(key) {
-	case "jwk", "jwkbase64":
+	case "clientid", "jwk", "jwkbase64":
 		return true
 	default:
 		return false
@@ -126,30 +128,46 @@ func (s *Service) collectMaskinportenConfigChecks(appRoot string) []Maskinporten
 			relative = file
 		}
 
+		// A deployed environment never loads appsettings.Development.json, so credentials there are a
+		// local-development concern rather than a deployment break.
+		level := CheckLevelError
+		suffix := ""
+		if isDevelopmentSettingsFile(file) {
+			level = CheckLevelWarn
+			suffix = " (development only — not loaded when deployed)"
+		}
+
 		if external := matchingKeys(keys, isExternalOnlyMaskinportenKey); len(external) > 0 {
 			checks = append(checks, MaskinportenCheck{
 				ID:    maskinportenConfigCheckID,
-				Level: CheckLevelError,
+				Level: level,
 				Path:  relative,
 				Message: "MaskinportenSettings configures the external client (" + strings.Join(external, ", ") +
-					"); the provisioned client owns this section name, so deployed environments will mix the " +
-					"two credentials — rename your own section and bind it explicitly",
+					"); the provisioned client owns this section name, so deployed environments mix the two " +
+					"credentials — rename your own section and bind it explicitly" + suffix,
 			})
 			continue
 		}
 
-		if secrets := matchingKeys(keys, isBuiltInMaskinportenSecretKey); len(secrets) > 0 {
+		if provisioned := matchingKeys(keys, isProvisionedMaskinportenKey); len(provisioned) > 0 {
 			checks = append(checks, MaskinportenCheck{
 				ID:    maskinportenConfigCheckID,
-				Level: CheckLevelWarn,
+				Level: level,
 				Path:  relative,
-				Message: "MaskinportenSettings contains a checked-in key (" + strings.Join(secrets, ", ") +
-					"); Studio provisions these at deploy time, so this is usually redundant",
+				Message: "MaskinportenSettings supplies keys the platform also provisions (" +
+					strings.Join(provisioned, ", ") + "); the provisioned file is applied after " +
+					"appsettings.json and merges key by key, so the two sets combine into credentials that " +
+					"belong to neither client — remove these and use the provisioned ones" + suffix,
 			})
 		}
 	}
 
 	return checks
+}
+
+// isDevelopmentSettingsFile reports whether the file is the conventional local-development settings file.
+func isDevelopmentSettingsFile(path string) bool {
+	return strings.EqualFold(filepath.Base(path), "appsettings.Development.json")
 }
 
 // checkExternalMaskinportenPackage reports an app-declared reference to the external package. This is
@@ -261,10 +279,15 @@ func matchingKeys(keys []string, matches func(string) bool) []string {
 	return matched
 }
 
-// relaxJSON rewrites the relaxed JSON that .NET's configuration reader accepts — // and /* */ comments,
-// and trailing commas — into something encoding/json will parse. Content inside strings is left alone.
+// utf8BOM is the byte-order mark Visual Studio and other Windows editors write at the head of JSON files.
+// .NET's reader skips it; encoding/json does not.
+const utf8BOM = "\xEF\xBB\xBF"
+
+// relaxJSON rewrites the relaxed JSON that .NET's configuration reader accepts — a UTF-8 BOM, // and
+// /* */ comments, and trailing commas — into something encoding/json will parse. Content inside strings
+// is left alone.
 func relaxJSON(data []byte) []byte {
-	return removeTrailingCommas(removeComments(data))
+	return removeTrailingCommas(removeComments(bytes.TrimPrefix(data, []byte(utf8BOM))))
 }
 
 func removeComments(data []byte) []byte {

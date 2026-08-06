@@ -24,20 +24,34 @@ internal sealed class ExternalMaskinportenPackageDetector
     private const string PackageNamespace = "Altinn.ApiClients.Maskinporten";
 
     /// <summary>
-    /// Types unique to the external package. Deliberately excludes <c>MaskinportenSettings</c>, whose
-    /// simple name is shared with the built-in client's settings record - that overlap is the config
-    /// section collision, and it is <see cref="MaskinportenSettingsCollisionDetector"/>'s job.
+    /// Types whose simple name belongs unambiguously to the external package, so a bare reference is
+    /// evidence on its own. Deliberately excludes <c>MaskinportenSettings</c>, whose simple name is shared
+    /// with the built-in client's settings record - that overlap is the config section collision, and it is
+    /// <see cref="MaskinportenSettingsCollisionDetector"/>'s job.
     /// </summary>
-    private static readonly IReadOnlySet<string> _externalTypes = new HashSet<string>(StringComparer.Ordinal)
+    private static readonly IReadOnlySet<string> _distinctiveExternalTypes = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "SettingsJwkClientDefinition",
+        "SettingsX509ClientDefinition",
+        "Pkcs12ClientDefinition",
+        "CertificateStoreClientDefinition",
+        "MaskinportenClientDefinitionHelper",
+        "ClientDefinitionInstanceKeys",
+        "MaskinportenHttpMessageHandlerFactory",
+    };
+
+    /// <summary>
+    /// Types from the external package whose simple names are also the obvious names for an app's own
+    /// Maskinporten wrapper written against the v9 built-in client. Matching these bare would tell an app
+    /// with a class called <c>MaskinportenService</c> that its build is about to break and that it should
+    /// install a package it never used - so they only count in a file that imports the package's namespace.
+    /// </summary>
+    private static readonly IReadOnlySet<string> _ambiguousExternalTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         "IMaskinportenService",
         "MaskinportenService",
-        "SettingsJwkClientDefinition",
-        "SettingsX509ClientDefinition",
-        "MaskinportenClientDefinitionHelper",
         "MaskinportenTokenHandler",
-        "ClientDefinitionInstanceKeys",
-        "MaskinportenHttpMessageHandlerFactory",
+        "IClientDefinition",
     };
 
     /// <summary>
@@ -81,15 +95,7 @@ internal sealed class ExternalMaskinportenPackageDetector
 
     public MigrationResult Detect()
     {
-        var matches = _scanner
-            .Files.SelectMany(file =>
-                CSharpSyntaxQueries
-                    .UsingNamespaces(file, PackageNamespace)
-                    .Concat(CSharpSyntaxQueries.TypeReferences(file, _externalTypes))
-                    .Concat(CSharpSyntaxQueries.TypesImplementing(file, _externalTypes))
-                    .Concat(CSharpSyntaxQueries.InvokedMethods(file, _externalMethods))
-            )
-            .ToList();
+        var matches = _scanner.Files.SelectMany(MatchesIn).ToList();
 
         if (matches.Count == 0)
         {
@@ -99,6 +105,31 @@ internal sealed class ExternalMaskinportenPackageDetector
         return DeclaresPackageReference()
             ? WarnOnlyDetector.Advise(OwnReferenceSummary, matches)
             : WarnOnlyDetector.Report(MissingReferenceSummary, matches);
+    }
+
+    /// <summary>
+    /// External-package usages in one file. The distinctive names and registration methods count on their
+    /// own; the ambiguous names only once the file imports the package's namespace, which is what tells a
+    /// genuine external-package consumer apart from an app that happens to have named its own v9 wrapper
+    /// <c>MaskinportenService</c>.
+    /// </summary>
+    private IEnumerable<CSharpApiMatch> MatchesIn(ScannedCSharpFile file)
+    {
+        var usings = CSharpSyntaxQueries.UsingNamespaces(file, PackageNamespace).ToList();
+
+        var matches = usings
+            .Concat(CSharpSyntaxQueries.TypeReferences(file, _distinctiveExternalTypes))
+            .Concat(CSharpSyntaxQueries.TypesImplementing(file, _distinctiveExternalTypes))
+            .Concat(CSharpSyntaxQueries.InvokedMethods(file, _externalMethods));
+
+        if (usings.Count > 0)
+        {
+            matches = matches
+                .Concat(CSharpSyntaxQueries.TypeReferences(file, _ambiguousExternalTypes))
+                .Concat(CSharpSyntaxQueries.TypesImplementing(file, _ambiguousExternalTypes));
+        }
+
+        return matches;
     }
 
     /// <summary>
@@ -120,9 +151,11 @@ internal sealed class ExternalMaskinportenPackageDetector
 
         // Descendants rather than direct ItemGroup children: a reference declared inside <Choose>/<When> or
         // a <Target> is still a declaration, and treating it as absent would tell an app that builds fine
-        // that its build is about to break.
+        // that its build is about to break. Matched on local name so a legacy-format csproj carrying the
+        // MSBuild default namespace is handled too.
         return document
-                .Root?.Descendants("PackageReference")
+                .Root?.Descendants()
+                .Where(static element => element.Name.LocalName == "PackageReference")
                 .Any(reference =>
                     string.Equals(reference.Attribute("Include")?.Value, PackageId, StringComparison.OrdinalIgnoreCase)
                 )

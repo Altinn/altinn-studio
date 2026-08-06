@@ -73,7 +73,9 @@ func TestBuildMaskinporten_ExternalShapedSection_IsAnError(t *testing.T) {
 	}
 }
 
-func TestBuildMaskinporten_BuiltInSectionWithKey_IsAWarning(t *testing.T) {
+// A checked-in built-in credential is not merely redundant: the provisioned file merges over it key by
+// key, leaving the app signing with its own key under the provisioned client id.
+func TestBuildMaskinporten_BuiltInSectionWithCredentials_IsAnError(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
@@ -91,12 +93,51 @@ func TestBuildMaskinporten_BuiltInSectionWithKey_IsAWarning(t *testing.T) {
 	if report == nil || !report.HasIssues {
 		t.Fatalf("expected a Maskinporten issue, got %+v", report)
 	}
+	if findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelError) == nil {
+		t.Fatalf("expected an error-level config check, got %+v", report.Checks)
+	}
+}
+
+// The textbook v8 shape: key from a secret, only the client id checked in — and the client id is exactly
+// what the provisioned file overwrites.
+func TestBuildMaskinporten_SectionWithOnlyClientID_IsAnError(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeAppFile(t, root, "App/appsettings.json", `{"MaskinportenSettings": {"ClientId": "app-own"}}`)
+
+	service := &Service{cfg: nil, debugf: func(string, ...any) {}}
+	report := service.buildMaskinporten(detectedApp(root))
+
+	if report == nil || !report.HasIssues {
+		t.Fatalf("a checked-in ClientId collides with the provisioned one, got %+v", report)
+	}
+}
+
+// A deployed environment never loads appsettings.Development.json.
+func TestBuildMaskinporten_DevelopmentSettings_DoNotBlock(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeAppFile(t, root, "App/appsettings.Development.json", `{
+	  "MaskinportenSettings": { "clientId": "local-dev", "jwkBase64": "eyJraWQiOiJ0ZXN0In0=" }
+	}`)
+
+	service := &Service{cfg: nil, debugf: func(string, ...any) {}}
+	report := service.buildMaskinporten(detectedApp(root))
+
+	if report == nil {
+		t.Fatal("expected a Maskinporten report")
+	}
+	if findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelError) != nil {
+		t.Errorf("development settings must not be an error: %+v", report.Checks)
+	}
 	if findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelWarn) == nil {
 		t.Fatalf("expected a warn-level config check, got %+v", report.Checks)
 	}
 }
 
-func TestBuildMaskinporten_ProvisionedShapeOnly_IsClean(t *testing.T) {
+func TestBuildMaskinporten_AuthorityOnly_IsClean(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
@@ -113,6 +154,23 @@ func TestBuildMaskinporten_ProvisionedShapeOnly_IsClean(t *testing.T) {
 	}
 	if findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelOK) == nil {
 		t.Fatalf("expected an ok-level config check, got %+v", report.Checks)
+	}
+}
+
+// Visual Studio writes UTF-8-with-BOM JSON, which .NET's configuration reader skips and encoding/json
+// rejects. Missing the section entirely would silently disable the check.
+func TestBuildMaskinporten_BOMPrefixedAppSettings_AreParsed(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeAppFile(t, root, "App/appsettings.json",
+		"\xEF\xBB\xBF"+`{"MaskinportenSettings": {"Environment": "test", "EncodedJwk": "x"}}`)
+
+	service := &Service{cfg: nil, debugf: func(string, ...any) {}}
+	report := service.buildMaskinporten(detectedApp(root))
+
+	if report == nil || !report.HasIssues {
+		t.Fatalf("a BOM must not hide the section, got %+v", report)
 	}
 }
 

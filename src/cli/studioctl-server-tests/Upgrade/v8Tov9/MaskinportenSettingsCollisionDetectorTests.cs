@@ -90,8 +90,14 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
         Assert.True(result.ManualActionRequired);
     }
 
+    /// <summary>
+    /// A checked-in built-in credential is not merely redundant. The provisioned file is applied after
+    /// appsettings.json and merges key by key, and <c>MaskinportenSettings.ConvertJwk</c> lets a
+    /// <c>jwkBase64</c> win over a provisioned <c>jwk</c> - so the app signs with its own key under the
+    /// provisioned client id, which Maskinporten rejects. Same outcome as the external-shape collision.
+    /// </summary>
     [Fact]
-    public void BuiltInShapedSectionWithKey_IsAdvisedButDoesNotBlock()
+    public void BuiltInShapedSectionWithCredentials_Blocks()
     {
         _app.Write(
             "appsettings.json",
@@ -108,17 +114,68 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
-        Assert.False(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("provisions these automatically"));
-        Assert.Contains(result.Warnings, w => w.Contains("appsettings.json") && w.Contains("jwkBase64"));
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("keys the platform also provisions"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("appsettings.json") && w.Contains("clientId") && w.Contains("jwkBase64")
+        );
     }
 
     /// <summary>
-    /// A section carrying only non-credential built-in keys is exactly what the provisioned client expects
-    /// and must produce no noise at all.
+    /// The textbook v8 shape: the key arrives from an env var or secret file and only the client id is
+    /// checked in. That id is exactly what the provisioned file overwrites, so silence here would miss the
+    /// most common real collision.
     /// </summary>
     [Fact]
-    public void BuiltInShapedSectionWithoutKey_ReportsNothing()
+    public void SectionWithOnlyClientId_Blocks()
+    {
+        _app.Write(
+            "appsettings.json",
+            """
+            { "MaskinportenSettings": { "ClientId": "app-own-client" } }
+            """
+        );
+
+        var result = Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("appsettings.json") && w.Contains("ClientId"));
+    }
+
+    /// <summary>
+    /// A deployed environment never loads appsettings.Development.json, so credentials there are a local
+    /// concern. The repo's own test apps use exactly this pattern.
+    /// </summary>
+    [Fact]
+    public void DevelopmentSettings_AreReportedWithoutBlocking()
+    {
+        _app.Write(
+            "appsettings.Development.json",
+            """
+            {
+              "MaskinportenSettings": {
+                "authority": "https://test.maskinporten.no/",
+                "clientId": "local-dev-client",
+                "jwkBase64": "eyJraWQiOiJ0ZXN0In0="
+              }
+            }
+            """
+        );
+
+        var result = Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("appsettings.Development.json"));
+        Assert.Contains(result.Warnings, w => w.Contains("development only"));
+    }
+
+    /// <summary>
+    /// <c>authority</c> carries no identity, and the provisioned value overriding it is the correct
+    /// outcome rather than a hazard, so a section carrying only that must produce no noise at all.
+    /// </summary>
+    [Fact]
+    public void SectionWithOnlyAuthority_ReportsNothing()
     {
         _app.Write(
             "appsettings.json",
@@ -128,6 +185,22 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
                 "authority": "https://test.maskinporten.no/"
               }
             }
+            """
+        );
+
+        var result = Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void VendoredDependencySettings_AreIgnored()
+    {
+        _app.Write(
+            "ui/node_modules/some-pkg/appsettings.json",
+            """
+            { "MaskinportenSettings": { "Environment": "test", "EncodedJwk": "x" } }
             """
         );
 
@@ -231,9 +304,14 @@ public sealed class MaskinportenSettingsCollisionDetectorTests : IDisposable
 
         var result = Detect();
 
+        // The deployed file blocks; the development one is reported under its own summary but only as a
+        // local concern, and must not be what drives the exit code.
         Assert.True(result.ManualActionRequired);
         Assert.Contains(result.Warnings, w => w.Contains("provisioned Maskinporten client reads"));
-        Assert.Contains(result.Warnings, w => w.Contains("provisions these automatically"));
-        Assert.Contains(result.Warnings, w => w.Contains("appsettings.Development.json") && w.Contains("jwk"));
+        Assert.Contains(result.Warnings, w => w.Contains("keys the platform also provisions"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("appsettings.Development.json") && w.Contains("development only")
+        );
     }
 }

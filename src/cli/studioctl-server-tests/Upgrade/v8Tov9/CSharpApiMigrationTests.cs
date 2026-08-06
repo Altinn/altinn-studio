@@ -21,6 +21,14 @@ public sealed class CSharpApiMigrationTests : IDisposable
     private static IEnumerable<string> Locations(MigrationResult result) =>
         result.Warnings.Where(static w => w.Contains(".cs:", StringComparison.Ordinal));
 
+    /// <summary>
+    /// The guidance summaries only, excluding the <c>path:line: symbol</c> location lines. Assertions that
+    /// a summary does or does not pair two ideas must use these: a summary and its locations are separate
+    /// elements, so searching all warnings for two substrings at once can never match.
+    /// </summary>
+    private static IEnumerable<string> Summaries(MigrationResult result) =>
+        result.Warnings.Where(static w => !w.Contains(".cs:", StringComparison.Ordinal));
+
     // --- RemovedTaskEventInterfaceDetector -------------------------------------------------------
 
     [Fact]
@@ -1461,21 +1469,25 @@ public sealed class CSharpApiMigrationTests : IDisposable
         );
 
         // The eFormidling handler is not replaced by the Maskinporten client, so it must carry its own
-        // guidance rather than being swept into the IMaskinportenClient summary.
-        Assert.Contains(result.Warnings, w => w.Contains("AddEFormidlingServices2"));
+        // guidance. Warnings are emitted as a summary line followed by separate location lines, so this
+        // asserts on the two summaries rather than looking for both strings in one element.
+        var summaries = Summaries(result).ToList();
+        Assert.Contains(
+            summaries,
+            s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("AddEFormidlingServices2")
+        );
         Assert.DoesNotContain(
-            result.Warnings,
-            w => w.Contains("EformidlingStatusCheckEventHandler") && w.Contains("IMaskinportenClient")
+            summaries,
+            s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("IMaskinportenClient")
         );
     }
 
     /// <summary>
-    /// The surviving v9 handler shares a prefix with the removed one, and the replacement client shares
-    /// the <c>GetAltinnExchangedToken</c> method name with the removed provider. Neither may be flagged:
-    /// the first still exists, and the second is the API apps are being migrated towards.
+    /// <c>EformidlingStatusCheckEventHandler2</c> was public in v8 and is internal in v9, so an app naming
+    /// it fails to compile (CS0122) and must be told - it is not a surviving public API.
     /// </summary>
     [Fact]
-    public void MaskinportenShimDetector_IgnoresSurvivingHandlerAndReplacementClient()
+    public void MaskinportenShimDetector_FlagsTheNowInternalStatusCheckHandler()
     {
         _app.Write(
             "Program.cs",
@@ -1483,6 +1495,24 @@ public sealed class CSharpApiMigrationTests : IDisposable
             services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler2>();
             """
         );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler2")
+        );
+        Assert.Contains(Summaries(result), s => s.Contains("AddEFormidlingServices2"));
+    }
+
+    /// <summary>
+    /// The replacement client shares the <c>GetAltinnExchangedToken</c> method name with the removed
+    /// provider, and must not be flagged: it is the API apps are being migrated towards.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_IgnoresTheReplacementClient()
+    {
         _app.Write(
             "logic/Tokens.cs",
             """
@@ -1570,6 +1600,89 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.False(result.ManualActionRequired);
         Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
         Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("AddMaskinportenHttpClient"));
+    }
+
+    /// <summary>
+    /// <c>MaskinportenService</c> is the obvious name for an app's own wrapper around the v9 built-in
+    /// client. Flagging it would tell an app whose build is fine to install a package it never used.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresAnAppsOwnWrapperNamedLikeTheExternalService()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/MaskinportenService.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class MaskinportenService
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+        _app.Write("Program.cs", "services.AddScoped<MaskinportenService>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// The same ambiguous name does count once the file imports the package's namespace.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FlagsAmbiguousNamesAlongsideThePackageImport()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Client.cs") && w.Contains("IMaskinportenService"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FlagsDistinctiveClientDefinitionsWithoutAnImport()
+    {
+        var project = WriteProject("");
+        _app.Write("Program.cs", "services.AddSingleton<Pkcs12ClientDefinition>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Pkcs12ClientDefinition"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FindsAReferenceInANamespacedProjectFile()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <ItemGroup>
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
     }
 
     /// <summary>

@@ -36,13 +36,14 @@ internal sealed class RemovedMaskinportenShimDetector
         "AddMaskinportenJwkTokenProvider",
     };
 
-    // The removed eFormidling status check handler. It fell with the Maskinporten shim because it consumed
-    // it, but its replacement is an eFormidling one, so it is reported separately with its own guidance.
-    // Matching is exact, so `EformidlingStatusCheckEventHandler2` - which survives in v9 as an internal type
-    // registered by AddEFormidlingServices2 - is not caught here.
+    // The eFormidling status check handlers. Both fell out of the app-facing surface with the Maskinporten
+    // shim they consumed, but their replacement is an eFormidling one, so they are reported separately with
+    // their own guidance. The `2` suffixed handler was public in v8 and is internal in v9, so an app naming
+    // it fails to compile (CS0122) just as surely as one naming the deleted v1 handler.
     private static readonly IReadOnlySet<string> _removedEformidlingTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         "EformidlingStatusCheckEventHandler",
+        "EformidlingStatusCheckEventHandler2",
     };
 
     private const string MaskinportenSummary =
@@ -58,9 +59,11 @@ internal sealed class RemovedMaskinportenShimDetector
         + "Maskinporten before porting. Usages found:";
 
     private const string EformidlingSummary =
-        "EformidlingStatusCheckEventHandler is removed in v9. It is not replaced by the Maskinporten client - "
-        + "register eFormidling with AddEFormidlingServices2<TM, TR>(configuration), which sets up the status "
-        + "check for you. Remove these references and any DI registration of the handler. Usages found:";
+        "The eFormidling status check handlers are no longer app-facing in v9: EformidlingStatusCheckEventHandler "
+        + "is removed, and EformidlingStatusCheckEventHandler2 is now internal, so naming either one fails to "
+        + "compile. They are not replaced by the Maskinporten client - register eFormidling with "
+        + "AddEFormidlingServices2<TM, TR>(configuration), which sets up the status check for you. Remove these "
+        + "references and any DI registration of the handlers. Usages found:";
 
     private readonly CSharpSourceScanner _scanner;
 
