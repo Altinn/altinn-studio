@@ -2,7 +2,7 @@
   Create and archive instances of memo app (app with 3 task process - data, confirm and feedback)
   data, confirm - end user
   feedback - mottaks system (TE)
-  test waits for time sent in wait variable (value in seconds) and verifies for insance current process and 
+  test waits for time sent in wait variable (value in seconds) and verifies for instance current process and 
   downloads feedback attachment after the test knows the process is complete.
 
   Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed memo app
@@ -116,10 +116,10 @@ export default function () {
     //upload a binary attachment
     res = appData.postData(userToken, partyId, instanceId, 'binaryAttachment', pdfAttachment, 'pdf', appOwner, appName);
     success = check(res, {
-      'Upload binay attachment - status is 201': (r) => r.status === 201,
+      'Upload binary attachment - status is 201': (r) => r.status === 201,
     });
     addErrorCount(success);
-    stopIterationOnFail('Upload binay attachment failed', success, res);
+    stopIterationOnFail('Upload binary attachment failed', success, res);
   });
 
   group('Confirmation stage', function () {

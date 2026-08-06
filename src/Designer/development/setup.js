@@ -222,7 +222,7 @@ const setupEnvironment = async (env) => {
     env.GITEA_ADMIN_PASS,
     env.GITEA_ORG_USER,
     'Testdepartementet',
-    'Internt organisasjon for test av løsning',
+    'Internal organization for solution testing',
   );
   await createOrganization(
     env.GITEA_ADMIN_USER,

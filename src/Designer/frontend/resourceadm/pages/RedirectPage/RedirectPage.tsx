@@ -17,7 +17,7 @@ export const RedirectPage = (): React.JSX.Element => {
   return (
     <div className={classes.pageWrapper}>
       {org === 'all' ? (
-        // Error page if user has chosen "Alle"
+        // Error page if the user has chosen all organizations
         <ErrorPage />
       ) : (
         <Navigate to={`${getAppName(org)}/`} replace={true} />

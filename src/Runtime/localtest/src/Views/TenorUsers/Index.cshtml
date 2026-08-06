@@ -32,7 +32,7 @@
 
 <div class="card" style="width:30rem">
     <div class="card-header">
-        <h3 class="card-title">Last opp tenor kildefiler</h3>
+        <h3 class="card-title">Upload Tenor source files</h3>
     </div>
     @using (Html.BeginForm("Upload", "TenorUsers", FormMethod.Post, new
     {
@@ -57,7 +57,7 @@
     <table class="table">
     <thead>
         <tr>
-            <th>Velg</th>
+            <th>Select</th>
             <th>Filename</th>
             <th>Name</th>
             <th>Fnr/org</th>
@@ -98,9 +98,9 @@
             }
         </tbody>
     </table>
-    <input type="submit" name="Delete" class="btn btn-danger" value="Slett markerte" />
+    <input type="submit" name="Delete" class="btn btn-danger" value="Delete selected" />
     <div class="btn-group">
-        <input type="submit" name="DownloadFile" class="btn btn-primary" value="Last ned markerte personer og enheter som testData.json" />
-        <input type="submit" name="Download" class="btn btn-secondary" value="Vis testData.json " />
+        <input type="submit" name="DownloadFile" class="btn btn-primary" value="Download selected persons and organizations as testData.json" />
+        <input type="submit" name="Download" class="btn btn-secondary" value="Show testData.json" />
     </div>
 }

@@ -12,8 +12,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {
-    emptyLabel: 'Ingen mulige alternativer',
-    label: 'Velg tekst',
+    emptyLabel: 'No available options',
+    label: 'Select text',
     textResources: textResourcesMock,
     onValueChange: (id: string) => console.log(id),
     noTextResourceOptionLabel: 'Ikke oppgitt',

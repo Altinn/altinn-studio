@@ -12,7 +12,7 @@ const mockDialogTexts: AboutAssistantDialogTexts = {
   branchDocsLink: 'dokumentasjonen',
   disclaimer: 'Assistenten er under utvikling.',
   privacyHeading: 'Personvern',
-  privacyDataHandling: 'Ikke send sensitiv informasjon. Alt lagres i 90 dager.',
+  privacyDataHandling: 'Do not send sensitive information. Everything is stored for 90 days.',
 };
 
 describe('AboutAssistantDialog', () => {

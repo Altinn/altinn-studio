@@ -15,9 +15,9 @@ public static class GiteaConstants
 
     public const string TestOrgName = "Testdepartementet";
     public const string TestOrgUsername = "ttd";
-    public const string TestOrgDescription = "Internt organisasjon for test av løsning";
+    public const string TestOrgDescription = "Internal organization for solution testing";
 
     public const string SecondaryTestOrgName = "Testdepartementet2";
     public const string SecondaryTestOrgUsername = "ttd2";
-    public const string SecondaryTestOrgDescription = "Internt organisasjon 2 for test av løsning";
+    public const string SecondaryTestOrgDescription = "Internal organization 2 for solution testing";
 }

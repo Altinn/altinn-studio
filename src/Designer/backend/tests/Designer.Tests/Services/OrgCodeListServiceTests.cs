@@ -32,9 +32,9 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> expectedCodeList = new()
         {
-            new Option { Label = "En", Value = 1.05 },
-            new Option { Label = "To", Value = 2.01 },
-            new Option { Label = "Tre", Value = 3.1 },
+            new Option { Label = "One", Value = 1.05 },
+            new Option { Label = "Two", Value = 2.01 },
+            new Option { Label = "Three", Value = 3.1 },
         };
 
         TargetOrg = TestDataHelper.GenerateTestOrgName();

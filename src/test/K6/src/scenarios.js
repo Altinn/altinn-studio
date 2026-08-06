@@ -50,7 +50,7 @@ var rampingVus = {
 
 /**
  * function returns an array of JSON object for ramping-vus scenario in format
- * [{duration : 10s, targer: 5}]
+ * [{duration : 10s, target: 5}]
  * @param {*} stages a string in format: 10s:5,40s:20,10s:5
  */
 function buildRamp(stages) {

@@ -16,7 +16,7 @@ const ComposedComponent = (args: ArgsProps): ReactElement => {
   const { getRadioProps, validationMessageProps, value } = useStudioRadioGroup({
     name: 'my-radio-group',
     value: '',
-    error: hasError ? 'Du må velge et alternativ' : undefined,
+    error: hasError ? 'You must select an option' : undefined,
   });
 
   useEffect(() => {
