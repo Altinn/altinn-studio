@@ -121,6 +121,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -355,6 +358,33 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>
+    /// Rewrites the mechanical PlatformHttpException breaks. Runs before <see cref="CheckRemovedCSharpApis"/>
+    /// so the uses it cannot rewrite are reported there instead.
+    /// </summary>
+    static async Task<int> MigratePlatformHttpExceptionApis(string projectFile)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating changed PlatformHttpException APIs...");
+
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var result = new PlatformHttpExceptionApiMigration(scanner).Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating PlatformHttpException APIs: {ex.Message}");
+            return ExitError;
+        }
+    }
+
     static async Task<int> CheckRemovedCSharpApis(string projectFile)
     {
         try
@@ -367,7 +397,8 @@ internal static class V8Tov9Upgrade
                 new ServiceTaskResultApiDetector(scanner).Detect(),
                 new LegacyEFormidlingCodeDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
-                new LegacyCorrespondenceCodeDetector(scanner).Detect()
+                new LegacyCorrespondenceCodeDetector(scanner).Detect(),
+                new PlatformHttpExceptionApiDetector(scanner).Detect()
             );
 
             foreach (var warning in result.Warnings)
