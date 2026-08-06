@@ -7,6 +7,7 @@ using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
@@ -177,6 +178,36 @@ public class PdfService : IPdfService
     public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct)
     {
         return await GeneratePdf(instance, taskId, false, ct: ct);
+    }
+
+    async Task<Stream> IPdfService.GeneratePdf(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        bool isPreview,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken ct
+    )
+    {
+        Instance instance = dataAccessor.Instance;
+        using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
+
+        HttpContext? httpContext = _httpContextAccessor.HttpContext;
+        var queries = httpContext?.Request.Query;
+        var auth = _authenticationContext.Current;
+
+        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+
+        return await GeneratePdfContent(
+            instance,
+            taskId,
+            language,
+            isPreview,
+            null,
+            null,
+            authenticationMethod,
+            dataAccessor,
+            ct
+        );
     }
 
     private async Task<BinaryDataChange> GenerateAndStorePdfInternal(
@@ -461,7 +492,7 @@ public class PdfService : IPdfService
                 return expression.ValueUnion.Bool;
 
             // Reuse the in-flight unit of work when the caller already has one (mutator path), and only
-            // initialize a standalone one for callers without a mutator (e.g. preview/signing/payment).
+            // initialize a standalone one for callers using an Instance overload (e.g. preview).
             if (dataAccessor is null)
             {
                 if (_instanceDataUnitOfWorkInitializer is null)
@@ -472,7 +503,12 @@ public class PdfService : IPdfService
                     return false;
                 }
 
-                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                    instance,
+                    StorageVersionMetadata.Empty,
+                    taskId,
+                    language
+                );
             }
 
             var state = dataAccessor.GetLayoutEvaluatorState();

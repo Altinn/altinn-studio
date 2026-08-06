@@ -12,7 +12,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.InstanceLocking;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -26,7 +26,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// A client for handling actions on data in Altinn Platform.
 /// </summary>
-public sealed class DataClient : IDataClient
+public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, IInstanceMutationClient
 {
     private readonly PlatformSettings _platformSettings;
     private readonly ILogger _logger;
@@ -35,8 +35,6 @@ public sealed class DataClient : IDataClient
     private readonly ModelSerializationService _modelSerializationService;
     private readonly Telemetry? _telemetry;
     private readonly HttpClient _client;
-    private readonly IInstanceLocker _instanceLocker;
-
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     private static readonly TimeSpan _httpOperationTimeout = TimeSpan.FromSeconds(100);
@@ -54,8 +52,6 @@ public sealed class DataClient : IDataClient
         _platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<DataClient>>();
         _telemetry = serviceProvider.GetService<Telemetry>();
-        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
-
         httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -169,7 +165,6 @@ public sealed class DataClient : IDataClient
             token,
             apiUrl,
             streamContent,
-            lockToken: _instanceLocker.CurrentLockToken,
             cancellationToken: cts.Token
         );
 
@@ -379,6 +374,26 @@ public sealed class DataClient : IDataClient
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
+    ) =>
+        (
+            await ((IDataClientWithStorageMetadata)this).GetDataBytesWithExpectedBlobVersionId(
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataId,
+                authenticationMethod,
+                expectedBlobVersionId: null,
+                cancellationToken
+            )
+        );
+
+    /// <inheritdoc />
+    async Task<byte[]> IDataClientWithStorageMetadata.GetDataBytesWithExpectedBlobVersionId(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod,
+        string? expectedBlobVersionId,
+        CancellationToken cancellationToken
     )
     {
         using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
@@ -391,7 +406,20 @@ public sealed class DataClient : IDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
+        using HttpRequestMessage request = new(HttpMethod.Get, apiUrl);
+#pragma warning restore S7044
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        StoragePreconditionHeaders.Add(
+            request.Headers,
+            new StorageWritePreconditions(BlobVersionId: expectedBlobVersionId)
+        );
+
+        HttpResponseMessage response = await _client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseContentRead,
+            cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -483,6 +511,27 @@ public sealed class DataClient : IDataClient
         bool delay,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
+    ) =>
+        (
+            await ((IDataClientWithStorageMetadata)this).DeleteDataWithStorageMetadata(
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataGuid,
+                delay,
+                authenticationMethod,
+                cancellationToken: cancellationToken
+            )
+        ).Deleted;
+
+    /// <inheritdoc />
+    async Task<DeleteDataWithStorageMetadata> IDataClientWithStorageMetadata.DeleteDataWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        bool delay,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
     )
     {
         using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
@@ -495,22 +544,111 @@ public sealed class DataClient : IDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.DeleteAsync(
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Delete,
             token,
             apiUrl,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
+            content: null,
+            preconditions,
+            cts.Token
         );
 
         if (response.IsSuccessStatusCode)
         {
-            return true;
+            return new DeleteDataWithStorageMetadata(true, StorageResponseMetadata.ReadVersionMetadata(response));
         }
 
         _logger.LogError(
             $"Deleting data element {dataGuid} for instance {instanceIdentifier} failed with status code {response.StatusCode}"
         );
         throw await PlatformHttpException.CreateAsync(response);
+    }
+
+    async Task<InstanceMutationWithStorageMetadata> IInstanceMutationClient.CommitInstanceMutationWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        StorageInstanceMutationRequest mutation,
+        IReadOnlyDictionary<string, StorageInstanceMutationContent> contentParts,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
+    )
+    {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
+        string apiUrl =
+            $"{_platformSettings.ApiStorageEndpoint}instances/{instanceOwnerPartyId}/{instanceGuid}/mutations";
+
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken: cts.Token
+        );
+
+        using HttpContent content = CreateInstanceMutationContent(mutation, contentParts);
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Post,
+            token,
+            apiUrl,
+            content,
+            preconditions,
+            cts.Token
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            string responseBody = await response.Content.ReadAsStringAsync(cts.Token);
+            StorageInstanceMutationResponse? mutationResponse =
+                JsonConvert.DeserializeObject<StorageInstanceMutationResponse>(responseBody);
+            if (mutationResponse?.Instance is not { } instance)
+            {
+                throw new JsonException("Could not deserialize instance mutation response from Storage");
+            }
+
+            return new InstanceMutationWithStorageMetadata(
+                instance,
+                StorageResponseMetadata.ReadVersionMetadata(response),
+                mutationResponse.CreatedDataElementIds,
+                mutationResponse.Replayed
+            );
+        }
+
+        if (await StorageProcessStatusConflictException.TryCreate(response, cts.Token) is { } processStatusConflict)
+        {
+            throw processStatusConflict;
+        }
+
+        throw await PlatformHttpException.CreateAsync(response);
+    }
+
+    private static HttpContent CreateInstanceMutationContent(
+        StorageInstanceMutationRequest mutation,
+        IReadOnlyDictionary<string, StorageInstanceMutationContent> contentParts
+    )
+    {
+        string mutationJson = JsonConvert.SerializeObject(mutation);
+        if (contentParts.Count == 0)
+        {
+            return new StringContent(mutationJson, Encoding.UTF8, "application/json");
+        }
+
+        var multipart = new MultipartFormDataContent();
+        multipart.Add(new StringContent(mutationJson, Encoding.UTF8, "application/json"), "mutation");
+
+        foreach (var (partName, contentPart) in contentParts)
+        {
+            var content = new ByteArrayContent(contentPart.Bytes.ToArray());
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentPart.ContentType);
+
+            if (contentPart.Filename is { Length: > 0 } filename)
+            {
+                multipart.Add(content, partName, filename);
+            }
+            else
+            {
+                multipart.Add(content, partName);
+            }
+        }
+
+        return multipart;
     }
 
     /// <inheritdoc />
@@ -538,13 +676,7 @@ public sealed class DataClient : IDataClient
         );
 
         StreamContent content = request.CreateContentStream();
-        HttpResponseMessage response = await _client.PostAsync(
-            token,
-            apiUrl,
-            content,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
-        );
+        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
@@ -571,6 +703,31 @@ public sealed class DataClient : IDataClient
         string? generatedFromTask = null,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
+    ) =>
+        (
+            await ((IDataClientWithStorageMetadata)this).InsertBinaryDataWithStorageMetadata(
+                instanceId,
+                dataType,
+                contentType,
+                filename,
+                stream,
+                generatedFromTask,
+                authenticationMethod,
+                cancellationToken: cancellationToken
+            )
+        ).DataElement;
+
+    /// <inheritdoc />
+    async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.InsertBinaryDataWithStorageMetadata(
+        string instanceId,
+        string dataType,
+        string contentType,
+        string? filename,
+        Stream stream,
+        string? generatedFromTask,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
     )
     {
         using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
@@ -597,12 +754,13 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PostAsync(
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Post,
             token,
             apiUrl,
             content,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
+            preconditions,
+            cts.Token
         );
 
         if (response.IsSuccessStatusCode)
@@ -611,7 +769,10 @@ public sealed class DataClient : IDataClient
 
             var dataElement = JsonConvert.DeserializeObject<DataElement>(dataElementString);
             if (dataElement is not null)
-                return dataElement;
+                return new DataElementWithStorageMetadata(
+                    dataElement,
+                    StorageResponseMetadata.ReadVersionMetadata(response)
+                );
         }
 
         _logger.LogError(
@@ -624,7 +785,10 @@ public sealed class DataClient : IDataClient
     }
 
     /// <inheritdoc />
-    [Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes a Stream instead")]
+    [Obsolete(
+        message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead",
+        error: false
+    )]
     public async Task<DataElement> UpdateBinaryData(
         string org,
         string app,
@@ -648,13 +812,7 @@ public sealed class DataClient : IDataClient
 
         StreamContent content = request.CreateContentStream();
 
-        HttpResponseMessage response = await _client.PutAsync(
-            token,
-            apiUrl,
-            content,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
-        );
+        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
@@ -680,6 +838,29 @@ public sealed class DataClient : IDataClient
         Stream stream,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
+    ) =>
+        (
+            await ((IDataClientWithStorageMetadata)this).UpdateBinaryDataWithStorageMetadata(
+                instanceIdentifier,
+                contentType,
+                filename,
+                dataGuid,
+                stream,
+                authenticationMethod,
+                cancellationToken: cancellationToken
+            )
+        ).DataElement;
+
+    /// <inheritdoc />
+    async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.UpdateBinaryDataWithStorageMetadata(
+        InstanceIdentifier instanceIdentifier,
+        string? contentType,
+        string? filename,
+        Guid dataGuid,
+        Stream stream,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
     )
     {
         using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
@@ -703,12 +884,13 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PutAsync(
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Put,
             token,
             apiUrl,
             content,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
+            preconditions,
+            cts.Token
         );
         _logger.LogInformation("Update binary data result: {ResultCode}", response.StatusCode);
         if (response.IsSuccessStatusCode)
@@ -717,7 +899,10 @@ public sealed class DataClient : IDataClient
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
 
-            return dataElement;
+            return new DataElementWithStorageMetadata(
+                dataElement,
+                StorageResponseMetadata.ReadVersionMetadata(response)
+            );
         }
         throw await PlatformHttpException.CreateAsync(response);
     }
@@ -728,6 +913,23 @@ public sealed class DataClient : IDataClient
         DataElement dataElement,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
+    ) =>
+        (
+            await ((IDataClientWithStorageMetadata)this).UpdateDataElementWithStorageMetadata(
+                instance,
+                dataElement,
+                authenticationMethod,
+                cancellationToken: cancellationToken
+            )
+        ).DataElement;
+
+    /// <inheritdoc />
+    async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.UpdateDataElementWithStorageMetadata(
+        Instance instance,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
     )
     {
         using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
@@ -740,12 +942,13 @@ public sealed class DataClient : IDataClient
         );
 
         StringContent jsonString = new(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(
+        HttpResponseMessage response = await SendStorageRequestAsync(
+            HttpMethod.Put,
             token,
             apiUrl,
             jsonString,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
+            preconditions,
+            cts.Token
         );
 
         if (response.IsSuccessStatusCode)
@@ -755,7 +958,7 @@ public sealed class DataClient : IDataClient
                 await response.Content.ReadAsStringAsync(cts.Token)
             )!;
 
-            return result;
+            return new DataElementWithStorageMetadata(result, StorageResponseMetadata.ReadVersionMetadata(response));
         }
 
         throw await PlatformHttpException.CreateAsync(response);
@@ -789,7 +992,6 @@ public sealed class DataClient : IDataClient
             apiUrl,
             content: null,
             platformAccessToken: null,
-            lockToken: _instanceLocker.CurrentLockToken,
             cts.Token
         );
         if (response.IsSuccessStatusCode)
@@ -832,12 +1034,7 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.DeleteAsync(
-            token,
-            apiUrl,
-            lockToken: _instanceLocker.CurrentLockToken,
-            cancellationToken: cts.Token
-        );
+        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.IsSuccessStatusCode)
         {
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
@@ -853,6 +1050,24 @@ public sealed class DataClient : IDataClient
             response.StatusCode
         );
         throw await PlatformHttpException.CreateAsync(response);
+    }
+
+    private async Task<HttpResponseMessage> SendStorageRequestAsync(
+        HttpMethod method,
+        JwtToken token,
+        string apiUrl,
+        HttpContent? content,
+        StorageWritePreconditions? preconditions,
+        CancellationToken cancellationToken
+    )
+    {
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
+        using HttpRequestMessage request = new(method, apiUrl) { Content = content };
+#pragma warning restore S7044
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        StoragePreconditionHeaders.Add(request.Headers, preconditions);
+
+        return await _client.SendAsync(request, cancellationToken);
     }
 
     private static bool TypeAllowsJson(string? classRef, ApplicationMetadata appMetadata)

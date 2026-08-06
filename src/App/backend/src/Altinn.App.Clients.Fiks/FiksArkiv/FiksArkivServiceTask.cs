@@ -30,6 +30,14 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     /// <inheritdoc />
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
+        if (!Guid.TryParse(context.IdempotencyKey, out Guid sendersReference))
+        {
+            string errorMessage =
+                $"The workflow engine idempotency key '{context.IdempotencyKey}' is not a valid GUID and cannot be used as the Fiks client message ID.";
+            _logger.LogError("FiksArkivServiceTask cannot execute: {ErrorMessage}", errorMessage);
+            return ServiceTaskResult.FailedPermanent(errorMessage);
+        }
+
         try
         {
             Instance instance = context.InstanceDataMutator.Instance;
@@ -43,8 +51,11 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
             var response = await _fiksArkivHost.GenerateAndSendMessage(
                 taskId,
-                instance,
-                FiksArkivConstants.MessageTypes.CreateArchiveRecord
+                FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+                sendersReference,
+                context.ExecutionReferenceTime,
+                context.InstanceDataMutator,
+                context.CancellationToken
             );
 
             _logger.LogInformation(

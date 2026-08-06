@@ -62,7 +62,7 @@ public sealed partial class AppCommandIntegrationTests
         {
             State = "initial-workflow-state",
         };
-        var request = AppTestHelpers.CreateEnqueueRequest(workflow, lockToken: InstanceLockToken);
+        var request = AppTestHelpers.CreateEnqueueRequest(workflow);
 
         // Use a recording client to capture the actual inbound HTTP exchange
         const string testNamespace = "chatter-app-test";
@@ -149,14 +149,12 @@ public sealed partial class AppCommandIntegrationTests
         var step1Body = JsonSerializer.Deserialize<AppCallbackPayload>(logs[0].RequestMessage.Body!);
         Assert.NotNull(step1Body);
         Assert.Equal("chatter-step-1", step1Body.CommandKey);
-        Assert.Equal(InstanceLockToken, step1Body.LockToken);
         Assert.Equal("step-1-payload", step1Body.Payload);
         Assert.Equal("initial-workflow-state", step1Body.State);
 
         var step2Body = JsonSerializer.Deserialize<AppCallbackPayload>(logs[1].RequestMessage.Body!);
         Assert.NotNull(step2Body);
         Assert.Equal("chatter-step-2", step2Body.CommandKey);
-        Assert.Equal(InstanceLockToken, step2Body.LockToken);
         Assert.Equal("step-2-payload", step2Body.Payload);
         Assert.Equal("step-1-result", step2Body.State);
 

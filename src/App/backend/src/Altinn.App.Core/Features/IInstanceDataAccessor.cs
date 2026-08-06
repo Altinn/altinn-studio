@@ -56,6 +56,11 @@ public interface IInstanceDataAccessor
     /// Get a <see cref="IInstanceDataAccessor"/> that provides access to the
     /// storage persisted before any in-memory changes in this request.
     /// </summary>
+    /// <remarks>
+    /// Unchanged data elements are loaded lazily. For a binary data element updated through the unit of work, the
+    /// previous bytes are available only when the element was read before its first update. Otherwise,
+    /// <see cref="GetBinaryData"/> on the returned accessor throws <see cref="InvalidOperationException"/>.
+    /// </remarks>
     internal IInstanceDataAccessor GetPreviousDataAccessor();
 
     /// <summary>

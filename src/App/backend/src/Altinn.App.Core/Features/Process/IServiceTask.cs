@@ -40,6 +40,19 @@ public sealed record ServiceTaskContext
     /// new pass through the task.
     /// </summary>
     public Guid? WorkflowId { get; init; }
+
+    /// <summary>
+    /// Retry-stable identifier for this workflow-engine step, copied verbatim from the callback
+    /// <c>Idempotency-Key</c> header.
+    /// </summary>
+    public string IdempotencyKey { get; internal init; } = string.Empty;
+
+    /// <summary>
+    /// Reference time for this execution: the explicit workflow schedule when present, otherwise the
+    /// persisted time when the workflow step was enqueued.
+    /// </summary>
+    /// <remarks>Provided by the workflow engine as <c>Workflow.StartAt ?? Step.CreatedAt</c>.</remarks>
+    public DateTimeOffset ExecutionReferenceTime { get; internal init; }
 }
 
 /// <summary>

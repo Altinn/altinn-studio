@@ -69,12 +69,11 @@ public class DefaultEFormidlingService : IEFormidlingService
     }
 
     /// <inheritdoc />
-    public async Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration)
-    {
-        await SendEFormidlingShipmentInternal(instance, configuration);
-    }
-
-    private async Task SendEFormidlingShipmentInternal(Instance instance, ValidAltinnEFormidlingConfiguration config)
+    public async Task SendEFormidlingShipment(
+        Instance instance,
+        ValidAltinnEFormidlingConfiguration configuration,
+        IInstanceDataAccessor? dataAccessor = null
+    )
     {
         var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
         if (
@@ -108,7 +107,12 @@ public class DefaultEFormidlingService : IEFormidlingService
 
         string instanceGuid = instance.Id.Split("/")[1];
 
-        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance, config);
+        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(
+            instanceGuid,
+            instance,
+            configuration,
+            dataAccessor
+        );
 
         // The message id is the instance guid, so a retry of a send that already reached the
         // integrasjonspunkt fails with MessageAlreadyExistsException on create. Instead of leaving
@@ -141,7 +145,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             resumingExistingMessage = true;
         }
 
-        (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance);
+        (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance, dataAccessor);
 
         await using (stream)
         {
@@ -160,7 +164,14 @@ public class DefaultEFormidlingService : IEFormidlingService
             }
         }
 
-        await SendInstanceData(instance, requestHeaders, metadataFilename, config, resumingExistingMessage);
+        await SendInstanceData(
+            instance,
+            requestHeaders,
+            metadataFilename,
+            configuration,
+            dataAccessor,
+            resumingExistingMessage
+        );
 
         try
         {
@@ -177,7 +188,8 @@ public class DefaultEFormidlingService : IEFormidlingService
     private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(
         string instanceGuid,
         Instance instance,
-        ValidAltinnEFormidlingConfiguration config
+        ValidAltinnEFormidlingConfiguration config,
+        IInstanceDataAccessor? dataAccessor
     )
     {
         if (_appSettings is null)
@@ -198,7 +210,11 @@ public class DefaultEFormidlingService : IEFormidlingService
         };
 
         var eFormidlingReceivers = _appImplementationFactory.GetRequired<IEFormidlingReceivers>();
-        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(instance, config.Receiver);
+        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(
+            instance,
+            config.Receiver,
+            dataAccessor
+        );
 
         Scope scope = new Scope
         {
@@ -310,6 +326,7 @@ public class DefaultEFormidlingService : IEFormidlingService
     /// <param name="requestHeaders">Headers for the eFormidling client calls.</param>
     /// <param name="eformidlingMetadataFilename">Filename already claimed by the metadata document.</param>
     /// <param name="config">The validated eFormidling configuration for the task.</param>
+    /// <param name="dataAccessor">Reads data element content from the current unit of work when provided; otherwise binary data is fetched from Storage.</param>
     /// <param name="tolerateUploadFailures">
     /// Set when resuming a message created by an earlier attempt, where re-uploading an attachment
     /// that already exists may be rejected. Known blind spot: a <see cref="WebException"/> here
@@ -322,6 +339,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         Dictionary<string, string> requestHeaders,
         string eformidlingMetadataFilename,
         ValidAltinnEFormidlingConfiguration config,
+        IInstanceDataAccessor? dataAccessor,
         bool tolerateUploadFailures = false
     )
     {
@@ -359,13 +377,15 @@ public class DefaultEFormidlingService : IEFormidlingService
             );
             usedFileNames.Add(uniqueFileName);
 
-            await using Stream stream = await _dataClient.GetBinaryData(
-                instanceOwnerPartyId,
-                instanceGuid,
-                new Guid(dataElement.Id),
-                authenticationMethod: null,
-                CancellationToken.None
-            );
+            using Stream stream = dataAccessor is null
+                ? await _dataClient.GetBinaryData(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    new Guid(dataElement.Id),
+                    authenticationMethod: null,
+                    CancellationToken.None
+                )
+                : new MemoryStream((await dataAccessor.GetBinaryData(dataElement)).ToArray(), writable: false);
 
             Debug.Assert(_eFormidlingClient is not null, "This is validated before use");
             bool successful;

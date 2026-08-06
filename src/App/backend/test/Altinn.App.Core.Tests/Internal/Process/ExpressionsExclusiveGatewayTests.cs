@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Tests.Internal.Process.TestData;
@@ -22,8 +23,9 @@ public class ExpressionsExclusiveGatewayTests
     private readonly Mock<IAppResources> _resources = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
-    private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClient = new(MockBehavior.Strict);
+    private readonly Mock<IDataClientWithStorageMetadata> _dataClient = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceMutationClient> _mutationClient;
+    private readonly Mock<IInstanceClientWithStorageMetadata> _instanceClient = new(MockBehavior.Strict);
 
     private const string Org = "ttd";
     private const string App = "test";
@@ -34,6 +36,7 @@ public class ExpressionsExclusiveGatewayTests
 
     public ExpressionsExclusiveGatewayTests()
     {
+        _mutationClient = _dataClient.As<IInstanceMutationClient>();
         _appModel.Setup(am => am.GetModelType(_classRef)).Returns(typeof(DummyModel));
     }
 
@@ -270,11 +273,12 @@ public class ExpressionsExclusiveGatewayTests
         {
             _dataClient
                 .Setup(d =>
-                    d.GetDataBytes(
+                    d.GetDataBytesWithExpectedBlobVersionId(
                         It.IsAny<int>(),
                         It.IsAny<Guid>(),
                         It.IsAny<Guid>(),
                         It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<string?>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -287,7 +291,9 @@ public class ExpressionsExclusiveGatewayTests
 
         var dataAccessor = new InstanceDataUnitOfWork(
             instance: instance,
+            storageVersionMetadata: StorageVersionMetadata.Empty,
             dataClient: _dataClient.Object,
+            mutationClient: _mutationClient.Object,
             instanceClient: _instanceClient.Object,
             appMetadata: appMetadata,
             translationService: null!,

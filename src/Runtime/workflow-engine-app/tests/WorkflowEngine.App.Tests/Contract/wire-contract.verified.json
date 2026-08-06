@@ -83,8 +83,8 @@
         "Nullable": false
       },
       {
-        "Name": "lockToken",
-        "Kind": "string",
+        "Name": "executionReferenceTime",
+        "Kind": "datetimeoffset",
         "Nullable": false
       },
       {
@@ -155,11 +155,6 @@
       {
         "Name": "instanceOwnerPartyId",
         "Kind": "int",
-        "Nullable": false
-      },
-      {
-        "Name": "lockToken",
-        "Kind": "string",
         "Nullable": false
       },
       {

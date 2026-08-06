@@ -10,9 +10,6 @@ internal sealed record AppWorkflowContext
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
 
-    [JsonPropertyName("lockToken")]
-    public required string LockToken { get; init; }
-
     [JsonPropertyName("org")]
     public required string Org { get; init; }
 

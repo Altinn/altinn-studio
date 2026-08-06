@@ -2,8 +2,8 @@ using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -48,6 +48,11 @@ public class WorkflowEngineCallbackController : ControllerBase
     /// Executes a command based on the provided command key.
     /// </summary>
     [HttpPost("{commandKey}")]
+    [ProducesResponseType(typeof(AppCallbackResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ExecuteCommand(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -99,6 +104,22 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
+        string idempotencyKey = Request.Headers["Idempotency-Key"].ToString();
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            _logger.LogError(
+                "Idempotency-Key header is missing from workflow callback. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Missing idempotency key");
+            return NonRetryableProblem(
+                "Missing Idempotency Key",
+                "Idempotency-Key header is required for workflow callbacks.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
         InstanceDataUnitOfWork instanceDataUnitOfWork;
         try
         {
@@ -124,14 +145,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // Set the lock token from the workflow engine payload so all Storage clients include it. Done after the
-        // state blob has been validated against the route instance, so the token is only applied once we know
-        // the callback targets the expected instance.
-        var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
-        instanceLocker.UseExternalLockToken(payload.LockToken);
-
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
-
         ProcessEngineCommandResult result = await command.Execute(
             new ProcessEngineCommandContext
             {
@@ -140,35 +154,97 @@ public class WorkflowEngineCallbackController : ControllerBase
                 InstanceDataMutator = instanceDataUnitOfWork,
                 CancellationToken = ct,
                 Payload = payload,
+                IdempotencyKey = idempotencyKey,
+                ExecutionReferenceTime = payload.ExecutionReferenceTime,
             }
         );
-
-        //TODO: Consider rewriting IInstanceDataMutator so that we can construct one that doesn't allow abandonment in this scenario. Don't think it makes sense when the process engine is the caller.
-        if (instanceDataUnitOfWork.HasAbandonIssues)
-        {
-            _logger.LogError(
-                "Data abandonment detected during callback. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                commandKey,
-                instanceId,
-                currentTaskId
-            );
-
-            activity?.SetStatus(ActivityStatusCode.Error, "Data abandonment detected");
-
-            return NonRetryableProblem(
-                "Data Abandonment",
-                "Data abandonment detected during callback.",
-                StatusCodes.Status422UnprocessableEntity
-            );
-        }
 
         switch (result)
         {
             case SuccessfulProcessEngineCommandResult success:
-                DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
+            {
+                //TODO: Consider rewriting IInstanceDataMutator so that we can construct one that doesn't allow abandonment in this scenario. Don't think it makes sense when the process engine is the caller.
+                if (instanceDataUnitOfWork.HasAbandonIssues)
+                {
+                    _logger.LogError(
+                        "Data abandonment detected during callback. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        commandKey,
+                        instanceId,
+                        currentTaskId
+                    );
 
-                await instanceDataUnitOfWork.UpdateInstanceData(changes);
-                await instanceDataUnitOfWork.SaveChanges(changes);
+                    activity?.SetStatus(ActivityStatusCode.Error, "Data abandonment detected");
+
+                    return NonRetryableProblem(
+                        "Data Abandonment",
+                        "Data abandonment detected during callback.",
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
+
+                try
+                {
+                    DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
+                    WorkflowAggregateSaveOutcome saveOutcome = await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
+                        changes,
+                        idempotencyKey,
+                        ct
+                    );
+                    if (saveOutcome == WorkflowAggregateSaveOutcome.NothingToSave)
+                    {
+                        _logger.LogDebug(
+                            "Workflow callback had no Storage mutation to save. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                            commandKey,
+                            instanceId,
+                            currentTaskId
+                        );
+                    }
+                }
+                catch (InstanceMutationReplayedException ex)
+                {
+                    _logger.LogInformation(
+                        ex,
+                        "Storage replayed workflow callback mutation. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        commandKey,
+                        instanceId,
+                        currentTaskId
+                    );
+                }
+                catch (Exception ex)
+                    when (commandKey == AcquireProcessingStatus.Key
+                        && ex is StorageProcessStatusConflictException or InstanceDataStaleException
+                    )
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
+                    return NonRetryableProblem(
+                        "WorkflowAcquireConflict",
+                        "The instance changed before the process transition could start. Refresh the instance and try again.",
+                        StatusCodes.Status409Conflict,
+                        AcquireProcessingStatus.ConcurrencyFailureCode
+                    );
+                }
+                catch (InstanceDataStaleException ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Storage rejected workflow callback save with 412 Precondition Failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        commandKey,
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Stale callback state");
+                    return NonRetryableProblem(
+                        "StoragePreconditionFailedException",
+                        "Storage rejected workflow callback save with 412 Precondition Failed. The workflow callback state is stale.",
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
 
                 // Capture updated state (includes Storage-assigned IDs for newly created data elements)
                 string updatedState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
@@ -200,7 +276,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                     await processEngine.EnqueueProcessNext(
                         instanceDataUnitOfWork.Instance,
                         payload.Actor,
-                        payload.LockToken,
                         payload.WorkflowId,
                         collectionKey,
                         updatedState,
@@ -211,8 +286,15 @@ public class WorkflowEngineCallbackController : ControllerBase
 
                 activity?.SetStatus(ActivityStatusCode.Ok);
                 return Ok(new AppCallbackResponse { State = updatedState });
+            }
 
             case FailedProcessEngineCommandResult failed:
+                if (failed.Exception is DataElementContentConflictException contentConflict)
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, "Data element content conflict");
+                    return Conflict(InstanceStateConflictResult.Create(contentConflict));
+                }
+
                 _logger.LogError(
                     "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
                     commandKey,
@@ -249,7 +331,12 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
-    private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)
+    private static ObjectResult NonRetryableProblem(
+        string title,
+        string detail,
+        int statusCode,
+        string? workflowFailureCode = null
+    )
     {
         var problemDetails = new ProblemDetails
         {
@@ -258,6 +345,10 @@ public class WorkflowEngineCallbackController : ControllerBase
             Status = statusCode,
         };
         problemDetails.Extensions["nonRetryable"] = true;
+        if (workflowFailureCode is not null)
+        {
+            problemDetails.Extensions["workflowFailureCode"] = workflowFailureCode;
+        }
         return new ObjectResult(problemDetails) { StatusCode = statusCode };
     }
 }

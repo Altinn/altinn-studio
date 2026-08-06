@@ -3,6 +3,7 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
@@ -129,7 +130,11 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
         // Setup eFormidling service to throw exception
         _eFormidlingServiceMock
             .Setup(x =>
-                x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>())
+                x.SendEFormidlingShipment(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<IInstanceDataAccessor?>()
+                )
             )
             .ThrowsAsync(new Exception());
 
@@ -143,7 +148,7 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
 
         firstNextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
 
-        // Check that the process is still in Task_3
+        // The target service task is durable before its external side effect executes.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_3");
         instance.Process.CurrentTask.AltinnTaskType.Should().Be("eFormidling");

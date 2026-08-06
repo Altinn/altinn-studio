@@ -80,11 +80,11 @@ internal static class WireContract
     /// Compares an app-side description against the engine's canonical description and returns a list
     /// of human-readable incompatibilities (empty when the app is compatible).
     ///
-    /// The check is directional, reflecting that the app is a deliberate, curated consumer of the
-    /// engine contract rather than a mirror of it:
+    /// The contract contains both app-to-engine requests and engine-to-app responses/callbacks, while
+    /// the app remains a deliberate, curated subset rather than a mirror of the engine contract:
     /// <list type="bullet">
     ///   <item>Every type and field the app models must exist on the engine with the same kind and
-    ///         nullability — the app must never introduce or reshape a field the engine does not know.</item>
+    ///         nullability.</item>
     ///   <item>Every non-nullable engine field must be modeled by the app — the app must not silently
     ///         drop a value the engine always sends or requires.</item>
     ///   <item>Optional (nullable) engine fields and engine-only types may be omitted by the app —

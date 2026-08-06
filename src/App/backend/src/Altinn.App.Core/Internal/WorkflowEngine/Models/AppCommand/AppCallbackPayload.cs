@@ -20,12 +20,6 @@ public sealed record AppCallbackPayload
     public required Actor Actor { get; init; }
 
     /// <summary>
-    /// The lock token for the current workflow execution.
-    /// </summary>
-    [JsonPropertyName("lockToken")]
-    public required string LockToken { get; init; }
-
-    /// <summary>
     /// Optional command-specific payload.
     /// </summary>
     [JsonPropertyName("payload")]
@@ -36,6 +30,13 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("workflowId")]
     public required Guid WorkflowId { get; init; }
+
+    /// <summary>
+    /// Stable reference time for this execution: the explicit workflow schedule when present,
+    /// otherwise the persisted time when the step was enqueued.
+    /// </summary>
+    [JsonPropertyName("executionReferenceTime")]
+    public required DateTimeOffset ExecutionReferenceTime { get; init; }
 
     /// <summary>
     /// Opaque state blob passed through from the previous command.

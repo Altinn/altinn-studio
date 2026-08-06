@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -45,7 +46,10 @@ public sealed class PatchServiceTests : IDisposable
     // Service mocks
     private readonly Mock<ILogger<ValidationService>> _vLoggerMock = new(MockBehavior.Loose);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataClientWithStorageMetadata> _metadataDataClientMock;
+    private readonly Mock<IInstanceMutationClient> _mutationClientMock;
     private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClientWithStorageMetadata> _metadataInstanceClientMock;
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
@@ -55,6 +59,7 @@ public sealed class PatchServiceTests : IDisposable
     private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
+    private readonly Mock<ILogger<InternalPatchService>> _patchLoggerMock = new(MockBehavior.Loose);
 
     // ValidatorMocks
     private readonly Mock<IFormDataValidator> _formDataValidator = new(MockBehavior.Strict);
@@ -68,6 +73,10 @@ public sealed class PatchServiceTests : IDisposable
 
     public PatchServiceTests()
     {
+        _metadataDataClientMock = _dataClientMock.As<IDataClientWithStorageMetadata>();
+        _mutationClientMock = _dataClientMock.As<IInstanceMutationClient>();
+        _metadataInstanceClientMock = _instanceClientMock.As<IInstanceClientWithStorageMetadata>();
+
         var applicationMetadata = new ApplicationMetadata("ttd/test") { DataTypes = [_dataType] };
         _appMetadataMock
             .Setup(a => a.GetApplicationMetadata())
@@ -99,6 +108,19 @@ public sealed class PatchServiceTests : IDisposable
             )
             .ReturnsAsync(_dataElement)
             .Verifiable();
+        _mutationClientMock
+            .Setup(d =>
+                d.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceMutationWithStorageMetadata(_instance, StorageVersionMetadata.Empty));
 
         _dataElementAccessCheckerMock
             .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
@@ -116,9 +138,13 @@ public sealed class PatchServiceTests : IDisposable
         services.AddSingleton(_dataProcessorMock.Object);
         services.AddSingleton(_appResourcesMock.Object);
         services.AddSingleton(_translationServiceMock.Object);
-        services.AddSingleton(_dataClientMock.Object);
-        services.AddSingleton(_instanceClientMock.Object);
+        services.AddSingleton<IDataClient>(_dataClientMock.Object);
+        services.AddSingleton<IDataClientWithStorageMetadata>(_metadataDataClientMock.Object);
+        services.AddSingleton<IInstanceMutationClient>(_mutationClientMock.Object);
+        services.AddSingleton<IInstanceClient>(_instanceClientMock.Object);
+        services.AddSingleton<IInstanceClientWithStorageMetadata>(_metadataInstanceClientMock.Object);
         services.AddSingleton(_dataElementAccessCheckerMock.Object);
+        services.AddSingleton(_patchLoggerMock.Object);
         _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
         services.AddSingleton(_modelSerializationService);
         services.Configure<GeneralSettings>(_ => { });
@@ -215,6 +241,132 @@ public sealed class PatchServiceTests : IDisposable
         );
 
         await Verify(_telemetrySink.GetSnapshot());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ApplyPatches_WhenExpectedProcessStateVersionMatchesOrCurrentUnavailable_Succeeds(
+        bool versionAvailable
+    )
+    {
+        const int expectedVersion = 3;
+        StorageVersionMetadata versions = versionAvailable
+            ? new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: expectedVersion)
+            : StorageVersionMetadata.Empty;
+
+        JsonPatch jsonPatch = new JsonPatch(PatchOperation.Replace(JsonPointer.Parse("/Name"), "Test Testesen"));
+        var oldModel = new MyModel { Name = "OrginaltNavn" };
+        SetupDataClient(oldModel);
+        _dataProcessorMock
+            .Setup(d =>
+                d.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<MyModel>(),
+                    It.IsAny<MyModel?>(),
+                    null
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _formDataValidator
+            .Setup(fdv =>
+                fdv.ValidateFormData(
+                    It.Is<Instance>(i => i == _instance),
+                    It.Is<DataElement>(de => de == _dataElement),
+                    It.IsAny<MyModel>(),
+                    null
+                )
+            )
+            .ReturnsAsync([]);
+
+        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var response = await _patchService.ApplyPatches(
+            _instance,
+            versions,
+            patches,
+            language: null,
+            ignoredValidators: null,
+            expectedProcessStateVersion: expectedVersion
+        );
+
+        response.Success.Should().BeTrue();
+        _mutationClientMock.Verify(
+            d =>
+                d.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageWritePreconditions?>(preconditions =>
+                        (preconditions == null ? null : preconditions.ProcessStateVersion)
+                        == (versionAvailable ? expectedVersion : null)
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _patchLoggerMock.Verify(
+            logger =>
+                logger.Log(
+                    LogLevel.Debug,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((value, _) => value.ToString()!.Contains("current version is unavailable")),
+                    It.IsAny<Exception?>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                ),
+            versionAvailable ? Times.Never() : Times.Once()
+        );
+    }
+
+    [Fact]
+    public async Task ApplyPatches_WhenExpectedProcessStateVersionIsGreaterThanCurrent_ThrowsBeforeDataIsTouched()
+    {
+        var versions = new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 3);
+        JsonPatch jsonPatch = new JsonPatch(PatchOperation.Replace(JsonPointer.Parse("/Name"), "Test Testesen"));
+        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+
+        var exception = await Assert.ThrowsAsync<ProcessStateStaleException>(() =>
+            _patchService.ApplyPatches(
+                _instance,
+                versions,
+                patches,
+                language: null,
+                ignoredValidators: null,
+                expectedProcessStateVersion: 4
+            )
+        );
+
+        Assert.Equal(4, exception.ExpectedVersion);
+        Assert.Equal(3, exception.ActualVersion);
+        Assert.Contains("Expected process-state version 4", exception.Message, StringComparison.Ordinal);
+        Assert.Null(exception.InnerException);
+        _metadataDataClientMock.Verify(
+            d =>
+                d.GetDataBytesWithExpectedBlobVersionId(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+        _mutationClientMock.Verify(
+            d =>
+                d.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -324,13 +476,14 @@ public sealed class PatchServiceTests : IDisposable
 
     private void SetupDataClient(MyModel oldModel)
     {
-        _dataClientMock
+        _metadataDataClientMock
             .Setup(d =>
-                d.GetDataBytes(
+                d.GetDataBytesWithExpectedBlobVersionId(
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

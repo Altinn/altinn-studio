@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml;
@@ -41,8 +42,19 @@ public class FormBootstrapControllerTests
             ],
         };
 
-        var instanceClient = new Mock<IInstanceClient>();
-        instanceClient.Setup(x => x.GetInstance("app", "org", 500600, It.IsAny<Guid>())).ReturnsAsync(instance);
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>();
+        instanceClient
+            .Setup(x =>
+                x.GetInstanceWithStorageMetadata(
+                    "app",
+                    "org",
+                    500600,
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
 
         var appResources = new Mock<IAppResources>();
         appResources
@@ -87,7 +99,7 @@ public class FormBootstrapControllerTests
                 }
             );
 
-        var controller = CreateController(Mock.Of<IInstanceClient>(), appResources.Object);
+        var controller = CreateController(Mock.Of<IInstanceClientWithStorageMetadata>(), appResources.Object);
 
         var result = await controller.GetStatelessFormBootstrap(
             "org",
@@ -169,7 +181,11 @@ public class FormBootstrapControllerTests
             ],
         };
 
-        var controller = CreateController(Mock.Of<IInstanceClient>(), appResources.Object, appMetadata: appMetadata);
+        var controller = CreateController(
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            appResources.Object,
+            appMetadata: appMetadata
+        );
 
         var result = await controller.GetStatelessFormBootstrap("org", "app", "stateless");
 
@@ -187,7 +203,7 @@ public class FormBootstrapControllerTests
         pdp.Setup(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(new XacmlJsonResponse());
 
         var controller = CreateController(
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             appResources.Object,
             authContext.Object,
             pdp.Object,
@@ -216,7 +232,7 @@ public class FormBootstrapControllerTests
             );
 
         var controller = CreateController(
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             appResources.Object,
             authContext.Object,
             pdp.Object,
@@ -240,7 +256,7 @@ public class FormBootstrapControllerTests
 
         var pdp = new Mock<IPDP>(MockBehavior.Strict);
         var controller = CreateController(
-            Mock.Of<IInstanceClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
             appResources.Object,
             authContext.Object,
             pdp.Object,
@@ -298,7 +314,7 @@ public class FormBootstrapControllerTests
     }
 
     private static FormBootstrapController CreateController(
-        IInstanceClient instanceClient,
+        IInstanceClientWithStorageMetadata instanceClient,
         IAppResources appResources,
         IAuthenticationContext? authenticationContext = null,
         IPDP? pdp = null,
@@ -351,10 +367,11 @@ public class FormBootstrapControllerTests
         var controllerServices = new ServiceCollection();
         controllerServices.AddSingleton(formBootstrapService);
         controllerServices.AddSingleton(appImplementationFactory);
+        controllerServices.AddSingleton(instanceClient);
 
         var controller = new FormBootstrapController(
             controllerServices.BuildServiceProvider(),
-            instanceClient,
+            Mock.Of<IInstanceClient>(),
             appResources,
             appMetadataMock.Object,
             pdp ?? Mock.Of<IPDP>(),

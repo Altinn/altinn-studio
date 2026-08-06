@@ -62,6 +62,11 @@ public class PaymentController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(PaymentInformation), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     public async Task<IActionResult> GetPaymentInformation(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -93,6 +98,11 @@ public class PaymentController : ControllerBase
         PaymentInformation paymentInformation;
         if (isCurrentTask)
         {
+            if (ProcessStatusHelper.GetMutationProblem(instance) is { } processStatusProblem)
+            {
+                return ProcessStatusProblemResult.Create(processStatusProblem);
+            }
+
             try
             {
                 paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
@@ -101,31 +111,44 @@ public class PaymentController : ControllerBase
                     language
                 );
             }
-            catch (Exception ex)
+            catch (PlatformHttpException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                // The persisting path races with a concurrent webhook callback that advances the process and
-                // locks the payment data element after our GetInstance above. Two outcomes are benign for a read:
-                //   1. Storage rejects the write with 409/Conflict because the data element is now locked.
-                //   2. The current task has already visibly advanced past finalTaskId.
-                // Fall back to a read-only result in both cases rather than surface a 5xx — the next poll
-                // reconciles. We check the lock directly because the locked state can become visible before the
-                // current-task change does, so relying on the task having moved is not enough.
-                bool dataElementLocked =
-                    ex is PlatformHttpException { Response.StatusCode: System.Net.HttpStatusCode.Conflict };
-                if (
-                    !dataElementLocked
-                    && !await CurrentTaskMovedAwayFrom(app, org, instanceOwnerPartyId, instanceGuid, finalTaskId)
-                )
+                // The legacy per-data-element Storage endpoint uses an untyped 409 for both process-status
+                // conflicts and unrelated failures. Re-read the instance once and classify only from the
+                // authoritative snapshot instead of interpreting the response body.
+                Instance refreshed = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                if (ProcessStatusHelper.GetMutationProblem(refreshed) is { } refreshedStatusProblem)
                 {
+                    return ProcessStatusProblemResult.Create(refreshedStatusProblem);
+                }
+
+                bool currentTaskMoved = !string.Equals(
+                    refreshed.Process?.CurrentTask?.ElementId,
+                    finalTaskId,
+                    StringComparison.Ordinal
+                );
+                DataElement? paymentDataElement = refreshed.Data?.SingleOrDefault(dataElement =>
+                    string.Equals(
+                        dataElement.DataType,
+                        validPaymentConfiguration.PaymentDataType,
+                        StringComparison.Ordinal
+                    )
+                );
+                bool paymentDataElementLocked = paymentDataElement?.Locked is true;
+                if (!currentTaskMoved && !paymentDataElementLocked)
+                {
+                    // An idle instance with the same current task and no locked target does not prove the
+                    // known webhook race. Preserve unrelated blob/version/idempotency conflicts exactly.
                     throw;
                 }
+
                 _logger.LogInformation(
                     ex,
                     "Storing payment status failed for task {TaskId} (the process likely advanced and locked the data concurrently). Returning read-only status.",
                     LogSanitizer.Sanitize(finalTaskId)
                 );
                 paymentInformation = await _paymentService.CheckPaymentStatus(
-                    instance,
+                    refreshed,
                     validPaymentConfiguration,
                     finalTaskId,
                     language
@@ -143,26 +166,6 @@ public class PaymentController : ControllerBase
         }
 
         return Ok(paymentInformation);
-    }
-
-    private async Task<bool> CurrentTaskMovedAwayFrom(
-        string app,
-        string org,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        string expectedTaskId
-    )
-    {
-        try
-        {
-            Instance refreshed = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            return refreshed.Process?.CurrentTask?.ElementId != expectedTaskId;
-        }
-        catch (Exception)
-        {
-            // Can't verify — assume the original failure was unrelated and let it surface.
-            return false;
-        }
     }
 
     private static BadRequestObjectResult NotPaymentTask()

@@ -102,6 +102,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             "Bearer",
             GenerateToken(routeInstanceGuid)
         );
+        client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
         var stateInstance = new Instance
         {
@@ -115,10 +116,18 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Properly signed so the instance-mismatch check (not the signature check) is what rejects it.
-            State = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = SignState(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -155,10 +164,18 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Raw inner state, NOT wrapped in a signed envelope.
-            State = JsonSerializer.Serialize(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -191,7 +208,15 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
             Data = [],
         };
-        string signed = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] });
+        string signed = SignState(
+            new WorkflowCallbackState
+            {
+                Instance = stateInstance,
+                InstanceVersion = 1,
+                ProcessStateVersion = 1,
+                FormData = [],
+            }
+        );
         var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(signed)!;
         string tampered = JsonSerializer.Serialize(
             envelope with
@@ -205,8 +230,8 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             WorkflowId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             State = tampered,
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");

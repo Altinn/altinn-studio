@@ -5,6 +5,7 @@ using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
@@ -12,6 +13,7 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Altinn.App.Api.Helpers.Patch;
 
@@ -25,6 +27,7 @@ public class InternalPatchService
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly Telemetry? _telemetry;
     private readonly IValidationService _validationService;
+    private readonly ILogger<InternalPatchService> _logger;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -46,23 +49,58 @@ public class InternalPatchService
         _hostingEnvironment = hostingEnvironment;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _logger =
+            serviceProvider.GetService<ILogger<InternalPatchService>>() ?? NullLogger<InternalPatchService>.Instance;
         _telemetry = telemetry;
     }
 
     /// <summary>
     /// Applies a patch to a Form Data element
     /// </summary>
-    public async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
+    public Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
         Instance instance,
         Dictionary<Guid, JsonPatch> patches,
         string? language,
         List<string>? ignoredValidators
+    ) =>
+        ApplyPatches(
+            instance,
+            StorageVersionMetadata.Empty,
+            patches,
+            language,
+            ignoredValidators,
+            expectedProcessStateVersion: null
+        );
+
+    internal async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
+        Instance instance,
+        StorageVersionMetadata versions,
+        Dictionary<Guid, JsonPatch> patches,
+        string? language,
+        List<string>? ignoredValidators,
+        int? expectedProcessStateVersion
     )
     {
         using var activity = _telemetry?.StartDataPatchActivity(instance);
         var taskId = instance.Process.CurrentTask.ElementId;
 
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, versions, taskId, language);
+
+        if (expectedProcessStateVersion is { } expectedVersion)
+        {
+            int? actualVersion = dataAccessor.StorageVersions.ProcessStateVersion;
+            if (actualVersion is null)
+            {
+                _logger.LogDebug(
+                    "Skipping expected process-state version admission check for instance {InstanceId} because the current version is unavailable",
+                    instance.Id
+                );
+            }
+            else if (expectedVersion != actualVersion.Value)
+            {
+                throw new ProcessStateStaleException(expectedVersion, actualVersion.Value);
+            }
+        }
 
         List<FormDataChange> changesAfterPatch = [];
 
@@ -151,10 +189,7 @@ public class InternalPatchService
 
         // Get all changes to data elements by comparing the serialized values
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
-        // Start saving changes in parallel with validation
-        Task saveChanges = dataAccessor.SaveChanges(changes);
-        // Update instance data to reflect the changes and save created data elements
-        await dataAccessor.UpdateInstanceData(changes);
+        await dataAccessor.SaveChanges(changes);
 
         var validationIssues = await _validationService.ValidateIncrementalFormData(
             dataAccessor,
@@ -163,9 +198,6 @@ public class InternalPatchService
             ignoredValidators,
             language
         );
-
-        // don't await saving until validation is done, so that they run in parallel
-        await saveChanges;
 
         if (_hostingEnvironment.IsDevelopment())
         {

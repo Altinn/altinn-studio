@@ -31,9 +31,9 @@ public class CleanupGeneratedFromTaskTests
                 CommandKey = CleanupGeneratedFromTask.Key,
                 Actor = new Actor { UserId = 1337 },
                 Payload = null,
-                LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
         return (context, mutatorMock);

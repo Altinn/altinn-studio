@@ -13,7 +13,13 @@ internal sealed class TelemetryEnrichingResultFilter : IResultFilter
         if (activity is null)
             return;
 
-        if (context.Result is ObjectResult result && result.Value is ProblemDetails problemDetails)
+        ProblemDetails? problemDetails = context.Result switch
+        {
+            ObjectResult { Value: ProblemDetails problem } => problem,
+            JsonResult { Value: ProblemDetails problem } => problem,
+            _ => null,
+        };
+        if (problemDetails is not null)
             activity.SetProblemDetails(problemDetails);
     }
 
