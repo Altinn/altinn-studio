@@ -113,7 +113,7 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
 
         var log = await RunUpgrade();
 
-        Assert.DoesNotContain("MaskinportenSettings configures", log, StringComparison.Ordinal);
+        Assert.DoesNotContain("configures the external Maskinporten client", log, StringComparison.Ordinal);
         Assert.DoesNotContain("IMaskinportenTokenProvider", log, StringComparison.Ordinal);
         Assert.DoesNotContain("Altinn.ApiClients.Maskinporten", log, StringComparison.Ordinal);
     }

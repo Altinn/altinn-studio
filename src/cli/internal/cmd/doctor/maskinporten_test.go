@@ -64,7 +64,7 @@ func TestBuildMaskinporten_ExternalShapedSection_IsAnError(t *testing.T) {
 	if report == nil || !report.HasIssues {
 		t.Fatalf("expected a Maskinporten issue, got %+v", report)
 	}
-	check := findCheck(report.Checks, maskinportenConfigCheckID, diskLevelError)
+	check := findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelError)
 	if check == nil {
 		t.Fatalf("expected an error-level config check, got %+v", report.Checks)
 	}
@@ -91,7 +91,7 @@ func TestBuildMaskinporten_BuiltInSectionWithKey_IsAWarning(t *testing.T) {
 	if report == nil || !report.HasIssues {
 		t.Fatalf("expected a Maskinporten issue, got %+v", report)
 	}
-	if findCheck(report.Checks, maskinportenConfigCheckID, diskLevelWarn) == nil {
+	if findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelWarn) == nil {
 		t.Fatalf("expected a warn-level config check, got %+v", report.Checks)
 	}
 }
@@ -111,7 +111,7 @@ func TestBuildMaskinporten_ProvisionedShapeOnly_IsClean(t *testing.T) {
 	if report == nil || report.HasIssues {
 		t.Fatalf("expected a clean Maskinporten report, got %+v", report)
 	}
-	if findCheck(report.Checks, maskinportenConfigCheckID, diskLevelOK) == nil {
+	if findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelOK) == nil {
 		t.Fatalf("expected an ok-level config check, got %+v", report.Checks)
 	}
 }
@@ -135,7 +135,7 @@ func TestBuildMaskinporten_ExternalPackageReference_IsInformational(t *testing.T
 	if report.HasIssues {
 		t.Errorf("an app-declared package reference must not be reported as an issue: %+v", report.Checks)
 	}
-	if findCheck(report.Checks, maskinportenPackageCheckID, diskLevelInfo) == nil {
+	if findCheck(report.Checks, maskinportenPackageCheckID, CheckLevelInfo) == nil {
 		t.Fatalf("expected an info-level package check, got %+v", report.Checks)
 	}
 }

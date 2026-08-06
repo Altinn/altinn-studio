@@ -313,13 +313,13 @@ func doctorLevelRow(table *ui.Table, id, level, message, path string) {
 	}
 
 	switch level {
-	case "ok":
+	case doctorsvc.CheckLevelOK:
 		doctorKeyValueStatus(table, true, id, value)
-	case "info":
+	case doctorsvc.CheckLevelInfo:
 		doctorKeyValue(table, id, value)
-	case "warn":
+	case doctorsvc.CheckLevelWarn:
 		doctorKeyValueStatus(table, false, id, "WARN: "+value)
-	case "error":
+	case doctorsvc.CheckLevelError:
 		doctorKeyValueStatus(table, false, id, "ERROR: "+value)
 	default:
 		doctorKeyValue(table, id, value)

@@ -118,9 +118,11 @@ internal sealed class ExternalMaskinportenPackageDetector
             return false;
         }
 
+        // Descendants rather than direct ItemGroup children: a reference declared inside <Choose>/<When> or
+        // a <Target> is still a declaration, and treating it as absent would tell an app that builds fine
+        // that its build is about to break.
         return document
-                .Root?.Elements("ItemGroup")
-                .Elements("PackageReference")
+                .Root?.Descendants("PackageReference")
                 .Any(reference =>
                     string.Equals(reference.Attribute("Include")?.Value, PackageId, StringComparison.OrdinalIgnoreCase)
                 )

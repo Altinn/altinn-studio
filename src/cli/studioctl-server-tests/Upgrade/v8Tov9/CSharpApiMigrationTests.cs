@@ -1459,6 +1459,14 @@ public sealed class CSharpApiMigrationTests : IDisposable
             result.Warnings,
             w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler")
         );
+
+        // The eFormidling handler is not replaced by the Maskinporten client, so it must carry its own
+        // guidance rather than being swept into the IMaskinportenClient summary.
+        Assert.Contains(result.Warnings, w => w.Contains("AddEFormidlingServices2"));
+        Assert.DoesNotContain(
+            result.Warnings,
+            w => w.Contains("EformidlingStatusCheckEventHandler") && w.Contains("IMaskinportenClient")
+        );
     }
 
     /// <summary>
@@ -1585,6 +1593,35 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.False(result.ManualActionRequired);
         Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// A reference nested in <c>&lt;Choose&gt;/&lt;When&gt;</c> is still a declaration. Treating it as absent
+    /// would tell an app that builds fine that its build is about to break.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FindsAReferenceNestedBelowTheTopLevelItemGroup()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When Condition="'$(Configuration)' == 'Release'">
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
     }
 
     [Fact]

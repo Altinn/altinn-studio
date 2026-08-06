@@ -27,12 +27,15 @@ const (
 
 	// minWindowsVersionParts is the minimum number of parts in a Windows version string (major.minor.build).
 	minWindowsVersionParts = 3
+)
 
-	// Disk check levels.
-	diskLevelOK    = "ok"
-	diskLevelInfo  = "info"
-	diskLevelWarn  = "warn"
-	diskLevelError = "error"
+// Levels shared by every levelled report section (Disk, Maskinporten). Exported because the renderer in
+// the parent command package switches on them, and because they are part of the --json output contract.
+const (
+	CheckLevelOK    = "ok"
+	CheckLevelInfo  = "info"
+	CheckLevelWarn  = "warn"
+	CheckLevelError = "error"
 )
 
 var (

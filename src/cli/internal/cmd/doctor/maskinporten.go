@@ -95,7 +95,7 @@ func (s *Service) buildMaskinporten(app *App) *Maskinporten {
 	if len(checks) == 0 {
 		checks = append(checks, MaskinportenCheck{
 			ID:      maskinportenConfigCheckID,
-			Level:   diskLevelOK,
+			Level:   CheckLevelOK,
 			Path:    app.Path,
 			Message: "no conflicting MaskinportenSettings section",
 		})
@@ -103,7 +103,7 @@ func (s *Service) buildMaskinporten(app *App) *Maskinporten {
 
 	hasIssues := false
 	for _, check := range checks {
-		if check.Level == diskLevelWarn || check.Level == diskLevelError {
+		if check.Level == CheckLevelWarn || check.Level == CheckLevelError {
 			hasIssues = true
 			break
 		}
@@ -129,7 +129,7 @@ func (s *Service) collectMaskinportenConfigChecks(appRoot string) []Maskinporten
 		if external := matchingKeys(keys, isExternalOnlyMaskinportenKey); len(external) > 0 {
 			checks = append(checks, MaskinportenCheck{
 				ID:    maskinportenConfigCheckID,
-				Level: diskLevelError,
+				Level: CheckLevelError,
 				Path:  relative,
 				Message: "MaskinportenSettings configures the external client (" + strings.Join(external, ", ") +
 					"); the provisioned client owns this section name, so deployed environments will mix the " +
@@ -141,7 +141,7 @@ func (s *Service) collectMaskinportenConfigChecks(appRoot string) []Maskinporten
 		if secrets := matchingKeys(keys, isBuiltInMaskinportenSecretKey); len(secrets) > 0 {
 			checks = append(checks, MaskinportenCheck{
 				ID:    maskinportenConfigCheckID,
-				Level: diskLevelWarn,
+				Level: CheckLevelWarn,
 				Path:  relative,
 				Message: "MaskinportenSettings contains a checked-in key (" + strings.Join(secrets, ", ") +
 					"); Studio provisions these at deploy time, so this is usually redundant",
@@ -174,7 +174,7 @@ func (s *Service) checkExternalMaskinportenPackage(appRoot string) *Maskinporten
 
 	return &MaskinportenCheck{
 		ID:    maskinportenPackageCheckID,
-		Level: diskLevelInfo,
+		Level: CheckLevelInfo,
 		Path:  relative,
 		Message: "references the external Altinn.ApiClients.Maskinporten package; the built-in " +
 			"IMaskinportenClient is provisioned automatically and can usually replace it",
@@ -225,6 +225,12 @@ func readMaskinportenSectionKeys(path string) ([]string, bool) {
 		return nil, false
 	}
 
+	// Every case-insensitive match is merged rather than returning on the first: Go randomises map
+	// iteration, so a file carrying both "MaskinportenSettings" and "maskinportensettings" would
+	// otherwise report a different result run to run.
+	var keys []string
+	found := false
+
 	for name, raw := range root {
 		if strings.ToLower(name) != maskinportenSection {
 			continue
@@ -232,17 +238,16 @@ func readMaskinportenSectionKeys(path string) ([]string, bool) {
 
 		var section map[string]json.RawMessage
 		if err := json.Unmarshal(raw, &section); err != nil {
-			return nil, false
+			continue
 		}
 
-		keys := make([]string, 0, len(section))
+		found = true
 		for key := range section {
 			keys = append(keys, key)
 		}
-		return keys, true
 	}
 
-	return nil, false
+	return keys, found
 }
 
 func matchingKeys(keys []string, matches func(string) bool) []string {
