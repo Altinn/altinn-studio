@@ -8,22 +8,27 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IAttachment, TemporaryAttachment, UploadedAttachment } from 'src/features/attachments';
 import type { FileScanResult } from 'src/features/attachments/types';
 
-const mockUseAllAttachments = jest.fn();
-const mockUseHasPendingAttachments = jest.fn(() => false);
-const mockUseAttachmentState = jest.fn(() => ({ hasPending: false, state: 'ready' }));
+const mockUseAllAttachments = vi.fn();
+const mockUseHasPendingAttachments = vi.fn(() => false);
+const mockUseAttachmentState = vi.fn(() => ({ hasPending: false, state: 'ready' }));
 
-jest.mock('src/features/attachments/hooks/attachmentReadModel', () => ({
-  ...jest.requireActual('src/features/attachments/hooks/attachmentReadModel'),
-  AttachmentReadModel: {
-    ...jest.requireActual('src/features/attachments/hooks/attachmentReadModel').AttachmentReadModel,
-    useAllAttachments: () => mockUseAllAttachments(),
-    useHasPendingAttachments: () => mockUseHasPendingAttachments(),
-    useAttachmentState: () => mockUseAttachmentState(),
-    useAttachmentsSelector: jest.fn(),
-    useFailedAttachmentsFor: jest.fn(() => []),
-    useWaitUntilUploaded: jest.fn(),
-  },
-}));
+vi.mock('src/features/attachments/hooks/attachmentReadModel', async () => {
+  const actual = await vi.importActual<typeof import('src/features/attachments/hooks/attachmentReadModel')>(
+    'src/features/attachments/hooks/attachmentReadModel',
+  );
+  return {
+    ...actual,
+    AttachmentReadModel: {
+      ...actual.AttachmentReadModel,
+      useAllAttachments: () => mockUseAllAttachments(),
+      useHasPendingAttachments: () => mockUseHasPendingAttachments(),
+      useAttachmentState: () => mockUseAttachmentState(),
+      useAttachmentsSelector: vi.fn(),
+      useFailedAttachmentsFor: vi.fn(() => []),
+      useWaitUntilUploaded: vi.fn(),
+    },
+  };
+});
 
 describe('Form with Infected Files Integration', () => {
   const createInfectedAttachment = (filename = 'infected-file.pdf'): UploadedAttachment =>
@@ -63,7 +68,7 @@ describe('Form with Infected Files Integration', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('ErrorReport integration with infected files', () => {

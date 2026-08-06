@@ -43,4 +43,17 @@ public class UserServiceTests
         Assert.NotNull(result);
         Assert.Equal(expectedCanCreate, result.CanCreateOrgRepo);
     }
+
+    [Fact]
+    public async Task GetUserOrgPermission_UserProfile_ReturnsCreatePermissionWithoutFetchingTeams()
+    {
+        var userService = new UserService(_giteaClientMock.Object);
+        AltinnOrgEditingContext editingContext = AltinnOrgEditingContext.FromOrgDeveloper("developer", "developer");
+
+        var result = await userService.GetUserOrgPermission(editingContext);
+
+        Assert.True(result.CanCreateOrgRepo);
+        Assert.False(result.IsOrgOwner);
+        _giteaClientMock.Verify(client => client.GetTeams(), Times.Never);
+    }
 }

@@ -5,22 +5,18 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"altinn.studio/releaser/internal/changelog"
 	"altinn.studio/releaser/internal/perm"
 )
 
-var backportBranchVersionPattern = regexp.MustCompile(`^v(\d+)\.(\d+)$`)
-
 // BackportRequest describes the inputs for a backport operation.
 type BackportRequest struct {
 	Prompter      ConfirmationPrompter
 	Component     string // Component name (e.g., "studioctl")
 	Commit        string
-	Branch        string
+	Line          string
 	ChangelogPath string // Optional: override component's default changelog path
 	Open          bool
 	DryRun        bool
@@ -33,6 +29,7 @@ type backportConfig struct {
 	releaseBranch  string
 	backportBranch string
 	shortSHA       string
+	topology       RepositoryTopology
 	major          int
 	minor          int
 	openPR         bool
@@ -76,13 +73,13 @@ func RunBackportWithDeps(ctx context.Context, req BackportRequest, git *GitCLI, 
 		clPath = comp.ChangelogPath
 	}
 
-	repoRoot, err := git.RepoRoot(ctx)
+	repoRoot, current, err := resolveBackportRepoState(ctx, git)
 	if err != nil {
 		return err
 	}
-	current, err := git.CurrentBranch(ctx)
+	cfg.topology, err = resolveBackportTopology(ctx, git, gh, log)
 	if err != nil {
-		return fmt.Errorf("get current branch: %w", err)
+		return err
 	}
 
 	log.Step("Extracting changelog entries")
@@ -105,7 +102,8 @@ func RunBackportWithDeps(ctx context.Context, req BackportRequest, git *GitCLI, 
 		return err
 	}
 	if err = confirmNonMainBranch(req.Prompter, current, "backport",
-		"Will create and switch to "+cfg.backportBranch+" from latest origin/"+cfg.releaseBranch+".",
+		"Will create and switch to "+cfg.backportBranch+" from latest "+
+			cfg.topology.SourceRemote+"/"+cfg.releaseBranch+".",
 		"This changes your current branch context; cancel if you do not want to branch right now.",
 	); err != nil {
 		return err
@@ -130,6 +128,44 @@ func RunBackportWithDeps(ctx context.Context, req BackportRequest, git *GitCLI, 
 	log.Info("Commit %s (%s) has been backported to %s", cfg.shortSHA, cfg.commitMsg, cfg.releaseBranch)
 	logBackportNextSteps(ctx, git, log, cfg, clPath)
 	return nil
+}
+
+func resolveBackportTopology(
+	ctx context.Context,
+	git *GitCLI,
+	gh GitHubRunner,
+	log Logger,
+) (RepositoryTopology, error) {
+	topology, err := discoverRepositoryTopology(ctx, git, gh)
+	if err != nil {
+		return RepositoryTopology{
+			BaseRepository: Repository{NameWithOwner: "", URL: ""},
+			PushRepository: Repository{NameWithOwner: "", URL: ""},
+			SourceRemote:   "",
+			SourcePushURL:  "",
+			SourcePushURLs: 0,
+			PushRemote:     "",
+		}, err
+	}
+	log.Detail("Canonical repository", displayRepository(topology.BaseRepository))
+	log.Detail("Source remote", topology.SourceRemote)
+	log.Detail("Push remote", topology.PushRemote)
+	return topology, nil
+}
+
+func resolveBackportRepoState(
+	ctx context.Context,
+	git *GitCLI,
+) (repoRoot, currentBranch string, err error) {
+	repoRoot, err = git.RepoRoot(ctx)
+	if err != nil {
+		return "", "", err
+	}
+	currentBranch, err = git.CurrentBranch(ctx)
+	if err != nil {
+		return "", "", fmt.Errorf("get current branch: %w", err)
+	}
+	return repoRoot, currentBranch, nil
 }
 
 func logBackportPR(ctx context.Context, log Logger, openPR bool, prURL string) {
@@ -159,7 +195,13 @@ func logBackportNextSteps(
 ) {
 	nextPrepareVersion := fmt.Sprintf("v%d.%d.X", cfg.major, cfg.minor)
 	if resolved, err := resolveBackportPrepareVersion(
-		ctx, git, cfg.releaseBranch, changelogPath, cfg.major, cfg.minor,
+		ctx,
+		git,
+		cfg.topology.SourceRemote,
+		cfg.releaseBranch,
+		changelogPath,
+		cfg.major,
+		cfg.minor,
 	); err == nil {
 		nextPrepareVersion = resolved
 	} else {
@@ -168,10 +210,12 @@ func logBackportNextSteps(
 	log.Info("Next steps:")
 	log.Info("  1. Merge the backport PR targeting %s", cfg.releaseBranch)
 	log.Info(
-		"  2. Run: releaser prepare -component %s -version %s",
+		"  2. Run: releaser prepare -component %s -kind patch -line v%d.%d",
 		cfg.component.Name,
-		nextPrepareVersion,
+		cfg.major,
+		cfg.minor,
 	)
+	log.Info("     Resolved next patch version: %s", nextPrepareVersion)
 	log.Info("  3. Merge the release PR to trigger the release workflow")
 }
 
@@ -179,24 +223,14 @@ func parseBackportConfig(req BackportRequest, comp *Component) (*backportConfig,
 	if req.Commit == "" {
 		return nil, errBackportCommitRequired
 	}
-	if req.Branch == "" {
+	line := strings.TrimSpace(req.Line)
+	if line == "" {
 		return nil, errBackportBranchRequired
 	}
 
-	branchVer := req.Branch
-
-	matches := backportBranchVersionPattern.FindStringSubmatch(branchVer)
-	if matches == nil {
-		return nil, errBackportInvalidVersion
-	}
-
-	major, err := strconv.Atoi(matches[1])
+	major, minor, err := parseReleaseLine(line)
 	if err != nil {
-		return nil, errBackportInvalidVersion
-	}
-	minor, err := strconv.Atoi(matches[2])
-	if err != nil {
-		return nil, errBackportInvalidVersion
+		return nil, err
 	}
 
 	releaseBranch := comp.ReleaseBranch(major, minor)
@@ -206,7 +240,7 @@ func parseBackportConfig(req BackportRequest, comp *Component) (*backportConfig,
 		shortSHA = shortSHA[:backportShortSHALen]
 	}
 
-	backportBranch := comp.BackportBranch(branchVer, req.Commit)
+	backportBranch := comp.BackportBranch(line, req.Commit)
 
 	return &backportConfig{
 		component:      comp,
@@ -215,22 +249,30 @@ func parseBackportConfig(req BackportRequest, comp *Component) (*backportConfig,
 		releaseBranch:  releaseBranch,
 		backportBranch: backportBranch,
 		shortSHA:       shortSHA,
-		major:          major,
-		minor:          minor,
-		openPR:         req.Open,
-		dryRun:         req.DryRun,
+		topology: RepositoryTopology{
+			BaseRepository: Repository{NameWithOwner: "", URL: ""},
+			PushRepository: Repository{NameWithOwner: "", URL: ""},
+			SourceRemote:   "",
+			SourcePushURL:  "",
+			SourcePushURLs: 0,
+			PushRemote:     "",
+		},
+		major:  major,
+		minor:  minor,
+		openPR: req.Open,
+		dryRun: req.DryRun,
 	}, nil
 }
 
 func resolveBackportPrepareVersion(
 	ctx context.Context,
 	git *GitCLI,
-	releaseBranch, changelogPath string,
+	sourceRemote, releaseBranch, changelogPath string,
 	major, minor int,
 ) (string, error) {
 	// Hint generation should not pollute the user-visible command stream.
 	hintGit := NewGitCLI(WithWorkdir(git.workdir), WithLogger(NopLogger{}))
-	content, err := readRemoteFile(ctx, hintGit, releaseBranch, changelogPath)
+	content, err := readRemoteFile(ctx, hintGit, sourceRemote, releaseBranch, changelogPath)
 	if err != nil {
 		return "", fmt.Errorf("read changelog from %s: %w", releaseBranch, err)
 	}
@@ -296,7 +338,13 @@ func executeBackport(
 	cfg *backportConfig,
 	entries []changelog.Entry,
 ) (string, error) {
-	if err := prepareBackportBranch(ctx, git, cfg.releaseBranch, cfg.backportBranch); err != nil {
+	if err := prepareBackportBranch(
+		ctx,
+		git,
+		cfg.topology.SourceRemote,
+		cfg.releaseBranch,
+		cfg.backportBranch,
+	); err != nil {
 		return "", err
 	}
 	if err := applyBackportChanges(ctx, git, log, repoRoot, clPath, cfg.commit, entries); err != nil {
@@ -306,17 +354,27 @@ func executeBackport(
 	if err := commitBackport(ctx, git, cfg.shortSHA, cfg.commitMsg, cfg.commit, clPath); err != nil {
 		return "", err
 	}
-	if err := pushBackportBranch(ctx, git, cfg.backportBranch); err != nil {
+	if err := pushBackportBranch(ctx, git, cfg.topology.PushRemote, cfg.backportBranch); err != nil {
 		return "", err
 	}
 	return createBackportPR(ctx, gh, cfg)
 }
 
-func prepareBackportBranch(ctx context.Context, git *GitCLI, releaseBranch, backportBranch string) error {
-	if err := git.RunWrite(ctx, "fetch", "origin", releaseBranch); err != nil {
+func prepareBackportBranch(
+	ctx context.Context,
+	git *GitCLI,
+	sourceRemote, releaseBranch, backportBranch string,
+) error {
+	if err := git.RunWrite(ctx, "fetch", sourceRemote, releaseBranch); err != nil {
 		return fmt.Errorf("fetch release branch: %w", err)
 	}
-	if err := git.RunWrite(ctx, "checkout", "-b", backportBranch, "origin/"+releaseBranch); err != nil {
+	if err := git.RunWrite(
+		ctx,
+		"checkout",
+		"-b",
+		backportBranch,
+		sourceRemote+"/"+releaseBranch,
+	); err != nil {
 		return fmt.Errorf("create backport branch: %w", err)
 	}
 	return nil
@@ -422,8 +480,8 @@ func commitBackport(ctx context.Context, git *GitCLI, shortSHA, originalMsg, com
 	return nil
 }
 
-func pushBackportBranch(ctx context.Context, git *GitCLI, backportBranch string) error {
-	if err := git.RunWrite(ctx, "push", "-u", "origin", backportBranch); err != nil {
+func pushBackportBranch(ctx context.Context, git *GitCLI, pushRemote, backportBranch string) error {
+	if err := git.RunWrite(ctx, "push", "-u", pushRemote, backportBranch); err != nil {
 		return fmt.Errorf("git push: %w", err)
 	}
 	return nil
@@ -438,10 +496,12 @@ func createBackportPR(ctx context.Context, gh GitHubRunner, cfg *backportConfig)
 		cfg.commitMsg,
 	)
 	prURL, err := gh.CreatePR(ctx, PullRequestOptions{
-		Title: prTitle,
-		Body:  prBody,
-		Label: backportLabel,
-		Base:  cfg.releaseBranch,
+		Title:      prTitle,
+		Body:       prBody,
+		Label:      backportLabel,
+		Base:       cfg.releaseBranch,
+		Head:       cfg.topology.pullRequestHead(cfg.backportBranch),
+		Repository: cfg.topology.BaseRepository.NameWithOwner,
 	})
 	if err != nil {
 		return "", fmt.Errorf("create PR: %w", err)
@@ -453,10 +513,11 @@ func printBackportDryRun(log Logger, cfg *backportConfig, entries []changelog.En
 	log.Info("=== DRY RUN ===")
 	log.Info("Would cherry-pick commit: %s (%s)", cfg.shortSHA, cfg.commitMsg)
 	log.Info("Would target branch: %s", cfg.releaseBranch)
+	log.Info("Would use source branch: %s/%s", cfg.topology.SourceRemote, cfg.releaseBranch)
 	log.Info("Would create backport branch: %s", cfg.backportBranch)
 	logChangelogEntries(log, entries)
 	log.Info("Would create commit: Backport %s: %s", cfg.shortSHA, cfg.commitMsg)
-	log.Info("Would push to origin/%s", cfg.backportBranch)
+	log.Info("Would push to %s/%s", cfg.topology.PushRemote, cfg.backportBranch)
 	log.Info(
 		"Would create PR: chore: backport %s to v%d.%d (label: %s)",
 		cfg.shortSHA,

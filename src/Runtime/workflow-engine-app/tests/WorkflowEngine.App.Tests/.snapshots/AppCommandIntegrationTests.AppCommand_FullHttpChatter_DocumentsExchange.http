@@ -32,6 +32,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-1",
               "payload": "step-1-payload"
@@ -45,6 +46,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "app",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "commandKey": "chatter-step-2",
               "payload": "step-2-payload"
@@ -100,7 +102,13 @@ Workflow-Id: Guid_3
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-1-payload",
   "workflowId": "Guid_3",
-  "state": "initial-workflow-state"
+  "stepId": "Guid_4",
+  "state": "initial-workflow-state",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
+  "deferCount": 0,
+  "firstDeferredAt": null,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200
@@ -133,7 +141,13 @@ Workflow-Id: Guid_3
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-2-payload",
   "workflowId": "Guid_3",
-  "state": "step-1-result"
+  "stepId": "Guid_5",
+  "state": "step-1-result",
+  "retryCount": 0,
+  "executionDeadline": "{Scrubbed}",
+  "deferCount": 0,
+  "firstDeferredAt": null,
+  "waitDeadline": null
 }
 
 HTTP/1.1 200
@@ -180,6 +194,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-1-result"
     },
     {
@@ -192,6 +207,7 @@ Content-Type: application/json; charset=utf-8
       },
       "status": "Completed",
       "retryCount": 0,
+      "deferCount": 0,
       "stateOut": "step-2-result"
     }
   ]

@@ -6,14 +6,16 @@ import userEvent from '@testing-library/user-event';
 import { AltinnCollapsible, AltinnCollapsibleList } from 'src/components/AltinnCollapsible';
 
 // Mock the CSS module
-jest.mock('src/components/AltinnCollapsible.module.css', () => ({
-  collapsible: 'collapsible-class',
-  collapsibleClosed: 'collapsible-closed-class',
+vi.mock('src/components/AltinnCollapsible.module.css', () => ({
+  default: {
+    collapsible: 'collapsible-class',
+    collapsibleClosed: 'collapsible-closed-class',
+  },
 }));
 
 describe('AltinnCollapsible', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render children when open is true', () => {
@@ -46,12 +48,12 @@ describe('AltinnCollapsible', () => {
 });
 
 describe('AltinnCollapsibleList', () => {
-  const mockOnClickExpand = jest.fn();
+  const mockOnClickExpand = vi.fn();
   const listHeaderText = 'List Header';
   const childrenText = 'Collapsible Content';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render list header and children correctly when open', () => {

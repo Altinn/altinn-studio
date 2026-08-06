@@ -4,6 +4,7 @@ All notable changes to studioctl will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Entries should describe only user-facing functionality in clear, user-friendly language; omit implementation details that do not affect how people use the product.
 Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
@@ -12,13 +13,25 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Auto-migrate the Correspondence APIs removed in v9 in `studioctl app upgrade v9`: drop the builder calls and properties v8 already discarded, rename `CustomRecipient` to the `CustomRecipients` list, rename the removed builder step interface, wrap a byte payload passed to `WithData` in a `MemoryStream`, and replace the two superseded payload constructors with `CorrespondenceAuthenticationMethod`. Every rewrite is listed for review.
 - Warn in `studioctl app upgrade v9` about the Correspondence changes that have no mechanical fix — the recipient-override methods, the wrapper-based recipient list, and `IsReserved` — plus anything the auto-migration could not rewrite safely.
-- Remove redundant `showBackButton: true` properties from `NavigationButtons` components during `studioctl app upgrade v9`, while preserving explicit `false` values.
+
+### Changed
+
+- Update the workflow-engine image used by `studioctl env up` to a version with durable-yield support: service tasks can wait for external outcomes (for example a delivery confirmation) without occupying a worker or being treated as failures.
+- Refuse to start `studioctl app upgrade` when the git repository has local changes, so the upgrade lands as one clean reviewable changeset.
 - Rename `OrganisationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
+- Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
+- Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
+- Remove redundant `showBackButton: true` properties from `NavigationButtons` components during `studioctl app upgrade v9`, while preserving explicit `false` values.
 
 ### Changed
 
 - Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
+
+### Fixed
+
+- Keep subforms identifiable when running `studioctl app upgrade v9`.
+- Prefer the latest stable v9 app packages in `studioctl app upgrade v9`, falling back to the latest preview until a stable version is available.
 
 ## [0.1.0-preview.18] - 2026-07-24
 

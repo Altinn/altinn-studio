@@ -144,7 +144,8 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
 }
 
 /**
- * @see instanceSelectionLoader Contains somewhat similar error handling logic in the route loader.
+ * @see src/routes/instance-selection/instance-selection.loader.ts Contains somewhat similar error
+ * handling logic in the route loader.
  */
 export function ErrorListFromInstantiation({ error }: { error: unknown }) {
   const selectedParty = useSelectedParty();

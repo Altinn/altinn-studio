@@ -79,6 +79,7 @@ internal sealed record WorkflowEngineTestFixture(
 
         services.AddSingleton<ICommand, WebhookCommand>();
         services.AddSingleton<ICommandRegistry, CommandRegistry>();
+        services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
         configureServices?.Invoke(services);

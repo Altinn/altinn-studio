@@ -394,6 +394,7 @@ internal static class DashboardEndpoints
                                     "COMPLETED" => PersistentItemStatus.Completed,
                                     "FAILED" => PersistentItemStatus.Failed,
                                     "REQUEUED" => PersistentItemStatus.Requeued,
+                                    "WAITING" => PersistentItemStatus.Waiting,
                                     "ENQUEUED" => PersistentItemStatus.Enqueued,
                                     "PROCESSING" => PersistentItemStatus.Processing,
                                     "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
@@ -658,7 +659,7 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapPost(
-                "/dashboard/skip-backoff",
+                "/dashboard/nudge",
                 async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
                     using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
@@ -681,17 +682,20 @@ internal static class DashboardEndpoints
 
                     string ns = nsProp2.GetString() ?? throw new UnreachableException();
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var engine = scope.ServiceProvider.GetRequiredService<IEngine>();
 
-                    bool updated = await repo.SkipBackoff(workflowId, ns, ct);
-                    if (updated)
-                        return Results.Ok();
+                    // Same primitive as POST /api/v1/{ns}/workflows/{id}/nudge — routed through the
+                    // engine rather than the repository so the dashboard button also wakes the
+                    // processor immediately instead of waiting for its next poll tick.
+                    var result = await engine.NudgeWorkflow(workflowId, ns, ct);
 
-                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ns, ct);
-                    if (status is null)
-                        return Results.NotFound();
-
-                    return Results.Conflict($"Workflow is in {status} state");
+                    return result switch
+                    {
+                        NudgeWorkflowResult.Nudged or NudgeWorkflowResult.AlreadyRunnable => Results.Ok(),
+                        NudgeWorkflowResult.NotFound => Results.NotFound(),
+                        NudgeWorkflowResult.NotParked r => Results.Conflict($"Workflow is in {r.CurrentStatus} state"),
+                        _ => throw new UnreachableException(),
+                    };
                 }
             )
             .ExcludeFromDescription();

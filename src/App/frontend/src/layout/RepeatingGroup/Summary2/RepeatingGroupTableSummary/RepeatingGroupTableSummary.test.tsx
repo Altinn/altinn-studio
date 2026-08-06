@@ -27,7 +27,7 @@ interface LayoutOptions {
 
 describe('RepeatingGroupTableSummary', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const createLayout = ({
@@ -181,7 +181,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should focus the first input when clicking the edit button', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({ navigate });
 
     // Find the edit button and click it
@@ -194,7 +194,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should focus the next input when the first input is hidden', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({ navigate, layout: createLayout({ hidden: ['input3'] }) });
 
     // Find the edit button and click it
@@ -207,7 +207,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should focus the last input when the other two are hidden', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({ navigate, layout: createLayout({ hidden: ['input3', 'input1'] }) });
 
     // Find the edit button and click it
@@ -220,7 +220,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should focus the repeating group itself when all inputs are hidden', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({ navigate, layout: createLayout({ hidden: ['input1', 'input2', 'input3'] }) });
 
     // Find the edit button and click it
@@ -255,7 +255,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should handle nested child component inside group when editing', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({ navigate, layout: layoutWithNestedGroupChild() });
 
     const editButton = screen.getByRole('button', { name: /endre/i });
@@ -273,7 +273,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should navigate to first editable (non-readOnly) field on edit click', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({
       navigate,
       layout: createLayout({ editButton: true, tableHeaders: ['input1'], readOnly: { input1: true } }),
@@ -287,7 +287,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should navigate to first editable field when readOnly is an expression that evaluates to true', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({
       navigate,
       layout: createLayout({
@@ -305,7 +305,7 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should navigate to repeating group when all fields are readOnly', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
+    const navigate = vi.fn();
     await render({
       navigate,
       layout: createLayout({ editButton: true, readOnly: { input1: true, input2: true, input3: true } }),
@@ -320,9 +320,8 @@ describe('RepeatingGroupTableSummary', () => {
   });
 
   test('should render row error in matching column cell', async () => {
-    jest
-      .spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode')
-      .mockImplementation((_baseComponentId, _includeSelf, restriction) =>
+    vi.spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode').mockImplementation(
+      (_baseComponentId, _includeSelf, restriction) =>
         restriction === 0
           ? ([
               {
@@ -332,16 +331,15 @@ describe('RepeatingGroupTableSummary', () => {
               },
             ] as never)
           : ([] as never),
-      );
+    );
     await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
     const errorMessage = screen.getByText('Error.for.input2');
     expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 2');
   });
 
   test('should render unmapped row error in first visible column cell', async () => {
-    jest
-      .spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode')
-      .mockImplementation((_baseComponentId, _includeSelf, restriction) =>
+    vi.spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode').mockImplementation(
+      (_baseComponentId, _includeSelf, restriction) =>
         restriction === 0
           ? ([
               {
@@ -351,20 +349,20 @@ describe('RepeatingGroupTableSummary', () => {
               },
             ] as never)
           : ([] as never),
-      );
+    );
     await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
     const errorMessage = screen.getByText('Error.unmapped');
     expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 1');
   });
 
   type IRenderProps = {
-    navigate?: jest.Mock;
+    navigate?: Mock;
     layout?: ILayoutCollection;
   };
 
   const render = async ({ navigate, layout = createLayout() }: IRenderProps = {}) => {
     if (navigate) {
-      jest.spyOn(useNavigatePageModule, 'useNavigateToComponent').mockReturnValue(navigate);
+      vi.spyOn(useNavigatePageModule, 'useNavigateToComponent').mockReturnValue(navigate);
     }
 
     window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
@@ -397,3 +395,4 @@ describe('RepeatingGroupTableSummary', () => {
     });
   };
 });
+import type { Mock } from 'vitest';

@@ -16,9 +16,9 @@ import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
 let mockTextResourcesValue: TextResourceMap = {};
 
 type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
-  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
-  useTextResources: jest.fn(() => mockTextResourcesValue),
+vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
+  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
+  useTextResources: vi.fn(() => mockTextResourcesValue),
 }));
 
 describe('Form', () => {
@@ -240,14 +240,14 @@ describe('Form', () => {
   });
 
   it('should not throw warning in console when page id and value are the same', async () => {
-    const logWarnOnceSpy = jest.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
+    const logWarnOnceSpy = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
     await render({ layoutTextValue: mockLayoutId });
     expect(logWarnOnceSpy).not.toHaveBeenCalled();
     logWarnOnceSpy.mockRestore();
   });
 
   it('should warn when layout does not have a text resource for the page id', async () => {
-    const logWarnOnceSpy = jest.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
+    const logWarnOnceSpy = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
     await render({ layoutTextId: 'otherId' });
     expect(logWarnOnceSpy).toHaveBeenCalledWith(expect.stringContaining('You have not set a page title for this page'));
     logWarnOnceSpy.mockRestore();
