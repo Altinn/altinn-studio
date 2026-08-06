@@ -1,45 +1,60 @@
 import { renderHook } from '@testing-library/react';
 import { useWebSocket } from './useWebSocket';
-import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { getHubConnection } from 'app-shared/websockets/getHubConnection';
 
-const clientsNameMock = ['MessageClientOne', 'MessageClientTwo'];
+jest.mock('app-shared/websockets/getHubConnection');
 
-jest.mock('app-shared/websockets/WSConnector', () => ({
-  WSConnector: {
-    getInstance: jest.fn().mockReturnValue({
-      onMessageReceived: jest.fn(),
-    }),
-  },
-}));
+const webSocketUrl = 'ws://jest-test-mocked-url.com';
+const otherWebSocketUrl = 'ws://jest-test-other-url.com';
+const methodNames = ['MessageClientOne', 'MessageClientTwo'];
+
+const createConnectionMock = () => ({ on: jest.fn(), off: jest.fn() });
+
+const renderUseWebSocket = (onWSMessageReceived = jest.fn(), webSocketUrls = [webSocketUrl]) =>
+  renderHook(() => useWebSocket({ webSocketUrls, methodNames, onWSMessageReceived }));
 
 describe('useWebSocket', () => {
-  it('should create web socket connection with provided webSocketUrl', () => {
-    renderHook(() =>
-      useWebSocket({
-        webSocketUrls: ['ws://jest-test-mocked-url.com'],
-        clientsName: clientsNameMock,
-        webSocketConnector: WSConnector,
-        onWSMessageReceived: jest.fn(),
-      }),
-    );
-    expect(WSConnector.getInstance).toHaveBeenCalledWith(
-      ['ws://jest-test-mocked-url.com'],
-      ['MessageClientOne', 'MessageClientTwo'],
-    );
+  afterEach(jest.clearAllMocks);
+
+  it('registers each method name on the connection for the url', () => {
+    const connection = createConnectionMock();
+    (getHubConnection as jest.Mock).mockReturnValue(connection);
+    const callback = jest.fn();
+
+    renderUseWebSocket(callback);
+
+    expect(getHubConnection).toHaveBeenCalledWith(webSocketUrl);
+    expect(connection.on).toHaveBeenCalledWith('MessageClientOne', callback);
+    expect(connection.on).toHaveBeenCalledWith('MessageClientTwo', callback);
   });
 
-  it('should provide a function to listen to messages', () => {
+  it('registers each method name on the connection for every url', () => {
+    const connectionsByUrl: Record<string, ReturnType<typeof createConnectionMock>> = {
+      [webSocketUrl]: createConnectionMock(),
+      [otherWebSocketUrl]: createConnectionMock(),
+    };
+    (getHubConnection as jest.Mock).mockImplementation((url: string) => connectionsByUrl[url]);
     const callback = jest.fn();
-    renderHook(() =>
-      useWebSocket({
-        webSocketUrls: ['ws://jest-test-mocked-url.com'],
-        clientsName: clientsNameMock,
-        webSocketConnector: WSConnector,
-        onWSMessageReceived: callback,
-      }),
-    );
-    expect(
-      WSConnector.getInstance(['ws://jest-test-mocked-url.com'], clientsNameMock).onMessageReceived,
-    ).toHaveBeenCalledWith(callback);
+
+    renderUseWebSocket(callback, [webSocketUrl, otherWebSocketUrl]);
+
+    expect(getHubConnection).toHaveBeenCalledWith(webSocketUrl);
+    expect(getHubConnection).toHaveBeenCalledWith(otherWebSocketUrl);
+    methodNames.forEach((methodName) => {
+      expect(connectionsByUrl[webSocketUrl].on).toHaveBeenCalledWith(methodName, callback);
+      expect(connectionsByUrl[otherWebSocketUrl].on).toHaveBeenCalledWith(methodName, callback);
+    });
+  });
+
+  it('removes each handler on unmount', () => {
+    const connection = createConnectionMock();
+    (getHubConnection as jest.Mock).mockReturnValue(connection);
+    const callback = jest.fn();
+
+    const { unmount } = renderUseWebSocket(callback);
+    unmount();
+
+    expect(connection.off).toHaveBeenCalledWith('MessageClientOne', callback);
+    expect(connection.off).toHaveBeenCalledWith('MessageClientTwo', callback);
   });
 });

@@ -1,174 +1,135 @@
-import { renderHook } from '@testing-library/react';
-import type { WorkflowEvent } from '@studio/assistant';
+import { renderHook, act } from '@testing-library/react';
+import type { WorkflowEvent, WorkflowRequest } from '@studio/assistant';
 import { useAltinityWebSocket } from './useAltinityWebSocket';
-import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { getHubConnection } from 'app-shared/websockets/getHubConnection';
 
-const mockInvoke = jest.fn();
-// A fresh connection object per test: the hook registers its dispatcher once
-// per connection (WeakSet), so reusing one object across tests would leak
-// registration state between them.
-let mockConnection: { on: jest.Mock; off: jest.Mock; invoke: jest.Mock };
-let mockConnections: Array<typeof mockConnection>;
+jest.mock('app-shared/websockets/getHubConnection');
 
-jest.mock('app-shared/websockets/WSConnector', () => ({
-  WSConnector: {
-    getInstance: jest.fn(() => ({
-      get connections() {
-        return mockConnections;
-      },
-    })),
-  },
-}));
+const invoke = jest.fn();
+let connection: { on: jest.Mock; off: jest.Mock; invoke: jest.Mock };
 
-const mockGetInstance = WSConnector.getInstance as jest.Mock;
+const getRegisteredHandler = () =>
+  connection.on.mock.calls[0][1] as (message: WorkflowEvent) => void;
+const renderUseAltinityWebSocket = () => renderHook(() => useAltinityWebSocket());
+
+const agentMessage: WorkflowEvent = {
+  type: 'assistant_message',
+  session_id: 'thread-1',
+  data: { content: 'Svar' },
+};
+
+const workflowRequest: WorkflowRequest = {
+  session_id: 'thread-1',
+  goal: 'hei',
+  org: 'testOrg',
+  app: 'testApp',
+  branch: 'main',
+  allow_app_changes: true,
+};
 
 describe('useAltinityWebSocket', () => {
   beforeEach(() => {
-    mockConnection = { on: jest.fn(), off: jest.fn(), invoke: mockInvoke };
-    mockConnections = [mockConnection];
+    connection = { on: jest.fn(), off: jest.fn(), invoke };
+    (getHubConnection as jest.Mock).mockReturnValue(connection);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(jest.clearAllMocks);
 
-  it('acquires the shared hub connection and reports connected', () => {
+  it('subscribes to ReceiveAgentMessage and reports connected', () => {
     const { result } = renderUseAltinityWebSocket();
 
-    expect(mockGetInstance).toHaveBeenCalledWith(expect.any(Array), ['ReceiveAgentMessage']);
-    expect(mockConnection.on).toHaveBeenCalledWith('ReceiveAgentMessage', expect.any(Function));
+    expect(connection.on).toHaveBeenCalledWith('ReceiveAgentMessage', expect.any(Function));
     expect(result.current.connectionStatus).toBe('connected');
   });
 
-  it('registers a single dispatcher even when the hook mounts twice', () => {
-    renderUseAltinityWebSocket();
-    renderUseAltinityWebSocket();
-
-    expect(mockConnection.on).toHaveBeenCalledTimes(1);
-  });
-
-  it('never detaches the shared handler on unmount', () => {
+  it('removes its own handler on unmount', () => {
     const { unmount } = renderUseAltinityWebSocket();
+    const handler = getRegisteredHandler();
+
     unmount();
 
-    expect(mockConnection.off).not.toHaveBeenCalled();
+    expect(connection.off).toHaveBeenCalledWith('ReceiveAgentMessage', handler);
   });
 
-  it('keeps delivering messages to a second mount after the first unmounts', () => {
-    const { unmount: unmountFirst } = renderUseAltinityWebSocket();
+  it('delivers agent messages to the registered callback', () => {
     const { result } = renderUseAltinityWebSocket();
     const received: WorkflowEvent[] = [];
-    result.current.onAgentMessage((message) => received.push(message));
-    unmountFirst();
+    act(() => result.current.onAgentMessage((message) => received.push(message)));
 
-    const dispatch = mockConnection.on.mock.calls[0][1];
-    const event: WorkflowEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-1',
-      data: { content: 'Svar' },
-    };
-    dispatch(event);
+    act(() => getRegisteredHandler()(agentMessage));
 
-    expect(received).toEqual([event]);
-  });
-
-  it('keeps delivering to other subscribers when one of them throws', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { result: first } = renderUseAltinityWebSocket();
-    const { result: second } = renderUseAltinityWebSocket();
-    first.current.onAgentMessage(() => {
-      throw new Error('subscriber crashed');
-    });
-    const received: WorkflowEvent[] = [];
-    second.current.onAgentMessage((message) => received.push(message));
-
-    const dispatch = mockConnection.on.mock.calls[0][1];
-    const event: WorkflowEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-1',
-      data: { content: 'Svar' },
-    };
-    dispatch(event);
-
-    expect(received).toEqual([event]);
-    expect(consoleErrorSpy).toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
+    expect(received).toEqual([agentMessage]);
   });
 
   it('filters out the "session created" status noise', () => {
     const { result } = renderUseAltinityWebSocket();
     const received: WorkflowEvent[] = [];
-    result.current.onAgentMessage((message) => received.push(message));
+    act(() => result.current.onAgentMessage((message) => received.push(message)));
 
-    const dispatch = mockConnection.on.mock.calls[0][1];
-    dispatch({
-      type: 'workflow_status',
-      session_id: 'thread-1',
-      data: { message: 'Session created' },
-    });
+    act(() =>
+      getRegisteredHandler()({
+        type: 'workflow_status',
+        session_id: 'thread-1',
+        data: { message: 'Session created' },
+      }),
+    );
 
     expect(received).toEqual([]);
   });
 
-  describe('respondToPermission', () => {
-    it('sends the permission response over the hub connection', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAltinityWebSocket();
+  it('sends a permission response over the connection', async () => {
+    invoke.mockResolvedValue(undefined);
+    const { result } = renderUseAltinityWebSocket();
 
-      await result.current.respondToPermission('session-1', 'request-1', true);
+    await result.current.respondToPermission('session-1', 'request-1', true);
 
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'RespondToPermission',
-        'session-1',
-        'request-1',
-        true,
-      );
-    });
-
-    it('rethrows when the hub invocation fails', async () => {
-      mockInvoke.mockRejectedValue(new Error('Hub disconnected'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      const { result } = renderUseAltinityWebSocket();
-
-      await expect(
-        result.current.respondToPermission('session-1', 'request-1', false),
-      ).rejects.toThrow('Hub disconnected');
-
-      consoleError.mockRestore();
-    });
-
-    it('throws when there is no active hub connection', async () => {
-      mockConnections = [];
-      const { result } = renderUseAltinityWebSocket();
-
-      await expect(
-        result.current.respondToPermission('session-1', 'request-1', true),
-      ).rejects.toThrow('No active SignalR connection to Altinity hub');
-      expect(mockInvoke).not.toHaveBeenCalled();
-    });
+    expect(invoke).toHaveBeenCalledWith('RespondToPermission', 'session-1', 'request-1', true);
   });
 
-  describe('cancelWorkflow', () => {
-    it('sends the cancellation over the hub connection', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAltinityWebSocket();
+  it('cancels a workflow over the connection', async () => {
+    invoke.mockResolvedValue(undefined);
+    const { result } = renderUseAltinityWebSocket();
 
-      await result.current.cancelWorkflow('session-1');
+    await result.current.cancelWorkflow('session-1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('CancelWorkflow', 'session-1');
-    });
+    expect(invoke).toHaveBeenCalledWith('CancelWorkflow', 'session-1');
   });
 
-  describe('registerSession', () => {
-    it('registers the session over the hub connection', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAltinityWebSocket();
+  it('registers a session over the connection', async () => {
+    invoke.mockResolvedValue(undefined);
+    const { result } = renderUseAltinityWebSocket();
 
-      await result.current.registerSession('testOrg', 'testApp', 'thread-1');
+    await result.current.registerSession('testOrg', 'testApp', 'thread-1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('RegisterSession', 'testOrg', 'testApp', 'thread-1');
-    });
+    expect(invoke).toHaveBeenCalledWith('RegisterSession', 'testOrg', 'testApp', 'thread-1');
+  });
+
+  it('logs and rethrows when a hub invocation fails', async () => {
+    const failure = new Error('Hub disconnected');
+    invoke.mockRejectedValue(failure);
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderUseAltinityWebSocket();
+
+    await expect(
+      result.current.respondToPermission('session-1', 'request-1', true),
+    ).rejects.toThrow(failure);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to respond to permission request:',
+      failure,
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('logs and rethrows when starting a workflow fails', async () => {
+    const failure = new Error('Hub disconnected');
+    invoke.mockRejectedValue(failure);
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderUseAltinityWebSocket();
+
+    await expect(result.current.startWorkflow(workflowRequest)).rejects.toThrow(failure);
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to start workflow:', failure);
+
+    consoleErrorSpy.mockRestore();
   });
 });
-
-const renderUseAltinityWebSocket = () => renderHook(() => useAltinityWebSocket());

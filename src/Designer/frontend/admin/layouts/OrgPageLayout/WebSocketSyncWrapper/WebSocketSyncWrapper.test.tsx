@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { act, render } from '@testing-library/react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';
-import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
@@ -64,9 +63,8 @@ describe('WebSocketSyncWrapper', () => {
     renderWebSocketSyncWrapper();
 
     expect(useWebSocket).toHaveBeenCalledWith({
-      clientsName: ['AlertsUpdated'],
+      methodNames: ['AlertsUpdated'],
       webSocketUrls: [syncAlertsUpdateWebSocketHub()],
-      webSocketConnector: WSConnector,
       onWSMessageReceived: expect.any(Function),
     });
   });

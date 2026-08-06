@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
-import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { toast } from 'react-toastify';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,12 +12,12 @@ import { useLayoutContext } from '../../contexts/LayoutContext';
 import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
 import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
 
-enum SyncClientsName {
+enum SyncMethodName {
   FileSyncSuccess = 'FileSyncSuccess',
   FileSyncError = 'FileSyncError',
 }
 
-enum SyncEntityClientName {
+enum SyncEntityMethodName {
   EntityUpdated = 'EntityUpdated',
 }
 
@@ -45,12 +44,11 @@ export const WebSocketSyncWrapper = ({
 
   useWebSocket({
     webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
-    clientsName: [
-      SyncClientsName.FileSyncSuccess,
-      SyncClientsName.FileSyncError,
-      SyncEntityClientName.EntityUpdated,
+    methodNames: [
+      SyncMethodName.FileSyncSuccess,
+      SyncMethodName.FileSyncError,
+      SyncEntityMethodName.EntityUpdated,
     ],
-    webSocketConnector: WSConnector,
     onWSMessageReceived: (message: SyncError | SyncSuccess | EntityUpdated): void => {
       if ('resourceName' in message) {
         entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);

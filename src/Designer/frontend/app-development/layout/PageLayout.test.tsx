@@ -9,7 +9,6 @@ import { repoStatus } from 'app-shared/mocks/mocks';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared/api/paths';
-import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
@@ -107,9 +106,8 @@ describe('PageLayout', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(useWebSocket).toHaveBeenCalledWith({
-      clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
+      methodNames: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
       webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
-      webSocketConnector: WSConnector,
       onWSMessageReceived: expect.any(Function),
     });
   });

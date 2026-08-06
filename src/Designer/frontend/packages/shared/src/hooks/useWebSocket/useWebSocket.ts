@@ -1,22 +1,25 @@
-import { useEffect, useRef } from 'react';
-import { type WSConnector } from 'app-shared/websockets/WSConnector';
+import { useEffect } from 'react';
+import { getHubConnection } from 'app-shared/websockets/getHubConnection';
 
 type UseWebsocket<T> = {
   webSocketUrls: Array<string>;
-  clientsName: Array<string>;
-  webSocketConnector: typeof WSConnector;
+  methodNames: Array<string>;
   onWSMessageReceived: (message: T) => void;
 };
 
 export const useWebSocket = <T>({
   webSocketUrls,
-  clientsName,
-  webSocketConnector,
+  methodNames,
   onWSMessageReceived,
 }: UseWebsocket<T>): void => {
-  const wsConnectionRef = useRef<WSConnector | null>(null);
   useEffect(() => {
-    wsConnectionRef.current = webSocketConnector.getInstance(webSocketUrls, clientsName);
-    wsConnectionRef.current?.onMessageReceived(onWSMessageReceived);
-  }, [webSocketConnector, webSocketUrls, clientsName, onWSMessageReceived]);
+    const unsubscribers = webSocketUrls.flatMap((webSocketUrl) => {
+      const connection = getHubConnection(webSocketUrl);
+      return methodNames.map((methodName) => {
+        connection.on(methodName, onWSMessageReceived);
+        return () => connection.off(methodName, onWSMessageReceived);
+      });
+    });
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+  }, [webSocketUrls, methodNames, onWSMessageReceived]);
 };
