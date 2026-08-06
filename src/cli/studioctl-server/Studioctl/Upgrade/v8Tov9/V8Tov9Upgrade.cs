@@ -124,6 +124,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsCollision(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -367,7 +370,9 @@ internal static class V8Tov9Upgrade
                 new ServiceTaskResultApiDetector(scanner).Detect(),
                 new LegacyEFormidlingCodeDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
-                new LegacyCorrespondenceCodeDetector(scanner).Detect()
+                new LegacyCorrespondenceCodeDetector(scanner).Detect(),
+                new RemovedMaskinportenShimDetector(scanner).Detect(),
+                new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect()
             );
 
             foreach (var warning in result.Warnings)
@@ -388,6 +393,41 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error checking for removed C# APIs: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>
+    /// Reports (never rewrites) an app-owned <c>MaskinportenSettings</c> configuration section clashing
+    /// with the one Studio provisions for the built-in client. Reads configuration rather than C#, so it
+    /// runs separately from <see cref="CheckRemovedCSharpApis"/>.
+    /// </summary>
+    static async Task<int> CheckMaskinportenSettingsCollision(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Checking the Maskinporten configuration section...");
+
+            var result = new MaskinportenSettingsCollisionDetector(projectFolder).Detect();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            if (result.ManualActionRequired)
+            {
+                await UpgradeConsole.Out.WriteLineAsync(
+                    "The Maskinporten configuration section needs manual follow-up. Review the messages above."
+                );
+                return ExitManualActionRequired;
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error checking the Maskinporten configuration: {ex.Message}");
             return ExitError;
         }
     }

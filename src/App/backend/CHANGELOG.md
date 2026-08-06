@@ -26,6 +26,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A request cancelled at the wrong moment could permanently disable the background refresh of the well-known metadata.
 - A well-known response with a missing or empty `issuer` is now treated as a failed lookup instead of producing an invalid `aud` claim.
 
+### Removed
+
+- Breaking: the `Altinn.ApiClients.Maskinporten` package is no longer a dependency of `Altinn.App.Core` and no longer reaches apps transitively. Apps that used it directly must add their own `<PackageReference Include="Altinn.ApiClients.Maskinporten" Version="…" />` to keep building. The built-in `IMaskinportenClient` is the supported path — every v9 app has one, configured automatically when the app is deployed from Studio.
+- Breaking: if you keep using the external package alongside the built-in client, do not leave your own settings in a configuration section named `MaskinportenSettings`. Both clients read that name by convention, the settings file provided at deploy time takes precedence over `appsettings.json`, and configuration merges key by key — so in deployed environments your `clientId` is silently replaced while your own key is still used, and Maskinporten rejects the result. Local development is unaffected, which makes this easy to miss. Move your own settings to a different section name and bind it explicitly.
+- Breaking: remove the obsolete Maskinporten types `IMaskinportenTokenProvider`, `MaskinportenJwkTokenProvider`, `MaskinportenExtensions.AddMaskinportenJwkTokenProvider` and `IX509CertificateProvider`. Use `IMaskinportenClient` — configured with `ConfigureMaskinportenClient(...)` — or attach authorization to an `HttpClient` registration with `UseMaskinportenAuthorization(scopes)` / `UseMaskinportenAltinnAuthorization(...)`. Note that the built-in client authenticates with a JWK; an app authenticating with a PKCS#12 certificate or a certificate-store thumbprint needs a JWK registered in Maskinporten before it can move over.
+- Breaking: remove the obsolete `EformidlingStatusCheckEventHandler` and the obsolete `AddEFormidlingServices<TM, TR>` overload. Use `AddEFormidlingServices2<TM, TR>`, which registers the status check for you.
+
 ## [9.0.0-preview.3] - 2026-07-29
 
 ### Added

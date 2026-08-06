@@ -1398,6 +1398,207 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains("CustomRecipients = [_recipient]", migrated);
     }
 
+    // --- RemovedMaskinportenShimDetector ---------------------------------------------------------
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsRemovedProviderAndRegistration()
+    {
+        _app.Write(
+            "logic/TokenLookup.cs",
+            """
+            using Altinn.App.Core.Internal.Maskinporten;
+            public class TokenLookup
+            {
+                private readonly IMaskinportenTokenProvider _provider;
+                public Task<string> Fetch() => _provider.GetToken("some:scope");
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddMaskinportenJwkTokenProvider("my-secret");
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("TokenLookup.cs") && w.Contains("IMaskinportenTokenProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("AddMaskinportenJwkTokenProvider")
+        );
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsCertificateProviderAndLegacyEformidlingHandler()
+    {
+        _app.Write(
+            "logic/Certs.cs",
+            """
+            public class Certs : IX509CertificateProvider
+            {
+                public Task<X509Certificate2> GetCertificate() => Task.FromResult(_cert);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler>();
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Certs.cs") && w.Contains("Certs : IX509CertificateProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler")
+        );
+    }
+
+    /// <summary>
+    /// The surviving v9 handler shares a prefix with the removed one, and the replacement client shares
+    /// the <c>GetAltinnExchangedToken</c> method name with the removed provider. Neither may be flagged:
+    /// the first still exists, and the second is the API apps are being migrated towards.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_IgnoresSurvivingHandlerAndReplacementClient()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler2>();
+            """
+        );
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+                public Task<JwtToken> Fetch() => _client.GetAltinnExchangedToken(["some:scope"]);
+            }
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(Locations(result));
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write("logic/MyService.cs", "public class MyService { }");
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- ExternalMaskinportenPackageDetector -----------------------------------------------------
+
+    private string WriteProject(string packageReferences) =>
+        _app.Write(
+            "App.csproj",
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup>
+                <PackageReference Include="Altinn.App.Api" Version="8.0.0" />
+                {packageReferences}
+              </ItemGroup>
+            </Project>
+            """
+        );
+
+    [Fact]
+    public void ExternalPackageDetector_WithoutOwnReference_ReportsBrokenBuild()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("will not compile"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Client.cs") && w.Contains("using Altinn.ApiClients.Maskinporten.Interfaces")
+        );
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_WithOwnReference_AdvisesWithoutBlocking()
+    {
+        var project = WriteProject(
+            """<PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />"""
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>("my-client", settings);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("AddMaskinportenHttpClient"));
+    }
+
+    /// <summary>
+    /// The built-in client exposes an <c>AddMaskinportenHttpMessageHandler</c> of its own, so correct v9
+    /// code must not be mistaken for external-package usage.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresBuiltInClientUsage()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "Program.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            services.AddHttpClient<MyClient>().AddMaskinportenHttpMessageHandler(["some:scope"]);
+            services.AddHttpClient<Other>().UseMaskinportenAuthorization(["some:scope"]);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_UnreadableProject_PrefersTheLouderMessage()
+    {
+        var project = _app.Write("App.csproj", "<Project><not-closed>");
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("will not compile"));
+    }
+
     // --- Scanner ---------------------------------------------------------------------------------
 
     [Fact]

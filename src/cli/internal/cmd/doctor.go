@@ -77,6 +77,7 @@ func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 			"prerequisites": report.Prerequisites,
 			"auth":          report.Auth,
 			"app":           report.App,
+			"maskinporten":  report.Maskinporten,
 			"disk":          report.Disk,
 			"localtestEnv":  report.LocaltestEnv,
 		})
@@ -109,6 +110,7 @@ func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
 	c.renderDoctorDiskSection(table, report.Disk)
 	c.renderDoctorLocaltestEnvSection(table, report.LocaltestEnv)
 	c.renderDoctorAppSection(table, report.App)
+	c.renderDoctorMaskinportenSection(table, report.Maskinporten)
 	c.out.RenderTable(table)
 }
 
@@ -299,23 +301,43 @@ func (c *DoctorCommand) renderDoctorDiskSection(table *ui.Table, disk *doctorsvc
 	}
 
 	for _, check := range disk.Checks {
-		value := check.Message
-		if check.Path != "" {
-			value += " (" + check.Path + ")"
-		}
+		doctorLevelRow(table, check.ID, check.Level, check.Message, check.Path)
+	}
+}
 
-		switch check.Level {
-		case "ok":
-			doctorKeyValueStatus(table, true, check.ID, value)
-		case "info":
-			doctorKeyValue(table, check.ID, value)
-		case "warn":
-			doctorKeyValueStatus(table, false, check.ID, "WARN: "+value)
-		case "error":
-			doctorKeyValueStatus(table, false, check.ID, "ERROR: "+value)
-		default:
-			doctorKeyValue(table, check.ID, value)
-		}
+// doctorLevelRow renders one levelled check ("ok"/"info"/"warn"/"error") as a table row.
+func doctorLevelRow(table *ui.Table, id, level, message, path string) {
+	value := message
+	if path != "" {
+		value += " (" + path + ")"
+	}
+
+	switch level {
+	case "ok":
+		doctorKeyValueStatus(table, true, id, value)
+	case "info":
+		doctorKeyValue(table, id, value)
+	case "warn":
+		doctorKeyValueStatus(table, false, id, "WARN: "+value)
+	case "error":
+		doctorKeyValueStatus(table, false, id, "ERROR: "+value)
+	default:
+		doctorKeyValue(table, id, value)
+	}
+}
+
+// renderDoctorMaskinportenSection is omitted entirely when no app was detected — the checks are
+// app-scoped, and an empty section in a plain `studioctl doctor` run would just be noise.
+func (c *DoctorCommand) renderDoctorMaskinportenSection(table *ui.Table, maskinporten *doctorsvc.Maskinporten) {
+	if maskinporten == nil {
+		return
+	}
+
+	table.Section("Maskinporten")
+	defer table.Spacer()
+
+	for _, check := range maskinporten.Checks {
+		doctorLevelRow(table, check.ID, check.Level, check.Message, check.Path)
 	}
 }
 

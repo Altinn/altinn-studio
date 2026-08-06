@@ -59,6 +59,7 @@ type Report struct {
 	Prerequisites *Prerequisites                 `json:"prerequisites"`
 	Auth          *Auth                          `json:"auth"`
 	App           *App                           `json:"app"`
+	Maskinporten  *Maskinporten                  `json:"maskinporten,omitempty"`
 	Disk          *Disk                          `json:"disk"`
 	LocaltestEnv  *envlocaltest.DiagnosticReport `json:"localtestEnv"`
 	System        *System                        `json:"system"`
@@ -159,12 +160,14 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 
 // BuildReport builds a doctor report from system state.
 func (s *Service) BuildReport(ctx context.Context) Report {
+	app := s.buildApp(ctx)
 	return Report{
 		CLI:           &CLI{Version: s.cfg.Version.String()},
 		System:        buildSystem(ctx),
 		Prerequisites: s.collectPrerequisites(ctx),
 		Auth:          s.buildAuth(),
-		App:           s.buildApp(ctx),
+		App:           app,
+		Maskinporten:  s.buildMaskinporten(app),
 		Disk:          s.buildDisk(),
 		LocaltestEnv:  s.buildLocaltestEnv(ctx),
 	}
@@ -188,6 +191,9 @@ func (s *Service) HasIssues(report Report) bool {
 		return true
 	}
 	if report.Disk != nil && report.Disk.HasIssues {
+		return true
+	}
+	if report.Maskinporten != nil && report.Maskinporten.HasIssues {
 		return true
 	}
 	return report.LocaltestEnv == nil || report.LocaltestEnv.HasIssues
