@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Explain access errors during `studioctl app upgrade`
+
 ## [0.1.0-preview.19] - 2026-08-06
 
 ### Added
@@ -27,7 +31,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Keep subforms identifiable when running `studioctl app upgrade v9`.
-- Explain access errors during `studioctl app upgrade`
 - Prefer the latest stable v9 app packages in `studioctl app upgrade v9`, falling back to the latest preview until a stable version is available.
 
 ## [0.1.0-preview.18] - 2026-07-24
