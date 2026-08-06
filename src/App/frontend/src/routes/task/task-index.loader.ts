@@ -9,7 +9,7 @@ import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl, getRawFirstPage } from 'src/utils/computeStartUrl';
 
-export async function taskIndexLoader({ context, params, request }: LoaderFunctionArgs): Promise<Response | null> {
+export async function clientLoader({ context, params, request }: LoaderFunctionArgs): Promise<Response | null> {
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   const { instanceOwnerPartyId, instanceGuid, taskId } = params;

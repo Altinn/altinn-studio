@@ -12,7 +12,7 @@ import { NavigationFocusStateProvider } from 'src/features/navigation/Navigation
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 
-export function AppLayout() {
+export default function AppLayout() {
   return (
     <>
       <AppLanguageTranslatorProvider>
@@ -42,4 +42,9 @@ export function AppLayout() {
       <ScrollRestoration />
     </>
   );
+}
+
+// Prevents a console error about missing HydrateFallback when using loaders
+export function HydrateFallback() {
+  return null;
 }
