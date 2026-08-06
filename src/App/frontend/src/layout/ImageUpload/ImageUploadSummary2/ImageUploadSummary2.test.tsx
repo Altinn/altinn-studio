@@ -11,7 +11,7 @@ import { renderGenericComponentTest, RenderGenericComponentTestProps } from 'src
 const targetBaseComponentId = 'mock-id';
 
 describe('ImageUploadSummary2', () => {
-  beforeEach(() => jest.restoreAllMocks());
+  beforeEach(() => vi.restoreAllMocks());
 
   it('renders label', async () => {
     await renderImageUploadSummary2();
@@ -25,11 +25,11 @@ describe('ImageUploadSummary2', () => {
 
   it('renders image when attachment exists', async () => {
     const mockAttachment = getAttachmentsMock({ count: 1, fileSize: 500 })[0] as UploadedAttachment;
-    jest.spyOn(useImageFile, 'useImageFile').mockReturnValue({
+    vi.spyOn(useImageFile, 'useImageFile').mockReturnValue({
       storedImage: mockAttachment,
       imageUrl: 'https://mock.url/image.png',
-      saveImage: jest.fn(),
-      deleteImage: jest.fn(),
+      saveImage: vi.fn(),
+      deleteImage: vi.fn(),
     });
 
     await renderImageUploadSummary2();

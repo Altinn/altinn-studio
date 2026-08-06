@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 import { getSharedTests } from 'src/features/expressions/shared';
 import { assertValidValue, ExprValidation } from 'src/features/expressions/validation';
@@ -8,7 +8,7 @@ describe('Expression validation', () => {
 
   beforeEach(() => {
     originalLogError = window.logError;
-    window.logError = jest.fn();
+    window.logError = vi.fn();
   });
 
   afterEach(() => {

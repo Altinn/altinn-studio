@@ -70,7 +70,7 @@ describe('ErrorReport', () => {
   });
 
   it('should list task errors as unclickable', async () => {
-    jest.mocked(doProcessNext).mockImplementationOnce(async () => {
+    vi.mocked(doProcessNext).mockImplementationOnce(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = new Error('Request failed with status code 409') as any;
       error.name = 'AxiosError';
@@ -103,7 +103,7 @@ describe('ErrorReport', () => {
   });
 
   it('should list unbound mapped error as unclickable', async () => {
-    jest.mocked(doProcessNext).mockImplementationOnce(async () => {
+    vi.mocked(doProcessNext).mockImplementationOnce(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = new Error('Request failed with status code 409') as any;
       error.name = 'AxiosError';

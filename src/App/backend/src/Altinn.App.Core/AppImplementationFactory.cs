@@ -9,6 +9,22 @@ namespace Altinn.App.Core.Features;
 [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false)]
 internal sealed class ImplementableByAppsAttribute : Attribute { }
 
+/// <summary>
+/// Marks a default interface implementation as final: implementing classes must let this
+/// implementation win, never providing their own. Enforced at compile time by the
+/// <c>Altinn.App.Analyzers</c> package shipped to apps (which matches this attribute by full
+/// name), and at app startup as a backstop.
+/// </summary>
+/// <param name="guidance">
+/// The remediation to append to the diagnostic — what the implementer should do instead.
+/// </param>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+internal sealed class SealedImplementationAttribute(string guidance) : Attribute
+{
+    /// <summary>What the implementer should do instead of re-implementing the member.</summary>
+    public string Guidance => guidance;
+}
+
 internal static class AppImplementationFactoryExtensions
 {
     public static IServiceCollection AddAppImplementationFactory(this IServiceCollection services)

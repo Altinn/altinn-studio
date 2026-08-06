@@ -9,6 +9,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import classes from 'src/components/process/ProcessWrapper.module.css';
 import {
   useIsWorkflowFailedOnCurrentServiceTask,
+  useIsWorkflowProcessingOnCurrentServiceTask,
   WorkflowFailed,
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
@@ -103,7 +104,10 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
       // converge onto the committed task unconditionally - the submitting session never navigated
       // (useProcessNext swallows the failure), and a reconnecting session should land on the same
       // screen a successful transition would have shown.
-      wasBusyRef.current = false;
+      //
+      // Deliberately does NOT consume wasBusyRef: this branch can fire against a stale snapshot
+      // (a read that raced a just-settled reject). Leaving the flag set lets the settled branch
+      // below converge forward as soon as the workflow reads settled again.
       const settledTask = getTargetTaskFromProcess(process);
       if (settledTask && settledTask !== taskId) {
         navigateToTask(settledTask);
@@ -130,6 +134,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isRunningProcessNext = useIsRunningProcessNext();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
+  const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
   const { data: process } = useProcessQuery();
 
@@ -175,7 +180,17 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // PDF mode must bypass this replacement: the PDF service task renders the page *during* the
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
-  if (!isPdfMode && workflow?.status === 'processing') {
+  //
+  // A deferring service task also bypasses it when the task supplies its own layout and the URL is
+  // on it: the process genuinely sits on the committed task, and the app's page owns the waiting
+  // presentation - exactly as it does for a parked (idle) task. Park and defer are opposites in
+  // the engine but deliberately identical UX on layouted service tasks (see the durable-yield ADR).
+  // The replacement stays for transitions toward other tasks, default-view service tasks, and
+  // stale URLs until navigation converges.
+  const deferringOnLayoutedServiceTask =
+    processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
+
+  if (!isPdfMode && workflow?.status === 'processing' && !deferringOnLayoutedServiceTask) {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowProcessing />

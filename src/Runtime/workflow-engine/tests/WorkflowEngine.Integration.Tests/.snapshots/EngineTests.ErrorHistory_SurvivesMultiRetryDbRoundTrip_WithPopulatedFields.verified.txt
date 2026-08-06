@@ -22,6 +22,7 @@
       },
       status: Completed,
       retryCount: 3,
+      deferCount: 0,
       retryStrategy: {
         backoffType: Constant,
         baseInterval: 00:00:00.1000000,

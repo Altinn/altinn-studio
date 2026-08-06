@@ -16,7 +16,7 @@ describe('focusComponent', () => {
   beforeEach(() => {
     setFocusComponentRequest(undefined);
     setFocusComponentUrlCleanup(undefined);
-    HTMLElement.prototype.scrollIntoView = jest.fn();
+    HTMLElement.prototype.scrollIntoView = vi.fn();
     window.requestAnimationFrame = (callback) => {
       callback(0);
       return 0;
@@ -26,7 +26,7 @@ describe('focusComponent', () => {
   afterEach(() => {
     act(() => setFocusComponentRequest(undefined));
     setFocusComponentUrlCleanup(undefined);
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('does not re-render a subscriber when a focus request targets another component', () => {
@@ -80,7 +80,7 @@ describe('focusComponent', () => {
   });
 
   it('focuses the requested component and cleans focus URL parameters', async () => {
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     setFocusComponentUrlCleanup(cleanup);
 
     function FocusTarget() {
@@ -105,7 +105,7 @@ describe('focusComponent', () => {
   });
 
   it('keeps focus URL parameters until the requested component mounts', async () => {
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     setFocusComponentUrlCleanup(cleanup);
     act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }));
 

@@ -71,13 +71,6 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
             );
         }
 
-        if (context.WorkflowId is not { } workflowId)
-        {
-            throw new ProcessException(
-                "The eFormidling service task requires the executing workflow id to guarantee idempotent shipments."
-            );
-        }
-
         // The message id sent to eFormidling is the instance guid, so only one shipment can ever be
         // sent per instance (see docs/adr/2026-07-24-eformidling-shipment-id.md). The workflow id of
         // the pass that sent it is recorded on the instance: a matching (or absent) owner means this
@@ -91,7 +84,7 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
         // converges through the send's duplicate-create self-healing instead.
         string? shipmentOwner = null;
         instance.DataValues?.TryGetValue(EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey, out shipmentOwner);
-        if (shipmentOwner is not null && shipmentOwner != workflowId.ToString())
+        if (shipmentOwner is not null && shipmentOwner != context.WorkflowId.ToString())
         {
             return ServiceTaskResult.FailedPermanent(
                 $"An eFormidling shipment for this instance was already sent by an earlier pass through the "
@@ -122,7 +115,7 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
         await _instanceClient.UpdateDataValue(
             instance,
             EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey,
-            workflowId.ToString(),
+            context.WorkflowId.ToString(),
             StorageAuthenticationMethod.ServiceOwner(),
             context.CancellationToken
         );

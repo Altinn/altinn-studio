@@ -57,6 +57,22 @@ internal sealed class WorkflowCommandSet
 
         if (context.ServiceTaskType is not null)
         {
+            // One engine step per pipeline stage, in composition order. Each gets a distinct
+            // OperationId for the engine's records and dashboards; the payload's stage name is
+            // what callback dispatch keys on.
+            foreach (string stageName in context.ServiceTaskStageNames ?? [])
+            {
+                group.AddCriticalPostCommitCommand(
+                    ExecuteServiceTask.Key,
+                    new ExecuteServiceTaskPayload(context.ServiceTaskType, stageName),
+                    operationId: $"{ExecuteServiceTask.Key}: {stageName}",
+                    serviceTaskStageName: stageName
+                );
+            }
+
+            // The concluding engine step — the pipeline's Finally (a simple task's Execute),
+            // identified by a null stage name. Every service task has it; for most it is the
+            // whole pipeline.
             group.AddCriticalPostCommitCommand(
                 ExecuteServiceTask.Key,
                 new ExecuteServiceTaskPayload(context.ServiceTaskType)
@@ -142,9 +158,24 @@ internal sealed class WorkflowCommandSet
     /// Adds a command that executes after the ProcessNext has been committed to storage via
     /// SaveProcessStateToStorage, and that must complete before the transition settles.
     /// </summary>
-    private WorkflowCommandSet AddCriticalPostCommitCommand(string commandKey, CommandRequestPayload? payload = null)
+    /// <param name="commandKey">The command's registered key.</param>
+    /// <param name="payload">Optional command payload.</param>
+    /// <param name="operationId">
+    /// Optional display identity for the engine step when it must differ from the command key —
+    /// service-task pipeline stages carry the stage name here so the engine's records tell them apart.
+    /// </param>
+    /// <param name="serviceTaskStageName">
+    /// For a service-task pipeline stage: the stage's name, so per-stage options can be resolved
+    /// when the step request is finalized.
+    /// </param>
+    private WorkflowCommandSet AddCriticalPostCommitCommand(
+        string commandKey,
+        CommandRequestPayload? payload = null,
+        string? operationId = null,
+        string? serviceTaskStageName = null
+    )
     {
-        _criticalPostCommitCommands.Add(CreateCommand(commandKey, payload));
+        _criticalPostCommitCommands.Add(CreateCommand(commandKey, payload, operationId, serviceTaskStageName));
         return this;
     }
 
@@ -157,16 +188,22 @@ internal sealed class WorkflowCommandSet
         return this;
     }
 
-    private static StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null)
+    private static StepRequest CreateCommand(
+        string commandKey,
+        CommandRequestPayload? payload = null,
+        string? operationId = null,
+        string? serviceTaskStageName = null
+    )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         return new StepRequest
         {
-            OperationId = commandKey,
+            OperationId = operationId ?? commandKey,
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
+            ServiceTaskStageName = serviceTaskStageName,
         };
     }
 }

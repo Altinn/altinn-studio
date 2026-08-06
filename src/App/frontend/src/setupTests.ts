@@ -1,16 +1,12 @@
-import '@testing-library/jest-dom';
-import '@testing-library/jest-dom/jest-globals';
+import '@testing-library/jest-dom/vitest';
 import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issues/3363
-import 'jest';
-// Importing CSS for jest-preview to look nicer
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-css/theme';
 
-import { jest } from '@jest/globals';
 import { configure as testingLibraryConfigure } from '@testing-library/dom';
 import dotenv from 'dotenv';
-import { jestPreviewConfigure } from 'jest-preview';
-import { TextDecoder, TextEncoder } from 'util';
+import ResizeObserver from 'resize-observer-polyfill';
+import { vi } from 'vitest';
 import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
@@ -31,18 +27,22 @@ import 'src/styles/shared.css';
 
 const env = dotenv.config({ quiet: true });
 
+// DOM Testing Library currently detects fake timers through the Jest-compatible global name.
+// Point it at Vitest so waitFor advances vi.useFakeTimers() instead of waiting indefinitely.
+Object.assign(globalThis, { jest: vi });
+
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query) => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   })),
 });
 
@@ -50,12 +50,26 @@ Object.defineProperty(document, 'fonts', {
   value: { ready: Promise.resolve({}) },
 });
 
+if (!window.localStorage) {
+  const values = new Map<string, string>();
+  const localStorage: Storage = {
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => [...values.keys()][index] ?? null,
+    get length() {
+      return values.size;
+    },
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, value),
+  };
+  Object.defineProperty(window, 'localStorage', { configurable: true, value: localStorage });
+}
+
 // https://github.com/jsdom/jsdom/issues/3002
 Element.prototype.getClientRects = () => ({
   item: () => null,
   length: 0,
-  // @ts-expect-error ignore
-  [Symbol.iterator]: jest.fn(),
+  [Symbol.iterator]: vi.fn(),
 });
 
 // Forcing a low timeout for useDelayedSaveState()
@@ -107,14 +121,29 @@ window.logInfoOnce = window.logError;
 window.scrollTo = () => {};
 document.getAnimations = () => [];
 
-jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);
+vi.mock('axios', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('axios')>();
+  const pendingRequest = vi.fn(() => new Promise(() => undefined));
+  const mockAxios = Object.assign(vi.fn(), {
+    create: vi.fn(),
+    delete: pendingRequest,
+    get: pendingRequest,
+    head: pendingRequest,
+    interceptors: {
+      request: { eject: vi.fn(), use: vi.fn() },
+      response: { eject: vi.fn(), use: vi.fn() },
+    },
+    isAxiosError: actual.default.isAxiosError,
+    options: pendingRequest,
+    patch: pendingRequest,
+    post: pendingRequest,
+    put: pendingRequest,
+    request: pendingRequest,
+  });
+  mockAxios.create.mockReturnValue(mockAxios);
 
-jest.mock('axios');
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(global as any).TextEncoder = TextEncoder;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(global as any).TextDecoder = TextDecoder;
+  return { ...actual, default: mockAxios };
+});
 
 // Add Request polyfill for tests that use fetch/Request
 if (!globalThis.Request) {
@@ -133,22 +162,18 @@ if (!globalThis.Request) {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-global.ResizeObserver = require('resize-observer-polyfill');
-
-const autoPreview = env.parsed?.JEST_PREVIEW_AUTO ? env.parsed.JEST_PREVIEW_AUTO === 'true' : false;
-jestPreviewConfigure({ autoPreview });
+global.ResizeObserver = ResizeObserver;
 
 testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
 
-jest.mock('src/queries/queries', () => ({
-  ...jest.requireActual<AppQueries>('src/queries/queries'),
-  doProcessNext: jest.fn<typeof doProcessNext>(
+vi.mock('src/queries/queries', async () => ({
+  ...(await vi.importActual<AppQueries>('src/queries/queries')),
+  doProcessNext: vi.fn<typeof doProcessNext>(
     async () => ({ data: getInstanceWithProcessMock() }) as AxiosResponse<IInstanceWithProcess>,
   ),
-  doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
+  doUpdateAttachmentTags: vi.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
     tags: setTagsRequest.tags,
   })),
 }));

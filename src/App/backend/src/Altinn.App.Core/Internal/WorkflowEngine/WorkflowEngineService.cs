@@ -16,153 +16,15 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
-internal interface IWorkflowEngineService
-{
-    Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
-        Instance instance,
-        ProcessStateChange processStateChange,
-        string resolvedAction,
-        string lockToken,
-        string? state = null,
-        bool isInstantiation = false,
-        Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null,
-        CancellationToken ct = default
-    );
-
-    Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(Instance instance, CancellationToken ct = default);
-
-    /// <summary>
-    /// Resolves the live status of the current task's transition for read-path enrichment:
-    /// whether a workflow is idle, processing (executing / auto-retrying) or failed, together with
-    /// the task the transition targets and — for the failed case — the failure detail. Unlike
-    /// <see cref="GetCurrentTaskWorkflowState"/> (which the process engine uses for control flow),
-    /// this is a presentation projection and carries no engine ids.
-    /// </summary>
-    Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default);
-
-    /// <summary>
-    /// Writes off an unsuccessful terminal workflow (Failed -> Abandoned in the engine) so that a
-    /// subsequently enqueued workflow can depend on it and run. Returns <see langword="false"/> when
-    /// the engine's compare-and-set rejected the transition - e.g. a concurrent resume revived the
-    /// workflow - in which case the caller must treat the task as still blocked.
-    /// Side effects need no special handling here: the side-effects workflow is enqueued by the
-    /// EnqueueSideEffectsWorkflow step at the commit boundary, so an abandoned pre-commit failure
-    /// never scheduled any, and a committed transition's side effects run independently of the
-    /// abandoned Main.
-    /// </summary>
-    Task<bool> AbandonWorkflow(Guid workflowId, CancellationToken ct = default);
-
-    Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
-        Instance instance,
-        Guid workflowId,
-        string collectionKey,
-        CancellationToken ct = default
-    );
-
-    Task<Guid> EnqueueDependentProcessNext(
-        Instance instance,
-        ProcessStateChange processStateChange,
-        string lockToken,
-        Guid dependsOnWorkflowId,
-        string collectionKey,
-        string state,
-        Actor actor,
-        CancellationToken ct = default
-    );
-}
-
-internal sealed record ProcessNextWorkflowResult(
-    Instance Instance,
-    WorkflowFailure? WorkflowFailure,
-    bool ProcessStateChanged
-);
-
-/// <summary>
-/// Presentation projection of the current task's live workflow status, used to enrich the process
-/// state sent to the frontend. <see cref="Failure"/> is only set when <see cref="Status"/> is
-/// <see cref="WorkflowActivityStatus.Failed"/>. <see cref="Retrying"/> and <see cref="Progress"/>
-/// are only meaningful while <see cref="Status"/> is
-/// <see cref="WorkflowActivityStatus.Processing"/>: retrying means the engine has the transition
-/// parked between automatic retry attempts (a previous attempt failed), letting a waiting UI say
-/// "a step is being retried" instead of an unexplained long wait; progress is how far through the
-/// transition's engine steps execution has come. <see cref="StartedAt"/> (also processing-only) is
-/// when the transition was enqueued, on the engine's clock - it lets a client that reconnects
-/// mid-transition (page refresh, second session) anchor "how long has this been running" to server
-/// truth instead of its own page load.
-/// </summary>
-internal sealed record WorkflowTaskStatus(
-    WorkflowActivityStatus Status,
-    string? TargetTask,
-    WorkflowFailure? Failure,
-    bool Retrying = false,
-    WorkflowStepProgress? Progress = null,
-    DateTimeOffset? StartedAt = null
-)
-{
-    /// <summary>
-    /// Projects this status onto the client-facing wire shape. Only the coarse failure
-    /// classification and the safe structured support-reference facts are projected - never the
-    /// raw error detail (it can contain internal text).
-    /// </summary>
-    internal AppProcessWorkflowStatus ToAppProcessWorkflowStatus() =>
-        new()
-        {
-            Status = Status,
-            TargetTask = TargetTask,
-            Retrying = Retrying ? true : null,
-            Progress = Progress is { } progress
-                ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
-                : null,
-            StartedAt = StartedAt,
-            Failure = Failure is { } failure
-                ? new AppProcessWorkflowFailure
-                {
-                    Kind = failure.Kind,
-                    WorkflowId = failure.WorkflowId,
-                    OccurredAt = failure.LastError?.Timestamp,
-                }
-                : null,
-        };
-}
-
-/// <summary>
-/// Progress through a transition's engine steps: <see cref="Completed"/> of <see cref="Total"/>
-/// steps have finished. Presentation-only - the step identities stay internal.
-/// </summary>
-internal sealed record WorkflowStepProgress(int Completed, int Total);
-
-/// <summary>
-/// The workflow engine's view of the instance's current task, as a closed set of states.
-/// Consumers pattern-match on the concrete type; the blocked states carry the ids they
-/// guarantee, so no caller has to null-check correlated optional fields.
-/// </summary>
-internal abstract record CurrentTaskWorkflowState
-{
-    private CurrentTaskWorkflowState() { }
-
-    /// <summary>No workflow is blocking the current task.</summary>
-    internal sealed record Unblocked : CurrentTaskWorkflowState;
-
-    /// <summary>
-    /// The newest workflow for the current task is still executing (enqueued, processing or
-    /// requeued) - process actions must wait for it to finish.
-    /// </summary>
-    internal sealed record Retrying(Guid WorkflowId, string CollectionKey) : CurrentTaskWorkflowState;
-
-    /// <summary>
-    /// The newest workflow for the current task failed terminally - the process cannot continue
-    /// until the workflow is resumed, or written off (-> Abandoned) by a bpmn-allowed reject.
-    /// </summary>
-    internal sealed record ResumeRequired(Guid WorkflowId, string CollectionKey) : CurrentTaskWorkflowState;
-}
-
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    private const int WorkflowPollingTimeoutMs = 100_000;
     private const int InitialWorkflowPollingDelayMs = 100;
     private const int MaxWorkflowPollingDelayMs = 2_000;
     private const int AcceptanceProbeAttempts = 3;
+
+    // Mutable so tests can shrink the windows; production always runs the defaults.
+    internal int WorkflowPollingTimeoutMs = 100_000;
+    internal int WorkflowParkedReleaseGraceMs = 2_000;
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
@@ -404,6 +266,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // consumers, but flagged so a waiting UI can explain the longer wait honestly. The flag
         // flickers back off while a retry attempt is actively executing, which is fine: during a
         // long retry storm the workflow spends nearly all its time parked in Requeued.
+        //
+        // A Waiting head is also a long wait, but deliberately NOT flagged as Retrying: nothing
+        // failed, the step is polling for an external outcome that has not arrived. Its hint is
+        // waitingReason instead - the deferring task's own words for what it is waiting for, which
+        // the engine populates on the head only while it is parked.
         if (activeHead is not null)
         {
             return new WorkflowTaskStatus(
@@ -414,7 +281,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 Progress: activeHead is { StepsCompleted: int completed, StepsTotal: int total and > 0 }
                     ? new WorkflowStepProgress(completed, total)
                     : null,
-                StartedAt: activeHead.CreatedAt
+                StartedAt: activeHead.CreatedAt,
+                WaitingReason: activeHead.WaitingReason
             );
         }
 
@@ -599,6 +467,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return WorkflowCollectionLookupResult.NotFound;
     }
 
+    /// <summary>
+    /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
+    /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
+    /// active workflow in it is <c>Waiting</c> because a service task deferred — is released as a
+    /// committed success once <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that
+    /// is neither settled nor parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported
+    /// as a <see cref="WorkflowFailureKind.Timeout"/>.
+    /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
         string collectionKey,
@@ -647,6 +523,47 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         WorkflowFailure? workflowFailure = BuildWorkflowFailure(currentChain);
                         bool processStateChanged = HasCommittedProcessState(currentChain);
                         return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
+                    }
+                }
+                else if (
+                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsWaitingCollectionHeadStatus)
+                    && stopwatch.ElapsedMilliseconds >= WorkflowParkedReleaseGraceMs
+                )
+                {
+                    // The chain is parked on a deferring service task and may stay so for its whole
+                    // wait budget; holding the request would misreport a designed wait as a timeout.
+                    // Deferral is post-commit by construction (only ExecuteServiceTask defers, after
+                    // SaveProcessStateToStorage), so the instance already carries the committed
+                    // target task and the ordinary success shape applies — the read-path workflow
+                    // annotation renders the waiting UI from here. The grace window lets quick polls
+                    // complete synchronously.
+                    IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
+                        await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+                        sinceWorkflowId
+                    );
+
+                    List<WorkflowStatusResponse> activeWorkflows = currentChain.Where(IsActiveWorkflowStatus).ToList();
+                    bool anchoredChainParked =
+                        (
+                            sinceWorkflowId is null
+                            || currentChain.Any(workflow => workflow.DatabaseId == sinceWorkflowId)
+                        )
+                        && activeWorkflows.Count > 0
+                        && activeWorkflows.TrueForAll(workflow =>
+                            workflow.OverallStatus == PersistentItemStatus.Waiting
+                        );
+
+                    // The committed-state guard is defensive: should a pre-commit step ever learn to
+                    // defer, fall through to the ordinary wait (and its timeout) rather than returning a
+                    // process state that does not exist yet.
+                    if (anchoredChainParked && HasCommittedProcessState(currentChain))
+                    {
+                        Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                        return new ProcessNextWorkflowResult(
+                            freshInstance,
+                            WorkflowFailure: null,
+                            ProcessStateChanged: true
+                        );
                     }
                 }
             }
@@ -766,17 +683,25 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return workflowsById.Values.ToList();
     }
 
+    // Waiting counts as active: a step that deferred while awaiting an external outcome is still
+    // mid-transition, holding no lease but owning the process. Reading it as settled would let the
+    // wait return success on an uncommitted transition and let the next action start on top of it.
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
-                or PersistentItemStatus.Requeued;
+                or PersistentItemStatus.Requeued
+                or PersistentItemStatus.Waiting;
 
     private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
-                or PersistentItemStatus.Requeued;
+                or PersistentItemStatus.Requeued
+                or PersistentItemStatus.Waiting;
+
+    private static bool IsWaitingCollectionHeadStatus(CollectionHeadStatus workflow) =>
+        workflow.Status is PersistentItemStatus.Waiting;
 
     private static bool IsResumeRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status

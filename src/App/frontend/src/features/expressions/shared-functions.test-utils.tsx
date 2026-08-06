@@ -7,19 +7,13 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import {
-  getRepeatingBinding,
-  isRepeatingComponent,
-  RepeatingComponents,
-} from 'src/features/form/layout/utils/repeating';
+import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { fetchExternalApi } from 'src/queries/queries';
-import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
   renderWithoutInstanceAndLayout,
@@ -27,16 +21,19 @@ import {
 } from 'src/test/renderWithProviders';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
+import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
+import type { AppQueries } from 'src/queries/types';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-jest.mock('src/queries/queries', () => {
-  const actual = jest.requireActual<typeof import('src/queries/queries')>('src/queries/queries');
+vi.mock('src/queries/queries', async () => {
+  const actual = await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries');
   return {
     ...actual,
-    fetchExternalApi: jest.fn(),
+    fetchExternalApi: vi.fn(),
   };
 });
 
@@ -117,48 +114,44 @@ function ExpressionRunner(props: Props) {
 
 const defaultLanguage = 'nb';
 
-describe('Expressions shared function tests', () => {
-  beforeAll(() => {
-    jest
-      .spyOn(window, 'logError')
-      .mockImplementation(() => {})
-      .mockName('window.logError');
-    jest
-      .spyOn(window, 'logWarnOnce')
-      .mockImplementation(() => {})
-      .mockName('window.logWarnOnce');
-    jest
-      .spyOn(window, 'logErrorOnce')
-      .mockImplementation(() => {})
-      .mockName('window.logErrorOnce');
-    jest.mocked(fetchExternalApi).mockImplementation(async () => undefined);
-  });
+export function runSharedFunctionTests(shardIndex: number, shardCount: number): void {
+  describe(`Expressions shared function tests (shard ${shardIndex + 1}/${shardCount})`, () => {
+    beforeAll(() => {
+      vi.spyOn(window, 'logError')
+        .mockImplementation(() => {})
+        .mockName('window.logError');
+      vi.spyOn(window, 'logWarnOnce')
+        .mockImplementation(() => {})
+        .mockName('window.logWarnOnce');
+      vi.spyOn(window, 'logErrorOnce')
+        .mockImplementation(() => {})
+        .mockName('window.logErrorOnce');
+      vi.mocked(fetchExternalApi).mockImplementation(async () => undefined);
+    });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+    afterEach(() => {
+      vi.clearAllMocks();
+    });
 
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
+    afterAll(() => {
+      vi.restoreAllMocks();
+    });
 
-  const sharedTests = getSharedTests('functions').content;
+    const sharedTests = getSharedTests('functions').content.filter((_, index) => index % shardCount === shardIndex);
 
-  describe.each(sharedTests)('Function: $folderName', (folder) => {
-    describe.each(folder.content)('$name', (test) => {
-      if (test.disabledFrontend) {
-        return;
-      }
-
-      it.each(getAllTestCases(test))('$expression', async (testCase) => {
-        clearGlobals();
-        setupMocks(test);
-        await renderExpression(test, testCase.expression);
-        await assertExpr(testCase);
+    describe.each(sharedTests)('Function: $folderName', (folder) => {
+      const enabledTests = folder.content.filter((test) => !test.disabledFrontend && getAllTestCases(test).length > 0);
+      describe.each(enabledTests)('$name', (test) => {
+        it.each(getAllTestCases(test))('$expression', async (testCase) => {
+          clearGlobals();
+          setupMocks(test);
+          await renderExpression(test, testCase.expression);
+          await assertExpr(testCase);
+        });
       });
     });
   });
-});
+}
 
 function getAllTestCases(test: FunctionTest): FunctionTestBase[] {
   const mainCase = extractMainTestCase(test);
@@ -189,7 +182,7 @@ function setupMocks(test: FunctionTest): void {
     stateless: { defaultDataType: 'default', pages: { order: Object.keys(layouts ?? []) } },
   };
 
-  jest.mocked(fetchExternalApi).mockImplementation(async ({ externalApiId }) => externalApis?.data[externalApiId]);
+  vi.mocked(fetchExternalApi).mockImplementation(async ({ externalApiId }) => externalApis?.data[externalApiId]);
 }
 
 function createApplicationMetadata({
@@ -413,7 +406,7 @@ async function assertExpr({ expression, expects, expectsFailure, name: _, ...res
   // dependencies for the expression in some way)
   expect(Object.keys(rest)).toHaveLength(0);
 
-  const errorMock = window.logError as jest.Mock;
+  const errorMock = window.logError as Mock;
   const textContent = (await screen.findByTestId('expr-result')).textContent;
   const result = textContent ? JSON.parse(textContent) : null;
 
@@ -426,5 +419,6 @@ async function assertExpr({ expression, expects, expectsFailure, name: _, ...res
     expect(result).toEqual(expects);
   }
 
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 }
+import type { Mock } from 'vitest';

@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.19] - 2026-08-06
+
 ### Added
 
 - Auto-migrate the Correspondence APIs removed in v9 in `studioctl app upgrade v9`: drop the builder calls and properties v8 already discarded, rename `CustomRecipient` to the `CustomRecipients` list, rename the removed builder step interface, wrap a byte payload passed to `WithData` in a `MemoryStream`, and replace the two superseded payload constructors with `CorrespondenceAuthenticationMethod`. Every rewrite is listed for review.
@@ -16,6 +18,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Update the workflow-engine image used by `studioctl env up` to a version with durable-yield support: service tasks can wait for external outcomes (for example a delivery confirmation) without occupying a worker or being treated as failures.
 - Refuse to start `studioctl app upgrade` when the git repository has local changes, so the upgrade lands as one clean reviewable changeset.
 - Rename `OrganisationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
 - Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
@@ -25,6 +28,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Keep subforms identifiable when running `studioctl app upgrade v9`.
 - Explain access errors during `studioctl app upgrade`
+- Prefer the latest stable v9 app packages in `studioctl app upgrade v9`, falling back to the latest preview until a stable version is available.
 
 ## [0.1.0-preview.18] - 2026-07-24
 

@@ -33,7 +33,7 @@ function getDataElements(props: GetDataProps): IData[] {
 
 describe('File uploading components', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   afterEach(() => {
     window.forceLayoutPropertiesValidation = 'off';
@@ -148,12 +148,10 @@ describe('File uploading components', () => {
     });
 
     it('an error should be displayed if two components are configured with the same binding', async () => {
-      jest
-        .spyOn(window, 'logError')
+      vi.spyOn(window, 'logError')
         .mockImplementation(() => {})
         .mockName('window.logError');
-      jest
-        .spyOn(window, 'logErrorOnce')
+      vi.spyOn(window, 'logErrorOnce')
         .mockImplementation(() => {})
         .mockName('window.logErrorOnce');
 
@@ -208,7 +206,7 @@ describe('File uploading components', () => {
             "Andre komponenter med samme binding: 'FileUpload2'",
         ),
       ).toBeInTheDocument();
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     describe('Expression support for min/max attachments', () => {
@@ -379,7 +377,7 @@ describe('File uploading components', () => {
       const tagUpdatePromise = new Promise<{ tags: string[] }>((resolve) => {
         resolveTagUpdate = resolve;
       });
-      jest.mocked(doUpdateAttachmentTags).mockImplementationOnce(async () => tagUpdatePromise);
+      vi.mocked(doUpdateAttachmentTags).mockImplementationOnce(async () => tagUpdatePromise);
       return {
         resolve: (tags: string[] = ['tag1']) => resolveTagUpdate?.({ tags }),
       };

@@ -3,7 +3,7 @@ import { useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
-import { randomUUID } from 'crypto';
+const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -19,30 +19,30 @@ import { SubmitPanel } from 'src/layout/SigningActions/PanelSubmit';
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';
 import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
 
-jest.mock('src/utils/layout/useNodeItem');
-jest.mock('react-router');
-jest.mock('src/features/instance/useProcessNext.tsx');
-jest.mock('src/core/contexts/AppQueriesProvider');
-jest.mock('src/features/profile/ProfileProvider');
-jest.mock('src/features/language/useLanguage');
-jest.mock('src/features/language/Lang');
-jest.mock('src/features/instance/useProcessQuery');
-jest.mock('src/layout/SigneeList/api');
-jest.mock('src/layout/SigningActions/api');
-jest.mock('src/layout/SigningActions/utils');
-jest.mock('@tanstack/react-query');
+vi.mock('src/utils/layout/useNodeItem');
+vi.mock('react-router');
+vi.mock('src/features/instance/useProcessNext.tsx');
+vi.mock('src/core/contexts/AppQueriesProvider');
+vi.mock('src/features/profile/ProfileProvider');
+vi.mock('src/features/language/useLanguage');
+vi.mock('src/features/language/Lang');
+vi.mock('src/features/instance/useProcessQuery');
+vi.mock('src/layout/SigneeList/api');
+vi.mock('src/layout/SigningActions/api');
+vi.mock('src/layout/SigningActions/utils');
+vi.mock('@tanstack/react-query');
 
-jest.mock('src/layout/SigningActions/PanelNoActionRequired');
-jest.mock('src/layout/SigningActions/PanelAwaitingOtherSignatures');
-jest.mock('src/layout/SigningActions/PanelAwaitingCurrentUserSignature');
-jest.mock('src/layout/SigningActions/PanelSubmit');
-jest.mock('src/layout/SigningActions/PanelSigning');
+vi.mock('src/layout/SigningActions/PanelNoActionRequired');
+vi.mock('src/layout/SigningActions/PanelAwaitingOtherSignatures');
+vi.mock('src/layout/SigningActions/PanelAwaitingCurrentUserSignature');
+vi.mock('src/layout/SigningActions/PanelSubmit');
+vi.mock('src/layout/SigningActions/PanelSigning');
 
-const mockedUseisAuthorized = jest.mocked(useIsAuthorized);
-const mockedUseSigneeList = jest.mocked(useSigneeList);
-const mockedUserSigneeParties = jest.mocked(useUserSigneeParties);
-const mockedUseSignaturesValidation = jest.mocked(useSignaturesValidation);
-const mockedGetCurrentUserStatus = jest.mocked(getCurrentUserStatus);
+const mockedUseisAuthorized = vi.mocked(useIsAuthorized);
+const mockedUseSigneeList = vi.mocked(useSigneeList);
+const mockedUserSigneeParties = vi.mocked(useUserSigneeParties);
+const mockedUseSignaturesValidation = vi.mocked(useSignaturesValidation);
+const mockedGetCurrentUserStatus = vi.mocked(getCurrentUserStatus);
 
 const failedDelegationSignee: SigneeState = {
   name: 'name2',
@@ -70,22 +70,22 @@ describe('SigningActionsComponent', () => {
   const taskId = 'task_1';
 
   beforeEach(() => {
-    // resets all mocked functions to jest.fn()
-    jest.resetAllMocks();
+    // resets all mocked functions to vi.fn()
+    vi.resetAllMocks();
 
-    jest.mocked(useParams).mockReturnValue({
+    vi.mocked(useParams).mockReturnValue({
       partyId,
       instanceGuid,
       taskId,
     });
-    jest.mocked(useIsAuthorized).mockReturnValue(() => true);
+    vi.mocked(useIsAuthorized).mockReturnValue(() => true);
 
-    jest.mocked(useLanguage).mockReturnValue({
+    vi.mocked(useLanguage).mockReturnValue({
       langAsString: (inputString: string) => inputString,
     } as unknown as ReturnType<typeof useLanguage>);
-    jest.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
+    vi.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
 
-    jest.mocked(useProfile).mockReturnValue({ partyId: 123 } as unknown as ReturnType<typeof useProfile>);
+    vi.mocked(useProfile).mockReturnValue({ partyId: 123 } as unknown as ReturnType<typeof useProfile>);
 
     mockedUseSigneeList.mockReturnValue({
       data: [],
@@ -94,35 +94,34 @@ describe('SigningActionsComponent', () => {
     } as unknown as ReturnType<typeof useSigneeList>);
 
     mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: jest.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
+      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
       hasMissingSignatures: false,
     });
 
     mockedUserSigneeParties.mockReturnValue([]);
 
-    jest.mocked(AwaitingCurrentUserSignaturePanel).mockImplementation(({ hasMissingSignatures }) => (
+    vi.mocked(AwaitingCurrentUserSignaturePanel).mockImplementation(({ hasMissingSignatures }) => (
       <div data-testid='awaiting-current-user-signature-panel'>
         <div data-testid={hasMissingSignatures ? 'missing-signatures' : 'no-missing-signatures'} />
       </div>
     ));
 
-    jest.mocked(NoActionRequiredPanel).mockImplementation(({ hasSigned }) => (
+    vi.mocked(NoActionRequiredPanel).mockImplementation(({ hasSigned }) => (
       <div data-testid='no-action-required-panel'>
         <div data-testid={hasSigned ? 'has-signed' : 'has-not-signed'} />
       </div>
     ));
 
-    jest.mocked(AwaitingOtherSignaturesPanel).mockImplementation(({ hasSigned }) => (
+    vi.mocked(AwaitingOtherSignaturesPanel).mockImplementation(({ hasSigned }) => (
       <div data-testid='awaiting-other-signatures-panel'>
         <div data-testid={hasSigned ? 'has-signed' : 'has-not-signed'} />
       </div>
     ));
 
-    jest.mocked(SubmitPanel).mockReturnValue(<div data-testid='submit-panel' />);
+    vi.mocked(SubmitPanel).mockReturnValue(<div data-testid='submit-panel' />);
 
-    jest
-      .mocked(SigningPanel)
-      .mockImplementation(({ heading, description, variant = 'info', actionButton, errorMessage, children }) => (
+    vi.mocked(SigningPanel).mockImplementation(
+      ({ heading, description, variant = 'info', actionButton, errorMessage, children }) => (
         <div
           data-testid='signing-panel'
           data-variant={variant}
@@ -133,7 +132,8 @@ describe('SigningActionsComponent', () => {
           {actionButton && <div data-testid='action-button'>{actionButton}</div>}
           {errorMessage && <div data-testid='error-message'>{errorMessage}</div>}
         </div>
-      ));
+      ),
+    );
   });
 
   it('should render loading spinner when loading is true', () => {
@@ -192,7 +192,7 @@ describe('SigningActionsComponent', () => {
   it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are missing signatures', () => {
     mockedGetCurrentUserStatus.mockReturnValue('awaitingSignature');
     mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: jest.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
+      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
       hasMissingSignatures: true,
     });
 
@@ -210,7 +210,7 @@ describe('SigningActionsComponent', () => {
   it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are no missing signatures', () => {
     mockedGetCurrentUserStatus.mockReturnValue('awaitingSignature');
     mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: jest.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
+      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
       hasMissingSignatures: false,
     });
 
@@ -259,7 +259,7 @@ describe('SigningActionsComponent', () => {
     mockedUseisAuthorized.mockReturnValue(() => true);
     mockedGetCurrentUserStatus.mockReturnValue('signed');
     mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: jest.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
+      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
       hasMissingSignatures: true,
     });
 
@@ -278,7 +278,7 @@ describe('SigningActionsComponent', () => {
     mockedUseisAuthorized.mockReturnValue(() => true);
     mockedGetCurrentUserStatus.mockReturnValue('notSigning');
     mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: jest.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
+      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
       hasMissingSignatures: true,
     });
 
@@ -299,7 +299,7 @@ describe('SigningActionsComponent', () => {
       mockedUseisAuthorized.mockReturnValue(() => true);
       mockedGetCurrentUserStatus.mockReturnValue(currentUserStatus);
       mockedUseSignaturesValidation.mockReturnValue({
-        refetchValidations: jest.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
+        refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
         hasMissingSignatures: false,
       });
 

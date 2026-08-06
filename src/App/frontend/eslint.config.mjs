@@ -172,7 +172,7 @@ export default defineConfig([
     },
     languageOptions: {
       globals: {
-        ...globals.jest,
+        ...globals.vitest,
       },
     },
     rules: {
@@ -246,6 +246,13 @@ export default defineConfig([
           ],
         },
       ],
+    },
+  },
+  {
+    // Route modules must default-export their component - that is React Router's Route Module API.
+    files: ['src/routes/**/*.route.tsx'],
+    rules: {
+      'import/no-default-export': ['off'],
     },
   },
   {
