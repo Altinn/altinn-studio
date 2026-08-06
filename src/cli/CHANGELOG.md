@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Explain access errors during `studioctl app upgrade`
+
 ## [0.1.0-preview.19] - 2026-08-06
 
 ### Added
