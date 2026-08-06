@@ -16,6 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Explain access errors during `studioctl app upgrade`
+- Explain whether app endpoint discovery or Localtest Storage was still incomplete when `studioctl run` reaches its startup timeout.
 
 ## [0.1.0-preview.19] - 2026-08-06
 
