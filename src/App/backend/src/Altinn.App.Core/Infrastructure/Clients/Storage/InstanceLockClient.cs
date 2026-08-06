@@ -73,9 +73,11 @@ internal sealed class InstanceLockClient(
 
         if (string.IsNullOrEmpty(lockToken))
         {
-            // The body was consumed as JSON above, so there is nothing left to capture.
-            throw PlatformHttpException.FromHttpResponse(
-                response,
+            // The body was consumed as JSON above and cannot be replayed, so this snapshots the
+            // metadata only. PlatformHttpException.Create would re-read it (capturing nothing) and
+            // dispose a response this method still owns.
+            throw new PlatformHttpException(
+                PlatformHttpResponse.FromHttpResponse(response),
                 "The response from the lock acquisition endpoint was not expected."
             );
         }

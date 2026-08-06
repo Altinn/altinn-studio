@@ -258,10 +258,12 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
         }
         catch (Exception e)
         {
-            throw PlatformHttpException.FromHttpResponse(
-                response,
+            // Not PlatformHttpException.Create: reading the body is what makes it asynchronous, and the
+            // body was consumed into `content` above, so a re-read would capture nothing. Create also
+            // disposes the response, which the caller still owns.
+            throw new PlatformHttpException(
+                PlatformHttpResponse.FromHttpResponse(response, content),
                 $"Error deserializing JSON data: {e.Message}. The content was: {content}",
-                content,
                 e
             );
         }
@@ -285,7 +287,13 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
     )
     {
         string errorMessage = $"{(int)response.StatusCode} {response.ReasonPhrase}: {content}";
-        return PlatformHttpException.FromHttpResponse(response, errorMessage, content, innerException);
+        // The callers have already read the body into `content`, so this snapshots it rather than
+        // going through the asynchronous PlatformHttpException.Create, which would re-read and dispose.
+        return new PlatformHttpException(
+            PlatformHttpResponse.FromHttpResponse(response, content),
+            errorMessage,
+            innerException
+        );
     }
 
     private async Task<HttpClient> GetAuthenticatedClient(HttpClientTarget target)
