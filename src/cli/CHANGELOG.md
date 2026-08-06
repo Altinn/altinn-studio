@@ -24,6 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Keep subforms identifiable when running `studioctl app upgrade v9`.
+- Explain access errors during `studioctl app upgrade`
 
 ## [0.1.0-preview.18] - 2026-07-24
 
