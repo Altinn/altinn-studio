@@ -24,6 +24,7 @@ internal sealed class PlatformHttpExceptionApiMigration
     private const string ExceptionTypeName = "PlatformHttpException";
     private const string SnapshotTypeName = "PlatformHttpResponse";
     private const string HttpResponseMessageTypeName = "HttpResponseMessage";
+    private const string ResponseParameterName = "response";
     private const string RenamedFactory = "CreateAsync";
     private const string NewFactory = "Create";
     private const string HelpersNamespace = "Altinn.App.Core.Helpers";
@@ -163,7 +164,24 @@ internal sealed class PlatformHttpExceptionApiMigration
                 return visited;
             }
 
+            // Named arguments may be written in any order, so position 0 is not necessarily the
+            // response. Prefer the one named `response`; if the call is named but has no such
+            // argument, leave it alone rather than emit a rewrite that will not compile.
             var first = argumentList.Arguments[0];
+            if (argumentList.Arguments.Any(argument => argument.NameColon is not null))
+            {
+                var named = argumentList.Arguments.FirstOrDefault(argument =>
+                    argument.NameColon?.Name.Identifier.Text == ResponseParameterName
+                );
+
+                if (named is null)
+                {
+                    return visited;
+                }
+
+                first = named;
+            }
+
             var replacement = BuildSnapshotArgument(first.Expression);
             if (replacement is null)
             {

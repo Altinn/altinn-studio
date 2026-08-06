@@ -198,9 +198,13 @@ public sealed record PlatformHttpResponse
             {
                 encoding = Encoding.GetEncoding(charset);
             }
-            catch (ArgumentException)
+            catch (Exception e) when (e is ArgumentException or NotSupportedException)
             {
-                // Unknown/invalid charset: UTF-8 is the best available guess.
+                // A charset the platform does not provide (many code pages need
+                // CodePagesEncodingProvider on modern .NET, and unsupported ones raise
+                // NotSupportedException rather than ArgumentException). This runs while building an
+                // exception, so it must never throw itself and mask the failure being reported —
+                // UTF-8 is the best available guess.
             }
         }
 

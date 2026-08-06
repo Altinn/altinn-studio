@@ -129,6 +129,43 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void Migration_WrapsTheNamedResponseArgumentRegardlessOfPosition()
+    {
+        var migrated = Migrate(
+            "logic/Named.cs",
+            """
+            using Altinn.App.Core.Helpers;
+            public class Named
+            {
+                public PlatformHttpException Fail(HttpResponseMessage response, string body) =>
+                    new PlatformHttpException(message: body, response: response);
+            }
+            """
+        );
+
+        Assert.Contains("response: PlatformHttpResponse.FromHttpResponse(response)", migrated);
+        Assert.Contains("message: body", migrated);
+    }
+
+    [Fact]
+    public void Migration_LeavesNamedCallsWithoutAResponseArgumentAlone()
+    {
+        var source = """
+            using Altinn.App.Core.Helpers;
+            public class Named
+            {
+                public PlatformHttpException Fail(PlatformHttpResponse snapshot, string body) =>
+                    new PlatformHttpException(message: body, snapshot: snapshot);
+            }
+            """;
+
+        var migrated = Migrate("logic/Named.cs", source);
+
+        // Better to leave a call we cannot classify than to emit a rewrite that will not compile.
+        Assert.Equal(source, migrated);
+    }
+
+    [Fact]
     public void Migration_IsIdempotent()
     {
         _app.Write(
