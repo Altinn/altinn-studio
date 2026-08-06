@@ -91,4 +91,25 @@ public class PutTests : DesignerEndpointsTestsBase<PutTests>, IClassFixture<WebA
         Assert.Contains("Foretak.Navn", content);
         Assert.DoesNotContain("OrgNumber", content);
     }
+
+    [Theory]
+    [InlineData("../../../App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser")]
+    public async Task Put_ModelPathContainsPathTraversal_ShouldNotSucceed(
+        string modelPath,
+        string org,
+        string repo,
+        string user
+    )
+    {
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/prefill?modelPath={modelPath}";
+
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(PrefillConfig, Encoding.UTF8, MediaTypeNames.Application.Json),
+        };
+        using var putResponse = await HttpClient.SendAsync(putRequest);
+
+        Assert.NotEqual(HttpStatusCode.NoContent, putResponse.StatusCode);
+    }
 }

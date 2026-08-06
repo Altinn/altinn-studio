@@ -1,4 +1,6 @@
 #nullable disable
+using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -37,6 +39,7 @@ public class PrefillService : IPrefillService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        ValidateModelPath(modelPath);
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             altinnRepoEditingContext.Org,
             altinnRepoEditingContext.Repo,
@@ -61,6 +64,7 @@ public class PrefillService : IPrefillService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        ValidateModelPath(modelPath);
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             altinnRepoEditingContext.Org,
             altinnRepoEditingContext.Repo,
@@ -79,5 +83,13 @@ public class PrefillService : IPrefillService
     private static string GetPrefillFilePath(string modelPath)
     {
         return modelPath.Replace(SchemaFileSuffix, PrefillFileSuffix);
+    }
+
+    private static void ValidateModelPath(string modelPath)
+    {
+        if (string.IsNullOrWhiteSpace(modelPath) || modelPath.Contains("..") || Path.IsPathRooted(modelPath))
+        {
+            throw new ArgumentException($"Invalid model path: {modelPath}", nameof(modelPath));
+        }
     }
 }

@@ -37,4 +37,21 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("../../../App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser")]
+    public async Task Get_ModelPathContainsPathTraversal_ShouldNotSucceed(
+        string modelPath,
+        string org,
+        string repo,
+        string user
+    )
+    {
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/prefill?modelPath={modelPath}";
+
+        using var response = await HttpClient.GetAsync(url);
+
+        Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
+    }
 }

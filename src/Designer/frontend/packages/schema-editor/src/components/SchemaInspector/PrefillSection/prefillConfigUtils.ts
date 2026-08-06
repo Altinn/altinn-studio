@@ -15,7 +15,8 @@ export const findPrefillMapping = (
 ): PrefillMapping | undefined => {
   for (const source of Object.values(PrefillSource)) {
     const sourceConfig = prefillConfig[source];
-    const key = sourceConfig && Object.keys(sourceConfig).find((k) => sourceConfig[k] === dataBindingName);
+    const key =
+      sourceConfig && Object.keys(sourceConfig).find((k) => sourceConfig[k] === dataBindingName);
     if (key) {
       return { source, key };
     }

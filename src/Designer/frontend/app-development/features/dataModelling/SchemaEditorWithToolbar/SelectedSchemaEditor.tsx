@@ -105,7 +105,8 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
   });
 
   const savePrefillConfig = useCallback(
-    (updatedPrefillConfig: PrefillConfig) => mutatePrefill({ modelPath, prefillConfig: updatedPrefillConfig }),
+    (updatedPrefillConfig: PrefillConfig) =>
+      mutatePrefill({ modelPath, prefillConfig: updatedPrefillConfig }),
     [modelPath, mutatePrefill],
   );
 
