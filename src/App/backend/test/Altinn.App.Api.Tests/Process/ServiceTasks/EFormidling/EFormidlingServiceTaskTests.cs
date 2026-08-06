@@ -159,6 +159,73 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
     }
 
     [Fact]
+    public async Task Waits_For_Delivery_And_Sends_The_Shipment_Only_Once()
+    {
+        SendAsync = message =>
+        {
+            if (message.RequestUri!.PathAndQuery.Contains("pdf"))
+            {
+                return Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("this is the binary pdf content"),
+                    }
+                );
+            }
+
+            throw new Exception($"Not mocked http request: {message.RequestUri!.PathAndQuery}");
+        };
+
+        // Pending, pending, then delivered: the task defers twice before concluding.
+        Queue<EFormidlingShipmentStatus> statuses = new([
+            new EFormidlingShipmentStatus { State = EFormidlingDeliveryState.Pending, Status = "opprettet" },
+            new EFormidlingShipmentStatus { State = EFormidlingDeliveryState.Pending, Status = "sendt" },
+            new EFormidlingShipmentStatus { State = EFormidlingDeliveryState.Delivered, Status = "levert" },
+        ]);
+        _eFormidlingServiceMock
+            .Setup(x =>
+                x.GetEFormidlingShipmentStatus(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                )
+            )
+            .ReturnsAsync(() => statuses.Count > 1 ? statuses.Dequeue() : statuses.Peek());
+
+        using HttpClient client = GetRootedUserClient(Org, App);
+
+        using HttpResponseMessage nextResponse = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next?language={Language}",
+            null
+        );
+
+        string nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(nextResponseContent);
+        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        // The wait ran to a conclusion, and the process advanced only then.
+        _eFormidlingServiceMock.Verify(
+            x =>
+                x.GetEFormidlingShipmentStatus(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                ),
+            Times.Exactly(3)
+        );
+
+        // The point of giving the send its own stage: the engine records the stage as completed, so
+        // re-checking delivery never re-sends. A single deferring task would have re-run the send on
+        // every poll.
+        _eFormidlingServiceMock.Verify(
+            x =>
+                x.SendEFormidlingShipment(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
     public async Task Does_Not_Change_Task_When_Shipment_Delivery_Fails()
     {
         // The shipment leaves the app fine; the integrasjonspunkt then reports it as terminally
