@@ -81,7 +81,7 @@ internal sealed class CorrespondenceApiMigration
     };
 
     private const string AuthenticationMethodType = "CorrespondenceAuthenticationMethod";
-    private const string LegacyAuthorisationType = "CorrespondenceAuthorisation";
+    private const string LegacyAuthorizationType = "CorrespondenceAuthorisation";
     private const string AuthenticationMethodNamespace = "Altinn.App.Core.Features";
 
     private readonly CSharpSourceScanner _scanner;
@@ -547,7 +547,7 @@ internal sealed class CorrespondenceApiMigration
 
         /// <summary>
         /// Replaces the two superseded payload constructors: a bare token factory becomes
-        /// <c>CorrespondenceAuthenticationMethod.Custom(factory)</c>, and the legacy authorisation enum
+        /// <c>CorrespondenceAuthenticationMethod.Custom(factory)</c>, and the legacy authorization enum
         /// becomes <c>CorrespondenceAuthenticationMethod.Default()</c>.
         /// </summary>
         private BaseObjectCreationExpressionSyntax RewritePayloadAuthentication(
@@ -580,7 +580,7 @@ internal sealed class CorrespondenceApiMigration
                 ),
                 // `CorrespondenceAuthorisation.Maskinporten` - the only member the enum ever had.
                 MemberAccessExpressionSyntax enumAccess
-                    when TrailingName(enumAccess.Expression) == LegacyAuthorisationType => StaticCall(
+                    when TrailingName(enumAccess.Expression) == LegacyAuthorizationType => StaticCall(
                     AuthenticationMethodType,
                     "Default"
                 ),
@@ -596,7 +596,7 @@ internal sealed class CorrespondenceApiMigration
             Record(
                 original,
                 isEnumForm
-                    ? $"replaced `{LegacyAuthorisationType}.Maskinporten` with `{AuthenticationMethodType}.Default()` "
+                    ? $"replaced `{LegacyAuthorizationType}.Maskinporten` with `{AuthenticationMethodType}.Default()` "
                         + "in the payload constructor - NOTE: Default() also requests "
                         + "altinn:serviceowner/instances.read and altinn:serviceowner/instances.write, so the "
                         + "Maskinporten client needs those scopes"

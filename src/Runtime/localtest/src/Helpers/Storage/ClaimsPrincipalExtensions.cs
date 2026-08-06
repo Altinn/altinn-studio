@@ -133,8 +133,8 @@ public static class ClaimsPrincipalExtensions
 
             string consumerId = systemUser.Systemuser_org.ID;
 
-            string organisationNumber = consumerId.Split(":")[1];
-            return organisationNumber;
+            string organizationNumber = consumerId.Split(":")[1];
+            return organizationNumber;
         }
 
         return null;

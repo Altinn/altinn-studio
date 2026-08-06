@@ -97,7 +97,7 @@ class Tool(ABC):
     Safety predicates come in two forms:
 
     - `is_concurrency_safe` / `is_read_only` are class attributes that
-      cover the common case (a tool's behaviour does not depend on its
+      cover the common case (a tool's behavior does not depend on its
       input).  Both default to `False` — fail-closed: an unclassified
       tool is assumed to mutate state and to conflict with others.
     - `concurrency_safe_for(args)` / `read_only_for(args)` are

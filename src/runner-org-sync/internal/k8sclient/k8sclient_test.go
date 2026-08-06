@@ -331,7 +331,7 @@ func TestOrgFromSecret(t *testing.T) {
 		t.Errorf("OrgFromSecret = %q, want ttd", got)
 	}
 	if got := OrgFromSecret(corev1.Secret{}); got != "" {
-		t.Errorf("OrgFromSecret on unlabelled secret = %q, want empty", got)
+		t.Errorf("OrgFromSecret on unlabeled secret = %q, want empty", got)
 	}
 }
 
@@ -438,7 +438,7 @@ func TestApplyOpaqueSecret_UpdatesOnDifference(t *testing.T) {
 
 func TestApplyOpaqueSecret_PreservesOtherKeys(t *testing.T) {
 	// Some other actor wrote an unrelated key into the Secret; we must not
-	// stomp on it when applying ours. This is defence in depth against an
+	// stomp on it when applying ours. This is defense in depth against an
 	// operator that manages multiple keys in one Opaque Secret.
 	c := fake.NewSimpleClientset(&corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "shared", Namespace: testNamespace},

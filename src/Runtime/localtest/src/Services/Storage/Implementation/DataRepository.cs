@@ -184,7 +184,7 @@ namespace LocalTest.Services.Storage.Implementation
                 return dataElement;
             }
 
-            throw new RepositoryException("Error occured");
+            throw new RepositoryException("Error occurred");
         }
 
 

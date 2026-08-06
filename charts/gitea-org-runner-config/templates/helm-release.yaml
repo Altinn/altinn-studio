@@ -39,7 +39,7 @@ spec:
     shareWorkspace:
       enabled: {{ .Values.shareWorkspace.enabled }}
 
-    # Chart-level Gitea config: the workload chart synthesises each runner
+    # Chart-level Gitea config: the workload chart synthesizes each runner
     # pod's GITEA_INSTANCE_URL / RUNNER_LABELS env vars from here. The KEDA
     # github-runner scaler uses apiUrl to poll org queue depth.
     gitea:
@@ -52,7 +52,7 @@ spec:
       scalerLabels: "ubuntu-latest"
 
     # KEDA wiring: name of the TriggerAuthentication ScaledJobs reference.
-    # The CR is materialised by runner-org-sync's deploy in the same
+    # The CR is materialized by runner-org-sync's deploy in the same
     # namespace (src/runner-org-sync/infra/kustomize/triggerauthentication.yaml).
     keda:
       authenticationRef:

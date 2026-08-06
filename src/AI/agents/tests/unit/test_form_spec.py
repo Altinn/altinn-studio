@@ -40,7 +40,7 @@ class TestFormSpecOptionCoercion:
         assert [o.label for o in field.options] == ["Bokmål", "Nynorsk", "English"]
         assert [o.value for o in field.options] == ["bokmaal", "nynorsk", "english"]
 
-    def test_mixed_shapes_are_normalised(self):
+    def test_mixed_shapes_are_normalized(self):
         field = FormSpecField(
             id="x",
             label="X",

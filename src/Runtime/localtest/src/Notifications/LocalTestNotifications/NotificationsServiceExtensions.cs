@@ -15,7 +15,7 @@ using LocalTest.Notifications.Persistence.Repository;
 
 namespace LocalTest.Notifications.LocalTestNotifications;
 
-public static class NotificationsServiceExtentions
+public static class NotificationsServiceExtensions
 {
     public static void AddNotificationServices(this IServiceCollection services, string baseUrl, IConfiguration config)
     {

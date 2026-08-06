@@ -326,7 +326,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>

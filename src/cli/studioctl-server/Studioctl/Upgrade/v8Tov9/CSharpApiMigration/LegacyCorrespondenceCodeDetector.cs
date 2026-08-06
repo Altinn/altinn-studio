@@ -2,7 +2,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 /// <summary>
 /// Warn-only detector for the deprecated Correspondence surfaces removed in v9. Three groups, each
-/// with its own migration guidance: the legacy authorisation model (superseded by
+/// with its own migration guidance: the legacy authorization model (superseded by
 /// <c>CorrespondenceAuthenticationMethod</c>), fields the Correspondence API dropped (which the client
 /// already silently discarded), and the legacy notification recipient-override API (superseded by the
 /// singular <c>CustomRecipient</c>).
@@ -28,7 +28,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </remarks>
 internal sealed class LegacyCorrespondenceCodeDetector
 {
-    private static readonly IReadOnlySet<string> _removedAuthorisationTypes = new HashSet<string>(
+    private static readonly IReadOnlySet<string> _removedAuthorizationTypes = new HashSet<string>(
         StringComparer.Ordinal
     )
     {
@@ -125,8 +125,8 @@ internal sealed class LegacyCorrespondenceCodeDetector
         "CustomRecipient",
     };
 
-    private const string AuthorisationSummary =
-        "The legacy Correspondence authorisation model is removed in v9. Replace the CorrespondenceAuthorisation "
+    private const string AuthorizationSummary =
+        "The legacy Correspondence authorization model is removed in v9. Replace the CorrespondenceAuthorisation "
         + "enum and the SendCorrespondencePayload/GetCorrespondenceStatusPayload overloads taking "
         + "CorrespondenceAuthorisation or Func<Task<JwtToken>> with CorrespondenceAuthenticationMethod: "
         + "CorrespondenceAuthenticationMethod.Default() for a service owner token, or "
@@ -151,7 +151,7 @@ internal sealed class LegacyCorrespondenceCodeDetector
     private const string RecipientOverrideSummary =
         "The Correspondence notification recipient-override API changed in v9. Notifications now carry a list: "
         + "CorrespondenceNotification.CustomRecipients replaces the singular CustomRecipient, and "
-        + "CorrespondenceNotificationRecipientWrapper plus CustomNotificationRecipients are gone (the API honoured "
+        + "CorrespondenceNotificationRecipientWrapper plus CustomNotificationRecipients are gone (the API honored "
         + "only that list's first entry). Set recipients with WithRecipientOverride(recipient), which now accumulates "
         + "and can be chained, WithRecipientOverrides(recipients) for several at once, or "
         + "WithRecipientOverrideIfConfigured(recipient) to skip a null. Build each recipient with "
@@ -175,10 +175,10 @@ internal sealed class LegacyCorrespondenceCodeDetector
 
     public MigrationResult Detect()
     {
-        var authorisationMatches = _scanner.Files.SelectMany(file =>
+        var authorizationMatches = _scanner.Files.SelectMany(file =>
             CSharpSyntaxQueries
-                .TypesImplementing(file, _removedAuthorisationTypes)
-                .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedAuthorisationTypes))
+                .TypesImplementing(file, _removedAuthorizationTypes)
+                .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedAuthorizationTypes))
                 .Concat(
                     CSharpSyntaxQueries.ObjectCreationsWithLambdaArgument(
                         file,
@@ -188,7 +188,7 @@ internal sealed class LegacyCorrespondenceCodeDetector
                 )
                 // A token factory held in a field or property is indistinguishable from an already-migrated
                 // CorrespondenceAuthenticationMethod without binding. Reported anyway: a needless warning
-                // costs seconds, whereas staying silent here can hide the whole authorisation break from an
+                // costs seconds, whereas staying silent here can hide the whole authorization break from an
                 // app that never writes the enum inline.
                 .Concat(
                     CSharpSyntaxQueries.ObjectCreationsWithoutExpectedTypeInArgument(
@@ -225,7 +225,7 @@ internal sealed class LegacyCorrespondenceCodeDetector
         );
 
         return WarnOnlyDetector.Combine(
-            WarnOnlyDetector.Report(AuthorisationSummary, authorisationMatches),
+            WarnOnlyDetector.Report(AuthorizationSummary, authorizationMatches),
             WarnOnlyDetector.Report(DroppedFieldSummary, droppedFieldMatches),
             WarnOnlyDetector.Report(RecipientOverrideSummary, recipientOverrideMatches)
         );

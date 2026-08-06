@@ -25,7 +25,7 @@ of the most useful pages is included at the end of this skill (see
 ## Component examples (canonical layouts)
 
 For real-world examples of every layout component type, the
-`ttd/component-library` app is the canonical source (publicly clonable:
+`ttd/component-library` app is the canonical source (publicly cloneable:
 `https://altinn.studio/repos/ttd/component-library.git` — for
 environments with shell access; the agent loop has none). In the loop,
 use `altinn_layout_props` for the authoritative property list.

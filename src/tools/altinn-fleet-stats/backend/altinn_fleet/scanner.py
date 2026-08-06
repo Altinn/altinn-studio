@@ -505,7 +505,7 @@ def _detect_schema_drift(conn: sqlite3.Connection) -> tuple[bool, str]:
     if text_keys_count == 0:
         return (True, f"text_keys is empty for {apps_count} scanned apps — schema upgrade detected")
 
-    # Frontend version is set for every app by the new scanner (categorised
+    # Frontend version is set for every app by the new scanner (categorized
     # values like "(no Index.cshtml)" etc.), so NULL = not yet re-scanned.
     null_fe = conn.execute(
         "SELECT COUNT(*) AS n FROM apps WHERE frontend_version IS NULL"
