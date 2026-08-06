@@ -10,7 +10,7 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Implementation.Organisation;
+using Altinn.Studio.Designer.Services.Implementation.Organization;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Moq;

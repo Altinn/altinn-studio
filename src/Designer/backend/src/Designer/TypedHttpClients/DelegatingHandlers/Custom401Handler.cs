@@ -22,7 +22,7 @@ public class Custom401Handler : DelegatingHandler
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             response.Dispose();
-            throw new GiteaUnathorizedException("Gitea session is invalid");
+            throw new GiteaUnauthorizedException("Gitea session is invalid");
         }
 
         return response;

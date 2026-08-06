@@ -66,7 +66,7 @@ public class UploadCodeListTests
     }
 
     [Fact]
-    public async Task Post_Retuns_200OK_When_Uploading_New_CodeList_With_Empty_Strings()
+    public async Task Post_Returns_200OK_When_Uploading_New_CodeList_With_Empty_Strings()
     {
         // Arrange
         string targetOrg = TestDataHelper.GenerateTestOrgName();

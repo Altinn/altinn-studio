@@ -17,14 +17,14 @@ namespace Designer.Tests.Services;
 
 public class KubernetesDeploymentsServiceTest
 {
-    private readonly Mock<IEnvironmentsService> _environementsService;
+    private readonly Mock<IEnvironmentsService> _environmentsService;
     private readonly Mock<IKubernetesWrapperClient> _kubernetesWrapperClient;
     private readonly Mock<ILogger<KubernetesDeploymentsService>> _deploymentLogger;
 
     public KubernetesDeploymentsServiceTest()
     {
-        _environementsService = new Mock<IEnvironmentsService>();
-        _environementsService.Setup(req => req.GetEnvironments()).ReturnsAsync(GetEnvironments("environments.json"));
+        _environmentsService = new Mock<IEnvironmentsService>();
+        _environmentsService.Setup(req => req.GetEnvironments()).ReturnsAsync(GetEnvironments("environments.json"));
 
         _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
         _kubernetesWrapperClient
@@ -47,7 +47,7 @@ public class KubernetesDeploymentsServiceTest
     {
         // Arrange
         var environments = GetEnvironments("environments.json");
-        _environementsService
+        _environmentsService
             .Setup(e => e.GetOrganizationEnvironments(org, It.IsAny<CancellationToken>()))
             .ReturnsAsync(environments);
         var kubernetesDeployments = GetKubernetesDeployments("completedDeployments.json");
@@ -69,7 +69,7 @@ public class KubernetesDeploymentsServiceTest
         }
 
         KubernetesDeploymentsService kubernetesDeploymentsService = new(
-            _environementsService.Object,
+            _environmentsService.Object,
             _kubernetesWrapperClient.Object,
             _deploymentLogger.Object
         );

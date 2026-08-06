@@ -29,7 +29,7 @@ public class Pages
 
     [JsonPropertyName("autoSaveBehaviour")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public AutoSaveBehaviourType? AutoSaveBehaviour { get; set; }
+    public AutoSaveBehaviorType? AutoSaveBehavior { get; set; }
 
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -59,7 +59,7 @@ public class Pages
             ShowExpandWidthButton = ShowExpandWidthButton,
             ExpandedWidth = ExpandedWidth,
             ShowProgress = ShowProgress,
-            AutoSaveBehaviour = AutoSaveBehaviour,
+            AutoSaveBehavior = AutoSaveBehavior,
             TaskNavigation = TaskNavigation,
             ExcludeFromPdf = ExcludeFromPdf,
             PdfLayoutName = PdfLayoutName,
@@ -77,7 +77,7 @@ public class Pages
             ShowExpandWidthButton = ShowExpandWidthButton,
             ExpandedWidth = ExpandedWidth,
             ShowProgress = ShowProgress,
-            AutoSaveBehaviour = AutoSaveBehaviour,
+            AutoSaveBehavior = AutoSaveBehavior,
             TaskNavigation = TaskNavigation,
             ExcludeFromPdf = ExcludeFromPdf,
             PdfLayoutName = PdfLayoutName,

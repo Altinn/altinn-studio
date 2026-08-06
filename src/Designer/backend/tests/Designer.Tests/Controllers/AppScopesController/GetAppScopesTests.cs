@@ -29,8 +29,8 @@ public class GetAppScopesTests
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        AppScopesResponse repsponseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
-        Assert.Empty(repsponseContent.Scopes);
+        AppScopesResponse responseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
+        Assert.Empty(responseContent.Scopes);
     }
 
     [Fact]

@@ -209,7 +209,7 @@ public class SchemaModelService : ISchemaModelService
     /// Builds a JSON schema based on the uploaded XSD.
     /// </summary>
     /// <remarks>
-    /// This operation is using the new data modelling library.
+    /// This operation is using the new data modeling library.
     /// </remarks>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="fileNameWithExtension">The name of the file being uploaded.</param>

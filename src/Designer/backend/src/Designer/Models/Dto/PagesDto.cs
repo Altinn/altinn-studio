@@ -37,7 +37,7 @@ public class PagesDto
 
     [JsonPropertyName("autoSaveBehaviour")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public AutoSaveBehaviourType? AutoSaveBehaviour { get; set; }
+    public AutoSaveBehaviorType? AutoSaveBehavior { get; set; }
 
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -81,7 +81,7 @@ public class PagesDto
         pagesDto.ShowExpandWidthButton = layoutSettings.Pages?.ShowExpandWidthButton;
         pagesDto.ExpandedWidth = layoutSettings.Pages?.ExpandedWidth;
         pagesDto.ShowProgress = layoutSettings.Pages?.ShowProgress;
-        pagesDto.AutoSaveBehaviour = layoutSettings.Pages?.AutoSaveBehaviour;
+        pagesDto.AutoSaveBehavior = layoutSettings.Pages?.AutoSaveBehavior;
         pagesDto.TaskNavigation = layoutSettings.Pages?.TaskNavigation;
         pagesDto.ExcludeFromPdf = layoutSettings.Pages?.ExcludeFromPdf;
         pagesDto.PdfLayoutName = layoutSettings.Pages?.PdfLayoutName;
@@ -122,7 +122,7 @@ public class PagesDto
         pages.ShowExpandWidthButton = ShowExpandWidthButton;
         pages.ExpandedWidth = ExpandedWidth;
         pages.ShowProgress = ShowProgress;
-        pages.AutoSaveBehaviour = AutoSaveBehaviour;
+        pages.AutoSaveBehavior = AutoSaveBehavior;
         pages.TaskNavigation = TaskNavigation;
         pages.ExcludeFromPdf = ExcludeFromPdf;
         pages.PdfLayoutName = PdfLayoutName;

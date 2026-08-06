@@ -99,10 +99,10 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         );
         Assert.Equal(HttpStatusCode.OK, resetResponse.StatusCode);
 
-        using HttpResponseMessage appDevelopmentIndes = await HttpClient.GetAsync(
+        using HttpResponseMessage appDevelopmentIndex = await HttpClient.GetAsync(
             $"designer/api/repos/repo/{org}/{targetRepo}/status"
         );
-        Assert.Equal(HttpStatusCode.OK, appDevelopmentIndes.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, appDevelopmentIndex.StatusCode);
 
         await File.WriteAllTextAsync($"{CreatedFolderPath}/newFile.txt", "I am a new file");
 

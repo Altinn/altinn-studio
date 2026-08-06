@@ -7,19 +7,19 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController;
 
-public class OrganisationLookupTests
-    : PreviewControllerTestsBase<OrganisationLookupTests>,
+public class OrganizationLookupTests
+    : PreviewControllerTestsBase<OrganizationLookupTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    protected const string OrganisationNumber = "123456789";
+    protected const string OrganizationNumber = "123456789";
 
-    public OrganisationLookupTests(WebApplicationFactory<Program> factory)
+    public OrganizationLookupTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
 
     [Fact]
-    public async Task Get_OrganisationLookup_Ok()
+    public async Task Get_OrganizationLookup_Ok()
     {
-        string dataPathWithData = $"{Org}/{AppV4}/api/v1/lookup/organisation/{OrganisationNumber}";
+        string dataPathWithData = $"{Org}/{AppV4}/api/v1/lookup/organization/{OrganizationNumber}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
         httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
 
@@ -27,7 +27,7 @@ public class OrganisationLookupTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string responseBody = await response.Content.ReadAsStringAsync();
-        Assert.Contains(OrganisationNumber, responseBody);
+        Assert.Contains(OrganizationNumber, responseBody);
         Assert.Contains("Test AS", responseBody);
     }
 }

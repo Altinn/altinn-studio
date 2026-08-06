@@ -32,9 +32,11 @@ public class OrganizationController : ControllerBase
     /// </summary>
     /// <returns>A list over all organizations user has access to</returns>
     [HttpGet]
-    public async Task<List<Organization>> Organizations()
+    // The model type is fully qualified to distinguish it from the
+    // Altinn.Studio.Designer.Controllers.Organization namespace.
+    public async Task<List<RepositoryClient.Model.Organization>> Organizations()
     {
-        List<Organization> orglist = await _giteaClient.GetUserOrganizations();
-        return orglist ?? new List<Organization>();
+        List<RepositoryClient.Model.Organization> orglist = await _giteaClient.GetUserOrganizations();
+        return orglist ?? new List<RepositoryClient.Model.Organization>();
     }
 }

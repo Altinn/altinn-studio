@@ -624,7 +624,7 @@ public static class XmlSchemaAssertions
             return false;
         }
 
-        // TODO: Enum facets are missing comparison of unhandled attributs
+        // TODO: Enum facets are missing comparison of unhandled attributes
         return facet1.IsFixed == facet2.IsFixed && string.Equals(facet1.Value, facet2.Value);
     }
 }

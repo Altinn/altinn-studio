@@ -9,7 +9,7 @@ namespace Designer.Tests;
 public class AltinnCoreFileTests
 {
     [Fact]
-    public void CreateFromPath_ValidPath_ShouldCreateInstanse()
+    public void CreateFromPath_ValidPath_ShouldCreateInstance()
     {
         var org = "ttd";
         var repository = "ttd-datamodels";

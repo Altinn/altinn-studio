@@ -220,7 +220,7 @@ public class TextsService : ITextsService
     /// <summary>
     /// Updates text keys in layouts for a specific layoutset
     /// </summary>
-    /// <param name="org">Identifier for the organisation</param>
+    /// <param name="org">Identifier for the organization</param>
     /// <param name="app">Identifier for the application</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="layoutSetName">Name of the layoutset</param>

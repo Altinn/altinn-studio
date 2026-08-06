@@ -65,7 +65,7 @@ public class GetAppVersionTests
         string backendVersion,
         string frontendVersion,
         string csprojTemplate,
-        string indesCshtmlTemplate
+        string indexCshtmlTemplate
     )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -76,7 +76,7 @@ public class GetAppVersionTests
             { "[[frontendVersion]]", frontendVersion },
         };
         await AddCsProjToRepo("App/App.csproj", csprojTemplate, replacements);
-        await AddFrontendIndexToRepo("App/views/Home/Index.cshtml", indesCshtmlTemplate, replacements);
+        await AddFrontendIndexToRepo("App/views/Home/Index.cshtml", indexCshtmlTemplate, replacements);
 
         string url = VersionPrefix(org, targetRepository);
 
@@ -157,7 +157,7 @@ public class GetAppVersionTests
         string developer,
         string backendVersion,
         string csprojTemplate,
-        string indesCshtmlTemplate
+        string indexCshtmlTemplate
     )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -167,7 +167,7 @@ public class GetAppVersionTests
             csprojTemplate,
             new Dictionary<string, string>() { { "[[appLibVersion]]", backendVersion } }
         );
-        await AddFrontendIndexToRepo("App/views/Home/Index.cshtml", indesCshtmlTemplate);
+        await AddFrontendIndexToRepo("App/views/Home/Index.cshtml", indexCshtmlTemplate);
         string url = VersionPrefix(org, targetRepository);
 
         using var response = await HttpClient.GetAsync(url);

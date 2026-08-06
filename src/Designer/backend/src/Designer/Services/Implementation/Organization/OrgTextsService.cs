@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using Altinn.Studio.Designer.Services.Interfaces.Organization;
 
-namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
+namespace Altinn.Studio.Designer.Services.Implementation.Organization;
 
 public class OrgTextsService : IOrgTextsService
 {

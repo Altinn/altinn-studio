@@ -39,12 +39,12 @@ public class GetSucceededReleaseFromDbIntegrationTests : ReleaseEntityIntegratio
 
         await PrepareEntitiesInDatabase(releaseEntities);
 
-        var exptectedEntity = releaseEntities.Single(r =>
+        var expectedEntity = releaseEntities.Single(r =>
             r.Org == org && r.App == app && r.TagName == tagName && r.Build.Result == BuildResult.Succeeded
         );
 
         var result = await repository.GetSucceededReleaseFromDb(org, app, tagName);
-        AssertionUtil.AssertEqualTo(exptectedEntity, result);
+        AssertionUtil.AssertEqualTo(expectedEntity, result);
     }
 
     public static IEnumerable<object[]> TestData()

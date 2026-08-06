@@ -528,7 +528,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task PrepareOrganisationIndexFile()
+    public async Task PrepareOrganizationIndexFile()
     {
         // Arrange
         string organization = "new_organization";
@@ -556,7 +556,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.PrepareOrganisationIndexFile(organization);
+        await client.PrepareOrganizationIndexFile(organization);
 
         // Assert
         string path = "_index.json";
@@ -566,7 +566,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task PrepareOrganisationIndexFile_NotFoundResponse()
+    public async Task PrepareOrganizationIndexFile_NotFoundResponse()
     {
         // Arrange
         string organization = "new_organization";
@@ -586,7 +586,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.PrepareOrganisationIndexFile(organization);
+        await client.PrepareOrganizationIndexFile(organization);
 
         // Assert
         string path = "_index.json";
@@ -596,7 +596,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task PrepareOrganisationIndexFile_OtherResponse()
+    public async Task PrepareOrganizationIndexFile_OtherResponse()
     {
         // Arrange
         string organizationName = "ttd";
@@ -615,7 +615,7 @@ public class AzureSharedContentClientTests
 
         // Act & Assert
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await client.PrepareOrganisationIndexFile(organizationName)
+            await client.PrepareOrganizationIndexFile(organizationName)
         );
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();

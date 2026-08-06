@@ -57,7 +57,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment);
         string versionIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
 
-        Task organisationIndexTask = PrepareOrganisationIndexFile(orgName, cancellationToken);
+        Task organizationIndexTask = PrepareOrganizationIndexFile(orgName, cancellationToken);
         Task resourceTypeTask = PrepareResourceTypeIndexFile(
             resourceTypeIndexPrefix,
             CodeListsSegment,
@@ -65,7 +65,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         );
         Task resourceTask = PrepareResourceIndexFile(resourceIndexPrefix, codeListId, cancellationToken);
         Task versionTask = PrepareVersionIndexFile(versionIndexPrefix, cancellationToken);
-        await Task.WhenAll(organisationIndexTask, resourceTypeTask, resourceTask, versionTask);
+        await Task.WhenAll(organizationIndexTask, resourceTypeTask, resourceTask, versionTask);
 
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
@@ -101,7 +101,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
     }
 
-    private async Task PrepareOrganisationIndexFile(string content, CancellationToken cancellationToken = default)
+    private async Task PrepareOrganizationIndexFile(string content, CancellationToken cancellationToken = default)
     {
         string path = IndexFileName; // No prefix since it's on root.
         try

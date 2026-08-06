@@ -40,7 +40,7 @@ public interface IReleaseRepository
     Task<IEnumerable<ReleaseEntity>> Get(string org, string buildId);
 
     /// <summary>
-    /// Calls a procedure to retrieve succedded release entity
+    /// Calls a procedure to retrieve succeeded release entity
     /// </summary>
     Task<ReleaseEntity> GetSucceededReleaseFromDb(string org, string app, string tagName);
 

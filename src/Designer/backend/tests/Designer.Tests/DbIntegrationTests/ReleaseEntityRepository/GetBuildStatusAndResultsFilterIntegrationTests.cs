@@ -42,7 +42,7 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
 
         await PrepareEntitiesInDatabase(releaseEntities);
 
-        var exptectedEntities = releaseEntities
+        var expectedEntities = releaseEntities
             .Where(r => r.Org == org && r.App == app && r.TagName == tagName)
             .Where(r =>
                 (buildStatuses is not null && buildStatuses.Contains(r.Build.Status.ToEnumMemberAttributeValue()))
@@ -53,7 +53,7 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
         var results = (await repository.Get(org, app, tagName, buildStatuses, buildResults)).ToList();
 
         Assert.Equal(expectedFoundNumber, results.Count);
-        AssertionUtil.AssertEqualTo(exptectedEntities, results);
+        AssertionUtil.AssertEqualTo(expectedEntities, results);
     }
 
     public static IEnumerable<object[]> TestData()

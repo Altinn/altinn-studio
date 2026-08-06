@@ -116,11 +116,11 @@ public static class AssertionUtil
         AssertCollections(
             expected.ObligationExpressions,
             actual.ObligationExpressions,
-            AsssertXacmlObligationExpressionsEqual
+            AssertXacmlObligationExpressionsEqual
         );
     }
 
-    public static void AsssertXacmlObligationExpressionsEqual(
+    public static void AssertXacmlObligationExpressionsEqual(
         XacmlObligationExpression expected,
         XacmlObligationExpression actual
     )
@@ -130,11 +130,11 @@ public static class AssertionUtil
         AssertCollections(
             expected.AttributeAssignmentExpressions,
             actual.AttributeAssignmentExpressions,
-            AssertXacmlAttritubeAssignmentExpressionEqual
+            AssertXacmlAttributeAssignmentExpressionEqual
         );
     }
 
-    public static void AssertXacmlAttritubeAssignmentExpressionEqual(
+    public static void AssertXacmlAttributeAssignmentExpressionEqual(
         XacmlAttributeAssignmentExpression expected,
         XacmlAttributeAssignmentExpression actual
     )
@@ -175,10 +175,13 @@ public static class AssertionUtil
     public static void AssertXacmlMatch(XacmlMatch expected, XacmlMatch actual)
     {
         Assert.Equal(expected.MatchId, actual.MatchId);
-        AssertXacmlAttriuteDesignator(expected.AttributeDesignator, actual.AttributeDesignator);
+        AssertXacmlAttributeDesignator(expected.AttributeDesignator, actual.AttributeDesignator);
     }
 
-    public static void AssertXacmlAttriuteDesignator(XacmlAttributeDesignator expected, XacmlAttributeDesignator actual)
+    public static void AssertXacmlAttributeDesignator(
+        XacmlAttributeDesignator expected,
+        XacmlAttributeDesignator actual
+    )
     {
         Assert.Equal(expected.Category, actual.Category);
         Assert.Equal(expected.DataType, actual.DataType);

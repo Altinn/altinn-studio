@@ -14,11 +14,11 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using Altinn.Studio.Designer.Services.Interfaces.Organization;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
+namespace Altinn.Studio.Designer.Services.Implementation.Organization;
 
 public class OrgLibraryService(
     IGiteaClient giteaClient,
