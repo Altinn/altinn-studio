@@ -69,6 +69,7 @@ public class AltinnPartyClientInterceptor : HttpMessageHandler
             };
         }
 
-        return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead(file)) };
+        var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(stream) };
     }
 }
