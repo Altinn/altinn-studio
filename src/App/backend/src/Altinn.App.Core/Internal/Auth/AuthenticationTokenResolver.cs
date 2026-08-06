@@ -100,7 +100,7 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
         var response = await client.GetAsync(url, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
-            throw await PlatformHttpException.Create(response);
+            throw await PlatformHttpException.Create(response, cancellationToken);
 
         string token = await response.Content.ReadAsStringAsync(cancellationToken);
         response.Dispose(); // Disposing manually because PlatformHttpException pathway requires the response to be retained

@@ -87,7 +87,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
-            throw await PlatformHttpException.Create(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -153,7 +153,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError("Unable to query instances from Platform Storage");
-            throw await PlatformHttpException.Create(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -192,7 +192,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-            throw await PlatformHttpException.Create(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -236,7 +236,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-            throw await PlatformHttpException.Create(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -272,7 +272,7 @@ internal sealed class InstanceClient : IInstanceClient
         _logger.LogError(
             $"Unable to create instance {response.StatusCode} - {await response.Content.ReadAsStringAsync(CancellationToken.None)}"
         );
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc/>
@@ -302,7 +302,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc/>
@@ -367,7 +367,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc />
@@ -397,7 +397,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc />
@@ -427,7 +427,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc />
@@ -456,6 +456,6 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 }

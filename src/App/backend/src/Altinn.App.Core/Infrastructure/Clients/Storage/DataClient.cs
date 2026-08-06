@@ -181,7 +181,7 @@ public sealed class DataClient : IDataClient
             return dataElement;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -248,7 +248,7 @@ public sealed class DataClient : IDataClient
             return null!;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -338,7 +338,7 @@ public sealed class DataClient : IDataClient
             }
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -398,7 +398,7 @@ public sealed class DataClient : IDataClient
             return await response.Content.ReadAsByteArrayAsync(cts.Token);
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -437,7 +437,7 @@ public sealed class DataClient : IDataClient
 
         _logger.Log(LogLevel.Error, "Unable to fetch attachment list {StatusCode}", response.StatusCode);
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
@@ -510,7 +510,7 @@ public sealed class DataClient : IDataClient
         _logger.LogError(
             $"Deleting data element {dataGuid} for instance {instanceIdentifier} failed with status code {response.StatusCode}"
         );
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -558,7 +558,7 @@ public sealed class DataClient : IDataClient
         _logger.LogError(
             $"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}"
         );
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -620,7 +620,7 @@ public sealed class DataClient : IDataClient
             response.StatusCode,
             await response.Content.ReadAsStringAsync(cts.Token)
         );
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -668,7 +668,7 @@ public sealed class DataClient : IDataClient
         _logger.LogError(
             $"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}"
         );
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -719,7 +719,7 @@ public sealed class DataClient : IDataClient
 
             return dataElement;
         }
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -758,7 +758,7 @@ public sealed class DataClient : IDataClient
             return result;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -806,7 +806,7 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             response.StatusCode
         );
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -852,7 +852,7 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             response.StatusCode
         );
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     private static bool TypeAllowsJson(string? classRef, ApplicationMetadata appMetadata)

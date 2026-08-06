@@ -101,7 +101,7 @@ public class PersonClient : IPersonClient
             return null;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     private static string ConvertToBase64(string text)
