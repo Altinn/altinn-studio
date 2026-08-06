@@ -31,6 +31,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Explain whether app endpoint discovery or Localtest Storage was still incomplete when `studioctl run` reaches its startup timeout.
 - Detect apps started directly with `dotnet run` sooner by checking process endpoints every five seconds while retaining the ten-second container check interval.
 - Discover apps launched by `studioctl run` from their registered process without relying on process-name or command-line matching.
+- Rename the v8 API names whose spelling changed in v9 when running `studioctl app upgrade v9`: `OrganisationNumber`, `OrganisationOrPersonIdentifier` and their converters and extensions, `LookupOrganisationResponse`, `SigningAuthorizedOrganisationsResponse`, the `SetOrganisation*` telemetry helpers, `IFileAnalyser`/`IFileAnalyserFactory` and their `Analyse` method, and `InstansiationInstance`/`InstansiationNotification`. The misspelled `Altinn.App.Core.Features.FileAnalyzis` namespace is corrected to `FileAnalysis` at the same time. Each rename is listed with a count for review, and identifiers of your own that merely contain one of these names are left alone.
+- Correct three misspelled keys in your app's config when running `studioctl app upgrade v9`: `allowedContributers` to `allowedContributors` in applicationmetadata, `autoSaveBehaviour` to `autoSaveBehavior` in layout settings, and the built-in `date_picker.{min,max}_date_exeeded` text keys if your app overrides them. If a file already contains both spellings, it is left alone and you get a warning rather than a duplicate key.
+
+  Note that `autoSaveBehaviour` is more than cosmetic: Altinn Studio Designer wrote that spelling while the app only ever read `autoSaveBehavior`, so the setting had no effect. After the upgrade the app honours the value you chose, which for most apps means form data is saved more often than before.
 
 ## [0.1.0-preview.19] - 2026-08-06
 
