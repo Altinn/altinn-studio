@@ -12,7 +12,7 @@ import { ExpressionPlayground } from 'src/features/devtools/components/Expressio
 import { ComponentSelector } from 'src/features/devtools/components/LayoutInspector/ComponentSelector';
 import { LayoutInspector } from 'src/features/devtools/components/LayoutInspector/LayoutInspector';
 import { NodeInspector } from 'src/features/devtools/components/NodeInspector/NodeInspector';
-import { PDFPreviewButton } from 'src/features/devtools/components/PDFPreviewButton/PDFPreviewButton';
+import { PDFGeneratorPreviewSection } from 'src/features/devtools/components/PDFGeneratorPreviewSection/PDFGeneratorPreviewSection';
 import { PermissionsEditor } from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
@@ -54,7 +54,7 @@ export const DevToolsControls = () => {
         value={DevToolsTab.General}
       >
         <div className={classes.page}>
-          <PDFPreviewButton />
+          <PDFGeneratorPreviewSection />
           <DevNavigationButtons />
           <DevHiddenFunctionality />
           <PermissionsEditor />
