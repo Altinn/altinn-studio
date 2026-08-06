@@ -45,7 +45,7 @@ export function Text({
   const labelId = getLabelId(componentId);
 
   return (
-    <span
+    <div
       id={labelId}
       className={cn(
         classes.label,
@@ -72,6 +72,6 @@ export function Text({
           labelId={labelId}
         />
       </ComponentStructure>
-    </span>
+    </div>
   );
 }
