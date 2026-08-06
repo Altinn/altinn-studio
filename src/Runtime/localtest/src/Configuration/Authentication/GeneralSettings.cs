@@ -167,17 +167,29 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// Gets or sets the url to the json file which holds the valid organization entries (which includes name, organization number and org identifier)
         /// </summary>
+        public string OrganizationRepositoryLocation { get; set; }
+
+        /// <summary>
+        /// Deprecated British spelling of <see cref="OrganizationRepositoryLocation"/>. Still bound so that
+        /// existing appsettings files and GeneralSettings__OrganisationRepositoryLocation overrides keep working.
+        /// </summary>
+        [Obsolete("Renamed to OrganizationRepositoryLocation. Read as a fallback so existing overrides keep working.")]
         public string OrganisationRepositoryLocation { get; set; }
 
         /// <summary>
-        /// Gets the url of the list of valid organization entries (json)
+        /// Gets the url of the list of valid organization entries (json). Prefers the current spelling and
+        /// falls back to the deprecated British one, in both the environment variable and the settings file.
         /// </summary>
-        public string GetOrganisationRepositoryLocation
+        public string GetOrganizationRepositoryLocation
         {
             get
             {
-                return Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(OrganisationRepositoryLocation)) ??
+#pragma warning disable CS0618 // Deliberately reading the deprecated spelling as a fallback
+                return Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(OrganizationRepositoryLocation)) ??
+                    Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(OrganisationRepositoryLocation)) ??
+                    OrganizationRepositoryLocation ??
                     OrganisationRepositoryLocation;
+#pragma warning restore CS0618
             }
         }
 

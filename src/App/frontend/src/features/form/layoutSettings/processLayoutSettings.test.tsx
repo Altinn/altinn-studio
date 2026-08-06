@@ -109,4 +109,40 @@ describe('processLayoutSettings', () => {
       expect(result.pageSettings.taskNavigation[0].name).toBe('personopplysninger');
     });
   });
+
+  describe('autoSaveBehavior', () => {
+    function processWithPages(pages: Record<string, unknown>) {
+      window.altinnAppGlobalData.ui.settings = { ...defaultGlobalUiSettings };
+      return processLayoutSettings({ pages: { order: ['first'], ...pages } } as ILayoutSettings);
+    }
+
+    // 'onChangeFormData' is deliberately the value under test throughout: the runtime
+    // default is 'onChangePage', so asserting that would pass even if the setting were
+    // ignored entirely.
+    it('reads the current spelling', () => {
+      const result = processWithPages({ autoSaveBehavior: 'onChangeFormData' });
+      expect(result.pageSettings.autoSaveBehavior).toBe('onChangeFormData');
+    });
+
+    // Altinn Studio Designer wrote the British spelling into Settings.json until v9,
+    // while the app only ever read the American one — so the setting silently did
+    // nothing. It is read as a fallback until `studioctl app upgrade` rewrites the file.
+    it('falls back to the deprecated British spelling', () => {
+      const result = processWithPages({ autoSaveBehaviour: 'onChangeFormData' });
+      expect(result.pageSettings.autoSaveBehavior).toBe('onChangeFormData');
+    });
+
+    it('uses the default when neither spelling is present', () => {
+      const result = processWithPages({});
+      expect(result.pageSettings.autoSaveBehavior).toBe(defaultGlobalUiSettings.autoSaveBehavior);
+    });
+
+    it('prefers the current spelling when both are present', () => {
+      const result = processWithPages({
+        autoSaveBehavior: 'onChangeFormData',
+        autoSaveBehaviour: 'onChangePage',
+      });
+      expect(result.pageSettings.autoSaveBehavior).toBe('onChangeFormData');
+    });
+  });
 });

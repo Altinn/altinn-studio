@@ -769,6 +769,16 @@ const common = {
           ),
       ),
       new CG.prop(
+        'autoSaveBehaviour',
+        new CG.enum('onChangeFormData', 'onChangePage')
+          .optional()
+          .setTitle('Auto save behaviour (deprecated spelling)')
+          .setDescription(
+            'British-spelled alias of autoSaveBehavior. Altinn Studio Designer wrote this spelling until v9, but the app has always read autoSaveBehavior, so the setting had no effect. It is read as a fallback so those apps start behaving as configured; autoSaveBehavior wins if both are present.',
+          )
+          .setDeprecated('Renamed to `autoSaveBehavior`. `studioctl app upgrade` rewrites it for you.'),
+      ),
+      new CG.prop(
         'navigationTitle',
         new CG.expr(ExprVal.String)
           .optional()

@@ -36,7 +36,10 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
       : settings.pages.groups.filter((group) => 'order' in group).flatMap((group) => group.order);
 
   const localPageSettings: Partial<GlobalPageSettings> = {
-    autoSaveBehavior: settings.pages.autoSaveBehavior,
+    // Designer wrote the British spelling into Settings.json until v9, while the app has
+    // always read the American one — so the setting silently did nothing. Read both, with
+    // the current spelling winning, until `studioctl app upgrade` has rewritten the file.
+    autoSaveBehavior: settings.pages.autoSaveBehavior ?? settings.pages.autoSaveBehaviour,
     expandedWidth: settings.pages.expandedWidth,
     hideCloseButton: settings.pages.hideCloseButton,
     showExpandWidthButton: settings.pages.showExpandWidthButton,
