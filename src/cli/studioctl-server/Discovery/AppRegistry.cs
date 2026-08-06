@@ -6,7 +6,7 @@ namespace Altinn.Studio.StudioctlServer.Discovery;
 internal sealed class AppRegistry : BackgroundService
 {
     private const int MaxConcurrentProbes = 8;
-    private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan _startupPollInterval = TimeSpan.FromMilliseconds(500);
 
     private readonly IReadOnlyList<IAppDiscovery> _discoveries;
