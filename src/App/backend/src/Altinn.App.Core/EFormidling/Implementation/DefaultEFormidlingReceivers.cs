@@ -1,6 +1,6 @@
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.Common.EFormidlingClient.Models.SBD;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.EFormidling.Implementation;
 
@@ -10,9 +10,9 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 public class DefaultEFormidlingReceivers : IEFormidlingReceivers
 {
     /// <inheritdoc />
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)
+    public Task<List<Receiver>> GetEFormidlingReceivers(IInstanceDataAccessor dataAccessor, string? receiverFromConfig)
     {
-        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(dataAccessor);
 
         if (string.IsNullOrWhiteSpace(receiverFromConfig))
         {

@@ -45,6 +45,13 @@ public sealed record ServiceTaskContext
     public required Guid StepId { get; init; }
 
     /// <summary>
+    /// Reference time for this execution: the explicit workflow schedule when present, otherwise the
+    /// persisted time when the workflow step was enqueued.
+    /// </summary>
+    /// <remarks>Provided by the workflow engine as <c>Workflow.StartAt ?? Step.CreatedAt</c>.</remarks>
+    public DateTimeOffset ExecutionReferenceTime { get; internal init; }
+
+    /// <summary>
     /// The clock bounding <em>this attempt</em> (<see cref="ProcessStepOptions.MaxExecutionTime"/>):
     /// how many consecutive errors preceded it, and when it is cut off.
     /// </summary>

@@ -75,7 +75,6 @@ internal sealed class SigningProcessTask : IProcessTask
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         CancellationToken ct = context.CancellationToken;
-        Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration? signatureConfiguration = _processReader
             .GetAltinnTaskExtension(taskId)
@@ -85,7 +84,7 @@ internal sealed class SigningProcessTask : IProcessTask
 
         if (signingPdfDataType is not null)
         {
-            await using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, ct: ct);
+            await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
             using var memoryStream = new MemoryStream();
             await pdfStream.CopyToAsync(memoryStream, ct);
 
