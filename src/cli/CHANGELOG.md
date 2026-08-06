@@ -17,7 +17,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Explain access errors during `studioctl app upgrade`
 - Explain whether app endpoint discovery or Localtest Storage was still incomplete when `studioctl run` reaches its startup timeout.
-- Detect apps started directly with `dotnet run` sooner by checking for new app endpoints every five seconds instead of every ten seconds.
+- Detect apps started directly with `dotnet run` sooner by checking process endpoints every five seconds while retaining the ten-second container check interval.
 
 ## [0.1.0-preview.19] - 2026-08-06
 
