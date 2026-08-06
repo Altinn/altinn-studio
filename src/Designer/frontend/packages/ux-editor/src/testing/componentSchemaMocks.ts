@@ -52,9 +52,7 @@ export const componentSchemaMocks: Record<
   Exclude<ComponentType, ComponentType.OrganisationLookup | ComponentType.Header>,
   JsonSchema
 > &
-  Partial<
-    Record<ComponentType.OrganisationLookup | ComponentType.Header, JsonSchema>
-  > = {
+  Partial<Record<ComponentType.OrganisationLookup | ComponentType.Header, JsonSchema>> = {
   [ComponentType.AccordionGroup]: AccordionGroupSchema,
   [ComponentType.Accordion]: AccordionSchema,
   [ComponentType.ActionButton]: ActionButtonSchema,
