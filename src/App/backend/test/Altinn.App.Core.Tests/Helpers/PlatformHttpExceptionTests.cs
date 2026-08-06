@@ -327,6 +327,48 @@ public class PlatformHttpExceptionTests
     }
 
     [Fact]
+    public void ExceptionFromHttpResponse_CapturesMetadataAndSuppliedContent()
+    {
+        using var response = TextResponse(HttpStatusCode.Conflict, "not read by this path");
+
+        var exception = PlatformHttpException.FromHttpResponse(response, "lock was not granted", "already read");
+
+        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+        Assert.Equal("lock was not granted", exception.Message);
+        Assert.Equal("already read", exception.Response.Content);
+    }
+
+    [Fact]
+    public void ExceptionFromHttpResponse_OmittingContentLeavesItEmpty()
+    {
+        using var response = TextResponse(HttpStatusCode.BadGateway);
+
+        var exception = PlatformHttpException.FromHttpResponse(response, "body was consumed elsewhere");
+
+        Assert.Equal(HttpStatusCode.BadGateway, exception.StatusCode);
+        Assert.Empty(exception.Response.Content);
+    }
+
+    /// <summary>
+    /// The whole reason this factory exists: the callers that use it have already consumed the body, so
+    /// the response must survive for their own <c>using</c> scope to dispose.
+    /// </summary>
+    [Fact]
+    public async Task ExceptionFromHttpResponse_DoesNotReadOrDisposeTheResponse()
+    {
+        using var response = TextResponse(HttpStatusCode.NotFound, "still readable");
+
+        var exception = PlatformHttpException.FromHttpResponse(
+            response,
+            "message",
+            innerException: new InvalidOperationException()
+        );
+
+        Assert.Equal("still readable", await response.Content.ReadAsStringAsync());
+        Assert.IsType<InvalidOperationException>(exception.InnerException);
+    }
+
+    [Fact]
     public void Constructor_ThrowsOnNullResponse()
     {
         Assert.Throws<ArgumentNullException>(() => new PlatformHttpException(null!, "message"));

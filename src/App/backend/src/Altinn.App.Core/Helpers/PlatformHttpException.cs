@@ -70,6 +70,32 @@ public class PlatformHttpException : AltinnException
         CancellationToken cancellationToken = default
     ) => CreateCore(response, message, innerException, cancellationToken);
 
+    /// <summary>
+    /// Creates a new <see cref="PlatformHttpException"/> from a response whose body has already been
+    /// read — or should not be read.
+    /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="Create(HttpResponseMessage, CancellationToken)"/> this neither reads the body
+    /// nor disposes <paramref name="response"/>: the caller keeps ownership. Reading is the reason
+    /// <c>Create</c> is asynchronous, so where the body has already been consumed — deserialized, or
+    /// read into a string — it cannot be replayed and <c>Create</c> would capture nothing. Pass
+    /// <paramref name="content"/> when you still have the body in hand so it reaches the snapshot.
+    /// <para>
+    /// Named to mirror <see cref="PlatformHttpResponse.FromHttpResponse"/>, which has the same
+    /// contract: metadata plus whatever content you supply, and no side effects on the response.
+    /// </para>
+    /// </remarks>
+    /// <param name="response">The failed response. Neither read nor disposed.</param>
+    /// <param name="message">A description of the cause of the exception.</param>
+    /// <param name="content">The already-read response body, if available.</param>
+    /// <param name="innerException">The exception that caused this one, if any.</param>
+    public static PlatformHttpException FromHttpResponse(
+        HttpResponseMessage response,
+        string message,
+        string? content = null,
+        Exception? innerException = null
+    ) => new(PlatformHttpResponse.FromHttpResponse(response, content), message, innerException);
+
     private static async Task<PlatformHttpException> CreateCore(
         HttpResponseMessage response,
         string? message,

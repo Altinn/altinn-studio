@@ -2418,6 +2418,7 @@ namespace Altinn.App.Core.Helpers
         public System.Net.HttpStatusCode StatusCode { get; }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Helpers.PlatformHttpException> Create(System.Net.Http.HttpResponseMessage response, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Helpers.PlatformHttpException> Create(System.Net.Http.HttpResponseMessage response, string message, System.Exception? innerException = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static Altinn.App.Core.Helpers.PlatformHttpException FromHttpResponse(System.Net.Http.HttpResponseMessage response, string message, string? content = null, System.Exception? innerException = null) { }
     }
     public sealed class PlatformHttpResponse : System.IEquatable<Altinn.App.Core.Helpers.PlatformHttpResponse>
     {

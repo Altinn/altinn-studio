@@ -258,9 +258,10 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
         }
         catch (Exception e)
         {
-            throw new PlatformHttpException(
-                PlatformHttpResponse.FromHttpResponse(response, content),
+            throw PlatformHttpException.FromHttpResponse(
+                response,
                 $"Error deserializing JSON data: {e.Message}. The content was: {content}",
+                content,
                 e
             );
         }
@@ -284,11 +285,7 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
     )
     {
         string errorMessage = $"{(int)response.StatusCode} {response.ReasonPhrase}: {content}";
-        return new PlatformHttpException(
-            PlatformHttpResponse.FromHttpResponse(response, content),
-            errorMessage,
-            innerException
-        );
+        return PlatformHttpException.FromHttpResponse(response, errorMessage, content, innerException);
     }
 
     private async Task<HttpClient> GetAuthenticatedClient(HttpClientTarget target)
