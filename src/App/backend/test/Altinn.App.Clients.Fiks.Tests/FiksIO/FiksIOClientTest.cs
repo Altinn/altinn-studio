@@ -79,7 +79,7 @@ public class FiksIOClientTest
         {
             AccountId = Guid.Parse("2c83fc27-83da-4bc8-8d9c-d45e20d670f3"),
             IntegrationId = Guid.Parse("60646af0-187d-4533-87a8-50da7af8e8f1"),
-            IntegrationPassword = "integration-passord",
+            IntegrationPassword = "integration-password",
             ApiHost = apiHost,
             AmqpHost = amqpHost,
             AccountPrivateKeyBase64 =
@@ -413,7 +413,7 @@ public class FiksIOClientTest
         public required string ApplicationName { get; init; }
         public required int PrefetchCount { get; init; }
         public required Guid IntegrationId { get; init; }
-        public required string IntegrationPassord { get; init; }
+        public required string IntegrationPassword { get; init; }
         public required string IntegrationScope { get; init; }
         public required Guid AccountId { get; init; }
         public required IEnumerable<string> AccountPrivateKey { get; init; }
@@ -429,7 +429,7 @@ public class FiksIOClientTest
                 ApplicationName = config.AmqpConfiguration.ApplicationName,
                 PrefetchCount = config.AmqpConfiguration.PrefetchCount,
                 IntegrationId = config.IntegrasjonConfiguration.IntegrasjonId,
-                IntegrationPassord = config.IntegrasjonConfiguration.IntegrasjonPassord,
+                IntegrationPassword = config.IntegrasjonConfiguration.IntegrasjonPassord,
                 IntegrationScope = config.IntegrasjonConfiguration.Scope,
                 AccountId = config.KontoConfiguration.KontoId,
                 AccountPrivateKey = config.KontoConfiguration.PrivatNokler.Select(x => x[..50] + "..."),

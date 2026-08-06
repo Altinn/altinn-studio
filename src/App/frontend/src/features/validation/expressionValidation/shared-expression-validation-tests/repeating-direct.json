@@ -1,5 +1,5 @@
 {
-  "name": "Should work in repeating groups when refering to the data model path directly",
+  "name": "Should work in repeating groups when referring to the data model path directly",
   "expects": [
     {
       "message": "none is not allowed",

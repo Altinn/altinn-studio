@@ -17,7 +17,7 @@ export function getInstanceDataMock(
       partyId: partyIdStr,
       party,
       personNumber: ssn,
-      organisationNumber: orgNr,
+      organizationNumber: orgNr,
     },
     appId: 'mockOrg/mockApp',
     created: new Date('2020-01-01').toISOString(),

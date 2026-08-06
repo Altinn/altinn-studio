@@ -266,8 +266,8 @@ public class FakeHttpMessageHandler : HttpMessageHandler
         activity?.SetTag("endpoint", endpoints[0].Name);
         var response = await endpoints[0].Handle(request);
         activity?.SetTag("responseStatusCode", (int)response.StatusCode);
-        var responsString = await response.Content.ReadAsStringAsync(cancellationToken);
-        activity?.SetTag("responseContent", responsString.Substring(0, Math.Min(responsString.Length, 30)));
+        var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+        activity?.SetTag("responseContent", responseString.Substring(0, Math.Min(responseString.Length, 30)));
 
         RequestResponses.Add(await RequestResponse.FromHttpMessages(request, response));
         return response;

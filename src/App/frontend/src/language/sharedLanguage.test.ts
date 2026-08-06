@@ -3,7 +3,7 @@ import { parseAndCleanText } from 'src/language/sharedLanguage';
 describe('sharedLanguage.ts', () => {
   describe('getParsedLanguageFromText', () => {
     it('should return single element if only text is parsed', () => {
-      const result = parseAndCleanText('just som plain text');
+      const result = parseAndCleanText('just some plain text');
       expect(result instanceof Array).toBeFalsy();
     });
 

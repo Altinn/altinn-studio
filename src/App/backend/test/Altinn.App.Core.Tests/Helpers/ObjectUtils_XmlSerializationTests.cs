@@ -19,7 +19,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
     private readonly Mock<ILogger> _loggerMock = new();
 
     [XmlRoot(ElementName = "model")]
-    public class YttersteObjekt
+    public class OutermostObject
     {
         [XmlElement("aarets", Order = 1)]
         [JsonPropertyName("aarets")]
@@ -58,7 +58,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         }
 
         [XmlElement("children", Order = 6)]
-        public List<YttersteObjekt>? Children { get; set; }
+        public List<OutermostObject>? Children { get; set; }
     }
 
     public class NullableDecimalMedORID
@@ -137,7 +137,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         var input = "'\u0002'"; // Represents start of text (␂)
         var output = "'\uFFFD'"; // Represents replacement character (�)
 
-        var test = new YttersteObjekt { NormalString = input };
+        var test = new OutermostObject { NormalString = input };
 
         ObjectUtils.PrepareModelForXmlStorage(test);
 
@@ -157,7 +157,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         AssertObject(testResult, value, storedValue);
     }
 
-    private YttersteObjekt SerializeDeserialize(YttersteObjekt test)
+    private OutermostObject SerializeDeserialize(OutermostObject test)
     {
         // Serialize
         using var serializationStream = new MemoryStream();
@@ -168,8 +168,8 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         _output.WriteLine(Encoding.UTF8.GetString(serialized.Span));
 
         // Deserialize
-        var deserialized = modelSerializer.DeserializeXml(serialized.Span, typeof(YttersteObjekt));
-        var testResult = deserialized.Should().BeOfType<YttersteObjekt>().Which;
+        var deserialized = modelSerializer.DeserializeXml(serialized.Span, typeof(OutermostObject));
+        var testResult = deserialized.Should().BeOfType<OutermostObject>().Which;
 
         return testResult;
     }
@@ -187,7 +187,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         _output.WriteLine(json);
 
         // Deserialize
-        var testResult = JsonSerializer.Deserialize<YttersteObjekt>(json)!;
+        var testResult = JsonSerializer.Deserialize<OutermostObject>(json)!;
 
         if (value is null)
         {
@@ -204,15 +204,15 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         AssertObject(testResult, value, value);
     }
 
-    private static YttersteObjekt CreateObject(string? value)
+    private static OutermostObject CreateObject(string? value)
     {
-        var test = new YttersteObjekt
+        var test = new OutermostObject
         {
             StringMedOrid = new StringMedORID { value = value },
             NormalString = value,
-            Children = new List<YttersteObjekt>
+            Children = new List<OutermostObject>
             {
-                new YttersteObjekt
+                new OutermostObject
                 {
                     StringMedOrid = new StringMedORID { value = value },
                     NormalString = value,
@@ -233,7 +233,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         return test;
     }
 
-    private static void AssertObject(YttersteObjekt test, string? normalValue, string? xmlTextValue)
+    private static void AssertObject(OutermostObject test, string? normalValue, string? xmlTextValue)
     {
         test.DecimalMedOrid.Should().BeNull();
         if (xmlTextValue is null)
@@ -301,7 +301,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         _output.WriteLine(json);
 
         // Deserialize
-        var testResult = JsonSerializer.Deserialize<YttersteObjekt>(json)!;
+        var testResult = JsonSerializer.Deserialize<OutermostObject>(json)!;
 
         if (value is null)
         {
@@ -318,16 +318,16 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         AssertObject(testResult, value);
     }
 
-    private static YttersteObjekt CreateObject(decimal? value)
+    private static OutermostObject CreateObject(decimal? value)
     {
-        var test = new YttersteObjekt
+        var test = new OutermostObject
         {
             DecimalMedOrid = new NullableDecimalMedORID { valueNullable = value },
             NullableDecimal = value,
             Decimal = value ?? default,
-            Children = new List<YttersteObjekt>
+            Children = new List<OutermostObject>
             {
-                new YttersteObjekt
+                new OutermostObject
                 {
                     DecimalMedOrid = new NullableDecimalMedORID { valueNullable = value },
                     NullableDecimal = value,
@@ -352,7 +352,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         return test;
     }
 
-    private static void AssertObject(YttersteObjekt test, decimal? value)
+    private static void AssertObject(OutermostObject test, decimal? value)
     {
         test.StringMedOrid.Should().BeNull();
         if (value is null)
@@ -388,7 +388,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
     [Fact]
     public void VerifyShouldSerialize()
     {
-        var test = new YttersteObjekt
+        var test = new OutermostObject
         {
             DecimalMedOrid = new(),
             StringMedOrid = new(),

@@ -250,7 +250,7 @@ public class InstancesController_CopyInstanceTests
         var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
         using var fixture = InstancesControllerFixture.Create(auth);
 
-        // Simulate a BadGateway respons from Platform
+        // Simulate a BadGateway response from Platform
         PlatformHttpException platformHttpException = await PlatformHttpException.Create(
             new HttpResponseMessage(System.Net.HttpStatusCode.BadGateway)
         );

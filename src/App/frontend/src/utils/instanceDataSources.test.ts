@@ -38,7 +38,7 @@ describe('instanceDataSources/instanceContext', () => {
       appId,
       instanceOwner: {
         partyId,
-        organisationNumber: '123456789',
+        organizationNumber: '123456789',
         party: {
           name: 'My Organization AS',
         },

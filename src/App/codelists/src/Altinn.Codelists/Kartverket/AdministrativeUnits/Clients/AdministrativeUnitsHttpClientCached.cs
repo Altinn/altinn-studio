@@ -4,7 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
 
 /// <summary>
-/// Http client to get information on norways offical administrative units for counties and municipalities.
+/// Http client to get information on norways official administrative units for counties and municipalities.
 /// This class caches the information for performance reasons to avoid costly http calls.
 /// </summary>
 internal sealed class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient

@@ -21,7 +21,7 @@ public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<Web
         var org = "tdd";
         var appId = "contributor-restriction";
         var appMetadataSample =
-            $"{{\"id\":\"{org}/{appId}\",\"org\":\"{org}\",\"title\":{{\"nb\":\"Bestillingseksempelapp\"}},\"dataTypes\":[],\"partyTypesAllowed\":{{}},\"extra_Unknown_list\":[3,\"tre\",{{\"verdi\":3}}]}}";
+            $"{{\"id\":\"{org}/{appId}\",\"org\":\"{org}\",\"title\":{{\"nb\":\"Bestillingseksempelapp\"}},\"dataTypes\":[],\"partyTypesAllowed\":{{}},\"extra_Unknown_list\":[3,\"three\",{{\"value\":3}}]}}";
         var application = JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataSample, JsonSerializerOptions)!;
         _appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(application);
         OverrideServicesForThisTest = (services) =>
@@ -34,7 +34,7 @@ public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<Web
         var responseString = await response.Content.ReadAsStringAsync();
         // Assert that unknown parts of json is preserved
         Assert.Contains("extra_Unknown_list", responseString);
-        Assert.Contains("verdi\":3", responseString);
+        Assert.Contains("value\":3", responseString);
 
         // Verify that [ResponseCache] attribute is not overridden by middleware
         Assert.NotNull(response.Headers.CacheControl);
