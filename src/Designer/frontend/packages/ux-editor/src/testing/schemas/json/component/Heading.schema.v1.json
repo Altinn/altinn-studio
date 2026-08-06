@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Header.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Heading.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,13 +47,13 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "Header" },
+    "type": { "const": "Heading" },
     "textResourceBindings": {
       "type": "object",
       "properties": {
         "title": {
           "title": "Title",
-          "description": "The text to display in the header",
+          "description": "The text to display in the heading",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "help": {
@@ -66,11 +66,11 @@
     },
     "size": {
       "title": "Size",
-      "description": "The size of the header",
+      "description": "The size of the heading",
       "enum": ["L", "M", "S", "h2", "h3", "h4"],
       "type": "string"
     }
   },
   "required": ["id", "type", "size"],
-  "title": "Header component schema"
+  "title": "Heading component schema"
 }

@@ -94,7 +94,7 @@ export const ComponentMainConfig = ({
           className={classes.mainConfigWrapper}
         />
       );
-    case ComponentType.Header:
+    case ComponentType.Heading:
       return (
         <TitleMainConfig
           component={component}

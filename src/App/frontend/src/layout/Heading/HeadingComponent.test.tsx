@@ -3,29 +3,29 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import ResizeObserverModule from 'resize-observer-polyfill';
 
-import { HeaderComponent } from 'src/layout/Header/HeaderComponent';
+import { HeadingComponent } from 'src/layout/Heading/HeadingComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 global.ResizeObserver = ResizeObserverModule;
 
-const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Header'>> = {}) => {
+const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Heading'>> = {}) => {
   await renderGenericComponentTest({
-    type: 'Header',
-    renderer: (props) => <HeaderComponent {...props} />,
+    type: 'Heading',
+    renderer: (props) => <HeadingComponent {...props} />,
     component: {
-      textResourceBindings: { title: 'The header title' },
+      textResourceBindings: { title: 'The heading title' },
       ...component,
     },
     genericProps,
   });
 };
 
-describe('HeaderComponent', () => {
+describe('HeadingComponent', () => {
   it('resolves the title binding and renders it as a heading', async () => {
     await render({ component: { size: 'L' } });
 
-    expect(screen.getByRole('heading', { level: 2, name: 'The header title' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'The heading title' })).toBeInTheDocument();
   });
 
   it('maps the configured size to the heading level', async () => {
@@ -43,7 +43,7 @@ describe('HeaderComponent', () => {
   it('should render help button when help text is defined', async () => {
     await render({
       component: {
-        textResourceBindings: { title: 'The header title', help: 'this is the help text' },
+        textResourceBindings: { title: 'The heading title', help: 'this is the help text' },
       },
     });
 

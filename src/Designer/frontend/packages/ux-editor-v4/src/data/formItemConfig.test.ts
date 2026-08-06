@@ -16,8 +16,9 @@ describe('formItemConfig', () => {
   const allAvailableComponents = allAvailableLists.flat();
   const excludedComponents = [
     ComponentType.Custom,
-    // The American spelling belongs to v9 ux-editor.
+    // OrganizationLookup and Heading belong to v9 ux-editor.
     ComponentType.OrganizationLookup,
+    ComponentType.Heading,
     ComponentType.Payment,
     ComponentType.Summary,
   ];

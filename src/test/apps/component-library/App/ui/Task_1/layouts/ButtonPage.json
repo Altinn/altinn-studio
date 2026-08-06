@@ -9,7 +9,7 @@
       },
       {
         "id": "ButtonPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Buttons"

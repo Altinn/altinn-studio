@@ -76,7 +76,7 @@ describe('AppNavigation', () => {
                     layout: [
                       {
                         id: `page-title-${page}`,
-                        type: 'Header',
+                        type: 'Heading',
                         textResourceBindings: {
                           title: `Title for ${page}`,
                         },

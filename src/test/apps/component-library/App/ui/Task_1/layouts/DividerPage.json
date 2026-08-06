@@ -9,7 +9,7 @@
       },
       {
         "id": "DividerPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "DividerPage"
@@ -17,7 +17,7 @@
       },
       {
         "id": "DividerPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -93,7 +93,7 @@
       {
         "size": "h3",
         "id": "DividerPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         }

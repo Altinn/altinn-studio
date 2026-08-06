@@ -57,7 +57,7 @@
             "FileUploadWithTag",
             "Grid",
             "Group",
-            "Header",
+            "Heading",
             "Image",
             "Input",
             "InstanceInformation",
@@ -478,12 +478,12 @@
           "if": {
             "properties": {
               "type": {
-                "const": "Header"
+                "const": "Heading"
               }
             }
           },
           "then": {
-            "$ref": "#/definitions/headerComponent"
+            "$ref": "#/definitions/headingComponent"
           }
         },
         {
@@ -524,10 +524,10 @@
         }
       ]
     },
-    "headerComponent": {
+    "headingComponent": {
       "properties": {
         "size": {
-          "title": "Header size",
+          "title": "Heading size",
           "description": "'L'=<h2>, 'M'=<h3>, 'S'=<h4>",
           "type": "string",
           "enum": ["L", "M", "S", "h2", "h3", "h4"]

@@ -4,7 +4,7 @@
     "layout": [
       {
         "id": "Header-prefill-test",
-        "type": "Header",
+        "type": "Heading",
         "size": "L",
         "textResourceBindings": {
           "title": "Test av delt modell med prefill"

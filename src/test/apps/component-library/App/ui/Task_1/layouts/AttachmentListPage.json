@@ -9,14 +9,14 @@
       {
         "size": "h2",
         "id": "AttachmentList-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "AttachmentListPage"
         }
       },
       {
         "id": "AttachmentList-HeaderComponent",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"

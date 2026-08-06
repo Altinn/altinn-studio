@@ -16,7 +16,9 @@ export enum ComponentType {
   FileUploadWithTag = 'FileUploadWithTag',
   Grid = 'Grid',
   Group = 'Group',
+  // Keep Header for frontend v4 apps; frontend v9 uses Heading.
   Header = 'Header',
+  Heading = 'Heading',
   IFrame = 'IFrame',
   Image = 'Image',
   ImageUpload = 'ImageUpload',

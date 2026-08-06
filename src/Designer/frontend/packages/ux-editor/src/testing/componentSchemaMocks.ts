@@ -16,7 +16,7 @@ import FileUploadSchema from './schemas/json/component/FileUpload.schema.v1.json
 import FileUploadWithTagSchema from './schemas/json/component/FileUploadWithTag.schema.v1.json';
 import GridSchema from './schemas/json/component/Grid.schema.v1.json';
 import GroupSchema from './schemas/json/component/Group.schema.v1.json';
-import HeaderSchema from './schemas/json/component/Header.schema.v1.json';
+import HeadingSchema from './schemas/json/component/Heading.schema.v1.json';
 import IFrameSchema from './schemas/json/component/IFrame.schema.v1.json';
 import ImageSchema from './schemas/json/component/Image.schema.v1.json';
 import ImageUploadSchema from './schemas/json/component/ImageUpload.schema.v1.json';
@@ -47,12 +47,14 @@ import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
-// ComponentType also contains the pre-v9 OrganisationLookup name used by ux-editor-v4.
+// ComponentType also contains pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
 export const componentSchemaMocks: Record<
-  Exclude<ComponentType, ComponentType.OrganisationLookup>,
+  Exclude<ComponentType, ComponentType.OrganisationLookup | ComponentType.Header>,
   JsonSchema
 > &
-  Partial<Record<ComponentType.OrganisationLookup, JsonSchema>> = {
+  Partial<
+    Record<ComponentType.OrganisationLookup | ComponentType.Header, JsonSchema>
+  > = {
   [ComponentType.AccordionGroup]: AccordionGroupSchema,
   [ComponentType.Accordion]: AccordionSchema,
   [ComponentType.ActionButton]: ActionButtonSchema,
@@ -70,7 +72,7 @@ export const componentSchemaMocks: Record<
   [ComponentType.FileUploadWithTag]: FileUploadWithTagSchema,
   [ComponentType.Grid]: GridSchema,
   [ComponentType.Group]: GroupSchema,
-  [ComponentType.Header]: HeaderSchema,
+  [ComponentType.Heading]: HeadingSchema,
   [ComponentType.IFrame]: IFrameSchema,
   [ComponentType.Image]: ImageSchema,
   [ComponentType.ImageUpload]: ImageUploadSchema,

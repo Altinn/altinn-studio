@@ -10,7 +10,7 @@ import { app, org } from '@studio/testing/testids';
 const widgetUrl1 = 'url1';
 const widgetUrl2 = 'url2';
 const widgetUrls = [widgetUrl1, widgetUrl2];
-const widget1Name = ComponentType.Header;
+const widget1Name = ComponentType.Heading;
 const widget2Name = ComponentType.Paragraph;
 const widget1: IWidget = { displayName: widget1Name, components: [], texts: [] };
 const widget2: IWidget = { displayName: widget2Name, components: [], texts: [] };

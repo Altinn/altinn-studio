@@ -9,7 +9,7 @@
             {
                 "size": "h2",
                 "id": "GroupPage-Header",
-                "type": "Header",
+                "type": "Heading",
                 "textResourceBindings": {
                     "title": "GroupPage"
                 }
@@ -17,7 +17,7 @@
             {
                 "size": "h3",
                 "id": "GroupPage-Header-Component",
-                "type": "Header",
+                "type": "Heading",
                 "textResourceBindings": {
                     "title": "Header.Component"
                 }
@@ -87,7 +87,7 @@
             {
                 "size": "h3",
                 "id": "GroupPage-Header-Summary",
-                "type": "Header",
+                "type": "Heading",
                 "textResourceBindings": {
                     "title": "Header.Summary"
                 }
@@ -105,7 +105,7 @@
             {
                 "size": "h3",
                 "id": "GroupPage-Header-Summary2",
-                "type": "Header",
+                "type": "Heading",
                 "textResourceBindings": {
                     "title": "Header.Summary2"
                 }
@@ -137,7 +137,7 @@
             {
                 "size": "L",
                 "id": "GroupPage-Group-Header",
-                "type": "Header",
+                "type": "Heading",
                 "textResourceBindings": {
                     "title": "GroupPage-Group-Header.title"
                 }
@@ -174,7 +174,7 @@
             {
                 "size": "L",
                 "id": "GroupPage-Nested-Header",
-                "type": "Header",
+                "type": "Heading",
                 "textResourceBindings": {
                     "title": "I am a nested header"
                 }
