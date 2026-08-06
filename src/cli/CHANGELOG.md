@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.19] - 2026-08-06
+
 ### Added
 
 - Auto-migrate the Correspondence APIs removed in v9 in `studioctl app upgrade v9`: drop the builder calls and properties v8 already discarded, rename `CustomRecipient` to the `CustomRecipients` list, rename the removed builder step interface, wrap a byte payload passed to `WithData` in a `MemoryStream`, and replace the two superseded payload constructors with `CorrespondenceAuthenticationMethod`. Every rewrite is listed for review.
