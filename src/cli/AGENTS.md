@@ -36,8 +36,8 @@ make test      # 6. Unit tests
   CI-only work), apply the `skip-changelog` label instead. The structure of any changed
   changelog is validated separately (`.github/workflows/changelog.yml`).
 - Releases are changelog-promotion PRs: move `[Unreleased]` into a new `## [<version>] - <date>`
-  section and label the PR `release/studioctl`; merging it triggers
-  `.github/workflows/release-components.yaml`, which calls the studioctl publisher workflow.
+  section. Merging it triggers `.github/workflows/release-components.yaml`, which detects the
+  promotion from Git history and calls the studioctl publisher workflow.
   Use `src/tools/releaser`
   (`go run . prepare -component studioctl -version vX.Y.Z-preview.N`) or promote manually,
   and validate with `go run . validate-changelog` / `resolve-version`.

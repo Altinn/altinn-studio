@@ -199,9 +199,9 @@ func runResolveTrigger(args []string) error {
 		fmt.Print(`Usage: releaser resolve-trigger [options]
 
 Resolves a trusted canonical repository event into a component release context.
-Push events are matched to their merged release PR and validated against the
-registered component's label, branch policy, and changelog. Manual dispatches
-validate the selected component and branch for recovery.
+Push events are inspected with Git for a registered component changelog promotion
+between the before and head commits, then validated against the component's branch
+policy. Manual dispatches validate the selected component and branch for recovery.
 
 The result is emitted as JSON for CI orchestration.
 

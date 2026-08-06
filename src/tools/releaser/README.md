@@ -36,8 +36,8 @@ Context: on `main`
      `prepare` verifies that the active line has a canonical release branch, carries its prerelease channel forward,
      and starts the newer line at `<channel>.1`.
 3. Approve and merge the prep PR.
-4. CI detects the merged release-labelled PR from the canonical `main` push and runs automatically, including
-   for PRs from forks. It calls:
+4. CI detects the changelog promotion in the canonical `main` push and runs automatically, including for PRs
+   from forks. It calls:
    - `go run . workflow -component <component> -base-branch main`
 5. Workflow resolves the latest prerelease from the component changelog, builds artifacts (if applicable), creates tag `<component>/v...`, and creates a draft prerelease.
 
@@ -89,9 +89,15 @@ prerelease, stabilization, and patch release flows.
   contributor prep and backport branches use the configured push remote.
 - Dry runs and repository discovery only require Git. Creating pull requests or releases requires an authenticated
   `gh` CLI.
-- Automatic publication requires a merged PR with label `release/<component>`. The unified component release
-  workflow calls `resolve-trigger` on the trusted canonical branch push, so fork and same-repository PRs behave
-  alike. Trigger resolution reuses the component registry, branch policy, and changelog validation in this tool.
+- Automatic publication detects a release promotion by comparing publisher-enabled component changelogs before and
+  after a trusted canonical branch push. It does not depend on GitHub PR metadata or labels, so fork and
+  same-repository PRs behave alike. Trigger resolution reuses the component registry, branch policy, and
+  `Changelog.Promote` semantics in this tool. It fails if one push adds multiple release sections, promotes multiple
+  components, or does not exactly preserve the expected promotion content. Before publishing, CI also asserts that
+  the promoted version is the version resolved for that canonical branch.
+- The dispatcher intentionally runs on every `main` and `release/**` push and lets `resolve-trigger` no-op when no
+  promotion is present. GitHub path filters inspect at most 300 changed files and could otherwise miss a release in
+  a large push.
 - Manual workflow dispatch is a recovery path. Select the component and dispatch from `main` or the matching
   `release/<component>/vX.Y` branch.
 - Release publication depends on the unified CI workflow routing the component to its reusable publisher workflow.

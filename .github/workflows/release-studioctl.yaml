@@ -9,9 +9,6 @@ on:
       merge-sha:
         required: true
         type: string
-      pull-request-number:
-        required: true
-        type: string
       release-version:
         required: true
         type: string
@@ -69,15 +66,11 @@ jobs:
         if: always()
         env:
           BASE_BRANCH: ${{ inputs.base-branch }}
-          PR_NUMBER: ${{ inputs.pull-request-number }}
           RELEASE_VERSION: ${{ inputs.release-version }}
         run: |
           {
             echo "## Release Summary"
             echo ""
-            if [[ -n "${PR_NUMBER}" ]]; then
-              echo "- **PR**: #${PR_NUMBER}"
-            fi
             echo "- **Base branch**: ${BASE_BRANCH}"
             echo "- **Version**: ${RELEASE_VERSION}"
             echo ""

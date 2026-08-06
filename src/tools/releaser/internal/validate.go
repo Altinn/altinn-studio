@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"altinn.studio/releaser/internal/changelog"
@@ -19,7 +20,9 @@ var (
 	ErrNoNewUnreleasedEntries = errors.New("unreleased section has no new entries compared to base")
 	// ErrBaseChangelogOutdated indicates that the base branch changelog changed
 	// after the PR branch diverged.
-	ErrBaseChangelogOutdated = errors.New("base branch contains newer changelog changes")
+	ErrBaseChangelogOutdated        = errors.New("base branch contains newer changelog changes")
+	errReleasePromotionVersionCount = errors.New("release promotion must add exactly one version section")
+	errReleasePromotionMismatch     = errors.New("released section does not match the expected changelog promotion")
 )
 
 // ValidationRequest describes inputs for changelog validation.
@@ -283,30 +286,49 @@ func ValidateUnreleasedOrReleasePromotion(
 	if git == nil {
 		return errGitRequired
 	}
-	baseChangelog, err := loadBaseChangelog(ctx, git, base, changelogPath)
+	baseChangelog, err := loadChangelogAtRef(ctx, git, base, changelogPath)
 	if err != nil {
 		return fmt.Errorf("load base changelog: %w", err)
 	}
+	_, err = classifyChangelogChange(baseChangelog, cl)
+	return err
+}
 
-	if err := cl.ValidateUnreleased(); err != nil {
-		if !isAllowedUnreleasedValidationError(err) {
-			return fmt.Errorf("validate changelog: %w", err)
-		}
-
-		allowed, diffErr := isReleasePromotionDiff(baseChangelog, cl)
-		if diffErr != nil {
-			return fmt.Errorf("release promotion validation: %w", diffErr)
-		}
-		if !allowed {
-			return fmt.Errorf("validate changelog: %w", err)
-		}
-		return nil
+func classifyChangelogChange(baseChangelog, headChangelog *changelog.Changelog) (string, error) {
+	if baseChangelog == nil || headChangelog == nil {
+		return "", errChangelogNil
 	}
 
-	if err := validateHasNewUnreleasedEntries(baseChangelog, cl); err != nil {
-		return fmt.Errorf("validate changelog: %w", err)
+	headUnreleasedErr := headChangelog.ValidateUnreleased()
+	if headUnreleasedErr != nil && !isAllowedUnreleasedValidationError(headUnreleasedErr) {
+		return "", fmt.Errorf("validate changelog: %w", headUnreleasedErr)
 	}
-	return nil
+
+	newVersions := newReleaseSections(baseChangelog, headChangelog)
+	if len(newVersions) > 0 {
+		if len(newVersions) != 1 {
+			return "", promotionValidationError(errReleasePromotionVersionCount, headUnreleasedErr)
+		}
+		if err := validateReleasePromotion(baseChangelog, headChangelog, newVersions[0]); err != nil {
+			return "", promotionValidationError(err, headUnreleasedErr)
+		}
+		return newVersions[0].Version.String(), nil
+	}
+
+	if headUnreleasedErr != nil {
+		return "", fmt.Errorf("validate changelog: %w", headUnreleasedErr)
+	}
+	if err := validateHasNewUnreleasedEntries(baseChangelog, headChangelog); err != nil {
+		return "", fmt.Errorf("validate changelog: %w", err)
+	}
+	return "", nil
+}
+
+func promotionValidationError(err, headUnreleasedErr error) error {
+	if headUnreleasedErr != nil {
+		return fmt.Errorf("release promotion validation: %w: %w", err, headUnreleasedErr)
+	}
+	return fmt.Errorf("release promotion validation: %w", err)
 }
 
 func isAllowedUnreleasedValidationError(err error) bool {
@@ -318,21 +340,21 @@ type changelogEntryKey struct {
 	text     string
 }
 
-func loadBaseChangelog(
+func loadChangelogAtRef(
 	ctx context.Context,
-	git *GitCLI,
-	base,
+	git gitReader,
+	ref,
 	changelogPath string,
 ) (*changelog.Changelog, error) {
-	baseContent, err := git.Run(ctx, "show", base+":"+changelogPath)
+	content, err := git.Run(ctx, "show", ref+":"+changelogPath)
 	if err != nil {
 		return nil, fmt.Errorf("git show: %w", err)
 	}
-	baseChangelog, err := changelog.Parse(baseContent)
+	parsed, err := changelog.Parse(content)
 	if err != nil {
-		return nil, fmt.Errorf("parse base changelog: %w", err)
+		return nil, fmt.Errorf("parse changelog: %w", err)
 	}
-	return baseChangelog, nil
+	return parsed, nil
 }
 
 func validateHasNewUnreleasedEntries(baseChangelog, headChangelog *changelog.Changelog) error {
@@ -344,36 +366,6 @@ func validateHasNewUnreleasedEntries(baseChangelog, headChangelog *changelog.Cha
 		}
 	}
 	return ErrNoNewUnreleasedEntries
-}
-
-func isReleasePromotionDiff(baseChangelog, headChangelog *changelog.Changelog) (bool, error) {
-	if baseChangelog == nil || headChangelog == nil {
-		return false, errChangelogNil
-	}
-
-	if err := baseChangelog.ValidateUnreleased(); err != nil {
-		if isAllowedUnreleasedValidationError(err) {
-			return false, nil
-		}
-		return false, fmt.Errorf("validate base changelog: %w", err)
-	}
-
-	baseUnreleasedEntries := sectionEntrySet(baseChangelog.Unreleased)
-	if len(baseUnreleasedEntries) == 0 {
-		return false, nil
-	}
-
-	headUnreleasedEntries := sectionEntrySet(headChangelog.Unreleased)
-	if !hasRemovedUnreleasedEntry(baseUnreleasedEntries, headUnreleasedEntries) {
-		return false, nil
-	}
-
-	newReleaseEntries := newReleaseEntrySet(baseChangelog, headChangelog)
-	if len(newReleaseEntries) == 0 {
-		return false, nil
-	}
-
-	return hasAnyCommonEntry(baseUnreleasedEntries, newReleaseEntries), nil
 }
 
 func sectionEntrySet(section *changelog.Section) map[changelogEntryKey]struct{} {
@@ -389,17 +381,11 @@ func sectionEntrySet(section *changelog.Section) map[changelogEntryKey]struct{} 
 	return entries
 }
 
-func hasRemovedUnreleasedEntry(base, head map[changelogEntryKey]struct{}) bool {
-	for entry := range base {
-		if _, exists := head[entry]; !exists {
-			return true
-		}
-	}
-	return false
-}
-
-func newReleaseEntrySet(baseChangelog, headChangelog *changelog.Changelog) map[changelogEntryKey]struct{} {
-	entries := make(map[changelogEntryKey]struct{})
+func newReleaseSections(
+	baseChangelog,
+	headChangelog *changelog.Changelog,
+) []*changelog.Section {
+	sections := make([]*changelog.Section, 0, 1)
 	for _, section := range headChangelog.Versions {
 		if section == nil || section.Version == nil {
 			continue
@@ -407,20 +393,34 @@ func newReleaseEntrySet(baseChangelog, headChangelog *changelog.Changelog) map[c
 		if baseChangelog.HasVersion(section.Version.Num) {
 			continue
 		}
-		for _, category := range section.Categories {
-			for _, text := range category.Entries {
-				entries[changelogEntryKey{category: category.Name, text: text}] = struct{}{}
-			}
-		}
+		sections = append(sections, section)
 	}
-	return entries
+	return sections
 }
 
-func hasAnyCommonEntry(left, right map[changelogEntryKey]struct{}) bool {
-	for entry := range left {
-		if _, exists := right[entry]; exists {
-			return true
+func validateReleasePromotion(
+	baseChangelog,
+	headChangelog *changelog.Changelog,
+	newVersion *changelog.Section,
+) error {
+	if newVersion == nil || newVersion.Version == nil {
+		return errReleasePromotionMismatch
+	}
+
+	expected, err := baseChangelog.Promote(newVersion.Version.String(), newVersion.Date)
+	if err != nil {
+		return fmt.Errorf("build expected promotion: %w", err)
+	}
+	if !reflect.DeepEqual(expected.Versions, headChangelog.Versions) {
+		return errReleasePromotionMismatch
+	}
+
+	baseEntries := sectionEntrySet(baseChangelog.Unreleased)
+	headEntries := sectionEntrySet(headChangelog.Unreleased)
+	for entry := range headEntries {
+		if _, existedBeforePromotion := baseEntries[entry]; existedBeforePromotion {
+			return errReleasePromotionMismatch
 		}
 	}
-	return false
+	return nil
 }

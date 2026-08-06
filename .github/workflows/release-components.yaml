@@ -7,11 +7,7 @@ on:
   push:
     branches:
       - main
-      - 'release/app/v*'
-      - 'release/studioctl/v*'
-    paths:
-      - 'src/App/backend/CHANGELOG.md'
-      - 'src/cli/CHANGELOG.md'
+      - 'release/**'
   workflow_dispatch:
     inputs:
       component:
@@ -24,7 +20,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
   resolve-trigger:
@@ -34,7 +29,7 @@ jobs:
       component: ${{ steps.resolve.outputs.component }}
       base-branch: ${{ steps.resolve.outputs.base-branch }}
       merge-sha: ${{ steps.resolve.outputs.merge-sha }}
-      pull-request-number: ${{ steps.resolve.outputs.pull-request-number }}
+      release-version: ${{ steps.resolve.outputs.release-version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -52,11 +47,10 @@ jobs:
       - name: Resolve release trigger
         id: resolve
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
           REF_TYPE: ${{ github.ref_type }}
-          MERGE_SHA: ${{ github.sha }}
+          MERGE_SHA: ${{ github.event.after || github.sha }}
           BEFORE_SHA: ${{ github.event.before || '' }}
           SELECTED_COMPONENT: ${{ inputs.component || '' }}
         run: |
@@ -72,17 +66,17 @@ jobs:
           component="$(jq -r '.component' "$result_file")"
           base_branch="$(jq -r '.baseBranch' "$result_file")"
           merge_sha="$(jq -r '.mergeSha' "$result_file")"
-          pull_request_number="$(jq -r '.pullRequestNumber' "$result_file")"
+          release_version="$(jq -r '.releaseVersion' "$result_file")"
 
           {
             echo "component=$component"
             echo "base-branch=$base_branch"
             echo "merge-sha=$merge_sha"
-            echo "pull-request-number=$pull_request_number"
+            echo "release-version=$release_version"
           } >> "$GITHUB_OUTPUT"
 
           if [[ -z "$component" ]]; then
-            echo "No release-labelled pull request is associated with this push."
+            echo "No changelog release promotion is present in this push."
           else
             echo "Resolved $component release from $base_branch."
           fi
@@ -114,8 +108,14 @@ jobs:
         env:
           COMPONENT: ${{ needs.resolve-trigger.outputs.component }}
           BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
+          TRIGGER_RELEASE_VERSION: ${{ needs.resolve-trigger.outputs.release-version }}
         run: |
           version="$(go run . resolve-version --component "$COMPONENT" --base-branch "$BASE_BRANCH")"
+
+          if [[ -n "$TRIGGER_RELEASE_VERSION" && "$version" != "$TRIGGER_RELEASE_VERSION" ]]; then
+            echo "Promoted version $TRIGGER_RELEASE_VERSION does not match resolved version $version" >&2
+            exit 1
+          fi
 
           environment="prod"
           if [[ "$version" == *"-preview."* ]]; then
@@ -142,7 +142,6 @@ jobs:
       base-branch: ${{ needs.resolve-trigger.outputs.base-branch }}
       environment: ${{ needs.resolve-release-context.outputs.environment }}
       merge-sha: ${{ needs.resolve-trigger.outputs.merge-sha }}
-      pull-request-number: ${{ needs.resolve-trigger.outputs.pull-request-number }}
       release-version: ${{ needs.resolve-release-context.outputs.version }}
 
   release-studioctl:
@@ -157,7 +156,6 @@ jobs:
     with:
       base-branch: ${{ needs.resolve-trigger.outputs.base-branch }}
       merge-sha: ${{ needs.resolve-trigger.outputs.merge-sha }}
-      pull-request-number: ${{ needs.resolve-trigger.outputs.pull-request-number }}
       release-version: ${{ needs.resolve-release-context.outputs.version }}
 
   verify-release-routed:
