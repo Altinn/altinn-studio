@@ -27,9 +27,25 @@ public class Pages
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool? ShowProgress { get; set; }
 
-    [JsonPropertyName("autoSaveBehaviour")]
+    [JsonPropertyName("autoSaveBehavior")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public AutoSaveBehaviorType? AutoSaveBehavior { get; set; }
+
+    /// <summary>
+    /// Deprecated British spelling of <see cref="AutoSaveBehavior"/>. Designer wrote this key until v9
+    /// while the app runtime only ever read "autoSaveBehavior", so the setting had no effect. It is read
+    /// so an existing Settings.json keeps its value, and never written back - the getter is always null,
+    /// which <see cref="JsonIgnoreCondition.WhenWritingNull"/> omits.
+    /// </summary>
+    [JsonPropertyName("autoSaveBehaviour")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AutoSaveBehaviorType? AutoSaveBehaviorLegacy
+    {
+        get => null;
+        // Whichever key is read second wins for the current spelling, and ??= keeps it, so
+        // "autoSaveBehavior" takes precedence regardless of the order the two appear in the file.
+        set => AutoSaveBehavior ??= value;
+    }
 
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

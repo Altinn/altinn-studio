@@ -35,9 +35,21 @@ public class PagesDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool? ShowProgress { get; set; }
 
-    [JsonPropertyName("autoSaveBehaviour")]
+    [JsonPropertyName("autoSaveBehavior")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public AutoSaveBehaviorType? AutoSaveBehavior { get; set; }
+
+    /// <summary>
+    /// Deprecated British spelling of <see cref="AutoSaveBehavior"/>, accepted on the way in so that a
+    /// request from an older client is not silently dropped. Never written back.
+    /// </summary>
+    [JsonPropertyName("autoSaveBehaviour")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AutoSaveBehaviorType? AutoSaveBehaviorLegacy
+    {
+        get => null;
+        set => AutoSaveBehavior ??= value;
+    }
 
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
