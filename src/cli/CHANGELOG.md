@@ -17,6 +17,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Report in `studioctl app upgrade v9` when an app uses the external `Altinn.ApiClients.Maskinporten` package, which v9 no longer supplies. Apps that declare the package themselves are told they can keep it and simply pointed at the built-in client; apps that relied on it arriving with `Altinn.App.Core` are told their build will break and given both ways out.
 - Check an app's Maskinporten configuration in `studioctl doctor`: a `MaskinportenSettings` section that conflicts with the provisioned one, a checked-in signing key, and a reference to the external Maskinporten package. `app upgrade` only runs on 8.x apps, so this covers apps already on v9.
 
+### Fixed
+
+- Explain access errors during `studioctl app upgrade`
+
 ## [0.1.0-preview.19] - 2026-08-06
 
 ### Added

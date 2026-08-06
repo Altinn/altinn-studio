@@ -99,7 +99,7 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
         );
         try
         {
-            await _eFormidlingService.SendEFormidlingShipment(instance, configuration);
+            await _eFormidlingService.SendEFormidlingShipment(context.InstanceDataMutator, configuration);
         }
         catch (EformidlingDeliveryException e)
         {
