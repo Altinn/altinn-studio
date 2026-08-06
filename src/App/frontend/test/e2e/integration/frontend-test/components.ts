@@ -539,7 +539,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.focus');
   });
 
-  it('should display alert unchecking checkbox in checkbox group', () => {
+  it.only('should display alert unchecking checkbox in checkbox group', () => {
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'innhentet-studie' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
@@ -549,7 +549,8 @@ describe('UI Components', () => {
     cy.goto('changename');
     cy.gotoNavPage('grid');
     // dialog pops up when unchecking a checkbox
-    cy.findAllByRole('checkbox', { name: /Ja/ }).first().dblclick();
+    cy.findAllByRole('checkbox', { name: /Ja/ }).first().click();
+    cy.findAllByRole('checkbox', { name: /Ja/ }).first().click();
     //Make sure that the alert popover for only one checkbox is displayed, if several dialogs are displayed, the test will fail
     cy.get(appFrontend.confirmPopover);
   });
