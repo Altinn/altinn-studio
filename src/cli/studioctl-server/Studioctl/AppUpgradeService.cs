@@ -76,7 +76,7 @@ internal sealed class AppUpgradeService : IDisposable
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                await error.WriteLineAsync(ex.Message);
+                await error.WriteLineAsync(FileAccessDiagnostics.Describe(ex));
                 return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString());
             }
         }

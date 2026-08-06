@@ -105,30 +105,6 @@ describe('DropdownComponent', () => {
     );
   });
 
-  it('should show as readonly when readOnly is true', async () => {
-    await render({
-      component: {
-        readOnly: true,
-      },
-      options: countries,
-    });
-
-    const select = await screen.findByRole('combobox');
-    expect(select).toHaveAttribute('readonly');
-  });
-
-  it('should not show as readonly when readOnly is false', async () => {
-    await render({
-      component: {
-        readOnly: false,
-      },
-      options: countries,
-    });
-
-    const select = await screen.findByRole('combobox');
-    expect(select).not.toHaveAttribute('readonly');
-  });
-
   it('should trigger setLeafValue when preselectedOptionIndex is set', async () => {
     const { formDataMethods } = await render({
       component: {

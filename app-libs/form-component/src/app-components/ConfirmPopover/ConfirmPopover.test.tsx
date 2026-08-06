@@ -62,4 +62,43 @@ describe('ConfirmPopover', () => {
     await user.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByRole('button', { name: 'No, keep it' })).toBeInTheDocument();
   });
+
+  describe('controlled', () => {
+    it('renders the message and buttons when opened from the outside, without a trigger', () => {
+      renderConfirmPopover({ open: true, children: undefined });
+
+      expect(screen.getByText(message)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: confirmText })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: cancelText })).toBeInTheDocument();
+      // No trigger is rendered when no children are passed.
+      expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+    });
+
+    it('calls onConfirm and requests close when confirming', async () => {
+      const user = userEvent.setup();
+      const onOpenChange = vi.fn();
+      const { onConfirm } = renderConfirmPopover({ open: true, children: undefined, onOpenChange });
+
+      await user.click(screen.getByRole('button', { name: confirmText }));
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('calls onCancel and requests close when cancelling', async () => {
+      const user = userEvent.setup();
+      const onOpenChange = vi.fn();
+      const { onConfirm, onCancel } = renderConfirmPopover({
+        open: true,
+        children: undefined,
+        onOpenChange,
+      });
+
+      await user.click(screen.getByRole('button', { name: cancelText }));
+
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onConfirm).not.toHaveBeenCalled();
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+  });
 });
